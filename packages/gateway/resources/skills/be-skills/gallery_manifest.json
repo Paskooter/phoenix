@@ -1,0 +1,15 @@
+{
+    "id": "@be/gallery",
+    "intents": [
+        {
+            "name": "galleryOpen",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/gallery",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

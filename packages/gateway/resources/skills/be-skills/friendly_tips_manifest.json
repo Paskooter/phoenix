@@ -1,0 +1,24 @@
+{
+    "id": "@be/friendly-tips",
+    "intents": [
+        {
+            "name": "frustrated",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/friendly-tips",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "whatCanIDo",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/friendly-tips",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

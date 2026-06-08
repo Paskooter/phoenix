@@ -1,0 +1,60 @@
+{
+    "id": "@be/settings",
+    "intents": [
+        {
+            "name": "menu",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/settings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "battery",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/settings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "volumeQuery",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/settings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "storageStatus",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/settings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "wifiStatus",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/settings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "updates",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/settings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

@@ -1,0 +1,34 @@
+{
+    "id": "@be/introductions",
+    "intents": [
+        {
+            "name": "enrollment",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/introductions",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "enrollment",
+            "entities": [
+              {
+                "name": "skill",
+                "value": "@be/introductions",
+                "matchRule": "EXACT"
+              },
+              {
+                "name": "style",
+                "value": "RequestToMeet"
+              },
+              {
+                "name": "loopMemberReferent",
+                "value": "*"
+              }
+            ],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

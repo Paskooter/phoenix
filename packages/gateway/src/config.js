@@ -6,6 +6,7 @@
 
 import { net, etco, boolEnv } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
+import { loadRegistry } from './registry.js';
 
 /**
  * Build the gateway runtime config from the environment.
@@ -13,6 +14,13 @@ import { DefaultPort } from '@phoenix/contracts';
  */
 export function loadConfig(env = process.env) {
   const skillsBase = net('skills', { required: false, default: env.ETCO_hub_skillsUrl || `localhost:${DefaultPort.skills}` });
+  let skills;
+  try {
+    skills = loadRegistry({ skillsBase }); // full vendored registry (be-skills + cloud)
+    if (!skills.length) throw new Error('empty registry');
+  } catch {
+    skills = defaultSkillRegistry(skillsBase); // fallback: answer-skill only
+  }
   return {
     hubTokenSecret: env.ETCO_server_hubTokenSecret || '',
     disableAuth: boolEnv(env.ETCO_hub_disableAuth, false),
@@ -20,7 +28,7 @@ export function loadConfig(env = process.env) {
     parserURL: net('parser', { required: false, default: env.ETCO_hub_parserUrl || `localhost:${DefaultPort.nlu}` }),
     historyURL: net('history', { required: false, default: env.ETCO_hub_historyUrl || `localhost:${DefaultPort.history}` }),
     recordLaunchHistory: boolEnv(env.ETCO_hub_recordLaunchHistory, false),
-    skills: defaultSkillRegistry(skillsBase),
+    skills,
   };
 }
 

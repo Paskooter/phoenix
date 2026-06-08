@@ -1,0 +1,17 @@
+{
+    "id": "example-skill",
+    "intents": [
+        {
+            "name": "doesJiboLikeThing",
+            "entities": [],
+            "memo": "SomeThing"
+        }
+    ],
+    "proactives": [
+        {
+            "memo": "Proactive entry 1",
+            "topics": ["fake topic 1"],
+            "contextRules": []
+        }
+    ]
+}

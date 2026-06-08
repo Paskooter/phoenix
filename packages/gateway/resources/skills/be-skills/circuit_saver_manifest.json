@@ -1,0 +1,15 @@
+{
+    "id": "@be/circuit-saver",
+    "intents": [
+        {
+            "name": "launchGame",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/circuit-saver",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

@@ -1,0 +1,18 @@
+{
+    "id": "answer-skill",
+    "intents": [
+        { "name": "doesJiboKnowPersonThing", "memo": { "type": "generic" } },
+        { "name": "gqa",                     "memo": { "type": "generic" } },
+        { "name": "generalHowQuestions",     "memo": { "type": "how" } },
+        { "name": "generalQuestions",        "memo": { "type": "generic" } },
+        { "name": "generalWhatQuestions",    "memo": { "type": "what" } },
+        { "name": "generalWhenQuestions",    "memo": { "type": "when" } },
+        { "name": "generalWhereQuestions",   "memo": { "type": "where" } },
+        { "name": "generalWhoQuestions",     "memo": { "type": "who" } },
+        { "name": "generalWhyQuestions",     "memo": { "type": "why" } },
+        { "name": "requestTellAboutThing",   "memo": { "type": "generic" } },
+        { "name": "answerQuestion",          "memo": { "type": "generic" } },
+        { "name": "howDescriptorIsUnknown",  "memo": { "type": "how" } },
+        { "name": "howDescriptorIsPerson",   "memo": { "type": "how" } }
+    ]
+}

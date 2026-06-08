@@ -1,0 +1,15 @@
+{
+    "id": "@be/tutorial",
+    "intents": [
+        {
+            "name": "tutorialOpen",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/tutorial",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

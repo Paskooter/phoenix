@@ -1,0 +1,33 @@
+{
+    "id": "@be/word-of-the-day",
+    "intents": [
+        {
+            "name": "play",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/word-of-the-day",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "like",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/word-of-the-day",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "tutorial",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/word-of-the-day",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

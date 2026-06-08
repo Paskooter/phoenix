@@ -1,0 +1,73 @@
+{
+    "skills": [
+        {
+            "baseURL": "http://answer-skill:8080",
+            "configPath": "pegasus-skills/answer_skill_manifest.json"
+        },
+        {
+            "baseURL": "http://report-skill:8080",
+            "configPath": "pegasus-skills/report_skill_manifest.json"
+        },
+        {
+            "baseURL": "http://chitchat-skill:8080",
+            "configPath": "pegasus-skills/chitchat_skill_manifest.json"
+        },
+        {
+            "configPath": "be-skills/circuit_saver_manifest.json"
+        },
+        {
+            "configPath": "be-skills/clock_manifest.json"
+        },
+        {
+            "configPath": "be-skills/create_manifest.json"
+        },
+        {
+            "configPath": "be-skills/exercise_manifest.json"
+        },
+        {
+            "configPath": "be-skills/friendly_tips_manifest.json"
+        },
+        {
+            "configPath": "be-skills/gallery_manifest.json"
+        },
+        {
+            "configPath": "be-skills/greetings_manifest.json"
+        },
+        {
+            "configPath": "be-skills/hue_control_manifest.json"
+        },
+        {
+            "configPath": "be-skills/ifttt_manifest.json"
+        },
+        {
+            "configPath": "be-skills/introductions_manifest.json"
+        },
+        {
+            "configPath": "be-skills/main_menu_manifest.json"
+        },
+        {
+            "configPath": "be-skills/radio_manifest.json"
+        },
+        {
+            "configPath": "be-skills/settings_manifest.json"
+        },
+        {
+            "configPath": "be-skills/surprises_ota_manifest.json"
+        },
+        {
+            "configPath": "be-skills/tutorial_manifest.json"
+        },
+        {
+            "configPath": "be-skills/who_am_i_manifest.json"
+        },
+        {
+            "configPath": "be-skills/word_of_the_day_manifest.json"
+        }
+    ],
+    "notes for humans": {
+        "hub": "is on port 9000",
+        "history_service": "is on port 9006",
+        "lasso": "is on port 9007"
+    },
+    "_comment_2026": "Removed external GQA answer + AP-news skill entries (originally docker.for.mac.localhost:9002, hosted services not in this monorepo)."
+}

@@ -1,0 +1,33 @@
+{
+    "id": "@be/radio",
+    "intents": [
+        {
+            "name": "play",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/radio",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "showStations",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/radio",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "unsupportedGenre",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/radio",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

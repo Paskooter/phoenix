@@ -1,0 +1,15 @@
+{
+    "id": "@be/surprises-ota",
+    "intents": [
+        {
+            "name": "releaseNotes",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/surprises-ota",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

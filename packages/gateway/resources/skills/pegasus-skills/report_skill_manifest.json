@@ -1,0 +1,507 @@
+{
+    "id": "report-skill",
+    "intents": [
+        {
+            "name": "launchPersonalReport",
+            "entities": [],
+            "memo": "Reactive"
+        },
+        {
+            "name": "requestWeatherPR",
+            "entities": [],
+            "memo": "Reactive Weather"
+        },
+        {
+            "name": "requestCommute",
+            "entities": [],
+            "memo": "Reactive Commute"
+        },
+        {
+            "name": "requestCalendar",
+            "entities": [],
+            "memo": "Reactive Calendar"
+        },
+        {
+            "name": "requestNews",
+            "entities": [],
+            "memo": "Reactive News"
+        }
+    ],
+    "proactives": [
+        {
+            "memo": "Proactive",
+            "topics": [],
+            "contextRules": [
+                {
+                    "field": "PART_OF_DAY",
+                    "matchRule": "CONTAINED_IN",
+                    "value": [
+                        {
+                            "basic": "MORNING",
+                            "detail": "EARLY"
+                        },
+                        {
+                            "basic": "MORNING",
+                            "detail": "MID"
+                        },
+                        {
+                            "basic": "MORNING",
+                            "detail": "LATE"
+                        }
+                    ]
+                },
+                {
+                    "field": "DAY_OF_WEEK",
+                    "matchRule": "CONTAINED_IN",
+                    "value": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                    ]
+                },
+                {
+                    "field": "TRIGGER_SOURCE",
+                    "value": "SURPRISE",
+                    "matchRule": "EXACT"
+                },
+                {
+                    "field": "FOCUSED_PERSON",
+                    "matchRule": "NOT",
+                    "value": "UNKNOWN"
+                }
+            ],
+            "IHRules": [
+                {
+                    "query":"PersonalReportLaunchCount7LastHours",
+                    "matchRule": "LESS_THAN",
+                    "value": 1
+                }
+            ],
+            "settingsRules": [
+                {
+                    "skill": "report-skill",
+                    "key": "offerProactively",
+                    "matchRule": "EXACT",
+                    "value": {"value": true}
+                }
+            ]
+        }
+    ],
+    "IHQueries": {
+        "PersonalReportLaunchCount7LastHours": {
+            "type": "Count",
+            "queryRules": [{
+                "field": "skillID",
+                "match": "EXACT",
+                "value": "report-skill"
+            }],
+            "startTimeOffset": [-7, "hours"],
+            "endTimeOffset": [0, "hours"]
+        }
+    },
+    "settings": {
+        "view": {
+            "type": "skill",
+            "index": 0,
+            "title": "Personal report",
+            "subtitle": "Add your commute, calendar and news",
+            "icon": "personal_report_icon",
+            "childViews": [
+                {
+                    "type": "switch",
+                    "index": 0,
+                    "title": "Offer report proactively",
+                    "subtitle": "Jibo offers your Personal Report when he sees you",
+                    "valueDefinition": {
+                        "target": "person",
+                        "key": "offerProactively",
+                        "default": true
+                    }
+                },
+                {
+                    "type": "subheader",
+                    "index": 1,
+                    "title": "WHAT SHOULD JIBO TELL YOU?"
+                },
+                {
+                    "type": "switch",
+                    "index": 2,
+                    "title": "Weather",
+                    "subtitle": "Change temperature units",
+                    "valueDefinition": {
+                        "target": "person",
+                        "key": "weatherEnabled"
+                    },
+                    "childViews": [
+                        {
+                            "type": "subheader",
+                            "index": 0,
+                            "title": "WHICH UNITS SHOULD JIBO USE?"
+                        },
+                        {
+                            "type": "choice",
+                            "index": 1,
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "weather"
+                            },
+                            "choices": [
+                                {
+                                    "id": 0,
+                                    "value": "Fahrenheit"
+                                },
+                                {
+                                    "id": 1,
+                                    "value": "Celsius"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "footer",
+                            "index": 2,
+                            "owner": true,
+                            "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                            "links": [
+                                {
+                                    "placeholder": "JIBO_SETTINGS",
+                                    "text": "Jibo settings",
+                                    "url": "JIBO_SETTINGS_LINK"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "switch",
+                    "index": 3,
+                    "title": "Commute",
+                    "subtitle": "Set where, when, and how you commute",
+                    "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteEnabled"
+                    },
+                    "childViews": [
+                        {
+                            "type": "subheader",
+                            "index": 0,
+                            "title": "WHERE DOES YOUR COMMUTE START?"
+                        },
+                        {
+                            "type": "locationTextField",
+                            "index": 1,
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "homeLocation"
+                            },
+                            "childViews": [
+                                {
+                                    "type": "location",
+                                    "index": 0,
+                                    "valueDefinition": {
+                                        "target": "person",
+                                        "key": "homeLocation"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "subheader",
+                            "index": 2,
+                            "title": "WHERE DOES YOUR COMMUTE END?"
+                        },
+                        {
+                            "type": "locationTextField",
+                            "index": 3,
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "workLocation"
+                            }
+                        },
+                        {
+                            "type": "subheader",
+                            "index": 4,
+                            "title": "HOW DO YOU COMMUTE?"
+                        },
+                        {
+                            "type": "choice",
+                            "index": 5,
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "commuteType"
+                            },
+                            "choices": [
+                                {
+                                    "id": 0,
+                                    "value": "Drive",
+                                    "icon": "ic_drive"
+                                },
+                                {
+                                    "id": 1,
+                                    "value": "Public transport",
+                                    "icon": "ic_transport"
+                                },
+                                {
+                                    "id": 2,
+                                    "value": "Bike",
+                                    "icon": "ic_bike"
+                                },
+                                {
+                                    "id": 3,
+                                    "value": "Walk",
+                                    "icon": "ic_walk"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "subheader",
+                            "index": 6,
+                            "title": "WHEN DO YOU USUALLY ARRIVE?"
+                        },
+                        {
+                            "type": "time",
+                            "index": 7,
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "commuteTime",
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "switch",
+                    "index": 4,
+                    "title": "Calendars",
+                    "subtitle": "Connect work and personal calendars",
+                    "valueDefinition": {
+                        "target": "person",
+                        "key": "calendarEnabled"
+                    },
+                    "childViews": [
+                        {
+                            "type": "connectable",
+                            "index": 0,
+                            "title": "Personal calendar",
+                            "subtitle": "",
+                            "valueDefinition": {
+                                "target": "lasso",
+                                "key": "personalCalendarConnected"
+                            },
+                            "childViews": [
+                                {
+                                    "type": "subheader",
+                                    "index": 0,
+                                    "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                                },
+                                {
+                                    "type": "oauth",
+                                    "index": 1,
+                                    "title": "Google Calendar",
+                                    "icon": "googleCalendarIcon",
+                                    "serviceName": "google",
+                                    "serviceAccountName": "personalCalendar",
+                                    "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                                    "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                                    "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                                    "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                                    "scopes": [
+                                        "https://www.googleapis.com/auth/calendar.readonly"
+                                    ],
+                                    "valueDefinition": {
+                                        "target": "lasso",
+                                        "key": "google:personalCalendar:readonly"
+                                    }
+                                },
+                                {
+                                    "type": "oauth",
+                                    "index": 2,
+                                    "title": "Outlook Calendar",
+                                    "icon": "outlookCalendarIcon",
+                                    "serviceName": "outlook",
+                                    "serviceAccountName": "personalCalendar",
+                                    "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                                    "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                                    "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                                    "scopes": [
+                                        "offline_access",
+                                        "Calendars.Read"
+                                    ],
+                                    "valueDefinition": {
+                                        "target": "lasso",
+                                        "key": "outlook:personalCalendar:readonly"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "connectable",
+                            "index": 1,
+                            "title": "Work calendar",
+                            "subtitle": "",
+                            "valueDefinition": {
+                                "target": "lasso",
+                                "key": "workCalendarConnected"
+                            },
+                            "childViews": [
+                                {
+                                    "type": "subheader",
+                                    "index": 0,
+                                    "title": "CHOOSE YOUR WORK CALENDAR"
+                                },
+                                {
+                                    "type": "oauth",
+                                    "index": 1,
+                                    "title": "Google Calendar",
+                                    "icon": "googleCalendarIcon",
+                                    "serviceName": "google",
+                                    "serviceAccountName": "workCalendar",
+                                    "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                                    "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                                    "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                                    "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                                    "scopes": [
+                                        "https://www.googleapis.com/auth/calendar.readonly"
+                                    ],
+                                    "valueDefinition": {
+                                        "target": "lasso",
+                                        "key": "google:workCalendar:readonly"
+                                    }
+                                },
+                                {
+                                    "type": "oauth",
+                                    "index": 2,
+                                    "title": "Outlook Calendar",
+                                    "icon": "outlookCalendarIcon",
+                                    "serviceName": "outlook",
+                                    "serviceAccountName": "workCalendar",
+                                    "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                                    "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                                    "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                                    "scopes": [
+                                        "offline_access",
+                                        "Calendars.Read"
+                                    ],
+                                    "valueDefinition": {
+                                        "target": "lasso",
+                                        "key": "outlook:workCalendar:readonly"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "switch",
+                    "index": 5,
+                    "title": "News",
+                    "subtitle": "Customize your topics of interest",
+                    "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEnabled"
+                    },
+                    "childViews": [
+                        {
+                            "type": "toggle",
+                            "index": 0,
+                            "title": "International",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsInternational"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 1,
+                            "title": "National",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsNational"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 2,
+                            "title": "Business",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsBusiness"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 3,
+                            "title": "Entertainment",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsEntertainment"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 4,
+                            "title": "Sports",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsSports"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 5,
+                            "title": "Health",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsHealth"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 6,
+                            "title": "Politics",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsPolitics"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 7,
+                            "title": "Science",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsScience"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 8,
+                            "title": "Technology",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsTechnology"
+                            }
+                        },
+                        {
+                            "type": "toggle",
+                            "index": 9,
+                            "title": "Strange",
+                            "valueDefinition": {
+                                "target": "person",
+                                "key": "newsStrange"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "footer",
+                    "index": 6,
+                    "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,186 @@
+{
+    "id": "@be/hue-control",
+    "intents": [
+        {
+            "name": "lightsDeleteData",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsSetup",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsSetupDefaultGroup",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsOn",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupOn",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsOff",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupOff",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsUp",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupUp",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsDown",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupDown",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsUpCompletely",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupUpCompletely",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsWarm",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupWarm",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsCool",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsGroupCool",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsColor",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsColorGroup",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "lightsHowTo",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/hue-control",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

@@ -1,0 +1,42 @@
+{
+    "id": "@be/exercise",
+    "intents": [
+        {
+            "name": "exerciseDoYoga",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/exercise",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "exerciseYogaTutorial",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/exercise",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "exerciseWantTo",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/exercise",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "exerciseLike",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/exercise",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

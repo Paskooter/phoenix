@@ -1,0 +1,15 @@
+{
+    "id": "@be/ifttt",
+    "intents": [
+        {
+            "name": "ifttt",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/ifttt",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

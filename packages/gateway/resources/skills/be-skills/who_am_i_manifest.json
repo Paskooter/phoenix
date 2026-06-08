@@ -1,0 +1,15 @@
+{
+    "id": "@be/who-am-i",
+    "intents": [
+        {
+            "name": "launchWhoAmI",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/who-am-i",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

@@ -1,0 +1,135 @@
+{
+    "id": "@be/clock",
+    "intents": [
+        {
+            "name": "menu",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "askForDate",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "askForTime",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "whenIsHoliday",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "whenIsBirthday",
+            "entities": [
+              {
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+              },
+              {
+                "name": "loopMemberReferent",
+                "value": "*"
+              }
+          ],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "whenIsBirthday",
+            "entities": [
+              {
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+              },
+              {
+                "name": "loopmember",
+                "value": "speaker"
+              }
+          ],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "start",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "stop",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "query",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "set",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "delete",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "restart",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "edit",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/clock",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

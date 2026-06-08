@@ -1,0 +1,24 @@
+{
+    "id": "@be/create",
+    "intents": [
+        {
+            "name": "createOnePhoto",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/create",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "createSomePhotos",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/create",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

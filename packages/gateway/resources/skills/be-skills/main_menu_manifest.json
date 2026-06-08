@@ -1,0 +1,15 @@
+{
+    "id": "@be/main-menu",
+    "intents": [
+        {
+            "name": "launchMainMenu",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/main-menu",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "onRobot": true
+}

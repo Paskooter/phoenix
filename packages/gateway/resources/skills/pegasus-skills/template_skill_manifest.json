@@ -1,0 +1,12 @@
+{
+    "id": "template-skill",
+    "intents": [
+        {
+            "name": "template_skill",
+            "entities": [],
+            "memo": {
+                "entry": "SomeThing"
+            }
+        }
+    ]
+}

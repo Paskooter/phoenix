@@ -1,0 +1,164 @@
+{
+    "id": "@be/greetings",
+    "intents": [
+        {
+            "name": "happyHoliday",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "imHome",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "imBack",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "heyJibo",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "hello",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "whatsUp",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "goodMorning",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "goodAfternoon",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "goodAfternoon",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "goodEvening",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "goodNight",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "goodBye",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "notifications",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        },
+        {
+            "name": "selfID",
+            "entities": [{
+                "name": "skill",
+                "value": "@be/greetings",
+                "matchRule": "EXACT"
+            }],
+            "memo": "Launch intent"
+        }
+    ],
+    "proactives": [
+        {
+            "memo": "Proactive Launch",
+            "topics": [],
+            "contextRules": [
+                {
+                    "field": "TRIGGER_SOURCE",
+                    "value": "SURPRISE",
+                    "matchRule": "NOT"
+                }
+            ],
+            "IHRules": [
+                {
+                    "query":"GreetingsLaunchLast2Hours",
+                    "matchRule": "LESS_THAN",
+                    "value": 1
+                }
+            ]
+        }
+    ],
+   "IHQueries": {
+        "GreetingsLaunchLast2Hours": {
+            "type": "Count",
+            "queryRules": [{
+                "field": "skillID",
+                "match": "EXACT",
+                "value": "@be/greetings"
+            }],
+            "startTimeOffset": [-2, "hours"],
+            "endTimeOffset": [0, "hours"]
+        }
+    },
+    "onRobot": true
+}
