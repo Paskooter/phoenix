@@ -2,6 +2,12 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **All 10 be-skills route against the server.** Fixed routing: launch grammars for
+  main-menu/who-am-i/circuit-saver/ifttt emit only a `skill` entity (no manifest intent), so the
+  IntentRouter now routes by the `skill` entity (matching the sim's own `match.skillID=ent.skill`),
+  and the nlu keeps skill-entity-only matches. Proxy harness now verifies all 10 be-skills via raw
+  CLIENT_ASR; browser spot-check confirms clock launches + Jibo speaks. 57/57 unit, proxy green.
+
 - 2026-06-08 — Verified **gallery** be-skill launches via the browser ("show me the gallery" →
   skill-switch to @be/gallery). Enhanced the browser harness with skill-switch detection +
   an EXPECT_SKILL arg so screen-only be-skills (no speech) can be verified. 55/55 unit, proxy green.

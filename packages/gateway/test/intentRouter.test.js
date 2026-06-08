@@ -53,3 +53,15 @@ test('unknown intent returns null', () => {
   const r = new IntentRouter(registry);
   assert.equal(r.getSkillIDFromNLU({ intent: 'nope', rules: ['launch'], entities: {} }), null);
 });
+
+test('launch-by-skill-entity: routes when grammar emits skill but no manifest intent', () => {
+  const r = new IntentRouter([{ id: '@be/main-menu', onRobot: true, intents: [{ name: 'launchMainMenu', entities: [{ name: 'skill', value: '@be/main-menu' }] }] }]);
+  // grammar emitted skill entity but an empty/non-manifest intent
+  const d = r.getSkillIDFromNLU({ intent: '', rules: ['launch'], entities: { skill: '@be/main-menu' } });
+  assert.equal(d.skillID, '@be/main-menu');
+});
+
+test('launch-by-skill-entity ignores an unknown skill id', () => {
+  const r = new IntentRouter(registry);
+  assert.equal(r.getSkillIDFromNLU({ intent: '', rules: ['launch'], entities: { skill: '@be/nope' } }), null);
+});

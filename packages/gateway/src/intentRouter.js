@@ -13,7 +13,9 @@ export class IntentRouter {
   constructor(skillConfigs) {
     // intentName (lowercased) -> registrations
     this.byIntent = new Map();
+    this.skillIds = new Set(); // every known skill id (for launch-by-skill-entity)
     for (const cfg of skillConfigs) {
+      this.skillIds.add(cfg.id);
       for (const intent of cfg.intents || []) {
         const key = intent.name.toLowerCase();
         if (!this.byIntent.has(key)) this.byIntent.set(key, []);
@@ -24,11 +26,23 @@ export class IntentRouter {
 
   /** @param {{intent?:string, rules?:string[], entities?:object}} nluData */
   getSkillIDFromNLU(nluData) {
-    if (!nluData || !nluData.intent || !Array.isArray(nluData.rules) || nluData.rules.indexOf('launch') === -1) {
-      return null;
+    if (!nluData || !Array.isArray(nluData.rules) || nluData.rules.indexOf('launch') === -1) return null;
+
+    // 1. intent decision tree (cloud skills + be-skills whose grammar emits the manifest intent).
+    if (nluData.intent) {
+      const decisions = this._getDecisions(nluData.intent, nluData.entities || {});
+      if (decisions.length) return decisions[0];
     }
-    const decisions = this._getDecisions(nluData.intent, nluData.entities || {});
-    return decisions.length ? decisions[0] : null;
+
+    // 2. launch-by-skill-entity: many be-skill launch grammars tag entities.skill='@be/<id>'
+    //    without (or with a different) manifest intent. The reference robot/sim treat the skill
+    //    entity itself as the launch signal (registry.parse: match.skillID = ent.skill), so route
+    //    to it directly when it names a known skill.
+    const skillEnt = nluData.entities && nluData.entities.skill;
+    if (skillEnt && this.skillIds.has(skillEnt)) {
+      return { skillID: skillEnt, weight: 0, memo: (nluData.entities && nluData.entities.memo) || null };
+    }
+    return null;
   }
 
   _getDecisions(intentName, entities) {

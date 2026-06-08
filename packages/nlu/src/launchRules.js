@@ -51,6 +51,10 @@ export async function launchParse(text) {
   const reg = await getRegistry();
   let r = null;
   try { r = reg.parse(text); } catch { r = null; }
-  if (!r || !r.nlu || !r.nlu.intent) return null;
-  return { rules: ['launch'], intent: r.nlu.intent, entities: r.nlu.entities || {} };
+  if (!r || !r.nlu) return null;
+  const entities = r.nlu.entities || {};
+  // A match is usable if it has an intent OR a skill entity — some launch grammars
+  // (main-menu, who-am-i, circuit-saver, ifttt) emit only the skill entity.
+  if (!r.nlu.intent && !entities.skill) return null;
+  return { rules: ['launch'], intent: r.nlu.intent || '', entities };
 }

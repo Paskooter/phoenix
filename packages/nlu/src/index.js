@@ -22,7 +22,7 @@ import { llmFallback } from './llmFallback.js';
  */
 export async function parse(text) {
   const launch = await launchParse(text);
-  if (launch && launch.intent) return launch;
+  if (launch && (launch.intent || (launch.entities && launch.entities.skill))) return launch;
   const grammar = grammarParse(text);
   if (grammar.intent) return grammar;
   const llm = await llmFallback(text);
