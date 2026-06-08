@@ -2,6 +2,12 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **Atlas roadmap + report-skill raw-ASR launch.** Added ROADMAP.md: a complete
+  atlas-derived feature checklist (per subsystem, [x]/[~]/[ ], checked off as built). First chunk:
+  report-skill launch grammars (launchPersonalReport/requestWeatherPR/requestNews/requestCommute/
+  requestCalendar) so report-skill launches from raw CLIENT_ASR; "tell me my personal report" →
+  report-skill → Jibo speaks the briefing (browser). 83/83 unit, proxy green.
+
 - 2026-06-08 — **LOOP GOAL MET — stopping.** Over this autonomous run: all 10 be-skills route,
   global-turn path, full M4 lasso (weather/news/maps/credential/calendar), and report+chitchat
   cloud skills. 83 unit + ~25 proxy checks + browser spot-checks all green. Next big items

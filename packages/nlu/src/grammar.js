@@ -7,7 +7,19 @@
 //
 // Text is lowercased + trimmed first (parser normalizes; FSTs are lowercase-only).
 
+// report-skill (cloud) launch intents — manifest: launchPersonalReport / requestWeatherPR /
+// requestNews / requestCommute / requestCalendar (no entity constraints, routed by intent name).
+// Listed first so e.g. "what's the weather" routes to requestWeatherPR, not generalWhatQuestions.
+const REPORT_RULES = [
+  { re: /\b(?:personal report|my report|daily report|morning report|my briefing|brief me)\b/, intent: 'launchPersonalReport' },
+  { re: /\b(?:weather|forecast)\b|\bgoing to rain\b|\bgonna rain\b/, intent: 'requestWeatherPR' },
+  { re: /\bheadlines?\b|\bthe news\b|\bmy news\b|\bany news\b|what'?s happening/, intent: 'requestNews' },
+  { re: /\bcommute\b|\btraffic\b|how long.*(?:to work|to the office|to drive)/, intent: 'requestCommute' },
+  { re: /\bmy (?:calendar|schedule|agenda)\b|what'?s on my (?:calendar|schedule|agenda)|what do i have (?:today|tomorrow|on)/, intent: 'requestCalendar' },
+];
+
 const RULES = [
+  ...REPORT_RULES,
   { re: /^who\s+(?:is|was|are|were)\s+(.+)$/, intent: 'generalWhoQuestions', entity: 'person' },
   { re: /^what(?:'s| is| are| was)\s+(.+)$/, intent: 'generalWhatQuestions', entity: 'thing' },
   { re: /^when\s+(?:is|was|did|does|do|will)\s+(.+)$/, intent: 'generalWhenQuestions', entity: 'thing' },
