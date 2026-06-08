@@ -2,6 +2,11 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **M4 data/lasso: weather relay (Open-Meteo).** Built the relay framework
+  (validate→cache→HEAD prefetch→fetch→{relayData,lassoDataFromRedis} envelope, TTL cache) + the
+  Open-Meteo→DarkSky weather handler (ported from DarkSkyHandler.ts, past_days=1, WMO→icon).
+  GET/HEAD /v1/dark_sky live; news/maps/calendar/credential still stubs. 64/64 unit, proxy green.
+
 - 2026-06-08 — **Global-turn path** (mimic_global_turn): a bare CLIENT_NLU/CLIENT_ASR with no
   LISTEN/CONTEXT now synthesizes a minimal listen+context and routes immediately instead of
   hanging until the 60s timeout. Proxy harness asserts a bare CLIENT_NLU routes to @be/clock.
