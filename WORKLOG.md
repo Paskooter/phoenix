@@ -2,6 +2,11 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **Global-turn path** (mimic_global_turn): a bare CLIENT_NLU/CLIENT_ASR with no
+  LISTEN/CONTEXT now synthesizes a minimal listen+context and routes immediately instead of
+  hanging until the 60s timeout. Proxy harness asserts a bare CLIENT_NLU routes to @be/clock.
+  57/57 unit, proxy green.
+
 - 2026-06-08 — **All 10 be-skills route against the server.** Fixed routing: launch grammars for
   main-menu/who-am-i/circuit-saver/ifttt emit only a `skill` entity (no manifest intent), so the
   IntentRouter now routes by the `skill` entity (matching the sim's own `match.skillID=ent.skill`),

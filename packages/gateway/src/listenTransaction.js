@@ -115,6 +115,7 @@ export class ListenTransaction {
   }
 
   async _handleClientASR(message) {
+    if (!this.listenMessage) this._beginGlobalTurn(State.WAIT_CLIENT_ASR);
     this.asrData = { text: message.data.text, confidence: 1 };
     this.timings.asr = -1;
     this._emitEOS(-1);
@@ -122,12 +123,36 @@ export class ListenTransaction {
   }
 
   async _handleClientNLU(message) {
+    if (!this.listenMessage) this._beginGlobalTurn(State.WAIT_CLIENT_NLU, message.data && message.data.rules);
     this.nluData = message.data;
     this.timings.nlu = -1;
     this.asrData = { text: '', confidence: 1 };
     this.timings.asr = -1;
     this._emitEOS(-1);
     this._gotoState(State.ROUTE);
+  }
+
+  // Global turn: a CLIENT_ASR/CLIENT_NLU arrives with no preceding LISTEN/CONTEXT (the sim's
+  // mimic_global_turn, transID 'GLOBAL'). Synthesize a minimal listen + context so the state
+  // machine can route immediately instead of waiting for a context that never comes.
+  _beginGlobalTurn(state, rules) {
+    this.global = true;
+    this.listenMessage = {
+      data: { lang: 'en-US', hotphrase: false, rules: Array.isArray(rules) && rules.length ? rules : ['launch', 'global'] },
+    };
+    this.state = state; // make the subsequent NLU/ROUTE transition valid
+    this.contextPr.resolve({
+      data: {
+        general: {
+          accountID: this.auth ? this.auth.id : 'anonymous-account',
+          robotID: this.auth ? this.auth.friendlyId : 'anonymous-robot',
+          lang: 'en',
+          release: '1.9.0',
+        },
+        runtime: {},
+        skill: { id: null },
+      },
+    });
   }
 
   _handleContext(message) {
