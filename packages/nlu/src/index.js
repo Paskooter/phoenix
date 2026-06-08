@@ -1,26 +1,40 @@
 // NLU service (Pegasus parser equivalent). Milestone M5.
 //
-// Contract to fulfil (docs/atlas/packages/parser.md, message-protocol.md hop 6):
-//   POST /v1/parse   body = NLU request { data: { text, rules, loop?, external? } }
-//                    -> { type:'NLU', data: NLUResult { rules, intent, entities, external? } }
-//                    Text is trimmed + lowercased. Stage 1: grammar/FST match
-//                    ({nlu, priority: HIGH|LOW|SKIP}); HIGH returns immediately. Stage 2:
-//                    LLM fallback (OpenAI tool-calling, ~15-intent catalog) when FST misses
-//                    or is LOW. LoopMemberDetector resolves looper names to IDs.
-//   Empty/garbage input -> { intent:null, rules:[], entities:{} } (not an error).
+// POST /v1/parse : body = { type:'NLU', data:{ text, rules, loop?, external? } }
+//              -> { type:'NLU', data: NLUResult }   (hub reads response.data.data, gotcha #8)
 //
-// Decide the grammar strategy first (atlas risk R1: the original ships a C++ FST engine +
-// 117 .rule sources). See docs/atlas/packages/parser.md §8.
+// Two-stage pipeline mirroring the reference (ParseRequestHandler.ts):
+//   1. grammar match (deterministic). A confident match short-circuits.
+//   2. LLM fallback (phoenix: LM Studio + Gemma tool-calling) when grammar misses AND
+//      ETCO_parser_llmUrl is configured. Off by default -> a miss returns the no-match NLUResult.
 
 import { createService } from '@phoenix/common';
-import { errorResponse, HubErrorCode, DefaultPort } from '@phoenix/contracts';
+import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
+import { grammarParse } from './grammar.js';
+import { llmFallback } from './llmFallback.js';
 
-const { listen } = createService({
-  name: 'nlu',
-  routes: {
-    'POST /v1/parse': () =>
-      errorResponse('NLU parse not implemented (milestone M5)', HubErrorCode.NOT_IMPLEMENTED),
-  },
-});
+/** Pure parse used by the service and by tests. */
+export async function parse(text) {
+  const grammar = grammarParse(text);
+  if (grammar.intent) return grammar;
+  const llm = await llmFallback(text);
+  return llm || grammar; // grammar here is the no-match shape
+}
 
-listen(Number(process.env.PORT) || DefaultPort.nlu);
+export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
+  const svc = createService({
+    name: 'nlu',
+    routes: {
+      'POST /v1/parse': async ({ body }) => {
+        const text = (body && body.data && body.data.text) || '';
+        const nlu = await parse(text);
+        return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
+      },
+    },
+  });
+  return svc.listen(port);
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  start().catch((e) => { console.error(e); process.exit(1); });
+}

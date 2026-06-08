@@ -1,26 +1,21 @@
-// Skill framework + skill host (Pegasus baseskill + skills equivalent). Milestone M7.
+// Skills service host (Pegasus baseskill + skills equivalent). Milestone M7.
 //
-// Contract to fulfil (docs/atlas/packages/baseskill.md, skills.md, message-protocol.md hops 9-12):
-//   POST /v1/main   body = SkillRequest (LISTEN_LAUNCH | LISTEN_UPDATE | PROACTIVE_LAUNCH)
-//                   -> SkillResponse (SKILL_ACTION | SKILL_REDIRECT | ERROR).
-//   Skills are STATELESS between calls: all session state round-trips through the robot in
-//   data.skill.session { id, nodeID, data, trace }. The framework is a GraphSkill FSM whose
-//   nodes emit MIM-derived SLIM behaviors (prompt filter -> condition eval -> weighted pick).
-//   final:true ends the session; fireAndForget:true + action:null = nothing to perform.
-//
-// Compare round-trip only for session blobs — node-ID assignment is the new implementation's
-// own business. This shell hosts one skill at /v1/main; the real impl will host several
-// (chitchat 9004, report 9003, answer 9009) selected by config.
+// Hosts the answer-skill at POST /v1/main (the gateway's default registry points answer-skill
+// here). Additional skills (chitchat, report) become additional hosts/paths as they are built.
 
-import { createService } from '@phoenix/common';
-import { errorResponse, HubErrorCode, DefaultPort } from '@phoenix/contracts';
+import { DefaultPort } from '@phoenix/contracts';
+import { createSkillService } from './skillService.js';
+import { answerSkill } from './answerSkill.js';
 
-const { listen } = createService({
-  name: 'skills',
-  routes: {
-    'POST /v1/main': () =>
-      errorResponse('skill framework not implemented (milestone M7)', HubErrorCode.NOT_IMPLEMENTED),
-  },
-});
+export { createSkillService } from './skillService.js';
+export { buildSkillAction, escapeForEsml } from './jcp.js';
+export { answerSkill } from './answerSkill.js';
 
-listen(Number(process.env.PORT) || DefaultPort.skills);
+export function start(port = Number(process.env.PORT) || DefaultPort.skills) {
+  const svc = createSkillService({ name: 'skills', skillId: 'answer-skill', handler: answerSkill });
+  return svc.listen(port);
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  start().catch((e) => { console.error(e); process.exit(1); });
+}

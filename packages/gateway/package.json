@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "dependencies": {
     "@phoenix/common": "*",
-    "@phoenix/contracts": "*"
+    "@phoenix/contracts": "*",
+    "ws": "^8.21.0"
   },
   "license": "UNLICENSED"
 }
