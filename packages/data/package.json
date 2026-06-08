@@ -1,0 +1,12 @@
+{
+  "name": "@phoenix/data",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Data-relay service — Phoenix equivalent of Pegasus lasso: weather/news/calendar/commute relays + OAuth credential store. Reference: docs/atlas/packages/lasso.md.",
+  "main": "src/index.js",
+  "dependencies": {
+    "@phoenix/common": "*",
+    "@phoenix/contracts": "*"
+  },
+  "license": "UNLICENSED"
+}

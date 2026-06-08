@@ -1,0 +1,23 @@
+{
+  "name": "phoenix",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Phoenix — a ground-up reimplementation of the Pegasus (Jibo cloud) conversational backend, in modern JavaScript.",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "start:gateway": "node packages/gateway/src/index.js",
+    "start:nlu": "node packages/nlu/src/index.js",
+    "start:data": "node packages/data/src/index.js",
+    "start:history": "node packages/history/src/index.js",
+    "start:skills": "node packages/skills/src/index.js",
+    "harness": "node packages/harness/src/index.js"
+  },
+  "license": "UNLICENSED"
+}

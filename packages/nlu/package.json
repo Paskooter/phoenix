@@ -1,0 +1,12 @@
+{
+  "name": "@phoenix/nlu",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "NLU service — Phoenix equivalent of the Pegasus parser: FST/grammar matching with an LLM fallback. Reference: docs/atlas/packages/parser.md.",
+  "main": "src/index.js",
+  "dependencies": {
+    "@phoenix/common": "*",
+    "@phoenix/contracts": "*"
+  },
+  "license": "UNLICENSED"
+}

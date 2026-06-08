@@ -1,0 +1,12 @@
+{
+  "name": "@phoenix/gateway",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Gateway service — Phoenix equivalent of the Pegasus hub: WS listen/proactive transactions, ASR + NLU orchestration, intent routing. Reference: docs/atlas/packages/hub.md.",
+  "main": "src/index.js",
+  "dependencies": {
+    "@phoenix/common": "*",
+    "@phoenix/contracts": "*"
+  },
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@phoenix/contracts",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Frozen wire contracts for Phoenix: message envelope, JSON-Schema definitions, builders and a zero-dependency validator. Ported from the Pegasus atlas (docs/atlas/message-protocol.md).",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "license": "UNLICENSED"
+}

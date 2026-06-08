@@ -1,0 +1,11 @@
+{
+  "name": "@phoenix/harness",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Old-vs-new comparison harness: drive identical input into the Pegasus reference stack and Phoenix, normalize both message streams, and diff them. Reference: docs/atlas/verification-strategy.md.",
+  "main": "src/index.js",
+  "dependencies": {
+    "@phoenix/contracts": "*"
+  },
+  "license": "UNLICENSED"
+}

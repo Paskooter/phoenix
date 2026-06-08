@@ -1,0 +1,12 @@
+{
+  "name": "@phoenix/skills",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Skill framework + skills — Phoenix equivalent of Pegasus baseskill + chitchat/report/answer: GraphSkill FSM, MIM->SLIM dialog generation, stateless HTTP skill services. Reference: docs/atlas/packages/baseskill.md, docs/atlas/packages/skills.md.",
+  "main": "src/index.js",
+  "dependencies": {
+    "@phoenix/common": "*",
+    "@phoenix/contracts": "*"
+  },
+  "license": "UNLICENSED"
+}

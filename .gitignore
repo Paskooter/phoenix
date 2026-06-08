@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+coverage/
+dist/
+.env
+.env.*
+!.env.example
+# harness capture artifacts (large; regenerated from the reference stack)
+packages/harness/captures/
