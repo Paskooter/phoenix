@@ -2,6 +2,14 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **GraphSkill FSM + multi-turn sessions.** Built the skill graph framework
+  (Node/FnNode, per-instance GraphManager with sequential nodeIDs = session.nodeID wire format,
+  createGraphSkill handling LISTEN_LAUNCH→start / LISTEN_UPDATE→exit, transitions). Added a
+  two-turn demo (color-skill: asks → final:false → resumes on LISTEN_UPDATE → final, using the
+  spoken answer; session.data round-trips). Verified via the sim: launch asks (non-final), a
+  follow-up answer "blue" resumes the session and replies mentioning blue. MIM→SLIM Slimmer is
+  next. 86/86 unit, proxy green.
+
 - 2026-06-08 — **Proactive channel + history wiring.** Gateway WS /proactive + /v1/proactive:
   TRIGGER+CONTEXT → collect manifest `proactives` → filter by contextRules (ported ContextTools:
   PART_OF_DAY/DAY_OF_WEEK/TRIGGER_SOURCE/FOCUSED_PERSON/person-counts) + IHRules (history IHQuery

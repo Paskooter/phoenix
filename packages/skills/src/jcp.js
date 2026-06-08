@@ -16,48 +16,47 @@ export function escapeForEsml(text) {
 }
 
 /**
- * Build a SKILL_ACTION response.
+ * Build a JCP action (the `action` field of a SKILL_ACTION): SEQUENCE > SLIM > PLAY, plus an
+ * optional `listen` (generated for question/optional-response MIMs from a rule_name).
+ * @param {{ esmlText:string, mimId?:string, mimType?:string, promptSubCategory?:string,
+ *           listenRule?:string }} opts
+ */
+export function buildJcpAction({ esmlText, mimId = 'Reply', mimType = 'announcement', promptSubCategory = 'AN', listenRule } = {}) {
+  const slimConfig = {
+    play: {
+      id: newMsgId(),
+      type: 'PLAY',
+      autoRuleConfig: true,
+      esml: escapeForEsml(esmlText),
+      meta: { mim_id: mimId, mim_type: mimType, prompt_sub_category: promptSubCategory },
+    },
+  };
+  if (listenRule) slimConfig.listen = { id: newMsgId(), type: 'LISTEN', rule: listenRule };
+  return {
+    type: 'JCP',
+    config: {
+      version: '2.0',
+      jcp: { id: newMsgId(), type: 'SEQUENCE', children: [{ id: newMsgId(), type: 'SLIM', config: slimConfig }] },
+    },
+  };
+}
+
+/**
+ * Build a full SKILL_ACTION response (single-turn skills). For graph skills, nodes return a JCP
+ * action via buildJcpAction and the GraphSkill wrapper attaches skill/session/final.
  * @param {{ skillId:string, esmlText:string, sessionId:string, sessionData?:object,
  *           mimId?:string, mimType?:string, promptSubCategory?:string, analytics?:object,
- *           final?:boolean }} opts
+ *           final?:boolean, listenRule?:string }} opts
  */
 export function buildSkillAction(opts) {
-  const {
-    skillId, esmlText, sessionId, sessionData = {},
-    mimId = 'Reply', mimType = 'announcement', promptSubCategory = 'AN',
-    analytics, final = true,
-  } = opts;
+  const { skillId, esmlText, sessionId, sessionData = {}, mimId, mimType, promptSubCategory, analytics, final = true, listenRule } = opts;
   return {
     type: SkillResponseType.SKILL_ACTION,
     msgID: newMsgId(),
     ts: now(),
     data: {
       skill: { id: skillId, session: { id: sessionId, nodeID: 1, data: sessionData, trace: [] } },
-      action: {
-        type: 'JCP',
-        config: {
-          version: '2.0',
-          jcp: {
-            id: newMsgId(),
-            type: 'SEQUENCE',
-            children: [
-              {
-                id: newMsgId(),
-                type: 'SLIM',
-                config: {
-                  play: {
-                    id: newMsgId(),
-                    type: 'PLAY',
-                    autoRuleConfig: true,
-                    esml: escapeForEsml(esmlText),
-                    meta: { mim_id: mimId, mim_type: mimType, prompt_sub_category: promptSubCategory },
-                  },
-                },
-              },
-            ],
-          },
-        },
-      },
+      action: buildJcpAction({ esmlText, mimId, mimType, promptSubCategory, listenRule }),
       ...(analytics ? { analytics } : {}),
       final,
       fireAndForget: false,

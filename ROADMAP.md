@@ -38,7 +38,7 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] SKILL_REDIRECT notify + one-redirect-max — U
 - [x] Global turn (bare CLIENT_NLU, mimic_global_turn) — P
 - [x] GET /v1/skills skill list — (smoke)
-- [~] LISTEN_UPDATE in-progress-skill fallback (routes; needs real multi-turn sessions)
+- [x] LISTEN_UPDATE in-progress-skill fallback (routes to the in-progress skill; multi-turn proven) — P
 - [ ] Server-side ASR drive: Parakeet REST + hub energy-VAD (SOS/EOS, GARBAGE short-circuit) — M8
 - [~] Skill-launch history recording (recordLaunchHistory → history svc) done; speech-history recording todo
 - [ ] DecisionMediator (release-version decision overrides) — reference has it; mostly dead
@@ -83,9 +83,9 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] answer-skill (Wikipedia+Gemma optional, always-final) — U/P/B
 - [x] report-skill (weather+news briefing via lasso relays) — U/P
 - [x] chitchat-skill (scripted SKILL_ACTION) — U/P
-- [ ] **GraphSkill FSM** (enter/exit nodes, GraphManager global sequential nodeIDs = wire format)
+- [x] **GraphSkill FSM** (Node enter/exit, per-instance GraphManager sequential nodeIDs = wire format, transitions) — U/P
 - [ ] **MIM→SLIM Slimmer** (prompt filter by category/sub-category/index, vm-eval condition, weighted pick, NoMatch/NoInput escalation)
-- [ ] Multi-turn sessions (LISTEN_UPDATE, resume at session.nodeID, session.data round-trip)
+- [x] Multi-turn sessions (LISTEN_UPDATE, resume at session.nodeID, session.data round-trip; color-skill demo) — U/P
 - [ ] SKILL_REDIRECT emitted by a skill
 - [ ] OptIn factory
 - [ ] report-skill subskills (commute, calendar) + real MIM dialog

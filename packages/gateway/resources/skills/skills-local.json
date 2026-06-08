@@ -13,6 +13,10 @@
             "configPath": "pegasus-skills/chitchat_skill_manifest.json"
         },
         {
+            "baseURL": "http://color-skill:8080",
+            "configPath": "pegasus-skills/color_skill_manifest.json"
+        },
+        {
             "configPath": "be-skills/circuit_saver_manifest.json"
         },
         {

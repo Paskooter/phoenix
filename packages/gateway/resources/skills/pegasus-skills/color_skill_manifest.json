@@ -1,0 +1,6 @@
+{
+    "id": "color-skill",
+    "intents": [
+        { "name": "favoriteColorChat", "entities": [], "memo": "Reactive" }
+    ]
+}

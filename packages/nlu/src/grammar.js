@@ -16,6 +16,8 @@ const REPORT_RULES = [
   { re: /\bheadlines?\b|\bthe news\b|\bmy news\b|\bany news\b|what'?s happening/, intent: 'requestNews' },
   { re: /\bcommute\b|\btraffic\b|how long.*(?:to work|to the office|to drive)/, intent: 'requestCommute' },
   { re: /\bmy (?:calendar|schedule|agenda)\b|what'?s on my (?:calendar|schedule|agenda)|what do i have (?:today|tomorrow|on)/, intent: 'requestCalendar' },
+  // color-skill (cloud, multi-turn demo)
+  { re: /favou?rite colou?r|talk about colou?rs|let'?s talk colou?rs/, intent: 'favoriteColorChat' },
 ];
 
 const RULES = [
