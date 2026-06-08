@@ -2,6 +2,12 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **M4 lasso complete: credential CRUD + calendar.** Credential store
+  (POST/GET/DELETE /v1/credential, testAuthCode bypass, dup-key, delete-other; fixed the
+  `skillId =` assignment bug, DIVERGENCE B3) + calendar (/v1/{google,outlook}_calendar with
+  CalendarEvent normalization + pluggable provider). All 5 lasso relays/services done
+  (weather, news, maps, credential, calendar). 83/83 unit, proxy green.
+
 - 2026-06-08 — **M4 maps/commute relay (OpenRouteService).** Ported GoogleMapsHandler: origin/dest
   JSON + mode → ORS profile → POST → re-shape to Google Maps `Maps` (routes[0].legs[0].duration
   {,_in_traffic}). GET/HEAD /v1/google_maps live (15m TTL, ETCO_data_orsKey). 3/5 lasso relays
