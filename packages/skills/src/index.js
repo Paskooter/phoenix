@@ -1,19 +1,28 @@
 // Skills service host (Pegasus baseskill + skills equivalent). Milestone M7.
 //
-// Hosts the answer-skill at POST /v1/main (the gateway's default registry points answer-skill
-// here). Additional skills (chitchat, report) become additional hosts/paths as they are built.
+// Hosts the cloud skills, each at POST /v1/<id>/main (the gateway registry points each cloud
+// skill's URL there); answer-skill is also at /v1/main for back-compat.
 
 import { DefaultPort } from '@phoenix/contracts';
-import { createSkillService } from './skillService.js';
+import { createSkillsService, createSkillService } from './skillService.js';
 import { answerSkill } from './answerSkill.js';
+import { reportSkill } from './reportSkill.js';
+import { chitchatSkill } from './chitchatSkill.js';
 
-export { createSkillService } from './skillService.js';
+export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, escapeForEsml } from './jcp.js';
 export { answerSkill } from './answerSkill.js';
+export { reportSkill } from './reportSkill.js';
+export { chitchatSkill } from './chitchatSkill.js';
+
+export const SKILLS = [
+  { id: 'answer-skill', handler: answerSkill },
+  { id: 'report-skill', handler: reportSkill },
+  { id: 'chitchat-skill', handler: chitchatSkill },
+];
 
 export function start(port = Number(process.env.PORT) || DefaultPort.skills) {
-  const svc = createSkillService({ name: 'skills', skillId: 'answer-skill', handler: answerSkill });
-  return svc.listen(port);
+  return createSkillsService({ name: 'skills', skills: SKILLS, defaultId: 'answer-skill' }).listen(port);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

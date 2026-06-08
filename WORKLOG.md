@@ -2,6 +2,16 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **LOOP GOAL MET — stopping.** Over this autonomous run: all 10 be-skills route,
+  global-turn path, full M4 lasso (weather/news/maps/credential/calendar), and report+chitchat
+  cloud skills. 83 unit + ~25 proxy checks + browser spot-checks all green. Next big items
+  (server-side ASR M8, MIM/GraphSkill dialog engine) remain for a future loop.
+- 2026-06-08 — **report-skill + chitchat-skill respond as cloud skills.** Skills service now
+  multi-hosts by id (POST /v1/<id>/main); gateway registry gives each cloud skill a per-skill URL.
+  report-skill speaks a weather+news briefing (via the data relays over NET_data, graceful
+  fallback); chitchat-skill returns scripted SKILL_ACTIONs. Proxy asserts each returns its own
+  SKILL_ACTION; browser spot-check (answer via new URL) green. 83/83 unit, proxy green.
+
 - 2026-06-08 — **M4 lasso complete: credential CRUD + calendar.** Credential store
   (POST/GET/DELETE /v1/credential, testAuthCode bypass, dup-key, delete-other; fixed the
   `skillId =` assignment bug, DIVERGENCE B3) + calendar (/v1/{google,outlook}_calendar with

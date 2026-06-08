@@ -31,8 +31,9 @@ export function loadRegistry({ skillsBase = '', resourcesDir = DEFAULT_RES } = {
     const onRobot = !!manifest.onRobot || !entry.baseURL;
     const cfg = { id: manifest.id, onRobot, intents: manifest.intents || [] };
     if (!onRobot) {
-      // All cloud skills are hosted by the Phoenix skills service for now.
-      cfg.URL = (base || (entry.baseURL || '').replace(/\/$/, '')) + '/v1/main';
+      // Cloud skills are hosted by the Phoenix skills service, each at /v1/<id>/main.
+      const host = base || (entry.baseURL || '').replace(/\/$/, '');
+      cfg.URL = `${host}/v1/${manifest.id}/main`;
     }
     out.push(cfg);
   }
