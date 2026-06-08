@@ -17,11 +17,11 @@ packages/
   contracts/   the frozen wire contracts — envelope, JSON-Schema defs, builders, validator   [implemented]
   common/      shared service scaffolding — env/service discovery, HTTP runner, logging        [implemented]
   harness/     old-vs-new comparison core — message normalize + stream diff                    [core implemented]
-  gateway/     hub equivalent — WS listen/proactive, ASR+NLU orchestration, routing            [shell]
-  nlu/         parser equivalent — grammar/FST match + LLM fallback                            [shell]
-  data/        lasso equivalent — weather/news/calendar/commute relays + credentials           [shell]
-  history/     skill-launch + speech history                                                   [shell]
-  skills/      skill framework (GraphSkill/MIM) + concrete skills                              [shell]
+  gateway/     hub equivalent — WS listen, auth, state machine, routing, skill dispatch        [implemented (M6); server-ASR pending M8]
+  nlu/         parser equivalent — grammar match + optional LLM fallback                       [implemented (M5)]
+  data/        lasso equivalent — weather/news/calendar/commute relays + credentials           [shell (M4)]
+  history/     skill-launch (IH query language) + speech history                               [implemented (M3)]
+  skills/      skill host + answer-skill (wire-faithful JCP/SLIM)                              [implemented (M7); more skills + MIM pending]
 ```
 
 Each service shell documents — inline — the exact contract it must fulfil (with `file:line`
@@ -49,6 +49,16 @@ it). See **[ROADMAP.md](ROADMAP.md)**. Intentional deviations from the reference
 
 ## Status
 
-Bootstrapped (this commit): the contract layer (M1) and the service-shell foundation (M2) are in
-place and tested; the comparison harness core is usable. No conversational behavior is
-implemented yet — the service shells return `NOT_IMPLEMENTED` for their primary endpoints.
+The **robot-facing conversational path works end to end**: a robot (or the original
+`@jibo/hub-client`) connects over WebSocket, authenticates, and one utterance flows
+`gateway → nlu → answer-skill` back to a wire-faithful `SKILL_ACTION`. Implemented and tested
+(51 tests, incl. an end-to-end WS test driving the gateway exactly as the robot does):
+
+- **M1 contracts**, **M2 service runner**, **M3 history** (full IH query language),
+  **M5 nlu** (grammar + optional LLM fallback), **M6 gateway** (listen state machine, JWT auth,
+  routing, skill dispatch, passthrough, timeouts), **M7 skills** (answer-skill JCP/SLIM).
+- Pending: **M4 data/lasso** (still a shell), **M6 server-side ASR** (audio streaming; M8),
+  the MIM/GraphSkill dialog engine, and more skills.
+
+Everything is referenced against the original source (`jiboV2/pegasus@phoenix`) to keep the wire
+protocol compatible with unmodified robots.
