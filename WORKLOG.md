@@ -2,6 +2,14 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **MIM→SLIM Slimmer — GraphSkill/MIM section complete; loop stopping.** Built the
+  Slimmer (port of baseskill Slimmer): filter prompts by category/sub-category/index, node:vm
+  condition eval against PromptData, weighted-random pick (injectable rng), ES6-template→ESML,
+  listen from rule_name for question MIMs, NoMatch/NoInput max tracking; + PromptData builder +
+  .mim loader + buildJcpFromSlim. Converted color-skill to drive its dialog from MIMs
+  (color/qn.mim, color/an.mim). 91/91 unit (incl. Slimmer suite), proxy green. Remaining roadmap:
+  server-side ASR (M8), corpus runner + D3/D4 diff levels — left for a future /loop.
+
 - 2026-06-08 — **GraphSkill FSM + multi-turn sessions.** Built the skill graph framework
   (Node/FnNode, per-instance GraphManager with sequential nodeIDs = session.nodeID wire format,
   createGraphSkill handling LISTEN_LAUNCH→start / LISTEN_UPDATE→exit, transitions). Added a

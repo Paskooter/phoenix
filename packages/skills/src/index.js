@@ -11,10 +11,12 @@ import { chitchatSkill } from './chitchatSkill.js';
 import { colorSkill } from './colorSkill.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
-export { buildSkillAction, buildJcpAction, escapeForEsml } from './jcp.js';
+export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
 export { createGraphSkill } from './graph/graphSkill.js';
 export { Node, FnNode } from './graph/node.js';
 export { GraphManager } from './graph/graphManager.js';
+export { generateSlim, weightedSample, newMimState, MimTypes, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
+export { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 export { answerSkill } from './answerSkill.js';
 export { reportSkill } from './reportSkill.js';
 export { chitchatSkill } from './chitchatSkill.js';

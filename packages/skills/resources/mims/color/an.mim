@@ -1,0 +1,11 @@
+{
+  "mim_id": "ColorAN",
+  "mim_type": "announcement",
+  "rule_name": "",
+  "no_matches_for_gui": 99,
+  "no_inputs_for_gui": 99,
+  "es_auto_tagging": true,
+  "prompts": [
+    { "prompt_category": "Entry-Core", "prompt_sub_category": "AN", "index": 0, "condition": "", "prompt": "Oh, ${color} is a great color! Mine is teal.", "media": "TTS", "prompt_id": "colorA1", "weight": 1, "auto_rule_override": null }
+  ]
+}

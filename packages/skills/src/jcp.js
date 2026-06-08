@@ -41,6 +41,16 @@ export function buildJcpAction({ esmlText, mimId = 'Reply', mimType = 'announcem
   };
 }
 
+/** Wrap a Slimmer-produced SLIM ({play, listen?}) into a JCP action (SEQUENCE > SLIM). */
+export function buildJcpFromSlim(slim) {
+  const config = { play: slim.play };
+  if (slim.listen) config.listen = slim.listen;
+  return {
+    type: 'JCP',
+    config: { version: '2.0', jcp: { id: newMsgId(), type: 'SEQUENCE', children: [{ id: newMsgId(), type: 'SLIM', config }] } },
+  };
+}
+
 /**
  * Build a full SKILL_ACTION response (single-turn skills). For graph skills, nodes return a JCP
  * action via buildJcpAction and the GraphSkill wrapper attaches skill/session/final.

@@ -84,7 +84,7 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] report-skill (weather+news briefing via lasso relays) — U/P
 - [x] chitchat-skill (scripted SKILL_ACTION) — U/P
 - [x] **GraphSkill FSM** (Node enter/exit, per-instance GraphManager sequential nodeIDs = wire format, transitions) — U/P
-- [ ] **MIM→SLIM Slimmer** (prompt filter by category/sub-category/index, vm-eval condition, weighted pick, NoMatch/NoInput escalation)
+- [x] **MIM→SLIM Slimmer** (prompt filter by category/sub-category/index, vm-eval condition, weighted pick, template→ESML, listen from rule_name, NoMatch/NoInput max) — U/P
 - [x] Multi-turn sessions (LISTEN_UPDATE, resume at session.nodeID, session.data round-trip; color-skill demo) — U/P
 - [ ] SKILL_REDIRECT emitted by a skill
 - [ ] OptIn factory
@@ -112,8 +112,8 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 ### Current focus order (loop)
 1. ~~Cloud-skill launch grammars (report-skill)~~ ✓ done.
 2. ~~Proactive channel + history wiring (launch recording, IH queries)~~ ✓ done.
-3. GraphSkill FSM + MIM→SLIM + multi-turn sessions (the big one). ← next
-4. Server-side ASR (M8).
+3. ~~GraphSkill FSM + MIM→SLIM + multi-turn sessions~~ ✓ done (GraphSkill/MIM section complete).
+4. Server-side ASR (M8). ← next
 5. Corpus runner + deeper diff levels.
 
 See `WORKLOG.md` for the running log.

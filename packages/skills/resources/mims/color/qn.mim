@@ -1,0 +1,14 @@
+{
+  "mim_id": "ColorQN",
+  "mim_type": "question",
+  "rule_name": "global",
+  "no_matches_for_gui": 99,
+  "no_inputs_for_gui": 99,
+  "es_auto_tagging": true,
+  "prompts": [
+    { "prompt_category": "Entry-Core", "prompt_sub_category": "Q", "index": 0, "condition": "", "prompt": "What's your favorite color?", "media": "TTS", "prompt_id": "colorQ1", "weight": 1, "auto_rule_override": null },
+    { "prompt_category": "Entry-Core", "prompt_sub_category": "Q", "index": 0, "condition": "speaker && speaker.firstName", "prompt": "${speaker.firstName}, what's your favorite color?", "media": "TTS", "prompt_id": "colorQ1named", "weight": 3, "auto_rule_override": null },
+    { "prompt_category": "Errors", "prompt_sub_category": "NM", "index": 0, "condition": "", "prompt": "Sorry, I didn't catch that. What color?", "media": "TTS", "prompt_id": "colorNM0", "weight": 1, "auto_rule_override": null },
+    { "prompt_category": "Errors", "prompt_sub_category": "NM", "index": 1, "condition": "", "prompt": "Hmm, still didn't get it. Tell me a color.", "media": "TTS", "prompt_id": "colorNM1", "weight": 1, "auto_rule_override": null }
+  ]
+}
