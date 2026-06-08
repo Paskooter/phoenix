@@ -2,6 +2,10 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — Verified **greetings** be-skill launches via the browser ("hello jibo" → Jibo says
+  "Hey ."). Locked in deterministic be-skill NLU+routing coverage from raw CLIENT_ASR (clock,
+  greetings, gallery, create) in the proxy harness — 13 proxy checks green, 55/55 unit.
+
 - 2026-06-08 — **be-skills launch through jibo-web-sim end to end.** Vendored the sim's
   launch-rule NLU engine + be-skill grammars into the gateway parser; gateway now routes raw
   CLIENT_ASR. Verified in the real browser sim: "what time is it" → @be/clock launches → Jibo
