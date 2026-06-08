@@ -2,6 +2,11 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **M4 maps/commute relay (OpenRouteService).** Ported GoogleMapsHandler: origin/dest
+  JSON + mode → ORS profile → POST → re-shape to Google Maps `Maps` (routes[0].legs[0].duration
+  {,_in_traffic}). GET/HEAD /v1/google_maps live (15m TTL, ETCO_data_orsKey). 3/5 lasso relays
+  done (weather, news, maps). 74/74 unit, proxy green.
+
 - 2026-06-08 — **M4 news relay (RSS→AP).** Ported APNewsHandler: sourceID→category→RSS feed
   (BBC/NPR), minimal RSS/Atom parse, re-emit AP-feed XML (apcm:ExtendedHeadLine + summary) as
   relayData via the relay framework (65m TTL). GET/HEAD /v1/ap_news live. 69/69 unit, proxy green.

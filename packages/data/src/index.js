@@ -10,14 +10,15 @@ import { TTLCache } from './cache.js';
 import { createRelay } from './relay.js';
 import { validateWeather, weatherKey, fetchWeather } from './weather.js';
 import { validateNews, newsKey, fetchNews } from './news.js';
+import { validateMaps, mapsKey, fetchMaps } from './maps.js';
 
 const notImpl = (what) => () => errorResponse(`${what} not implemented (milestone M4)`, HubErrorCode.NOT_IMPLEMENTED);
 
 /**
- * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function }} [opts]
- *   weatherGet/newsGet override the live upstream calls (used by tests).
+ * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function }} [opts]
+ *   weatherGet/newsGet/mapsGet override the live upstream calls (used by tests).
  */
-export function createDataService({ cache = new TTLCache(), weatherGet, newsGet } = {}) {
+export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet } = {}) {
   const weather = createRelay({
     name: 'DarkSky',
     ttlSeconds: 15 * 60,
@@ -34,6 +35,14 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet 
     key: newsKey,
     fetchExternal: (input) => fetchNews(input, newsGet ? { get: newsGet } : {}),
   });
+  const maps = createRelay({
+    name: 'GoogleMaps',
+    ttlSeconds: 15 * 60,
+    cache,
+    validate: validateMaps,
+    key: mapsKey,
+    fetchExternal: (input) => fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
+  });
 
   return createService({
     name: 'data',
@@ -42,7 +51,8 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet 
       'HEAD /v1/dark_sky': weather,
       'GET /v1/ap_news': news,
       'HEAD /v1/ap_news': news,
-      'GET /v1/google_maps': notImpl('commute relay'),
+      'GET /v1/google_maps': maps,
+      'HEAD /v1/google_maps': maps,
       'GET /v1/google_calendar': notImpl('google calendar'),
       'GET /v1/outlook_calendar': notImpl('outlook calendar'),
       'POST /v1/credential': notImpl('credential store'),
@@ -58,6 +68,7 @@ export { TTLCache } from './cache.js';
 export { createRelay } from './relay.js';
 export * as weather from './weather.js';
 export * as news from './news.js';
+export * as maps from './maps.js';
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   start().catch((e) => { console.error(e); process.exit(1); });
