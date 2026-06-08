@@ -11,10 +11,18 @@
 import { createService } from '@phoenix/common';
 import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { grammarParse } from './grammar.js';
+import { launchParse } from './launchRules.js';
 import { llmFallback } from './llmFallback.js';
 
-/** Pure parse used by the service and by tests. */
+/**
+ * Parse an utterance into an NLUResult. Pipeline (reference ParseRequestHandler order):
+ *   1. be-skill launch grammars (deterministic; emits the `skill` entity for routing)
+ *   2. built-in question grammar (answer-skill question intents)
+ *   3. LLM fallback (off unless ETCO_parser_llmUrl is set)
+ */
 export async function parse(text) {
+  const launch = await launchParse(text);
+  if (launch && launch.intent) return launch;
   const grammar = grammarParse(text);
   if (grammar.intent) return grammar;
   const llm = await llmFallback(text);
