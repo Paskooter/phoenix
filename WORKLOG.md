@@ -2,6 +2,10 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — Verified **gallery** be-skill launches via the browser ("show me the gallery" →
+  skill-switch to @be/gallery). Enhanced the browser harness with skill-switch detection +
+  an EXPECT_SKILL arg so screen-only be-skills (no speech) can be verified. 55/55 unit, proxy green.
+
 - 2026-06-08 — Verified **greetings** be-skill launches via the browser ("hello jibo" → Jibo says
   "Hey ."). Locked in deterministic be-skill NLU+routing coverage from raw CLIENT_ASR (clock,
   greetings, gallery, create) in the proxy harness — 13 proxy checks green, 55/55 unit.
