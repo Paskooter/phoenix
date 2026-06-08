@@ -40,14 +40,14 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] GET /v1/skills skill list — (smoke)
 - [~] LISTEN_UPDATE in-progress-skill fallback (routes; needs real multi-turn sessions)
 - [ ] Server-side ASR drive: Parakeet REST + hub energy-VAD (SOS/EOS, GARBAGE short-circuit) — M8
-- [ ] Skill-launch + speech history recording (recordLaunchHistory / recordSpeechHistory → history svc)
+- [~] Skill-launch history recording (recordLaunchHistory → history svc) done; speech-history recording todo
 - [ ] DecisionMediator (release-version decision overrides) — reference has it; mostly dead
-- [ ] **Proactive channel** /v1/proactive: TRIGGER+CONTEXT → filter pipeline → PROACTIVE / PROACTIVE_LAUNCH
-  - [ ] eligible PR collection from manifest `proactives`
-  - [ ] contextRules filter (PART_OF_DAY, DAY_OF_WEEK, TRIGGER_SOURCE, FOCUSED_PERSON, …)
-  - [ ] IHRules filter (history IHQuery: counts with time offsets)
-  - [ ] settingsRules filter (settings service is dead → permissive stub)
-  - [ ] random selection + skipSurprises + PROACTIVE_LAUNCH dispatch
+- [x] **Proactive channel** /v1/proactive + /proactive: TRIGGER+CONTEXT → filter pipeline → PROACTIVE / PROACTIVE_LAUNCH — P
+  - [x] eligible PR collection from manifest `proactives`
+  - [x] contextRules filter (PART_OF_DAY, DAY_OF_WEEK, TRIGGER_SOURCE, FOCUSED_PERSON, person counts)
+  - [x] IHRules filter (history IHQuery: Count + time offsets, evaluated against the history svc)
+  - [x] settingsRules filter (settings service is dead → permissive stub)
+  - [x] random selection + skipSurprises + PROACTIVE_LAUNCH dispatch
 
 ## Parser (`@phoenix/nlu`) — parser.md
 - [x] POST /v1/parse → NLUResult; lowercase/trim; no-match shape — U/P
@@ -74,8 +74,8 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] skill-launch write / latest / count; speech write+partial-update — U
 - [x] IH query language (field rules + payload rules, EXACT-via-payload-key-count) — U
 - [x] 14-day TTL, latest-by-insertion-order, null-not-404 — U
-- [ ] IHQuery Count type + start/end time offsets (needed by proactive IHRules)
-- [ ] Wire into the gateway (launch recording; proactive IH queries)
+- [x] IHQuery Count type + start/end time offsets (gateway-side query build; needed by proactive IHRules) — P
+- [x] Wire into the gateway (launch recording; proactive IH queries) — P
 
 ## Skills + framework (`@phoenix/skills` = baseskill + skills) — baseskill.md, skills.md
 - [x] Skill service host (multi-skill by id, /v1/<id>/main) + SkillRequest validation + error envelope — U/P
@@ -111,8 +111,8 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 
 ### Current focus order (loop)
 1. ~~Cloud-skill launch grammars (report-skill)~~ ✓ done.
-2. Proactive channel + history wiring (launch recording, IH queries). ← next
-3. GraphSkill FSM + MIM→SLIM + multi-turn sessions (the big one).
+2. ~~Proactive channel + history wiring (launch recording, IH queries)~~ ✓ done.
+3. GraphSkill FSM + MIM→SLIM + multi-turn sessions (the big one). ← next
 4. Server-side ASR (M8).
 5. Corpus runner + deeper diff levels.
 

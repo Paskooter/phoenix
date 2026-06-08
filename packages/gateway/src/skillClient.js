@@ -38,6 +38,11 @@ export class SkillClient {
     return this._send(skillID, buildListenLaunch(skillID, input), trace);
   }
 
+  /** Build + send a PROACTIVE_LAUNCH. */
+  async proactiveLaunch(skillID, input, trace) {
+    return this._send(skillID, buildProactiveLaunch(skillID, input), trace);
+  }
+
   async _send(skillID, skillRequest, trace) {
     const cfg = this.mgr.get(skillID);
     if (!cfg) return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Skill "${skillID}" does not exist` } };
@@ -83,6 +88,17 @@ function buildListenLaunch(skillID, input) {
     result: { nlu: input.nlu, asr: input.asr, memo: input.memo },
   });
   return m;
+}
+
+function buildProactiveLaunch(skillID, input) {
+  if (!input.context || !input.context.general) throw new Error('Malformed context--missing general');
+  if (!input.context || !input.context.runtime) throw new Error('Malformed context--missing runtime');
+  return message(SkillRequestType.PROACTIVE_LAUNCH, {
+    general: input.context.general,
+    runtime: input.context.runtime,
+    skill: { id: skillID },
+    result: { nlu: input.nlu, memo: input.memo },
+  });
 }
 
 function buildListenUpdate(skillID, input) {

@@ -2,6 +2,14 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-08 — **Proactive channel + history wiring.** Gateway WS /proactive + /v1/proactive:
+  TRIGGER+CONTEXT → collect manifest `proactives` → filter by contextRules (ported ContextTools:
+  PART_OF_DAY/DAY_OF_WEEK/TRIGGER_SOURCE/FOCUSED_PERSON/person-counts) + IHRules (history IHQuery
+  Count + time offsets via a new gateway HistoryClient) + settingsRules (permissive) → random pick
+  → PROACTIVE match (final for on-robot) or PROACTIVE_LAUNCH → SKILL_ACTION. Also wired
+  skill-launch history recording (recordLaunchHistory). Proxy asserts SURPRISE→report-skill (cloud,
+  SKILL_ACTION) and NEW_ARRIVAL→@be/greetings (onRobot, final). 83/83 unit, proxy green.
+
 - 2026-06-08 — **Atlas roadmap + report-skill raw-ASR launch.** Added ROADMAP.md: a complete
   atlas-derived feature checklist (per subsystem, [x]/[~]/[ ], checked off as built). First chunk:
   report-skill launch grammars (launchPersonalReport/requestWeatherPR/requestNews/requestCommute/

@@ -246,6 +246,7 @@ export class ListenTransaction {
     const matchData = { skillID, launch: !isUpdate, onRobot };
     if (onRobot) {
       this._emitListenResult(matchData, true);
+      this._record(skillID, context);
       return;
     }
     this._emitListenResult(matchData, false);
@@ -262,6 +263,18 @@ export class ListenTransaction {
     }
     this.timings.skill = now() - t0;
     this._emitSkillResult(skillOutput, true);
+    this._record(skillID, context, skillOutput && skillOutput.response);
+  }
+
+  // Fire-and-forget skill-launch history record (TransactionHandler.recordSkillLaunch).
+  _record(skillID, context, skillResponse) {
+    if (!this.components.config.recordLaunchHistory || !this.components.historyClient) return;
+    const general = (context.data && context.data.general) || {};
+    const runtime = (context.data && context.data.runtime) || {};
+    const perception = runtime.perception || {};
+    const personIDs = [...new Set([...((perception.peoplePresent || []).map((p) => p.id)), perception.speaker].filter((x) => x && x !== 'UNKNOWN'))];
+    const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
+    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace);
   }
 
   async _handleRedirect(redirect, context) {

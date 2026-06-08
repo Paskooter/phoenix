@@ -18,17 +18,22 @@ import { IntentRouter } from './intentRouter.js';
 import { SkillConfigManager, SkillClient } from './skillClient.js';
 import { ResponseWrapper } from './responseWrapper.js';
 import { ListenTransaction } from './listenTransaction.js';
+import { HistoryClient } from './historyClient.js';
+import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
+const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
 
 export function buildComponents(config) {
   const skillConfigManager = new SkillConfigManager(config.skills);
   return {
     config,
+    skills: config.skills, // raw registry (carries proactives/IHQueries)
     parser: new ParserClient(config.parserURL),
     intentRouter: new IntentRouter(config.skills),
     skillConfigManager,
     skillClient: new SkillClient(skillConfigManager),
+    historyClient: new HistoryClient(config.historyURL),
     asr: null, // M8: Parakeet provider
   };
 }
@@ -67,7 +72,8 @@ export function createGateway(config = loadConfig()) {
         if (error) { log.warn('ws auth failed', { error }); return cb(false, 401, error); }
         info.req._auth = auth;
       }
-      if (!LISTEN_PATHS.has(info.req.url)) return cb(false, 404, `no handler for ${info.req.url}`);
+      const url = (info.req.url || '').split('?')[0];
+      if (!LISTEN_PATHS.has(url) && !PROACTIVE_PATHS.has(url)) return cb(false, 404, `no handler for ${info.req.url}`);
       cb(true, 200, '');
     },
   });
@@ -76,10 +82,14 @@ export function createGateway(config = loadConfig()) {
     ws._auth = req._auth || null;
     ws._jiboHeaders = req.headers;
     ws._remoteAddress = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString();
-    const reqLog = logger('gateway.listen', { transId: req.headers['x-jibo-transid'] });
+    const path = (req.url || '').split('?')[0];
+    const isProactive = PROACTIVE_PATHS.has(path);
+    const reqLog = logger(isProactive ? 'gateway.proactive' : 'gateway.listen', { transId: req.headers['x-jibo-transid'] });
 
     const response = new ResponseWrapper(ws, reqLog);
-    const tx = new ListenTransaction(ws, components, response, reqLog);
+    const tx = isProactive
+      ? new ProactiveTransaction(ws, components, response, reqLog)
+      : new ListenTransaction(ws, components, response, reqLog);
 
     ws.on('message', (data, isBinary) => {
       if (isBinary) return tx.handleMessage({ audio: data });
