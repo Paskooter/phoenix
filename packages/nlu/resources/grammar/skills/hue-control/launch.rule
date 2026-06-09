@@ -1,0 +1,408 @@
+TopRule =
+( $*
+    ($LIGHTS_FORGET  {intent=LIGHTS_FORGET._intent}) |
+    ($LIGHTS_SETUP  {intent=LIGHTS_SETUP._intent}) |
+    ($LIGHTS_SETUP_DEFAULT_GROUP  {intent=LIGHTS_SETUP_DEFAULT_GROUP._intent}) |
+    ($LIGHTS_ON  {intent=LIGHTS_ON._intent}) |
+    ($LIGHTS_ON_ALL {intent=LIGHTS_ON_ALL._intent} {group=LIGHTS_ON_ALL._group}) |
+    ($LIGHTS_OFF {intent=LIGHTS_OFF._intent}) |
+    ($LIGHTS_OFF_ALL {intent=LIGHTS_OFF_ALL._intent} {group=LIGHTS_OFF_ALL._group}) |
+    ($LIGHTS_UP {intent=LIGHTS_UP._intent}) |
+    ($LIGHTS_DOWN {intent=LIGHTS_DOWN._intent}) |
+    ($LIGHTS_UP_COMPLETELY {intent=LIGHTS_UP_COMPLETELY._intent}) |
+    ($LIGHTS_WARM {intent=LIGHTS_WARM._intent})|
+    ($LIGHTS_COOL {intent=LIGHTS_COOL._intent}) |
+    ($LIGHTS_COLOR {intent=LIGHTS_COLOR._intent} {color=LIGHTS_COLOR._color} ) |
+    ($LIGHTS_GROUP_COLOR {intent=LIGHTS_GROUP_COLOR._intent} {group=LIGHTS_GROUP_COLOR._group} {color=LIGHTS_GROUP_COLOR._color} ) |
+    ($LIGHTS_HOW_TO {intent=LIGHTS_HOW_TO._intent}) |
+    ($LIGHTS_GROUP_ON {intent=LIGHTS_GROUP_ON._intent} {group=LIGHTS_GROUP_ON._group} ) |
+    ($LIGHTS_GROUP_OFF {intent=LIGHTS_GROUP_OFF._intent} {group=LIGHTS_GROUP_OFF._group} ) |
+    ($LIGHTS_GROUP_UP {intent=LIGHTS_GROUP_UP._intent} {group=LIGHTS_GROUP_UP._group} ) |
+    ($LIGHTS_GROUP_DOWN {intent=LIGHTS_GROUP_DOWN._intent} {group=LIGHTS_GROUP_DOWN._group} ) |
+    ($LIGHTS_GROUP_UP_COMPLETELY {intent=LIGHTS_GROUP_UP_COMPLETELY._intent} {group=LIGHTS_GROUP_UP_COMPLETELY._group} ) |
+    ($LIGHTS_GROUP_WARM {intent=LIGHTS_GROUP_WARM._intent} {group=LIGHTS_GROUP_WARM._group} ) |
+    ($LIGHTS_GROUP_COOL {intent=LIGHTS_GROUP_COOL._intent} {group=LIGHTS_GROUP_COOL._group} )
+$* )
+{domain='hue-control'}{skill='\@be/hue-control'}{priority='HIGH'}
+;
+LIGHTS_COLOR =
+(
+    $MAKE $* $LIGHT $ENT_LIGHT_COLOR
+)
+{_intent='lightsColor'}{_color=ENT_LIGHT_COLOR._color}
+;
+LIGHTS_GROUP_COLOR =
+(
+    $MAKE $* $ENT_LIGHT_GROUP $LIGHT $ENT_LIGHT_COLOR
+)
+{_intent='lightsColorGroup'}{_group=ENT_LIGHT_GROUP._group}{_color=ENT_LIGHT_COLOR._color}
+;
+LIGHTS_FORGET =
+(
+    ( $FORGET $* $LIGHT ?data )
+)
+{_intent='lightsDeleteData'}
+;
+LIGHTS_SETUP =
+(
+    ( $SETUP $* $LIGHT )
+)
+{_intent='lightsSetup'}
+;
+LIGHTS_SETUP_DEFAULT_GROUP =
+(
+    ( $CHANGE $* $LIGHT default $ROOM ) |
+    ( $CHANGE $* default ($LIGHT $ROOM)|($ROOM $* $LIGHT) ) |
+    ( $CHANGE $* default ($ROOM $* $HUE)|($* $HUE $ROOM) ) |
+    ( $CHANGE ($w03 $HUE $ROOM)|($ROOM $w03 $HUE) ?([preference?s]|[setting?s]))
+)
+{_intent='lightsSetupDefaultGroup'}
+;
+LIGHTS_ON =
+(
+    ( $SWITCH on $* $LIGHT ) |
+    ( $SWITCH $* $LIGHT on ) |
+    ( ( let | may ) there be light )
+)
+{_intent='lightsOn'}
+;
+LIGHTS_ON_ALL =
+(
+    ( $SWITCH on all $* $LIGHT ) |
+    ( $SWITCH all $* $LIGHT on )
+)
+{_intent='lightsOn'}{_group='all'}
+;
+LIGHTS_GROUP_ON =
+(
+    ( $SWITCH on $* $ENT_LIGHT_GROUP $LIGHT ) |
+    ( $SWITCH $* $ENT_LIGHT_GROUP $LIGHT on ) |
+    ( $SWITCH on $* $LIGHT $* $ENT_LIGHT_GROUP ) |
+    ( ( let | may ) there be light $* $ENT_LIGHT_GROUP ) |
+    ( $SWITCH $* $LIGHT on $* $ENT_LIGHT_GROUP)
+)
+{_intent='lightsGroupOn'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_OFF =
+(
+    ( ($SWITCH|shut off)|shutoff $* $LIGHT ) |
+    ( $SWITCH|shut $* $LIGHT off ) |
+    ( kill $* $LIGHT )
+)
+{_intent='lightsOff'}
+;
+LIGHTS_OFF_ALL =
+(
+    ( ($SWITCH|shut off)|shutoff all $* $LIGHT ) |
+    ( $SWITCH|shut all $* $LIGHT off )
+)
+{_intent='lightsOff'}{_group='all'}
+;
+LIGHTS_GROUP_OFF =
+(
+    ( ($SWITCH|shut off)|shutoff $* $ENT_LIGHT_GROUP $LIGHT ) |
+    ( $SWITCH|shut $* $ENT_LIGHT_GROUP $LIGHT off ) |
+    ( ($SWITCH|shut off)|shutoff $* $LIGHT $* $ENT_LIGHT_GROUP ) |
+    ( kill $* $ENT_LIGHT_GROUP $LIGHT ) |
+    ( kill $* $LIGHT $* $ENT_LIGHT_GROUP ) |
+    ( $SWITCH|shut $* $LIGHT off $* $ENT_LIGHT_GROUP)
+)
+{_intent='lightsGroupOff'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_UP =
+(
+    ( (turn|bring) up $* $LIGHT ) |
+    ( (turn|bring|make) $* $LIGHT brighter ) |
+    ( (turn|bring) $* $LIGHT up ) |
+    ( $ADJUST $* $LIGHT $HIGHER ) |
+    ( $ADJUST up $* $LIGHT) |
+    ( $LIGHT $HIGHER ) |
+    ( $BRIGHTEN $* $LIGHT)
+)
+{_intent='lightsUp'}
+;
+LIGHTS_GROUP_UP =
+(
+    ( (turn|bring) up $* ($ENT_LIGHT_GROUP $LIGHT)|($LIGHT $w03 $ENT_LIGHT_GROUP) ) |
+    ( (turn|bring|make) $* $ENT_LIGHT_GROUP ?$LIGHT brighter ) |
+    ( (turn|bring) $* $ENT_LIGHT_GROUP $LIGHT up ) |
+    ( more light $w03 $ENT_LIGHT_GROUP ) |
+    ( $ADJUST $* $ENT_LIGHT_GROUP $LIGHT $HIGHER ) |
+    ( $ADJUST up $* $ENT_LIGHT_GROUP ) |
+    ( $ENT_LIGHT_GROUP ?$LIGHT $HIGHER ) |
+    ( $BRIGHTEN $* $ENT_LIGHT_GROUP $LIGHT)
+)
+{_intent='lightsGroupUp'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_DOWN =
+(
+    ( (turn|bring) down $* $LIGHT ) |
+    ( (turn|bring|make) $* $LIGHT $DARKER ) |
+    ( $ADJUST $* $LIGHT $DARKER ) |
+    ( $ADJUST down $* $LIGHT ) |
+    ( $LIGHT $w03 $DARKER ) |
+    ( ( $DIM  |lower ) $* $LIGHT )
+)
+{_intent='lightsDown'}
+;
+LIGHTS_GROUP_DOWN =
+(
+    ( (turn|bring) down $* $ENT_LIGHT_GROUP $LIGHT ) |
+    ( (turn|bring|make) $* $ENT_LIGHT_GROUP $LIGHT $DARKER ) |
+    ( $ADJUST $* $ENT_LIGHT_GROUP $LIGHT $DARKER ) |
+    ( $ADJUST down $* $ENT_LIGHT_GROUP ) |
+    ( $ENT_LIGHT_GROUP ?$LIGHT $DARKER ) |
+    ( ( $DIM  |lower ) $* $ENT_LIGHT_GROUP $LIGHT )
+)
+{_intent='lightsGroupDown'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_UP_COMPLETELY =
+(
+    ( ?(turn|bring) $* $LIGHT all ?the way ?up ) |
+    ( ?(turn|bring|make) $* $LIGHT ?as bright as possible ) |
+    ( ?(turn|set) $* $LIGHT $* ((maximum|max) ?brightness)|brightest ) |
+    ( ( make | $ADJUST ) $* $LIGHT $* brightest )
+)
+{_intent='lightsUpCompletely'}
+;
+LIGHTS_GROUP_UP_COMPLETELY =
+(
+    ( ?(turn|bring) $* ($ENT_LIGHT_GROUP $LIGHT)|($LIGHT $w03 $ENT_LIGHT_GROUP) all ?the way ?up ) |
+    ( ?(turn|bring|make) $* $ENT_LIGHT_GROUP ?$LIGHT ?as bright as possible ) |
+    ( ?(turn|set) $* ($ENT_LIGHT_GROUP $LIGHT)|($LIGHT $w03 $ENT_LIGHT_GROUP) $* ((maximum|max) ?brightness)|brightest ) |
+    ( ( make | $ADJUST ) $* ($ENT_LIGHT_GROUP $LIGHT)|($LIGHT $w03 $ENT_LIGHT_GROUP) $* brightest )
+)
+{_intent='lightsGroupUpCompletely'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_WARM =
+(
+    ( (turn|bring|make|$ADJUST) $* $LIGHT $w03 $WARMER ) |
+    ( warm $* $LIGHT )
+)
+{_intent='lightsWarm'}
+;
+LIGHTS_GROUP_WARM =
+(
+    ( (turn|bring|make|$ADJUST) $* $ENT_LIGHT_GROUP $LIGHT $WARMER ) |
+    ( (turn|bring|make|$ADJUST) $* $LIGHT $w03 $ENT_LIGHT_GROUP $w03 $WARMER ) |
+    ( warm $* $ENT_LIGHT_GROUP $LIGHT )
+)
+{_intent='lightsGroupWarm'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_COOL =
+(
+    ( (turn|bring|make|$ADJUST) $* $LIGHT $w03 $COOLER ) |
+    ( cool $* $LIGHT )
+)
+{_intent='lightsCool'}
+;
+LIGHTS_GROUP_COOL =
+(
+    ( (turn|bring|make|$ADJUST) $* $ENT_LIGHT_GROUP $LIGHT $COOLER ) |
+    ( (turn|bring|make|$ADJUST) $* $LIGHT $w03 $ENT_LIGHT_GROUP $w03 $COOLER ) |
+    ( cool $* $ENT_LIGHT_GROUP $LIGHT )
+)
+{_intent='lightsGroupCool'}{_group=ENT_LIGHT_GROUP._group}
+;
+LIGHTS_HOW_TO =
+(
+    ( $TEACH $MEUS $* $USE $* $LIGHT ) |
+    ( tell me|us about $w03 ?$USE $w03 $LIGHT) |
+    ( how $* $USE $* $LIGHT ) |
+    ( explain|describe|teach ?how $w03 ?$USE $w03 $LIGHT ) |
+    ( give $MEUS $* $LIGHT $LESSON ) |
+    ( give $MEUS $* $LESSON $* $LIGHT )
+)
+{_intent='lightsHowTo'}
+;
+### GROUP NAMES ###
+ENT_LIGHT_GROUP =
+(
+    ( living room ) {_group='living'} |
+    kitchen {_group='kitchen'} |
+    ( dining room ) {_group='dining'} |
+    ( bedroom | ( bed room ) ) {_group='bedroom'} |
+    ( ( kids | kid\'s | childs | child\'s ) bedroom ) {_group='kidsBedroom'} |
+    ( bathroom | ( bath room ) ) {_group='bathroom'} |
+    nursery {_group='nursery'} |
+    ( ( recreation | rec | wreck ) room ) {_group='recRoom'} |
+    office {_group='office'} |
+    ( gym | jim | gymnasium ) {_group='gym'} |
+    ( hallway | hall | ( hall way ) ) {_group='hallway'} |
+    toilet {_group='toilet'} |
+    ( front ( door | doorway ) ) {_group='frontDoor'} |
+    garage {_group='garage'} |
+    terrace {_group='terrace'} |
+    garden {_group='garden'} |
+    ( driveway | ( drive way ) ) {_group='driveway'} |
+    ( carport | ( car port ) ) {_group='carport'} |
+    ( all $* ?the )  {_group='all'}
+)
+;
+### COLORS ###
+ENT_LIGHT_COLOR =
+(
+    ( alice blue ) {_color='aliceblue'} |
+    ( antique white ) {_color='antiquewhite'} |
+    ( aqua ) {_color='aqua'} |
+    ( azure ) {_color='azure'} |
+    ( beige ) {_color='beige'} |
+    ( bisque | bisk ) {_color='bisque'} |
+    ( black ) {_color='black'} |
+    ( blanched almond ) {_color='blanchedalmond'} |
+    ( blue ) {_color='blue'} |
+    ( blue violet ) {_color='blueviolet'} |
+    ( brown ) {_color='brown'} |
+    ( burlywood | ( burly wood) ) {_color='burlywood'} |
+    ( cadet blue ) {_color='cadetblue'} |
+    ( chartreuse ) {_color='chartreuse'} |
+    ( chocolate ) {_color='chocolate'} |
+    ( coral ) {_color='coral'} |
+    ( ( cornflower | ( corn flower ) ) blue ) {_color='cornflowerblue'} |
+    ( corn silk ) {_color='cornsilk'} |
+    ( crimson ) {_color='crimson'} |
+    ( cyan ) {_color='cyan'} |
+    ( dark blue ) {_color='darkblue'} |
+    ( dark cyan ) {_color='darkcyan'} |
+    ( dark goldenrod ) {_color='darkgoldenrod'} |
+    ( dark (gray|grey) ) {_color='darkgray'} |
+    ( dark green ) {_color='darkgreen'} |
+    ( dark khaki ) {_color='darkkhaki'} |
+    ( dark magenta ) {_color='darkmagenta'} |
+    ( dark olive ?green ) {_color='darkolivegreen'} |
+    ( dark orange ) {_color='darkorange'} |
+    ( dark orchid ) {_color='darkorchid'} |
+    ( dark red ) {_color='darkred'} |
+    ( dark salmon ) {_color='darksalmon'} |
+    ( dark sea green ) {_color='darkseagreen'} |
+    ( dark slate blue ) {_color='darkslateblue'} |
+    ( dark slate (gray|grey) ) {_color='darkslategray'} |
+    ( dark turquoise ) {_color='darkturquoise'} |
+    ( dark violet ) {_color='darkviolet'} |
+    ( deep pink ) {_color='deeppink'} |
+    ( deep sky blue ) {_color='deepskyblue'} |
+    ( dim (gray|grey) ) {_color='dimgray'} |
+    ( dodger blue ) {_color='dodgerblue'} |
+    ( fire brick ) {_color='firebrick'} |
+    ( floral white ) {_color='floralwhite'} |
+    ( forest green ) {_color='forestgreen'} |
+    ( fuchsia ) {_color='fuchsia'} |
+    ( gainsboro ) {_color='gainsboro'} |
+    ( ghost white ) {_color='ghostwhite'} |
+    ( gold ) {_color='gold'} |
+    ( (goldenrod|(golden rod)) ) {_color='goldenrod'} |
+    ( gray | grey ) {_color='gray'} |
+    ( green ) {_color='green'} |
+    ( green yellow ) {_color='greenyellow'} |
+    ( honeydew | (honey do) ) {_color='honeydew'} |
+    ( hot pink ) {_color='hotpink'} |
+    ( indian red ) {_color='indianred'} |
+    ( indigo ) {_color='indigo'} |
+    ( ivory ) {_color='ivory'} |
+    ( khaki ) {_color='khaki'} |
+    ( lavender ) {_color='lavender'} |
+    ( lavender blush ) {_color='lavenderblush'} |
+    ( lawn green ) {_color='lawngreen'} |
+    ( lemon chiffon ) {_color='lemonchiffon'} |
+    ( light blue ) {_color='lightblue'} |
+    ( light coral ) {_color='lightcoral'} |
+    ( light cyan ) {_color='lightcyan'} |
+    ( light goldenrod yellow ) {_color='lightgoldenrodyellow'} |
+    ( light gray ) {_color='lightgray'} |
+    ( light green ) {_color='lightgreen'} |
+    ( light pink ) {_color='lightpink'} |
+    ( light salmon ) {_color='lightsalmon'} |
+    ( light sea green ) {_color='lightseagreen'} |
+    ( light sky blue ) {_color='lightskyblue'} |
+    ( light slate (gray|grey) ) {_color='lightslategray'} |
+    ( light steel blue ) {_color='lightsteelblue'} |
+    ( light yellow ) {_color='lightyellow'} |
+    ( lime ) {_color='lime'} |
+    ( lime green ) {_color='limegreen'} |
+    ( linen ) {_color='linen'} |
+    ( magenta ) {_color='magenta'} |
+    ( maroon ) {_color='maroon'} |
+    ( medium aquamarine ) {_color='mediumaquamarine'} |
+    ( medium blue ) {_color='mediumblue'} |
+    ( medium orchid ) {_color='mediumorchid'} |
+    ( medium purple ) {_color='mediumpurple'} |
+    ( medium sea green ) {_color='mediumseagreen'} |
+    ( medium slate blue ) {_color='mediumslateblue'} |
+    ( medium spring green ) {_color='mediumspringgreen'} |
+    ( medium turquoise ) {_color='mediumturquoise'} |
+    ( medium violet red ) {_color='mediumvioletred'} |
+    ( midnight blue ) {_color='midnightblue'} |
+    ( mint cream ) {_color='mintcream'} |
+    ( misty rose ) {_color='mistyrose'} |
+    ( moccasin ) {_color='moccasin'} |
+    ( navajo white ) {_color='navajowhite'} |
+    ( navy ) {_color='navy'} |
+    ( old lace ) {_color='oldlace'} |
+    ( olive ) {_color='olive'} |
+    ( olive drab ) {_color='olivedrab'} |
+    ( orange ) {_color='orange'} |
+    ( orange red ) {_color='orangered'} |
+    ( orchid ) {_color='orchid'} |
+    ( pale goldenrod ) {_color='palegoldenrod'} |
+    ( pale green ) {_color='palegreen'} |
+    ( pale turquoise ) {_color='paleturquoise'} |
+    ( pale violet red ) {_color='palevioletred'} |
+    ( papaya whip ) {_color='papayawhip'} |
+    ( peach puff ) {_color='peachpuff'} |
+    ( peru ) {_color='peru'} |
+    ( pink ) {_color='pink'} |
+    ( plum ) {_color='plum'} |
+    ( powder blue ) {_color='powderblue'} |
+    ( purple ) {_color='purple'} |
+    ( rebecca purple ) {_color='rebeccapurple'} |
+    ( red ) {_color='red'} |
+    ( rosy brown ) {_color='rosybrown'} |
+    ( royal blue ) {_color='royalblue'} |
+    ( saddle brown ) {_color='saddlebrown'} |
+    ( salmon ) {_color='salmon'} |
+    ( sandy brown ) {_color='sandybrown'} |
+    ( sea green | ( seagreen ) ) {_color='seagreen'} |
+    ( seashell | ( sea shell ) ) {_color='seashell'} |
+    ( sienna ) {_color='sienna'} |
+    ( silver ) {_color='silver'} |
+    ( sky blue ) {_color='skyblue'} |
+    ( slate blue ) {_color='slateblue'} |
+    ( slate (gray|grey) ) {_color='slategray'} |
+    ( snow ) {_color='snow'} |
+    ( spring green ) {_color='springgreen'} |
+    ( steel blue ) {_color='steelblue'} |
+    ( tan ) {_color='tan'} |
+    ( teal ) {_color='teal'} |
+    ( thistle ) {_color='thistle'} |
+    ( tomato ) {_color='tomato'} |
+    ( turquoise ) {_color='turquoise'} |
+    ( violet ) {_color='violet'} |
+    ( wheat ) {_color='wheat'} |
+    ( white ) {_color='white'} |
+    ( white smoke ) {_color='whitesmoke'} |
+    ( yellow ) {_color='yellow'} |
+    ( yellow green ) {_color='yellowgreen'}
+);
+### VOCABULARY ###
+SETUP = setup | ( set up ) | install;
+LIGHT = ( ?( $PHILIPS | $HUE | ($PHILIPS $HUE ) )
+            ( [light?(?(\')s)]) | [lamp?(?(\')s)]) | [lightbulb?(?(\')s)];
+PHILIPS = philips | phillips | philip\'s | phillip\'s;
+HUE = hue | hugh | hew;
+SWITCH = turn | switch;
+ADJUST = adjust | dial | change;
+DARKER = lower | dimmer | darker | down | back | (less bright);
+HIGHER = higher | brighter | up;
+DIM = dim | darken;
+BRIGHTEN = brighten | (turn up) | increase;
+WARMER =  warmer | hotter | cozier;
+COOLER =  cooler | colder;
+TEACH = teach | tell | instruct;
+MEUS = me | us;
+USE = use | operate;
+LESSON = lesson | tutorial | instructional;
+FORGET = forget | delete;
+CHANGE = change | [?(re)set] | pick | select | modify;
+ROOM = room | group;
+OTHER = different | another | other;
+MAKE = $SWITCH | make | set;

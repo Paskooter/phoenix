@@ -1,0 +1,55 @@
+!use_equivalent_words = true;
+TopRule =
+($*
+    (
+        ?$KU_PREFIXES $D_TUTORIAL {intent = D_TUTORIAL._intent}
+    )
+
+$*) {skill='\@be/tutorial'}{domain = 'tutorial'}{priority='HIGH'}
+;
+
+### TUTORIAL DOMAIN
+
+D_TUTORIAL =
+(
+    (?$D_TUTORIAL_V_SHOW ?$D_TUTORIAL_V_THE $D_TUTORIAL_V_TUTORIAL) |
+    (?$D_TUTORIAL_V_WANT ?$D_TUTORIAL_V_SEE ?$D_TUTORIAL_V_THE $D_TUTORIAL_V_TUTORIAL) |
+    (?$D_TUTORIAL_V_GIVE ?$D_TUTORIAL_V_THE $D_TUTORIAL_V_TUTORIAL)
+)
+{_intent='tutorialOpen'}
+;
+
+### USEFUL_VOCABULARY ###
+
+D_TUTORIAL_V_SHOW = (show ?(me|us))|play|(?(let (me|us)) see)|(bring|pull|put|throw ?up)|display|open|browse|(scroll through)|find|view|present|(go to)|load|((bring|take) (me|us) to);
+D_TUTORIAL_V_GIVE = (give ?(me|us));
+D_TUTORIAL_V_RUN = (do|launch|run|start|access);
+D_TUTORIAL_V_SEE = (see|watch|(look ?at)|view|examine|(scroll|flip through));
+D_TUTORIAL_V_THE = (a|an|the|that|those|your|some);
+D_TUTORIAL_V_TUTORIAL =
+(
+(?interaction ([tip?s] | [tutorial?s] | lesson )) |
+(how ?to interact with ((?(a|an|my|our) [jibo?s]) | you)) |
+([?(ro)bot?s] [basic?s]) |
+([basic?s] ~4.5)
+)
+;
+
+D_TUTORIAL_V_WANT = ((i|we want ?to)|(i\'d|we\'d|(i|we would) like ?to)|([let?(\')s]));
+
+KU_PREFIXES= (
+    (i (was ?$V_ACTUALLY saying|(trying to say))|(meant to say) $*) |
+    ($V_CANYOU ?$V_ACTUALLY ?(tell ?(me|us) ?about) $*) |
+    ($V_CANYOU ?$V_ACTUALLY access $*) |
+    ($V_CANYOU ?$V_ACTUALLY get ?(me|us) $*) |
+    ($V_CANYOU ?$V_ACTUALLY give ?(me|us) $*) |
+    (do you ?$V_ACTUALLY have $*) |
+    ((i ?$V_ACTUALLY want)|(i\'d|(i would) ?$V_ACTUALLY like) ?to $*) |
+    (i ?$V_ACTUALLY wish ?to $*) |
+    (i ?$V_ACTUALLY wish you $*) |
+    ($V_CANWE|(let me|us) see $*)
+~0.1);
+
+V_ACTUALLY = <1.0>(really|actually|usually|ever)<0.0>;
+V_CANYOU = ((can you)|(do you (?$V_ACTUALLY know how ?to))|(are you ?$V_ACTUALLY able|capable|allowed|permitted ?(to|of)));
+V_CANWE = ((can|may|could i|we|people)|((are we)|(am i) ?$V_ACTUALLY allowed|able|permitted|capable ?(to|of)));

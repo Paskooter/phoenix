@@ -105,9 +105,13 @@ export function parse(source) {
     let optional = false;
     if (peek().kind === 'QMARK') { pos += 1; optional = true; }
     const atom = parseAtom();
-    // Consume any consecutive entity-tag blocks attached to this item.
+    // Consume any consecutive entity-tag blocks attached to this item: both the
+    // FST `{key=value}` form and the `{% key='value' %}` semantic-action form.
     const tags = [];
-    while (peek().kind === 'LBRACE') tags.push(...parseTagBlock());
+    while (peek().kind === 'LBRACE' || peek().kind === 'ACTION') {
+      if (peek().kind === 'ACTION') tags.push(...parseActionBlock(eat('ACTION').value));
+      else tags.push(...parseTagBlock());
+    }
     if (tags.length) atom.tags = (atom.tags || []).concat(tags);
     return optional ? { type: 'opt', item: atom } : atom;
   }
@@ -131,6 +135,42 @@ export function parse(source) {
     if (t.kind === 'ID') { pos += 1; return { type: 'lit', word: t.value }; }
     if (t.kind === 'CHARCLASS') { pos += 1; return { type: 'class', body: t.value }; }
     throw new Error(`parser: unexpected ${t.kind} (${t.value}) at ${t.line}:${t.col}`);
+  }
+
+  // Parse a `{% ... %}` semantic-action body into the same tag specs the FST
+  // `{key=value}` blocks produce. Supported statement forms (the only ones the
+  // launch grammars use), `;`-separated:
+  //   key = 'literal'        → lit tag
+  //   key = this._parsed     → parsed tag (value = the text this node matched)
+  //   key = Sub._field       → subfield tag (read a sub-rule's private field)
+  //   key = bareword         → lit tag (treated as a literal string)
+  // Keys starting with `_` stay private (propagate via subFields), same as the
+  // FST tags. Unparseable statements are skipped rather than throwing — a single
+  // exotic action shouldn't break a whole grammar.
+  function parseActionBlock(body) {
+    const tags = [];
+    for (const raw of String(body).split(';')) {
+      const stmt = raw.trim();
+      if (!stmt) continue;
+      const m = stmt.match(/^([A-Za-z_][\w]*)\s*=\s*(.+)$/);
+      if (!m) continue;
+      const key = m[1];
+      let rhs = m[2].trim();
+      if (/^'.*'$/.test(rhs) || /^".*"$/.test(rhs)) {
+        tags.push({ key, op: 'set', kind: 'lit', value: rhs.slice(1, -1) });
+      } else if (rhs === 'this._parsed' || rhs === 'this.parsed') {
+        tags.push({ key, op: 'set', kind: 'parsed' });
+      } else {
+        const dot = rhs.indexOf('.');
+        if (dot >= 0 && !rhs.startsWith('this.')) {
+          tags.push({ key, op: 'set', kind: 'subfield', subRule: rhs.slice(0, dot), subField: rhs.slice(dot + 1) });
+        } else if (/^[A-Za-z_][\w]*$/.test(rhs)) {
+          tags.push({ key, op: 'set', kind: 'lit', value: rhs });
+        }
+        // anything else (computed expressions) — skip
+      }
+    }
+    return tags;
   }
 
   // `{key=value}{key2=value2}` — one tag-block per call, returns the list

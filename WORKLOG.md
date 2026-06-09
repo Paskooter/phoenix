@@ -2,6 +2,23 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-09 — **NLU engine overhaul: full real grammars, `{% %}` actions, priority
+  arbitration (76%→98% on a broad corpus).** Decided (with the user) to keep the NLU
+  pure-JS and ship NO Jibo binaries: the real `jibo-nlu` `parse` binary is used only as an
+  offline grading oracle (`packages/nlu/test/oracle/golden.jsonl`, captured from the 2018
+  linux-x64 build over a 99-utterance corpus). Vendored the real grammar SOURCES (text) from
+  the reference `rules_src` — chitchat (1045 rules), clock, hue-control, report, every
+  be-skill, + globals/shared — and `eq_words.txt`, all under `packages/nlu/resources/`. Engine
+  fixes: (a) lexer normalizes nbsp/curly quotes so all 20 grammars parse; (b) **`{% ... %}`
+  semantic-action blocks are now parsed into entity tags** (`intent='gqa'`, `priority='HIGH'`,
+  `Action='Dance'`, `key=this._parsed`) — previously discarded, which is why chitchat captured
+  ZERO intents; (c) **priority-aware arbitration** (`HIGH > unset > LOW`, then heuristic score)
+  so LOW catch-alls (`idle`, generic GQA) lose to specific intents. Added `fullGrammar.js` as a
+  fallback NLU stage (additive — only matches what the legacy stages miss), so "sing me a
+  song"/"i love you"/"turn on the lights"/"twerk"/"can you dance" now route. 98 unit tests
+  (+6), sim proxy harness all green, no regression. Remaining: factory entity lists, `<weight>`
+  scoring for HIGH-vs-HIGH ties, global-command strict-arm tuning, eq_words wiring.
+
 - 2026-06-08 — **MIM→SLIM Slimmer — GraphSkill/MIM section complete; loop stopping.** Built the
   Slimmer (port of baseskill Slimmer): filter prompts by category/sub-category/index, node:vm
   condition eval against PromptData, weighted-random pick (injectable rng), ES6-template→ESML,

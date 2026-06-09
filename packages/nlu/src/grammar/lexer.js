@@ -26,6 +26,12 @@
 // Escapes: `\X` represents a literal `X` (used for `\@` in skill names).
 
 export function lex(source) {
+  // Normalize unicode the hand-authored grammars contain: non-breaking spaces
+  // (U+00A0, e.g. `gray |<nbsp> grey` in hue-control) → regular space; curly
+  // apostrophes/quotes (U+2019/U+2018, e.g. `let’s` in gui_nav) → straight `'`
+  // so they tokenize as ordinary word chars (the matcher strips apostrophes
+  // anyway). Without this a handful of real grammars fail to lex.
+  source = source.replace(/[\u00A0\u2007\u202F\u200B]/g, " ").replace(/[\u2018\u2019]/g, "'");
   const tokens = [];
   let i = 0;
   const N = source.length;
@@ -134,15 +140,20 @@ export function lex(source) {
     // Punctuation.
     if (ch === '(') { advance(); push('LPAREN', '('); continue; }
     if (ch === ')') { advance(); push('RPAREN', ')'); continue; }
-    // `{% js... %}` — inline JavaScript blocks that run on the parse result
-    // (e.g. `{%delete this.YESNO%}` in a factory grammar). The cloud's parser
-    // executes them via a JS interpreter; we don't run JS on parse results,
-    // so skip the whole block. Must come before the general `{` punctuation
-    // case.
+    // `{% js... %}` — inline semantic-action blocks the cloud runs through a V8
+    // interpreter on the parse result. In the launch grammars these are almost
+    // entirely simple assignments — `{% intent='gqa' %}`, `{% priority='HIGH' %}`,
+    // `{% Action='Dance' %}`, `{% GivenName = this._parsed %}`. Capture the raw
+    // body as an ACTION token; the parser turns it into entity tags. (chitchat
+    // and the other rich grammars assign EVERY intent this way, so skipping the
+    // block — the old behaviour — captured zero intents from them.) Must come
+    // before the general `{` punctuation case.
     if (ch === '{' && source[i + 1] === '%') {
       advance(2);
-      while (i < N && !(source[i] === '%' && source[i + 1] === '}')) advance();
+      let body = '';
+      while (i < N && !(source[i] === '%' && source[i + 1] === '}')) { body += source[i]; advance(); }
       if (i < N) advance(2);
+      push('ACTION', body.trim());
       continue;
     }
     if (ch === '{') { advance(); push('LBRACE', '{'); continue; }

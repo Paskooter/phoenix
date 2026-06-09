@@ -1,0 +1,21 @@
+!use_equivalent_words = true;
+TopRule =
+    $w03
+        (
+            $THANKS_TO_CLEAR {intent=THANKS_TO_CLEAR._intent}
+        ){domain='mim_global'}{priority='HIGH'}
+    $w03
+;
+
+### GLOBAL MIM COMMANDS ###
+
+THANKS_TO_CLEAR =  (
+    (($THANKS | $GREAT) ?$JIBO) |
+    ($GREAT $THANKS ?$JIBO)
+) {_intent='thanks'};
+
+THANKS = thanks | (thank you) | ( ((that was) | that\'s) $* $HELPFUL) | okay | (all right) | ( ?i (appreciate | got) it|that);
+HELPFUL = helpful | useful | $GREAT;
+GREAT = great | wonderful | super | nice | cool | awesome | perfect;
+JIBO = jibo | (?little $GUY);
+GUY = guy | dude | robot |buddy;

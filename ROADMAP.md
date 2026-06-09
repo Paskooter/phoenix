@@ -55,9 +55,15 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] Question-intent grammar (answer-skill general* intents) — U/P
 - [x] LLM fallback client (LM Studio/Gemma tool-calling), off unless ETCO_parser_llmUrl — U
 - [x] Cloud-skill launch grammars (report-skill: personal report / weather / news / commute / calendar) — U/P/B
-- [ ] chitchat launch coverage (broad; pending MIM)
+- [x] **Full real-grammar stage** (`fullGrammar.js`): every vendored Jibo launch grammar (chitchat 1045 rules, hue-control, report, all be-skills + globals/shared) parsed by the pure-JS engine — U/P
+- [x] **`{% ... %}` semantic-action blocks** parsed into entity tags (intent/priority/Action/`this._parsed`) — was the reason chitchat captured zero intents — U
+- [x] **Priority arbitration** (HIGH > unset > LOW, then heuristic score) — LOW catch-alls (idle/generic GQA) lose to specific intents — U
+- [x] **Oracle grading harness** (`test/oracle/`): real `jibo-nlu` binary captures golden NLParse; grader scores parity (98% intent on the broad corpus). NO binary ships — oracle is dev-only.
+- [ ] Factory entity lists ($first_name/$city/$music_genre/… from public datasets) — currently 1–3-word wildcard fallback
+- [ ] `<weight>` / `~weight` scoring for HIGH-vs-HIGH ties (e.g. report-calendar vs chitchat-tell-about)
+- [ ] Global-command TopRules (stop/volume/sleep/GUI-nav) — strict-arm tuning so they don't over-trigger
+- [ ] eq_words homophone expansion wired into the matcher (vendored, not yet applied)
 - [ ] LoopMemberDetector (resolve looper names → IDs, inject loopMemberReferent)
-- [ ] FST priority arbitration parity (HIGH short-circuit / LOW loses to LLM / SKIP)
 - [ ] Broader intent coverage toward the 354-intent manifest
 
 ## Data / lasso (`@phoenix/data`) — lasso.md

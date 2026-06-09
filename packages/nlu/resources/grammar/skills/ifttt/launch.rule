@@ -1,0 +1,16 @@
+TopRule =
+(
+    $w02  $COMMAND $PARSED
+){slotAction=PARSED._slotAction}{skill='\@be/ifttt'}{intent = 'ifttt'}{domain = 'ifttt'}{command=COMMAND._command}{priority='HIGH'}
+;
+
+PARSED @= (+$w){_slotAction=_parsed};
+w02 = <1.0> ?($w | ($w $w)) <0.0>;
+
+COMMAND = (
+    ($TRIGGER {_command='trigger'}) |
+    ($ABRACADABRA {_command='abracadabra'})
+);
+
+TRIGGER = trigger|triggered;
+ABRACADABRA = (abracadabra|abracadavre|(abra|albert cadabra|kadabra)|(advocate abra));

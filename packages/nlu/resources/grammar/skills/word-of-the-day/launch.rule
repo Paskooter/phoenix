@@ -1,0 +1,46 @@
+TopRule = $* $WOTD_LAUNCH $*
+{skill='\@be/word-of-the-day'}{domain='word-of-the-day'}
+{intent=WOTD_LAUNCH._intent}{priority='HIGH'};
+
+WOTD_LAUNCH = (
+    $PLAY_GAME {_intent='play'} |
+    $LIKE_GAME {_intent='like'} |
+    $TUTORIAL {_intent='tutorial'}
+);
+
+
+PLAY_GAME = (
+    ($PREFIX $w03 ?($PLAY|$OPEN) $w03 $WORD_GAME_DESC) |
+    ($PLAY|$OPEN $w03 $WORD_GAME_DESC) |
+    ($PLAY|$OPEN where ?of the [day?s]) |
+    (($WORD_GAME_DESC)~3)
+);
+
+LIKE_GAME = (
+    ( do you $LIKE ?(the|that) $WORD_GAME_DESC ) |
+    ( do you $LIKE ( playing | ( to play ) ) $* $WORD_GAME_DESC )
+);
+TUTORIAL = (
+    ( $LESSON $* $WORD_GAME_DESC )  |
+    ( tell me|us about|(how $* $PLAY) $WORD_GAME_DESC )  |
+    ( how do $IWEYOU $PLAY $w03 $WORD_GAME_DESC ) |
+    ( how does $ONE $PLAY $w03 $WORD_GAME_DESC ) |
+    ( explain|describe|teach $* ?$PLAY $WORD_GAME_DESC ) |
+    ( ?give instructions $* $WORD_GAME_DESC )
+);
+
+WORD_GAME_DESC = (
+    (?(the|that) $WORD ?(?of the day) ?$GAME)
+);
+### VOCABULARY ###
+PLAY = [play?(ing)] | do ;
+PREFIX = (i|we|(?(do|would) you) wanna|(want|(would like) ?to))|(let\'s)|
+    (i\'d|we\'d like ?to)|(can|could|may i|we)|(would you mind ?(letting me|us));
+OPEN = (open|(go ?to)|(show ?(me|us))|(bring up)|(bring|take me|us ?to)|load|
+    access|display|launch|(?((let (me|us))|let\'s) see));
+GAME = game | games | thing | challenge;
+LIKE = like | enjoy | dig | (care for) | love;
+WORD = word | words;
+LESSON = lesson | tutorial | instructional;
+IWEYOU = i | we | you | people | humans;
+ONE = one | someone | ( ?a person) | ( an individual );

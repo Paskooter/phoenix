@@ -1,0 +1,266 @@
+TopRule =
+(
+    ($* $D_GREETINGS
+        {intent=D_GREETINGS._intent} $*) |
+    ($* $D_GREETINGS_WITH_SELFID
+        {selfid=D_GREETINGS_WITH_SELFID._selfid}
+        {intent=D_GREETINGS_WITH_SELFID._intent}
+        {inLoop=D_GREETINGS_WITH_SELFID._inLoop} $*) |
+    ($* $D_GREETINGS_STRICT
+        {intent=D_GREETINGS_STRICT._intent}) |
+    ($* $D_GREETINGS_HAPPY_HOLIDAY
+        {intent=D_GREETINGS_HAPPY_HOLIDAY._intent}
+    $*)
+){domain='greetings'}{skill='\@be/greetings'}{priority='HIGH'}
+;
+
+### GREETINGS DOMAIN ###
+D_GREETINGS =
+    (
+      $D_GREETINGS_INTENT_HELLO {_intent=D_GREETINGS_INTENT_HELLO._intent} |
+      $D_GREETINGS_INTENT_GOODMORNING {_intent=D_GREETINGS_INTENT_GOODMORNING._intent} |
+      $D_GREETINGS_INTENT_GOODAFTERNOON {_intent=D_GREETINGS_INTENT_GOODAFTERNOON._intent} |
+      $D_GREETINGS_INTENT_GOODEVENING {_intent=D_GREETINGS_INTENT_GOODEVENING._intent} |
+      $D_GREETINGS_INTENT_GOODNIGHT {_intent=D_GREETINGS_INTENT_GOODNIGHT._intent} |
+      $D_GREETINGS_INTENT_GOODBYE {_intent=D_GREETINGS_INTENT_GOODBYE._intent} |
+      $D_GREETINGS_INTENT_IM_HOME {_intent=D_GREETINGS_INTENT_IM_HOME._intent} |
+      $D_GREETINGS_INTENT_IM_BACK {_intent=D_GREETINGS_INTENT_IM_BACK._intent}
+    )
+;
+
+D_GREETINGS_STRICT =
+    (
+        $D_GREETINGS_INTENT_GOODBYE_STRICT {_intent=D_GREETINGS_INTENT_GOODBYE_STRICT._intent} |
+        $D_GREETINGS_INTENT_HEY {_intent=D_GREETINGS_INTENT_HEY._intent} |
+        $D_GREETINGS_INTENT_WHATSUP {_intent=D_GREETINGS_INTENT_WHATSUP._intent}
+    )
+;
+
+D_GREETINGS_WITH_SELFID =
+  (
+    $D_GREETINGS_INTENT_SELFID
+        {_intent=D_GREETINGS_INTENT_SELFID._intent}
+        {_selfid=D_GREETINGS_INTENT_SELFID._selfid}
+        {_inLoop=D_GREETINGS_INTENT_SELFID._inLoop}
+  );
+
+
+D_GREETINGS_HAPPY_HOLIDAY =
+	(
+		((happy | merry | (have a $D_GREETINGS_V_GOOD)) $D_GREETINGS_V_HOLIDAY) |
+		(?(happy | merry | (have a $D_GREETINGS_V_GOOD)) $D_GREETINGS_V_HOLIDAY_SPECIFIC)
+	){_intent='happyHoliday'}
+;
+
+### INTENTS ###
+D_GREETINGS_INTENT_IM_HOME =
+    (
+        (i\'m|we\'re|(i|we am|are) home) {_intent='imHome'}
+    )
+;
+
+D_GREETINGS_INTENT_IM_BACK =
+    (
+        ((i\'m|we\'re|(i|we am|are) back)|(i\'ve|we\'ve|(i|we have) returned)) {_intent='imBack'}
+    )
+;
+
+D_GREETINGS_INTENT_HEY =
+    (
+        (
+			(?(hey jibo) jibo)|
+			((haji baba) ~9) |
+			(achieva ~7) |
+			((mickey mouse) ~12) |
+			(pajiba ~6) |
+			(hey diva ~8) |
+			(diva ~4) |
+			(ag bell ~7)
+		) {_intent='heyJibo'} |
+        (hey ?$D_GREETINGS_V_THERE ?$D_GREETINGS_V_BUD) {_intent='hello'}
+    )
+;
+
+D_GREETINGS_INTENT_HELLO =
+    (
+      ($D_GREETINGS_V_HELLO ?$D_GREETINGS_V_THERE ?$D_GREETINGS_V_BUD) |
+      (greetings) | (howdy ?do) | ([salutation?s]) | (ciao|chow) | (aloha) | (hola|ola)
+    )
+  {_intent='hello'}
+;
+D_GREETINGS_INTENT_WHATSUP =
+    (
+      ($D_GREETINGS_V_WHATS $D_GREETINGS_V_UP) |
+      ($D_GREETINGS_V_WHATS new today|(?right now)) |
+      (sup)
+    )
+  {_intent='whatsUp'}
+;
+
+D_GREETINGS_INTENT_GOODMORNING =
+    (
+      (?good $D_GREETINGS_V_MORNING) |
+      (good day)
+    )
+  {_intent='goodMorning'}
+;
+D_GREETINGS_INTENT_GOODAFTERNOON =
+    (
+      ?good $D_GREETINGS_V_AFTERNOON
+    )
+  {_intent='goodAfternoon'}
+;
+D_GREETINGS_INTENT_GOODEVENING =
+    (
+      ?good $D_GREETINGS_V_EVENING
+    )
+  {_intent='goodEvening'}
+;
+D_GREETINGS_INTENT_GOODNIGHT =
+  (
+    ( ?good $D_GREETINGS_V_NIGHT ) |
+    ( goodnite | goodnight ) |
+    ( $D_GREETINGS_V_CHILDNIGHT ) |
+    (sweet [dream?s]) |
+    ([i?(?(\')m)]|[we?((\')re)] ?(am|are) going ?to bed|sleep) |
+    ([i?(?(\')m)]|[we?((\')re)] ?(am|are) ?(going ?to) [head?(ed)|(ing)] ?to bed)
+  ){_intent='goodNight'}
+;
+D_GREETINGS_INTENT_GOODBYE =
+    (
+      $D_GREETINGS_V_GOODBYE
+    )
+  {_intent='goodBye'}
+;
+D_GREETINGS_INTENT_GOODBYE_STRICT =
+    (
+      $D_GREETINGS_V_GOODBYE_STRICT
+    )
+  {_intent='goodBye'}
+;
+
+
+D_GREETINGS_INTENT_NOTIFICATIONS =
+(
+  ( ((do you have) | got) (anything | something | ( ?any stuff) | ( ?any notifications)) ?(for me) ?( $D_GREETINGS_V_NOTIFICATIONTIME ) )
+  |
+  (what do you have for me ?($D_GREETINGS_V_NOTIFICATIONTIME))
+){_intent='notifications'}
+;
+
+
+### D_GREETINGS SELFID ###
+D_GREETINGS_INTENT_SELFID =
+  (
+    (
+      ($D_GREETINGS_V_ITSME $factory:first_name ~3) {_selfid=first_name._first_name} {_inLoop='false'}
+    )
+  ){_intent='selfID'}
+;
+
+
+# GREETINGS VOCABULARY#
+D_GREETINGS_V_HELLO = hello|hi|hiya;
+D_GREETINGS_V_BUD = bud|buddy|(little guy);
+D_GREETINGS_V_WHATS = (what | (whats) | (what\'s) | (what is));
+D_GREETINGS_V_UP = up|(going on)|happening|new;
+D_GREETINGS_V_GOOD = good|great|nice|wonderful|([super?(b)])|happy|merry;
+D_GREETINGS_V_MORNING = morning;
+D_GREETINGS_V_AFTERNOON = afternoon;
+D_GREETINGS_V_EVENING = evening;
+D_GREETINGS_V_NIGHT = night;
+D_GREETINGS_V_CHILDNIGHT = (night night)|(nighty night);
+D_GREETINGS_V_ITSME = (its ?me)|(it\'s ?me)|(i\'m)|(i am)|(remember me);
+D_GREETINGS_V_THERE = there;
+D_GREETINGS_V_NOTIFICATIONTIME =
+  ( (today) | (this afternoon) | (this morning) | (this evening) | (tonight) | (right now));
+D_GREETINGS_V_GOODBYE =
+    (
+        goodbye|bye|(bye bye)|adios|chow|(good bye)|
+        later|(see (you|ya) ?later)|(catch you|ya later)|
+        (?(i\'ll|we\'ll|(i|we will)) be back soon)|
+        (i\'m|we\'re|(i|we am|are) heading|going|headed|(gonna|(going to) head) out ?(for a ?little bit|while))|
+        ((i\'ll|we\'ll|(i|we will)) be gone|leaving for ?a ?(little) bit|while)|
+        (?(i\'ll|we\'ll|(i|we will)) catch you ?on the rebound)|
+        (have ?a good one|day) |
+        (i\'m|we\'re|(i|we am|are) leaving)
+    )
+;
+D_GREETINGS_V_GOODBYE_STRICT =
+    (
+		(((i|we) (got|have))|((i\'ve|we\'ve) got) to (go|leave) ?away ?now) |
+		((i have)|(i\'ve|we\'ve) gotta|gonna (go|leave) ?away ?now) |
+		((i am)|i\'m|(we are)|we\'re gonna|gotta go ?now) |
+		(?((i am)|i\'m|(we are)|we\'re) gonna|gotta go away ?now) |
+		((i am)|i\'m|(we are)|we\'re going ?(to go) ?now) |
+		(?((i am)|i\'m|(we are)|we\'re) going ?(to go) away ?now) |
+		(?((it is)|it\'s) time to go ?now)
+    )
+;
+
+D_GREETINGS_V_STARTOF = (?the start|beginning|(first day|night) of);
+D_GREETINGS_V_ENDOF = (?the (last|final day|night)|end of);
+D_GREETINGS_V_HOLIDAY =
+    (
+       (christmas) {% holiday='Christmas' %} |
+       ((christmas eve)|(?the night before christmas)) {% holiday='Christmas Eve' %} |
+       (thanksgiving) {% holiday='Thanksgiving' %} |
+       (memorial day) {% holiday='Memorial Day' %} |
+	   (( ?([america?(n|(\'s))]|(u.s.)|(united states)) independence day)|(july 4|4th|four|fourth)|(?the 4|4th|four|fourth of july)) {% holiday='Independence Day' %} |
+       (easter ?(sunday|weekend)){% holiday='Easter' %} |
+       (good friday) {% holiday='Good Friday' %} |
+       (ash wednesday) {% holiday='Ash Wednesday' %} |
+       (palm sunday) {% holiday='Palm Sunday' %} |
+       ( ?($D_GREETINGS_V_STARTOF) hanukkah|chanukah) {% holiday='Hanukkah' %} |
+       (sukkot|sukkoth|cicott|succoth) {% holiday='Sukkot' %} |
+       ( ?($D_GREETINGS_V_STARTOF) passover) {% holiday='Passover' %} |
+       (rosh hashanah) {% holiday='Rosh Hashanah' %} |
+       (yom kippur) {% holiday='Yom Kippur' %} |
+       (purim|primm|coram|corium|parenham ) {% holiday='Purim' %} |
+       (labor day) {% holiday='Labor Day' %} |
+       ( halloween|(all [hallow?(\')s] eve) ){% holiday='Halloween' %} |
+       ( ?(saint|st.) [valentine?(?(\')s)] ?day ) {% holiday='Valentine\'s Day' %} |
+       ((saint|st.) [patrick?(?(\')s)]|[pa(dd)|(tt)(y?(?(\')s))|(ies)] ?day ) {% holiday ="St. Patrick's Day" %} |
+       (?($D_GREETINGS_V_STARTOF) (ramadan ?mubarak)|(shanah tovah)) {% holiday='Ramadan' %} |
+       ((eid ?(al fitr))|(eid-al-fitr)|($D_GREETINGS_V_ENDOF ramadan)) {% holiday='Eid-al-Fitr' %} |
+       ( ?($D_GREETINGS_V_STARTOF) kwanzaa) {% holiday='Kwanzaa' %} |
+       ([president?(\')s?(\')] day ) {% holiday='Presidents Day' %} |
+       ((mlk | (martin luther king ?(junior|jr.))) day ) {% holiday='MLK Day' %} |
+       (new [year?(?(\')s)] eve) {% holiday='New Year\'s Eve' %} |
+	   (new [year?(?(\')s)] ?day) {% holiday='New Year\'s Day' %} |
+       (chinese new [year?(?(\')s)]) {% holiday='Chinese New Year' %} |
+       (cinco de mayo) {% holiday='Cinco de Mayo' %} |
+       ([mother?(\')s?(\')] day) {% holiday="Mother's Day" %} |
+       ([father?(\')s?(\')] day) {% holiday="Father's Day" %} |
+       (april [fool?(\')?s?(\')] ?day) {% holiday="April Fool's Day" %} |
+       ((tax day)|(taxes due)|(the last day $* taxes)) {% holiday='Tax Day' %} |
+       (flag day) {% holiday='Flag Day' %} |
+       ([groundhog?(?(\')s?(\'))] day) {% holiday='Groundhog Day' %} |
+       ([veteran?(?(\')s?(\'))] day) {% holiday='Veterans Day' %} |
+       ([columbus?(?(\')s?(\'))] day) {% holiday='Columbus Day' %} |
+       (indigenous [people?(?(\')s?(\'))] day) {% holiday='Indigenous Peoples Day' %} |
+       ((v e day)|(victory in europe ?day)|(ve day)|(v day)) {% holiday='V-E Day' %} |
+       ((vj day)|(v j day)|(victory over japan ?day)|(victory in the pacific ?day)|(v p day)|(vp day)) {% holiday='V-J Day' %} |
+       ((?national pearl harbor ?remembrance day)) {% holiday='Pearl Harbor Day' %} |
+       ((eid al adha ?day)|(sacrifice feast ?day)) {% holiday='Eid-al-Adha' %} |
+       ((mardi gras ?day)|(shrove|fat tuesday)) {% holiday='Mardi Gras' %} |
+       ((d-day)|(d day)|(normandy landings ?day)|(operation [neptune?(\'s)] day)) {% holiday='D Day' %} |
+       ((super bowl sunday)|(super bowl ?day)) {% holiday='Super Bowl Sunday' %} |
+       ((oktoberfest)|(october fest) ?day) {% holiday='Oktoberfest' %} |
+       ((orthodox easter) ?day) {% holiday='Orthodox Easter' %} |
+       ((canadian thanksgiving|(thanks giving)) ?day) {% holiday='Canadian Thanksgiving' %} |
+       (([victoria?(\'s)] day)) {% holiday='Victoria Day' %} |
+       (([canada?(\'s)] day)) {% holiday='Canada Day' %} |
+       ((boxing day)) {% holiday='Boxing Day' %} |
+       ((diwali)|(deepavali) ?day) {% holiday='Diwali' %} |
+       ((ducera)|(dussera)|(dasara)|(dusshera)|(dussehra)|(vijayadashami) ?day) {% holiday='Dussera' %} |
+       ((ganesh chaturthi)|(vinayaka chaturthi) ?day) {% holiday='Ganesha Chaturthi' %} |
+       ((holi) ?day) {% holiday='Holi' %} |
+       ((navratri)|(navaratri)|(navarathri) ?day) {% holiday='Navratri' %}
+    )
+;
+D_GREETINGS_V_HOLIDAY_SPECIFIC =
+	(
+       (?($D_GREETINGS_V_STARTOF) (ramadan ?mubarak)|(shanah tovah)) {% holiday='Ramadan' %}
+	)
+;

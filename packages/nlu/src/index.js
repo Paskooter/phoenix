@@ -12,19 +12,25 @@ import { createService } from '@phoenix/common';
 import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { grammarParse } from './grammar.js';
 import { launchParse } from './launchRules.js';
+import { fullParse } from './fullGrammar.js';
 import { llmFallback } from './llmFallback.js';
 
 /**
  * Parse an utterance into an NLUResult. Pipeline (reference ParseRequestHandler order):
  *   1. be-skill launch grammars (deterministic; emits the `skill` entity for routing)
  *   2. built-in question grammar (answer-skill question intents)
- *   3. LLM fallback (off unless ETCO_parser_llmUrl is set)
+ *   3. full real-grammar stage — every vendored Jibo launch grammar (chitchat,
+ *      hue-control, report, …) with priority arbitration. Catches the long tail
+ *      of requests the earlier stages miss (sing/dance/love/lights/joke/…).
+ *   4. LLM fallback (off unless ETCO_parser_llmUrl is set)
  */
 export async function parse(text) {
   const launch = await launchParse(text);
   if (launch && (launch.intent || (launch.entities && launch.entities.skill))) return launch;
   const grammar = grammarParse(text);
   if (grammar.intent) return grammar;
+  const full = fullParse(text);
+  if (full && (full.intent || (full.entities && full.entities.skill))) return full;
   const llm = await llmFallback(text);
   return llm || grammar; // grammar here is the no-match shape
 }

@@ -1,0 +1,4 @@
+TopRule =
+(
+	( $* template skill $* ) {% intent='template_skill' %} {% priority='high' %}
+);

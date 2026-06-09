@@ -1,0 +1,48 @@
+TopRule = ($* $OPT_IN $*) {intent = OPT_IN._intent}{priority='HIGH'};
+
+### I have a thing for you, do you want to hear it? ###
+### I have a personal report for you. Do you want to hear it? ###
+### Do you want to hear today's date fact? ###
+
+OPT_IN =
+(
+	$factory:yes_no {_intent = yes_no._nl} |
+	$YES {_intent=YES._intent} |
+	$NO {_intent=NO._intent}
+)
+;
+YES =
+(
+	definitely |
+	( i ( think | suppose | guess ) ?so) |
+	( if you ( must | want | desire ( feel like it ) ) ) |
+	( why not ) |
+	( if it please you ) |
+	( i do ) |
+	( ( play | do | ( go for ) | ( get on ) ) it ) |
+	( sure do ) |
+	( give it ) |
+	( hit me ) |
+	go | shoot | speak | read
+)
+{_intent='yes'}
+;
+
+NO =
+(
+	now |
+	( not ?( now | yet ) ) |
+	don\'t |
+	( do not ) |
+	( ?probably shouldn\'t ) |
+	( ( we\'re | I\'m ) done ) |
+	( ?that\'s enough ) |
+	( ( that\'ll | ( that will ) ) do ) |
+	finish |
+	finished |
+	( that\'s ( alright | okay ) ) |
+	( ?maybe later ) |
+	( i\'m ( good | cool ) )
+)
+{_intent='no'}
+;

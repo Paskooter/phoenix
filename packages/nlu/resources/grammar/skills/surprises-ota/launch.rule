@@ -1,0 +1,49 @@
+TopRule =
+($*
+        (
+            ?$KU_PREFIXES $D_SURPRISESOTA {intent=D_SURPRISESOTA._intent}
+        )
+$* ){domain='surprises-ota'}{skill='\@be/surprises-ota'}{priority='HIGH'}
+;
+
+### SURPRISES OTA DOMAIN ###
+
+D_SURPRISESOTA =
+(
+	(what ?(new $V_SKILLS) (was|were) ?(?included in|with|from) ?(part of) ?(the|your) ?$V_LATEST $V_UPDATE) |
+	(what\'s|(what is|are) ?new ?(on|in|with) ?(part of) (the|your) ?$V_LATEST $V_UPDATE) |
+	(what ?(?new $V_SKILLS) can|could you do (with|from) (the|your) ?$V_LATEST $V_UPDATE) |
+	(what ?(?new $V_SKILLS) did|have you $V_ADDED (with|from) (the|your) ?$V_LATEST $V_UPDATE) |
+	(what|what\'s ?(is|are) ?the new $V_SKILLS (can|could you do)|(do you have) ) |
+	(what|what\'s ?(is|are) ?the new $V_SKILLS ?(did|have) you $V_ADDED) |
+	(what|what\'s ?(is|are) ?the new $V_SKILLS (you have)|you\'ve $V_ADDED) |
+	(show|tell ?(me|us) ?about ?(the|your) ?$V_LATEST $V_UPDATE) |
+	(what ?$V_UPDATE did you (install|download)) |
+	(did you ?(install|download) ?any ?(?(the|your) $V_LATEST) $V_UPDATE) |
+    ([what?(?(\')s|(re))] ?(is|are) ?your new $V_SKILLS) |
+    ((did you ?(install|download|get))|(do you have)|(?(have you) got) ?any new $V_SKILLS)
+){_intent='releaseNotes'};
+
+KU_PREFIXES = (
+    (i (was ?$V_ACTUALLY saying|(trying to say))|(meant to say) $*) |
+    ($V_CANYOU ?$V_ACTUALLY ?(tell ?(me|us) ?about) $*) |
+    ($V_CANYOU ?$V_ACTUALLY access $*) |
+    ($V_CANYOU ?$V_ACTUALLY get ?(me|us) $*) |
+    ($V_CANYOU ?$V_ACTUALLY give ?(me|us) $*) |
+    (do you ?$V_ACTUALLY have $*) |
+    ((i ?$V_ACTUALLY want)|(i\'d|(i would) ?$V_ACTUALLY like) ?to $*) |
+    (i ?$V_ACTUALLY wish ?to $*) |
+    (i ?$V_ACTUALLY wish you $*) |
+    ($V_CANWE|(let me|us) see $*)
+~0.1);
+
+
+#Useful Vocab
+V_ACTUALLY = <1.0>(really|actually|usually|ever)<0.0>;
+V_CANYOU = ((can you)|(do you (?$V_ACTUALLY know how ?to))|(are you ?$V_ACTUALLY able|capable|allowed|permitted ?(to|of)));
+V_CANWE = ((can|may|could i|we|people)|((are we)|(am i) ?$V_ACTUALLY allowed|able|permitted|capable ?(to|of)));
+
+V_ADDED = (get|add|learn|installed|got|added|learnt|learned);
+V_LATEST = (new|(?most recent)|latest|last);
+V_SKILLS = ([thing?s]|[stuff?s]|[skill?s]|[app?(lication)?s]|software);
+V_UPDATE = (?software [update?s]|installation|install|[download?s]|[package?s]|(release ?[note?s]));

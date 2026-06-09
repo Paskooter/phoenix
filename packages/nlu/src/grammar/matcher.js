@@ -51,13 +51,14 @@ function _norm(s) { return String(s).toLowerCase().replace(/['’]/g, ''); }
 // `=` operator, overwriting) or 'append' (the `+=` operator, concatenating
 // to whatever the same key already holds in this scope). Append is how
 // on-robot rules compose mim ids from a prefix plus the matched entity name.
-function applyTags(tags, prevEntities, prevSubFields, subFields) {
+function applyTags(tags, prevEntities, prevSubFields, subFields, parsedText) {
   if (!tags || tags.length === 0) return { entities: prevEntities, subFields: prevSubFields };
   const ent = freshEnts(prevEntities);
   const sub = freshEnts(prevSubFields);
   for (const tag of tags) {
     let val;
     if (tag.kind === 'lit') val = tag.value;
+    else if (tag.kind === 'parsed') val = parsedText;   // `this._parsed` → text this node matched
     else val = (subFields[tag.subRule] && subFields[tag.subRule][tag.subField]) || (subFields[tag.subField] !== undefined ? subFields[tag.subField] : undefined);
     if (val === undefined) continue;
     // Keys starting with `_` are private to the rule — they propagate to the
@@ -86,7 +87,7 @@ function* match(node, start, ctx, depth) {
       // which the registry uses to break ties between candidate skills.
       if (start < tokens.length && tokens[start] === _norm(node.word)) {
         const ent = freshEnts(EMPTY); const sub = freshEnts(EMPTY);
-        const tagged = applyTags(node.tags, ent, sub, { /* no sub */ });
+        const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokens[start]);
         yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1 };
       }
       return;
@@ -99,7 +100,7 @@ function* match(node, start, ctx, depth) {
       const variants = expandCharClass(node.body);
       for (const v of variants) {
         if (start < tokens.length && tokens[start] === _norm(v)) {
-          const tagged = applyTags(node.tags, EMPTY, EMPTY, {});
+          const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
           yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1 };
         }
       }
@@ -117,7 +118,7 @@ function* match(node, start, ctx, depth) {
       const maxN = (typeof node.max === 'number') ? node.max : (tokens.length - start);
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
-        const tagged = applyTags(node.tags, EMPTY, EMPTY, {});
+        const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens.slice(start, start + n).join(' '));
         yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0 };
       }
       return;
@@ -127,7 +128,7 @@ function* match(node, start, ctx, depth) {
       // pos at `start` with no entity updates.)
       yield { end: start, entities: EMPTY, subFields: EMPTY, specificity: 0 };
       for (const m of match(node.item, start, ctx, depth + 1)) {
-        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields);
+        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
         yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0 };
       }
       return;
@@ -139,7 +140,7 @@ function* match(node, start, ctx, depth) {
       // into all accumulated subFields — that's how `{intent=Sub._field}`
       // group tags work in the cloud's compiler.
       for (const m of matchSeq(node.items, 0, start, EMPTY, EMPTY, 0, ctx, depth)) {
-        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields);
+        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
         yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0 };
       }
       return;
@@ -148,7 +149,7 @@ function* match(node, start, ctx, depth) {
       // Try each alternative in order; yield matches from each.
       for (const a of node.alts) {
         for (const m of match(a, start, ctx, depth + 1)) {
-          const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields);
+          const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
           yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0 };
         }
       }
@@ -173,11 +174,11 @@ function* match(node, start, ctx, depth) {
         // didn't actually verify factory content — counted as a wildcard.
         for (let n = 1; n <= 3; n += 1) {
           if (start + n > tokens.length) break;
-          const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } });
+          const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokens.slice(start, start + n).join(' '));
           yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0 };
         }
         // Also try zero-match (factory might be optional in context).
-        const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} });
+        const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} }, '');
         yield { end: start, entities: tagged0.entities, subFields: tagged0.subFields, specificity: 0 };
         return;
       }
@@ -188,7 +189,7 @@ function* match(node, start, ctx, depth) {
       // — the matchSeq accumulator will carry the namespaced map up.
       for (const m of match(target, start, ctx, depth + 1)) {
         const exposed = { [node.name]: m.subFields };
-        const tagged = applyTags(node.tags, m.entities, m.subFields, exposed);
+        const tagged = applyTags(node.tags, m.entities, m.subFields, exposed, tokens.slice(start, m.end).join(' '));
         const subsForParent = Object.assign({}, tagged.subFields, exposed);
         yield { end: m.end, entities: tagged.entities, subFields: subsForParent, specificity: m.specificity || 0 };
       }
@@ -282,14 +283,26 @@ function expandCharClass(body) {
 // full-input match — highest specificity (sum of literal/class tokens matched
 // along the path). On ties, returns the first one discovered, mirroring the
 // cloud's first-best behaviour. Returns null when no full match exists.
+// Rank a parse the way the real engine's union arbitration does: by the
+// `priority` the grammar assigned (HIGH > unset > LOW), then by heuristic score
+// (specificity = count of literal/factory tokens matched, so a rule full of real
+// words beats a `$* x $*` wildcard wrapper). LOW is the deflector/catch-all tier
+// (`{% intent='idle' %}`, generic GQA) — it only wins when nothing better matches.
+export function priorityRank(p) { return p === 'HIGH' ? 2 : (p === 'LOW' ? 0 : 1); }
+export function parseScore(entities, specificity) {
+  return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0);
+}
+
 export function matchRule(node, tokens, ctx) {
   const fullCtx = Object.assign({ tokens, rules: ctx.rules || {}, maxDepth: 250 }, ctx);
-  let best = null;
+  let best = null; let bestScore = -1;
   for (const m of match(node, 0, fullCtx, 0)) {
     if (m.end !== tokens.length) continue;
     const spec = m.specificity || 0;
-    if (!best || spec > best.specificity) {
-      best = { entities: m.entities, subFields: m.subFields, specificity: spec };
+    const score = parseScore(m.entities, spec);
+    if (!best || score > bestScore) {
+      best = { entities: m.entities, subFields: m.subFields, specificity: spec, priority: (m.entities && m.entities.priority) || '', score };
+      bestScore = score;
     }
   }
   return best;

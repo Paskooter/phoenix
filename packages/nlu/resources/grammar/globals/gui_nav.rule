@@ -1,0 +1,108 @@
+!use_equivalent_words = true;
+TopRule =
+    $w03
+        (
+            (
+                $GLOBAL_PAGE_NAV
+                    {intent=GLOBAL_PAGE_NAV._intent}
+            ) | (
+                $GLOBAL_ITEM_SELECTION
+                    {intent='selectItem'}
+                    {itemPosition=GLOBAL_ITEM_SELECTION._itemPosition}
+            )
+        ){domain='gui_command'}{priority='HIGH'}
+    $w03
+;
+
+### GLOBAL PAGE NAVIGATION COMMANDS ###
+
+GLOBAL_PAGE_NAV =
+(
+    $LEFT {_intent=LEFT._intent}
+)|
+(
+    $RIGHT {_intent=RIGHT._intent}
+)|
+(
+    $BEGINNING {_intent=BEGINNING._intent}
+)|
+(
+    $END {_intent=END._intent}
+)|
+(
+    $CLOSE {_intent=CLOSE._intent}
+)
+;
+
+CLOSE = ([clos(e|(ing))]|[escap(e|(ing))]|done|[cancel?(ing)]|(?(go ?back) up)){_intent='close'};
+
+### PAGE NAVIGATION COMMANDS ###
+LEFT = (
+    ( ?( go to the ) previous|prior ?$PAGE ) |
+    ( ?$NAVIGATE back ?a $PAGE ) |
+    ( back up ?a $PAGE ) |
+    ( ?$NAVIGATE ( backward | backwards | back ) ) |
+    ( (load | display) ?the previous $PAGE)|
+    ( ?$NAVIGATE ?(to the) left)
+){_intent='left'};
+
+RIGHT = (
+    ( ?($NAVIGATE ?to ?the) next ?$PAGE ) |
+    ( next-page ) |
+    ( (turn | flip ) $* ?the page ) |
+    ( ?$NAVIGATE forward ) |
+    ( (load | display) ?the next $PAGE)|
+    ( ?$NAVIGATE $* ?(to the) ((right) ~0.5))
+){_intent='right'};
+
+BEGINNING = (
+    ( ?((go | jump | move | scroll) ?(all the way) ?back to ?the ?very ) ((first $PAGE) | beginning | start | (page one) ))  |
+    (start over ?again) |
+    ( (load | display) (the ?very first $PAGE)| (page one)) |
+    (start $* (from | at) ?the (beginning | (first $PAGE) | (page one)) )
+) {_intent='beginning'};
+
+END = (
+    (?( ?$NAVIGATE ?(all the way) to ?the ?very) ((last $PAGE) | end))|
+    ( (load | display) the ?very last $PAGE)
+) {_intent='end'};
+
+### ITEM SELECTION COMMANDS ###
+GLOBAL_ITEM_SELECTION =
+    ((?$GENERIC_ACTION ?$THE $ORDINAL $ITEM {_itemPosition=ORDINAL._ordinal}) |
+    ($GENERIC_ACTION ?$THE $ORDINAL {_itemPosition=ORDINAL._ordinal}) |
+    (?$GENERIC_ACTION ?$THE $POSITION $ITEM {_itemPosition=POSITION._position}) |
+    ($GENERIC_ACTION ?$THE $POSITION {_itemPosition=POSITION._position}) |
+    (?$GENERIC_ACTION ?$THE $ITEM ?(on | in) ?the $POSITION  {_itemPosition=POSITION._position}) |
+    (?$GENERIC_ACTION ?$THE $ITEM ?in ?the $ORDINAL $LOCATION {_itemPosition=ORDINAL._ordinal})  )
+;
+
+POSITION =
+    (($POSITION_LEFT {_position='left'}) |
+    ($POSITION_MIDDLE {_position ='middle'}) |
+    ($POSITION_RIGHT {_position ='right'}) )
+;
+
+ORDINAL =
+    ($ORDINAL_FIRST {_ordinal='first'} |
+    $ORDINAL_SECOND {_ordinal='second'} |
+    $ORDINAL_THIRD {_ordinal='third'})
+;
+
+### USEFUL VOCABULARY ###
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select);
+SEE = ((let/’s | (let me) | (let us)) see);
+DO = (?(let/’s | (let me) | (let us)) (do | try) );
+SHOW = (show ?(me | us));
+POSITION_LEFT = (left | leftmost);
+POSITION_MIDDLE = (center | middle);
+POSITION_RIGHT = (right | rightmost);
+ORDINAL_FIRST = ?the first;
+ORDINAL_SECOND = ?the second;
+ORDINAL_THIRD = ?the third;
+THE = (the | that);
+ITEM = (one | thing | item | icon);
+LOCATION = (spot | slot | position);
+NAVIGATE = ( go | move | jump | slide | scroll | flip );
+PAGE = ( page | set | group | screen );

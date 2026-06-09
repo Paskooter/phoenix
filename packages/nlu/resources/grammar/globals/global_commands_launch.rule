@@ -1,0 +1,301 @@
+TopRule = (
+	($w03
+		(
+			$D_GLOBALS {intent=D_GLOBALS._intent}
+		) | (
+			$D_GLOBALS_VOLUME {intent=D_GLOBALS_VOLUME._intent}
+			{volumeLevel=D_GLOBALS_VOLUME._volumeLevel}
+		)
+		# | (
+		# 	$D_GLOBALS_WRONGNAME {intent=D_GLOBALS_WRONGNAME._intent}
+		# 		{realName=D_GLOBALS_WRONGNAME._realName}
+		# )
+	$w03) | (
+		$D_GLOBALS_STRICT_VOLUME {intent=D_GLOBALS_STRICT_VOLUME._intent}
+			{volumeLevel=D_GLOBALS_STRICT_VOLUME._volumeLevel}
+	)
+){domain='global_commands'}{priority='HIGH'}
+;
+
+
+### GLOBAL COMMANDS DOMAIN ###
+D_GLOBALS =
+(
+# 	$D_GLOBALS_INTENT_MAINMENU {_intent=D_GLOBALS_INTENT_MAINMENU._intent}
+# ) | (
+#	$D_GLOBALS_INTENT_WHATCANIDO {_intent=D_GLOBALS_INTENT_WHATCANIDO._intent}
+# ) | (
+# 	$D_GLOBALS_INTENT_HELP {_intent=D_GLOBALS_INTENT_HELP._intent}
+# ) | (
+	$D_GLOBALS_INTENT_STOP {_intent=D_GLOBALS_INTENT_STOP._intent}
+) | (
+	$D_GLOBALS_INTENT_SLEEP {_intent=D_GLOBALS_INTENT_SLEEP._intent}
+) | (
+	$D_GLOBALS_INTENT_OVERHERE {_intent=D_GLOBALS_INTENT_OVERHERE._intent}
+) | (
+	$D_GLOBALS_INTENT_TURN_AWAY {_intent=D_GLOBALS_INTENT_TURN_AWAY._intent}
+) | (
+	$D_GLOBALS_INTENT_TURN_AROUND {_intent=D_GLOBALS_INTENT_TURN_AROUND._intent}
+)
+# | (
+# 	$D_GLOBALS_INTENT_HOLDON {_intent=D_GLOBALS_INTENT_HOLDON._intent}
+# )
+;
+
+D_GLOBALS_STRICT_VOLUME =
+(
+	$D_GLOBALS_INTENT_STRICT_VOLUMEUP {_intent=D_GLOBALS_INTENT_STRICT_VOLUMEUP._intent} {_volumeLevel='null'}
+)|
+(
+	$D_GLOBALS_INTENT_STRICT_VOLUMEDOWN {_intent=D_GLOBALS_INTENT_STRICT_VOLUMEDOWN._intent} {_volumeLevel='null'}
+)
+;
+
+D_GLOBALS_VOLUME =
+(
+	$D_GLOBALS_INTENT_VOLUMEMAX {_intent=D_GLOBALS_INTENT_VOLUMEMAX._intent}
+							{_volumeLevel=D_GLOBALS_INTENT_VOLUMEMAX._volumeLevel}
+)|
+(
+	$D_GLOBALS_INTENT_VOLUMEMIN {_intent=D_GLOBALS_INTENT_VOLUMEMIN._intent}
+							{_volumeLevel=D_GLOBALS_INTENT_VOLUMEMIN._volumeLevel}
+)|
+(
+	$D_GLOBALS_INTENT_VOLUMEUP {_intent=D_GLOBALS_INTENT_VOLUMEUP._intent} {_volumeLevel='null'}
+)|
+(
+	$D_GLOBALS_INTENT_VOLUMEDOWN {_intent=D_GLOBALS_INTENT_VOLUMEDOWN._intent} {_volumeLevel='null'}
+)|
+(
+	$D_GLOBALS_INTENT_VOLUMETOVALUE {_intent=D_GLOBALS_INTENT_VOLUMETOVALUE._intent}
+							{_volumeLevel=D_GLOBALS_INTENT_VOLUMETOVALUE._volumeLevel}
+)
+;
+
+### INTENTS ###
+D_GLOBALS_INTENT_MAINMENU =
+    ?($D_GLOBALS_V_GOTO $*) main menu {_intent='mainMenu'}
+;
+
+D_GLOBALS_INTENT_WHATCANIDO = (
+	((what $* (can | may) (i | we | you) do) |
+	(what are (my | our | the) options) |
+	(what options ((can (i | we) choose ?from) | (are available)))  |
+	(what ((are we) | (am i)) doing )) {_intent='whatCanIDo'}
+);
+
+D_GLOBALS_INTENT_HELP =
+	(help |
+	((i am) | (we are) | (i\'m) confused | puzzled) |
+	(( i | we) ( do not | don\'t) understand) |
+	(what ((do you) | (does that)) mean) |
+	(that (does not | did not) make sense)) {_intent='help'}
+;
+
+D_GLOBALS_INTENT_STOP =
+	((stop ?(it | that|(?the $SKILL_NAMES)|(playing ?($w03 [game?s]|music)))) |
+	cancel |
+	(quit (?it|(?the $SKILL_NAMES))) |
+	(no more music|dancing|(playing $w03 [game?s]|music)) |
+	(?that\'s enough) |
+	(that will do) |
+	(that\'ll do) |
+	(?be quiet) |
+	(shut $* up) |
+	(be silent) |
+	(cut (it | that) out) |
+	(stop talking) |
+	silence |
+	(clothes gallery) |
+	(clothes [picture?s]) |
+	(exit ?(?the $SKILL_NAMES))|
+	(close ?the $SKILL_NAMES)) {_intent='stop'}
+;
+
+D_GLOBALS_INTENT_SLEEP =
+	((sleep ~4) |
+	(go ?to sleep|bed) |
+	(take ?a nap) |
+	([you?(r|(\'re))] are|(?are $w03 [look?(ing)]) $w03 tired|tire|tiered) |
+	(quit for today|tonight|(the night)) |
+	(?(it\'s|(it is)) time (for ?you ?(to ?(go to)))|(to ?(go to)) bed|sleep) |
+	(?([it?(\')s]|(it ?is)) time (?to take)|(for ?(you ?to take)) ?a nap) |
+	([it?(\')s]|(it ?is) ?your bedtime|naptime|(nap time))){_intent='sleep'}
+;
+
+
+D_GLOBALS_INTENT_HOLDON =
+	((hold on) |
+	pause |
+	(hold that thought) |
+	wait |
+	((one | a) (moment | minute))) {_intent='holdOn'}
+;
+
+D_GLOBALS_INTENT_OVERHERE =
+	(
+		(
+			(
+				((i\'m|(i am)|(we are)|we\'re)?(over|right)) |
+				(over|right)
+			)
+			(
+				(here|(this (direction|way))) |
+				(to (your|the) (left|right))
+			)
+		) |
+		(
+			?((can|could|would) you) ?please
+			(
+				(
+					(look|turn)
+					(
+						(?(over|right) here) |
+						((at|to|toward|towards) ?(your|the) (left|right)) |
+						(?(to your) back) |
+						((at|to) (me|us)) |
+						(?around ?in this (way|direction)) |
+						(?around (toward|towards) (me|us|here))
+					)
+				) |
+				(
+					face
+					(
+						(?(toward|towards)(me|us|here)) |
+						(?(toward|towards|in)(this (way|direction)))
+					)
+				)
+			)
+		)
+	) {_intent='overHere'}
+;
+
+D_GLOBALS_INTENT_TURN_AWAY = (
+    ((turn|look away|elsewhere|$D_GLOBALS_V_OTHER_PLACE)|lookaway ?($w03 from ?(me|us))) |
+    (turn|$D_GLOBALS_V_LOOK ?(at) $w03 (other than)|(that\'s|(that is) not)|(that isn\'t) me|us|(my|our <1.0>+$w<0.0>)) |
+    (([giv(e|(ing))] ?(me|us))|(i|we $w03 need|like|want) $w03 privacy) |
+	(avert your [eye?s]|gaze) |
+    (don\'t|(?do not)|stop|quit $w03 $D_GLOBALS_V_LOOK $w03 me|us|(my|our <1.0>+$w<0.0>))
+){_intent='turnAway'};
+
+D_GLOBALS_INTENT_TURN_AROUND = (
+	((turn|spin around) ~10)
+){_intent='turnAround'};
+
+
+D_GLOBALS_INTENT_REPEAT =
+   ((repeat ?that) |
+   (come again) |
+   (say $* again) |
+   (?i\'m sorry) |
+   (once more) |
+   (one more time)) {_intent='repeat'}
+;
+
+### WRONGNAME ###
+
+# D_GLOBALS_WRONGNAME =
+# (
+# 	((that\'s not)|(that is not)|(that isn\'t) my name) {_realName='null'} |
+# 	(i\'m ?actually not ?actually ?(named|called) $LOOPMEMBER) {_realName='null'} |
+# 	(my name ?actually (isn\'t)|(is not) ?actually $LOOPMEMBER) {_realName='null'} |
+# 	((i\'m)|(i am) not ?(named|called) $LOOPMEMBER (i\'m)|(i am) ?(named|called) $OTHER_LOOPMEMBER){_realName=OTHER_LOOPMEMBER._loopmember} |
+# 	((my name is) ?actually ?(called|named) $OTHER_LOOPMEMBER) {_realName=OTHER_LOOPMEMBER._loopmember} |
+# 	(my ?real name ?acutally is ?actually $OTHER_LOOPMEMBER) {_realName=OTHER_LOOPMEMBER._loopmember}
+# ) {_intent='wrongName'}
+# ;
+
+### VOLUME ###
+
+D_GLOBALS_INTENT_VOLUMEMAX =
+	(((turn | crank) $D_GLOBALS_V_THEVOLUME ?(all the) way up)|
+	((turn | crank) up $D_GLOBALS_V_THEVOLUME all the way)|
+	((max | maximum) ?volume)) {_intent='volumeToValue'} {_volumeLevel='10'}
+;
+
+
+D_GLOBALS_INTENT_VOLUMEMIN =
+	((turn $D_GLOBALS_V_THEVOLUME ?(all the) way down ) |
+	(turn down $D_GLOBALS_V_THEVOLUME all the way)|
+	((min | minimum) ?volume)) {_intent='volumeToValue'} {_volumeLevel='01'}
+;
+
+D_GLOBALS_INTENT_STRICT_VOLUMEUP = (
+	(too soft|quiet) |
+	(?(?a little ?bit ?more) louder)
+) {_intent='volumeUp'}
+;
+
+D_GLOBALS_INTENT_VOLUMEUP = (
+	( ?(turn|crank) $D_GLOBALS_V_THEVOLUME up ?(?some more)) |
+	(increase $D_GLOBALS_V_THEVOLUME ?(?some more)) |
+	((turn|crank) up $D_GLOBALS_V_THEVOLUME ) |
+    (make|turn $D_GLOBALS_V_THEVOLUME ?up louder|higher) |
+    (make|turn it|this|that ?up louder) |
+	((i|we can\'t|(can not)|cannot) hear you) |
+	(play|sing|speak|talk|be|get|make ?(it|that) ?((?a (little ?bit)|(bit) ?more)|any) louder) |
+	(not so|too|that quiet|soft) |
+	(speak up) |
+	(you $w03 louder) |
+	(your|you|you\'re $w03 too soft|quiet)
+)  {_intent='volumeUp'}
+;
+
+D_GLOBALS_INTENT_STRICT_VOLUMEDOWN = (
+	(too loud) |
+	(?(?a little ?bit ?more) softer|quieter)
+) {_intent='volumeDown'}
+;
+
+D_GLOBALS_INTENT_VOLUMEDOWN = (
+	(?turn $D_GLOBALS_V_THEVOLUME down ?(?some more) ) |
+	(decrease $D_GLOBALS_V_THEVOLUME ?(?some more)) |
+	((turn ?it down)|lower $D_GLOBALS_V_THEVOLUME) |
+    (make|turn $D_GLOBALS_V_THEVOLUME quieter|softer|lower) |
+	(not so|too|that loud) |
+	(your|you|you\'re $w03 too loud) |
+	(you $w03 softer|quieter) |
+    (play|sing|speak|talk|be|get|make ?(it|that) ?((?a (little ?bit)|(bit) ?more)|any) quieter|softer)
+) {_intent='volumeDown'}
+;
+
+D_GLOBALS_INTENT_VOLUMETOVALUE =
+	((turn|crank|increase|decrease $D_GLOBALS_V_THEVOLUME ?(up | down) ?$D_GLOBALS_V_TO ?(volume | level | (volume level)) $D_GLOBALS_V_VALUE)|
+	(turn|crank|lower ?(up | down) $D_GLOBALS_V_THEVOLUME ?$D_GLOBALS_V_TO ?(volume | level | (volume level)) $D_GLOBALS_V_VALUE)|
+	(?set $D_GLOBALS_V_THEVOLUME ?(at|$D_GLOBALS_V_TO) ?(volume | level | (volume level)) $D_GLOBALS_V_VALUE ) |
+	(change $D_GLOBALS_V_THEVOLUME ?$D_GLOBALS_V_TO ?(volume | level | (volume level)) $D_GLOBALS_V_VALUE) |
+	( ?make (the | your) (volume | level | (volume level)) $D_GLOBALS_V_VALUE )) {_intent='volumeToValue'} {_volumeLevel=D_GLOBALS_V_VALUE._value}
+;
+
+
+### USEFUL VOCABULARY ###
+# LOOPMEMBER = $handle:crew{_loopmember = crew._users};
+# OTHER_LOOPMEMBER = $handle:crew{_loopmember = crew._users};
+D_GLOBALS_V_GOTO = (go ?back to) | (return to) | (bring up) | (bring (me | us) to) | load | access | ( show ?(me | us)) | display;
+D_GLOBALS_V_THEVOLUME = (?(the | your) volume|radio|music|voice);
+D_GLOBALS_V_PRONOUNS = my|her|his|their;
+D_GLOBALS_V_TO = (to|two|too|2);
+D_GLOBALS_V_VALUE =
+	(
+		( (zero|0|20|(2 0)) {_value='0'} ) |
+		( (one|1|21|(2 1)) {_value='01'} ) |
+		( (two|2|22|(2 2)|tutu) {_value='02'} ) |
+		( (three|3|23|(2 3)) {_value='03'} ) |
+		( (four|4|24|(2 4)) {_value='04'} ) |
+		( (five|5|25|(2 5)) {_value='05'} ) |
+		( (six|6|26|(2 6)) {_value='06'} ) |
+		( (seven|7|27|(2 7)) {_value='07'} ) |
+		( (eight|8|28|(2 8)) {_value='08'} ) |
+		( (nine|9|29|(2 9)) {_value='09'} ) |
+		( (ten|10|210|(2 10)) {_value='10'})
+    );
+D_GLOBALS_V_OTHER_PLACE = (
+    ([((some)|(any))((place)|(where))]|(some|any place|where) else)|
+    (?(at|in|[toward?s]) another|(?(the|any|some|a|an) other|alternante|different) direction|way|location|area)
+);
+D_GLOBALS_V_LOOK = (
+    [look?(ing)]|[star(e|(ing))]|[peek?(ing)]|[gaz(e|(ing))]|[ogl(e|(ing))]|
+    [scrutiniz(e|(ing))]|[watch?(ing)]|[gap(e|(ing))]|[observ(e|(ing))]
+);
+SKILL_NAMES = skill | app | gallery | create | clock | [setting?s] | photobooth | [photo?s] | (circuit saver) | tutorial | (bot [basic?s]) | (?$V_JIBO music|radio);
+V_JIBO = ([jibo?(?(\')s)] | [geebo?(?(\')s)] | [gebo?(?(\')s)] | [jebo?(?(\')s)] | [cibo?(?(\')s)] | jb | g | kgb | diva);
