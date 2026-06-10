@@ -2,6 +2,12 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **M8 browser voice e2e verified (loop tick).** phoenix-voice-browser.mjs:
+  real Chrome + real sim UI, getUserMedia shimmed to a WebAudio-synthesized stream (headless
+  Chrome here has no audio devices — Chrome's fake-device flags yield NotFoundError), all
+  downstream real. 🎤 click → hub-bridge streams mic → gateway VAD SOS/EOS → Parakeet (mock)
+  → "🎤 what time is it" chat echo → @be/clock → Jibo SPEAKS the time. ALL CHECKS PASSED.
+
 - 2026-06-10 — **M8 SERVER-SIDE ASR — the robot audio path is live (Phase D).** Gateway:
   faithful port of hub/src/asr — ParakeetASRSession (energy VAD: RMS>400, SOS at 150 ms
   cumulative speech, EOS at 700 ms trailing silence, 30 s buffer cap, WAITING→SPEAKING→
