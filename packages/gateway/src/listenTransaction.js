@@ -10,6 +10,8 @@ import { newMsgId, now, ResponseType, RequestType, HubErrorCode, Timeouts } from
 import { readTrace } from '@phoenix/common';
 import { preprocessContext, validateContextMessage } from './preprocessor.js';
 import { isRedirect } from './skillClient.js';
+import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
+import { normalizeString } from './stringNormalizer.js';
 
 const State = {
   WAIT_LISTEN: 'WAIT_LISTEN',
@@ -78,7 +80,14 @@ export class ListenTransaction {
   // --- message intake -------------------------------------------------------
 
   handleMessage({ json, audio }) {
-    if (audio) { this.audioChunks.push(audio); return; }
+    if (audio) {
+      // Binary frames = raw 16 kHz 16-bit mono PCM. Stream straight into a live
+      // ASR session (reference: audioStream.on('data') -> provideAudio); buffer
+      // anything that arrives before the session exists so no audio is lost.
+      if (this.asrSession) this.asrSession.provideAudio(audio);
+      else this.audioChunks.push(audio);
+      return;
+    }
     if (!json) return this.reject(new Error('Message has no audio and no data'));
     // CONTEXT is preprocessed (identity defaults + validation) before dispatch.
     try {
@@ -191,22 +200,78 @@ export class ListenTransaction {
   }
 
   async _performASR() {
-    // Server-side ASR (Parakeet + VAD) is milestone M8. Real robots streaming audio land here;
-    // CLIENT_ASR / CLIENT_NLU robots are fully supported now.
-    const provider = this.components.asr;
-    if (!provider) {
-      throw new HubError(HubErrorCode.NOT_IMPLEMENTED, 'server-side ASR not implemented yet (milestone M8); use CLIENT_ASR/CLIENT_NLU mode');
-    }
-    const out = await withTimeout(provider.run({ listen: this.listenMessage.data, audio: () => this.audioChunks, emitSOS: () => this._emitSOS(), emitEOS: () => this._emitEOS() }), Timeouts.asr);
-    if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${Timeouts.asr} while waiting for ASR`);
-    this.asrData = out;
-    this.timings.asr = out.time ?? this.timings.asr;
-    if (out.annotation === 'GARBAGE') {
-      this.nluData = { intent: null, rules: [], entities: {} };
-      this._emitListenResult(null, true);
-      return this._gotoState(State.DONE);
+    // Server-side ASR (M8) — port of the reference performASR/_performASR:
+    // ASRFactory session (Parakeet energy-VAD), real SOS/EOS emission, sosTimeout/
+    // maxSpeechTimeout annotations, 40 s budget, transcript normalization, and the
+    // GARBAGE short-circuit. Real robots stream raw PCM here; the sim's mic mode
+    // follows the same path.
+    const t0 = now();
+    try {
+      const out = await withTimeout(this._runASRSession(), Timeouts.asr).finally(() => {
+        // Reference stopASR(): always stop the session when the ASR phase settles.
+        if (this.asrSession) { try { this.asrSession.stop(); } catch { /* already done */ } this.asrSession = null; }
+      });
+      if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_ASR ?? HubErrorCode.INTERNAL, `Timeout of ${Timeouts.asr} while waiting for ASR`);
+      const asrData = out || { text: '', confidence: 0 };
+      this.asrData = asrData;
+      this.timings.asr = now() - t0;
+      this.asrData.text = normalizeString(this.asrData.text);
+      if (asrData.annotation === 'GARBAGE') {
+        this.nluData = { intent: null, rules: [], entities: {} };
+        this._emitListenResult(null, true);
+        return this._gotoState(State.DONE);
+      }
+    } catch (err) {
+      if (err instanceof HubError) throw err;
+      throw new HubError(HubErrorCode.ASR ?? HubErrorCode.INTERNAL, err.message);
     }
     this._gotoState(State.NLU);
+  }
+
+  /** Reference _performASR: build the session config, wire SOS/EOS, feed audio. */
+  _runASRSession() {
+    return new Promise((resolve, reject) => {
+      const listenData = this.listenMessage.data;
+      const asrData = (listenData.asr && listenData.asr !== 'FAKE') ? listenData.asr : {};
+      const config = Object.assign({ lang: listenData.lang }, asrData);
+      config.hints = asrData.hints ? cleanHintsEOS(asrData.hints, true, this.log) : undefined;
+      config.earlyEOS = asrData.earlyEOS ? cleanHintsEOS(asrData.earlyEOS, false, this.log) : undefined;
+      config.maxSpeechTimeout = asrData.maxSpeechTimeout || 60 * 1000;
+
+      const session = (this.components.asrProvider || startASRSession)(config, this.log);
+      this.asrSession = session;
+
+      let sosTimer = null; let maxSpeechTimer = null;
+      const clearTimers = () => { clearTimeout(sosTimer); clearTimeout(maxSpeechTimer); };
+
+      if (config.sosTimeout > 0) {
+        sosTimer = setTimeout(() => resolve({ text: '', confidence: 0, annotation: 'SOS_TIMEOUT' }), config.sosTimeout);
+        sosTimer.unref?.();
+      }
+      session.onStartOfSpeech(() => {
+        clearTimeout(sosTimer);
+        this._emitSOS();
+        if (config.maxSpeechTimeout > 0) {
+          maxSpeechTimer = setTimeout(() => {
+            const last = session.getLastIncremental();
+            resolve({ text: (last && last.text) || '', confidence: (last && last.confidence) || 0, annotation: 'MAX_SPEECH_TIMEOUT' });
+          }, config.maxSpeechTimeout);
+          maxSpeechTimer.unref?.();
+        }
+      });
+      session.onEndOfSpeech(() => {
+        clearTimeout(maxSpeechTimer);
+        this._emitEOS();
+      });
+
+      session.start()
+        .then((data) => { clearTimers(); resolve(data); })
+        .catch((err) => { clearTimers(); reject(err); });
+
+      // Flush audio that arrived before the session existed, then handleMessage
+      // streams subsequent frames directly (push-style, like audioStream.on('data')).
+      for (const chunk of this.audioChunks.splice(0)) session.provideAudio(chunk);
+    });
   }
 
   async _performNLU() {

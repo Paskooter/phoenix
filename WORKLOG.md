@@ -2,6 +2,24 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **M8 SERVER-SIDE ASR — the robot audio path is live (Phase D).** Gateway:
+  faithful port of hub/src/asr — ParakeetASRSession (energy VAD: RMS>400, SOS at 150 ms
+  cumulative speech, EOS at 700 ms trailing silence, 30 s buffer cap, WAITING→SPEAKING→
+  TRAILING_SILENCE→FINALIZING→DONE; 44-byte RIFF/WAV wrap; multipart POST /transcribe with
+  NeMo Hypothesis unwrap; stop-before-SOS → undefined), ASR factory (en-US/en-CA gate,
+  ETCO_server_parakeetUrl, injectable provider for tests), hint cleaning ($YESNO expansion +
+  global "jibo" + dedupe), StringNormalizer + vendored stringNormalizationMap.json,
+  listenTransaction._performASR per the reference (sosTimeout/maxSpeechTimeout annotations,
+  40 s budget, GARBAGE short-circuit, transcript normalization, push-style audio into the
+  live session with pre-session buffering), TIMEOUT_ASR/ASR HubErrorCodes. Sim: the
+  /__cloud-ws proxy already relays binary; harness streams robot-style PCM (LISTEN no mode +
+  100 ms binary chunks + trailing silence) against a mock Parakeet — SOS with REAL timing,
+  EOS from VAD, transcript routed to @be/clock. Browser: 🎤 mic button in the chat panel →
+  voice-turn → hub-bridge streams getUserMedia audio (downsampled 16 kHz Int16, ~100 ms
+  frames) on the turn WS; transcript echoes into the chat. 117 unit (+6) + 41 proxy checks
+  (+4 audio) green. Live transcription needs a Parakeet /transcribe host
+  (ETCO_server_parakeetUrl; the reference LAN host 192.168.1.252:6972 is currently down).
+
 - 2026-06-10 — **Phase C closure: full corpus D3 98.2% / D4 96.8% — plateau reached.** The
   factory-entity run confirms stability (+3 vs prior; factories mainly fix entity VALUES,
   which D3/D4 don't grade). All substantive Phase C items are done; remaining 329 misses are

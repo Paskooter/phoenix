@@ -53,7 +53,7 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
    Remaining (lower yield, future iterations): LoopMemberDetector, global-command strict-arm
    tuning, `rules` echo (needs reference-router re-read), per-class miss forensics.
 
-**Phase D — server-side ASR (M8)** — the robot-compatibility centerpiece
+**Phase D — server-side ASR (M8)** ✅ done 2026-06-10 (mock-verified end-to-end; needs a live /transcribe host for real speech)
 6. ASRSession interface + Parakeet session (RMS≥400, SOS 150 ms, EOS 700 ms, 30 s cap,
    WAV POST `/transcribe`), provider factory (`ETCO_server_asrProvider`), hint expansion,
    GARBAGE short-circuit, StringNormalizer, speech-history recording; verify with

@@ -52,6 +52,8 @@ export const Timeouts = Object.freeze({
 
 // Error codes surfaced to the robot (interfaces/src/hub/HubErrorCode.ts).
 export const HubErrorCode = Object.freeze({
+  TIMEOUT_ASR: 'TIMEOUT_ASR',
+  ASR: 'ASR',
   TIMEOUT_CONTEXT: 'TIMEOUT_CONTEXT',
   TIMEOUT_PARSER: 'TIMEOUT_PARSER',
   TIMEOUT_SKILL: 'TIMEOUT_SKILL',
