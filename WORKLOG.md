@@ -2,6 +2,11 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **Parser wire items (Phase A leftovers): GET /state + 400 on malformed parse
+  requests.** /state returns the reference ServiceStateData shape (RUNNING/CONNECTED/CLOSED/
+  llm READY|DISABLED); POST /v1/parse now 400s when data.text isn't a string (reference
+  ParseRequestHandler) instead of coercing to ''. 111 unit + 37 proxy green.
+
 - 2026-06-10 — **Factory entities: real reference vocabularies extracted from the FST
   binaries (Phase C).** Wrote a pure-python OpenFST vector-format decoder (header + embedded
   SymbolTables + state/arc records) and enumerated the finite factory languages straight from

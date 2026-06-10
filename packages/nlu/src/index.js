@@ -8,7 +8,7 @@
 //   2. LLM fallback (phoenix: LM Studio + Gemma tool-calling) when grammar misses AND
 //      ETCO_parser_llmUrl is configured. Off by default -> a miss returns the no-match NLUResult.
 
-import { createService } from '@phoenix/common';
+import { createService, sendJson } from '@phoenix/common';
 import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { grammarParse } from './grammar.js';
 import { launchParse } from './launchRules.js';
@@ -111,11 +111,26 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
   const svc = createService({
     name: 'nlu',
     routes: {
-      'POST /v1/parse': async ({ body }) => {
-        const text = (body && body.data && body.data.text) || '';
-        const nlu = await parse(text);
+      'POST /v1/parse': async ({ body, res }) => {
+        // Reference ParseRequestHandler.ts:28-30 — 400 on a malformed request
+        // (data.text must be a string), not a silent coercion to ''.
+        if (!body || !body.data || typeof body.data.text !== 'string') {
+          sendJson(res, 400, { error: `Bad request: ${JSON.stringify(body)}` });
+          return undefined;
+        }
+        const nlu = await parse(body.data.text);
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
       },
+      // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's
+      // grammar engine is in-process (no robust-parser subprocess) and Dialogflow
+      // is dead-era, so those report their steady-state equivalents.
+      'GET /state': () => ({
+        state: 'RUNNING',
+        robustParserProcess: 'RUNNING',
+        robustParserClient: 'CONNECTED',
+        dialogflowClient: 'CLOSED',
+        llmClient: process.env.ETCO_parser_llmUrl ? 'READY' : 'DISABLED',
+      }),
     },
   });
   return svc.listen(port);
