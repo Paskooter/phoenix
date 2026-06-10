@@ -2,6 +2,13 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **eq_words homophone matching wired (Phase C).** The vendored 1,913-set
+  eq_words.txt (jibo-nlu build data) now backs literal compares in the matcher when a
+  grammar declares `!use_equivalent_words = true` (they all do): canonical-representative
+  map, lit + char-class sites, threaded per-skill via fullGrammar. "set a timer for TOO
+  minutes" now parses like "two". Corpus sample ticked up to D3 99.3 / D4 99.1.
+  111 unit (+2) + 37 proxy + oracle green.
+
 - 2026-06-10 — **Wildcard arc costs crack the KU_CanYou family — sample D3 98.5→99.1, D4
   97.6→98.9; FULL corpus confirmed D3 98.1 / D4 96.8 (misses 397→331, largest class 12), with architecturally-correct pure-FST intra-grammar selection.**
   The queued wrapper-arm trace showed SeeThing losing to the GQA `$*` catch-all by 0.3:

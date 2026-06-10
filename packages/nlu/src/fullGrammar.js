@@ -22,6 +22,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseRules } from './grammar/parser.js';
 import { matchRule, tokenize, parseScore } from './grammar/matcher.js';
+import { loadEqWords } from './grammar/eqWords.js';
 
 const GRAMMAR_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'grammar');
 
@@ -53,7 +54,10 @@ function load() {
       try {
         const ast = parseRules(readFileSync(f, 'utf8'));
         const top = ast.rules.TopRule || ast.rules[Object.keys(ast.rules)[0]];
-        if (top) skills.push({ id: s, rules: { ...shared, ...ast.rules }, top });
+        // `!use_equivalent_words = true;` enables homophone-equivalent literal
+        // matching for this grammar (ASR-confusion robustness: two/too/to, …).
+        const eq = (ast.directives || []).some((d) => /use_equivalent_words\s*=\s*true/.test(d));
+        if (top) skills.push({ id: s, rules: { ...shared, ...ast.rules }, top, eq });
       } catch { /* skip a grammar that fails to parse */ }
     }
   }
@@ -74,7 +78,7 @@ export function fullParse(text) {
   let best = null; let bestScore = -Infinity;
   for (const sk of skills) {
     let m = null;
-    try { m = matchRule(sk.top, tokens, { rules: sk.rules }); } catch { /* skip */ }
+    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null }); } catch { /* skip */ }
     if (!m) continue;
     const score = parseScore(m.entities, m.specificity, m.cost);
     if (!best || score > bestScore) { best = { id: sk.id, m }; bestScore = score; }

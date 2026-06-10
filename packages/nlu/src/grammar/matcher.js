@@ -20,6 +20,10 @@
 //                  returns null to treat as `$*` (any words)
 //   handleHook   — same idea for $handle:NAME refs (e.g. crew names)
 //   maxDepth     — safeguard against runaway recursion (default 200)
+//   eq           — optional Map from eqWords.js: homophone-equivalence for literal
+//                  compares (the `!use_equivalent_words = true` grammar directive)
+
+import { eqEquals } from './eqWords.js';
 
 const EMPTY = Object.freeze({});
 
@@ -89,7 +93,7 @@ function* match(node, start, ctx, depth) {
       // Lowercased + apostrophe-stripped equality (see tokenize/_norm).
       // specificity: 1 — a literal token in the rule counts toward specificity,
       // which the registry uses to break ties between candidate skills.
-      if (start < tokens.length && tokens[start] === _norm(node.word)) {
+      if (start < tokens.length && (tokens[start] === _norm(node.word) || eqEquals(ctx.eq, tokens[start], _norm(node.word)))) {
         const ent = freshEnts(EMPTY); const sub = freshEnts(EMPTY);
         const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokens[start]);
         yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1, cost: node.cost || 0 };
@@ -103,7 +107,7 @@ function* match(node, start, ctx, depth) {
       // the next input token.
       const variants = expandCharClass(node.body);
       for (const v of variants) {
-        if (start < tokens.length && tokens[start] === _norm(v)) {
+        if (start < tokens.length && (tokens[start] === _norm(v) || eqEquals(ctx.eq, tokens[start], _norm(v)))) {
           const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
           yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1, cost: node.cost || 0 };
         }
