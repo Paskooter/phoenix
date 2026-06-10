@@ -18,15 +18,15 @@ export class HistoryClient {
 
   /** Fire-and-forget; never throws into the caller. */
   writeSkillLaunch(data, trace) {
-    return this._post('/skill/launch', data, trace).catch(() => null);
+    return this._post('/v1/skill/launch', data, trace).catch(() => null);
   }
 
   async getSkillLaunchCount(query, trace) {
-    const r = await this._post('/skill/launch/count', query, trace);
+    const r = await this._post('/v1/skill/launch/count', query, trace);
     return r.count;
   }
 
   getLatestSkillLaunch(query, trace) {
-    return this._post('/skill/launch/latest', query, trace); // record or null
+    return this._post('/v1/skill/launch/latest', query, trace); // record or null
   }
 }
