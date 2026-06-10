@@ -28,7 +28,10 @@ const RULES = [
   { re: /^where\s+(?:is|was|are|can|do|does)\s+(.+)$/, intent: 'generalWhereQuestions', entity: 'thing' },
   { re: /^why\s+(.+)$/, intent: 'generalWhyQuestions', entity: 'thing' },
   { re: /^how\s+(.+)$/, intent: 'generalHowQuestions', entity: 'thing' },
-  { re: /^(?:tell me about|tell me|what do you know about)\s+(.+)$/, intent: 'requestTellAboutThing', entity: 'thing' },
+  // NOTE: deliberately NOT bare `tell me X` — "tell me a joke/story" belongs to
+  // chitchat (requestTellJiboContent/requestStory via the full-grammar stage),
+  // matching the reference routing. Only explicit about-questions land here.
+  { re: /^(?:tell me about|what do you know about)\s+(.+)$/, intent: 'requestTellAboutThing', entity: 'thing' },
   { re: /^(?:define|definition of)\s+(.+)$/, intent: 'generalWhatQuestions', entity: 'thing' },
 ];
 

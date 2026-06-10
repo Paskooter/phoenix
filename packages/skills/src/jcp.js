@@ -19,15 +19,18 @@ export function escapeForEsml(text) {
  * Build a JCP action (the `action` field of a SKILL_ACTION): SEQUENCE > SLIM > PLAY, plus an
  * optional `listen` (generated for question/optional-response MIMs from a rule_name).
  * @param {{ esmlText:string, mimId?:string, mimType?:string, promptSubCategory?:string,
- *           listenRule?:string }} opts
+ *           listenRule?:string, esmlRaw?:boolean }} opts
+ * `esmlRaw: true` passes the text through verbatim — for SKILL-AUTHORED prompts that
+ * carry real ESML markup (`<anim cat='dance' …/>`, `<break/>`, `<pitch>`), exactly as
+ * the reference chitchat MIM prompts ship it. Never set it for user-derived text.
  */
-export function buildJcpAction({ esmlText, mimId = 'Reply', mimType = 'announcement', promptSubCategory = 'AN', listenRule } = {}) {
+export function buildJcpAction({ esmlText, mimId = 'Reply', mimType = 'announcement', promptSubCategory = 'AN', listenRule, esmlRaw = false } = {}) {
   const slimConfig = {
     play: {
       id: newMsgId(),
       type: 'PLAY',
       autoRuleConfig: true,
-      esml: escapeForEsml(esmlText),
+      esml: esmlRaw ? String(esmlText || '') : escapeForEsml(esmlText),
       meta: { mim_id: mimId, mim_type: mimType, prompt_sub_category: promptSubCategory },
     },
   };
@@ -59,14 +62,14 @@ export function buildJcpFromSlim(slim) {
  *           final?:boolean, listenRule?:string }} opts
  */
 export function buildSkillAction(opts) {
-  const { skillId, esmlText, sessionId, sessionData = {}, mimId, mimType, promptSubCategory, analytics, final = true, listenRule } = opts;
+  const { skillId, esmlText, sessionId, sessionData = {}, mimId, mimType, promptSubCategory, analytics, final = true, listenRule, esmlRaw } = opts;
   return {
     type: SkillResponseType.SKILL_ACTION,
     msgID: newMsgId(),
     ts: now(),
     data: {
       skill: { id: skillId, session: { id: sessionId, nodeID: 1, data: sessionData, trace: [] } },
-      action: buildJcpAction({ esmlText, mimId, mimType, promptSubCategory, listenRule }),
+      action: buildJcpAction({ esmlText, mimId, mimType, promptSubCategory, listenRule, esmlRaw }),
       ...(analytics ? { analytics } : {}),
       final,
       fireAndForget: false,

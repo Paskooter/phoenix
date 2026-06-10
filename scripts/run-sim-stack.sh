@@ -14,7 +14,11 @@ cd "$PHX"
 PORT=7011 node packages/nlu/src/index.js        > /tmp/phx-nlu.log     2>&1 &
 PORT=7012 node packages/data/src/index.js        > /tmp/phx-data.log    2>&1 &
 PORT=7013 node packages/history/src/index.js     > /tmp/phx-history.log 2>&1 &
+# ETCO_answer_llmUrl: OpenAI-compatible endpoint for answer-skill (e.g. LM Studio
+# serving Gemma: http://<host>:1234/v1). Passed through from the caller's env.
 NET_data=localhost:7012 \
+ETCO_answer_llmUrl="${ETCO_answer_llmUrl:-}" \
+ETCO_answer_llmModel="${ETCO_answer_llmModel:-gemma-3}" \
   PORT=7014 node packages/skills/src/index.js    > /tmp/phx-skills.log  2>&1 &
 
 # Gateway on 9000, wired to the others, auth secret matching the sim.

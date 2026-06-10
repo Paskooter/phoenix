@@ -2,6 +2,18 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-09 — **Skill responses now follow the launch intent (user browser-test feedback).**
+  report-skill mirrors the reference IntentSplitNode: requestNews → news only, requestWeatherPR
+  → weather only, requestCommute/requestCalendar → their subskills, full report ONLY on
+  launchPersonalReport/proactive. chitchat-skill maps the common launch intents to their REAL
+  reference MIM prompt text (RA_JBO_SpecificDance/Twerk/Beatbox/Sing, OI_JBO_IsHappy, …)
+  including the embedded `<anim cat='dance' …/>` ESML (new esmlRaw flag in the JCP builder —
+  skill-authored markup passes through; user text still escaped). Fixed "tell me a joke"
+  shadowing (bare `tell me X` regex removed; jokes/stories now reach chitchat per the source).
+  answer-skill's Gemma hook (ETCO_answer_llmUrl) plumbed through run-sim-stack.sh; no LLM
+  endpoint found listening locally/pvindex, so the placeholder stays until one is pointed at it.
+  107 unit (+9), 37 proxy checks (+5, incl. news≠report and dance/twerk in-character) green.
+
 - 2026-06-09 — **NLU engine overhaul: full real grammars, `{% %}` actions, priority
   arbitration (76%→98% on a broad corpus).** Decided (with the user) to keep the NLU
   pure-JS and ship NO Jibo binaries: the real `jibo-nlu` `parse` binary is used only as an
