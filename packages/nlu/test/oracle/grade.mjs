@@ -25,7 +25,7 @@ function parseUtt(text){
   for (const sk of skills){
     let m=null; try { m = matchRule(sk.top, tokens, { rules: sk.rules }); } catch {}
     if(!m) continue;
-    const score = parseScore(m.entities, m.specificity);
+    const score = parseScore(m.entities, m.specificity, m.cost);
     if(!best || score>bestScore){ best={ id:sk.id, ents:m.entities||{} }; bestScore=score; }
   }
   if(!best) return null;

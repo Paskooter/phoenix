@@ -122,10 +122,12 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 ---
 
 ### Current focus order (loop)
-1. ~~Cloud-skill launch grammars (report-skill)~~ ✓ done.
-2. ~~Proactive channel + history wiring (launch recording, IH queries)~~ ✓ done.
-3. ~~GraphSkill FSM + MIM→SLIM + multi-turn sessions~~ ✓ done (GraphSkill/MIM section complete).
-4. Server-side ASR (M8). ← next
-5. Corpus runner + deeper diff levels.
+See **PARITY.md** (atlas-synthesized master plan, 2026-06-09) for the full matrix + phases:
+A. wire-correctness quick fixes (history /v1 prefix, parser /state + 400, settings fail-closed)
+B. corpus runner over the 4,705-entry test-manifest (D3 intent / D4 mim) ← in progress
+C. NLU fidelity from B's mismatch list (factory entities, LoopMemberDetector, eq_words, weights)
+D. server-side ASR (M8: ASRSession + Parakeet VAD + GARBAGE + speech-history)
+E. skills framework completion (MIM factories, OptInFactory, report MIM wiring)
+F. compose + substitution testing + M9 parity report
 
 See `WORKLOG.md` for the running log.

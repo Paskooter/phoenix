@@ -71,12 +71,12 @@ export function fullParse(text) {
   const tokens = tokenize(text);
   if (tokens.length === 0) return null;
   const { skills } = load();
-  let best = null; let bestScore = -1;
+  let best = null; let bestScore = -Infinity;
   for (const sk of skills) {
     let m = null;
     try { m = matchRule(sk.top, tokens, { rules: sk.rules }); } catch { /* skip */ }
     if (!m) continue;
-    const score = parseScore(m.entities, m.specificity);
+    const score = parseScore(m.entities, m.specificity, m.cost);
     if (!best || score > bestScore) { best = { id: sk.id, m }; bestScore = score; }
   }
   if (!best) return null;

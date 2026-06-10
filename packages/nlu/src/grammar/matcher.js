@@ -88,7 +88,7 @@ function* match(node, start, ctx, depth) {
       if (start < tokens.length && tokens[start] === _norm(node.word)) {
         const ent = freshEnts(EMPTY); const sub = freshEnts(EMPTY);
         const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokens[start]);
-        yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1 };
+        yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1, cost: node.cost || 0 };
       }
       return;
     }
@@ -101,7 +101,7 @@ function* match(node, start, ctx, depth) {
       for (const v of variants) {
         if (start < tokens.length && tokens[start] === _norm(v)) {
           const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
-          yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1 };
+          yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1, cost: node.cost || 0 };
         }
       }
       return;
@@ -119,17 +119,17 @@ function* match(node, start, ctx, depth) {
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
         const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens.slice(start, start + n).join(' '));
-        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0 };
+        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: node.cost || 0 };
       }
       return;
     }
     case 'opt': {
       // Try zero-match first, then a real match. (Zero-match keeps parent
       // pos at `start` with no entity updates.)
-      yield { end: start, entities: EMPTY, subFields: EMPTY, specificity: 0 };
+      yield { end: start, entities: EMPTY, subFields: EMPTY, specificity: 0, cost: 0 };
       for (const m of match(node.item, start, ctx, depth + 1)) {
         const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
-        yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0 };
+        yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
       }
       return;
     }
@@ -141,7 +141,7 @@ function* match(node, start, ctx, depth) {
       // group tags work in the cloud's compiler.
       for (const m of matchSeq(node.items, 0, start, EMPTY, EMPTY, 0, ctx, depth)) {
         const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
-        yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0 };
+        yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
       }
       return;
     }
@@ -150,7 +150,7 @@ function* match(node, start, ctx, depth) {
       for (const a of node.alts) {
         for (const m of match(a, start, ctx, depth + 1)) {
           const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
-          yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0 };
+          yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
         }
       }
       return;
@@ -175,11 +175,11 @@ function* match(node, start, ctx, depth) {
         for (let n = 1; n <= 3; n += 1) {
           if (start + n > tokens.length) break;
           const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokens.slice(start, start + n).join(' '));
-          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0 };
+          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: node.cost || 0 };
         }
         // Also try zero-match (factory might be optional in context).
         const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} }, '');
-        yield { end: start, entities: tagged0.entities, subFields: tagged0.subFields, specificity: 0 };
+        yield { end: start, entities: tagged0.entities, subFields: tagged0.subFields, specificity: 0, cost: node.cost || 0 };
         return;
       }
       // Real ref: match the sub-rule, then expose its subFields to our tags
@@ -191,7 +191,7 @@ function* match(node, start, ctx, depth) {
         const exposed = { [node.name]: m.subFields };
         const tagged = applyTags(node.tags, m.entities, m.subFields, exposed, tokens.slice(start, m.end).join(' '));
         const subsForParent = Object.assign({}, tagged.subFields, exposed);
-        yield { end: m.end, entities: tagged.entities, subFields: subsForParent, specificity: m.specificity || 0 };
+        yield { end: m.end, entities: tagged.entities, subFields: subsForParent, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
       }
       return;
     }
@@ -204,15 +204,15 @@ function* match(node, start, ctx, depth) {
 // entities + subFields. Yields on full completion of the sequence.
 // Specificity sums across items so a seq of literals out-scores a seq with
 // the same overall length but more wildcard kleene/factory slots.
-function* matchSeq(items, idx, pos, ents, subs, specSoFar, ctx, depth) {
+function* matchSeq(items, idx, pos, ents, subs, specSoFar, ctx, depth, costSoFar = 0) {
   if (idx >= items.length) {
-    yield { end: pos, entities: ents, subFields: subs, specificity: specSoFar };
+    yield { end: pos, entities: ents, subFields: subs, specificity: specSoFar, cost: costSoFar };
     return;
   }
   for (const m of match(items[idx], pos, ctx, depth + 1)) {
     const nextEnts = mergeObj(ents, m.entities);
     const nextSubs = mergeObj(subs, m.subFields);
-    yield* matchSeq(items, idx + 1, m.end, nextEnts, nextSubs, specSoFar + (m.specificity || 0), ctx, depth + 1);
+    yield* matchSeq(items, idx + 1, m.end, nextEnts, nextSubs, specSoFar + (m.specificity || 0), ctx, depth + 1, costSoFar + (m.cost || 0));
   }
 }
 function mergeObj(a, b) {
@@ -289,19 +289,22 @@ function expandCharClass(body) {
 // words beats a `$* x $*` wildcard wrapper). LOW is the deflector/catch-all tier
 // (`{% intent='idle' %}`, generic GQA) — it only wins when nothing better matches.
 export function priorityRank(p) { return p === 'HIGH' ? 2 : (p === 'LOW' ? 0 : 1); }
-export function parseScore(entities, specificity) {
-  return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0);
+// heuristic = specificity - accumulated FST cost: mirrors the reference binary's
+// heuristic_score (e.g. "who is ada lovelace" -> 14.7 = ~15 literals - 0.3 cost).
+export function parseScore(entities, specificity, cost = 0) {
+  return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0) - (cost || 0);
 }
 
 export function matchRule(node, tokens, ctx) {
   const fullCtx = Object.assign({ tokens, rules: ctx.rules || {}, maxDepth: 250 }, ctx);
-  let best = null; let bestScore = -1;
+  let best = null; let bestScore = -Infinity;
   for (const m of match(node, 0, fullCtx, 0)) {
     if (m.end !== tokens.length) continue;
     const spec = m.specificity || 0;
-    const score = parseScore(m.entities, spec);
+    const cost = m.cost || 0;
+    const score = parseScore(m.entities, spec, cost);
     if (!best || score > bestScore) {
-      best = { entities: m.entities, subFields: m.subFields, specificity: spec, priority: (m.entities && m.entities.priority) || '', score };
+      best = { entities: m.entities, subFields: m.subFields, specificity: spec, cost, priority: (m.entities && m.entities.priority) || '', score };
       bestScore = score;
     }
   }

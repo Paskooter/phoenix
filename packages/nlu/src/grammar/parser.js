@@ -98,22 +98,32 @@ export function parse(source) {
   function canStartItem(t) {
     return t.kind === 'ID' || t.kind === 'STRING' || t.kind === 'LPAREN' ||
            t.kind === 'RULEREF' || t.kind === 'STAR' || t.kind === 'CHARCLASS' ||
-           t.kind === 'QMARK';
+           t.kind === 'QMARK' || t.kind === 'WEIGHT';
   }
 
   function parseItem() {
+    // Leading FST weight blocks (`<0.4>(...)`) — cost onto this item.
+    let cost = 0;
+    while (peek().kind === 'WEIGHT') { cost += peek().value; pos += 1; }
     let optional = false;
     if (peek().kind === 'QMARK') { pos += 1; optional = true; }
     const atom = parseAtom();
     // Consume any consecutive entity-tag blocks attached to this item: both the
     // FST `{key=value}` form and the `{% key='value' %}` semantic-action form.
+    // Trailing WEIGHT (`(...)​<0.0>`) and TILDE (`(...)~2.5`) blocks interleave
+    // with tags in the wild — accept them in any order.
     const tags = [];
-    while (peek().kind === 'LBRACE' || peek().kind === 'ACTION') {
-      if (peek().kind === 'ACTION') tags.push(...parseActionBlock(eat('ACTION').value));
-      else tags.push(...parseTagBlock());
+    for (;;) {
+      const k = peek().kind;
+      if (k === 'LBRACE') { tags.push(...parseTagBlock()); continue; }
+      if (k === 'ACTION') { tags.push(...parseActionBlock(eat('ACTION').value)); continue; }
+      if (k === 'WEIGHT' || k === 'TILDE') { cost += peek().value; pos += 1; continue; }
+      break;
     }
     if (tags.length) atom.tags = (atom.tags || []).concat(tags);
-    return optional ? { type: 'opt', item: atom } : atom;
+    const node = optional ? { type: 'opt', item: atom } : atom;
+    if (cost) node.cost = (node.cost || 0) + cost;
+    return node;
   }
 
   function parseAtom() {

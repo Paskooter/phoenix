@@ -2,6 +2,21 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-09 — **PARITY.md master plan + corpus runner + FST weight scoring (sample D3
+  83.8%→89.3%).** Full atlas/source/archive survey (3 subagent sweeps) synthesized into
+  PARITY.md: subsystem matrix vs the reference, M0-M9 milestone status (M8 ASR = the big
+  hole), and a phased plan (A wire fixes → B corpus → C NLU fidelity → D ASR → E skills
+  framework → F compose/substitution). Built the corpus runner
+  (packages/harness/src/corpusRunner.js): drives the vendored 4,705-entry test-manifest
+  through in-process NLU + IntentRouter, grades D3 (intent) + D4 (memo.mim), writes a
+  mismatch report. Its top miss class (41/45 = "can you dance"→requestDance instead of
+  canJiboAction) was the dropped FST weights — lexer now emits `<N>`/`~N` as
+  WEIGHT/TILDE, parser attaches item costs, matcher accumulates, arbitration =
+  priority → (specificity − cost), which reproduces the binary's heuristic_score.
+  "can you dance"→canJiboAction{Action:Dance} ✓ (oracle-exact), entity capture fixed
+  most wrong-mim cases. 109 unit + 37 proxy checks green. Remaining long-tail in the
+  corpus report: finer arm costs, factory entities, seasonal describeEvent intents.
+
 - 2026-06-09 — **The real chitchat content library is live: 4,424 vendored MIMs + faithful
   dispatch.** Vendored the complete reference content (mims/chitchat: 4,369 scripted + 54
   emotion + CC_Fallback, semi_specific_categories CSVs ×66, report mims ×82, the 2,573-utterance

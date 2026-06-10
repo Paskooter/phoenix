@@ -169,20 +169,28 @@ export function lex(source) {
     if (ch === ',') { advance(); push('COMMA', ','); continue; }
     if (ch === ':') { advance(); push('COLON', ':'); continue; }
 
-    // Weight annotation: `~N` (FST cost for the preceding alternative).
-    // Irrelevant for first-match-wins semantics — skip it.
+    // Weight annotation: `~N` (FST cost on the preceding alternative/group).
+    // Emitted as a TILDE token; the parser adds it to that item's cost. Higher
+    // cost = less preferred path (OpenFST shortest-path semantics).
     if (ch === '~') {
       advance();
-      while (/[0-9.]/.test(source[i] || '')) advance();
+      let n = '';
+      while (/[0-9.]/.test(source[i] || '')) { n += source[i]; advance(); }
+      push('TILDE', parseFloat(n) || 0);
       continue;
     }
 
-    // FST weight block: `<1.0>`, `<0.5>` etc. The compiler uses these to
-    // score alternatives. For first-match-wins parsing we drop them.
+    // FST weight block: `<1.0>`, `<0.5>` etc — arc costs bracketing an item
+    // (`<0.4>(you like ...)<0.0>`). Emitted as WEIGHT tokens; the parser sums
+    // them onto the adjacent item's cost. These decide WHICH grammar arm wins
+    // when several full-match (e.g. "can you dance" must take the canJiboAction
+    // arm, not requestDance) — dropping them was the corpus runner's top miss.
     if (ch === '<' && /[0-9.]/.test(source[i + 1] || '')) {
       advance();
-      while (i < N && source[i] !== '>') advance();
+      let n = '';
+      while (i < N && source[i] !== '>') { n += source[i]; advance(); }
       if (i < N) advance(); // closing >
+      push('WEIGHT', parseFloat(n) || 0);
       continue;
     }
 
