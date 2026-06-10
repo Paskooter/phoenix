@@ -2,7 +2,7 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
-- 2026-06-09 — **NLU stage unification: corpus sample D3 89.3%→98.5%, D4 88.1%→97.6%.** The
+- 2026-06-09 — **NLU stage unification — FULL corpus D3 97.9% / D4 96.1% (10,035 utterances; was 81.6/79.8).** The
   full-corpus run (10,035 utterances: D3 81.6%) revealed the dominant miss class was NOT the
   grammars — fullParse got "im hungry"→userIsDescriptor etc. RIGHT — but the legacy stages
   (sim-vendored who-am-i/clock grammars, no weights) short-circuiting in front of it with

@@ -35,9 +35,13 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 2. parser: GET /state, 400 on non-string text; gateway: GET /v1/skills full config
 3. settingsRules fail-closed default + `ETCO_hub_settingsRulesPermissive` escape hatch (DIVERGENCES)
 
-**Phase B — measure: corpus runner (M0/M9 backbone)** ← executing now
+**Phase B — measure: corpus runner (M0/M9 backbone)** ✅ done 2026-06-09
 4. Runner over the 4,705-entry test-manifest at the NLU+router level: grade intent (D3) and
    memo.mim (D4); mismatch report drives Phase C/D ordering. Wire into harness as a CLI.
+   **Result: 10,035 utterances — D3 97.9% (98.0% net of ledgered B6/B7), D4 96.1%**, after
+   weight scoring + single-union unification (was 81.6/79.8 at first measurement). Remaining
+   397 misses are a long tail (max class 12): factory-entity sub-arm capture
+   (KU_CanYou<Action>Thing), semi-specific membership, seasonal/CES-era intents.
 
 **Phase C — NLU fidelity to 100%-able** (driven by B's mismatch list)
 5. factory entities from public datasets; LoopMemberDetector; eq_words; weight scoring;
