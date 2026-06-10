@@ -2,6 +2,12 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **Phase C closure: full corpus D3 98.2% / D4 96.8% — plateau reached.** The
+  factory-entity run confirms stability (+3 vs prior; factories mainly fix entity VALUES,
+  which D3/D4 don't grade). All substantive Phase C items are done; remaining 329 misses are
+  3-12-utterance micro-classes. Next per PARITY.md: Phase D (server-side ASR, M8) — awaiting
+  go-ahead, since the phase order was user-directed.
+
 - 2026-06-10 — **Parser wire items (Phase A leftovers): GET /state + 400 on malformed parse
   requests.** /state returns the reference ServiceStateData shape (RUNNING/CONNECTED/CLOSED/
   llm READY|DISABLED); POST /v1/parse now 400s when data.text isn't a string (reference

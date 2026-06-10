@@ -43,9 +43,15 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
    397 misses are a long tail (max class 12): factory-entity sub-arm capture
    (KU_CanYou<Action>Thing), semi-specific membership, seasonal/CES-era intents.
 
-**Phase C — NLU fidelity to 100%-able** (driven by B's mismatch list)
-5. factory entities from public datasets; LoopMemberDetector; eq_words; weight scoring;
-   global-command grammars; `rules` echo
+**Phase C — NLU fidelity** ✅ substantially complete 2026-06-10
+5. Done: FST weight scoring + forward entry-weights; single-union unification; wildcard arc
+   costs (WILDCARD_TOKEN_COST=0.7); eq_words homophone matching; **factory entities extracted
+   from the reference FST binaries** (pure-python OpenFST decoder → plain-text vocab:
+   first_name 6,008 / last_name 20,027 / music_genre / country / state / canada_province;
+   membership is a constraint); parser GET /state + 400 on malformed text.
+   **Final plateau: D3 98.2% / D4 96.8% (10,035 utterances; 329 long-tail misses, max class 12).**
+   Remaining (lower yield, future iterations): LoopMemberDetector, global-command strict-arm
+   tuning, `rules` echo (needs reference-router re-read), per-class miss forensics.
 
 **Phase D — server-side ASR (M8)** — the robot-compatibility centerpiece
 6. ASRSession interface + Parakeet session (RMS≥400, SOS 150 ms, EOS 700 ms, 30 s cap,
