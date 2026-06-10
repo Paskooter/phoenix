@@ -2,6 +2,17 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-09 — **NLU stage unification: corpus sample D3 89.3%→98.5%, D4 88.1%→97.6%.** The
+  full-corpus run (10,035 utterances: D3 81.6%) revealed the dominant miss class was NOT the
+  grammars — fullParse got "im hungry"→userIsDescriptor etc. RIGHT — but the legacy stages
+  (sim-vendored who-am-i/clock grammars, no weights) short-circuiting in front of it with
+  selfID/askForDay. Pipeline now mirrors the reference single-union: fullParse (real grammars,
+  weights, priorities) FIRST; legacy launch/regex stages demoted to fallbacks. Divergences
+  decided + ledgered: B6 GQA→answer-skill (chitchat's Wolfram deflector is dead; whoIsPerson/
+  requestTellAboutThing/general* remap with person/thing entities), B7 requestWeather→
+  requestWeatherPR (chitchat's weather deflector → straight to the report weather subskill).
+  109 unit + 37 proxy green.
+
 - 2026-06-09 — **PARITY.md master plan + corpus runner + FST weight scoring (sample D3
   83.8%→89.3%).** Full atlas/source/archive survey (3 subagent sweeps) synthesized into
   PARITY.md: subsystem matrix vs the reference, M0-M9 milestone status (M8 ASR = the big
