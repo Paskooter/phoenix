@@ -92,10 +92,16 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] **GraphSkill FSM** (Node enter/exit, per-instance GraphManager sequential nodeIDs = wire format, transitions) — U/P
 - [x] **MIM→SLIM Slimmer** (prompt filter by category/sub-category/index, vm-eval condition, weighted pick, template→ESML, listen from rule_name, NoMatch/NoInput max) — U/P
 - [x] Multi-turn sessions (LISTEN_UPDATE, resume at session.nodeID, session.data round-trip; color-skill demo) — U/P
+- [x] **chitchat real MIM dispatch** — full vendored library (4,369 scripted + 54 emotion +
+  CC_Fallback + 66 semi-specific CSVs); ProcessQueryNode port (memo→mim, semi-specific stem
+  resolution, set validation, fallback); PromptData extended to the measured library surface
+  (dt.now.isInRange, JiboData emotion/age/zodiac, LooperData, loop.owner, skill.dice/coin);
+  4,364/4,369 render in bulk smoke — U/P (live-verified on the sim)
+- [x] report-skill intent split (IntentSplitNode port: news/weather/commute/calendar single-subskill) — U/P
+- [ ] report-skill subskills speak from the vendored report mims (82 files vendored; wiring todo:
+  weather comments, news intros, commute/calendar dialog per MimLogic)
 - [ ] SKILL_REDIRECT emitted by a skill
 - [ ] OptIn factory
-- [ ] report-skill subskills (commute, calendar) + real MIM dialog
-- [ ] chitchat real MIM dispatch (4.6k intents; needs assets)
 - [ ] example/template reference skills
 
 ## Proactive (cross-cutting) — covered under Gateway above
