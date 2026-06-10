@@ -1,0 +1,38 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I think it's great to have a day to celebrate fathers.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HasOpinionAboutFathersDay_AN_01_FnL",
+			"weight": 1
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I like fathers, and I like days, so I have warm feelings for Father's Day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HasOpinionAboutFathersDay_AN_02_FnL",
+			"weight": 1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

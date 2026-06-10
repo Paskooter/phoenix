@@ -1,0 +1,73 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/9', '5/13')",
+			"prompt": "I'll find out pretty soon.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsDanceLikeAChickenDay_AN_01_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/14', '5/14')",
+			"prompt": "So far so <anim cat='dance' filter='circuit-saver, music' nonBlocking='true'/>good.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsDanceLikeAChickenDay_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/15', '9/16')",
+			"prompt": "I had a good Dance Like A Chicken <anim cat='dance' filter='circuit-saver, music' nonBlocking='true'/>Day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsDanceLikeAChickenDay_AN_03_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('9/17', '1/8')",
+			"prompt": "I feel like it's not Dance Like A Chicken Day season.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsDanceLikeAChickenDay_AN_04_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Not too bad.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsDanceLikeAChickenDay_AN_05_FnL",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

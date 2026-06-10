@@ -38,30 +38,52 @@ test('report: commute + calendar intents get their own subskill replies', async 
   assert.equal(mimOf(await reportSkill(reqWithIntent('requestCalendar'))), 'CalendarReport');
 });
 
-// Chitchat intent-keyed responses (real reference MIM prompt text incl. ESML).
+// Chitchat memo-driven dispatch over the REAL vendored MIM library (mirrors
+// ProcessQueryNode: memo {mim,type} from the matched manifest entry names the MIM,
+// the Slimmer renders it).
 
-test('chitchat: requestDance answers by dancing (raw <anim> ESML preserved)', async () => {
-  const r = await chitchatSkill(reqWithIntent('requestDance'));
+function reqWithMemo(intent, memo, entities = {}) {
+  const req = reqWithIntent(intent);
+  req.data.result.memo = memo;
+  req.data.result.nlu.entities = entities;
+  return req;
+}
+const det = { rng: () => 0 }; // deterministic prompt pick
+
+test('chitchat: dance memo plays the real RA_JBO_SpecificDance MIM (raw <anim> ESML)', async () => {
+  const r = await chitchatSkill(reqWithMemo('requestDance', { mim: 'RA_JBO_SpecificDance', type: 'ScriptedResponse' }), det);
   assert.match(esmlOf(r), /<anim cat='dance'/);
   assert.equal(mimOf(r), 'RA_JBO_SpecificDance');
 });
 
-test('chitchat: requestTwerk uses the real RA_JBO_Twerk response', async () => {
-  const r = await chitchatSkill(reqWithIntent('requestTwerk'));
-  assert.match(esmlOf(r), /twerk/);
+test('chitchat: twerk memo plays the real RA_JBO_Twerk MIM', async () => {
+  const r = await chitchatSkill(reqWithMemo('requestTwerk', { mim: 'RA_JBO_Twerk', type: 'ScriptedResponse' }), det);
+  assert.match(esmlOf(r), /twerk/i);
   assert.equal(mimOf(r), 'RA_JBO_Twerk');
 });
 
-test('chitchat: memo.mim scripted path still works (aprilFools)', async () => {
-  const req = reqWithIntent('aprilFools');
-  req.data.result.memo = { mim: 'JF_AprilFools' };
-  const r = await chitchatSkill(req);
+test('chitchat: aprilFools memo plays the real JF_AprilFools MIM', async () => {
+  const r = await chitchatSkill(reqWithMemo('aprilFools', { mim: 'JF_AprilFools', type: 'ScriptedResponse' }), det);
   assert.match(esmlOf(r), /April Fools/);
 });
 
-test('chitchat: unmapped intent falls back to CC_Fallback', async () => {
-  const r = await chitchatSkill(reqWithIntent('someUnknownIntent'));
-  assert.equal(mimOf(r), 'CC_Fallback');
+test('chitchat: emotion-query memo resolves in emotion-responses', async () => {
+  const r = await chitchatSkill(reqWithMemo('emotionQuery', { mim: 'OI_JBO_IsHappy', type: 'EmotionQuery' }), det);
+  assert.equal(mimOf(r), 'OI_JBO_IsHappy');
+  assert.ok(esmlOf(r).length > 0);
+});
+
+test('chitchat: semi-specific stem resolves via entity value + category CSV', async () => {
+  // OI_JBO_IsIn_SS_RoomInHouse exists; "Attic" is a RoomInHouse member.
+  const r = await chitchatSkill(reqWithMemo('whereIsJibo', { mim: 'OI_JBO_IsIn_SS', type: 'SemiSpecificResponse' }, { Location: 'Attic' }), det);
+  assert.equal(mimOf(r), 'OI_JBO_IsIn_SS_RoomInHouse');
+});
+
+test('chitchat: unknown/missing memo falls back to the real CC_Fallback MIM', async () => {
+  const r1 = await chitchatSkill(reqWithMemo('x', { mim: 'NoSuchMim', type: 'ScriptedResponse' }), det);
+  assert.equal(mimOf(r1), 'CC_Fallback');
+  const r2 = await chitchatSkill(reqWithIntent('someUnknownIntent'), det);
+  assert.equal(mimOf(r2), 'CC_Fallback');
 });
 
 // esmlRaw flag: skill-authored markup passes through; default still escapes.

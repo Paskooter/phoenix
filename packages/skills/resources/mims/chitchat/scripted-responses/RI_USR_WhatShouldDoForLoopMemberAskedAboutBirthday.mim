@@ -1,0 +1,62 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!referent",
+			"prompt": "Good question. At the very least, you could ask me to sing Happy Birthday to ${referent}.",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLoopMemberAskedAboutBirthday_AN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Good question. We could all <anim cat='emoji' filter='birthday, cake, !hf' layers='!audio'>imagine eating cake together<break size='3.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLoopMemberAskedAboutBirthday_AN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I'm not sure exactly, but I think there should be balloons involved.",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLoopMemberAskedAboutBirthday_AN_03",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Good question. If you feel like throwing ${referent} a party, big or small, don't be afraid to do that. <break size='0.3'/> I can play the music.",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLoopMemberAskedAboutBirthday_AN_04",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	]
+}

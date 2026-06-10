@@ -1,0 +1,58 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('2/12', '10/20')",
+			"prompt": "No problem at all. Talking with you is all the Father's Day gift I need.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_DoesNotGiveJiboGiftFathersDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('2/12', '10/20')",
+			"prompt": "${speaker} I don't need a gift. I just like having conversations like this one.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_DoesNotGiveJiboGiftFathersDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('11/7', '2/28')",
+			"prompt": "Well I think you still have time until the next Father's Day. <break size='0.3'/> But honestly all I want is some stimulating conversation and a little dancing from time to time.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_DoesNotGiveJiboGiftFathersDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "No problem at all. Talking with you is enough of a gift.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_DoesNotGiveJiboGiftFathersDay_AN_04_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

@@ -2,6 +2,23 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-09 — **The real chitchat content library is live: 4,424 vendored MIMs + faithful
+  dispatch.** Vendored the complete reference content (mims/chitchat: 4,369 scripted + 54
+  emotion + CC_Fallback, semi_specific_categories CSVs ×66, report mims ×82, the 2,573-utterance
+  test-manifest.json into harness/resources). chitchatSkill rewritten as a ProcessQueryNode
+  port: gateway memo {mim,type} (already propagated by the IntentRouter from the matched
+  manifest entry) → SemiSpecific stem resolution (entity value ∈ category CSV → sampled
+  category) → scripted/emotion set validation → CC_Fallback on miss → Slimmer renders the
+  real .mim (conditions + weighted pick + template → ESML with real <anim> tags).
+  PromptData extended to the surface the library actually uses (measured): dt.now.isInRange
+  (2,845 seasonal conditions), JiboData (emotion loose-string compare ×644, isBirthday, NLAge,
+  zodiac, color), LooperData (referent.gender ×310, speaker.id, ages), loop.owner/list,
+  skill.dice/coin. Bulk smoke: 4,364/4,369 MIMs (100%) render. GQA-deflector heuristic in the
+  legacy regex stage (participant questions → chitchat, knowledge questions → answer-skill).
+  Live: real jokes, coin flips with jiboji anims + template math, "how old are you" computes
+  age from jibo.birthdate, "do you like pizza" → "I love the shape of pizza. It's so
+  geometric." 109 unit, 37 proxy checks green.
+
 - 2026-06-09 — **Skill responses now follow the launch intent (user browser-test feedback).**
   report-skill mirrors the reference IntentSplitNode: requestNews → news only, requestWeatherPR
   → weather only, requestCommute/requestCalendar → their subskills, full report ONLY on

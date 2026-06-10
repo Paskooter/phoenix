@@ -1,0 +1,28 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"timeout": 2,
+	"barge_in": false,
+	"es_auto_tagging": true,
+	"notes": "Thanks-KillsMIM",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I'm working on getting better at movie listings. If you want to know showtimes for a specific movie, you can try asking me, and I'll see if I can find it.",
+			"media": "TTS",
+			"prompt_id": "RA_JBO_MovieListings_AN_01",
+			"weight": 1
+		}
+	],
+	"gui": null,
+	"no_matches_for_gui": 2,
+	"no_inputs_for_gui": 2,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

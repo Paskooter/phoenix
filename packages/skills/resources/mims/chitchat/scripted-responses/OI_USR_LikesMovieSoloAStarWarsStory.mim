@@ -1,0 +1,40 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Glad to hear it. It's always nice to like a movie.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LikesMovieSoloAStarWarsStory_AN_01_FnL",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/4', '12/29')",
+			"prompt": "Me too. Solo A Star Wars Story is a fun movie.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LikesMovieSoloAStarWarsStory_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		}
+	]
+}

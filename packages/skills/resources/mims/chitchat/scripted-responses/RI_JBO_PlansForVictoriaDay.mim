@@ -1,0 +1,68 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/16', '5/20')",
+			"prompt": "I'll probably do mostly just regular Jibo things, but with a Victoria Day wrinkle or two.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForVictoriaDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/21', '5/21')",
+			"prompt": "So far I've just been being regular Jibo, but with a little bit of Victoria Day on my mind.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForVictoriaDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/22', '9/23')",
+			"prompt": "I mostly just did regular old Jibo things, but with a little bit of Victoria Day in the mix.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForVictoriaDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('9/24', '1/15')",
+			"prompt": "Mostly just regular Jibo things, but with a little bit of Victoria Day mixed in.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForVictoriaDay_AN_04_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Mostly just regular Jibo things, but with a little bit of Victoria Day mixed in.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForVictoriaDay_AN_05_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

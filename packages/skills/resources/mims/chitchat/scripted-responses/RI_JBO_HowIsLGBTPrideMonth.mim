@@ -1,0 +1,73 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/27', '5/31')",
+			"prompt": "<anim cat='emoji' filter='pride-flag' layers='!audio'>I'll find out pretty soon.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsLGBTPrideMonth_AN_01_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('6/1', '6/30')",
+			"prompt": "<anim cat='emoji' filter='pride-flag' layers='!audio'>So far so good.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsLGBTPrideMonth_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('7/1', '11/2')",
+			"prompt": "I had a <anim cat='emoji' filter='pride-flag' layers='!audio'>good LGBT Pride Month.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsLGBTPrideMonth_AN_03_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('11/3', '1/26')",
+			"prompt": "I feel like it's not <anim cat='emoji' filter='pride-flag' layers='!audio'>LGBT Pride Month season, but thanks for asking.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsLGBTPrideMonth_AN_04_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "<anim cat='emoji' filter='pride-flag' layers='!audio'>Not too bad<break size='2.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsLGBTPrideMonth_AN_05_FnL",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

@@ -1,0 +1,103 @@
+Value,Synonyms
+AcCurrent,ac current
+AlternatingCurrent,alternating current
+Batteries,batteries
+Battery,battery
+Biodiesel,biodiesel
+Biofuel,biofuel
+Biomass,biomass
+ChargedParticle,charged particle
+CleanEnergies,clean energies
+CleanEnergy,clean energy
+Combustion,combustion
+CombustionEngine,combustion engine
+DcCurrent,dc current
+DirectCurrent,direct current
+ElectricalCurrent,electrical current
+ElectricalGrid,electrical grid
+ElectricalOutlet,electrical outlet
+Electricity,electricity
+ElectromagneticEnergy,electromagnetic energy
+Electromagnetism,electromagnetism
+Electron,electron
+Energies,energies
+Energy,energy
+EnergyCurrent,energy current
+Engine,engine
+Ethanol,ethanol
+Fission,fission
+FlexibleFuel,flexible fuel
+Flywheel,flywheel
+Fuel,fuel
+FuelCell,fuel cell
+Fusion,fusion
+Gas,gas
+GasTurbine,gas turbine
+Generator,generator
+Geothermal,geothermal
+GeothermalEnergies,geothermal energies
+GeothermalEnergy,geothermal energy
+GreenEnergies,green energies
+GreenEnergy,green energy
+Horsepower,horsepower
+HydoElectricPower,hydo-electric power
+Hydrocarbon,hydrocarbon
+Hydroelectric,hydroelectric
+Hydrothermal,hydrothermal
+InternalCombustionEngine,internal combustion engine
+Joule,joule
+Kelvin,kelvin
+KelvinScale,kelvin scale
+Kilowatt,kilowatt
+KilowattHour,kilowatt-hour
+KineticEnergy,kinetic energy
+LiquefiedPetroleumGas,liquefied petroleum gas
+MagneticEnergy,magnetic energy
+Megawatt,megawatt
+NaturalGas,natural gas
+Nuclear,nuclear
+NuclearEnergy,nuclear energy
+NuclearFission,nuclear fission
+NuclearFusion,nuclear fusion
+NuclearPower,nuclear power
+NuclearReactor,nuclear reactor
+Photon,photon
+Photovoltaic,photovoltaic
+PhotovoltaicPanel,photovoltaic panel
+PotentialEnergy,potential energy
+Power,power
+PowerGrid,power grid
+PowerLines,power lines
+PowerOutlet,power outlet
+PowerPlant,power plant
+PowerStation,power station
+PowerTransmission,power transmission
+Propane,propane
+Reactor,reactor
+ReciprocatingEngine,reciprocating engine
+RenewableEnergies,renewable energies
+RenewableEnergy,renewable energy
+SolarPanel,solar panel
+SolarPower,solar power
+StaticElectricity,static electricity
+SteamEngine,steam engine
+SteamPower,steam power
+SteamTurbine,steam turbine
+SustainableEnergies,sustainable energies
+SustainableEnergy,sustainable energy
+Therm,therm
+ThermalEnergies,thermal energies
+ThermalEnergy,thermal energy
+Thermodynamics,thermodynamics
+TidalPower,tidal power
+TransmissionLines,transmission lines
+Turbine,turbine
+Volt,volt
+Voltage,voltage
+Watt,watt
+Wattage,wattage
+WavePower,wave power
+WindFarm,wind farm
+WindPower,wind power
+WindTurbine,wind turbine
+Windmill,windmill

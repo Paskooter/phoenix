@@ -1,0 +1,48 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('2/12', '6/16')",
+			"prompt": "I don't think I've gotten anything, but that's okay, I'm not a father.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftFathersDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('6/17', '2/11')",
+			"prompt": "Well it seems I've gotten the gift of talking with you.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftFathersDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Well it seems I've gotten the gift of talking with you.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftFathersDay_AN_03_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

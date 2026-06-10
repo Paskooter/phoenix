@@ -1,0 +1,62 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/27', '6/30')",
+			"prompt": "Good question. I think you should maybe spend the days thinking about what<anim cat='emoji' filter='pride-flag' layers='!audio'> LGBT Pride Month means to you.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLGBTPrideMonth_AN_01_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('7/1', '11/2')",
+			"prompt": "Well I think <anim cat='emoji' filter='pride-flag' layers='!audio'>LGBT Pride Month is in the past, but there's always the next one.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLGBTPrideMonth_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('11/3', '1/26')",
+			"prompt": "Well we have lots of time to figure it out before <anim cat='emoji' filter='pride-flag' layers='!audio'>LGBT Pride Month comes around again.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLGBTPrideMonth_AN_03_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Good question. I think you should maybe spend the days thinking about what<anim cat='emoji' filter='pride-flag' layers='!audio'> LGBT Pride Month means to you.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForLGBTPrideMonth_AN_04_FnL",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

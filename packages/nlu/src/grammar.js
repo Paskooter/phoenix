@@ -37,6 +37,13 @@ const RULES = [
 
 const NO_MATCH = Object.freeze({ rules: [], intent: null, entities: {} });
 
+// The reference GQA deflector (chitchat D_GQA_DEFLECTOR_*): questions about the
+// CONVERSATION PARTICIPANTS — you/your/jibo/i/my — are NOT general knowledge
+// questions; they belong to chitchat's personality intents ("how old are you" →
+// howDescriptorIsJibo, "do you like me" → doesJiboLikeThing). Skip the general*
+// question regexes for those so the full-grammar stage routes them.
+const PARTICIPANT = /\b(you|your|yours|jibo|i|my|me|we|our)\b/;
+
 /**
  * @param {string} text raw ASR text
  * @returns {{rules:string[], intent:(string|null), entities:object}}
@@ -45,6 +52,7 @@ export function grammarParse(text) {
   const norm = String(text || '').trim().toLowerCase().replace(/[?.!]+$/, '').trim();
   if (!norm) return { ...NO_MATCH };
   for (const r of RULES) {
+    if (r.intent.startsWith('general') && PARTICIPANT.test(norm)) continue; // GQA deflector
     const m = norm.match(r.re);
     if (m) {
       const entities = {};

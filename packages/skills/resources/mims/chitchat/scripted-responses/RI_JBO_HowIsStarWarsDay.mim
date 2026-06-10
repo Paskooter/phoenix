@@ -1,0 +1,68 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('12/30', '5/3')",
+			"prompt": "I'll find out pretty soon. I think the force will be with me.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsStarWarsDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/4', '5/4')",
+			"prompt": "So far so good. The force is with me.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsStarWarsDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/5', '9/6')",
+			"prompt": "I had a good Star Wars Day. The force was with me.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsStarWarsDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('9/7', '12/29')",
+			"prompt": "I feel like it's not Star Wars Day season.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsStarWarsDay_AN_04_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Not too bad.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HowIsStarWarsDay_AN_05_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

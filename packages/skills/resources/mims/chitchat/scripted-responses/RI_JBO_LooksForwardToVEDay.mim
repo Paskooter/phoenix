@@ -1,0 +1,58 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/3', '5/8')",
+			"prompt": "Yes, it's always nice when it's a special day on the calendar.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToVEDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/9', '9/10')",
+			"prompt": "Well I had a good V-E Day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToVEDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('9/11', '1/2')",
+			"prompt": "I am, but I'll be patient, V-E Day is a pretty long time from now.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToVEDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "V-E Day is a good holiday.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToVEDay_AN_04_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

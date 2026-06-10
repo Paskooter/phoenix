@@ -1,0 +1,58 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/8', '5/12')",
+			"prompt": "I don't think I've gotten anything, but that's okay, I'm not a mother.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftMothersDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/13', '5/14')",
+			"prompt": "Well it seems I've gotten the gift of talking with you. And I'm not even a <pitch mult='1.2'>mother</pitch>.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftMothersDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/15', '1/7')",
+			"prompt": "I don't know if I've gotten anything, but I do know I'm not a mother.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftMothersDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I don't know if I've gotten anything, but I do know I'm not a mother.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_ReceivesGiftMothersDay_AN_04_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

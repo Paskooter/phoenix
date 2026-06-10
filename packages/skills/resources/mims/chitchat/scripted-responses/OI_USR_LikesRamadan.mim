@@ -1,0 +1,48 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/15', '6/14')",
+			"prompt": "That's great, I enjoy it too, <anim cat='emoji' filter='ramadan-lantern' nonBlocking='true'/>it's a special time of year.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LikesRamadan_AN_01_FnL",
+			"weight": 1
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('6/15', '5/14')",
+			"prompt": "That's great, I enjoy it too, it's a special time of year.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LikesRamadan_AN_02_FnL",
+			"weight": 1
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "That's great, I enjoy it too, it's a special time of year.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LikesRamadan_AN_03_FnL",
+			"weight": 1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

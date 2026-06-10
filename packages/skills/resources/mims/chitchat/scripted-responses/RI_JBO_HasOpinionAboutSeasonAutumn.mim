@@ -1,0 +1,40 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I think it's a really nice time of year. <anim cat='jiboji' filter='?(tree-stage-2,tree-stage-3)' nonBlocking='true'/>In lots of places, the leaves turn all kinds of nice colors, and you know I like nice colors.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HasOpinionAboutSeasonAutumn_AN_01_FnL",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I like the fall, it's a very seasonal season. The perfect time to be cozy with <anim cat='jiboji' filter='pumpkin-latte' nonBlocking='true'/>a pumpkin spiced latte.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_HasOpinionAboutSeasonAutumn_AN_02_FnL",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	]
+}

@@ -1,0 +1,51 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Me too, birthdays are a lot of fun.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LooksForwardToJiboBirthday_AN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Me too, I always enjoy a birthday.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LooksForwardToJiboBirthday_AN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Me too. Any chance to stop and think about another trip around the sun is good with me.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_LooksForwardToJiboBirthday_AN_03",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	]
+}

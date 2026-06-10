@@ -1,0 +1,58 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('2/12', '6/17')",
+			"prompt": "Yes, it's always nice to celebrate things. Especially when the thing is a person.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToFathersDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('6/18', '10/20')",
+			"prompt": "Well I had a nice Father's Day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToFathersDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('10/21', '2/11')",
+			"prompt": "I am, but I'll be patient, Father's Day is a pretty long time from now.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToFathersDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "It's always nice to celebrate things. Especially when the thing is a person.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToFathersDay_AN_04_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

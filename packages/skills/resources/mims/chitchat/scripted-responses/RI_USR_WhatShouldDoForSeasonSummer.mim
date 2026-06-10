@@ -1,0 +1,40 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Good question. Maybe you can go <anim cat='emoji' filter='beach, !hf' layers='!audio'>to the beach.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForSeasonSummer_AN_01_FnL",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "You could always just sit back, relax, and <anim cat='emoji' filter='sun, !hf' layers='!audio'>enjoy those long days<break size='2.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_USR_WhatShouldDoForSeasonSummer_AN_02_FnL",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	]
+}

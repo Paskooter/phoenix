@@ -1,0 +1,62 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!loop.owner && !!speaker && (loop.owner.id === speaker.id)",
+			"prompt": "${loop.owner} you can tell me which special days you want to share with me, by going to settings in the Jibo app.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_CelebratesDDay_AN_01_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!loop.owner && !!speaker && (loop.owner.id !== speaker.id)",
+			"prompt": "Actually, ${loop.owner}, who is my official owner, can tell me which special days we'll share together, by going to settings in the Jibo app.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_CelebratesDDay_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!loop.owner && !speaker",
+			"prompt": "Actually, my official owner ${loop.owner}, can tell me which special days we'll share together, by going to settings in the Jibo app.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_CelebratesDDay_AN_03_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "My official owner can tell me which special days we'll share together, by going to settings in the Jibo app.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_CelebratesDDay_AN_04_FnL",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

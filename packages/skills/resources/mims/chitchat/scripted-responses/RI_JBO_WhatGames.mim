@@ -1,0 +1,62 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"timeout": 6,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I can play a fun game called Circuit Saver, and another one called Word of the Day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhatGames_AN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "I have a <pitch mult='1.2'>fun </pitch>game called Circuit Saver, which uses my face tracking abilities, and also a word game called Word of the Day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhatGames_AN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "So far I have a game called Circuit Saver, and also one called Word of the Day.<break size='0.3'/> I think they're <pitch mult='1.2'>both</pitch> pretty fun.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhatGames_AN_03",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "We can play a <pitch mult='1.1'>fun</pitch> face-tracking game called Circuit Saver. Also, we can play my Word of the Day game, every day.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhatGames_AN_04",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	],
+	"gui": null,
+	"no_matches_for_gui": 2,
+	"no_inputs_for_gui": 2,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

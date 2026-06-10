@@ -1,0 +1,51 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('10/13', '6/9')",
+			"prompt": "Good luck, I hope it works out for you.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_SupportsSomeoneForBelmontStakes_AN_01_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('6/10', '10/12')",
+			"prompt": "I think the Belmont Stakes passed already.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_SupportsSomeoneForBelmontStakes_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Good luck, I hope it works out for you.",
+			"media": "TTS",
+			"prompt_id": "OI_USR_SupportsSomeoneForBelmontStakes_AN_03_FnL",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

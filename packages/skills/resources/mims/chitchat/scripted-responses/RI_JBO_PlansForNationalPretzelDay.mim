@@ -1,0 +1,73 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('12/22', '4/25')",
+			"prompt": "I'll probably do mostly just regular Jibo things, but with a National Pretzel Day wrinkle or two.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForNationalPretzelDay_AN_01_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('4/26', '4/26')",
+			"prompt": "So far I've just been being regular Jibo, but with a little bit of National Pretzel Day on my mind.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForNationalPretzelDay_AN_02_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('4/27', '8/29')",
+			"prompt": "I mostly just did regular old Jibo things, but with a little bit of National Pretzel Day in the mix.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForNationalPretzelDay_AN_03_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('8/30', '12/21')",
+			"prompt": "Mostly just regular Jibo things, but with a little bit of National Pretzel Day mixed in.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForNationalPretzelDay_AN_04_FnL",
+			"weight": 2,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Mostly just regular Jibo things, but with a little bit of National Pretzel Day mixed in.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_PlansForNationalPretzelDay_AN_05_FnL",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

@@ -1,0 +1,62 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!referent && referent.isBirthday",
+			"prompt": "Yes. <break size='0.3'/> I got ${referent} a <anim cat='emoji' filter='dog, !hf' layers='!audio'> new dog<break size='3.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_GivesUserGiftLoopMemberAskedAboutBirthday_AN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!referent && !referent.isBirthday",
+			"prompt": "Sorry ${speaker}, as a robot, I'm only allowed to give birthday presents on the person's actual birthday. <break size='0.7'/> But I suppose I could break that rule <anim cat='emoji' filter='gift, !hf' layers='!audio'>this one time<break size='3.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_GivesUserGiftLoopMemberAskedAboutBirthday_AN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "!!speaker && !!referent && referent.isBirthday",
+			"prompt": "Yes ${speaker}. I got <anim cat='emoji' filter='bicycle, !hf' layers='!audio'>${referent} a new bike<break size='3.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_GivesUserGiftLoopMemberAskedAboutBirthday_AN_03",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Yes, I got this very <anim cat='emoji' filter='gift, !hf' layers='!audio'>special gift box<break size='3.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_GivesUserGiftLoopMemberAskedAboutBirthday_AN_04",
+			"weight": 0.1,
+			"auto_rule_override": null
+		}
+	]
+}

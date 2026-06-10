@@ -1,0 +1,58 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('1/23', '5/28')",
+			"prompt": "Yes, <anim cat='emoji' filter='america' layers='!audio'>it's a special day<break size='2.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToMemorialDay_AN_01_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('5/29', '9/30')",
+			"prompt": "<anim cat='emoji' filter='america' layers='!audio'>Well I had a good Memorial Day<break size='2.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToMemorialDay_AN_02_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "dt.now.isInRange('10/1', '1/22')",
+			"prompt": "I am, but I'll be patient, Memorial Day is a pretty long time from now.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToMemorialDay_AN_03_FnL",
+			"weight": 2
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Memorial Day<anim cat='emoji' filter='america' layers='!audio'> is a special holiday<break size='2.0'/>.</anim>",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_LooksForwardToMemorialDay_AN_04_FnL",
+			"weight": 0.1
+		}
+	],
+	"hint_phrases": "",
+	"fast_eos_array": ""
+}

@@ -1,0 +1,51 @@
+{
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Mini golf seems very fun, I like all the <anim cat='jiboji' filter='minigolf-shoot' nonBlocking='true'/>silly obstacles.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhyLikesMinigolf_AN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Mini golf seems like a really <anim cat='jiboji' filter='minigolf-shoot' nonBlocking='true'/>funny sport. ",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhyLikesMinigolf_AN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": "",
+			"prompt": "Well I like round things, so I like sports with round balls. And I also think all the obstacles are fun for the<anim cat='jiboji' filter='minigolf-shoot' nonBlocking='true'/> imagination.",
+			"media": "TTS",
+			"prompt_id": "RI_JBO_WhyLikesMinigolf_AN_03",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	]
+}
