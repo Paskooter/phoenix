@@ -1,0 +1,84 @@
+alabama
+alaska
+american samoa
+arizona
+arkansas
+california
+carolina north
+carolina of north
+carolina of south
+carolina of the north
+carolina of the south
+carolina south
+colorado
+columbia district
+connecticut
+d.c.
+dakota north
+dakota of north
+dakota of south
+dakota of the north
+dakota of the south
+dakota south
+dc
+delaware
+district of columbia
+florida
+georgia
+guam
+hawaii
+idaho
+illinois
+indiana
+iowa
+kansas
+kentucky
+louisiana
+maine
+marshall islands
+maryland
+massachusetts
+michigan
+micronesia
+minnesota
+mississippi
+missouri
+montana
+nebraska
+nevada
+new hampshire
+new jersey
+new mexico
+new york
+north carolina
+north dakota
+north marianas
+northern carolina
+northern dakota
+northern marianas
+ohio
+oklahoma
+oregon
+palau
+pennsylvania
+puerto rico
+rhode island
+samoa
+south carolina
+south dakota
+southern carolina
+southern dakota
+tennessee
+texas
+utah
+vermont
+virgin island
+virgin islands
+virginia
+virginia of the west
+virginia of west
+virginia west
+washington
+west virginia
+wisconsin
+wyoming

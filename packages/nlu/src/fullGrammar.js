@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseRules } from './grammar/parser.js';
 import { matchRule, tokenize, parseScore } from './grammar/matcher.js';
 import { loadEqWords } from './grammar/eqWords.js';
+import { loadFactoryWords } from './grammar/factoryWords.js';
 
 const GRAMMAR_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'grammar');
 
@@ -78,7 +79,7 @@ export function fullParse(text) {
   let best = null; let bestScore = -Infinity;
   for (const sk of skills) {
     let m = null;
-    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null }); } catch { /* skip */ }
+    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null, factoryWords: loadFactoryWords() }); } catch { /* skip */ }
     if (!m) continue;
     const score = parseScore(m.entities, m.specificity, m.cost);
     if (!best || score > bestScore) { best = { id: sk.id, m }; bestScore = score; }

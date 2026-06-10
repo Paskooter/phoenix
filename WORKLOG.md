@@ -2,6 +2,19 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **Factory entities: real reference vocabularies extracted from the FST
+  binaries (Phase C).** Wrote a pure-python OpenFST vector-format decoder (header + embedded
+  SymbolTables + state/arc records) and enumerated the finite factory languages straight from
+  the jibo-nlu build data: first_name 6,008 · last_name 20,027 · music_genre 96 · country 269
+  · state 84 · canada_province 16 — shipped as plain text in resources/factory-words/ (the
+  combinatorial factories — date/time/timer/digits/year/city_state — keep the wildcard
+  fallback). Matcher: `$factory:NAME` slots with a word list now match ONLY listed phrases
+  (longest-first, spec = phrase length, `_<name>` sub-field + this._parsed capture); membership
+  is a constraint, not a hint. "im sarah" → enrollment{GivenName:sarah} while "im hungry" →
+  userIsDescriptor{GeneralDescriptor:Hungry}; "what time is it in france" → country=france;
+  "play some jazz" → radio{station:Jazz}. Corpus sample holds at peak D3 99.3 / D4 99.1;
+  111 unit + 37 proxy + oracle green.
+
 - 2026-06-10 — **eq_words homophone matching wired (Phase C).** The vendored 1,913-set
   eq_words.txt (jibo-nlu build data) now backs literal compares in the matcher when a
   grammar declares `!use_equivalent_words = true` (they all do): canonical-representative

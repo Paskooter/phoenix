@@ -179,6 +179,27 @@ function* match(node, start, ctx, depth) {
       } else {
         target = ctx.rules[node.name];
       }
+      if (!target && node.prefix === 'factory' && ctx.factoryWords && ctx.factoryWords.has(node.name)) {
+        // Word-list factory (extracted reference vocab): match ONLY listed
+        // phrases, longest-first. Verified content counts as literal matches
+        // (specificity = phrase length, no wildcard cost). Exposes the matched
+        // text as the `_<name>` sub-field (e.g. `{_selfid=first_name._first_name}`)
+        // alongside the usual `this._parsed` capture.
+        const byFirst = ctx.factoryWords.get(node.name);
+        const candidates = (start < tokens.length && byFirst.get(tokens[start])) || [];
+        for (const phrase of candidates) {
+          if (start + phrase.length > tokens.length) continue;
+          let okPhrase = true;
+          for (let k = 0; k < phrase.length; k += 1) if (tokens[start + k] !== phrase[k]) { okPhrase = false; break; }
+          if (!okPhrase) continue;
+          const text = tokens.slice(start, start + phrase.length).join(' ');
+          const subs = { [`_${node.name}`]: text };
+          const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: subs, ...subs }, text);
+          const subsForParent = Object.assign({}, tagged.subFields, { [node.name]: subs });
+          yield { end: start + phrase.length, entities: tagged.entities, subFields: subsForParent, specificity: phrase.length, cost: node.cost || 0 };
+        }
+        return; // membership is a CONSTRAINT — no wildcard fallback for listed factories
+      }
       if (!target) {
         // Fallback: match 1..3 words greedily (factory slots typically span
         // a short noun phrase). The lit-vs-subfield tag eval handles missing
