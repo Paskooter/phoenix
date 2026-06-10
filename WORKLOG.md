@@ -3,7 +3,7 @@
 Newest first. One line per verified increment (autonomous loop appends here).
 
 - 2026-06-10 — **Wildcard arc costs crack the KU_CanYou family — sample D3 98.5→99.1, D4
-  97.6→98.9 (new high), with architecturally-correct pure-FST intra-grammar selection.**
+  97.6→98.9; FULL corpus confirmed D3 98.1 / D4 96.8 (misses 397→331, largest class 12), with architecturally-correct pure-FST intra-grammar selection.**
   The queued wrapper-arm trace showed SeeThing losing to the GQA `$*` catch-all by 0.3:
   wildcards consumed tokens for free. The FST compiler charges per wildcard arc — added
   WILDCARD_TOKEN_COST (swept 0.4–1.0 on the corpus sample; plateau 0.6–0.8, locked 0.7).

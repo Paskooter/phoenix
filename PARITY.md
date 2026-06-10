@@ -38,7 +38,7 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 **Phase B — measure: corpus runner (M0/M9 backbone)** ✅ done 2026-06-09
 4. Runner over the 4,705-entry test-manifest at the NLU+router level: grade intent (D3) and
    memo.mim (D4); mismatch report drives Phase C/D ordering. Wire into harness as a CLI.
-   **Result: 10,035 utterances — D3 97.9% (98.0% net of ledgered B6/B7), D4 96.1%**, after
+   **Result: 10,035 utterances — D3 98.1%, D4 96.8%** (2026-06-10, after wildcard arc costs; was 97.9/96.1, and 81.6/79.8 at first measurement), after
    weight scoring + single-union unification (was 81.6/79.8 at first measurement). Remaining
    397 misses are a long tail (max class 12): factory-entity sub-arm capture
    (KU_CanYou<Action>Thing), semi-specific membership, seasonal/CES-era intents.
