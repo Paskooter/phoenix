@@ -117,7 +117,15 @@ export function parse(source) {
       const k = peek().kind;
       if (k === 'LBRACE') { tags.push(...parseTagBlock()); continue; }
       if (k === 'ACTION') { tags.push(...parseActionBlock(eat('ACTION').value)); continue; }
-      if (k === 'WEIGHT' || k === 'TILDE') { cost += peek().value; pos += 1; continue; }
+      if (k === 'TILDE') { cost += peek().value; pos += 1; continue; }   // `~N` is postfix
+      if (k === 'WEIGHT') {
+        // `<W>` is an ENTRY weight for the item that follows it (`<1.0>+$w<0.0>`
+        // weights the $w, not the preceding optional). Only consume it as a
+        // trailing/exit weight when no item follows (end of group/alternative);
+        // otherwise leave it for the next parseItem's leading-weight loop.
+        if (canStartItem(peek(1)) && peek(1).kind !== 'WEIGHT') break;
+        cost += peek().value; pos += 1; continue;
+      }
       break;
     }
     if (tags.length) atom.tags = (atom.tags || []).concat(tags);

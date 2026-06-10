@@ -297,6 +297,12 @@ export function parseScore(entities, specificity, cost = 0) {
 
 export function matchRule(node, tokens, ctx) {
   const fullCtx = Object.assign({ tokens, rules: ctx.rules || {}, maxDepth: 250 }, ctx);
+  // INTRA-grammar path selection is pure FST shortest-path: maximize
+  // (specificity - cost). `priority` is hub-level arbitration metadata carried in
+  // the tags — the FST never sees it, so it must NOT bias which arm wins here
+  // ("can you see the moon" must take the specific CanYouSeeThing arm over the
+  // HIGH-tagged generic AreYouAbleTo catch-all). Cross-grammar ranking (fullParse)
+  // applies priority via parseScore on the winner this returns.
   let best = null; let bestScore = -Infinity;
   for (const m of match(node, 0, fullCtx, 0)) {
     if (m.end !== tokens.length) continue;

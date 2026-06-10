@@ -2,6 +2,18 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-09 — **Phase C session 1: `<W>` weights now attach FORWARD (entry weights).** In
+  `can you ?(do|...) <1.0>+$w<0.0>` the `<1.0>` weights the `+$w` that follows, not the
+  optional before it — trailing-attach let zero-matched optionals skip their cost. Fixed in
+  parseItem (a WEIGHT followed by an item-starter is left as the next item's leading weight).
+  Also EXPERIMENTED with removing priority from intra-grammar arm selection (pure FST
+  spec−cost): NET REGRESSION (sample D3 98.5→95.5) — the TopRule wrapper arms encode more
+  structure than single-rule traces suggest; reverted to priority-aware selection. Sample
+  holds at D3 98.5 / D4 97.6. NEXT (queued): per-arm score dumps of the chitchat TopRule
+  wrappers ($w03 $D_SR_HIGH_PRIORITY_STRICT vs $* $D_SR_MIXED_PRIORITY $*) to crack the
+  KU_CanYou<Action>Thing family (the largest remaining D4 bucket, ~180 misses). 109 unit +
+  37 proxy green.
+
 - 2026-06-09 — **NLU stage unification — FULL corpus D3 97.9% / D4 96.1% (10,035 utterances; was 81.6/79.8).** The
   full-corpus run (10,035 utterances: D3 81.6%) revealed the dominant miss class was NOT the
   grammars — fullParse got "im hungry"→userIsDescriptor etc. RIGHT — but the legacy stages
