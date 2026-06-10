@@ -23,6 +23,10 @@
 
 const EMPTY = Object.freeze({});
 
+// Cost charged per token consumed by a wildcard ($*, $wNN, unknown-factory fallback).
+// Tuned against the reference corpus (see WORKLOG 2026-06-09 Phase C).
+const WILDCARD_TOKEN_COST = 0.7;
+
 function freshEnts(prev) { return Object.assign({}, prev); }
 
 // Tokenize an input string into lowercased word tokens. Matches the
@@ -115,11 +119,15 @@ function* match(node, start, ctx, depth) {
       // specificity: 0 — star matches don't count, so longest-match across
       // skills picks the rule that's filled with literal content, not the one
       // that wraps a single literal in `$* X $*`.
+      // Each token a wildcard swallows costs WILDCARD_TOKEN_COST — the FST compiler
+      // assigns real arc weights to wildcard arcs, which is what demotes `$* x $*`
+      // catch-alls below structured arms (every full parse consumes all tokens, so
+      // ordering hinges on the literal/wildcard composition of the path).
       const maxN = (typeof node.max === 'number') ? node.max : (tokens.length - start);
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
         const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens.slice(start, start + n).join(' '));
-        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: node.cost || 0 };
+        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + n * WILDCARD_TOKEN_COST };
       }
       return;
     }
@@ -175,7 +183,7 @@ function* match(node, start, ctx, depth) {
         for (let n = 1; n <= 3; n += 1) {
           if (start + n > tokens.length) break;
           const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokens.slice(start, start + n).join(' '));
-          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: node.cost || 0 };
+          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + n * WILDCARD_TOKEN_COST };
         }
         // Also try zero-match (factory might be optional in context).
         const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} }, '');
@@ -308,7 +316,7 @@ export function matchRule(node, tokens, ctx) {
     if (m.end !== tokens.length) continue;
     const spec = m.specificity || 0;
     const cost = m.cost || 0;
-    const score = parseScore(m.entities, spec, cost);
+    const score = spec - cost;
     if (!best || score > bestScore) {
       best = { entities: m.entities, subFields: m.subFields, specificity: spec, cost, priority: (m.entities && m.entities.priority) || '', score };
       bestScore = score;

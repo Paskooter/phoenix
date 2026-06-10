@@ -2,6 +2,17 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-10 — **Wildcard arc costs crack the KU_CanYou family — sample D3 98.5→99.1, D4
+  97.6→98.9 (new high), with architecturally-correct pure-FST intra-grammar selection.**
+  The queued wrapper-arm trace showed SeeThing losing to the GQA `$*` catch-all by 0.3:
+  wildcards consumed tokens for free. The FST compiler charges per wildcard arc — added
+  WILDCARD_TOKEN_COST (swept 0.4–1.0 on the corpus sample; plateau 0.6–0.8, locked 0.7).
+  With wildcard arcs priced, intra-grammar selection is now pure spec−cost (no priority —
+  matching the FST; the earlier regression from removing priority was THIS missing cost).
+  Whole KU_CanYou<Action>Thing family now oracle-exact (SeeThing/MoveThing/AccessThing).
+  Harness date assertion corrected to the reference behavior (today-suffixed date questions
+  are GQA in the oracle too). 109 unit + 37 proxy + oracle green.
+
 - 2026-06-09 — **Phase C session 1: `<W>` weights now attach FORWARD (entry weights).** In
   `can you ?(do|...) <1.0>+$w<0.0>` the `<1.0>` weights the `+$w` that follows, not the
   optional before it — trailing-attach let zero-matched optionals skip their cost. Fixed in
