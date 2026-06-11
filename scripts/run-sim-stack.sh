@@ -21,18 +21,34 @@ ETCO_answer_llmUrl="${ETCO_answer_llmUrl:-}" \
 ETCO_answer_llmModel="${ETCO_answer_llmModel:-gemma-3}" \
   PORT=7014 node packages/skills/src/index.js    > /tmp/phx-skills.log  2>&1 &
 
+# Server-side ASR (the sim's 🎤 button): the gateway POSTs captured speech to
+# ${ETCO_server_parakeetUrl}/transcribe. Default to the local mock (started
+# below unless MOCK_PARAKEET=0), which returns a canned transcript and saves
+# every WAV to /tmp/parakeet-rx so you can audition the mic capture. Point
+# this at a real Parakeet/STT host for actual recognition.
+PARAKEET_DEFAULT="http://localhost:6972"
+if [[ "${MOCK_PARAKEET:-1}" != 0 && -z "${ETCO_server_parakeetUrl:-}" ]]; then
+  MOCK_TRANSCRIPT="${MOCK_TRANSCRIPT:-what time is it}" node scripts/mock-parakeet.js > /tmp/phx-parakeet.log 2>&1 &
+fi
+PARAKEET_URL="${ETCO_server_parakeetUrl:-$PARAKEET_DEFAULT}"
+
 # Gateway on 9000, wired to the others, auth secret matching the sim.
 ETCO_server_hubTokenSecret="$SECRET" \
+ETCO_server_parakeetUrl="$PARAKEET_URL" \
 NET_parser=localhost:7011 \
 NET_skills=localhost:7014 \
 NET_history=localhost:7013 \
 NET_data=localhost:7012 \
   PORT=9000 node packages/gateway/src/index.js   > /tmp/phx-gateway.log 2>&1 &
 
-# The sim web server.
+# The sim web server. HTTPS=1 adds a self-signed listener on :8443 — the 🎤
+# mic button needs a secure context, so use https://<this-host>:8443/ (accept
+# the one-time cert warning) unless you're browsing via http://localhost.
 cd "$SIM"
-HUB_AUTH_SECRET="$SECRET" PORT="$SIM_PORT" node server.js > /tmp/phx-sim.log 2>&1 &
+HUB_AUTH_SECRET="$SECRET" PORT="$SIM_PORT" HTTPS="${HTTPS:-1}" node server.js > /tmp/phx-sim.log 2>&1 &
 
-echo "started: nlu:7011 data:7012 history:7013 skills:7014 gateway:9000 sim:$SIM_PORT"
-echo "logs in /tmp/phx-*.log ; stop all with: pkill -f 'packages/(gateway|nlu|skills|history|data)/src/index.js'; pkill -f 'jibo-web-sim.*server.js'"
+echo "started: nlu:7011 data:7012 history:7013 skills:7014 gateway:9000 sim:$SIM_PORT (+https:8443)"
+echo "ASR -> ${PARAKEET_URL}/transcribe"
+echo "mic testing: open https://<this-host>:8443/ (self-signed; accept the warning) or http://localhost:$SIM_PORT/ — plain http://<ip>:$SIM_PORT has no mic API"
+echo "logs in /tmp/phx-*.log ; stop all with: pkill -f 'packages/(gateway|nlu|skills|history|data)/src/index.js'; pkill -f 'jibo-web-sim.*server.js'; pkill -f mock-parakeet"
 wait

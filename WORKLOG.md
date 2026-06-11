@@ -2,6 +2,15 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-11 — **Real-browser mic fully wired (user manual-test ready).** Sim 8b99a14: 16 kHz
+  AudioContext capture (polyphase resample) with box-filter fallback, mic constraints (mono+EC/NS/AGC),
+  voice-error/voice-done round-trip (chat shows insecure-context/denied/GARBAGE/SOS_TIMEOUT reasons;
+  ⏺ holds for the whole turn), self-signed HTTPS listener :8443 (getUserMedia needs a secure context —
+  http://<lan-ip>:8080 has no mic API). Phoenix: scripts/mock-parakeet.js (saves RX WAVs to
+  /tmp/parakeet-rx + canned transcript; real STT via ETCO_server_parakeetUrl) + run-sim-stack.sh wires
+  it to the gateway by default and enables sim HTTPS. Verified: phoenix-voice-browser.mjs ALL PASS;
+  live stack relaunched (gateway 9000, sim 8080/8443, mock parakeet 6972, all 200).
+
 - 2026-06-10 — **M8 browser voice e2e verified (loop tick).** phoenix-voice-browser.mjs:
   real Chrome + real sim UI, getUserMedia shimmed to a WebAudio-synthesized stream (headless
   Chrome here has no audio devices — Chrome's fake-device flags yield NotFoundError), all
