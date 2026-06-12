@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phoenix — Jibo setup</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>🤖 Phoenix</h1>
+    <nav id="nav" hidden>
+      <span id="who"></span>
+      <button id="logout" class="link">Log out</button>
+    </nav>
+  </header>
+
+  <main id="app"><p class="muted">Loading…</p></main>
+
+  <!-- AUTH (signup / login) -->
+  <template id="tpl-auth">
+    <section class="card">
+      <div class="tabs">
+        <button data-tab="login" class="tab active">Log in</button>
+        <button data-tab="signup" class="tab">Sign up</button>
+      </div>
+      <form id="auth-form">
+        <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+        <label class="signup-only" hidden>First name<input name="firstName" type="text" autocomplete="given-name" /></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" minlength="8" required /></label>
+        <p class="error" id="auth-error" hidden></p>
+        <button type="submit" class="primary" id="auth-submit">Log in</button>
+      </form>
+    </section>
+  </template>
+
+  <!-- DASHBOARD (robot list + add) -->
+  <template id="tpl-dashboard">
+    <section class="card">
+      <div class="row">
+        <h2>Your robots</h2>
+        <button class="primary" id="add-robot">+ Add a robot</button>
+      </div>
+      <ul id="robot-list" class="robots"></ul>
+      <p class="muted empty" hidden>No robots yet. Click <b>Add a robot</b> to set one up.</p>
+    </section>
+  </template>
+
+  <!-- ADD ROBOT (wifi form -> QR -> polling) -->
+  <template id="tpl-add">
+    <section class="card">
+      <button class="link back" id="add-back">← Back</button>
+      <h2>Set up a new robot</h2>
+      <form id="wifi-form">
+        <label>Home WiFi name (SSID)<input name="ssid" required /></label>
+        <label>WiFi password<input name="password" type="password" /></label>
+        <details>
+          <summary>Advanced: static IP</summary>
+          <label>IP<input name="ip" /></label>
+          <label>Netmask<input name="netmask" /></label>
+          <label>Gateway<input name="gateway" /></label>
+          <label>DNS 1<input name="dns1" /></label>
+          <label>DNS 2<input name="dns2" /></label>
+        </details>
+        <p class="error" id="wifi-error" hidden></p>
+        <button type="submit" class="primary">Show setup code</button>
+      </form>
+      <div id="qr-stage" hidden>
+        <p class="instruct">Open Jibo's setup screen and hold this up to his eye.</p>
+        <div id="qr-codes" class="qr-codes"></div>
+        <p class="muted" id="qr-status">Waiting for Jibo to scan…</p>
+      </div>
+    </section>
+  </template>
+
+  <!-- ADMIN -->
+  <template id="tpl-admin">
+    <section class="card">
+      <h2>Admin — all adopted robots</h2>
+      <form id="admin-login">
+        <label>Admin password<input name="password" type="password" required /></label>
+        <p class="error" id="admin-error" hidden></p>
+        <button type="submit" class="primary">Unlock</button>
+      </form>
+      <div id="admin-panel" hidden>
+        <table class="robots-table">
+          <thead><tr><th>Robot</th><th>Owner</th><th>Loop</th><th>Access key</th><th>Last seen</th></tr></thead>
+          <tbody id="admin-rows"></tbody>
+        </table>
+        <h3>Manually adopt a robot</h3>
+        <p class="muted">For a robot that completed setup against the original Jibo cloud. Mints fresh
+          credentials to write to <code>/var/jibo/credentials.json</code>.</p>
+        <form id="adopt-form" class="row">
+          <input name="friendlyId" placeholder="robot name e.g. castle-cylinder-fig-quilt" required />
+          <input name="ownerEmail" type="email" placeholder="owner email (optional)" />
+          <button type="submit" class="primary">Adopt</button>
+        </form>
+        <pre id="adopt-result" hidden></pre>
+      </div>
+    </section>
+  </template>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

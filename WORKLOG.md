@@ -2,6 +2,17 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **G.4: responsive web portal + admin UI (loop).** packages/account/portal: vanilla
+  no-build SPA (index.html + app.js + styles.css, mobile-first, hash-routed) — auth (login/signup
+  toggle), dashboard (robot list + Add-a-robot), add-robot (WiFi form incl. optional static IP ->
+  QR frames rendered via the vendored qr.js -> 2s status polling -> auto-return when the robot
+  redeems), and an admin page (#/admin) gated by ADMIN_PASSWORD listing ALL adopted robots +
+  manual-adopt form that prints the credentials.json + repoint command. static.js serves the UI
+  via explicit createService routes (/, /admin SPA, assets), wired into the account service.
+  scripts/portal-smoke.mjs: real headless-Chrome e2e (puppeteer borrowed from the sim checkout)
+  driving signup -> QR render -> robot setupRobot -> portal polls complete -> robot listed ->
+  admin adopt — ALL PASS. 191 unit tests still green.
+
 - 2026-06-12 — **G.3: OOBE QR (payload + pure-JS encoder) + setup REST (loop).** qrPayload.js:
   exact config.bt contract — plaintext lines (ssid/password/[static x5/]token), XOR with the
   jibo.com/jobs key, "<i>/<N>\n<chunk>" framing; robotDecode reimplements the robot's decoder for

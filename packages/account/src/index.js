@@ -12,18 +12,21 @@ import { DefaultPort } from '@phoenix/contracts';
 import { getStore } from './store.js';
 import { portalRoutes } from './portalApi.js';
 import { robotFaceRoutes } from './robotFace.js';
+import { staticRoutes } from './static.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
 export { robotFaceRoutes } from './robotFace.js';
+export { staticRoutes } from './static.js';
 
 export function createAccountService({ store = getStore() } = {}) {
   return createService({
     name: 'account',
     routes: {
-      ...portalRoutes(store),
+      ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
+      ...portalRoutes(store),     // REST /api/* (sessions)
       ...robotFaceRoutes(store), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });
