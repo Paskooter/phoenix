@@ -46,30 +46,40 @@ packages/
 
 ```bash
 npm install        # links the workspaces (offline-friendly; only `ws` is external)
-npm test           # 150 tests across all packages (run from the repo root)
 ```
 
-**Option A — sim stack** (best for playing with it): boots the five services on dev ports
-(nlu 7011, data 7012, history 7013, skills 7014, gateway 9000) **plus the browser simulator**
-([jibo-web-sim](https://github.com/Paskooter/jibo-web-sim), expected as a sibling checkout):
+**Run the full server** — all seven services on the reference port layout, no containers:
+
+```bash
+bash scripts/run-compose-stack.sh
+# hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
+# history 9006 · lasso 9007 · answer-skill 9009     (Ctrl-C stops everything)
+```
+
+Robots and clients connect to the hub at `ws://<host>:9000/listen` (HTTP API on the same
+port: `GET /healthcheck`, `GET /v1/skills`). Logs land in `/tmp/phx-compose-*.log`.
+
+Useful env, all optional:
+
+| Variable | Effect |
+|---|---|
+| `PARAKEET_URL` | Parakeet ASR host for server-side speech recognition (`POST /transcribe`) |
+| `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (e.g. LM Studio) for the answer-skill + parser fallback |
+| `HUB_TOKEN_SECRET` | JWT secret robots must sign with (default `dev-hub-token-secret`) |
+| `DISABLE_AUTH` | defaults `true` for local use — set `false` to require robot JWTs |
+| `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `resources/report-prefsConfig.json` |
+
+**Or run the sim stack** — the same services on dev ports **plus the browser simulator**
+([jibo-web-sim](https://github.com/Paskooter/jibo-web-sim), expected as a sibling checkout),
+the easiest way to actually talk to it:
 
 ```bash
 bash scripts/run-sim-stack.sh
 # then open http://localhost:8080  (or https://<host>:8443 for microphone access)
 ```
 
-The launcher auto-detects optional LAN services and degrades gracefully without them:
-a Parakeet ASR host (`REAL_PARAKEET`/`ETCO_server_parakeetUrl`; falls back to a mock that
-saves received audio to /tmp/parakeet-rx) and an OpenAI-compatible LLM
-(`REAL_LLM`/`ETCO_answer_llmUrl`, e.g. LM Studio).
-
-**Option B — reference-contract stack** (the exact port/env layout of the original pegasus
-docker-compose, no containers needed):
-
-```bash
-bash scripts/run-compose-stack.sh &
-node scripts/verify-compose-contract.mjs   # healthchecks + a full WS turn through hub:9000
-```
+This launcher auto-detects the optional LAN services and degrades gracefully without them
+(the ASR falls back to a mock that saves received audio to `/tmp/parakeet-rx`).
 
 ## Running it — with Docker
 
