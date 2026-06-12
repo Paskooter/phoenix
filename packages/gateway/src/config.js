@@ -29,6 +29,10 @@ export function loadConfig(env = process.env) {
   return {
     hubTokenSecret: env.ETCO_server_hubTokenSecret || '',
     disableAuth: boolEnv(env.ETCO_hub_disableAuth, false),
+    // Optional per-robot validation: after the JWT signature checks out, confirm the token's
+    // accessKeyId claim still maps to a live account (account service GET /api/verify). Unset
+    // (the default) = shared-secret-only, i.e. any validly-signed token is accepted.
+    accountUrl: (env.ETCO_hub_accountUrl || '').replace(/\/$/, ''),
     asrProvider: etco('server', 'asrProvider', 'none'), // 'none' until M8; 'parakeet' later
     parserURL: net('parser', { required: false, default: env.ETCO_hub_parserUrl || `localhost:${DefaultPort.nlu}` }),
     historyURL: net('history', { required: false, default: env.ETCO_hub_historyUrl || `localhost:${DefaultPort.history}` }),

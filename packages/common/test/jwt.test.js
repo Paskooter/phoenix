@@ -33,3 +33,21 @@ test('verify rejects a non-HS256 alg', () => {
 test('verify rejects malformed tokens', () => {
   assert.throws(() => verify('not-a-jwt', 'secret'), /malformed/);
 });
+
+test('verify honors exp: future ok, past rejected, absent stays valid', () => {
+  const now = Math.floor(Date.now() / 1000);
+  const future = sign({ id: 'a', exp: now + 3600 }, 'secret');
+  assert.equal(verify(future, 'secret').id, 'a');
+
+  const past = sign({ id: 'a', exp: now - 3600 }, 'secret');
+  assert.throws(() => verify(past, 'secret'), /jwt expired/);
+
+  const noExp = sign({ id: 'a' }, 'secret'); // hand-signed robot creds: no exp -> always valid
+  assert.equal(verify(noExp, 'secret').id, 'a');
+});
+
+test('verify allows small clock skew on exp', () => {
+  const now = Math.floor(Date.now() / 1000);
+  const justExpired = sign({ id: 'a', exp: now - 10 }, 'secret'); // within 30s skew window
+  assert.equal(verify(justExpired, 'secret').id, 'a');
+});

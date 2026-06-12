@@ -3,9 +3,11 @@
 // loop-name dedupe, 15-minute one-time tokens, scrypt password hashing (node:crypto, zero-dep).
 
 import { randomBytes, randomInt, scryptSync, timingSafeEqual } from 'node:crypto';
+import { jwt } from '@phoenix/common';
 
 const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 export const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000; // token.ctrl.ts 15-min TTL
+export const HUB_TOKEN_LIFETIME_S = 3 * 60 * 60;        // token.ctrl.ts WEB_TOKEN_LIFETIME (3h)
 
 function randAlnum(n) {
   let s = '';
@@ -43,6 +45,30 @@ export function verifyPassword(password, stored) {
   const expected = Buffer.from(hashHex, 'hex');
   const actual = scryptSync(String(password), Buffer.from(saltHex, 'hex'), expected.length);
   return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+/** Constant-time compare of a presented secret access key against the stored one. */
+export function secretMatches(presented, stored) {
+  const a = Buffer.from(String(presented || ''));
+  const b = Buffer.from(String(stored || ''));
+  return a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
+}
+
+/**
+ * Issue a short-lived hub token (token.ctrl.ts createHubToken): HS256 signed with the shared
+ * HUB_TOKEN_SECRET, carrying the IAuthDetails-shaped identity the gateway expects — but NEVER
+ * the secretAccessKey. 3h expiry via the jwt `exp` claim.
+ */
+export function createHubToken(account, secret) {
+  const nowS = Math.floor(Date.now() / 1000);
+  const payload = {
+    id: account._id,
+    accessKeyId: account.accessKeyId,
+    friendlyId: account.friendlyId || undefined,
+    iat: nowS,
+    exp: nowS + HUB_TOKEN_LIFETIME_S,
+  };
+  return { token: jwt.sign(payload, secret), expires: (nowS + HUB_TOKEN_LIFETIME_S) * 1000 };
 }
 
 // -- accounts -----------------------------------------------------------------

@@ -16,6 +16,7 @@ import { staticRoutes } from './static.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
+export { createHubToken, secretMatches } from './model.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
 export { robotFaceRoutes } from './robotFace.js';

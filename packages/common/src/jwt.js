@@ -62,9 +62,19 @@ export function verify(token, secret) {
     throw new Error('invalid signature');
   }
 
+  let payload;
   try {
-    return JSON.parse(b64urlDecode(p).toString('utf8'));
+    payload = JSON.parse(b64urlDecode(p).toString('utf8'));
   } catch {
     throw new Error('jwt payload invalid');
   }
+
+  // Honor `exp` (seconds) when present — server-issued hub tokens carry it. Tokens WITHOUT exp
+  // stay valid (the sim/robot hand-sign credential payloads with no expiry; LAN back-compat).
+  // A small clock-skew allowance matches jsonwebtoken's default `clockTolerance: 0`-ish leniency.
+  if (typeof payload.exp === 'number') {
+    const SKEW_S = 30;
+    if (Math.floor(Date.now() / 1000) > payload.exp + SKEW_S) throw new Error('jwt expired');
+  }
+  return payload;
 }

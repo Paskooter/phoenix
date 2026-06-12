@@ -51,6 +51,28 @@ export function checkAuthentication(headers, secret) {
   }
 }
 
+/**
+ * Per-robot account check (G.5): the token signature is already valid; confirm its accessKeyId
+ * claim still maps to a live account and the friendlyId matches. Fail-closed on a bad/absent
+ * answer. A token carrying no accessKeyId claim (e.g. the sim's hand-signed creds) is allowed
+ * through — accountUrl only constrains tokens that present one.
+ * @returns {Promise<{ok:true}|{error:string}>}
+ */
+export async function verifyAgainstAccount(auth, accountUrl, log) {
+  if (!auth || !auth.accessKeyId) return { ok: true };
+  try {
+    const res = await fetch(`${accountUrl}/api/verify?accessKeyId=${encodeURIComponent(auth.accessKeyId)}`);
+    if (!res.ok) return { error: `account verify ${res.status}` };
+    const v = await res.json();
+    if (!v.valid) return { error: 'account not found or inactive' };
+    if (auth.friendlyId && v.friendlyId && auth.friendlyId !== v.friendlyId) return { error: 'friendlyId mismatch' };
+    return { ok: true };
+  } catch (e) {
+    log?.warn?.('account verify unreachable (fail-closed)', { error: e.message, accountUrl });
+    return { error: `account verify unreachable: ${e.message}` };
+  }
+}
+
 /** Create (but do not start) the gateway. Returns { service, wss, components }. */
 export function createGateway(config = loadConfig()) {
   const log = logger('gateway');
@@ -67,14 +89,22 @@ export function createGateway(config = loadConfig()) {
   const wss = new WebSocketServer({
     server: service.server,
     verifyClient: (info, cb) => {
-      if (!config.disableAuth) {
-        const { error, auth } = checkAuthentication(info.req.headers, config.hubTokenSecret);
-        if (error) { log.warn('ws auth failed', { error }); return cb(false, 401, error); }
-        info.req._auth = auth;
-      }
       const url = (info.req.url || '').split('?')[0];
-      if (!LISTEN_PATHS.has(url) && !PROACTIVE_PATHS.has(url)) return cb(false, 404, `no handler for ${info.req.url}`);
-      cb(true, 200, '');
+      const pathOk = LISTEN_PATHS.has(url) || PROACTIVE_PATHS.has(url);
+      if (config.disableAuth) {
+        if (!pathOk) return cb(false, 404, `no handler for ${info.req.url}`);
+        return cb(true, 200, '');
+      }
+      const { error, auth } = checkAuthentication(info.req.headers, config.hubTokenSecret);
+      if (error) { log.warn('ws auth failed', { error }); return cb(false, 401, error); }
+      info.req._auth = auth;
+      if (!pathOk) return cb(false, 404, `no handler for ${info.req.url}`);
+      if (!config.accountUrl) return cb(true, 200, ''); // shared-secret-only mode
+      // Per-robot account validation (async — ws supports a deferred cb).
+      verifyAgainstAccount(auth, config.accountUrl, log).then((r) => {
+        if (r.error) { log.warn('ws account check failed', { error: r.error }); return cb(false, 401, r.error); }
+        cb(true, 200, '');
+      });
     },
   });
 

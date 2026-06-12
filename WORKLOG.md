@@ -2,6 +2,19 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **G.5: hub per-robot authentication (loop).** (a) common/jwt.js verify() now
+  honors an `exp` claim (30s skew) — server-issued hub tokens expire; tokens WITHOUT exp stay
+  valid (sim/robot hand-signed creds, LAN back-compat); +2 jwt tests. (b) packages/account:
+  model.createHubToken (HS256 over HUB_TOKEN_SECRET, claims {id,accessKeyId,friendlyId}, NO
+  secret, 3h exp per the original WEB_TOKEN_LIFETIME) + secretMatches (constant-time); POST
+  /api/token (AWS keys -> hub token, records lastSeen) and GET /api/verify?accessKeyId (gateway
+  identity check, never leaks the secret); +4 tests. (c) gateway: verifyAgainstAccount + config
+  ETCO_hub_accountUrl — after the JWT signature verifies, if accountUrl is set and the token
+  carries an accessKeyId claim, GET <accountUrl>/api/verify and reject (fail-closed) on
+  invalid/mismatch/unreachable; verifyClient made async-capable; DISABLE_AUTH bypass and
+  shared-secret-only (no accountUrl) modes unchanged; +8 gateway tests (accept/revoke/bypass/
+  shared-secret matrix). 205 unit tests + sim proxy + portal smoke green.
+
 - 2026-06-12 — **G.4: responsive web portal + admin UI (loop).** packages/account/portal: vanilla
   no-build SPA (index.html + app.js + styles.css, mobile-first, hash-routed) — auth (login/signup
   toggle), dashboard (robot list + Add-a-robot), add-robot (WiFi form incl. optional static IP ->

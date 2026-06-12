@@ -14,7 +14,7 @@
 // ADMIN_PASSWORD comes from .env; when unset the admin face is disabled entirely.
 
 import { sendJson } from '@phoenix/common';
-import { createOwnerAccount, verifyPassword, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS } from './model.js';
+import { createOwnerAccount, verifyPassword, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS, secretMatches, createHubToken } from './model.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie, checkAdminPassword } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 
@@ -120,6 +120,34 @@ export function portalRoutes(store) {
       if (!tokenId) return sendJson(res, 400, { error: 'token query param required' });
       const { token } = findToken(store, tokenId);
       return { complete: !token, expires: token ? token.created + ACCESS_TOKEN_LIFETIME_MS : null };
+    },
+
+    // -- per-robot hub auth ---------------------------------------------------
+
+    // A robot exchanges its long-lived AWS keys for a short-lived hub token. This is the
+    // server-held-secret path: the HUB_TOKEN_SECRET never leaves the server (unlike the robot
+    // signing locally). Mints exactly the IAuthDetails the gateway verifies — minus the secret.
+    'POST /api/token': ({ res, body }) => {
+      const secret = process.env.HUB_TOKEN_SECRET;
+      if (!secret) return sendJson(res, 503, { error: 'token issuance disabled: HUB_TOKEN_SECRET is not set' });
+      const { accessKeyId, secretAccessKey } = body || {};
+      const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+      if (!account || !account.isActive || !secretMatches(secretAccessKey, account.secretAccessKey)) {
+        return sendJson(res, 401, { error: 'invalid credentials' });
+      }
+      account.lastSeen = Date.now();
+      store.flush();
+      const { token, expires } = createHubToken(account, secret);
+      return { token, expires };
+    },
+
+    // The gateway calls this to validate a hub token's accessKeyId claim against a live account.
+    // Never returns the secret — identity only.
+    'GET /api/verify': ({ res, url }) => {
+      const accessKeyId = url.searchParams.get('accessKeyId');
+      const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+      if (!account || !account.isActive) return { valid: false };
+      return { valid: true, id: account._id, friendlyId: account.friendlyId || null };
     },
 
     // -- admin face (ADMIN_PASSWORD from .env) --------------------------------
