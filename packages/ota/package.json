@@ -1,0 +1,11 @@
+{
+  "name": "@phoenix/ota",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "OTA update server — reimplements the Jibo cloud 'Update' service (update-2016-03-01) so a robot can pull signed firmware subsystems (os/services/be/…) in place, preserving /var calibration. NOT part of the Pegasus conversational contract; a Phoenix extension for robot revival. Reference: confluence OTA Updater + jibo-ota-updater + jibo-server-client apis/update-2016-03-01.normal.json.",
+  "main": "src/index.js",
+  "dependencies": {
+    "@phoenix/common": "*"
+  },
+  "license": "UNLICENSED"
+}

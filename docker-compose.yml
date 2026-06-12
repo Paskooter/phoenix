@@ -109,5 +109,22 @@ services:
     ports:
       - 9004:8080
 
+  # Phoenix extension — NOT part of the reference Pegasus conversational contract (the
+  # verify-compose-contract check ignores it). The OTA update server: a robot points its
+  # Update-service endpoint here to pull firmware subsystems in place. Packages are served
+  # from the mounted ./packages/ota/data tree (built by scripts/build-ota-packages.sh).
+  ota:
+    <<: *phoenix-defaults
+    container_name: ota
+    working_dir: /phoenix
+    command: node packages/ota/src/index.js
+    environment:
+      - PORT=8080
+      # ETCO_ota_publicUrl: set to the externally-reachable base URL if a robot can't reach
+      # the Host it used (e.g. behind NAT). Default: derived from the request Host header.
+      - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:-}
+    ports:
+      - 9010:8080
+
 networks:
   pegasus-nw:

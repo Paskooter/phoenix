@@ -17,6 +17,7 @@
     "start:data": "node packages/data/src/index.js",
     "start:history": "node packages/history/src/index.js",
     "start:skills": "node packages/skills/src/index.js",
+    "start:ota": "node packages/ota/src/index.js",
     "harness": "node packages/harness/src/index.js"
   },
   "license": "UNLICENSED",

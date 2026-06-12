@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "notes": [
+    "Catalog of OTA subsystem packages this server offers. The loader reads only `updates`.",
+    "Each entry's `file` is resolved under the data dir (ETCO_ota_dataDir, default packages/ota/data);",
+    "length + sha1 are computed from the real file at startup, so an entry whose file is absent is",
+    "simply skipped until scripts/build-ota-packages.sh produces it.",
+    "fromVersion '*' matches any installed version (with a loop-guard: never offered once the robot",
+    "already runs toVersion). GetUpdateFrom serves the highest toVersion, so with both 12.10.0 and",
+    "13.0.0 present a robot is offered 13.0.0; 12.10.0 stays available as an intermediate step.",
+    "filter '' is a wildcard (matches whatever otaFilter the robot sends).",
+    "To add a skill subsystem (be / oobe-config / jibo-diagnostics), add an entry with that",
+    "subsystem name and a built <id>.tar; see README 'OTA update server'."
+  ],
+  "updates": [
+    {
+      "id": "os-13.0.0",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.0",
+      "created": 1551052800000,
+      "changes": "Platform OS 13.0.0 ('Last Dance', 2019-02-25 production) — the final Jibo firmware. Jetstream/Pegasus stack required by Phoenix and modern @be/be.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.0.tar"
+    },
+    {
+      "id": "services-13.0.0",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.0",
+      "created": 1551052800000,
+      "changes": "Platform Services 13.0.0 ('Last Dance' production). Paired with the os update of the same version.",
+      "filter": "",
+      "dependencies": { "os": "13.0.0" },
+      "file": "services-13.0.0.tar"
+    },
+    {
+      "id": "os-12.10.0",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "12.10.0",
+      "created": 1534982400000,
+      "changes": "Platform OS 12.10.0 (2018-08-23 production). Earlier Jetstream/Pegasus build; usable as a stepping stone toward 13.0.0.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-12.10.0.tar"
+    },
+    {
+      "id": "services-12.10.0",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "12.10.0",
+      "created": 1534982400000,
+      "changes": "Platform Services 12.10.0 (2018-08-23 production). Paired with the os update of the same version.",
+      "filter": "",
+      "dependencies": { "os": "12.10.0" },
+      "file": "services-12.10.0.tar"
+    }
+  ]
+}

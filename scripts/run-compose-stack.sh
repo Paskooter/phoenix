@@ -34,6 +34,15 @@ NET_history=localhost:9006 \
 NET_data=localhost:9007 \
   node packages/gateway/src/index.js  > /tmp/phx-compose-hub.log     2>&1 &
 
+# Phoenix extension (not in the reference contract): the OTA update server. A robot points
+# its Update endpoint here to pull firmware in place. Serves packages/ota/data (build them
+# with scripts/build-ota-packages.sh). Disable with OTA=0.
+if [ "${OTA:-1}" != "0" ]; then
+  PORT=9010 ETCO_ota_publicUrl="${OTA_PUBLIC_URL:-}" \
+    node packages/ota/src/index.js    > /tmp/phx-compose-ota.log     2>&1 &
+fi
+
 echo "compose-contract stack: hub:9000 report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 answer:9009"
+echo "ext: ota:9010 (OTA update server)"
 echo "logs: /tmp/phx-compose-*.log"
 wait

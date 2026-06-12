@@ -2,6 +2,16 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **G.1: config spine + account-service auth core (loop).** Zero-dep .env loader
+  (common/dotenv.js, loaded by @phoenix/common side-effect; real env wins) + .env.example
+  documenting every variable; packages/account: persistent JSON store (atomic tmp+rename;
+  accounts/loops/tokens/sessions), srv-account-ws semantics (fillAccessKeys 20/40 alnum, bs58
+  setup tokens 15-min one-time, loop-name dedupe, find-or-create robot account), scrypt
+  passwords, cookie sessions (7d, HttpOnly); portal REST signup/login/logout/me + /api/robots;
+  admin face gated by ADMIN_PASSWORD from .env (login, all-robots list, MANUAL ADOPT: mints
+  keys + loop and returns the exact /var/jibo/credentials.json + repoint command, idempotent
+  per friendlyId). 8 new tests; 174 total green. Next: G.2 robot AWS-JSON face.
+
 - 2026-06-12 — **PHASE F + M9: THE REBUILD IS COMPLETE (loop, final).** F.1 runtime:
   docker-compose.yml on the exact reference contract (hub 9000/report 9003/chitchat 9004/parser
   9005/history 9006/lasso 9007/answer 9009, NET_*/ETCO_hub_skillsConfig), native equivalent
