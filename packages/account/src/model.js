@@ -86,9 +86,10 @@ export function findOrCreateRobotAccount(store, friendlyId) {
 
 // -- loops ----------------------------------------------------------------------
 
-/** loop.ctrl.ts getLoopName dedupe: "<Owner>'s Jibo", then "<Owner>'s 2 Jibo", ... */
+/** oobe.ctrl.ts getLoopName: "<Owner>'s Jibo" ("<Owner>' Jibo" when the name ends in s), deduped. */
 function loopName(store, owner) {
-  const base = `${owner.firstName || owner.email || 'My'}'s`;
+  const name = owner.firstName || owner.email || 'My';
+  const base = name.endsWith('s') ? `${name}'` : `${name}'s`;
   const names = new Set([...store.loops.values()].map((l) => l.name));
   if (!names.has(`${base} Jibo`)) return `${base} Jibo`;
   for (let i = 2; ; i += 1) if (!names.has(`${base} ${i} Jibo`)) return `${base} ${i} Jibo`;
@@ -118,23 +119,44 @@ export function createLoop(store, { owner, robotId }) {
 
 // -- setup tokens -----------------------------------------------------------------
 
-/** prepareRobot: mint a one-time 15-min token bound to the minting owner (loopId null = new robot). */
+/**
+ * prepareRobot / token.ctrl.ts create: REUSE a still-live token for the same accountId+loopId
+ * (refreshing its created timestamp); otherwise mint a fresh one. One-time, 15-min TTL.
+ */
 export function mintSetupToken(store, accountId, loopId = null, extra = {}) {
+  const live = [...store.tokens.values()].find((t) =>
+    t.accountId === accountId && (t.loopId || null) === (loopId || null)
+    && Date.now() - t.created <= ACCESS_TOKEN_LIFETIME_MS);
+  if (live) {
+    live.created = Date.now();
+    Object.assign(live, extra);
+    store.flush();
+    return live;
+  }
   const token = { _id: newTokenId(), accountId, loopId, created: Date.now(), ...extra };
   store.tokens.set(token._id, token);
   store.flush();
   return token;
 }
 
-export function takeValidToken(store, tokenId) {
+/**
+ * token.ctrl.ts findById semantics: missing -> {error:'TOKEN_NOT_FOUND'}, expired ->
+ * {error:'TOKEN_EXPIRED'} (the original throws but does NOT delete on expiry).
+ */
+export function findToken(store, tokenId) {
   const token = store.tokens.get(tokenId);
-  if (!token) return null;
-  if (Date.now() - token.created > ACCESS_TOKEN_LIFETIME_MS) {
-    store.tokens.delete(tokenId);
-    store.flush();
-    return null;
-  }
-  return token;
+  if (!token) return { error: 'TOKEN_NOT_FOUND' };
+  if (Date.now() - token.created > ACCESS_TOKEN_LIFETIME_MS) return { error: 'TOKEN_EXPIRED' };
+  return { token };
+}
+
+export function takeValidToken(store, tokenId) {
+  const { token } = findToken(store, tokenId);
+  return token || null;
+}
+
+export function deleteToken(store, tokenId) {
+  if (store.tokens.delete(tokenId)) store.flush();
 }
 
 /** Purge expired tokens (housekeeping; called opportunistically). */

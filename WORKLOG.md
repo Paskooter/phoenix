@@ -2,6 +2,18 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **G.2: robot-facing AWS-JSON OOBE face (loop).** Read the ORIGINAL srv-account-ws
+  off the pvindex gitea (oobe.{handler,ctrl}, token.ctrl, errors/*) — exact semantics captured:
+  TOKEN_NOT_FOUND 404 / TOKEN_EXPIRED 401 (expiry does NOT delete), token reuse-within-TTL on
+  create, getLoopName apostrophe rule, getStatus {complete:!token}, and the original
+  createHubToken (hubTokenSecret, 3h expiresIn) confirming the G.5 design. packages/account:
+  POST / AWS-JSON-1.1 dispatch, prefix-tolerant by operation (OOBE prefix unconfirmed in the
+  archive; unknown prefixes logged), setupRobot (one-time redeem -> loop+robot creds; v1
+  same-robot-reissue + LOOP_MUST_BE_SUSPENDED for robot swap), prepareRobot (SigV4 Credential
+  accessKeyId parse), getStatus; Update_* prefix-proxy -> NET_ota so the robot's single-endpoint
+  repoint reaches account+OTA together. Model aligned to reference (token reuse, no
+  delete-on-expiry, loop-name rule). 6 new wire tests incl. mock-OTA proxy; 180 total green.
+
 - 2026-06-12 — **G.1: config spine + account-service auth core (loop).** Zero-dep .env loader
   (common/dotenv.js, loaded by @phoenix/common side-effect; real env wins) + .env.example
   documenting every variable; packages/account: persistent JSON store (atomic tmp+rename;

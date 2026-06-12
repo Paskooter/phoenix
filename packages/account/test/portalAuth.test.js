@@ -113,12 +113,13 @@ test('store persists across instances (robot creds survive restart)', () => {
   assert.ok(readFileSync(file, 'utf8').includes('rosie-robot-maid-xj9'));
 });
 
-test('setup tokens: one-time semantics and 15-minute TTL', () => {
+test('setup tokens: 15-minute TTL; expiry rejects without deleting (reference findById)', () => {
   const s = new Store(join(dir, 't.json'));
   const owner = createOwnerAccount(s, { email: 'judy@jetson.test', password: 'teenage-dreams' });
   const t = mintSetupToken(s, owner._id);
   assert.ok(takeValidToken(s, t._id), 'fresh token is valid');
+  assert.equal(mintSetupToken(s, owner._id)._id, t._id, 'live token reused for same account+loop');
   s.tokens.get(t._id).created = Date.now() - ACCESS_TOKEN_LIFETIME_MS - 1000;
   assert.equal(takeValidToken(s, t._id), null, 'expired token rejected');
-  assert.ok(!s.tokens.has(t._id), 'expired token swept');
+  assert.ok(s.tokens.has(t._id), 'expiry does not delete (token.ctrl.ts findById)');
 });
