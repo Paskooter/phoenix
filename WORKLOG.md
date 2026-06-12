@@ -2,6 +2,16 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **Phase E.9 + PHASE E COMPLETE (loop, stopping).** example-skill (graph-traversal
+  exerciser: ExampleNode SLIM/LISTEN walk across LISTEN_UPDATEs, memo-before-intent split,
+  proactive arm) + template-skill (memo {entry:'SomeThing'} validation → vendored template-mim
+  via ANFactory) registered on the skills service; **chitchat converted to its reference graph
+  form** (IntentSplit throws without memo → ProcessQueryNode sets local.path/promptData +
+  ErrorResponse arm → Do-MIM ANFactory final → Complete; rng injectable via createChitchatSkill;
+  chitchat actions are now bare-SLIM JCPs like the reference, harness/tests made shape-agnostic).
+  145 unit + sim proxy ALL PASS; live skills service restarted. Phase E (E.7/E.8/E.8b/E.9) is
+  done — loop stops per contract; Phase F (compose/substitution/M9) awaits a go-ahead.
+
 - 2026-06-12 — **Phase E.8b: Commute + Calendar full subskill tables (loop).** CommuteParse
   (arrival = workTime or today's early calendar event; traffic-aware duration; depart/minsLeft
   math) + CommuteMimLogic (Now >120m/<-30m, Poor ≥5/Terrible ≥15 extra mins + DepartTimeNotNormal,

@@ -119,7 +119,12 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
   escalation-to-exhaustion), Slimmer reference API (generateSlim/generateSlimSequence/
   generateDisplay + view resolution), unifyMims, OptInFactory (VERIFY_ID/NO_ID + yes/no/
   wrongID + SetPresentPerson supplemental) with the 4 base MIMs vendored — U/P
-- [ ] example/template reference skills
+- [x] example-skill (graph-traversal exerciser: ExampleNode SLIM walk, memo-before-intent split,
+  proactive arm) + template-skill (memo-validated skeleton playing its vendored MIM via ANFactory) — U
+- [x] **chitchat graph form** (Chitchat.ts trace fidelity): IntentSplit (memo required, throws
+  without) → ProcessQueryNode (memo→mim resolution, semi-specific stems, type validation,
+  CC_Fallback as ErrorResponse arm) → Do-MIM ANFactory (final) → Complete; rng injectable via
+  createChitchatSkill for deterministic tests — U/P
 
 ## Proactive (cross-cutting) — covered under Gateway above
 

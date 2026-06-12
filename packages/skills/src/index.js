@@ -9,6 +9,8 @@ import { answerSkill } from './answerSkill.js';
 import { reportSkill } from './reportSkill.js';
 import { chitchatSkill } from './chitchatSkill.js';
 import { colorSkill } from './colorSkill.js';
+import { exampleSkill } from './exampleSkill.js';
+import { templateSkill } from './templateSkill.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
@@ -27,12 +29,16 @@ export { answerSkill } from './answerSkill.js';
 export { reportSkill } from './reportSkill.js';
 export { chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';
+export { exampleSkill } from './exampleSkill.js';
+export { templateSkill } from './templateSkill.js';
 
 export const SKILLS = [
   { id: 'answer-skill', handler: answerSkill },
   { id: 'report-skill', handler: reportSkill },
   { id: 'chitchat-skill', handler: chitchatSkill },
   { id: 'color-skill', handler: colorSkill },
+  { id: 'example-skill', handler: exampleSkill },
+  { id: 'template-skill', handler: templateSkill },
 ];
 
 export function start(port = Number(process.env.PORT) || DefaultPort.skills) {

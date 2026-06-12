@@ -19,11 +19,11 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 | **history** | full IH rule matrix, latest/count, retention, speech store | ❌ **route prefix `/v1/...`** (wire-incompatible with reference clients!) · ❌ GET query variants · ◐ validation layer (ID regex, ts<=now, per-type method table) · ◐ sorted-array EXACT (personIDs) · ◐ in-memory (restart loses IH state) |
 | **contracts** | envelope, registries, listen/NLU/skill schemas, errors, timeouts | ❌ proactive schemas · ❌ JCP/SLIM schema · ❌ MIM types · ❌ ListenResult precedence class · ❌ manifest schema |
 | **common (utils)** | env discovery, service runner, JWT, trace, logger | ❌ WS sendJson client (tests need it) · ◐ log line shape |
-| **skills framework (baseskill)** | GraphSkill/GraphManager (wire-compatible sessions), Slimmer core, PromptData (measured surface), skill host | ❌ node library (NoOp/TrueFalse/JCP/SetLooperID) · ❌ MIM factories (QN/AN/MAN/Router + NM/NI loops) · ❌ **OptInFactory** (proactive opt-in FSM) · ❌ generateSlimSequence (MAN) · ❌ generateDisplay (GUI) · ❌ unifyMims · ◐ Graph build-time validation · ◐ PromptData: loop.list pronounceable, location strings, `dt` TZ from location.iso |
+| **skills framework (baseskill)** | GraphSkill/GraphManager + Graph/subgraph composition w/ finalize validation, full node library, MIM factories (QN/AN/MAN/MIM + NM/NI loops), OptInFactory, Slimmer reference API (Sequence/Display/unify), PromptData, skill host | ◐ PromptData: loop.list pronounceable, location strings, `dt` TZ from location.iso |
 | **answer-skill** | LLM path, trim, escaping, analytics | ❌ Wikipedia-first path (alive!) · ◐ canned no-source reply; 450-char cap · [DEAD] Bing/Wolfram |
-| **chitchat-skill** | full 4,424-MIM library + faithful ProcessQueryNode dispatch + semi-specific resolution | ◐ flat handler vs graph form (trace fidelity) · ◐ analytics event names |
-| **report-skill** | IntentSplit (subskill selection), weather/news data, 82 mims vendored | ❌ **MIM wiring** (mega-MAN assembly, WeatherMimLogic conditions, News intro/3-2-1/outro, mimPromptText prefixes) · ❌ commute subskill logic · ❌ calendar subskill logic · ❌ UserID subgraph + PrefetchWeather + GetUserPrefs/prefsConfig · ❌ GUI views |
-| **example/template skills** | (color-skill demo instead) | ❌ example-skill (exit-redirect exerciser) · ❌ template-skill skeleton |
+| **chitchat-skill** | full 4,424-MIM library, graph form (IntentSplit→ProcessQuery→ANFactory), semi-specific resolution | ◐ analytics event names |
+| **report-skill** | full PersonalReport graph: IntentSplit, UserID subgraph (WhoIsThis/SetLooperID/PrefetchWeather), GetUserPrefs/SettingsClient, GetData/ParseData, Weather+News+Commute+Calendar MimLogic complete tables, mega-MAN + outros, OptIn proactive | ◐ GUI views (display configs stubbed — sim renders none) |
+| **example/template skills** | example-skill (graph-traversal exerciser), template-skill skeleton, color-skill demo | — |
 | **harness/verification** | normalize + D1/D2, oracle grader, sim proxy+browser harnesses, test-manifest vendored (4,705 entries) | ❌ **corpus runner** + D3 (routing) / D4 (mim_id) / D5 (fuzzy ESML) · ❌ SkillConversation driver · ❌ frozen-world fixtures (Jetsons loop) · ❌ golden capture vs reference (M0) · ❌ behavior-suite ports |
 | **runtime** | npm workspaces, run-sim-stack.sh | ❌ docker-compose equivalent (ports 9000/9003-9007, ETCO_/NET_ contract) · ❌ substitution testing |
 | **wire clients** | (robots/sim bring their own) | hub-client = protocol oracle: 6400 B/100 ms PCM chunks + trailing silence, final:true closes socket — M8 must match |
@@ -59,7 +59,7 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
    GARBAGE short-circuit, StringNormalizer, speech-history recording; verify with
    hub-client-style PCM streaming (6400 B/100 ms + trailing zeros)
 
-**Phase E — skills framework completion** ◐ in progress
+**Phase E — skills framework completion** ✅ done 2026-06-12
 7. ✅ node library + MIM factories + OptInFactory + generateSlimSequence/Display (2026-06-12:
    Graph/subgraph composition, full node set, QN/AN/MAN/MIM factories with NM/NI escalation,
    reference Slimmer API, unifyMims, OptIn FSM + vendored base MIMs; 10 new tests)
@@ -67,7 +67,8 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
    (WhoIsThis+SetLooperID)/GetUserPrefs(SettingsClient)/GetData/ParseData/Toggles/OptIn/mega-MAN
    over the 82 vendored mims; Weather + News + Commute + Calendar MimLogic complete with all
    condition tables; lean DateTime port for depart-time/event phrasing) ← E.9 next
-9. example/template skills; chitchat graph form
+9. ✅ example/template skills + chitchat graph form (2026-06-12: example-skill graph walk,
+   template-skill skeleton, chitchat as IntentSplit→ProcessQuery→ANFactory graph; 145 tests)
 
 **Phase F — runtime + parity closure**
 10. docker-compose equivalent; SkillConversation + frozen fixtures; substitution run; M9 report

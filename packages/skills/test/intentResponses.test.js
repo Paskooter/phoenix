@@ -2,14 +2,18 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SkillRequestType } from '@phoenix/contracts';
 import { reportSkill } from '../src/reportSkill.js';
-import { chitchatSkill } from '../src/chitchatSkill.js';
+import { createChitchatSkill } from '../src/chitchatSkill.js';
 import { buildSkillAction } from '../src/jcp.js';
 
 function reqWithIntent(intent) {
   return { data: { result: { nlu: { intent, entities: {} }, asr: { text: '' } }, runtime: {}, skill: null } };
 }
-const esmlOf = (action) => action.data.action.config.jcp.children[0].config.play.esml;
-const mimOf = (action) => action.data.action.config.jcp.children[0].config.play.meta.mim_id;
+const firstSlim = (action) => {
+  const jcp = action.data.action.config.jcp;
+  return jcp.type === 'SLIM' ? jcp : jcp.children.find((c) => c.type === 'SLIM');
+};
+const esmlOf = (action) => firstSlim(action).config.play.esml;
+const mimOf = (action) => firstSlim(action).config.play.meta.mim_id;
 
 // Report-skill — the PersonalReport graph (port of report-skill/src/PersonalReport.ts).
 // These run with NO data/settings services configured, so the graph exercises the
@@ -113,11 +117,14 @@ test('report: proactive launch -> opt-in proposal question (VERIFY_ID base MIM)'
 
 function reqWithMemo(intent, memo, entities = {}) {
   const req = reqWithIntent(intent);
+  req.type = SkillRequestType.LISTEN_LAUNCH;
+  req.data.skill = { id: 'chitchat-skill' };
   req.data.result.memo = memo;
   req.data.result.nlu.entities = entities;
   return req;
 }
-const det = { rng: () => 0 }; // deterministic prompt pick
+const chitchatSkill = createChitchatSkill({ rng: () => 0 }); // deterministic prompt pick
+const det = undefined; // graph form: rng injected at construction
 
 test('chitchat: dance memo plays the real RA_JBO_SpecificDance MIM (raw <anim> ESML)', async () => {
   const r = await chitchatSkill(reqWithMemo('requestDance', { mim: 'RA_JBO_SpecificDance', type: 'ScriptedResponse' }), det);
@@ -148,11 +155,13 @@ test('chitchat: semi-specific stem resolves via entity value + category CSV', as
   assert.equal(mimOf(r), 'OI_JBO_IsIn_SS_RoomInHouse');
 });
 
-test('chitchat: unknown/missing memo falls back to the real CC_Fallback MIM', async () => {
+test('chitchat: unknown memo MIM falls back to CC_Fallback; missing memo throws (reference)', async () => {
   const r1 = await chitchatSkill(reqWithMemo('x', { mim: 'NoSuchMim', type: 'ScriptedResponse' }), det);
   assert.equal(mimOf(r1), 'CC_Fallback');
-  const r2 = await chitchatSkill(reqWithIntent('someUnknownIntent'), det);
-  assert.equal(mimOf(r2), 'CC_Fallback');
+  // Reference IntentSplitNode: "Chitchat launched without required memo!"
+  const noMemo = reqWithMemo('someUnknownIntent', undefined);
+  delete noMemo.data.result.memo;
+  await assert.rejects(() => chitchatSkill(noMemo), /without required memo/);
 });
 
 // esmlRaw flag: skill-authored markup passes through; default still escapes.
