@@ -2,6 +2,17 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **Phase E.8b: Commute + Calendar full subskill tables (loop).** CommuteParse
+  (arrival = workTime or today's early calendar event; traffic-aware duration; depart/minsLeft
+  math) + CommuteMimLogic (Now >120m/<-30m, Poor ≥5/Terrible ≥15 extra mins + DepartTimeNotNormal,
+  Normal + DepartTimeNormal, MinutesLeft <30, Hurry >-10/Late, Drive-/Transport- prefixing);
+  CalendarData (google/outlook personal+work merge+sort) + CalendarParse (today/tomorrow windows
+  vs real clock, all-day, isEarly vs work-arrival) + CalendarMimLogic (full-report summary table
+  incl. FullDay/EarlyEvent + single-skill Count/SummaryAndTime/ParallelEvent/TomorrowOnly/Outro
+  walk feeding eventSummaries/eventTimesOnAt shift templates); lean jibo-data-utils DateTime port
+  (toString {timeOnly}/{prefixOnAt}). 8 new tests over mock lasso + prefsConfig. 140 unit + sim
+  proxy ALL PASS.
+
 - 2026-06-12 — **Phase E.8: report-skill IS the PersonalReport graph (loop).** Full port of
   report-skill/src: PersonalReport.ts assembly (IntentSplit→UserID(WhoIsThis QN/SetLooperID/
   PrefetchWeather)→GetUserPrefs(SettingsClient: defaults/prefsConfig/SettingsFailed)→GetData→

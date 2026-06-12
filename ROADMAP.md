@@ -105,7 +105,13 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
   etc, TodayWarmer/Hotter/Colder/Cooler, WetNowDryLater, Basic/Comment by icon) + NewsMimLogic
   (banned/adult filters, dedupe, per-category counts, Intro+Headline×N+Outro) → mega-MAN
   SEQUENCE with outro selection; proactive memo -> OptIn proposal (VERIFY_ID) — U/P
-- [ ] report-skill E.8b: Commute/CalendarParse + MimLogic full tables (placeholders: ServiceDown)
+- [x] report-skill E.8b: **Commute + Calendar full tables** — CommuteParse (arrival from
+  workTime or today's early calendar event, traffic-aware duration, depart/minsLeft math) +
+  CommuteMimLogic (Now/Poor/Terrible+DepartTimeNotNormal/Normal+DepartTimeNormal/MinutesLeft/
+  Hurry/Late, Drive-/Transport- prefixing); CalendarData (multi-provider merge+sort) +
+  CalendarParse (today/tomorrow windows, all-day, isEarly vs work arrival) + CalendarMimLogic
+  (full-report summary table + single-skill Count/SummaryAndTime/ParallelEvent/TomorrowOnly/
+  Outro walk with eventSummaries/eventTimesOnAt); lean DateTime port — U
 - [ ] SKILL_REDIRECT emitted by a skill
 - [x] **baseskill node library + MIM factories + OptIn FSM** — Graph/TransitionContainer
   (addNode/addSubGraph/finalize validation), NoOp/Default/TrueFalse/JCP/SetLooperID nodes,

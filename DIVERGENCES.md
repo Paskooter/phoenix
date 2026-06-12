@@ -37,4 +37,4 @@ These are *flagged, not yet decided* — surfaced by the atlas open-questions/ri
 Add a row the moment a deviation is chosen; never let code diverge silently.
 
 | E8-news-images | report news | Reference NewsParse required an AP image per story and cut the feed-header item; the Phoenix data service's RSS→AP shim carries no images, so `image` is optional and only `headline` is required (no header cut). | Faithful against real AP data; shim-compatible. |
-| E8b-commute-calendar | report subskills | CommuteParse/CommuteMimLogic and CalendarParse/CalendarMimLogic are graph-shaped placeholders (ServiceDown degradation only) pending the E.8b port. With the settings service dead they are unreachable except via ETCO_report_prefsFromConfig. | Next loop increment. |
+| E8b-datetime | report subskills | jibo-data-utils DateTime is ported lean (utc/clone/setTime/isFuture/getRelativeDays/getLocalTime + toString {timeOnly}/{prefixOnAt} with at/tomorrow-at/on-weekday phrasing) instead of the full moment-tz surface. | Covers every call site in the report subskills; full DateTime port only if other skills need it. |
