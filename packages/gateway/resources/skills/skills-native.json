@@ -1,0 +1,71 @@
+{
+    "skills": [
+        {
+            "baseURL": "http://localhost:9009",
+            "configPath": "pegasus-skills/answer_skill_manifest.json"
+        },
+        {
+            "baseURL": "http://localhost:9003",
+            "configPath": "pegasus-skills/report_skill_manifest.json"
+        },
+        {
+            "baseURL": "http://localhost:9004",
+            "configPath": "pegasus-skills/chitchat_skill_manifest.json"
+        },
+        {
+            "baseURL": "http://localhost:9008",
+            "configPath": "pegasus-skills/color_skill_manifest.json"
+        },
+        {
+            "configPath": "be-skills/circuit_saver_manifest.json"
+        },
+        {
+            "configPath": "be-skills/clock_manifest.json"
+        },
+        {
+            "configPath": "be-skills/create_manifest.json"
+        },
+        {
+            "configPath": "be-skills/exercise_manifest.json"
+        },
+        {
+            "configPath": "be-skills/friendly_tips_manifest.json"
+        },
+        {
+            "configPath": "be-skills/gallery_manifest.json"
+        },
+        {
+            "configPath": "be-skills/greetings_manifest.json"
+        },
+        {
+            "configPath": "be-skills/hue_control_manifest.json"
+        },
+        {
+            "configPath": "be-skills/ifttt_manifest.json"
+        },
+        {
+            "configPath": "be-skills/introductions_manifest.json"
+        },
+        {
+            "configPath": "be-skills/main_menu_manifest.json"
+        },
+        {
+            "configPath": "be-skills/radio_manifest.json"
+        },
+        {
+            "configPath": "be-skills/settings_manifest.json"
+        },
+        {
+            "configPath": "be-skills/surprises_ota_manifest.json"
+        },
+        {
+            "configPath": "be-skills/tutorial_manifest.json"
+        },
+        {
+            "configPath": "be-skills/who_am_i_manifest.json"
+        },
+        {
+            "configPath": "be-skills/word_of_the_day_manifest.json"
+        }
+    ]
+}

@@ -13,7 +13,12 @@ import { loadRegistry } from './registry.js';
  * @param {NodeJS.ProcessEnv} [env]
  */
 export function loadConfig(env = process.env) {
-  const skillsBase = net('skills', { required: false, default: env.ETCO_hub_skillsUrl || `localhost:${DefaultPort.skills}` });
+  // NET_skills (single-host dev mode) overrides every cloud skill's baseURL. When a registry
+  // index is selected explicitly (ETCO_hub_skillsConfig — the compose contract), default to the
+  // per-skill baseURLs from that index instead, like the reference hub.
+  const skillsBase = (env.ETCO_hub_skillsConfig && !env.NET_skills)
+    ? '' // per-skill baseURLs from the selected registry index
+    : net('skills', { required: false, default: env.ETCO_hub_skillsUrl || `localhost:${DefaultPort.skills}` });
   let skills;
   try {
     skills = loadRegistry({ skillsBase }); // full vendored registry (be-skills + cloud)

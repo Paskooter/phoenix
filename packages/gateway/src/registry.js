@@ -19,7 +19,9 @@ const DEFAULT_RES = join(dirname(fileURLToPath(import.meta.url)), '..', 'resourc
  */
 export function loadRegistry({ skillsBase = '', resourcesDir = DEFAULT_RES } = {}) {
   const base = skillsBase.replace(/\/$/, '');
-  const index = JSON.parse(readFileSync(join(resourcesDir, 'skills-local.json'), 'utf8'));
+  // Reference: ETCO_hub_skillsConfig selects the registry index (skills-local.json in compose).
+  const indexFile = process.env.ETCO_hub_skillsConfig || 'skills-local.json';
+  const index = JSON.parse(readFileSync(join(resourcesDir, indexFile), 'utf8'));
   const out = [];
   for (const entry of index.skills || []) {
     let manifest;

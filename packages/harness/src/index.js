@@ -11,6 +11,9 @@ import { diffStreams } from './diff.js';
 
 export { normalizeStream, normalizeMessage } from './normalize.js';
 export { diffStreams } from './diff.js';
+export { SkillConversation } from './skillConversation.js';
+export { mockRuntimeData, LOOP_ID, LOOP_OWNER_ID, DEFAULT_REFERENT_ID, DEFAULT_SPEAKER, FROZEN_ISO } from './mockRuntimeData.js';
+
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(

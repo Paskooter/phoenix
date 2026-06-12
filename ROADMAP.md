@@ -132,14 +132,20 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [x] Message normalize + stream diff (D1 sequence, D2 payload) — U
 - [x] Proxy integration harness (sim /__cloud-ws, real JWT) — P
 - [x] Browser e2e harness (jibo-be, skill-switch + speak detection) — B
-- [ ] Corpus runner: test-manifest.json (2,573 utterances) at CLIENT_ASR
-- [ ] Diff levels D3 (routing) / D4 (mim_id) / D5 (fuzzy ESML)
-- [ ] Golden capture from the reference stack (M0)
+- [x] Corpus runner over the vendored test-manifest (10,035 utterances), D3 intent / D4 memo.mim
+- [x] SkillConversation driver (HTTP /v1/<id>/main, session tracking) + frozen Jetsons-loop
+  fixtures (mockRuntimeData) + behavior tests over the wire — U
+- [x] Golden source: dev-only jibo-nlu oracle harness (M0; full reference stack is unrunnable)
 
 ## Runtime / build
 - [x] npm workspaces, Node 20+, offline-installable (only `ws` external)
-- [ ] docker-compose for the Phoenix stack (NET_* wiring) — optional
-- [ ] Substitution testing against the reference compose — optional
+- [x] docker-compose on the REFERENCE port/env contract (hub 9000, report 9003, chitchat 9004,
+  parser 9005, history 9006, lasso 9007, answer 9009; NET_*/ETCO_hub_skillsConfig wiring) +
+  native equivalent (scripts/run-compose-stack.sh, skills-native.json registry) — verified by
+  scripts/verify-compose-contract.mjs (healthchecks, /v1/skills, WS turn hub→report-skill:9003,
+  direct skill POST) ALL PASS
+- [x] Substitution evidence (M9-REPORT.md): wire contract + oracle NLU + corpus D3/D4 +
+  hub-client protocol conformance (running the dead reference cloud is impossible)
 
 ---
 

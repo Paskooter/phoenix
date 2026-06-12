@@ -7,7 +7,7 @@ per-feature checklist, DIVERGENCES.md the deliberate-deviation ledger.
 Rebuild-plan milestones (atlas 01-rebuild-plan.md): M1 contracts ✅ · M2 service shell ✅ ·
 M3 history ✅ · M4 lasso ✅ · M5 parser ✅(98% oracle parity) · M6 hub ✅(client modes) ·
 M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** · M0 golden capture
-◐ (oracle harness exists; no full golden corpus) · M9 parity report ◐ (this doc + DIVERGENCES).
+◐ (oracle harness exists; no full golden corpus) · M9 parity report ✅ (M9-REPORT.md).
 
 ## Status matrix (compressed; ✅ done ◐ partial ❌ missing · [DEAD] = dead external dep, skip)
 
@@ -24,8 +24,8 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 | **chitchat-skill** | full 4,424-MIM library, graph form (IntentSplit→ProcessQuery→ANFactory), semi-specific resolution | ◐ analytics event names |
 | **report-skill** | full PersonalReport graph: IntentSplit, UserID subgraph (WhoIsThis/SetLooperID/PrefetchWeather), GetUserPrefs/SettingsClient, GetData/ParseData, Weather+News+Commute+Calendar MimLogic complete tables, mega-MAN + outros, OptIn proactive | ◐ GUI views (display configs stubbed — sim renders none) |
 | **example/template skills** | example-skill (graph-traversal exerciser), template-skill skeleton, color-skill demo | — |
-| **harness/verification** | normalize + D1/D2, oracle grader, sim proxy+browser harnesses, test-manifest vendored (4,705 entries) | ❌ **corpus runner** + D3 (routing) / D4 (mim_id) / D5 (fuzzy ESML) · ❌ SkillConversation driver · ❌ frozen-world fixtures (Jetsons loop) · ❌ golden capture vs reference (M0) · ❌ behavior-suite ports |
-| **runtime** | npm workspaces, run-sim-stack.sh | ❌ docker-compose equivalent (ports 9000/9003-9007, ETCO_/NET_ contract) · ❌ substitution testing |
+| **harness/verification** | normalize + D1/D2, oracle grader, corpus runner (D3/D4 over 10,035 utterances), SkillConversation + Jetsons fixtures + wire behavior tests, sim proxy+browser harnesses, compose-contract verifier | ◐ D5 fuzzy-ESML diff (unneeded so far) |
+| **runtime** | npm workspaces, run-sim-stack.sh, docker-compose on the reference contract + native runner + verifier | — (substitution vs the dead reference cloud impossible; evidence in M9-REPORT.md) |
 | **wire clients** | (robots/sim bring their own) | hub-client = protocol oracle: 6400 B/100 ms PCM chunks + trailing silence, final:true closes socket — M8 must match |
 
 ## Execution plan (priority order)
@@ -70,8 +70,10 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 9. ✅ example/template skills + chitchat graph form (2026-06-12: example-skill graph walk,
    template-skill skeleton, chitchat as IntentSplit→ProcessQuery→ANFactory graph; 145 tests)
 
-**Phase F — runtime + parity closure**
-10. docker-compose equivalent; SkillConversation + frozen fixtures; substitution run; M9 report
+**Phase F — runtime + parity closure** ✅ done 2026-06-12
+10. ✅ docker-compose on the reference contract + native runner + contract verifier;
+    SkillConversation + Jetsons frozen fixtures + wire behavior tests; final corpus run;
+    **M9-REPORT.md** (the parity report).
 
 Out of scope ([DEAD], recorded in DIVERGENCES.md): Google STT, Dialogflow agents, AWS
 settings service wire client, S3 speech logs, real OAuth refresh against 2018 apps,

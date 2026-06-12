@@ -1,0 +1,113 @@
+# Phoenix stack on the REFERENCE pegasus compose contract (pegasus/docker-compose.yml):
+# same host ports, same service names, same NET_*/ETCO_* wiring — so Phoenix services can be
+# substituted into a reference deployment one-for-one (substitution testing, atlas M9).
+#
+#   hub            9000:8080   (gateway)
+#   report-skill   9003:8080
+#   chitchat-skill 9004:8080
+#   parser         9005:8080   (nlu)
+#   history        9006:8080
+#   lasso          9007:8080   (data)
+#   answer-skill   9009:8080
+#
+# All services run from one volume-mounted tree on node:20-slim (the reference mounted ./ into
+# a pegasus_base image the same way). No redis/mongo: Phoenix stores are in-memory by design
+# (see DIVERGENCES.md). Skill containers all run the same skills service; each answers at
+# /v1/<id>/main, and the hub's skills-local.json routes by container name.
+#
+# Optional LAN services (Parakeet ASR + LM Studio), as in the user's reference override:
+#   PARAKEET_URL=http://192.168.1.252:6972 LLM_URL=http://192.168.1.252:1234/v1 docker compose up
+
+x-phoenix-defaults: &phoenix-defaults
+  image: node:20-slim
+  networks:
+    - pegasus-nw
+  volumes:
+    - ./:/phoenix:consistent
+  environment:
+    - PORT=8080
+
+services:
+  hub:
+    <<: *phoenix-defaults
+    container_name: hub
+    working_dir: /phoenix
+    command: node packages/gateway/src/index.js
+    environment:
+      - PORT=8080
+      - ETCO_hub_skillsConfig=skills-local.json
+      - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
+      - NET_parser=parser:8080
+      - NET_history=history:8080
+      - NET_data=lasso:8080
+      - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
+    ports:
+      - 9000:8080
+
+  parser:
+    <<: *phoenix-defaults
+    container_name: parser
+    working_dir: /phoenix
+    command: node packages/nlu/src/index.js
+    environment:
+      - PORT=8080
+      - ETCO_parser_llmUrl=${LLM_URL:-}
+      - ETCO_parser_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
+    ports:
+      - 9005:8080
+
+  history:
+    <<: *phoenix-defaults
+    container_name: history
+    working_dir: /phoenix
+    command: node packages/history/src/index.js
+    ports:
+      - 9006:8080
+
+  lasso:
+    <<: *phoenix-defaults
+    container_name: lasso
+    working_dir: /phoenix
+    command: node packages/data/src/index.js
+    ports:
+      - 9007:8080
+
+  answer-skill:
+    <<: *phoenix-defaults
+    container_name: answer-skill
+    working_dir: /phoenix
+    command: node packages/skills/src/index.js
+    environment:
+      - PORT=8080
+      - NET_data=lasso:8080
+      - ETCO_answer_llmUrl=${LLM_URL:-}
+      - ETCO_answer_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
+    ports:
+      - 9009:8080
+
+  report-skill:
+    <<: *phoenix-defaults
+    container_name: report-skill
+    working_dir: /phoenix
+    command: node packages/skills/src/index.js
+    environment:
+      - PORT=8080
+      - NET_data=lasso:8080
+      - NET_settings=${NET_SETTINGS:-}
+      - ETCO_report_prefsFromConfig=${PREFS_FROM_CONFIG:-}
+    ports:
+      - 9003:8080
+
+  chitchat-skill:
+    <<: *phoenix-defaults
+    container_name: chitchat-skill
+    working_dir: /phoenix
+    command: node packages/skills/src/index.js
+    environment:
+      - PORT=8080
+      - NET_data=lasso:8080
+    ports:
+      - 9004:8080
+
+networks:
+  pegasus-nw:

@@ -2,63 +2,107 @@
 
 A **ground-up reimplementation** of *Pegasus* — the cloud backend that powered the Jibo social
 robot's conversation (ASR → NLU → skills → multimodal response). Phoenix is a clean,
-modern-JavaScript rewrite; the original is used only as a **behavioral reference**, never copied.
+modern-JavaScript rewrite; the original is used only as a **behavioral reference**, never
+copied, and **no Jibo binaries ship** — the NLU engine, MIM dialog engine and every service are
+reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, manifests).
 
 - **Reference & specs:** [`jiboV2/pegasus@phoenix`](https://pvindex.org/gitea/jiboV2/pegasus) and
   its `docs/atlas/` (full system documentation + the rebuild plan this repo follows).
-- **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, zero runtime dependencies so far
-  (validation, the service runner and the harness core are all hand-rolled). Tests use the
-  built-in `node:test` runner.
+- **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
+  Tests use the built-in `node:test` runner.
+- **Status: the rebuild is complete** (atlas milestones M1–M9, phases A–F). See
+  **[M9-REPORT.md](M9-REPORT.md)** for the final parity report — headline numbers: **98.2 %**
+  intent parity and **96.8 %** MIM-routing parity against the reference test corpus
+  (10,035 utterances), 150 tests green, full wire-protocol conformance against the robot's own
+  `hub-client` framing.
+
+## What works
+
+A robot (or the browser sim) connects over WebSocket, speaks — literally, over the microphone —
+and the full pipeline runs: server-side ASR (energy VAD → Parakeet REST), the pure-JS
+launch-rule grammar engine with FST weight semantics, intent routing, and the real skills:
+the **personal report** (weather / news / commute / calendar with the original MIM condition
+tables), **chitchat** (the full 4,424-MIM content library), **answer** (LLM-backed), plus the
+proactive channel with the opt-in flow, multi-turn GraphSkill sessions, redirects and global
+commands. Dead 2018 data vendors are shimmed live (Open-Meteo, RSS, OpenRouteService) behind
+the original relay envelopes; every intentional deviation is logged in
+[DIVERGENCES.md](DIVERGENCES.md).
 
 ## Layout
 
 ```
 packages/
-  contracts/   the frozen wire contracts — envelope, JSON-Schema defs, builders, validator   [implemented]
-  common/      shared service scaffolding — env/service discovery, HTTP runner, logging        [implemented]
-  harness/     old-vs-new comparison core — message normalize + stream diff                    [core implemented]
-  gateway/     hub equivalent — WS listen, auth, state machine, routing, skill dispatch        [implemented (M6); server-ASR pending M8]
-  nlu/         parser equivalent — grammar match + optional LLM fallback                       [implemented (M5)]
-  data/        lasso equivalent — weather/news/calendar/commute relays + credentials           [shell (M4)]
-  history/     skill-launch (IH query language) + speech history                               [implemented (M3)]
-  skills/      skill host + answer-skill (wire-faithful JCP/SLIM)                              [implemented (M7); more skills + MIM pending]
+  contracts/   the frozen wire contracts — envelope, schemas, builders, validator
+  common/      shared service scaffolding — env/service discovery, HTTP runner, JWT, logging
+  harness/     verification — stream diff, corpus runner (D3/D4), SkillConversation + fixtures
+  gateway/     hub — WS listen FSM, auth, server-side ASR (VAD+Parakeet), routing, proactive
+  nlu/         parser — pure-JS grammar engine (FST semantics), eq_words, factory entities, LLM fallback
+  data/        lasso — weather/news/maps/calendar relays (2026 shims) + credentials
+  history/     skill-launch (IH query language) + speech history
+  skills/      baseskill framework (GraphSkill, MIM factories, Slimmer, OptIn) + all skills
 ```
 
-Each service shell documents — inline — the exact contract it must fulfil (with `file:line`
-references into the atlas) and the milestone that implements it. Every service exposes a free
-`GET /healthcheck` today.
-
-## Quick start
+## Running it — without Docker
 
 ```bash
-npm install           # links the workspaces; no network needed (zero external deps)
-npm test              # runs contracts + common + harness suites via node:test
-npm run start:history # boot a service shell; curl localhost:7013/healthcheck -> ok
+npm install        # links the workspaces (offline-friendly; only `ws` is external)
+npm test           # 150 tests across all packages (run from the repo root)
 ```
 
-Default local ports: gateway 7010, nlu 7011, data 7012, history 7013, skills 7014
-(`packages/contracts/src/constants.js`). Override with `PORT`.
+**Option A — sim stack** (best for playing with it): boots the five services on dev ports
+(nlu 7011, data 7012, history 7013, skills 7014, gateway 9000) **plus the browser simulator**
+([jibo-web-sim](https://github.com/Paskooter/jibo-web-sim), expected as a sibling checkout):
 
-## How the rebuild proceeds
+```bash
+bash scripts/run-sim-stack.sh
+# then open http://localhost:8080  (or https://<host>:8443 for microphone access)
+```
 
-Contracts first, then a diff harness, then leaf services up to the gateway — each milestone has
-hard "done-when" criteria and is validated by **substitution testing** (drop the new service
-into the reference compose stack via `NET_<svc>` discovery and run the original suites against
-it). See **[ROADMAP.md](ROADMAP.md)**. Intentional deviations from the reference are logged in
-**[DIVERGENCES.md](DIVERGENCES.md)**.
+The launcher auto-detects optional LAN services and degrades gracefully without them:
+a Parakeet ASR host (`REAL_PARAKEET`/`ETCO_server_parakeetUrl`; falls back to a mock that
+saves received audio to /tmp/parakeet-rx) and an OpenAI-compatible LLM
+(`REAL_LLM`/`ETCO_answer_llmUrl`, e.g. LM Studio).
 
-## Status
+**Option B — reference-contract stack** (the exact port/env layout of the original pegasus
+docker-compose, no containers needed):
 
-The **robot-facing conversational path works end to end**: a robot (or the original
-`@jibo/hub-client`) connects over WebSocket, authenticates, and one utterance flows
-`gateway → nlu → answer-skill` back to a wire-faithful `SKILL_ACTION`. Implemented and tested
-(51 tests, incl. an end-to-end WS test driving the gateway exactly as the robot does):
+```bash
+bash scripts/run-compose-stack.sh &
+node scripts/verify-compose-contract.mjs   # healthchecks + a full WS turn through hub:9000
+```
 
-- **M1 contracts**, **M2 service runner**, **M3 history** (full IH query language),
-  **M5 nlu** (grammar + optional LLM fallback), **M6 gateway** (listen state machine, JWT auth,
-  routing, skill dispatch, passthrough, timeouts), **M7 skills** (answer-skill JCP/SLIM).
-- Pending: **M4 data/lasso** (still a shell), **M6 server-side ASR** (audio streaming; M8),
-  the MIM/GraphSkill dialog engine, and more skills.
+## Running it — with Docker
 
-Everything is referenced against the original source (`jiboV2/pegasus@phoenix`) to keep the wire
-protocol compatible with unmodified robots.
+`docker-compose.yml` mirrors the reference deployment exactly — same service names, host
+ports and `NET_*`/`ETCO_*` wiring, so each Phoenix service is a drop-in substitute for its
+pegasus counterpart:
+
+```bash
+docker compose up
+# hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
+# history 9006 · lasso 9007 · answer-skill 9009   (all 8080 inside the network)
+node scripts/verify-compose-contract.mjs   # same contract check as the native runner
+```
+
+Optional env (LAN ASR/LLM, like the reference override file):
+
+```bash
+PARAKEET_URL=http://<host>:6972 LLM_URL=http://<host>:1234/v1 docker compose up
+```
+
+## Verification
+
+The rebuild was driven by measurement, not vibes:
+
+```bash
+npm test                                      # unit + integration (all packages)
+node packages/harness/src/corpusRunner.js     # D3/D4 parity over the 10,035-utterance corpus (~15 min)
+node scripts/verify-compose-contract.mjs      # runtime/wire contract
+../jibo-web-sim/test/phoenix-be-skill.mjs     # full WS protocol harness (turns, audio, proactive)
+../jibo-web-sim/test/phoenix-voice-browser.mjs # real-browser mic -> server ASR e2e
+```
+
+Plus a dev-only oracle harness that grades the grammar engine against the surviving `jibo-nlu`
+binary (the binary is never shipped). History: [WORKLOG.md](WORKLOG.md); plan + status:
+[PARITY.md](PARITY.md) / [ROADMAP.md](ROADMAP.md); deviations: [DIVERGENCES.md](DIVERGENCES.md);
+final report: [M9-REPORT.md](M9-REPORT.md).

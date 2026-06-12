@@ -2,6 +2,20 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **PHASE F + M9: THE REBUILD IS COMPLETE (loop, final).** F.1 runtime:
+  docker-compose.yml on the exact reference contract (hub 9000/report 9003/chitchat 9004/parser
+  9005/history 9006/lasso 9007/answer 9009, NET_*/ETCO_hub_skillsConfig), native equivalent
+  (scripts/run-compose-stack.sh + skills-native.json; gateway honors ETCO_hub_skillsConfig and
+  per-skill baseURLs when NET_skills is unset), scripts/verify-compose-contract.mjs ALL PASS
+  (healthchecks ×7, /v1/skills, WS turn hub→report-skill:9003, direct skill POST). F.2:
+  SkillConversation driver + Jetsons mockRuntimeData ported into @phoenix/harness with 5 wire
+  behavior tests (example walk, report degradation/WhoIsThis/notInLoop, chitchat memo gate,
+  template gate, speaker fixture). F.3 final corpus: **D3 98.2% (9851/10035), D4 96.8%
+  (9714/10035), 329 misses** — matches the C-phase plateau. F.4: **M9-REPORT.md** (the parity
+  report) + README rewritten (current state, run with/without docker). 150 tests + sim proxy
+  harness green; live stack relaunched (auto-detects Parakeet+Gemma). Also: phoenix now mirrors
+  to github.com/Paskooter/phoenix (public). M1–M9, phases A–F: done.
+
 - 2026-06-12 — **Phase E.9 + PHASE E COMPLETE (loop, stopping).** example-skill (graph-traversal
   exerciser: ExampleNode SLIM/LISTEN walk across LISTEN_UPDATEs, memo-before-intent split,
   proactive arm) + template-skill (memo {entry:'SomeThing'} validation → vendored template-mim
