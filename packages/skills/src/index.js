@@ -12,10 +12,16 @@ import { colorSkill } from './colorSkill.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
-export { createGraphSkill } from './graph/graphSkill.js';
+export { createGraphSkill, SkillFacade } from './graph/graphSkill.js';
 export { Node, FnNode } from './graph/node.js';
+export { Graph, TransitionContainer } from './graph/graph.js';
+export * as nodes from './graph/nodes.js';
+export * as mimFactories from './graph/mims/factories.js';
+export { OptInFactory, OptInType, OptInTransition, RouteNode, YesNoWrongIDNode } from './graph/mims/optIn.js';
+export { unifyMims } from './graph/mims/unify.js';
+export { loadMims, prepareMim } from './graph/mims/utils.js';
 export { GraphManager } from './graph/graphManager.js';
-export { generateSlim, weightedSample, newMimState, MimTypes, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
+export { generateSlim, generateSlimSequence, generateSlimFromMim, generateDisplay, weightedSample, newMimState, MimTypes, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
 export { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 export { answerSkill } from './answerSkill.js';
 export { reportSkill } from './reportSkill.js';

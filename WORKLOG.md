@@ -2,6 +2,21 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **Phase E.7: baseskill node library + MIM factories + OptIn FSM (loop).** Ports of
+  Graph.ts (subgraph composition + finalize validation), nodes/{NoOp,Default,TrueFalse,JCP,
+  SetLooperID}, mims/nodes/{MultiTurn,QN,AN,MAN,NM,NI,Router}, factories/{MIM,QN,AN,MAN},
+  reference Slimmer API (generateSlim/generateSlimSequence/generateDisplay/resolveView; legacy
+  low-level kept as generateSlimFromMim), unify/Unify.ts, OptInFactory + RouteNode/YesNoWrongID
+  (+4 base MIMs vendored from baseskill/mims/en-us). 10 new tests (QN NoMatch escalation to
+  FinalNoMatch, MAN sequence, router, unify, OptIn yes/no/wrongID + SetPresentPerson supplemental
+  riding the next JCP). 127 unit + sim proxy harness green. Next: E.8 report-skill MIM wiring.
+
+- 2026-06-12 — **Gemma LLM wired (user-provided endpoint).** LM Studio at 192.168.1.252:1234/v1
+  (google/gemma-4-e4b) now drives answer-skill freeform answers AND the parser LLM fallback;
+  run-sim-stack.sh probes it at launch (REAL_LLM override). Verified: parser /state llmClient
+  READY; answer-skill speaks a real Gemma answer for "why is the sky blue". Also: gateway now
+  uses the real Parakeet at 192.168.1.252:6972 (back up); launcher prefers it over the mock.
+
 - 2026-06-11 — **Real-browser mic fully wired (user manual-test ready).** Sim 8b99a14: 16 kHz
   AudioContext capture (polyphase resample) with box-filter fallback, mic constraints (mono+EC/NS/AGC),
   voice-error/voice-done round-trip (chat shows insecure-context/denied/GARBAGE/SOS_TIMEOUT reasons;

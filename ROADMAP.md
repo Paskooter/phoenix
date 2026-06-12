@@ -101,7 +101,12 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
 - [ ] report-skill subskills speak from the vendored report mims (82 files vendored; wiring todo:
   weather comments, news intros, commute/calendar dialog per MimLogic)
 - [ ] SKILL_REDIRECT emitted by a skill
-- [ ] OptIn factory
+- [x] **baseskill node library + MIM factories + OptIn FSM** — Graph/TransitionContainer
+  (addNode/addSubGraph/finalize validation), NoOp/Default/TrueFalse/JCP/SetLooperID nodes,
+  MultiTurn/QN/AN/MAN/NM/NI/Router nodes, MIM/QN/AN/MAN factories (NoMatch/NoInput
+  escalation-to-exhaustion), Slimmer reference API (generateSlim/generateSlimSequence/
+  generateDisplay + view resolution), unifyMims, OptInFactory (VERIFY_ID/NO_ID + yes/no/
+  wrongID + SetPresentPerson supplemental) with the 4 base MIMs vendored — U/P
 - [ ] example/template reference skills
 
 ## Proactive (cross-cutting) — covered under Gateway above

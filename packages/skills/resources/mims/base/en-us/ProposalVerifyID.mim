@@ -1,0 +1,158 @@
+{
+	"mim_type": "question",
+	"mim_id": "OptInProposalVerifyID",
+	"rule_name": "shared/verify_id",
+	"gui": {
+		"type": "Menu",
+		"data": {
+			"title": "Do you want it?",
+			"buttons": [
+				{
+					"label": "No",
+					"color": "cancel",
+					"icon": "jibo://resources/actionIcons/cancel.png",
+					"utterance": "no",
+					"notes": ""
+				},
+				{
+					"label": "Yes",
+					"color": "confirm",
+					"icon": "jibo://resources/actionIcons/ok.png",
+					"utterance": "yes",
+					"notes": ""
+				},
+				{
+					"label": "That's not me",
+					"color": "default",
+					"icon": "jibo://resources/actionIcons/not-in-loop.png",
+					"utterance": "wrongID",
+					"notes": ""
+				}
+			]
+		},
+		"pause": true
+	},
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"es_auto_tagging": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"notes": "",
+	"prompts": [
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!!speaker",
+			"prompt": "Hey ${speaker}, I have something for you, do you want to hear it?",
+			"media": "TTS",
+			"prompt_id": "OptInProposalVerifyID_QN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!speaker",
+			"prompt": "Oh hey, I have something for you, do you want to hear it?",
+			"media": "TTS",
+			"prompt_id": "OptInProposalVerifyID_QN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!!speaker",
+			"prompt": "Hey ${speaker}, do you want to hear something?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_01",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!!speaker",
+			"prompt": "Oh hey ${speaker}, I've got something to share. Wanna hear it?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_02",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!!speaker",
+			"prompt": "Hey ${speaker}, I have something to share with you. Wanna hear it?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_03",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!!speaker",
+			"prompt": "Hey ${speaker}, can I tell you something?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_04",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!speaker",
+			"prompt": "Hey do you want to hear something?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_05",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!speaker",
+			"prompt": "Oh hey, I've got something to share. Wanna hear it?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_06",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!speaker",
+			"prompt": "Hey I have something to share with you. Wanna hear it?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_07",
+			"weight": 1,
+			"auto_rule_override": null
+		},
+		{
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "Q",
+			"index": 1,
+			"condition": "!speaker",
+			"prompt": "Hey can I tell you something?",
+			"media": "TTS",
+			"prompt_id": "ProposalVerifyID_QN_08",
+			"weight": 1,
+			"auto_rule_override": null
+		}
+	],
+	"hint_phrases": "$YESNO",
+	"fast_eos_array": "$YESNO"
+}

@@ -59,9 +59,11 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
    GARBAGE short-circuit, StringNormalizer, speech-history recording; verify with
    hub-client-style PCM streaming (6400 B/100 ms + trailing zeros)
 
-**Phase E — skills framework completion**
-7. node library + MIM factories + OptInFactory + generateSlimSequence/Display
-8. report-skill real MIM wiring (mega-MAN, Weather/News MimLogic, commute/calendar parse)
+**Phase E — skills framework completion** ◐ in progress
+7. ✅ node library + MIM factories + OptInFactory + generateSlimSequence/Display (2026-06-12:
+   Graph/subgraph composition, full node set, QN/AN/MAN/MIM factories with NM/NI escalation,
+   reference Slimmer API, unifyMims, OptIn FSM + vendored base MIMs; 10 new tests)
+8. report-skill real MIM wiring (mega-MAN, Weather/News MimLogic, commute/calendar parse) ← next
 9. example/template skills; chitchat graph form
 
 **Phase F — runtime + parity closure**

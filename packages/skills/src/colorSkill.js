@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createGraphSkill } from './graph/graphSkill.js';
 import { FnNode } from './graph/node.js';
 import { buildJcpFromSlim } from './jcp.js';
-import { generateSlim, newMimState, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
+import { generateSlimFromMim, newMimState, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
 import { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 
 const MIM_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'mims', 'color');
@@ -23,7 +23,7 @@ export const colorSkill = createGraphSkill({
       transitions: ['answered'],
       enter: (data) => {
         data.skill.session.data._mim = data.skill.session.data._mim || newMimState();
-        const slim = generateSlim(qnMim, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.Q }, buildPromptData(data.runtime), { mimState: data.skill.session.data._mim, log: data.log });
+        const slim = generateSlimFromMim(qnMim, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.Q }, buildPromptData(data.runtime), { mimState: data.skill.session.data._mim, log: data.log });
         return { action: buildJcpFromSlim(slim), final: false };
       },
       exit: (data) => {
@@ -34,7 +34,7 @@ export const colorSkill = createGraphSkill({
     }));
     const reply = gm.addNode(new FnNode('ReplyColor', {
       enter: (data) => {
-        const slim = generateSlim(anMim, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.AN }, buildPromptData(data.runtime, { color: data.skill.session.data.color }), { log: data.log });
+        const slim = generateSlimFromMim(anMim, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.AN }, buildPromptData(data.runtime, { color: data.skill.session.data.color }), { log: data.log });
         return { action: buildJcpFromSlim(slim), final: true };
       },
     }));

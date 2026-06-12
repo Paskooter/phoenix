@@ -23,11 +23,13 @@ export class GraphManager {
   }
 
   getNode(id) { return this.idToNode.get(id); }
+  hasNode(node) { return this.nodeToID.has(node); }
 
-  /** Start a fresh session at the initial node and enter it. */
+  /** Start a fresh session at the initial node (of a Node or a Graph) and enter it. */
   async start(initial, data) {
     if (data.skill.session) throw new Error('Skill session should not exist here');
-    data.skill.session = { id: newMsgId(), nodeID: initial.id, data: {}, trace: [] };
+    const node = (initial && initial.initial) ? initial.initial : initial; // Graph or Node
+    data.skill.session = { id: newMsgId(), nodeID: node.id, data: {}, trace: [] };
     return this.enterNode(data);
   }
 

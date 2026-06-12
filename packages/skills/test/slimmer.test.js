@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateSlim, weightedSample, newMimState, buildPromptData, PromptCategory, PromptSubCategory } from '../src/index.js';
+import { generateSlimFromMim as generateSlim, weightedSample, newMimState, buildPromptData, PromptCategory, PromptSubCategory } from '../src/index.js';
 
 const QN_MIM = {
   mim_id: 'TestQN', mim_type: 'question', rule_name: 'global',

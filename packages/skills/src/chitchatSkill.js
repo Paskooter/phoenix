@@ -13,7 +13,7 @@
 
 import { newMsgId, now, SkillResponseType } from '@phoenix/contracts';
 import { join } from 'node:path';
-import { generateSlim, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
+import { generateSlimFromMim, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
 import { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 import { buildJcpFromSlim } from './jcp.js';
 import { getLibrary, MIM_DIRS } from './chitchat/library.js';
@@ -67,12 +67,12 @@ export async function chitchatSkill(request, { rng = Math.random } = {}) {
   try {
     const raw = loadMimFile(join(baseDir, `${mimID}.mim`));
     const mim = raw.mim_id ? raw : { ...raw, mim_id: mimID };  // vendored .mim files carry no mim_id field
-    slim = generateSlim(mim, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.AN }, promptData, { rng });
+    slim = generateSlimFromMim(mim, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.AN }, promptData, { rng });
   } catch { /* unreadable mim -> fall through to fallback below */ }
   if (!slim && mimID !== 'CC_Fallback') {
     const raw = loadMimFile(join(MIM_DIRS.FALLBACK, 'CC_Fallback.mim'));
     mimID = 'CC_Fallback';
-    slim = generateSlim({ ...raw, mim_id: mimID }, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.AN }, promptData, { rng });
+    slim = generateSlimFromMim({ ...raw, mim_id: mimID }, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.AN }, promptData, { rng });
   }
 
   return {
