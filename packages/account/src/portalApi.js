@@ -14,8 +14,9 @@
 // ADMIN_PASSWORD comes from .env; when unset the admin face is disabled entirely.
 
 import { sendJson } from '@phoenix/common';
-import { createOwnerAccount, verifyPassword, createLoop } from './model.js';
+import { createOwnerAccount, verifyPassword, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS } from './model.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie, checkAdminPassword } from './sessions.js';
+import { buildQrCodes } from './qrPayload.js';
 
 const publicAccount = (a) => ({
   id: a._id, email: a.email, firstName: a.firstName, lastName: a.lastName, created: a.created,
@@ -92,6 +93,33 @@ export function portalRoutes(store) {
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
       const robots = store.allRobots().filter(({ loop }) => loop && loop.owner === account._id);
       return robots.map(robotView);
+    },
+
+    // Add-a-robot: mint a setup token, build the WiFi+token QR payload (the robot scans it,
+    // joins WiFi, and redeems the token via OOBE.setupRobot). loopId null = brand-new robot.
+    'POST /api/robots/setup': ({ req, res, body }) => {
+      const account = userFromSession(store, req);
+      if (!account) return sendJson(res, 401, { error: 'not logged in' });
+      const { ssid, password = '', static: staticConfig = null } = body || {};
+      if (!ssid) return sendJson(res, 400, { error: 'WiFi ssid is required' });
+
+      const token = mintSetupToken(store, account._id, null);
+      const { payload, codes } = buildQrCodes({ ssid, password, staticConfig, token: token._id });
+      return {
+        token: token._id,
+        expires: token.created + ACCESS_TOKEN_LIFETIME_MS,
+        qr: { payload, codes }, // codes[] = one string per QR frame; the portal renders them
+      };
+    },
+
+    // Poll: complete once the robot has redeemed the token (setupRobot deletes it).
+    'GET /api/robots/setup/status': ({ req, res, url }) => {
+      const account = userFromSession(store, req);
+      if (!account) return sendJson(res, 401, { error: 'not logged in' });
+      const tokenId = url.searchParams.get('token');
+      if (!tokenId) return sendJson(res, 400, { error: 'token query param required' });
+      const { token } = findToken(store, tokenId);
+      return { complete: !token, expires: token ? token.created + ACCESS_TOKEN_LIFETIME_MS : null };
     },
 
     // -- admin face (ADMIN_PASSWORD from .env) --------------------------------

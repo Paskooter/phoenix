@@ -23,5 +23,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "jsqr": "^1.4.0"
   }
 }

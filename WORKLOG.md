@@ -2,6 +2,16 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **G.3: OOBE QR (payload + pure-JS encoder) + setup REST (loop).** qrPayload.js:
+  exact config.bt contract — plaintext lines (ssid/password/[static x5/]token), XOR with the
+  jibo.com/jobs key, "<i>/<N>\n<chunk>" framing; robotDecode reimplements the robot's decoder for
+  round-trip tests (DHCP 3-line, static 8-line, multi-frame out-of-order). portal/qr.js: vendored
+  zero-dep QR encoder (byte mode v1-6, EC-M, Reed-Solomon over GF(256), BCH format info, 8 masks
+  w/ penalty selection, SVG out) — every output decoded back by jsQR (dev-only oracle) across
+  9-84-byte payloads. Portal REST: POST /api/robots/setup (mint token + QR codes) + GET
+  /api/robots/setup/status?token=. End-to-end test: signup -> setup QR -> robotDecode ->
+  OOBE.setupRobot -> status flips complete -> robot listed. 11 new tests; 191 total green.
+
 - 2026-06-12 — **G.2: robot-facing AWS-JSON OOBE face (loop).** Read the ORIGINAL srv-account-ws
   off the pvindex gitea (oobe.{handler,ctrl}, token.ctrl, errors/*) — exact semantics captured:
   TOKEN_NOT_FOUND 404 / TOKEN_EXPIRED 401 (expiry does NOT delete), token reuse-within-TTL on
