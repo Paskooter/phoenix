@@ -1,0 +1,46 @@
+{
+    "weather": {
+        "active": true,
+        "useCelsius": false
+    },
+    "calendar": {
+        "active": true,
+        "googlePersonalCreds": true,
+        "googleWorkCreds": false,
+        "outlookPersonalCreds": false,
+        "outlookWorkCreds": true
+    },
+    "commute": {
+        "active": true,
+        "workTime": {
+            "hour": 9,
+            "min": 0
+        },
+        "origin": {
+            "lat": 42.3601,
+            "lng": -71.0589
+        },
+        "destination": {
+            "lat": 42.3727,
+            "lng": -71.1229
+        },
+        "mode": "driving",
+        "complete": true
+    },
+    "news": {
+        "active": true,
+        "activeNewsCategories": {
+            "general": false,
+            "technology": true,
+            "sports": false,
+            "business": false,
+            "science": false,
+            "entertainment": true,
+            "strange": true,
+            "health": false,
+            "international": false,
+            "national": false,
+            "politics": false
+        }
+    }
+}

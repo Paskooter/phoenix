@@ -1,0 +1,22 @@
+{
+    "weather": {
+        "prefix": [
+            "Looks like it's going to be",
+            "We can expect it to be",
+            "It's going to be",
+            "Looks like",
+            "It'll be",
+            "It looks like",
+            "It's supposed to be",
+            "They're predicting",
+            "They're saying it's going to be",
+            "We can expect",
+            "All signs point to"
+        ]
+    },
+    "calendar": {
+        "fullDay": [
+            "an all day event"
+        ]
+    }
+}

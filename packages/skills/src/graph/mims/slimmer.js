@@ -127,7 +127,10 @@ async function loadAndPrep(providers, data, log) {
   const mims = await loadMims(providers.mimDataProvider, data);
   const viewData = isFunc(providers.viewDataProvider) ? providers.viewDataProvider(data) : providers.viewDataProvider;
   const skillPromptData = isFunc(providers.promptDataProvider) ? providers.promptDataProvider(data) : providers.promptDataProvider;
-  const promptData = buildPromptData(data.runtime, skillPromptData || {});
+  // Reference PromptData exposes skill data as the `skill` property (prompts say
+  // `${skill.weather.summary}`); Phoenix additionally spreads it at the root (chitchat precedent).
+  const sd = skillPromptData || {};
+  const promptData = buildPromptData(data.runtime, { ...sd, skill: sd });
   return { mims, promptData, viewData };
 }
 

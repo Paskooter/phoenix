@@ -63,7 +63,11 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 7. ✅ node library + MIM factories + OptInFactory + generateSlimSequence/Display (2026-06-12:
    Graph/subgraph composition, full node set, QN/AN/MAN/MIM factories with NM/NI escalation,
    reference Slimmer API, unifyMims, OptIn FSM + vendored base MIMs; 10 new tests)
-8. report-skill real MIM wiring (mega-MAN, Weather/News MimLogic, commute/calendar parse) ← next
+8. ◐ report-skill real MIM wiring (2026-06-12: full PersonalReport graph — IntentSplit/UserID
+   (WhoIsThis+SetLooperID)/GetUserPrefs(SettingsClient)/GetData/ParseData/Toggles/OptIn/mega-MAN
+   over the 82 vendored mims; WeatherMimLogic + NewsMimLogic complete with condition tables.
+   Remaining E.8b: Commute/CalendarParse+MimLogic full tables — placeholders degrade to
+   ServiceDown, unreachable until prefsConfig anyway) ← E.8b next
 9. example/template skills; chitchat graph form
 
 **Phase F — runtime + parity closure**

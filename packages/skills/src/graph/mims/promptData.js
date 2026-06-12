@@ -100,9 +100,12 @@ function ageData(birthdate, nowDate) {
 function buildDt(iso, nowDate) {
   const hour = nowDate.getHours();
   const partOfDay = hour < 5 ? 'NIGHT' : hour < 12 ? 'MORNING' : hour < 17 ? 'AFTERNOON' : hour < 21 ? 'EVENING' : 'NIGHT';
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   return {
     hour,
     dayOfWeek: nowDate.getDay(),
+    day: DAYS[nowDate.getDay()],     // "${dt.day}" -> "Friday" (PersonalReportKickOff)
+    date: fmtMonthDay(nowDate),      // "${dt.date}" -> "June 12th"
     partOfDay,
     iso,
     // dt.now.isInRange('M/D', 'M/D') — inclusive month/day window, wrapping over

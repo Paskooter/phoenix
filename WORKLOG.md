@@ -2,6 +2,21 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **Phase E.8: report-skill IS the PersonalReport graph (loop).** Full port of
+  report-skill/src: PersonalReport.ts assembly (IntentSplit→UserID(WhoIsThis QN/SetLooperID/
+  PrefetchWeather)→GetUserPrefs(SettingsClient: defaults/prefsConfig/SettingsFailed)→GetData→
+  ParseData→Toggles→subskill graphs→send-all mega-MAN with outro logic→Final; proactive memo →
+  OptIn VERIFY_ID proposal), WeatherMimLogic complete condition tables (yesterday-vs-today
+  change/temp-swing/wet-now-dry-later/day-night icon fix), NewsMimLogic (banned+adult keyword
+  filters, headline dedupe, category trim, per-cat counts, `${skill.news.headlines.shift()}`),
+  LassoClient against NET_data (incl. minimal xml2js-compatible parser), promptData dt.day/dt.date,
+  Slimmer `skill.` nesting. Commute/Calendar = E.8b placeholders (ServiceDown; see DIVERGENCES).
+  Tests rewritten to reference behavior: WhoIsThis on un-IDed full report, MustBeLooper via
+  notInLoop turn 2, SettingsFailed+ServiceDown+OutroConfigured MAN, happy-path e2e with mock
+  lasso (ChangeCloudyWet+TodayWarmer+headline template). 132 unit + sim proxy ALL PASS (harness
+  check fixed: envelope final is always true for forwarded skill results; data.final signals
+  session continuation). Live skills service restarted.
+
 - 2026-06-12 — **Phase E.7: baseskill node library + MIM factories + OptIn FSM (loop).** Ports of
   Graph.ts (subgraph composition + finalize validation), nodes/{NoOp,Default,TrueFalse,JCP,
   SetLooperID}, mims/nodes/{MultiTurn,QN,AN,MAN,NM,NI,Router}, factories/{MIM,QN,AN,MAN},

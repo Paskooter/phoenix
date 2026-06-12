@@ -98,8 +98,14 @@ Legend of verification: **U**=unit (`npm test`), **P**=proxy harness
   (dt.now.isInRange, JiboData emotion/age/zodiac, LooperData, loop.owner, skill.dice/coin);
   4,364/4,369 render in bulk smoke — U/P (live-verified on the sim)
 - [x] report-skill intent split (IntentSplitNode port: news/weather/commute/calendar single-subskill) — U/P
-- [ ] report-skill subskills speak from the vendored report mims (82 files vendored; wiring todo:
-  weather comments, news intros, commute/calendar dialog per MimLogic)
+- [x] **report-skill = the PersonalReport graph** (PersonalReport.ts port): IntentSplit →
+  UserID subgraph (WhoIsThis QN + SetLooperID + PrefetchWeather) → GetUserPrefs (SettingsClient
+  defaults/prefsConfig/dead-service SettingsFailed) → GetData (lasso darksky/apnews via NET_data)
+  → ParseData → per-category Toggles → WeatherMimLogic (full condition tables: ChangeCloudyWet
+  etc, TodayWarmer/Hotter/Colder/Cooler, WetNowDryLater, Basic/Comment by icon) + NewsMimLogic
+  (banned/adult filters, dedupe, per-category counts, Intro+Headline×N+Outro) → mega-MAN
+  SEQUENCE with outro selection; proactive memo -> OptIn proposal (VERIFY_ID) — U/P
+- [ ] report-skill E.8b: Commute/CalendarParse + MimLogic full tables (placeholders: ServiceDown)
 - [ ] SKILL_REDIRECT emitted by a skill
 - [x] **baseskill node library + MIM factories + OptIn FSM** — Graph/TransitionContainer
   (addNode/addSubGraph/finalize validation), NoOp/Default/TrueFalse/JCP/SetLooperID nodes,
