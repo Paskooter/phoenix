@@ -10,15 +10,26 @@ SIM_PORT="${SIM_PORT:-8080}"
 
 cd "$PHX"
 
+# LLM (answer-skill freeform answers + the parser's LLM fallback): an
+# OpenAI-compatible /v1 endpoint. Default to the LAN LM Studio host serving
+# Gemma when it's reachable; explicit ETCO_answer_llmUrl always wins.
+REAL_LLM="${REAL_LLM:-http://192.168.1.252:1234/v1}"
+LLM_URL="${ETCO_answer_llmUrl:-}"
+LLM_MODEL="${ETCO_answer_llmModel:-google/gemma-4-e4b}"
+if [[ -z "$LLM_URL" ]] && curl -s -m 2 -o /dev/null "$REAL_LLM/models"; then
+  LLM_URL="$REAL_LLM"
+  echo "LLM detected at $LLM_URL (model $LLM_MODEL)"
+fi
+
 # Backend services on their default ports (nlu 7011, data 7012, history 7013, skills 7014).
-PORT=7011 node packages/nlu/src/index.js        > /tmp/phx-nlu.log     2>&1 &
+ETCO_parser_llmUrl="$LLM_URL" \
+ETCO_parser_llmModel="$LLM_MODEL" \
+  PORT=7011 node packages/nlu/src/index.js      > /tmp/phx-nlu.log     2>&1 &
 PORT=7012 node packages/data/src/index.js        > /tmp/phx-data.log    2>&1 &
 PORT=7013 node packages/history/src/index.js     > /tmp/phx-history.log 2>&1 &
-# ETCO_answer_llmUrl: OpenAI-compatible endpoint for answer-skill (e.g. LM Studio
-# serving Gemma: http://<host>:1234/v1). Passed through from the caller's env.
 NET_data=localhost:7012 \
-ETCO_answer_llmUrl="${ETCO_answer_llmUrl:-}" \
-ETCO_answer_llmModel="${ETCO_answer_llmModel:-gemma-3}" \
+ETCO_answer_llmUrl="$LLM_URL" \
+ETCO_answer_llmModel="$LLM_MODEL" \
   PORT=7014 node packages/skills/src/index.js    > /tmp/phx-skills.log  2>&1 &
 
 # Server-side ASR (the sim's 🎤 button): the gateway POSTs captured speech to
