@@ -22,15 +22,25 @@ ETCO_answer_llmModel="${ETCO_answer_llmModel:-gemma-3}" \
   PORT=7014 node packages/skills/src/index.js    > /tmp/phx-skills.log  2>&1 &
 
 # Server-side ASR (the sim's 🎤 button): the gateway POSTs captured speech to
-# ${ETCO_server_parakeetUrl}/transcribe. Default to the local mock (started
-# below unless MOCK_PARAKEET=0), which returns a canned transcript and saves
-# every WAV to /tmp/parakeet-rx so you can audition the mic capture. Point
-# this at a real Parakeet/STT host for actual recognition.
-PARAKEET_DEFAULT="http://localhost:6972"
-if [[ "${MOCK_PARAKEET:-1}" != 0 && -z "${ETCO_server_parakeetUrl:-}" ]]; then
+# ${ETCO_server_parakeetUrl}/transcribe. Resolution order:
+#   1. explicit ETCO_server_parakeetUrl from the caller's env
+#   2. the real Parakeet host (REAL_PARAKEET, default the reference LAN box)
+#      if it answers HTTP right now
+#   3. the local mock (canned transcript; saves every WAV to /tmp/parakeet-rx
+#      so you can audition the mic capture). MOCK_PARAKEET=0 disables it.
+REAL_PARAKEET="${REAL_PARAKEET:-http://192.168.1.252:6972}"
+if [[ -n "${ETCO_server_parakeetUrl:-}" ]]; then
+  PARAKEET_URL="$ETCO_server_parakeetUrl"
+elif curl -s -m 2 -o /dev/null "$REAL_PARAKEET/"; then
+  PARAKEET_URL="$REAL_PARAKEET"
+  echo "real Parakeet detected at $REAL_PARAKEET"
+elif [[ "${MOCK_PARAKEET:-1}" != 0 ]]; then
   MOCK_TRANSCRIPT="${MOCK_TRANSCRIPT:-what time is it}" node scripts/mock-parakeet.js > /tmp/phx-parakeet.log 2>&1 &
+  PARAKEET_URL="http://localhost:6972"
+  echo "real Parakeet unreachable — using the mock (canned transcript)"
+else
+  PARAKEET_URL="http://localhost:6972"
 fi
-PARAKEET_URL="${ETCO_server_parakeetUrl:-$PARAKEET_DEFAULT}"
 
 # Gateway on 9000, wired to the others, auth secret matching the sim.
 ETCO_server_hubTokenSecret="$SECRET" \
