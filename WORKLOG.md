@@ -2,6 +2,20 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-12 — **G.6 + PHASE G COMPLETE (loop, stopping).** Wired the account service into both
+  runners: run-compose-stack.sh starts it on :9011 (ACCOUNT=1, passes ADMIN_PASSWORD/
+  HUB_TOKEN_SECRET/region, NET_ota, sets the hub's ETCO_hub_accountUrl); docker-compose.yml adds
+  the `account` service (env_file .env optional, NET_ota=ota:8080, :9011) + hub
+  ETCO_hub_accountUrl/ETCO_hub_disableAuth. verify-compose-contract.mjs gained a NON-FATAL
+  extension block (account healthcheck + portal index + signup + add-robot QR) — full native
+  stack verified ALL PASS incl. the account/portal + the account->OTA `/` proxy. README: new
+  "Web portal + robot adoption", "Per-robot authentication", and "Running it publicly" sections
+  (Caddy TLS, expose only hub 9000 + portal 9011, firewall internals, region DNS, prod .env,
+  SigV4-trust caveat) + layout/env-table updates. Docs closed out: CLASSIC-SERVICES.md
+  (account/loop/oobe ✅), OOBE-PORTAL-HANDOFF.md (DONE banner), PARITY.md (Phase G ✅),
+  DIVERGENCES.md (G-sigv4/store/hubtoken/admin/qr rows). 205 tests + sim proxy + portal smoke +
+  contract verify all green. **Phase G (per-robot auth + OOBE portal) is finished.**
+
 - 2026-06-12 — **G.5: hub per-robot authentication (loop).** (a) common/jwt.js verify() now
   honors an `exp` claim (30s skew) — server-issued hub tokens expire; tokens WITHOUT exp stay
   valid (sim/robot hand-signed creds, LAN back-compat); +2 jwt tests. (b) packages/account:

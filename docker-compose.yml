@@ -37,6 +37,10 @@ services:
       - PORT=8080
       - ETCO_hub_skillsConfig=skills-local.json
       - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
+      - ETCO_hub_disableAuth=${DISABLE_AUTH:-true}
+      # Per-robot auth (G.5): when DISABLE_AUTH=false, validate each token's accessKeyId
+      # against the account service. Harmless when auth is disabled.
+      - ETCO_hub_accountUrl=http://account:8080
       - NET_parser=parser:8080
       - NET_history=history:8080
       - NET_data=lasso:8080
@@ -125,6 +129,25 @@ services:
       - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:-}
     ports:
       - 9010:8080
+
+  # Phoenix extension: the account service — web portal (signup/login, add-a-robot QR),
+  # the OOBE pairing service the robot calls (OOBE.setupRobot), and per-robot hub-token
+  # issuance + verification. Reads .env (ADMIN_PASSWORD, HUB_TOKEN_SECRET, region). The
+  # store persists under ./packages/account/data (a named host mount).
+  account:
+    <<: *phoenix-defaults
+    container_name: account
+    working_dir: /phoenix
+    command: node packages/account/src/index.js
+    env_file:
+      - path: .env
+        required: false   # copy .env.example -> .env to set ADMIN_PASSWORD etc.
+    environment:
+      - PORT=8080
+      - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
+      - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
+    ports:
+      - 9011:8080
 
 networks:
   pegasus-nw:

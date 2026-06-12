@@ -1,5 +1,25 @@
 # OOBE Web Portal — Agent Handoff
 
+> ## ✅ DONE (2026-06-12) — built as `packages/account`
+> This handoff has been **implemented**. The account/loop/OOBE service + the responsive web
+> portal live in **`packages/account`** (M1–M4 of §9 all complete):
+> - **Robot face** (AWS-JSON): `OOBE.setupRobot` / `prepareRobot` / `getStatus` + an `Update_*`
+>   proxy to the OTA service — `packages/account/src/robotFace.js`.
+> - **Portal face** (REST + sessions): signup/login/logout/me, `/api/robots`,
+>   `/api/robots/setup` (mint token + QR), status polling — `packages/account/src/portalApi.js`.
+> - **Per-robot hub auth**: `/api/token` + `/api/verify` (hub-token issuance/revocation) — G.5.
+> - **Admin face**: ALL-robots list + manual adopt (re-issues creds for cloud-orphaned robots).
+> - **QR**: exact `config.bt` payload + a **from-scratch pure-JS QR encoder**
+>   (`packages/account/portal/qr.js`), verified by decoding its own output with jsQR.
+> - **UI**: vanilla responsive SPA in `packages/account/portal/`.
+> - **Verified**: `npm test` (account unit tests) + **`node scripts/portal-smoke.mjs`** (a real
+>   headless-Chrome e2e: signup → QR render → robot `setupRobot` → poll-complete → admin adopt).
+>
+> v1 simplifications noted in §9 still apply (new-robot path; reconnect/suspended-loop/managed-
+> members deferred). The original mission text below is retained as the design record.
+>
+> ---
+
 > **Mission for the next session.** Build **Path A** of Jibo OOBE: a minimal **web portal**
 > (sign up / log in, "set up a new robot" → QR, see attached robots, log out — responsive for
 > PC *and* mobile) **plus the server** behind it (the `account` + `oobe` + `loop` Classic

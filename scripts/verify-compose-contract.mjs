@@ -84,5 +84,37 @@ try {
   check('report-skill direct POST', false, e.message);
 }
 
+// 5. EXTENSION (non-fatal): the account service + web portal. Not part of the reference
+// Pegasus conversational contract — failures here are warnings, not contract violations.
+const ACCOUNT = 9011;
+let extWarnings = 0;
+const ext = (name, cond, detail) => {
+  if (cond) console.log('PASS', name);
+  else { extWarnings++; console.log('WARN', name, detail != null ? `:: ${JSON.stringify(detail).slice(0, 160)}` : '', '(extension — not a contract failure)'); }
+};
+try {
+  const health = await fetch(`http://${HOST}:${ACCOUNT}/healthcheck`);
+  ext(`[ext] account healthcheck :${ACCOUNT}`, health.ok);
+  const portal = await fetch(`http://${HOST}:${ACCOUNT}/`);
+  ext('[ext] portal index served', portal.ok && (await portal.text()).includes('Phoenix'));
+
+  const email = `verify-${Date.now()}@phoenix.local`;
+  const signup = await fetch(`http://${HOST}:${ACCOUNT}/api/signup`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, password: 'verify-pass-1234', firstName: 'Verify' }),
+  });
+  ext('[ext] portal signup', signup.ok);
+  const cookie = (signup.headers.get('set-cookie') || '').split(';')[0];
+  const setup = await fetch(`http://${HOST}:${ACCOUNT}/api/robots/setup`, {
+    method: 'POST', headers: { 'content-type': 'application/json', cookie },
+    body: JSON.stringify({ ssid: 'VerifyNet', password: 'pw' }),
+  });
+  const sd = await setup.json().catch(() => ({}));
+  ext('[ext] add-robot setup returns a QR', setup.ok && sd.qr && sd.qr.codes.length >= 1, sd.error);
+} catch (e) {
+  ext('[ext] account service reachable', false, e.message);
+}
+if (extWarnings) console.log(`(${extWarnings} extension warning(s) — start the account service with ACCOUNT=1 / docker compose for these)`);
+
 console.log(failures ? `CONTRACT VERIFY: ${failures} FAILURE(S)` : 'CONTRACT VERIFY: ALL PASS');
 process.exit(failures ? 1 : 0);

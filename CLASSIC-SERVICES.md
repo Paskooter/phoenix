@@ -6,9 +6,11 @@
 > every classic service, marks what Phoenix has built vs. not, and leaves enough context for a
 > fresh agent to continue without re-deriving the landscape.
 >
-> **TL;DR of current state:** exactly **one** classic service is implemented — **`update`**
-> (firmware OTA) as `packages/ota` (`@phoenix/ota`). Everything else below is unbuilt. The
-> conversational stack (hub/parser/skills) is Phoenix's main body and is separate from these.
+> **TL;DR of current state:** **two** classic services are implemented — **`update`** (firmware
+> OTA) as `packages/ota`, and **`account` + `loop` + `oobe`** (pairing/identity + the OOBE
+> `setupRobot` handshake + per-robot hub-token issuance + the web portal) as `packages/account`
+> (`@phoenix/account`). The rest below is unbuilt. The conversational stack (hub/parser/skills)
+> is Phoenix's main body and is separate from these.
 
 ---
 
@@ -75,8 +77,8 @@ gotchas (see §4).
 | Service | API def (`jibo-server-client/apis/`) | Original repo | What it does | Status | Revival relevance |
 |---|---|---|---|---|---|
 | **update** | `update-2016-03-01` | `server/update-ws`, `jiborobot/srv-update-ws` | Firmware OTA: tells the robot which os/services/skill subsystems have updates; serves the packages | **✅ `packages/ota`** | **Done.** See §4. |
-| **account** | `account-2015-11-11` | `srv-account-ws` (in `jiboV2/pegasus/.../cloud-services`) | Accounts; **issues the robot's `accessKeyId`/`secretAccessKey` during OOBE** (`setupRobot`); owns the Loop | ⬜ | **Tier 1 — critical.** This is what mints robot credentials at first-boot. We currently *bypass* it by hand-writing `/var/jibo/credentials.json`. Needed for real app-driven pairing. |
-| **loop** | `loop-2016-03-24` | (part of `srv-account-ws`) | The "Loop" = a Jibo household: members, ownership, which robot belongs to whom | ⬜ | Tier 1 — paired with account. |
+| **account** | `account-2015-11-11` | `srv-account-ws` (in `jiboV2/pegasus/.../cloud-services`) | Accounts; **issues the robot's `accessKeyId`/`secretAccessKey` during OOBE** (`setupRobot`); owns the Loop | **✅ `packages/account`** | **Done.** OOBE `setupRobot`/`prepareRobot`/`getStatus` over AWS-JSON, plus the web portal that mints setup tokens + QR, and per-robot hub-token issuance (`/api/token`, `/api/verify`). v1 = the new-robot + same-robot-reissue paths (reconnect/suspended-loop/managed-members deferred). |
+| **loop** | `loop-2016-03-24` | (part of `srv-account-ws`) | The "Loop" = a Jibo household: members, ownership, which robot belongs to whom | **✅ `packages/account`** | **Done** (v1: one owner, N robots, one robot per loop; find-or-create robot account, getLoopName dedupe). |
 | **robot** | `robot-2016-02-25` | `jiborobot/srv-robots-ws` | Robot manufacturing/lifecycle events (registration, RMA, fuse state) | ⬜ | Tier 2 — identity/registration. |
 | **robotread** | — | `jiborobot/srv-robots-read-ws` | Read-side snapshot of robot state (CQRS pair of `robot`) | ⬜ | Tier 3. |
 | **key** | `key-2016-02-01` | `jiborobot/srv-key-ws` | Manages the keys used to encrypt robot↔server↔mobile user data (UGC) | ⬜ | Tier 2 — needed for encrypted user content & some account flows. |
@@ -114,19 +116,20 @@ gotchas (see §4).
 
 ## 3. What's left, by priority (for "make a robot work like the cloud did")
 
-- **Tier 1 — pairing/identity** (only if you want real app-driven OOBE instead of hand-writing creds):
-  `account` + `loop`. Implement `setupRobot` (token → `accessKeyId`/`secretAccessKey` + loop attach).
-  Today's workaround: write `/var/jibo/credentials.json` directly (any region resolves to Phoenix).
-  **→ Fully scoped for the next session in [`OOBE-PORTAL-HANDOFF.md`](OOBE-PORTAL-HANDOFF.md)** (a web
-  portal — signup/login, set-up-a-robot QR, robot list — plus the `account`/`oobe`/`loop` service).
+- **Tier 1 — pairing/identity**: ✅ **done** — `account` + `loop` + `oobe` in `packages/account`,
+  with the web portal (signup/login, add-a-robot QR, robot list, admin adopt) and per-robot hub
+  auth. Real app-driven OOBE works; hand-writing `/var/jibo/credentials.json` (or the admin
+  adopt page) remains the path for an already-paired robot. See **README → Web portal + robot
+  adoption** and the build notes in [`OOBE-PORTAL-HANDOFF.md`](OOBE-PORTAL-HANDOFF.md).
 - **Tier 2 — remote control & notifications** (Commander, push, the phone app live features):
   `entrypoint-socket` (the `wss` door) + `notification` + `push` + `rom` + supporting `key`, `robot`.
   This is the biggest unbuilt cluster and the next obvious milestone after OTA.
 - **Tier 3 — features**: `media`, `person`, `voicetraining`, `jot`, `backup`, `log`, `skill`, `ifttt`.
   Most can be stubbed (return empty/no-op) without breaking the robot.
 
-A robot can be **alive, conversational, and self-updating today** with just: Phoenix hub (✅) +
-`update` (✅) + hand-written `credentials.json`. Tiers 1–3 add app/cloud parity.
+A robot can be **alive, conversational, self-updating, and app-pairable today** with: Phoenix
+hub (✅) + `update` (✅) + `account`/`loop`/`oobe` + portal (✅). Tiers 2–3 add the remaining
+cloud parity (Commander, notifications, media, …).
 
 ---
 

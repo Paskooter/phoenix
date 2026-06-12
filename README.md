@@ -41,6 +41,7 @@ packages/
   history/     skill-launch (IH query language) + speech history
   skills/      baseskill framework (GraphSkill, MIM factories, Slimmer, OptIn) + all skills
   ota/         OTA update server (extension) — serves firmware subsystems to a robot in place
+  account/     account/loop/OOBE Classic Service + web portal + per-robot hub-token auth (extension)
 ```
 
 ## Running it — without Docker
@@ -68,7 +69,12 @@ Useful env, all optional:
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (e.g. LM Studio) for the answer-skill + parser fallback |
 | `HUB_TOKEN_SECRET` | JWT secret robots must sign with (default `dev-hub-token-secret`) |
 | `DISABLE_AUTH` | defaults `true` for local use — set `false` to require robot JWTs |
+| `ADMIN_PASSWORD` | password for the portal's admin page (`/#/admin`); unset = admin disabled |
 | `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `resources/report-prefsConfig.json` |
+
+The launcher also starts the **OTA** server (`:9010`) and the **account service + web portal**
+(`:9011`); disable with `OTA=0` / `ACCOUNT=0`. Copy `.env.example` → `.env` to set the above
+(every variable is documented there). See **Web portal + robot adoption** below.
 
 **Or run the sim stack** — the same services on dev ports **plus the browser simulator**
 ([jibo-web-sim](https://github.com/Paskooter/jibo-web-sim), expected as a sibling checkout),
@@ -162,6 +168,100 @@ loop-guard so it stops once the robot already runs the target).
 rebuilt. For the full inventory — accounts/loop, notifications, Commander, keys, media, … — what's
 implemented vs. not, and how to add another, see **[CLASSIC-SERVICES.md](CLASSIC-SERVICES.md)**
 (written as an agent handoff).
+
+## Web portal + robot adoption
+
+`packages/account` is the second Classic Service: the **account / loop / OOBE** service, with a
+small **web portal** in front (responsive vanilla HTML/JS, no build step). It does two jobs:
+
+**1. Pair a brand-new (or factory-reset) robot — the real OOBE handshake.**
+
+```bash
+# started by run-compose-stack.sh on :9011, or `docker compose up`
+open http://localhost:9011        # or your public URL
+```
+
+Sign up → **Add a robot** → enter your home WiFi → the portal renders the setup **QR**. Hold it
+up to Jibo's eye; he scans it (WiFi creds + a one-time token), joins the network, and calls
+`OOBE.setupRobot` against this service, which mints his permanent `accessKeyId`/`secretAccessKey`,
+attaches him to your loop, and returns them — the robot writes them to `/var/jibo/credentials.json`
+itself. The portal polls until he's done and lists him. (The QR payload and encoder are a
+from-scratch reimplementation of the robot's `oobe-config` format — see `packages/account/portal/qr.js`.)
+
+**2. Adopt an existing robot — one that paired with the original Jibo cloud years ago.**
+
+Its old credentials are worthless (that database is gone), so adoption *re-issues* them. Open the
+admin page (`/#/admin`, gated by `ADMIN_PASSWORD`), enter the robot's 4-word name, and it returns
+the exact `credentials.json` to write plus the repoint command:
+
+```bash
+ssh root@<robot> jibo-mount --rw
+# write the credentials.json the admin page shows to /var/jibo/credentials.json
+scripts/point-robot-at-phoenix.sh --robot <robot-ip> --server http://<this-host>:9011
+```
+
+The admin page also lists **every adopted robot** across all accounts (name, owner, loop, access
+key, last-seen).
+
+## Per-robot authentication
+
+By default the hub trusts the LAN (`DISABLE_AUTH=true`) — fine at home. For a public deployment,
+turn on real per-robot auth:
+
+- Each robot has its own `accessKeyId`/`secretAccessKey` (issued at pairing/adoption, above).
+- A robot exchanges them for a short-lived hub token: `POST /api/token {accessKeyId,
+  secretAccessKey}` → an HS256 JWT signed with `HUB_TOKEN_SECRET`, carrying its identity (never
+  the secret), 3-hour expiry. (The robot's own Jetstream client may instead sign a token locally
+  with the shared secret — both modes work; the gateway only verifies the signature + identity.)
+- The hub verifies that token's signature, checks its `exp`, and — when `ETCO_hub_accountUrl` is
+  set — confirms the `accessKeyId` still maps to a live account (`GET /api/verify`), so you can
+  **revoke** a robot by deactivating its account. The secret never leaves the server.
+
+Set `DISABLE_AUTH=false` (and a strong `HUB_TOKEN_SECRET`) to require it.
+
+## Running it publicly
+
+Phoenix has no built-in TLS; put a reverse proxy in front and expose **only two** ports — the
+hub (`9000`, WebSocket) and the portal (`9011`). Everything else (parser, skills, history, lasso,
+OTA, and the account service's *internal* port) stays bound to localhost behind the proxy.
+
+A minimal **Caddy** config (automatic Let's Encrypt TLS):
+
+```caddyfile
+# Portal + the robot's Classic-Service endpoint (OOBE.setupRobot, Update_* proxy).
+# A robot resolves all server-client calls to https://<region>.jibo.com — point that name here.
+phx.example.com, your-region.jibo.com {
+    reverse_proxy localhost:9011
+}
+
+# The hub (WebSocket). The robot's Jetstream connects here; the sim uses wss too.
+hub.example.com {
+    reverse_proxy localhost:9000     # Caddy upgrades WebSockets automatically
+}
+```
+
+Then:
+
+1. **`cp .env.example .env`** and set, at minimum:
+   ```
+   ADMIN_PASSWORD=<long random>
+   HUB_TOKEN_SECRET=<long random>          # NOT the dev default
+   DISABLE_AUTH=false                      # require per-robot auth
+   ETCO_account_secureCookies=true         # cookies only over HTTPS
+   ETCO_account_region=your-region         # matches the robot's region
+   ```
+2. **Point the robot at you.** The robot resolves Classic Services from its `region`
+   (`https://<region>.jibo.com`) and Jetstream/hub separately. Either add public DNS for
+   `<region>.jibo.com` → your proxy, or set the robot's `/etc/hosts` and run
+   `scripts/point-robot-at-phoenix.sh` to rewrite its `region_config` + Jetstream hub target.
+3. **Firewall the internals.** Bind ports 9003–9010 (and the account port if you proxy 9011) to
+   `127.0.0.1`, or block them at the host firewall — only 9000 and 9011 should be reachable.
+
+> Trust caveat: the robot signs its Classic-Service requests with AWS SigV4, but Phoenix does
+> **not** verify those signatures (the original signing keys are unrecoverable) — identity comes
+> from the OOBE token and the hub JWT instead. Treat a publicly-exposed Phoenix as "anyone who can
+> reach `/` can call the robot-facing OOBE ops"; the `ADMIN_PASSWORD` gate and per-robot hub auth
+> are the real access controls. See [DIVERGENCES.md](DIVERGENCES.md).
 
 ## Verification
 

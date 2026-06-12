@@ -24,16 +24,6 @@ PORT=9003 NET_data=localhost:9007 ETCO_report_prefsFromConfig="${PREFS_FROM_CONF
 PORT=9004 NET_data=localhost:9007 \
   node packages/skills/src/index.js   > /tmp/phx-compose-chitchat.log 2>&1 &
 
-PORT=9000 \
-ETCO_hub_skillsConfig=skills-native.json \
-ETCO_hub_disableAuth="${DISABLE_AUTH:-true}" \
-ETCO_server_hubTokenSecret="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
-ETCO_server_parakeetUrl="$PARAKEET_URL" \
-NET_parser=localhost:9005 \
-NET_history=localhost:9006 \
-NET_data=localhost:9007 \
-  node packages/gateway/src/index.js  > /tmp/phx-compose-hub.log     2>&1 &
-
 # Phoenix extension (not in the reference contract): the OTA update server. A robot points
 # its Update endpoint here to pull firmware in place. Serves packages/ota/data (build them
 # with scripts/build-ota-packages.sh). Disable with OTA=0.
@@ -42,7 +32,33 @@ if [ "${OTA:-1}" != "0" ]; then
     node packages/ota/src/index.js    > /tmp/phx-compose-ota.log     2>&1 &
 fi
 
+# Phoenix extension: the account service — web portal + OOBE pairing + per-robot hub-token
+# issuance (CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md). Disable with ACCOUNT=0.
+ACCOUNT_URL=""
+if [ "${ACCOUNT:-1}" != "0" ]; then
+  PORT=9011 \
+  ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
+  HUB_TOKEN_SECRET="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
+  ETCO_account_region="${ETCO_account_region:-phx}" \
+  ETCO_account_secureCookies="${ETCO_account_secureCookies:-}" \
+  NET_ota=localhost:9010 \
+    node packages/account/src/index.js > /tmp/phx-compose-account.log 2>&1 &
+  ACCOUNT_URL="http://localhost:9011"
+fi
+
+PORT=9000 \
+ETCO_hub_skillsConfig=skills-native.json \
+ETCO_hub_disableAuth="${DISABLE_AUTH:-true}" \
+ETCO_hub_accountUrl="${ETCO_hub_accountUrl:-$ACCOUNT_URL}" \
+ETCO_server_hubTokenSecret="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
+ETCO_server_parakeetUrl="$PARAKEET_URL" \
+NET_parser=localhost:9005 \
+NET_history=localhost:9006 \
+NET_data=localhost:9007 \
+  node packages/gateway/src/index.js  > /tmp/phx-compose-hub.log     2>&1 &
+
 echo "compose-contract stack: hub:9000 report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 answer:9009"
-echo "ext: ota:9010 (OTA update server)"
+echo "ext: ota:9010 (OTA update server)${ACCOUNT_URL:+ · account+portal:9011}"
+[ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:9011  (admin at /#/admin — needs ADMIN_PASSWORD)"
 echo "logs: /tmp/phx-compose-*.log"
 wait

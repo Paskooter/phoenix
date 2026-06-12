@@ -75,21 +75,23 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
     SkillConversation + Jetsons frozen fixtures + wire behavior tests; final corpus run;
     **M9-REPORT.md** (the parity report).
 
-**Phase G — classic services: per-robot auth + OOBE portal** (post-M9 extension; CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md)
-11. G.1 config spine (.env loader + .env.example) + packages/account store (accounts/loops/tokens,
+**Phase G — classic services: per-robot auth + OOBE portal** ✅ done 2026-06-12 (post-M9 extension; CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md)
+11. ✅ G.1 config spine (.env loader + .env.example) + packages/account store (accounts/loops/tokens,
     JSON-file persisted, scrypt, fillAccessKeys 20/40) + sessions + REST signup/login/logout/me +
     admin auth (ADMIN_PASSWORD from .env)
-12. G.2 robot AWS-JSON face: OOBE.setupRobot/prepareRobot/getStatus (mirrors srv-account-ws,
+12. ✅ G.2 robot AWS-JSON face: OOBE.setupRobot/prepareRobot/getStatus (mirrors srv-account-ws,
     exact error codes), loop + robot-account creation, Update_* prefix-proxy -> OTA (single
     front door for the robot repoint)
-13. G.3 QR (config.bt XOR + chunk framing + vendored pure-JS QR encoder) + /api/robots/setup +
-    status polling + /api/robots
-14. G.4 web portal UI (responsive vanilla: auth, dashboard, add-robot QR) + admin page (ALL
-    adopted robots + manual adopt ceremony showing credentials.json + repoint command)
-15. G.5 hub per-robot auth: jwt exp validation, hub-token issuance endpoint (accessKeyId/
-    secretAccessKey -> short-lived HS256), gateway registry validation (ETCO_hub_accountUrl),
-    last-seen; DISABLE_AUTH/shared-secret dev modes unchanged
-16. G.6 launchers/compose .env wiring, README public-deployment guide, doc updates, ship
+13. ✅ G.3 QR (config.bt XOR + chunk framing + vendored pure-JS QR encoder, jsQR-verified) +
+    /api/robots/setup + status polling + /api/robots
+14. ✅ G.4 web portal UI (responsive vanilla: auth, dashboard, add-robot QR) + admin page (ALL
+    adopted robots + manual adopt ceremony showing credentials.json + repoint command);
+    scripts/portal-smoke.mjs headless-Chrome e2e
+15. ✅ G.5 hub per-robot auth: jwt exp validation, hub-token issuance (/api/token) + /api/verify,
+    gateway ETCO_hub_accountUrl validation (fail-closed), lastSeen; DISABLE_AUTH/shared-secret
+    modes unchanged
+16. ✅ G.6 launchers (run-compose-stack ACCOUNT=1 :9011) + docker-compose account service +
+    verify-compose-contract extension check + README (portal/auth/public-deployment) + doc updates
 
 Out of scope ([DEAD], recorded in DIVERGENCES.md): Google STT, Dialogflow agents, AWS
 settings service wire client, S3 speech logs, real OAuth refresh against 2018 apps,
