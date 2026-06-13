@@ -93,6 +93,21 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 16. ✅ G.6 launchers (run-compose-stack ACCOUNT=1 :9011) + docker-compose account service +
     verify-compose-contract extension check + README (portal/auth/public-deployment) + doc updates
 
+**Phase H — remaining classic services** (post-G; CLASSIC-SERVICES.md tiers 2–3). Every wire
+contract (`srv-jibo-server-client/apis/*.normal.json`) + original controller (`srv-*-ws`) is on
+the gitea, so each is built faithfully + wire-tested like account/OTA. ⚠ Phase G is built but
+NOT hardware-tested (user backing up/resetting the bot first).
+17. H.1 entrypoint prefix-router (one robot endpoint -> all classic services by X-Amz-Target
+    prefix; fold in account's Update_* proxy) + confirm the OOBE prefix from oobe-2016-10-26 +
+    `log` no-op + `robot`/`robotread` identity reads
+18. H.2 `settings` service (settings-2017-12-19) backed by the account store — makes the FULL
+    personal report work with real per-user prefs (today degrades to SettingsFailed)
+19. H.3 `notification` + `entrypoint-socket` (the wss push door to the robot)
+20. H.4 `key` (UGC encryption keys) + `push` (mobile push, stub delivery)
+21. H.5 build-to-spec stubs (app/hardware-gated, wire-tested only): `rom`/Commander, `media`,
+    `person`, `voicetraining`, `jot`, `backup`, `ifttt`, `nlp`, `collision`
+22. H.6 wire all behind the entrypoint + compose/launchers + docs + Phase H closeout
+
 Out of scope ([DEAD], recorded in DIVERGENCES.md): Google STT, Dialogflow agents, AWS
 settings service wire client, S3 speech logs, real OAuth refresh against 2018 apps,
 Bing/Wolfram, VoiceRSS, the 25-service account cloud.
