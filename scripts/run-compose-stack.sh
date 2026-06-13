@@ -36,11 +36,14 @@ fi
 # issuance (CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md). Disable with ACCOUNT=0.
 ACCOUNT_URL=""
 if [ "${ACCOUNT:-1}" != "0" ]; then
+  # Pass through only what the shell actually set, so values in .env aren't shadowed by empty
+  # strings (the account service loads .env via @phoenix/common). HUB_TOKEN_SECRET keeps its
+  # dev default so the hub + account agree out of the box.
   PORT=9011 \
-  ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
   HUB_TOKEN_SECRET="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
-  ETCO_account_region="${ETCO_account_region:-phx}" \
-  ETCO_account_secureCookies="${ETCO_account_secureCookies:-}" \
+  ${ADMIN_PASSWORD:+ADMIN_PASSWORD="$ADMIN_PASSWORD"} \
+  ${ETCO_account_region:+ETCO_account_region="$ETCO_account_region"} \
+  ${ETCO_account_secureCookies:+ETCO_account_secureCookies="$ETCO_account_secureCookies"} \
   NET_ota=localhost:9010 \
     node packages/account/src/index.js > /tmp/phx-compose-account.log 2>&1 &
   ACCOUNT_URL="http://localhost:9011"

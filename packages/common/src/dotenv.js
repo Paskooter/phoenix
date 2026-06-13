@@ -29,7 +29,10 @@ export function loadDotEnv(env = process.env) {
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
-    if (env[key] === undefined) {
+    // Fill keys that are unset OR empty-string. Launchers/compose commonly pass a variable
+    // through as `FOO="${FOO:-}"`, which exports an empty string when the shell didn't set it —
+    // that must NOT shadow a real value in .env. A non-empty real env value still wins.
+    if (env[key] === undefined || env[key] === '') {
       env[key] = value;
       loaded[key] = value;
     }
