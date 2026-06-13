@@ -2,6 +2,16 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-13 — **H.4: key + push classic services (loop).** packages/classic gains key
+  (Key_20160201, UGC encryption-key exchange) + push (Push_20160729, mobile device registration),
+  registered in the entrypoint router. key: in-memory KeyStore — CreateRequest/GetRequest/Share/
+  ShouldCreate/ListIncomingRequests (the request->share->fetch flow), Backup/Restore (per
+  loop+passwordHash blob), ListBinaryRequests/ShareBinary stubbed; account from SigV4 accessKeyId.
+  push: DeviceRegistry CreateDevice/RemoveDevice return success — delivery is a no-op (no real
+  APNs/FCM, no surviving app; robot-facing push goes over the entrypoint-socket instead). In-memory
+  (UGC encryption not needed for revival; noted DIVERGENCES). 4 wire tests (key round-trip +
+  backup/restore + 404s, push register/remove); 223 total + sim proxy green.
+
 - 2026-06-13 — **H.3: notification + entrypoint-socket (the wss push door) (loop).** packages/classic
   gains the push-to-robot transport (notification-2015-05-05 + entrypoint-socket): NotificationHub
   (per-account token mint, pending queue, live + pending delivery), Notification_20150505 AWS-JSON

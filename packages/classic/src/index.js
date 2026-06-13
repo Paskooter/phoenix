@@ -12,12 +12,16 @@ import { createClassicRouter } from './router.js';
 import { logHandler } from './log.js';
 import { makeRobotHandler } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
+import { KeyStore, makeKeyHandler } from './key.js';
+import { DeviceRegistry, makePushHandler } from './push.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
 export { logHandler } from './log.js';
 export { makeRobotHandler } from './robot.js';
 export { NotificationHub } from './notification.js';
+export { KeyStore } from './key.js';
+export { DeviceRegistry } from './push.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -32,6 +36,8 @@ export function classicRoutes(hub, extra = []) {
     { match: /^log/i, handler: logHandler },
     { match: /^robot/i, handler: makeRobotHandler() },
     { match: /^notification/i, handler: makeNotificationHandler(hub) },
+    { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
+    { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },
