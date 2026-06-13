@@ -10,11 +10,13 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   its `docs/atlas/` (full system documentation + the rebuild plan this repo follows).
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
-- **Status: the rebuild is complete** (atlas milestones M1–M9, phases A–F). See
-  **[M9-REPORT.md](M9-REPORT.md)** for the final parity report — headline numbers: **98.2 %**
-  intent parity and **96.8 %** MIM-routing parity against the reference test corpus
-  (10,035 utterances), 150 tests green, full wire-protocol conformance against the robot's own
-  `hub-client` framing.
+- **Status: the conversational rebuild is complete** (atlas milestones M1–M9, phases A–F). See
+  **[M9-REPORT.md](M9-REPORT.md)** for the parity report — headline numbers: **98.2 %** intent
+  parity and **96.8 %** MIM-routing parity against the reference test corpus (10,035 utterances),
+  full wire-protocol conformance against the robot's own `hub-client` framing. Two further phases
+  extend it to a full robot-revival cloud: **phase G** — per-robot authentication + the OOBE web
+  portal (`packages/account`); **phase H** — the remaining **Classic Services** behind one
+  entrypoint (`packages/classic`). 228 tests green across all packages.
 
 ## What works
 
@@ -41,7 +43,8 @@ packages/
   history/     skill-launch (IH query language) + speech history
   skills/      baseskill framework (GraphSkill, MIM factories, Slimmer, OptIn) + all skills
   ota/         OTA update server (extension) — serves firmware subsystems to a robot in place
-  account/     account/loop/OOBE Classic Service + web portal + per-robot hub-token auth (extension)
+  account/     account/loop/OOBE/settings Classic Service + web portal + per-robot hub-token auth
+  classic/     the Classic-Service entrypoint — one front door for log/robot/notification/key/push/… (extension)
 ```
 
 ## Running it — without Docker
@@ -50,16 +53,18 @@ packages/
 npm install        # links the workspaces (offline-friendly; only `ws` is external)
 ```
 
-**Run the full server** — all seven services on the reference port layout, no containers:
+**Run the full server** — every service on the reference port layout, no containers:
 
 ```bash
 bash scripts/run-compose-stack.sh
-# hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
-# history 9006 · lasso 9007 · answer-skill 9009     (Ctrl-C stops everything)
+# conversational: hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
+#                 history 9006 · lasso 9007 · answer-skill 9009
+# robot-revival:  ota 9010 · account+portal 9011 · classic entrypoint 9012   (Ctrl-C stops all)
 ```
 
 Robots and clients connect to the hub at `ws://<host>:9000/listen` (HTTP API on the same
-port: `GET /healthcheck`, `GET /v1/skills`). Logs land in `/tmp/phx-compose-*.log`.
+port: `GET /healthcheck`, `GET /v1/skills`); a robot's Classic Services (OOBE, update, log, …)
+go to the classic entrypoint on `:9012`. Logs land in `/tmp/phx-compose-*.log`.
 
 Useful env, all optional:
 
@@ -72,9 +77,11 @@ Useful env, all optional:
 | `ADMIN_PASSWORD` | password for the portal's admin page (`/#/admin`); unset = admin disabled |
 | `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `resources/report-prefsConfig.json` |
 
-The launcher also starts the **OTA** server (`:9010`) and the **account service + web portal**
-(`:9011`); disable with `OTA=0` / `ACCOUNT=0`. Copy `.env.example` → `.env` to set the above
-(every variable is documented there). See **Web portal + robot adoption** below.
+The launcher also starts the **OTA** server (`:9010`), the **account service + web portal**
+(`:9011`), and the **classic-service entrypoint** (`:9012`, the robot's single front door);
+disable with `OTA=0` / `ACCOUNT=0` / `CLASSIC=0`. Copy `.env.example` → `.env` to set the above
+(every variable is documented there). See **Classic services** and **Web portal + robot
+adoption** below.
 
 **Or run the sim stack** — the same services on dev ports **plus the browser simulator**
 ([jibo-web-sim](https://github.com/Paskooter/jibo-web-sim), expected as a sibling checkout),
@@ -96,8 +103,9 @@ pegasus counterpart:
 
 ```bash
 docker compose up
-# hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
-# history 9006 · lasso 9007 · answer-skill 9009   (all 8080 inside the network)
+# conversational: hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
+#                 history 9006 · lasso 9007 · answer-skill 9009
+# robot-revival:  ota 9010 · account+portal 9011 · classic entrypoint 9012   (all 8080 inside)
 node scripts/verify-compose-contract.mjs   # same contract check as the native runner
 ```
 
@@ -225,7 +233,9 @@ the exact `credentials.json` to write plus the repoint command:
 ```bash
 ssh root@<robot> jibo-mount --rw
 # write the credentials.json the admin page shows to /var/jibo/credentials.json
-scripts/point-robot-at-phoenix.sh --robot <robot-ip> --server http://<this-host>:9011
+# repoint the robot (LAN): region_config -> classic entrypoint :9012, hub -> :9000
+#   args: <robot-ip> <phoenix-ip> [classic-port=9010] [hub-port=9000]  — pass 9012 for the entrypoint
+scripts/point-robot-at-phoenix.sh <robot-ip> <this-host> 9012 9000
 ```
 
 The admin page also lists **every adopted robot** across all accounts (name, owner, loop, access
@@ -249,47 +259,63 @@ Set `DISABLE_AUTH=false` (and a strong `HUB_TOKEN_SECRET`) to require it.
 
 ## Running it publicly
 
-Phoenix has no built-in TLS; put a reverse proxy in front and expose **only two** ports — the
-hub (`9000`, WebSocket) and the portal (`9011`). Everything else (parser, skills, history, lasso,
-OTA, and the account service's *internal* port) stays bound to localhost behind the proxy.
+Phoenix has no built-in TLS; put a reverse proxy in front and expose **only three** entry
+points — everything else stays bound to localhost behind the proxy:
 
-A minimal **Caddy** config (automatic Let's Encrypt TLS):
+| Public host | → backend | Who connects | Why |
+|---|---|---|---|
+| `hub.example.com` (wss) | `:9000` | the robot's Jetstream / the sim | conversation (ASR→NLU→skills) |
+| `your-region.jibo.com` (https) | `:9012` | the robot's `jibo-server-client` | **all** Classic Services (OOBE, update, log, robot, notification, …) — the entrypoint front door |
+| `phx.example.com` (https) | `:9011` | you, in a browser | the web portal (pair/adopt robots, settings, admin) |
+
+The robot resolves every server-client service to one host (`https://<region>.jibo.com`), so that
+name must point at the **classic entrypoint (`:9012`)** — not the portal. The entrypoint proxies
+OOBE/account/settings → account (`:9011`) and Update → ota (`:9010`) internally, so you don't
+expose those directly. The internals (`:9003`–`:9010`) never face the internet.
+
+A minimal **Caddy** config (automatic Let's Encrypt TLS; Caddy upgrades WebSockets transparently):
 
 ```caddyfile
-# Portal + the robot's Classic-Service endpoint (OOBE.setupRobot, Update_* proxy).
-# A robot resolves all server-client calls to https://<region>.jibo.com — point that name here.
-phx.example.com, your-region.jibo.com {
-    reverse_proxy localhost:9011
-}
+hub.example.com        { reverse_proxy localhost:9000 }   # robot conversation (wss) + the sim
+your-region.jibo.com   { reverse_proxy localhost:9012 }   # the robot's Classic-Service front door
+phx.example.com        { reverse_proxy localhost:9011 }   # the human web portal
 
-# The hub (WebSocket). The robot's Jetstream connects here; the sim uses wss too.
-hub.example.com {
-    reverse_proxy localhost:9000     # Caddy upgrades WebSockets automatically
-}
+# Optional — push notifications to the robot. The robot's wss notification door is a separate
+# host (<region>-socket.jibo.com); the entrypoint serves that socket on the same :9012.
+your-region-socket.jibo.com { reverse_proxy localhost:9012 }
 ```
 
 Then:
 
 1. **`cp .env.example .env`** and set, at minimum:
    ```
-   ADMIN_PASSWORD=<long random>
+   ADMIN_PASSWORD=<long random>            # gates the portal admin page
    HUB_TOKEN_SECRET=<long random>          # NOT the dev default
-   DISABLE_AUTH=false                      # require per-robot auth
-   ETCO_account_secureCookies=true         # cookies only over HTTPS
-   ETCO_account_region=your-region         # matches the robot's region
+   DISABLE_AUTH=false                      # require per-robot hub auth
+   ETCO_account_secureCookies=true         # session cookies only over HTTPS
+   ETCO_account_region=your-region         # must match the robot's region
    ```
-2. **Point the robot at you.** The robot resolves Classic Services from its `region`
-   (`https://<region>.jibo.com`) and Jetstream/hub separately. Either add public DNS for
-   `<region>.jibo.com` → your proxy, or set the robot's `/etc/hosts` and run
-   `scripts/point-robot-at-phoenix.sh` to rewrite its `region_config` + Jetstream hub target.
-3. **Firewall the internals.** Bind ports 9003–9010 (and the account port if you proxy 9011) to
-   `127.0.0.1`, or block them at the host firewall — only 9000 and 9011 should be reachable.
+   (The hub's per-robot revocation check, `ETCO_hub_accountUrl`, is already wired by both bundled
+   launchers — run-compose-stack points it at the account service and starts all three
+   front-end services; with Docker the `account` env comes from `.env` via `env_file`.)
+2. **Point the robot at you.** Set the robot's `region` (in `/var/jibo/credentials.json`) to
+   `your-region`, and add **public DNS**: `your-region.jibo.com` → your proxy (the robot calls
+   `https://<region>.jibo.com` natively, so DNS + TLS is all it needs), plus `hub.example.com`
+   for Jetstream and the `-socket` host if you want notifications. For LAN/no-DNS testing instead,
+   `scripts/point-robot-at-phoenix.sh <robot-ip> <phoenix-ip> 9012 9000` rewrites `region_config`
+   (→ `http://<phoenix>:9012`) and the Jetstream hub target over SSH. (That script repoints the
+   REST `region_config`; the robot's notification **wsendpoint** must still be repointed by hand —
+   see [DIVERGENCES.md](DIVERGENCES.md).)
+3. **Firewall the internals.** Bind `:9003`–`:9010` to `127.0.0.1` (or block them at the host
+   firewall). Only `:9000`, `:9011`, and `:9012` should be reachable — and only through TLS.
 
-> Trust caveat: the robot signs its Classic-Service requests with AWS SigV4, but Phoenix does
-> **not** verify those signatures (the original signing keys are unrecoverable) — identity comes
-> from the OOBE token and the hub JWT instead. Treat a publicly-exposed Phoenix as "anyone who can
-> reach `/` can call the robot-facing OOBE ops"; the `ADMIN_PASSWORD` gate and per-robot hub auth
-> are the real access controls. See [DIVERGENCES.md](DIVERGENCES.md).
+> **Security caveat — read before exposing this.** Phoenix does **not** verify the AWS SigV4
+> signatures on the robot's Classic-Service requests (the original per-robot signing keys are
+> unrecoverable) — it trusts the network. So anyone who can reach `:9012` can call the
+> robot-facing OOBE/classic ops. The real access controls are: the `ADMIN_PASSWORD` gate on the
+> portal admin page, per-robot hub auth (`DISABLE_AUTH=false` + a strong `HUB_TOKEN_SECRET`, with
+> account-backed revocation via `ETCO_hub_accountUrl`), and TLS at the proxy. Treat a public
+> deployment accordingly. Full ledger in [DIVERGENCES.md](DIVERGENCES.md).
 
 ## Verification
 

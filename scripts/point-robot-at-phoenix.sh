@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # point-robot-at-phoenix.sh — RUN THIS ON YOUR PC. SSHes into the Jibo and points BOTH
 # subsystems at the same Phoenix box:
-#   • OTA / server-client  — every region_config.json  ->  http://<phoenix>:<ota-port>  (default 9010)
-#   • Conversation hub     — jibo-jetstream-service.json HubClient.override -> <phoenix>:<hub-port> (default 9000)
-# so firmware updates AND "Hey Jibo" both reach Phoenix. Every file it changes is backed up
+#   • Classic Services / server-client — every region_config.json -> http://<phoenix>:<classic-port>
+#       Pass 9012 for the classic ENTRYPOINT (the single front door: OOBE, update, log, robot,
+#       notification, …). The default 9010 reaches a standalone OTA server only (firmware updates).
+#   • Conversation hub  — jibo-jetstream-service.json HubClient.override -> <phoenix>:<hub-port> (default 9000)
+# so the robot's cloud calls AND "Hey Jibo" both reach Phoenix. Every file it changes is backed up
 # (*.phx-bak), and the Jetstream service is restarted so it re-reads its config.
 #
 # Auth: tries SSH key first, then root:jibo (needs `sshpass`), then prompts for username/password.
 #
 # Usage:
-#   scripts/point-robot-at-phoenix.sh <robot-ip> <phoenix-ip> [ota-port] [hub-port]
+#   scripts/point-robot-at-phoenix.sh <robot-ip> <phoenix-ip> [classic-port] [hub-port]
 #   scripts/point-robot-at-phoenix.sh <robot-ip> --reset            # undo: restore backups + clear override
 #
 # Examples:
-#   scripts/point-robot-at-phoenix.sh 192.168.1.42 192.168.1.50
-#   scripts/point-robot-at-phoenix.sh 192.168.1.42 192.168.1.50 9010 9000
+#   scripts/point-robot-at-phoenix.sh 192.168.1.42 192.168.1.50 9012 9000   # full classic entrypoint
+#   scripts/point-robot-at-phoenix.sh 192.168.1.42 192.168.1.50             # OTA only (port 9010)
 set -euo pipefail
 
 ROBOT="${1:-}"
