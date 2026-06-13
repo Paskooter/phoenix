@@ -60,8 +60,22 @@ NET_history=localhost:9006 \
 NET_data=localhost:9007 \
   node packages/gateway/src/index.js  > /tmp/phx-compose-hub.log     2>&1 &
 
+# Phoenix extension: the classic-service entrypoint — the robot's SINGLE front door for every
+# Classic Service (dispatch by X-Amz-Target prefix; in-process log/robot/notification/key/push +
+# tier-3 stubs, proxying OOBE/account/settings -> account and Update -> ota). Disable with
+# CLASSIC=0. Point the robot's region (https://<region>.jibo.com) at this one port.
+CLASSIC_NOTE=""
+if [ "${CLASSIC:-1}" != "0" ]; then
+  PORT=9012 \
+  NET_account=localhost:9011 \
+  NET_ota=localhost:9010 \
+    node packages/classic/src/index.js > /tmp/phx-compose-classic.log 2>&1 &
+  CLASSIC_NOTE=" · classic-entrypoint:9012"
+fi
+
 echo "compose-contract stack: hub:9000 report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 answer:9009"
-echo "ext: ota:9010 (OTA update server)${ACCOUNT_URL:+ · account+portal:9011}"
+echo "ext: ota:9010 (OTA update server)${ACCOUNT_URL:+ · account+portal:9011}${CLASSIC_NOTE}"
 [ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:9011  (admin at /#/admin — needs ADMIN_PASSWORD)"
+[ -n "$CLASSIC_NOTE" ] && echo "robot front door: http://localhost:9012  (point the robot region here)"
 echo "logs: /tmp/phx-compose-*.log"
 wait

@@ -2,6 +2,19 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-13 — **H.6 + PHASE H COMPLETE (loop, stopping).** Wired the classic-service entrypoint
+  into the runtime + closed out docs. run-compose-stack.sh starts it on :9012 (CLASSIC=1,
+  NET_account=localhost:9011 NET_ota=localhost:9010, echoes "robot front door"); docker-compose.yml
+  adds the `classic` service (:9012, NET_account=account:8080 NET_ota=ota:8080, depends_on
+  account+ota); verify-compose-contract.mjs gained a non-fatal classic block (healthcheck +
+  Log.PutEvents + Robot.GetRobot through :9012) — verified ALL PASS incl. the OOBE proxy reaching
+  the live account svc. README "Classic services" section (the single front door + per-service
+  end-to-end/wire/stub table). Docs closed out: CLASSIC-SERVICES.md (TL;DR + status table per
+  service), PARITY Phase H ✅ done, DIVERGENCES (H-frontdoor/inmemory/stubs/notbuilt rows). 228
+  tests + sim proxy + contract verify green. **Phase H (remaining classic services) is finished —
+  the robot reaches every classic service through one front door (:9012).** Did NOT clobber the
+  user's running 9000-9011 stack (verified via a temporary classic:9012 only).
+
 - 2026-06-13 — **H.5: build-to-spec tier-3 classic-service stubs (loop).** packages/classic/src/
   stubs.js registers rom (ROM_20171011 Commander cert exchange), media (Media_20160725 cloud
   photo/recording — no S3), person (Person_20160801 — real in-memory loop/account properties +

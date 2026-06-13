@@ -6,11 +6,20 @@
 > every classic service, marks what Phoenix has built vs. not, and leaves enough context for a
 > fresh agent to continue without re-deriving the landscape.
 >
-> **TL;DR of current state:** **two** classic services are implemented — **`update`** (firmware
-> OTA) as `packages/ota`, and **`account` + `loop` + `oobe`** (pairing/identity + the OOBE
-> `setupRobot` handshake + per-robot hub-token issuance + the web portal) as `packages/account`
-> (`@phoenix/account`). The rest below is unbuilt. The conversational stack (hub/parser/skills)
-> is Phoenix's main body and is separate from these.
+> **TL;DR of current state:** **most** classic services are now implemented, behind a single
+> **entrypoint front door** (`packages/classic`, `@phoenix/classic`) that the robot's region
+> resolves to and that dispatches by `X-Amz-Target` prefix. Built: `update` (OTA, `packages/ota`),
+> `account`+`loop`+`oobe`+`settings`+portal+per-robot-auth (`packages/account`), and `log`,
+> `robot`, `notification`+entrypoint-socket, `key`, `push` plus build-to-spec stubs for
+> `rom`/`media`/`person`/`backup`/`ifttt`/`nlp`/`collision` (`packages/classic`). Not built (no
+> client API contract in the archive): `voicetraining`, `jot`. The conversational stack
+> (hub/parser/skills) is Phoenix's main body and is separate from these.
+>
+> **The single front door** (`packages/classic`, default `:9012`): one AWS-JSON `POST /` endpoint
+> the robot's region (`https://<region>.jibo.com`) resolves to, dispatching by target prefix —
+> lightweight services (log/robot/notification/key/push + stubs) in-process, stateful ones
+> (OOBE/account/settings → account, Update → ota) proxied. Point the robot here with
+> `scripts/point-robot-at-phoenix.sh`.
 
 ---
 
@@ -79,21 +88,23 @@ gotchas (see §4).
 | **update** | `update-2016-03-01` | `server/update-ws`, `jiborobot/srv-update-ws` | Firmware OTA: tells the robot which os/services/skill subsystems have updates; serves the packages | **✅ `packages/ota`** | **Done.** See §4. |
 | **account** | `account-2015-11-11` | `srv-account-ws` (in `jiboV2/pegasus/.../cloud-services`) | Accounts; **issues the robot's `accessKeyId`/`secretAccessKey` during OOBE** (`setupRobot`); owns the Loop | **✅ `packages/account`** | **Done.** OOBE `setupRobot`/`prepareRobot`/`getStatus` over AWS-JSON, plus the web portal that mints setup tokens + QR, and per-robot hub-token issuance (`/api/token`, `/api/verify`). v1 = the new-robot + same-robot-reissue paths (reconnect/suspended-loop/managed-members deferred). |
 | **loop** | `loop-2016-03-24` | (part of `srv-account-ws`) | The "Loop" = a Jibo household: members, ownership, which robot belongs to whom | **✅ `packages/account`** | **Done** (v1: one owner, N robots, one robot per loop; find-or-create robot account, getLoopName dedupe). |
-| **robot** | `robot-2016-02-25` | `jiborobot/srv-robots-ws` | Robot manufacturing/lifecycle events (registration, RMA, fuse state) | ⬜ | Tier 2 — identity/registration. |
-| **robotread** | — | `jiborobot/srv-robots-read-ws` | Read-side snapshot of robot state (CQRS pair of `robot`) | ⬜ | Tier 3. |
-| **key** | `key-2016-02-01` | `jiborobot/srv-key-ws` | Manages the keys used to encrypt robot↔server↔mobile user data (UGC) | ⬜ | Tier 2 — needed for encrypted user content & some account flows. |
-| **notification** | `notification-2015-05-05` | `jiborobot/srv-notification-ws` | Robot + mobile notifications in response to events (the thing Commander/PNs ride on) | ⬜ | **Tier 2 — Commander/remote.** |
-| **push** | `push-2016-07-29` | `jiborobot/srv-push-ws` | Delivers mobile push notifications | ⬜ | Tier 2 — mobile app only. |
-| **media** | `media-2016-07-25` | `jiborobot/srv-media-ws` | Upload/download photos & recordings to cloud (Snap, Jot) | ⬜ | Tier 3 — feature. |
-| **log** | `log-2015-03-09` | `jiborobot/srv-log-ws` | Robot log upload to cloud | ⬜ | Tier 3 — telemetry; safe to stub/no-op. |
+| **robot** | `robot-2016-02-25` | `jiborobot/srv-robots-ws` | Robot manufacturing/lifecycle events | **✅ `packages/classic`** | Boot-time reads (GetRobot/GetCalibrationData return valid empty records; calibration stays on the robot /var). |
+| **robotread** | — | `jiborobot/srv-robots-read-ws` | Read-side snapshot of robot state | **✅** | Folded into the `robot` handler. |
+| **key** | `key-2016-02-01` | `jiborobot/srv-key-ws` | UGC encryption-key exchange | **✅ `packages/classic`** | In-memory KeyStore: CreateRequest/Share/GetRequest/ShouldCreate/Backup/Restore. |
+| **notification** | `notification-2015-05-05` | `jiborobot/srv-notification-ws` | Robot notifications transport | **✅ `packages/classic`** | NewRobotToken/GetStatus + the entrypoint-socket (wss `/socket/<token>`, live + pending delivery). |
+| **push** | `push-2016-07-29` | `jiborobot/srv-push-ws` | Mobile push | **◑ stub `packages/classic`** | CreateDevice/RemoveDevice register OK; delivery no-op (no APNs/FCM/app). |
+| **media** | `media-2016-07-25` | `jiborobot/srv-media-ws` | Cloud photo/recording store | **◑ stub** | shapes only; no S3. Unverified without the app. |
+| **log** | `log-2015-03-09` | `jiborobot/srv-log-ws` | Robot log/telemetry upload | **✅ `packages/classic`** | PutEvents/PutEventsAsync/PutAsrBinary no-op (optional JSONL sink ETCO_log_dir); never 500s the robot. |
 | **skill** | `skill-2015-11-03` | (locate — likely `srv-account-ws` or a skill-store repo) | Skill store / install metadata | ⬜ | Tier 3 — 3rd-party skill install. |
-| **person** | `person-2016-08-01` | `jiborobot/srv-person-ws` | Person-specific properties (e.g. holidays) | ⬜ | Tier 3 — feature. |
-| **voicetraining** | `voicetraining-2016-01-03` | (locate) | Sync voice-enrollment / speaker-ID models to cloud | ⬜ | Tier 3 — on-robot enrollment may work without it. |
-| **jot** | `jot-2016-05-12` | (locate) | Cloud storage for the Jot skill (video messages) | ⬜ | Tier 3 — feature. |
-| **backup** | — (system-manager `/system/backup`) | `jiborobot/srv-backup-ws` | Robot backup/wipe/restore to cloud | ⬜ | Tier 3 — nice for migration; not needed to run. |
+| **person** | `person-2016-08-01` | `jiborobot/srv-person-ws` | Person/loop/account properties | **◑ stub** | real in-memory property round-trip + holidays; unverified without the app. |
+| **voicetraining** | — | (locate) | Sync voice-enrollment models | ➖ | No client API contract in the archive `apis/`; not built (on-robot enrollment works without it). |
+| **jot** | — | (locate) | Cloud storage for the Jot skill | ➖ | No client API contract in the archive `apis/`; not built. |
+| **backup** | `backup-2017-02-22` | `jiborobot/srv-backup-ws` | Robot backup-to-cloud | **◑ stub** | New/List shapes; no S3. |
 | **entrypoint-socket** | — (the `wss://…-socket` door) | `jiborobot/srv-entrypoint-socket-ws` | Exposes the robot's WebSocket; works with `notification` to push events to the robot | ⬜ | **Tier 2 — transport for Commander/notifications.** Pairs with `notification`. |
-| **rom** | `/docs/.../ROM.html` | `jiborobot/srv-rom-ws` | Remote Operation Mode backend = **Commander** (drive the robot from the app) | ⬜ | Tier 2 — Commander. |
+| **rom** | `rom-2017-10-11` | `jiborobot/srv-rom-ws` | Commander (Remote Operation Mode) | **◑ stub** | Create/SetupClient/SetupServer cert-bundle shapes; needs the app. |
 | **gqa** | — (consumed by the hub, not the robot directly) | `jiborobot/srv-gqa-ws` (Python) | General Q&A ("who is X") | **🟡** | **Replaced** by `packages/skills` answer-skill (LLM-backed) via the hub. No classic shim needed. |
+| **nlp** | `nlp-2016-10-31` | `jiborobot/srv-nlp-ws` | Cloud NLP (POS/NER) | **◑ stub** | shapes only; Phoenix has its own parser. |
+| **collision** | `collision-2016-11-26` | `jiborobot/srv-collision-ws` | Username-collision check | **◑ stub** | returns "no collision". |
 | **security** | — | `jiborobot/srv-security-gw` | Auth gateway fronting all the APIs | **➖** | Bypassed: we repoint `region_config` and our services ignore SigV4. |
 
 ### Not robot-facing (internal / web / admin / integrations — low priority for revival)
@@ -105,7 +116,7 @@ gotchas (see §4).
 | saml | `srv-saml-ws` | SAML SSO endpoint | ➖ |
 | customer-portal | `srv-customer-portal` | Web: reset password, confirm email | ➖ |
 | collision | `srv-collision-ws` | Resolve username collisions | ➖ (small dep of account flows) |
-| ifttt | `srv-ifttt-ws` | IFTTT integration | ➖ (skill feature) |
+| ifttt | `srv-ifttt-ws` | IFTTT integration | **◑ stub `packages/classic`** (Trigger/Action/UserInfo shapes) |
 | salesforce | `srv-salesforce-ws` | SalesForce CRM facade | ➖ |
 | poll | `srv-poll-ws` | AP-News feed → Mongo for GQA | ➖ (obsolete post-Fajita; Phoenix `lasso` shims news) |
 | logparser | `jiborobot/logparser` | Parse ASR/NLU logs (ES/S3) | ➖ (analytics) |

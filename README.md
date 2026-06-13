@@ -164,10 +164,38 @@ loop-guard so it stops once the robot already runs the target).
 > builds, or the secure-boot flash). It is a Phoenix *extension*, excluded from the reference
 > conversational-contract check.
 
-`update` is the first of the robot's **Classic Services** (its cloud REST API surface) to be
-rebuilt. For the full inventory — accounts/loop, notifications, Commander, keys, media, … — what's
-implemented vs. not, and how to add another, see **[CLASSIC-SERVICES.md](CLASSIC-SERVICES.md)**
-(written as an agent handoff).
+`update` is one of the robot's **Classic Services** (its cloud REST API surface). For the full
+inventory and how to add another, see **[CLASSIC-SERVICES.md](CLASSIC-SERVICES.md)**.
+
+## Classic services (the robot's cloud API)
+
+The robot resolves *every* server-client service to one host (`https://<region>.jibo.com`) and
+distinguishes them by an `X-Amz-Target` prefix. `packages/classic` is that **single front door**:
+one AWS-JSON endpoint (`:9012`) that dispatches by prefix — handling lightweight services
+in-process and proxying the stateful ones to their dedicated process. Point the robot's region at
+this one port (`scripts/point-robot-at-phoenix.sh`) and it reaches everything.
+
+```bash
+# started by run-compose-stack.sh on :9012 (CLASSIC=1), or `docker compose up`
+curl -s :9012/ -H 'x-amz-target: Robot_20160225.GetRobot' -d '{"id":"…"}'   # in-process
+curl -s :9012/ -H 'x-amz-target: OOBE_20161026.SetupRobot' -d '…'           # -> account svc
+```
+
+| Service | Prefix | Status | Notes |
+|---|---|---|---|
+| update (OTA) | `Update_*` | ✅ end-to-end | firmware revival; `packages/ota` |
+| account / loop / oobe | `OOBE_*` `Account_*` | ✅ end-to-end | pairing + portal; `packages/account` |
+| settings | `Settings_*` | ✅ end-to-end | the personal report's per-user prefs |
+| log | `Log_*` | ✅ wire | robot telemetry upload (no-op sink) |
+| robot | `Robot_*` | ✅ wire | boot-time read records (calibration stays local) |
+| notification + socket | `Notification_*` | ✅ wire | the wss push door (`/socket/<token>`) |
+| key | `Key_*` | ✅ wire | UGC encryption-key exchange |
+| push | `Push_*` | ◑ stub | device register; delivery no-op (no APNs/FCM/app) |
+| rom · media · person · backup · ifttt · nlp · collision | various | ◑ build-to-spec | wire-tested shapes; need the app/hardware to exercise |
+
+"end-to-end" = verified working through the real consumer; "wire" = the robot protocol is
+verified (the live robot seam is pending hardware); "build-to-spec / stub" = implemented to the
+contract but unverified without the mobile app — see [DIVERGENCES.md](DIVERGENCES.md).
 
 ## Web portal + robot adoption
 

@@ -97,16 +97,17 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 contract (`srv-jibo-server-client/apis/*.normal.json`) + original controller (`srv-*-ws`) is on
 the gitea, so each is built faithfully + wire-tested like account/OTA. ⚠ Phase G is built but
 NOT hardware-tested (user backing up/resetting the bot first).
-17. H.1 entrypoint prefix-router (one robot endpoint -> all classic services by X-Amz-Target
-    prefix; fold in account's Update_* proxy) + confirm the OOBE prefix from oobe-2016-10-26 +
-    `log` no-op + `robot`/`robotread` identity reads
-18. H.2 `settings` service (settings-2017-12-19) backed by the account store — makes the FULL
-    personal report work with real per-user prefs (today degrades to SettingsFailed)
-19. H.3 `notification` + `entrypoint-socket` (the wss push door to the robot)
-20. H.4 `key` (UGC encryption keys) + `push` (mobile push, stub delivery)
-21. H.5 build-to-spec stubs (app/hardware-gated, wire-tested only): `rom`/Commander, `media`,
-    `person`, `voicetraining`, `jot`, `backup`, `ifttt`, `nlp`, `collision`
-22. H.6 wire all behind the entrypoint + compose/launchers + docs + Phase H closeout
+17. ✅ H.1 entrypoint prefix-router (packages/classic — one robot endpoint -> all classic services
+    by X-Amz-Target prefix) + OOBE prefix confirmed OOBE_20161026 + `log` no-op + `robot`/`robotread` reads
+18. ✅ H.2 `settings` (Settings_20171219) backed by the account store — the FULL personal report
+    works with real per-user prefs + portal settings editor (no more SettingsFailed)
+19. ✅ H.3 `notification` + `entrypoint-socket` (the wss push door /socket/<token>, live + pending)
+20. ✅ H.4 `key` (UGC encryption-key exchange) + `push` (device register, no-op delivery)
+21. ✅ H.5 build-to-spec stubs (app/hardware-gated, wire-tested only): rom/media/person/backup/
+    ifttt/nlp/collision (voicetraining/jot have no client API contract -> not built)
+22. ✅ H.6 entrypoint wired into run-compose-stack (CLASSIC=1 :9012) + docker-compose + contract
+    verifier extension + README "Classic services" + docs closeout
+**Phase H done 2026-06-13.** The robot reaches every classic service through one front door (:9012).
 
 Out of scope ([DEAD], recorded in DIVERGENCES.md): Google STT, Dialogflow agents, AWS
 settings service wire client, S3 speech logs, real OAuth refresh against 2018 apps,

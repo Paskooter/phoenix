@@ -114,7 +114,23 @@ try {
 } catch (e) {
   ext('[ext] account service reachable', false, e.message);
 }
-if (extWarnings) console.log(`(${extWarnings} extension warning(s) — start the account service with ACCOUNT=1 / docker compose for these)`);
+// 6. EXTENSION (non-fatal): the classic-service entrypoint — the robot's single front door.
+const CLASSIC = 9012;
+const camz = (target, body) => fetch(`http://${HOST}:${CLASSIC}/`, {
+  method: 'POST', headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target }, body: JSON.stringify(body || {}),
+});
+try {
+  const health = await fetch(`http://${HOST}:${CLASSIC}/healthcheck`);
+  ext(`[ext] classic entrypoint healthcheck :${CLASSIC}`, health.ok);
+  const log = await camz('Log_20150309.PutEvents', { trackingId: 't', deviceId: 'd', events: [] });
+  ext('[ext] classic: Log.PutEvents 200', log.ok);
+  const robot = await camz('Robot_20160225.GetRobot', { id: 'verify-robot' });
+  const rj = await robot.json().catch(() => ({}));
+  ext('[ext] classic: Robot.GetRobot returns a record', robot.ok && rj.id === 'verify-robot', rj);
+} catch (e) {
+  ext('[ext] classic entrypoint reachable', false, e.message);
+}
+if (extWarnings) console.log(`(${extWarnings} extension warning(s) — start the account + classic services with ACCOUNT=1/CLASSIC=1 or docker compose for these)`);
 
 console.log(failures ? `CONTRACT VERIFY: ${failures} FAILURE(S)` : 'CONTRACT VERIFY: ALL PASS');
 process.exit(failures ? 1 : 0);

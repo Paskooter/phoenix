@@ -149,5 +149,24 @@ services:
     ports:
       - 9011:8080
 
+  # Phoenix extension: the classic-service entrypoint — the robot's SINGLE front door for every
+  # Classic Service (dispatch by X-Amz-Target prefix). In-process log/robot/notification/key/push
+  # + tier-3 stubs; proxies OOBE/account/settings -> account and Update_* -> ota. Point the
+  # robot's region (https://<region>.jibo.com) at this one host/port.
+  classic:
+    <<: *phoenix-defaults
+    container_name: classic
+    working_dir: /phoenix
+    command: node packages/classic/src/index.js
+    environment:
+      - PORT=8080
+      - NET_account=account:8080
+      - NET_ota=ota:8080
+    depends_on:
+      - account
+      - ota
+    ports:
+      - 9012:8080
+
 networks:
   pegasus-nw:
