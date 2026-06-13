@@ -14,6 +14,7 @@ import { makeRobotHandler } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 import { KeyStore, makeKeyHandler } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
+import { stubRegistrations } from './stubs.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
@@ -38,6 +39,7 @@ export function classicRoutes(hub, extra = []) {
     { match: /^notification/i, handler: makeNotificationHandler(hub) },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/backup/ifttt/nlp/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },

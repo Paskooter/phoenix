@@ -2,6 +2,16 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-13 — **H.5: build-to-spec tier-3 classic-service stubs (loop).** packages/classic/src/
+  stubs.js registers rom (ROM_20171011 Commander cert exchange), media (Media_20160725 cloud
+  photo/recording — no S3), person (Person_20160801 — real in-memory loop/account properties +
+  holidays), backup (Backup_20170222), ifttt (IFTTT_20170207), nlp (NLP_20161031 — Phoenix has its
+  own parser), collision (Collision_20161126 username-collision = "no collision"). Each returns the
+  exact *.normal.json output shape so the robot/app gets a valid answer instead of hanging.
+  UNVERIFIED end-to-end (need the dead mobile app/hardware) — recorded in DIVERGENCES. voicetraining
+  + jot have NO client API contract in the archive's apis/ -> not built (noted). 5 wire tests
+  (dispatch + shapes + person property round-trip + unknown-op 400); 228 total + sim proxy green.
+
 - 2026-06-13 — **H.4: key + push classic services (loop).** packages/classic gains key
   (Key_20160201, UGC encryption-key exchange) + push (Push_20160729, mobile device registration),
   registered in the entrypoint router. key: in-memory KeyStore — CreateRequest/GetRequest/Share/
