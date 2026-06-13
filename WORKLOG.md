@@ -2,6 +2,18 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-13 — **H.1: classic-service entrypoint prefix-router + log + robot reads (loop).** New
+  packages/classic = the robot's single front door (one AWS-JSON POST / endpoint the robot's
+  region resolves to), dispatching by X-Amz-Target PREFIX to in-process handlers (log, robot) or
+  upstream proxies (OOBE_* -> account, Update_* -> ota via NET_account/NET_ota). awsJson.js is now
+  the canonical envelope home. Confirmed the real OOBE targetPrefix = OOBE_20161026 from
+  apis/oobe-2016-10-26.normal.json — G.2's /^oobe/i matcher already covers it (no change needed).
+  log (Log_20150309): PutEvents no-op, PutEventsAsync/PutAsrBinary/PutBinary upload-handshake
+  shapes, NewKinesisCredentials empty — never 500s the robot; optional JSONL sink via ETCO_log_dir.
+  robot (Robot_20160225): GetRobot/GetCalibrationData return valid empty records (cloud calibration
+  empty -> robot uses local /var), UpdateRobot/GetRobotHistory/GetFriendlyIds/RemoveRobot stubs.
+  7 wire tests; 212 total + sim proxy green. DefaultPort.classic=7017.
+
 - 2026-06-12 — **G.6 + PHASE G COMPLETE (loop, stopping).** Wired the account service into both
   runners: run-compose-stack.sh starts it on :9011 (ACCOUNT=1, passes ADMIN_PASSWORD/
   HUB_TOKEN_SECRET/region, NET_ota, sets the hub's ETCO_hub_accountUrl); docker-compose.yml adds

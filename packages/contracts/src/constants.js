@@ -90,4 +90,5 @@ export const DefaultPort = Object.freeze({
   skills: 7014,
   ota: 7015,
   account: 7016,
+  classic: 7017,
 });
