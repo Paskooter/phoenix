@@ -2,6 +2,19 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-13 — **H.3: notification + entrypoint-socket (the wss push door) (loop).** packages/classic
+  gains the push-to-robot transport (notification-2015-05-05 + entrypoint-socket): NotificationHub
+  (per-account token mint, pending queue, live + pending delivery), Notification_20150505 AWS-JSON
+  ops NewRobotToken{deviceId}->{token} / GetStatus{accountId}->{connected}, and the wss socket
+  attached to the entrypoint's OWN http server (path /socket/<token>) so the robot reaches REST +
+  socket on one host (note: the robot's wsendpoint/region-socket host still needs repointing — a
+  follow-up for point-robot-at-phoenix.sh). Internal POST /notify {accountId,payload} enqueues
+  (portal/system/tests push). LAN-trust (token validates the socket; no SigV4). 4 wire tests
+  (token+GetStatus, live delivery, pending-before-connect delivery, unknown-token 401); 219 total
+  + sim proxy green. ALSO this iteration: fixed the .env ADMIN_PASSWORD shadowing bug the user hit
+  (dotenv fills empty-string keys; run-compose-stack uses literal env assignments) — portal admin
+  login from .env verified working (commits 32cc752, a73fdf5).
+
 - 2026-06-13 — **H.2: settings service — the full personal report now works with real prefs (loop).**
   packages/account gains the Settings_20171219 face: AWS-JSON GetSettings/UpdateSettings/
   DeleteSettings/GetDataForSettings (dispatched from robotFace POST / by the Settings_* prefix;

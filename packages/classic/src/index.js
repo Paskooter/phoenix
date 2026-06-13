@@ -6,16 +6,18 @@
 //   Update_* -> ota service     (NET_ota,     default localhost:7015)
 // New services (settings, notification, key, …) register here as they land in later iterations.
 
-import { createService } from '@phoenix/common';
+import { createService, sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { createClassicRouter } from './router.js';
 import { logHandler } from './log.js';
 import { makeRobotHandler } from './robot.js';
+import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
 export { logHandler } from './log.js';
 export { makeRobotHandler } from './robot.js';
+export { NotificationHub } from './notification.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -24,11 +26,12 @@ const netUrl = (name, defPort) => {
 };
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(extra = []) {
+export function classicRoutes(hub, extra = []) {
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: logHandler },
     { match: /^robot/i, handler: makeRobotHandler() },
+    { match: /^notification/i, handler: makeNotificationHandler(hub) },
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -37,8 +40,27 @@ export function classicRoutes(extra = []) {
   return router;
 }
 
+/**
+ * The classic-service entrypoint. Returns { service, listen, hub, wss }. The notification
+ * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
+ * face and the socket on one host (path /socket/<token>).
+ */
 export function createClassicEntrypoint({ extra = [] } = {}) {
-  return createService({ name: 'classic', routes: { ...classicRoutes(extra) } });
+  const hub = new NotificationHub();
+  const service = createService({
+    name: 'classic',
+    routes: {
+      ...classicRoutes(hub, extra),
+      // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
+      'POST /notify': ({ res, body }) => {
+        if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
+        const n = hub.enqueue(body.accountId, body.payload || {});
+        return { queued: n._id };
+      },
+    },
+  });
+  const wss = attachNotificationSocket(service.server, hub);
+  return { ...service, hub, wss };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
