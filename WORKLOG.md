@@ -2,6 +2,19 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-06-13 — **H.2: settings service — the full personal report now works with real prefs (loop).**
+  packages/account gains the Settings_20171219 face: AWS-JSON GetSettings/UpdateSettings/
+  DeleteSettings/GetDataForSettings (dispatched from robotFace POST / by the Settings_* prefix;
+  caller account via x-amz-credentials {id}), returning the [{skillId:'report-skill',data}] array
+  shape the report-skill's SettingsClient reads (exact PersonalReportSettingsData keys —
+  weatherEnabled/weather/newsX/commuteX/calendar creds). settingsData.js maps the wire shape <->
+  a friendly {weather,news,commute,calendar} object; store gains a `settings` collection. Portal
+  REST GET/PUT /api/settings + a settings editor UI (toggles + commute home/work). Entrypoint
+  registers Settings_* -> account. END-TO-END verified: set prefs via the service -> report-skill
+  reads them from a LIVE NET_settings -> the report honors them (configured KickOff, no
+  SettingsFailed, disabled categories not attempted) instead of degrading. 3 new account tests +
+  portal-smoke settings check; 215 total + sim proxy + portal smoke green.
+
 - 2026-06-13 — **H.1: classic-service entrypoint prefix-router + log + robot reads (loop).** New
   packages/classic = the robot's single front door (one AWS-JSON POST / endpoint the robot's
   region resolves to), dispatching by X-Amz-Target PREFIX to in-process handlers (log, robot) or

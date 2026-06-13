@@ -91,6 +91,15 @@ try {
   const robotNames = await page.$$eval('.robots li .name', (els) => els.map((e) => e.textContent)).catch(() => []);
   check('portal listed the adopted robot after polling', robotNames.includes('castle-cylinder-fig-quilt'), robotNames);
 
+  // personal report settings editor
+  await page.goto(`${base}/#/settings`, { waitUntil: 'networkidle0' });
+  await page.waitForSelector('#settings-form input[name="news"]', { timeout: 8000 });
+  await page.click('#settings-form input[name="news"]'); // toggle news off (was on by default)
+  await page.click('#settings-form button[type="submit"]');
+  await page.waitForFunction(() => /saved/i.test(document.querySelector('#settings-status')?.textContent || ''), { timeout: 8000 }).catch(() => {});
+  const settingsSaved = await page.$eval('#settings-status', (e) => /saved/i.test(e.textContent)).catch(() => false);
+  check('settings editor saves', settingsSaved);
+
   // admin adopt
   await page.goto(`${base}/#/admin`, { waitUntil: 'networkidle0' });
   await page.waitForSelector('#admin-login input[name="password"]');

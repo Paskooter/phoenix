@@ -12,6 +12,7 @@ import { DefaultPort } from '@phoenix/contracts';
 import { getStore } from './store.js';
 import { portalRoutes } from './portalApi.js';
 import { robotFaceRoutes } from './robotFace.js';
+import { settingsPortalRoutes } from './settingsFace.js';
 import { staticRoutes } from './static.js';
 
 export { Store, getStore, resetStore } from './store.js';
@@ -20,6 +21,8 @@ export { createHubToken, secretMatches } from './model.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
 export { robotFaceRoutes } from './robotFace.js';
+export { settingsAwsDispatch, settingsPortalRoutes } from './settingsFace.js';
+export * as settingsData from './settingsData.js';
 export { staticRoutes } from './static.js';
 
 export function createAccountService({ store = getStore() } = {}) {
@@ -28,6 +31,7 @@ export function createAccountService({ store = getStore() } = {}) {
     routes: {
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
       ...portalRoutes(store),     // REST /api/* (sessions)
+      ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
       ...robotFaceRoutes(store), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });

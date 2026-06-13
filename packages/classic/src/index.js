@@ -31,6 +31,7 @@ export function classicRoutes(extra = []) {
     { match: /^robot/i, handler: makeRobotHandler() },
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
+    { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^update/i, proxyTo: () => netUrl('ota', DefaultPort.ota) },
   ]);
   return router;

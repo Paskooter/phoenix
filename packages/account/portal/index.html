@@ -43,6 +43,37 @@
       </div>
       <ul id="robot-list" class="robots"></ul>
       <p class="muted empty" hidden>No robots yet. Click <b>Add a robot</b> to set one up.</p>
+      <p style="margin-top:16px"><button class="link" id="go-settings">⚙ Personal report settings</button></p>
+    </section>
+  </template>
+
+  <!-- PERSONAL REPORT SETTINGS -->
+  <template id="tpl-settings">
+    <section class="card">
+      <button class="link back" id="settings-back">← Back</button>
+      <h2>Personal report settings</h2>
+      <p class="muted">What Jibo includes when you ask for your personal report.</p>
+      <form id="settings-form">
+        <label class="check"><input type="checkbox" name="weather"> Weather</label>
+        <label class="sub">Units
+          <select name="units"><option value="f">Fahrenheit</option><option value="c">Celsius</option></select>
+        </label>
+        <label class="check"><input type="checkbox" name="news"> News</label>
+        <label class="check"><input type="checkbox" name="calendar"> Calendar</label>
+        <label class="check"><input type="checkbox" name="commute"> Commute</label>
+        <details class="commute-details">
+          <summary>Commute home / work</summary>
+          <label class="sub">Home lat<input name="home_lat" /></label>
+          <label class="sub">Home lng<input name="home_lng" /></label>
+          <label class="sub">Work lat<input name="work_lat" /></label>
+          <label class="sub">Work lng<input name="work_lng" /></label>
+          <label class="sub">Mode
+            <select name="mode"><option>driving</option><option>walking</option><option>bicycling</option><option>transit</option></select>
+          </label>
+        </details>
+        <p class="muted" id="settings-status" hidden></p>
+        <button type="submit" class="primary">Save</button>
+      </form>
     </section>
   </template>
 

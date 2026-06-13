@@ -62,6 +62,7 @@ function renderAuth() {
 async function renderDashboard() {
   show(tpl('tpl-dashboard'));
   document.getElementById('add-robot').addEventListener('click', () => { location.hash = '#/add'; });
+  document.getElementById('go-settings').addEventListener('click', () => { location.hash = '#/settings'; });
   const r = await api('GET', '/api/robots');
   const list = document.getElementById('robot-list');
   const empty = app.querySelector('.empty');
@@ -117,6 +118,50 @@ function startPoll(token, statusEl) {
   }, 2000);
 }
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+// -- personal report settings -------------------------------------------------
+
+async function renderSettings() {
+  show(tpl('tpl-settings'));
+  document.getElementById('settings-back').addEventListener('click', () => { location.hash = '#/'; });
+  const form = document.getElementById('settings-form');
+  const status = document.getElementById('settings-status');
+  const el = (n) => form.elements[n];
+
+  const r = await api('GET', '/api/settings');
+  if (!r.ok) { status.hidden = false; status.textContent = 'Could not load settings.'; return; }
+  const s = r.data.settings;
+  el('weather').checked = s.weather.active;
+  el('units').value = s.weather.celsius ? 'c' : 'f';
+  el('news').checked = s.news.active;
+  el('calendar').checked = s.calendar.active;
+  el('commute').checked = s.commute.active;
+  el('home_lat').value = s.commute.home.lat ?? '';
+  el('home_lng').value = s.commute.home.lng ?? '';
+  el('work_lat').value = s.commute.work.lat ?? '';
+  el('work_lng').value = s.commute.work.lng ?? '';
+  el('mode').value = s.commute.mode || 'driving';
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const num = (n) => (el(n).value === '' ? null : Number(el(n).value));
+    const body = {
+      weather: { active: el('weather').checked, celsius: el('units').value === 'c' },
+      news: { active: el('news').checked },
+      calendar: { active: el('calendar').checked },
+      commute: {
+        active: el('commute').checked,
+        home: { lat: num('home_lat'), lng: num('home_lng') },
+        work: { lat: num('work_lat'), lng: num('work_lng') },
+        mode: el('mode').value,
+      },
+    };
+    const put = await api('PUT', '/api/settings', body);
+    status.hidden = false;
+    status.textContent = put.ok ? '✅ Saved.' : (put.data.error || 'Save failed');
+    status.style.color = put.ok ? 'var(--ok)' : 'var(--error)';
+  });
+}
 
 // -- admin --------------------------------------------------------------------
 
@@ -174,6 +219,7 @@ async function route() {
   await refreshMe();
   if (!me) return renderAuth();
   if (hash.startsWith('#/add')) return renderAdd();
+  if (hash.startsWith('#/settings')) return renderSettings();
   return renderDashboard();
 }
 

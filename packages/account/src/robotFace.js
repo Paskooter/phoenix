@@ -18,6 +18,7 @@ import { sendJson } from '@phoenix/common';
 import {
   createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
 } from './model.js';
+import { settingsAwsDispatch } from './settingsFace.js';
 
 export const AMZ_JSON = 'application/x-amz-json-1.1';
 const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-';
@@ -84,6 +85,11 @@ export function robotFaceRoutes(store) {
       // robot's region_config can point every service at this one endpoint.
       if (/^update/i.test(prefix)) {
         return proxyToOta(req, res, body, log);
+      }
+
+      // Settings_* — the report-skill's user-prefs source (NET_settings points here).
+      if (/^settings/i.test(prefix)) {
+        return void settingsAwsDispatch(store, { req, res, body: body || {}, op, log });
       }
 
       const handler = ops[op.toLowerCase()];
