@@ -2,9 +2,9 @@
 
 Status: **read-only archive audit; S-13 remains unverified**
 
-Owner: Luna Max  
-Candidate: `bfd4ac5`  
-Reference revision: `5c0a7390539663ba749d360de348a428c088505c`  
+Owner: Luna Max
+Candidate: `bfd4ac5`
+Reference revision: `5c0a7390539663ba749d360de348a428c088505c`
 Audit date: 2026-09-05
 
 This audit used only the local BE 11.0.1 and BE 12.0.0 release archives. It
