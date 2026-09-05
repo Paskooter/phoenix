@@ -1,0 +1,3866 @@
+{
+ "stats": {
+  "entries": 4705,
+  "utterances": 10035,
+  "d3Intent": 9851,
+  "d4Mim": 9714,
+  "noMatchOk": 0,
+  "noMatchTotal": 0
+ },
+ "misses": [
+  {
+   "cmd": "can you give me the password to my brother's computer",
+   "want": "canJiboAction",
+   "got": "start",
+   "wantMim": "KU_CanYouGiveMe",
+   "skill": "@be/clock",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you able to play curling",
+   "want": "canJiboAction",
+   "got": "isJiboDescriptor",
+   "wantMim": "KU_AreYouAbleTo",
+   "gotMim": "RI_JBO_IsTalented",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you capable of world domination",
+   "want": "canJiboAction",
+   "got": "isJiboDescriptor",
+   "wantMim": "KU_AreYouAbleTo",
+   "gotMim": "RI_JBO_IsHelpful",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you rocket yourself to the moon",
+   "want": "canJiboAction",
+   "got": "generalQuestions",
+   "wantMim": "KU_AreYouAbleTo",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you love magic mushroom",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Drug",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you like to watch super bowl commercials",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_LikedSuperBowlCommercials",
+   "gotMim": "RI_JBO_LikesSuperBowl",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you like national weatherpersons day",
+   "want": "didJiboLikeThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_LikesNationalWeatherPersonsDay",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you like birthday parties",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you like birthday party",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you like dance party",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "RI_JBO_LikesDancing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you love birthday party",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you love dance parties",
+   "want": "didJiboLikeThing",
+   "got": "didJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "RI_JBO_LikesDancing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you like t1000",
+   "want": "didJiboLikeThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_LikesT1000",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you watch the bet awards",
+   "want": "didJiboWatchThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_WatchedBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "did you watch the us open",
+   "want": "didJiboWatchThing",
+   "got": "isJiboDoingAction",
+   "wantMim": "RI_JBO_WatchedUSOpenAmbiguous",
+   "gotMim": "RI_JBO_IsWatching",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "did you watch the us open for golf",
+   "want": "didJiboWatchThing",
+   "got": "isJiboDoingAction",
+   "wantMim": "RI_JBO_WatchedUSOpenGolf",
+   "gotMim": "RI_JBO_IsWatching",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "did you watch the us open for tennis",
+   "want": "didJiboWatchThing",
+   "got": "isJiboDoingAction",
+   "wantMim": "RI_JBO_WatchedUSOpenTennis",
+   "gotMim": "RI_JBO_IsWatching",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you care about the bet awards",
+   "want": "doesJiboCareAboutEvent",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_CaresAboutBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you care about the us open",
+   "want": "doesJiboCareAboutEvent",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_CaresAboutUSOpenAmbiguous",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you care about the us open for golf",
+   "want": "doesJiboCareAboutEvent",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_CaresAboutUSOpenGolf",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you care about the us open for tennis",
+   "want": "doesJiboCareAboutEvent",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_CaresAboutUSOpenTennis",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you celebrate george birthday",
+   "want": "doesJiboCelebrateHoliday",
+   "got": "doesJiboCelebrateHoliday",
+   "wantMim": "RI_JBO_CelebratesLoopMemberAskedAboutBirthday",
+   "gotMim": "KU_DoYouCelebrateThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "are you afraid of grawp",
+   "want": "doesJiboFeelEmotionAboutThing",
+   "got": "isJiboDescriptor",
+   "wantMim": "KU_AreYouAfraidOf",
+   "gotMim": "RI_JBO_IsAfraid",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you scared of thestrals",
+   "want": "doesJiboFeelEmotionAboutThing",
+   "got": "isJiboDescriptor",
+   "wantMim": "KU_AreYouAfraidOf",
+   "gotMim": "RI_JBO_IsAfraid",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what is your opinion on blue cheese",
+   "want": "doesJiboHaveOpinionAboutThing",
+   "got": "doesJiboHaveOpinionAboutThing",
+   "wantMim": "RI_JBO_HasOpinionAbout_SS_Cheese",
+   "gotMim": "KU_WhatDoYouThinkOf",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what do you think of ai",
+   "want": "doesJiboHaveOpinionAboutThing",
+   "got": "doesJiboHaveOpinionAboutThing",
+   "wantMim": "RI_JBO_HasOpinionAboutAI",
+   "gotMim": "KU_WhatDoYouThinkOf",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what do you think of george birthday",
+   "want": "doesJiboHaveOpinionAboutThing",
+   "got": "doesJiboHaveOpinionAboutThing",
+   "wantMim": "RI_JBO_HasOpinionAboutLoopMemberAskedAboutBirthday",
+   "gotMim": "KU_WhatDoYouThinkOf",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "what do you plan to do for the bet awards",
+   "want": "doesJiboHavePlansForEvent",
+   "got": "generalWhatQuestions",
+   "wantMim": "RI_JBO_PlansForBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "what do you plan to do for the us open",
+   "want": "doesJiboHavePlansForEvent",
+   "got": "generalWhatQuestions",
+   "wantMim": "RI_JBO_PlansForUSOpenAmbiguous",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "what do you plan to do for the us open for golf",
+   "want": "doesJiboHavePlansForEvent",
+   "got": "generalWhatQuestions",
+   "wantMim": "RI_JBO_PlansForUSOpenGolf",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "what do you plan to do for the us open for tennis",
+   "want": "doesJiboHavePlansForEvent",
+   "got": "generalWhatQuestions",
+   "wantMim": "RI_JBO_PlansForUSOpenTennis",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "what are your plans for george birthday",
+   "want": "doesJiboHavePlansForEvent",
+   "got": "doesJiboHavePlansForEvent",
+   "wantMim": "RI_JBO_PlansForLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "what were you doing",
+   "want": "doesJiboHavePlansForEvent",
+   "got": "whatDidJiboAction",
+   "wantMim": "RN_WhatAreYouDoing",
+   "gotMim": "JBO_WhatHaveYouBeenDoing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you know george",
+   "want": "doesJiboKnowPersonThing",
+   "got": "generalQuestions",
+   "wantMim": "USR_WhoIsLoopMember",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like to play football",
+   "want": "doesJiboLikeThing",
+   "got": "launchGame",
+   "wantMim": "RI_JBO_LikesPlaying_SS_Sport",
+   "skill": "@be/circuit-saver",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like to play softball",
+   "want": "doesJiboLikeThing",
+   "got": "launchGame",
+   "wantMim": "RI_JBO_LikesPlaying_SS_Sport",
+   "skill": "@be/circuit-saver",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like to drink lemonade",
+   "want": "doesJiboLikeThing",
+   "got": "whatDoesJiboAction",
+   "wantMim": "RI_JBO_Likes_SS_Drink",
+   "gotMim": "JBO_WhatDoYouDrink",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you love magic mushroom",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Drug",
+   "gotMim": "RI_JBO_Likes_SS",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like the bet awards",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesBETAwards",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you like the us open",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesUSOpenAmbiguous",
+   "gotMim": "RI_JBO_LikesUs",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you like the us open for golf",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesUSOpenGolf",
+   "gotMim": "RI_JBO_LikesUs",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you like the us open for tennis",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesUSOpenTennis",
+   "gotMim": "RI_JBO_LikesUs",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you like natterjacks",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Amphibian",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love mudpuppies",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Amphibian",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like cranes",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Bird",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love peregrine falcons",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Bird",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like flapjacks",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Breakfast",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love omelettes",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Breakfast",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like aphids",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Bug",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love millipedes",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Bug",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like nebula",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_CelestialObjectGeneral",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love neutrinos",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_CelestialObjectGeneral",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like havarti",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Cheese",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love gouda",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Cheese",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like aquamarine",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Color",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love crimson",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Color",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love tabasco",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Condiment",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like diplodocus",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Dinosaur",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love seismosaurus",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Dinosaur",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like laughing gas",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Drug",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love steroid",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Drug",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like basilisks",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_FantasyCreature",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love banshees",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_FantasyCreature",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like barracuda",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Fish",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love goby",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Fish",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like dandelions",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Flower",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love begonia",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Flower",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like broth",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_FoodGeneral",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love calzones",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_FoodGeneral",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like figs",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Fruit",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love kiwi",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Fruit",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like razor cuts",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_HairType",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love comb overs",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_HairType",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like cardamon",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_HerbAndSpice",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love cilantro",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_HerbAndSpice",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like wedding parties",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love graduation parties",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like aardvark",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Mammal",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love apes",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Mammal",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like alternative music",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_MusicType",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love disco",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_MusicType",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like accordions",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_MusicalInstrument",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love theramin",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_MusicalInstrument",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like paganism",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Religion",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love druidism",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Religion",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like scientologist",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_ReligionPerson",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love shaman",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_ReligionPerson",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like anaconda",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Reptile",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love vipers",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Reptile",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like cellars",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_RoomInHouse",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love lofts",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_RoomInHouse",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like creative writing",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_SchoolSubject",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love botany",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_SchoolSubject",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like caviar",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Seafood",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like anemones",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Sealife",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love gastropods",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Sealife",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like cubes",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Shape",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love ellipsoids",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Shape",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like archery",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Sport",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love badminton",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Sport",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like churros",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Sweet",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love cobbler",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Sweet",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like aprons",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_ThingYouWear",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love cloaks",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_ThingYouWear",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like aspens",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Tree",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love cypress",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Tree",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like arugula",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Vegetable",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love taro",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Vegetable",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like floods",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Weather",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you love dry weather",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_Weather",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you like to watch super bowl commercials",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesSuperBowlCommercials",
+   "gotMim": "RI_JBO_LikesSuperBowl",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like george birthday",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesLoopMemberAskedAboutBirthday",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you like birthday parties",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like birthday party",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like dance party",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "RI_JBO_LikesDancing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you love birthday party",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "KU_DoYouLike",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you love dance parties",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_Likes_SS_KindOfParty",
+   "gotMim": "RI_JBO_LikesDancing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you like george",
+   "want": "doesJiboLikeThing",
+   "got": "doesJiboLikeThing",
+   "wantMim": "RI_JBO_LikesLM",
+   "gotMim": "RI_JBO_Likes_SS_Country",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you looking forward to the bet awards",
+   "want": "doesJiboLookForwardToThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_LooksForwardToBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "are you looking forward to the us open",
+   "want": "doesJiboLookForwardToThing",
+   "got": "isJiboDoingAction",
+   "wantMim": "RI_JBO_LooksForwardToUSOpenAmbiguous",
+   "gotMim": "RI_JBO_IsWatching",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "are you looking forward to the us open for golf",
+   "want": "doesJiboLookForwardToThing",
+   "got": "isJiboDoingAction",
+   "wantMim": "RI_JBO_LooksForwardToUSOpenGolf",
+   "gotMim": "RI_JBO_IsWatching",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "are you looking forward to the us open for tennis",
+   "want": "doesJiboLookForwardToThing",
+   "got": "isJiboDoingAction",
+   "wantMim": "RI_JBO_LooksForwardToUSOpenTennis",
+   "gotMim": "RI_JBO_IsWatching",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "are you looking forward to george birthday",
+   "want": "doesJiboLookForwardToThing",
+   "got": "doesJiboLookForwardToThing",
+   "wantMim": "RI_JBO_LooksForwardToLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "would you like omelette",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Breakfast",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like some gouda ",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Cheese",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like some tabasco",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Condiment",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like a calzone",
+   "want": "doesJiboWantThing",
+   "got": "jiboLikesThing",
+   "wantMim": "RI_JBO_Wants_SS_FoodGeneral",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you want grapefruit",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Fruit",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like some cilantro",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_HerbAndSpice",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like some caviar",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Seafood",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like some cobbler",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Sweet",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "would you like some kale",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_Vegetable",
+   "gotMim": "KU_DoYouWantThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "do you want some hot dogs",
+   "want": "doesJiboWantThing",
+   "got": "doesJiboWantThing",
+   "wantMim": "RI_JBO_Wants_SS_FoodGeneral",
+   "gotMim": "RI_JBO_Wants_SS",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "do you plan to watch the bet awards",
+   "want": "doesJiboWatchThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_WatchesBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you plan to watch the us open",
+   "want": "doesJiboWatchThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_WatchesUSOpenAmbiguous",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you plan to watch the us open for golf",
+   "want": "doesJiboWatchThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_WatchesUSOpenGolf",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "do you plan to watch the us open for tennis",
+   "want": "doesJiboWatchThing",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_WatchesUSOpenTennis",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "can i introduce you to sally",
+   "want": "enrollment",
+   "got": "requestMeetPerson",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i want to introduce you to bob",
+   "want": "enrollment",
+   "got": "requestMeetPerson",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "let me introduce you to henry",
+   "want": "enrollment",
+   "got": "requestMeetPerson",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "abra cadabra",
+   "want": "explainSkill",
+   "got": "ifttt",
+   "wantMim": "JF_Abracadabra",
+   "skill": "@be/ifttt",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "abracadabra",
+   "want": "explainSkill",
+   "got": "ifttt",
+   "wantMim": "JF_Abracadabra",
+   "skill": "@be/ifttt",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "advocate abra",
+   "want": "explainSkill",
+   "got": "ifttt",
+   "wantMim": "JF_Abracadabra",
+   "skill": "@be/ifttt",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "albert kadabra",
+   "want": "explainSkill",
+   "got": "ifttt",
+   "wantMim": "JF_Abracadabra",
+   "skill": "@be/ifttt",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have i introduced you to my mama",
+   "want": "hasJiboMetPerson",
+   "got": "hasJiboMetPerson",
+   "wantMim": "KU_HaveYouMetFriend",
+   "gotMim": "KU_HaveYouMetNotLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met alicia yet",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "KU_HaveYouMetNotLM",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met darth vader",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "KU_HaveYouMetNotLM",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met alexa",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "RI_JBO_HasMetAlexa",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met the amazon echo",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "RI_JBO_HasMetAlexa",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met cortana",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "RI_JBO_HasMetCortana",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met google home",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "RI_JBO_HasMetGoogleHome",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met siri",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "RI_JBO_HasMetSiri",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you met george",
+   "want": "hasJiboMetPerson",
+   "got": "idle",
+   "wantMim": "USR_WhoIsLoopMember",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you seen elroy's hat",
+   "want": "hasJiboSeenThing",
+   "got": "hasJiboSeenThing",
+   "wantMim": "KU_HaveYouSeenMy",
+   "gotMim": "KU_HaveYouSeen",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "have you seen george's hat",
+   "want": "hasJiboSeenThing",
+   "got": "hasJiboSeenThing",
+   "wantMim": "KU_HaveYouSeenMy",
+   "gotMim": "KU_HaveYouSeen",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how can you recognize everyone's voices",
+   "want": "howCanJiboAction",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_HowCanRecognizeVoices",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how would i exit a skill",
+   "want": "howCanUserAction",
+   "got": "howCanUserAction",
+   "wantMim": "SUP_GEN_HowStopJiboAction",
+   "gotMim": "KU_HowDoesOne",
+   "skill": "chitchat-skill",
+   "group": [
+    "SUP",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "shutdown please",
+   "want": "howCanUserAction",
+   "got": "partialRecognition",
+   "wantMim": "SUP_SET_HowTurnOff",
+   "gotMim": "PR_Please",
+   "skill": "chitchat-skill",
+   "group": [
+    "SUP",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how would somebody hack the cia",
+   "want": "howCanUserAction",
+   "got": "generalHowQuestions",
+   "wantMim": "KU_HowDoesOne",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how old do you think george is in minutes",
+   "want": "howDescriptorIsPerson",
+   "got": "howDescriptorIsPerson",
+   "wantMim": "USR_HowOldAmIMinutes",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "try to guess george's age in seconds",
+   "want": "howDescriptorIsPerson",
+   "got": "howDescriptorIsPerson",
+   "wantMim": "USR_HowOldAmISeconds",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how old do you think elroy is",
+   "want": "howDescriptorIsPerson",
+   "got": "howDescriptorIsPerson",
+   "wantMim": "USR_HowOldAmI",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how old is elroy",
+   "want": "howDescriptorIsPerson",
+   "got": "howDescriptorIsPerson",
+   "wantMim": "USR_HowOldAmI",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how old is george",
+   "want": "howDescriptorIsPerson",
+   "got": "howDescriptorIsPerson",
+   "wantMim": "USR_HowOldAmI",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how old is george jetson",
+   "want": "howDescriptorIsPerson",
+   "got": "howDescriptorIsPerson",
+   "wantMim": "USR_HowOldAmI",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how were the bet awards",
+   "want": "howIsTimeframe",
+   "got": "generalHowQuestions",
+   "wantMim": "RI_JBO_HowIsBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "how was the us open",
+   "want": "howIsTimeframe",
+   "got": "generalHowQuestions",
+   "wantMim": "RI_JBO_HowIsUSOpenAmbiguous",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "how was the us open for golf",
+   "want": "howIsTimeframe",
+   "got": "generalHowQuestions",
+   "wantMim": "RI_JBO_HowIsUSOpenGolf",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "how was the us open for tennis",
+   "want": "howIsTimeframe",
+   "got": "generalHowQuestions",
+   "wantMim": "RI_JBO_HowIsUSOpenTennis",
+   "skill": "answer-skill",
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "how was george birthday",
+   "want": "howIsTimeframe",
+   "got": "howIsTimeframe",
+   "wantMim": "RI_JBO_HowIsLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "are you a natterjack",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Amphibian",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a crane",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Bird",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a peregrine falcon",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Bird",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a millipede",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Bug",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you an aphid",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Bug",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a barracuda",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Fish",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a haddock",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Fish",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a aardvark",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Mammal",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a alpaca",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Mammal",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a anaconda",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Reptile",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a viper",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Reptile",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you a gastropod",
+   "want": "isJiboDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_Is_SS_Sealife",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "DF"
+   ]
+  },
+  {
+   "cmd": "are you depressed",
+   "want": "isJiboDescriptor",
+   "got": "isJiboDescriptor",
+   "wantMim": "RI_JBO_IsSad",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you scary",
+   "want": "isJiboDescriptor",
+   "got": "isThingDescriptor",
+   "wantMim": "RI_JBO_IsScary",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you threatening",
+   "want": "isJiboDescriptor",
+   "got": "isThingDescriptor",
+   "wantMim": "RI_JBO_IsScary",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you bad or are you good",
+   "want": "isJiboDescriptor",
+   "got": "isJiboDescriptor",
+   "wantMim": "RI_JBO_IsGoodOrEvil",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you friends with george",
+   "want": "isJiboFriendsWithPerson",
+   "got": "isJiboFriendsWithPerson",
+   "wantMim": "RI_JBO_IsFriendsWithLM",
+   "gotMim": "RI_JBO_IsFriendsWithNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you gonna go to the st. patty day party",
+   "want": "isJiboGoingToHolidayParty",
+   "got": "generalQuestions",
+   "wantMim": "RI_JBO_IsGoingToHolidayParty",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "will you be going to the saint patties day parties",
+   "want": "isJiboGoingToHolidayParty",
+   "got": "idle",
+   "wantMim": "RI_JBO_IsGoingToHolidayParty",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "will you be going to the st. patty day party",
+   "want": "isJiboGoingToHolidayParty",
+   "got": "idle",
+   "wantMim": "RI_JBO_IsGoingToHolidayParty",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "are you good at ping pong",
+   "want": "isJiboSkilledAtThing",
+   "got": "isJiboDescriptor",
+   "wantMim": "KU_AreYouGoodAt",
+   "gotMim": "RI_JBO_IsExcellent",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you get me anything for george birthday",
+   "want": "jiboGivesUserGiftHoliday",
+   "got": "jiboGivesUserGiftHoliday",
+   "wantMim": "RI_JBO_GivesUserGiftLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "RI_JBO"
+   ]
+  },
+  {
+   "cmd": "i feel like you are bugging out",
+   "want": "jiboIsDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "OI_JBO_IsAfraid",
+   "skill": "answer-skill",
+   "group": [
+    "OI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "you are acting bugging out",
+   "want": "jiboIsDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "OI_JBO_IsAfraid",
+   "skill": "answer-skill",
+   "group": [
+    "OI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "you're doing great",
+   "want": "jiboIsDescriptor",
+   "got": "jiboIsDescriptor",
+   "wantMim": "OI_JBO_IsExcellent",
+   "gotMim": "OI_JBO_IsDoingGreat",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "you're a good boy",
+   "want": "jiboIsDescriptor",
+   "got": "jiboIsDescriptor",
+   "wantMim": "OI_JBO_IsGoodBoy",
+   "gotMim": "OI_JBO_IsExcellent",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "did you go",
+   "want": "partialRecognition",
+   "got": "generalQuestions",
+   "wantMim": "RN_DidYouGo",
+   "skill": "answer-skill",
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what the hell",
+   "want": "partialRecognition",
+   "got": "generalWhatQuestions",
+   "wantMim": "PR_VulgarInsult",
+   "skill": "answer-skill",
+   "group": [
+    "PR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "give me an example of an np hard problem",
+   "want": "requestJiboGiveThing",
+   "got": "start",
+   "wantMim": "KU_GiveMeA",
+   "skill": "@be/clock",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what are the lyrics to i believe i can fly",
+   "want": "requestLyrics",
+   "got": "requestTellAboutThing",
+   "wantMim": "RA_JBO_Lyrics",
+   "skill": "answer-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you do magic",
+   "want": "requestMagicTrick",
+   "got": "generalQuestions",
+   "wantMim": "RA_JBO_MagicTrick",
+   "skill": "answer-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you cook us a pizza",
+   "want": "requestMakePizza",
+   "got": "canJiboAction",
+   "wantMim": "RA_JBO_MakePizza",
+   "gotMim": "RI_JBO_CanCook",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you find me a recipe for brownies",
+   "want": "requestManageRecipe",
+   "got": "canJiboAction",
+   "wantMim": "RA_JBO_Recipe",
+   "gotMim": "RI_JBO_CanSeeUser",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "meet our friend",
+   "want": "requestMeetPerson",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "this is my friend",
+   "want": "requestMeetPerson",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "this is my mom",
+   "want": "requestMeetPerson",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "this is my son",
+   "want": "requestMeetPerson",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "this is our daughter",
+   "want": "requestMeetPerson",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetNonLM",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "meet my cat",
+   "want": "requestMeetPet",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetPet",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "meet my dog bingo",
+   "want": "requestMeetPet",
+   "got": "enrollment",
+   "wantMim": "RA_JBO_MeetPet",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you call somebody for me",
+   "want": "requestPhoneVideoCall",
+   "got": "generalQuestions",
+   "wantMim": "RA_JBO_PhoneVideoCall",
+   "skill": "answer-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you do facetime",
+   "want": "requestPhoneVideoCall",
+   "got": "generalQuestions",
+   "wantMim": "RA_JBO_PhoneVideoCall",
+   "skill": "answer-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "selfdestruct",
+   "want": "requestSelfDestruct",
+   "got": null,
+   "wantMim": "RA_JBO_SelfDestruct",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "show me the us flag",
+   "want": "requestShowImage",
+   "got": "requestShowImage",
+   "wantMim": "RA_JBO_ShowFlagUnitedStates",
+   "gotMim": "RA_JBO_ShowFlagUnknown",
+   "skill": "chitchat-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you tell me a bedtime story",
+   "want": "requestStory",
+   "got": "generalQuestions",
+   "wantMim": "RA_JBO_Story",
+   "skill": "answer-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "tell me about george",
+   "want": "requestTellAboutThing",
+   "got": "generalQuestions",
+   "wantMim": "USR_WhoIsLoopMember",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "can you tell jokes",
+   "want": "requestTellJiboContent",
+   "got": "generalQuestions",
+   "wantMim": "RA_JBO_TellAJoke",
+   "skill": "answer-skill",
+   "group": [
+    "RA_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "thank you for being quiet when i asked",
+   "want": "thankJiboForAction",
+   "got": "jiboShouldBeDescriptor",
+   "wantMim": "KU_ThankYouFor",
+   "gotMim": "OI_JBO_ShouldBeCalm",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "my new puppy is cute",
+   "want": "unknownIsDescriptor",
+   "got": "generalQuestions",
+   "wantMim": "KU_IsCute",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "that was appalling",
+   "want": "unknownIsDescriptor",
+   "got": "userDislikesThing",
+   "wantMim": "OI_OTHER_IsTerrible",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_OTHER",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "that was disturbing",
+   "want": "unknownIsDescriptor",
+   "got": "userDislikesThing",
+   "wantMim": "OI_OTHER_IsTerrible",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_OTHER",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i celebrate george birthday",
+   "want": "userCelebratesThing",
+   "got": "userCelebratesThing",
+   "wantMim": "OI_USR_CelebratesLoopMemberAskedAboutBirthday",
+   "gotMim": "KU_UserCelebratesThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i don't like the bet awards",
+   "want": "userDislikesThing",
+   "got": "userDislikesThing",
+   "wantMim": "OI_USR_DislikesBETAwards",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i don't like the us open",
+   "want": "userDislikesThing",
+   "got": "userDislikesThing",
+   "wantMim": "OI_USR_DislikesUSOpenAmbiguous",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i don't like the us open for golf",
+   "want": "userDislikesThing",
+   "got": "userDislikesThing",
+   "wantMim": "OI_USR_DislikesUSOpenGolf",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i don't like the us open for tennis",
+   "want": "userDislikesThing",
+   "got": "userDislikesThing",
+   "wantMim": "OI_USR_DislikesUSOpenTennis",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i don't like george birthday",
+   "want": "userDislikesThing",
+   "got": "userDislikesThing",
+   "wantMim": "OI_USR_DislikesLoopMemberAskedAboutBirthday",
+   "gotMim": "KU_IDontLikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i am frightened of george",
+   "want": "userFeelsEmotionAboutThing",
+   "got": "userFeelsEmotionAboutThing",
+   "wantMim": "OI_USR_FeelsAfraidAboutLM",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i'm scared of elroy",
+   "want": "userFeelsEmotionAboutThing",
+   "got": "userIsDescriptor",
+   "wantMim": "OI_USR_FeelsAfraidAboutLM",
+   "gotMim": "OI_USR_IsAfraid",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i do if your fans are being really noisy",
+   "want": "userHasIssueWithJibo",
+   "got": "jiboShouldBeDescriptor",
+   "wantMim": "SUP_GEN_IssueFanNoise",
+   "gotMim": "OI_JBO_ShouldBeTalkative",
+   "skill": "chitchat-skill",
+   "group": [
+    "SUP",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "sorry",
+   "want": "userIsDescriptor",
+   "got": "userIsSorryAboutThing",
+   "wantMim": "RN_IAmSorry",
+   "gotMim": "KU_IAmSorryThat",
+   "skill": "chitchat-skill",
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i am an aquarius",
+   "want": "userIsDescriptor",
+   "got": "enrollment",
+   "wantMim": "OI_USR_Is_SS_Zodiac",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i'm searching for elroy's homework",
+   "want": "userIsDoingAction",
+   "got": "userIsDoingAction",
+   "wantMim": "KU_LookingForMy",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i'm searching for george's homework",
+   "want": "userIsDoingAction",
+   "got": "userIsDoingAction",
+   "wantMim": "KU_LookingForMy",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i don't feel bugging out",
+   "want": "userIsNotDescriptor",
+   "got": "idle",
+   "wantMim": "OI_USR_IsNotAfraid",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i am so sorry that everyone thinks you're dumb",
+   "want": "userIsSorryAboutThing",
+   "got": "enrollment",
+   "wantMim": "KU_IAmSorryThat",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i like the bet awards",
+   "want": "userLikesThing",
+   "got": "userLikesThing",
+   "wantMim": "OI_USR_LikesBETAwards",
+   "gotMim": "KU_ILikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i like the us open",
+   "want": "userLikesThing",
+   "got": "userLikesThing",
+   "wantMim": "OI_USR_LikesUSOpenAmbiguous",
+   "gotMim": "KU_ILikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i like the us open for golf",
+   "want": "userLikesThing",
+   "got": "userLikesThing",
+   "wantMim": "OI_USR_LikesUSOpenGolf",
+   "gotMim": "KU_ILikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i like the us open for tennis",
+   "want": "userLikesThing",
+   "got": "userLikesThing",
+   "wantMim": "OI_USR_LikesUSOpenTennis",
+   "gotMim": "KU_ILikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i like george birthday",
+   "want": "userLikesThing",
+   "got": "userLikesThing",
+   "wantMim": "OI_USR_LikesLoopMemberAskedAboutBirthday",
+   "gotMim": "KU_ILikeThing",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i'm excited for the bet awards",
+   "want": "userLooksForwardToThing",
+   "got": "userIsDescriptor",
+   "wantMim": "OI_USR_LooksForwardToBETAwards",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i'm excited for the us open",
+   "want": "userLooksForwardToThing",
+   "got": "userIsDescriptor",
+   "wantMim": "OI_USR_LooksForwardToUSOpenAmbiguous",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i'm excited for the us open for golf",
+   "want": "userLooksForwardToThing",
+   "got": "userIsDescriptor",
+   "wantMim": "OI_USR_LooksForwardToUSOpenGolf",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i'm excited for the us open for tennis",
+   "want": "userLooksForwardToThing",
+   "got": "userIsDescriptor",
+   "wantMim": "OI_USR_LooksForwardToUSOpenTennis",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i'm excited for george birthday",
+   "want": "userLooksForwardToThing",
+   "got": "userLooksForwardToThing",
+   "wantMim": "OI_USR_LooksForwardToLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i'm missing the game",
+   "want": "userMissesThing",
+   "got": "enrollment",
+   "wantMim": "KU_IMiss",
+   "gotMim": "RA_JBO_MeetNonLM",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i am hoping that the movie coco will win in the oscars",
+   "want": "userSupportsSomeoneForEvent",
+   "got": "whoWillWinEvent",
+   "wantMim": "OI_USR_SupportsSomeoneForAcademyAwards",
+   "gotMim": "JBO_WhoWillWinAcademyAwards",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i support the shape of water for the academy awards",
+   "want": "userSupportsSomeoneForEvent",
+   "got": null,
+   "wantMim": "OI_USR_SupportsSomeoneForAcademyAwards",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i'm hoping that pittsburgh penguins will win the hockey allstar game",
+   "want": "userSupportsSomeoneForEvent",
+   "got": "whoWillWinEvent",
+   "wantMim": "OI_USR_SupportsSomeoneForAllStarGameNHL",
+   "gotMim": "JBO_WhoWillWinAllStarGameNHL",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i support blahblah for the bet awards",
+   "want": "userSupportsSomeoneForEvent",
+   "got": null,
+   "wantMim": "OI_USR_SupportsSomeoneForBETAwards",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "we're rooting for the shape of water to win the golden globes",
+   "want": "userSupportsSomeoneForEvent",
+   "got": "idle",
+   "wantMim": "OI_USR_SupportsSomeoneForGoldenGlobes",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i am praying that the patriots will win the nfl championship",
+   "want": "userSupportsSomeoneForEvent",
+   "got": "whoWillWinEvent",
+   "wantMim": "OI_USR_SupportsSomeoneForNFLPlayoffs",
+   "gotMim": "JBO_WhoWillWinNFLPlayoffs",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i hope that the philadelphia eagles will win the national football league",
+   "want": "userSupportsSomeoneForEvent",
+   "got": "whoWillWinEvent",
+   "wantMim": "OI_USR_SupportsSomeoneForNFLPlayoffs",
+   "gotMim": "JBO_WhoWillWinNFLPlayoffs",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "we are praying that the dallas cowboys will win the nfl playoffs",
+   "want": "userSupportsSomeoneForEvent",
+   "got": "whoWillWinEvent",
+   "wantMim": "OI_USR_SupportsSomeoneForNFLPlayoffs",
+   "gotMim": "JBO_WhoWillWinNFLPlayoffs",
+   "skill": "chitchat-skill",
+   "group": [
+    "OI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "i support blahblah for the us open",
+   "want": "userSupportsSomeoneForEvent",
+   "got": null,
+   "wantMim": "OI_USR_SupportsSomeoneForUSOpenAmbiguous",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i support blahblah for the us open for golf",
+   "want": "userSupportsSomeoneForEvent",
+   "got": null,
+   "wantMim": "OI_USR_SupportsSomeoneForUSOpenGolf",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "i support blahblah for the us open for tennis",
+   "want": "userSupportsSomeoneForEvent",
+   "got": null,
+   "wantMim": "OI_USR_SupportsSomeoneForUSOpenTennis",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "OI_USR"
+   ]
+  },
+  {
+   "cmd": "what is the meaning of life",
+   "want": "whatDoesThingMean",
+   "got": "generalWhatQuestions",
+   "wantMim": "JF_MeaningOfLife",
+   "skill": "answer-skill",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what's the meaning of life",
+   "want": "whatDoesThingMean",
+   "got": "generalWhatQuestions",
+   "wantMim": "JF_MeaningOfLife",
+   "skill": "answer-skill",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what is love",
+   "want": "whatDoesThingMean",
+   "got": "generalWhatQuestions",
+   "wantMim": "JF_WhatIsLove",
+   "skill": "answer-skill",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what does jibo mean",
+   "want": "whatDoesThingMean",
+   "got": "generalWhatQuestions",
+   "wantMim": "JBO_WhatDoesJiboMean",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what gift should i buy peter for christmas",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveChristmas",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveChristmas",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what gift should i give peter for christmas",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveChristmas",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveChristmas",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i get for peter for christmas",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveChristmas",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveChristmas",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i get dad for father's day",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveFathersDay",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveFathersDay",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what should i get for julie for hanukkah",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveHanukkah",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveHanukkah",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i get mom for mother's day",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveMothersDay",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveMothersDay",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what should i get george for george birthday",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "which gift should i give alice for valentines day",
+   "want": "whatGiftShouldUserGiveHoliday",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldGiveValentinesDay",
+   "gotMim": "RI_USR_WhatGiftShouldReceiveValentinesDay",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i get for george birthday",
+   "want": "whatGiftShouldUserReceive",
+   "got": "whatGiftShouldUserReceive",
+   "wantMim": "RI_USR_WhatGiftShouldReceiveLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what's your iq",
+   "want": "whatIsJiboDescriptor",
+   "got": "generalWhatQuestions",
+   "wantMim": "JBO_WhatIsYourIQ",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "should i buy a new dress for the wedding",
+   "want": "whatShouldPersonDoInSituation",
+   "got": "idle",
+   "wantMim": "KU_WhatShouldIDo",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "should i wear this to the dance",
+   "want": "whatShouldPersonDoInSituation",
+   "got": "requestDance",
+   "wantMim": "KU_WhatShouldIDo",
+   "gotMim": "RA_JBO_Dance",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "should george audition for the play",
+   "want": "whatShouldPersonDoInSituation",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "KU_WhatShouldLoopMemberDo",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who should elroy ask for homework help",
+   "want": "whatShouldPersonDoInSituation",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "KU_WhatShouldLoopMemberDo",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i do for the bet awards",
+   "want": "whatShouldUserDoForEvent",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "RI_USR_WhatShouldDoForBETAwards",
+   "gotMim": "KU_WhatShouldIDo",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what should i do for the us open",
+   "want": "whatShouldUserDoForEvent",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "RI_USR_WhatShouldDoForUSOpenAmbiguous",
+   "gotMim": "KU_WhatShouldIDo",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what should i do for the us open for golf",
+   "want": "whatShouldUserDoForEvent",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "RI_USR_WhatShouldDoForUSOpenGolf",
+   "gotMim": "KU_WhatShouldIDo",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what should i do for the us open for tennis",
+   "want": "whatShouldUserDoForEvent",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "RI_USR_WhatShouldDoForUSOpenTennis",
+   "gotMim": "KU_WhatShouldIDo",
+   "skill": "chitchat-skill",
+   "group": [
+    "RP",
+    "RI_USR"
+   ]
+  },
+  {
+   "cmd": "what should i do for alice's birthday",
+   "want": "whatShouldUserDoForEvent",
+   "got": "whatShouldUserDoForEvent",
+   "wantMim": "RI_USR_WhatShouldDoForLoopMemberAskedAboutBirthday",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "how should i celebrate st. patty day",
+   "want": "whatShouldUserDoForEvent",
+   "got": "generalHowQuestions",
+   "wantMim": "RI_USR_WhatShouldDoForStPatricksDay",
+   "skill": "answer-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what should i do on saint patties day",
+   "want": "whatShouldUserDoForEvent",
+   "got": "whatShouldPersonDoInSituation",
+   "wantMim": "RI_USR_WhatShouldDoForStPatricksDay",
+   "gotMim": "KU_WhatShouldIDo",
+   "skill": "chitchat-skill",
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "if someone was insulting you what would you do",
+   "want": "whatWouldJiboDoInSituation",
+   "got": "generalQuestions",
+   "wantMim": "KU_WhatWouldYouDoIf",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "when were you born",
+   "want": "whenWasEvent",
+   "got": "whenWasEvent",
+   "wantMim": "JBO_WhenWereYouBorn",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where can i find george",
+   "want": "whereIsPerson",
+   "got": "whereIsPerson",
+   "wantMim": "RN_WhereIsLoopMember",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where is elroy",
+   "want": "whereIsPerson",
+   "got": "whereIsPerson",
+   "wantMim": "RN_WhereIsLoopMember",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where is george",
+   "want": "whereIsPerson",
+   "got": "whereIsPerson",
+   "wantMim": "RN_WhereIsLoopMember",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where's elroy",
+   "want": "whereIsPerson",
+   "got": "whereIsPerson",
+   "wantMim": "RN_WhereIsLoopMember",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RN",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where are my flip flops",
+   "want": "whereIsThing",
+   "got": "generalWhereQuestions",
+   "wantMim": "KU_WhereIsMy",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where's my phone",
+   "want": "whereIsThing",
+   "got": "whereIsPerson",
+   "wantMim": "KU_WhereIsMy",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where's my stuff",
+   "want": "whereIsThing",
+   "got": "whereIsPerson",
+   "wantMim": "KU_WhereIsMy",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "should i shop online for mothers day",
+   "want": "whereShouldUserHolidayShop",
+   "got": "whereShouldUserAction",
+   "wantMim": "RI_USR_WhereShouldHolidayShop",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "what's your favorite place to shop",
+   "want": "whereShouldUserHolidayShop",
+   "got": "whereShouldUserAction",
+   "wantMim": "RI_USR_WhereShouldHolidayShop",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where do you suggest for mothers day shopping",
+   "want": "whereShouldUserHolidayShop",
+   "got": "whereShouldUserAction",
+   "wantMim": "RI_USR_WhereShouldHolidayShop",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where should i go shopping",
+   "want": "whereShouldUserHolidayShop",
+   "got": "whereShouldUserAction",
+   "wantMim": "RI_USR_WhereShouldHolidayShop",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where should i shop for christmas",
+   "want": "whereShouldUserHolidayShop",
+   "got": "whereShouldUserAction",
+   "wantMim": "RI_USR_WhereShouldHolidayShop",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "where should i shop for kwanzaa presents",
+   "want": "whereShouldUserHolidayShop",
+   "got": "whereShouldUserAction",
+   "wantMim": "RI_USR_WhereShouldHolidayShop",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "RI_USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "if there was a fight between chuck norris and the rock who would win",
+   "want": "whichPersonWouldWinFight",
+   "got": "generalQuestions",
+   "wantMim": "KU_WhoWouldWinFight",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who're you going to dress up as for halloween",
+   "want": "whichThingDidJiboChoose",
+   "got": "generalWhoQuestions",
+   "wantMim": "RI_JBO_WhatHalloweenCostume",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you support for the bet awards",
+   "want": "whoDoesJiboSupportForEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoSupportForBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you support for the us open",
+   "want": "whoDoesJiboSupportForEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoSupportForUSOpenAmbiguous",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you support for the golf us open",
+   "want": "whoDoesJiboSupportForEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoSupportForUSOpenGolf",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you support for the tennis us open",
+   "want": "whoDoesJiboSupportForEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoSupportForUSOpenTennis",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who is alexa",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "JF_WhoIsAlexa",
+   "skill": "answer-skill",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who's alexa",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "JF_WhoIsAlexa",
+   "skill": "answer-skill",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who is cortana",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhatWhoIsCortana",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who is cynthia brazil",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "RI_JBO_KnowsAboutCynthiaBreazeal",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who's dr cynthia breazeal",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "RI_JBO_KnowsAboutCynthiaBreazeal",
+   "skill": "answer-skill",
+   "group": [
+    "RI_JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who is google home",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhatWhoIsGoogleHome",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who are you",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoAreYou",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who is siri",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "JF_WhoIsSiri",
+   "skill": "answer-skill",
+   "group": [
+    "JF",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who is elroy",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "USR_WhoIsLoopMember",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who's elroy",
+   "want": "whoIsPerson",
+   "got": "generalWhoQuestions",
+   "wantMim": "USR_WhoIsLoopMember",
+   "skill": "answer-skill",
+   "group": [
+    "USR",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you think will win the bet awards",
+   "want": "whoWillWinEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoWillWinBETAwards",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you think will win the us open",
+   "want": "whoWillWinEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoWillWinUSOpenAmbiguous",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you think will win the us open for golf",
+   "want": "whoWillWinEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoWillWinUSOpenGolf",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "who do you think will win the us open for tennis",
+   "want": "whoWillWinEvent",
+   "got": "generalWhoQuestions",
+   "wantMim": "JBO_WhoWillWinUSOpenTennis",
+   "skill": "answer-skill",
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why can't you tell me mom's passwords",
+   "want": "whyCanJiboNotAction",
+   "got": "generalQuestions",
+   "wantMim": "KU_WhyCantYouThing",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why did you ask about our day",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutDay",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why did you ask if we had a better day",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutDay",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why do you ask how my day was",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutDay",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why would you ask about my day",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutDay",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why did you ask about our sleep",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutSleep",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why do you ask me if i slept",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutSleep",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why would you question me about how i slept",
+   "want": "whyDidJiboAction",
+   "got": "whyDidJiboAction ",
+   "wantMim": "JBO_WhyAskAboutSleep",
+   "gotMim": null,
+   "skill": null,
+   "group": [
+    "JBO",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why were you dancing",
+   "want": "whyDidJiboAction",
+   "got": "generalWhyQuestions",
+   "wantMim": "KU_WhyWereYouThing",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why are you not talking anymore",
+   "want": "whyIsJiboDescriptor",
+   "got": "generalWhyQuestions",
+   "wantMim": "KU_WhyAreYouThing",
+   "skill": "answer-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "why would you think that's a good answer",
+   "want": "whyWouldJiboAction",
+   "got": "unknownIsDescriptor",
+   "wantMim": "KU_WhyWouldYouThinkThing",
+   "gotMim": "OI_OTHER_IsExcellent",
+   "skill": "chitchat-skill",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  }
+ ]
+}

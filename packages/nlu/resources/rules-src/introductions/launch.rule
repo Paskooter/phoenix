@@ -1,0 +1,151 @@
+!use_equivalent_words = true;
+TopRule =
+($*
+        (
+            $D_INTRODUCTIONS_ENROLLMENT
+                {recipient=D_INTRODUCTIONS_ENROLLMENT._recipient}
+                {enrollmentType=D_INTRODUCTIONS_ENROLLMENT._enrollmentType}
+                {intent=D_INTRODUCTIONS_ENROLLMENT._intent}
+        )
+$* ){domain='introductions'}{skill='\@be/introductions'}{priority='HIGH'}
+;
+
+D_INTRODUCTIONS_ENROLLMENT =
+(
+    $D_INTRODUCTIONS_ENROLL_KNOWN_LM {_enrollmentType=D_INTRODUCTIONS_ENROLL_KNOWN_LM._enrollmentType} |
+    $D_INTRODUCTIONS_ENROLL_UNKNOWN_LM {_recipient='null'}{_enrollmentType=D_INTRODUCTIONS_ENROLL_UNKNOWN_LM._enrollmentType}
+){_intent='enrollment'}
+;
+
+D_INTRODUCTIONS_ENROLL_KNOWN_LM = (
+    (
+        ($D_INTRODUCTIONS_V_THISIS|($D_INTRODUCTIONS_V_INTRODUCE ?(?my|our friend|friend|pal|buddy|$V_FAMILY_MEMBER) $*) $LOOPMEMBER) {% style='RequestToMeet'%} |
+        ([?(re)do] $D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER) |
+        ([?(re)do] $LOOPMEMBER $D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([enroll?(ing)] $LOOPMEMBER) |
+        ([?(re)learn] ?how ?to recognize $LOOPMEMBER)
+    ){_enrollmentType='unknown'}
+    |
+    (
+        ([?(re)do] $D_INTRODUCTIONS_ENROLLMENT_TYPE ?$D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER) |
+        (?[?(re)do] $D_INTRODUCTIONS_ENROLLMENT_TYPE $D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER) |
+        (?[?(re)do] $D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER $D_INTRODUCTIONS_ENROLLMENT_TYPE) |
+        ([?(re)do] $LOOPMEMBER $D_INTRODUCTIONS_ENROLLMENT_TYPE ?$D_INTRODUCTIONS_V_ENROLLMENT) |
+        (?[?(re)do] $LOOPMEMBER $D_INTRODUCTIONS_ENROLLMENT_TYPE $D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([?(re)learn] ?(?how to recognize|pronounce) $LOOPMEMBER $D_INTRODUCTIONS_ENROLLMENT_TYPE) |
+        ([?(re)learn] ?(?how to recognize|pronounce) $D_INTRODUCTIONS_ENROLLMENT_TYPE ?(for|with|using) $LOOPMEMBER) |
+        ([?(re)train] ?your $D_INTRODUCTIONS_ENROLLMENT_TYPE ?$D_INTRODUCTIONS_V_RECOGNITION ?(for|with|using) $LOOPMEMBER) |
+        ([?(re)train] ?your $D_INTRODUCTIONS_V_RECOGNITION ?(for|with|using) $LOOPMEMBER $D_INTRODUCTIONS_ENROLLMENT_TYPE)
+    ){_enrollmentType=D_INTRODUCTIONS_ENROLLMENT_TYPE._enrollmentType}
+    |
+    (
+        ([?(re)do] $D_INTRODUCTIONS_MULTI_ENROLLMENT ?$D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER) |
+        (?[?(re)do] $D_INTRODUCTIONS_MULTI_ENROLLMENT $D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER) |
+        (?[?(re)do] $D_INTRODUCTIONS_V_ENROLLMENT ?(for|with|using) $LOOPMEMBER $D_INTRODUCTIONS_MULTI_ENROLLMENT) |
+        ([?(re)do] $LOOPMEMBER $D_INTRODUCTIONS_MULTI_ENROLLMENT ?$D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([?(re)learn] ?(?how to recognize) $LOOPMEMBER $D_INTRODUCTIONS_MULTI_ENROLLMENT) |
+        ([?(re)learn] ?(?how to recognize) $D_INTRODUCTIONS_MULTI_ENROLLMENT ?(for|with|using) $LOOPMEMBER ) |
+        ([?(re)train] ?your $D_INTRODUCTIONS_MULTI_ENROLLMENT ?$D_INTRODUCTIONS_V_RECOGNITION ?(for|with|using) $LOOPMEMBER) |
+        ([?(re)train] ?your $D_INTRODUCTIONS_V_RECOGNITION ?(for|with|using) $LOOPMEMBER $D_INTRODUCTIONS_MULTI_ENROLLMENT)
+    ){_enrollmentType='all'}
+);
+
+
+D_INTRODUCTIONS_ENROLL_UNKNOWN_LM = (
+    (
+        (?(it\'s|(it is)) $D_INTRODUCTIONS_V_NICE $D_INTRODUCTIONS_V_MEET) |
+        ($D_INTRODUCTIONS_V_INTRODUCE $* $D_INTRODUCTIONS_V_PERSON ) |
+        (?[?(re)do] ?$D_INTRODUCTIONS_V_PRONOUN (recognition ?training)|(?recognition enrollment)) |
+        ([?(re)learn] ?how ?to recognize me|us|him|her) |
+        (?$D_INTRODUCTIONS_V_OPEN $D_INTRODUCTIONS_V_INTRODUCE|$D_INTRODUCTIONS_V_ENROLLMENT)
+    ){_enrollmentType='unknown'}
+    |
+    (
+        ([?(re)do] ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_ENROLLMENT_TYPE ?$D_INTRODUCTIONS_V_ENROLLMENT) |
+        (?[?(re)do] ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_ENROLLMENT_TYPE $D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([?(re)learn]|pronounce ?(?how to recognize|pronounce) ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_ENROLLMENT_TYPE ?$D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([?(re)train] ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_ENROLLMENT_TYPE ?$D_INTRODUCTIONS_V_ENROLLMENT)
+    ){_enrollmentType=D_INTRODUCTIONS_ENROLLMENT_TYPE._enrollmentType}
+    |
+    (
+        (?[?(re)do] ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_MULTI_ENROLLMENT $D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([?(re)learn] ?(?how to recognize) ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_MULTI_ENROLLMENT ?$D_INTRODUCTIONS_V_ENROLLMENT) |
+        ([?(re)train] ?$D_INTRODUCTIONS_V_PRONOUN $D_INTRODUCTIONS_MULTI_ENROLLMENT ?$D_INTRODUCTIONS_V_ENROLLMENT)
+    ){_enrollmentType='all'}
+);
+
+D_INTRODUCTIONS_MULTI_ENROLLMENT = (?$D_INTRODUCTIONS_ENROLLMENT_TYPE $D_INTRODUCTIONS_ENROLLMENT_TYPE and $D_INTRODUCTIONS_ENROLLMENT_TYPE);
+
+
+D_INTRODUCTIONS_ENROLLMENT_TYPE = (
+    (voice) {_enrollmentType='voice'} |
+    (face|facial) {_enrollmentType='face'} |
+    (name) {_enrollmentType='name'} |
+    (complete|full) {_enrollmentType='all'}
+);
+
+# TODO - FIX THIS
+LOOPMEMBER = (
+    ($GIVEN_NAME ?$LAST_NAME) |
+    (<1.0>+$w<0.0>){% GivenName='' %}
+);
+
+GIVEN_NAME @= $factory:first_name {% GivenName = this._parsed%};
+LAST_NAME @= $factory:last_name {% LastName = this._parsed %};
+
+
+### USEFUL VOCABULARY ###
+D_INTRODUCTIONS_V_PRONOUN = (my|your|his|her);
+D_INTRODUCTIONS_V_PERSON = ([some((body)|(one))]|(this person)|(my friend));
+D_INTRODUCTIONS_V_INTRODUCE = ([introduc(e|(ing)|(ed))]|present|presentation|[introduction?s]|(?(do you want to)(meet|meat)));
+D_INTRODUCTIONS_V_THISIS = ((this|he|she|it is)?(?my|our friend|friend|pal|buddy|$V_FAMILY_MEMBER))|(i am)|he\'s|she\'s|i\'m|([it?(\')s] ?me)|(remember me);
+D_INTRODUCTIONS_V_NICE = (nice|good|great|(?a pleasure));
+D_INTRODUCTIONS_V_MEET = (?to (make your acquaintaince)|(be introduced ?to you)|(meet|meat you));
+D_INTRODUCTIONS_V_RECOGNITION = (recognition|id|identification|pronunciation);
+D_INTRODUCTIONS_V_ENROLLMENT = ($D_INTRODUCTIONS_V_RECOGNITION|(?$D_INTRODUCTIONS_V_RECOGNITION training|[enroll?((ment)|(ing))]));
+D_INTRODUCTIONS_V_OPEN = (open | (go ?back ?to) | (return ?to) | (bring ?up) |
+    (bring|take (me | us) ?to) | load | access | view | display|
+    ( show ?(me | us)) | (let me|us see) | (let\'s see));
+
+
+KU_PREFIXES = (
+    (i (was ?$V_ACTUALLY saying|(trying to say))|(meant to say) $*) |
+    ($V_CANYOU ?$V_ACTUALLY ?(tell ?(me|us) ?about) $*) |
+    ($V_CANYOU ?$V_ACTUALLY access $*) |
+    ($V_CANYOU ?$V_ACTUALLY get ?(me|us) $*) |
+    ($V_CANYOU ?$V_ACTUALLY give ?(me|us) $*) |
+    (do you ?$V_ACTUALLY have $*) |
+    ((i ?$V_ACTUALLY want)|(i\'d|(i would) ?$V_ACTUALLY like) ?to $*) |
+    (i ?$V_ACTUALLY wish ?to $*) |
+    (i ?$V_ACTUALLY wish you $*) |
+    ($V_CANWE|(let me|us) see $*)
+~0.1);
+
+V_ACTUALLY = <1.0>(really|actually|usually|ever)<0.0>;
+V_CANYOU = ((can you)|(do you (?$V_ACTUALLY know how ?to))|(are you ?$V_ACTUALLY able|capable|allowed|permitted ?(to|of)));
+V_CANWE = ((can|may|could i|we|people)|((are we)|(am i) ?$V_ACTUALLY allowed|able|permitted|capable ?(to|of)));
+V_FAMILY_MEMBER = (
+( [aunt?(s|(es)|(\'s))]) | ( [brother?(s|(es)|(\'s))]) | ([bro?(s|(es))]) |
+( [brother-in-law?(s|(es)|(\'s))]) | ( [cousin?(s|(es)|(\'s))]) |
+( [dad?(s|(es)|(\'s))]) | ( [daddy?(s|(es)|(\'s))]) | (papa) |
+( [daughter?(s|(es)|(\'s))]) | ( [daughter-in-law?(s|(es)|(\'s))]) |
+(ex  [husband?(s|(es)|(\'s))]) | (ex  [wife?(s|(es)|(\'s))]) |
+( [father?(s|(es)|(\'s))]) | ( [father-in-law?(s|(es)|(\'s))]) |
+( [grandchild?(s|(es)|(\'s))]) | ( [grandchildren?(s|(es)|(\'s))]) |
+( [granddaughter?(s|(es)|(\'s))]) | ( [grandfather?(s|(es)|(\'s))]) |
+( [grandma?(s|(es)|(\'s))]) | ( [grandmother?(s|(es)|(\'s))]) |
+( [grandpa?(s|(es)|(\'s))]) | ( [grandparent?(s|(es)|(\'s))]) |
+( [grandson?(s|(es)|(\'s))]) | ( [husband?(s|(es)|(\'s))]) |
+( kid | kids | child | children ) |
+( [mom?(s|(es)|(\'s))]) | ( [mommy?(s|(es)|(\'s))]) | (mama) |
+( [mother?(s|(es)|(\'s))]) | ( [mother-in-law?(s|(es)|(\'s))]) |
+( [nephew?(s|(es)|(\'s))]) | ( [niece?(s|(es)|(\'s))]) |
+( [parent?(s|(es)|(\'s))]) | ( [sibling?(s|(es)|(\'s))]) |
+( [sister?(s|(es)|(\'s))]) | ( [sister-in-law?(s|(es)|(\'s))]) | (sis|sissies) |
+( [son?(s|(es)|(\'s))]) | ( [son-in-law?(s|(es)|(\'s))]) |
+( [spouse?(s|(es)|(\'s))]) | ( [stepbrother?(s|(es)|(\'s))]) |
+( [stepchild?(s|(es)|(\'s))]) | ( [stepchildren?(s|(es)|(\'s))]) |
+( [stepdaughter?(s|(es)|(\'s))]) | ( [stepfather?(s|(es)|(\'s))]) |
+( [stepmother?(s|(es)|(\'s))]) | ( [stepsister?(s|(es)|(\'s))]) |
+( [uncle?(s|(es)|(\'s))]) | ( [wife?(s|(es)|(\'s))])
+);

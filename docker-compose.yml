@@ -10,8 +10,8 @@
 #   lasso          9007:8080   (data)
 #   answer-skill   9009:8080
 #
-# All services run from one volume-mounted tree on node:20-slim (the reference mounted ./ into
-# a pegasus_base image the same way). No redis/mongo: Phoenix stores are in-memory by design
+# All services share the mounted packages on the node:20-slim-based runtime image.
+# Runtime dependencies and ffmpeg come from the rebuilt image. No redis/mongo: Phoenix stores are in-memory by design
 # (see DIVERGENCES.md). Skill containers all run the same skills service; each answers at
 # /v1/<id>/main, and the hub's skills-local.json routes by container name.
 #
@@ -19,11 +19,17 @@
 #   PARAKEET_URL=http://192.168.1.252:6972 LLM_URL=http://192.168.1.252:1234/v1 docker compose up
 
 x-phoenix-defaults: &phoenix-defaults
-  image: node:20-slim
+  build:
+    context: .
+    dockerfile: scripts/Dockerfile
+  image: phoenix-runtime:local
   networks:
     - pegasus-nw
   volumes:
-    - ./:/phoenix:consistent
+    - ./packages:/phoenix/packages:consistent
+  env_file:
+    - path: .env
+      required: false
   environment:
     - PORT=8080
 
@@ -45,6 +51,7 @@ services:
       - NET_history=history:8080
       - NET_data=lasso:8080
       - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
+      - PHOENIX_FFMPEG=/usr/bin/ffmpeg
     ports:
       - 9000:8080
 

@@ -1,5 +1,10 @@
 # M9 — Phoenix ↔ Pegasus Parity Report
 
+**Historical report, superseded by the [2026-09-05 audit](docs/parity/AUDIT.md).** The old
+corpus percentages were reproduced, but whole-server compatibility and completion were not.
+Use the [current plan](docs/parity/PLAN.md) and [verified checklist](docs/parity/TASKS.md);
+the conclusions and exclusions below are retained as project history.
+
 *Finalized 2026-06-12. This is the closing milestone of the atlas rebuild plan
 (M0–M9): what was rebuilt, how parity was measured, what diverges and why.*
 

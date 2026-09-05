@@ -1,0 +1,11 @@
+.git
+.parity
+node_modules
+**/node_modules
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+packages/account/data
+packages/ota/data

@@ -1,0 +1,2336 @@
+{
+  "schemaVersion": 1,
+  "suite": "foundation-v1",
+  "cases": 28,
+  "strictlyMatchingCases": [
+    "listen-auth-required",
+    "listen-malformed-frame"
+  ],
+  "casesWithDifferences": 26,
+  "differences": 267,
+  "invariantFailures": 0,
+  "caseDifferenceCounts": {
+    "http-health": 5,
+    "http-null": 5,
+    "http-undefined": 5,
+    "http-array": 4,
+    "http-empty-body": 4,
+    "http-json": 4,
+    "http-malformed-json": 7,
+    "http-form": 11,
+    "http-not-found": 6,
+    "http-typed-error": 6,
+    "http-trailing-slash": 6,
+    "http-head": 4,
+    "http-options": 9,
+    "http-auth-required": 10,
+    "http-auth-valid": 5,
+    "skills-legacy": 11,
+    "skills-v1": 11,
+    "settings-legacy": 11,
+    "settings-v1": 11,
+    "listen-launch": 27,
+    "listen-relaunch": 27,
+    "listen-update": 27,
+    "listen-no-match": 8,
+    "listen-provider-error": 10,
+    "listen-auth-required": 0,
+    "listen-auth-invalid": 2,
+    "listen-malformed-frame": 0,
+    "listen-final-lifetime": 31
+  },
+  "differenceCategories": {
+    "shared-http": 91,
+    "skill-list-http": 44,
+    "outbound-http-headers": 116,
+    "unknown-speaker-history": 8,
+    "parser-error-envelope": 2,
+    "websocket-auth-error": 2,
+    "terminal-socket-lifetime": 4
+  },
+  "taskAssignments": [
+    {
+      "case": "http-health",
+      "path": "/cases/0/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-health",
+      "path": "/cases/0/response/headers/content-type",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-health",
+      "path": "/cases/0/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-health",
+      "path": "/cases/0/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-health",
+      "path": "/cases/0/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-null",
+      "path": "/cases/1/response/body/value",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-null",
+      "path": "/cases/1/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-null",
+      "path": "/cases/1/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-null",
+      "path": "/cases/1/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-null",
+      "path": "/cases/1/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-trailing-slash",
+      "path": "/cases/10/response/body/value",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-trailing-slash",
+      "path": "/cases/10/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-trailing-slash",
+      "path": "/cases/10/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-trailing-slash",
+      "path": "/cases/10/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-trailing-slash",
+      "path": "/cases/10/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-trailing-slash",
+      "path": "/cases/10/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-head",
+      "path": "/cases/11/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-head",
+      "path": "/cases/11/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-head",
+      "path": "/cases/11/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-head",
+      "path": "/cases/11/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/body/kind",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/body/value",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/headers/allow",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/headers/content-type",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-options",
+      "path": "/cases/12/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/body/value/data",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/body/value/final",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/body/value/msgID",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/body/value/ts",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/body/value/type",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-required",
+      "path": "/cases/13/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-valid",
+      "path": "/cases/14/response/body/value",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-valid",
+      "path": "/cases/14/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-valid",
+      "path": "/cases/14/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-valid",
+      "path": "/cases/14/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-auth-valid",
+      "path": "/cases/14/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/body/value/data",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/body/value/final",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/body/value/msgID",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/body/value/skills",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/body/value/ts",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/body/value/type",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/headers/content-length",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/headers/etag",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/headers/transfer-encoding",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/headers/x-powered-by",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-legacy",
+      "path": "/cases/15/response/status",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/body/value/data",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/body/value/final",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/body/value/msgID",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/body/value/skills",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/body/value/ts",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/body/value/type",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/headers/content-length",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/headers/etag",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/headers/transfer-encoding",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/headers/x-powered-by",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "skills-v1",
+      "path": "/cases/16/response/status",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/body/value/data",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/body/value/final",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/body/value/msgID",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/body/value/skills",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/body/value/ts",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/body/value/type",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/headers/content-length",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/headers/etag",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/headers/transfer-encoding",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/headers/x-powered-by",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-legacy",
+      "path": "/cases/17/response/status",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/body/value/data",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/body/value/final",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/body/value/msgID",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/body/value/skills",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/body/value/ts",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/body/value/type",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/headers/content-length",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/headers/etag",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/headers/transfer-encoding",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/headers/x-powered-by",
+      "category": "skill-list-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "settings-v1",
+      "path": "/cases/18/response/status",
+      "category": "skill-list-http",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/0/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/1/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/body/value/personIDs/length",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/body/value/personIDs/0",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/content-length",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-launch",
+      "path": "/cases/19/effects/2/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "http-undefined",
+      "path": "/cases/2/response/body/kind",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-undefined",
+      "path": "/cases/2/response/body/value",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-undefined",
+      "path": "/cases/2/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-undefined",
+      "path": "/cases/2/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-undefined",
+      "path": "/cases/2/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/0/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/1/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/body/value/personIDs/length",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/body/value/personIDs/0",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/content-length",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-relaunch",
+      "path": "/cases/20/effects/2/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/0/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/1/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/body/value/personIDs/length",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/body/value/personIDs/0",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/content-length",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-update",
+      "path": "/cases/21/effects/2/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-no-match",
+      "path": "/cases/22/effects/0/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/effects/0/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/frames/2/message/data/code",
+      "category": "parser-error-envelope",
+      "tasks": [
+        "H-02",
+        "C-02"
+      ]
+    },
+    {
+      "case": "listen-provider-error",
+      "path": "/cases/23/frames/2/message/data/message",
+      "category": "parser-error-envelope",
+      "tasks": [
+        "H-02",
+        "C-02"
+      ]
+    },
+    {
+      "case": "listen-auth-invalid",
+      "path": "/cases/25/upgrade/body/value",
+      "category": "websocket-auth-error",
+      "tasks": [
+        "H-10"
+      ]
+    },
+    {
+      "case": "listen-auth-invalid",
+      "path": "/cases/25/upgrade/headers/content-length",
+      "category": "websocket-auth-error",
+      "tasks": [
+        "H-10"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/close/code",
+      "category": "terminal-socket-lifetime",
+      "tasks": [
+        "H-02"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/close/reason",
+      "category": "terminal-socket-lifetime",
+      "tasks": [
+        "H-02"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/closeOrigin",
+      "category": "terminal-socket-lifetime",
+      "tasks": [
+        "H-02"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/0/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-02",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/1/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-04",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/body/value/personIDs/length",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/body/value/personIDs/0",
+      "category": "unknown-speaker-history",
+      "tasks": [
+        "H-08"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/accept",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/accept-encoding",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/accept-language",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/connection",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/content-length",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/content-type",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/sec-fetch-mode",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/user-agent",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/effects/2/headers/x-jibo-logging-config",
+      "category": "outbound-http-headers",
+      "tasks": [
+        "H-08",
+        "R-01"
+      ]
+    },
+    {
+      "case": "listen-final-lifetime",
+      "path": "/cases/27/openAfterFinal",
+      "category": "terminal-socket-lifetime",
+      "tasks": [
+        "H-02"
+      ]
+    },
+    {
+      "case": "http-array",
+      "path": "/cases/3/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-array",
+      "path": "/cases/3/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-array",
+      "path": "/cases/3/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-array",
+      "path": "/cases/3/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-empty-body",
+      "path": "/cases/4/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-empty-body",
+      "path": "/cases/4/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-empty-body",
+      "path": "/cases/4/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-empty-body",
+      "path": "/cases/4/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-json",
+      "path": "/cases/5/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-json",
+      "path": "/cases/5/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-json",
+      "path": "/cases/5/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-json",
+      "path": "/cases/5/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/body/value/data/code",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/body/value/data/message",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-malformed-json",
+      "path": "/cases/6/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/body/value/a",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/body/value/data",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/body/value/final",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/body/value/msgID",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/body/value/ts",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/body/value/type",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-form",
+      "path": "/cases/7/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-not-found",
+      "path": "/cases/8/response/body/value/data/code",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-not-found",
+      "path": "/cases/8/response/body/value/data/message",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-not-found",
+      "path": "/cases/8/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-not-found",
+      "path": "/cases/8/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-not-found",
+      "path": "/cases/8/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-not-found",
+      "path": "/cases/8/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-typed-error",
+      "path": "/cases/9/response/body/value/data/code",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-typed-error",
+      "path": "/cases/9/response/headers/content-length",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-typed-error",
+      "path": "/cases/9/response/headers/etag",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-typed-error",
+      "path": "/cases/9/response/headers/transfer-encoding",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-typed-error",
+      "path": "/cases/9/response/headers/x-powered-by",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    },
+    {
+      "case": "http-typed-error",
+      "path": "/cases/9/response/status",
+      "category": "shared-http",
+      "tasks": [
+        "C-01"
+      ]
+    }
+  ],
+  "countMeaning": "JSON-pointer differences in a deliberately small foundational suite; not unique defects or a whole-project completion percentage."
+}

@@ -1,0 +1,22 @@
+TopRule = ($* $ALARMTIMERQUERYMENU $*) {intent = ALARMTIMERQUERYMENU._intent}{priority='HIGH'};
+
+#Okay. Setting an alarm for 4pm.
+
+ALARMTIMERQUERYMENU =
+        $CHANGE {_intent=CHANGE._intent} |
+        $CANCEL {_intent=CANCEL._intent}
+        ;
+
+CHANGE =
+    (
+        (change|edit ?(it | that | (the|that alarm|timer|time|duration) ))
+    )
+    {_intent='change'}
+;
+
+CANCEL =
+    (
+        (cancel ?(it | that | (the|that alarm|timer) ))
+    )
+    {_intent='cancel'}
+    ;

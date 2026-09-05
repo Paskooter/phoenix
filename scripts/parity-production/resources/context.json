@@ -1,0 +1,103 @@
+{
+  "general": {
+    "accountID": "fixture-account",
+    "robotID": "fixture-robot",
+    "lang": "en-US",
+    "release": "8.67.5309"
+  },
+  "runtime": {
+    "loop": {
+      "loopId": "test-loop-id",
+      "jibo": {
+        "id": "test-looper-id-1",
+        "birthdate": 1495216025271,
+        "color": "WHITE"
+      },
+      "owner": "test-looper-id-2",
+      "users": [
+        {
+          "id": "test-looper-id-2",
+          "accountId": "test-account-id-2",
+          "birthdate": 220924800000,
+          "gender": "male",
+          "phoneticName": "ghoti",
+          "lastName": "Jetson",
+          "firstName": "George"
+        },
+        {
+          "id": "test-looper-id-3",
+          "accountId": "test-account-id-3",
+          "birthdate": 444528000000,
+          "gender": "female",
+          "phoneticName": "Jane",
+          "lastName": "Jetson",
+          "firstName": "Jane"
+        },
+        {
+          "id": "test-looper-id-4",
+          "accountId": "test-account-id-4",
+          "birthdate": 983577600000,
+          "gender": "female",
+          "phoneticName": "Judy",
+          "lastName": "Jetson",
+          "firstName": "Judy"
+        },
+        {
+          "id": "test-looper-id-5",
+          "accountId": "test-account-id-5",
+          "birthdate": 1065139200000,
+          "gender": "male",
+          "phoneticName": "Elroy",
+          "lastName": "Jetson",
+          "firstName": "Elroy"
+        },
+        {
+          "id": "test-looper-id-6",
+          "accountId": "test-account-id-6",
+          "birthdate": 953251200000,
+          "gender": "female",
+          "phoneticName": "Rosie",
+          "lastName": "Jetson",
+          "firstName": "Rosie"
+        },
+        {
+          "id": "test-looper-id-7",
+          "accountId": "test-account-id-7",
+          "birthdate": 953078400000,
+          "gender": "male",
+          "phoneticName": "Astro",
+          "lastName": "Jetson",
+          "firstName": "Astro"
+        }
+      ]
+    },
+    "location": {
+      "lng": -71.1273681,
+      "lat": 42.313352,
+      "country": "usa",
+      "countryCode": "US",
+      "stateAbbr": "ma",
+      "state": "Massachusetts",
+      "city": "boston",
+      "iso": "2018-05-30T12:00:00+00:00"
+    },
+    "perception": {
+      "peoplePresent": [],
+      "speaker": "test-looper-id-3"
+    },
+    "character": {
+      "motivation": {
+        "playful": 0.14528444444444447,
+        "social": 0.01816055555555556
+      },
+      "emotion": {
+        "confidence": 0.2,
+        "valence": 0.45,
+        "name": "NEUTRAL"
+      }
+    },
+    "dialog": {
+      "referent": null
+    }
+  }
+}

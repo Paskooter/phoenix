@@ -1,0 +1,13 @@
+
+> phoenix@0.0.0 parity:check
+> node scripts/parity-status.mjs --check
+
+management: 3/3 verified; 0 in progress; 0 blocked
+verification: 2/3 verified; 1 in progress; 0 blocked
+pegasus: 0/46 verified; 0 in progress; 0 blocked
+classic: 0/18 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Current: V-03 — Map all original tests and resources into a coverage denominator
+Next: A-01 — Map every Classic operation to controllers, consumers and tests
+Tracker structure, dependencies, evidence links and generated checklist are valid.

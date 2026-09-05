@@ -1,0 +1,32 @@
+TopRule = ($* $LOOPER | $CANCEL{intent=CANCEL._intent} $*){priority='HIGH'};
+
+#Whose face/voice/name am i learning
+LOOPER = (
+    (?$PREFIX $GIVEN_NAME ?$LAST_NAME) |
+    (?$PREFIX <1.0>+$w<0.0>){% GivenName='' %}
+){% intent='loopmember' %};
+
+GIVEN_NAME @= $factory:first_name {% GivenName = this._parsed%};
+LAST_NAME @= $factory:last_name {% LastName = this._parsed %};
+
+PREFIX = ((?my ?[name?(?(\')s)] ?is)|(?[i?(?(\')m)] ?am));
+
+CANCEL =
+    (
+        cancel |
+        escape |
+        exit |
+        ( i don\'t want ) |
+        ( not do ) |
+        ( i\'m tired ) |
+        ( this is ( stupid | dumb ) ) |
+        ( forget it ) |
+        nevermind |
+        later |
+        (no one) |
+        (no one\'s) |
+        (nobody) |
+        (nobody\'s)
+    )
+{_intent='cancel'}
+;

@@ -1,0 +1,239 @@
+{
+  "capturedAt": "2026-09-05T04:24:52.783Z",
+  "node": "v22.22.0",
+  "evidenceKind": "Phoenix observations compared with inspected reference source; reference services were not executed",
+  "observations": [
+    {
+      "id": "P01-empty-nlu",
+      "expected": {
+        "intent": null,
+        "entities": null,
+        "rules": []
+      },
+      "actual": {
+        "rules": [],
+        "intent": null,
+        "entities": {}
+      },
+      "reference": "pegasus/packages/parser/src/handlers/ParseRequestHandler.ts: EMPTY_NLU"
+    },
+    {
+      "id": "P02-requested-rules",
+      "expected": "An unknown rule cannot activate the launch grammar when fallback is disabled.",
+      "actual": {
+        "unknownRule": {
+          "status": 200,
+          "body": {
+            "type": "NLU",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "intent": "requestTellJiboContent",
+              "entities": {
+                "intent": "requestTellJiboContent",
+                "JiboContent": "Joke",
+                "priority": "HIGH",
+                "skill": "@be/chitchat"
+              }
+            }
+          }
+        },
+        "launchRule": {
+          "status": 200,
+          "body": {
+            "type": "NLU",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "intent": "requestTellJiboContent",
+              "entities": {
+                "intent": "requestTellJiboContent",
+                "JiboContent": "Joke",
+                "priority": "HIGH",
+                "skill": "@be/chitchat"
+              }
+            }
+          }
+        }
+      },
+      "reference": "pegasus/packages/parser/src/robustparser/RobustParserClient.ts: handleNLU filters request.rules"
+    },
+    {
+      "id": "P03-skill-list-routes",
+      "expected": "All four routes return 200 and the matching full skill configurations.",
+      "actual": {
+        "/skills/audit-robot": {
+          "status": 404,
+          "body": {
+            "type": "ERROR",
+            "data": {
+              "message": "no route GET /skills/audit-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "/v1/skills/audit-robot": {
+          "status": 404,
+          "body": {
+            "type": "ERROR",
+            "data": {
+              "message": "no route GET /v1/skills/audit-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "/skills/settings/audit-robot": {
+          "status": 404,
+          "body": {
+            "type": "ERROR",
+            "data": {
+              "message": "no route GET /skills/settings/audit-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "/v1/skills/settings/audit-robot": {
+          "status": 404,
+          "body": {
+            "type": "ERROR",
+            "data": {
+              "message": "no route GET /v1/skills/settings/audit-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        }
+      },
+      "reference": "pegasus/packages/hub/src/HubService.ts + skill-list/SkillListGetHttpRequestsHandler.ts"
+    },
+    {
+      "id": "P04-history-empty",
+      "expected": {
+        "status": 200,
+        "body": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {}
+      },
+      "reference": "pegasus/packages/history/src/skilllaunch/db/SkillLaunchCollection.ts: documentToJSON(null); utils BaseHttpHandler json(result)"
+    },
+    {
+      "id": "P05-history-get",
+      "expected": {
+        "status": 200,
+        "body": {
+          "count": 0
+        }
+      },
+      "actual": {
+        "status": 404,
+        "body": {
+          "type": "ERROR",
+          "data": {
+            "message": "no route GET /v1/skill/launch/count",
+            "code": "NOT_FOUND"
+          },
+          "final": true
+        }
+      },
+      "reference": "pegasus/packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts: GET /count"
+    },
+    {
+      "id": "P06-history-write-validation",
+      "expected": "Missing robotID, sessionID and skillID must be rejected.",
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "8a1a3057-8b43-48b7-9926-7b8c2575d65f"
+        }
+      },
+      "reference": "pegasus/packages/history/src/skilllaunch/validators/event.ts"
+    },
+    {
+      "id": "P07-history-write-shape",
+      "expected": "Return the full saved SkillLaunchRecord, including robotID, sessionID and skillID.",
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "d66b9b52-302e-469e-9a9e-9dbdeb2bd664"
+        }
+      },
+      "reference": "pegasus/packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts: saveSkillLaunch + SkillLaunchCollection.documentToJSON"
+    },
+    {
+      "id": "P08-calendar-envelope",
+      "expected": "Calendar data must be inside relayData, with cache metadata, even for an empty event list.",
+      "actual": {
+        "status": 200,
+        "body": {
+          "events": []
+        }
+      },
+      "reference": "pegasus/packages/lasso/src/relay/GoogleCalendarHandler.ts extends AbstractRelayRequestHandler"
+    },
+    {
+      "id": "P09-calendar-head",
+      "expected": "HEAD shares the calendar relay prefetch contract.",
+      "actual": {
+        "status": 404,
+        "body": ""
+      },
+      "reference": "pegasus/packages/lasso/src/relay/AbstractRelayRequestHandler.ts: router.head and router.get"
+    },
+    {
+      "id": "P10-intentless-launch",
+      "expected": "No launch decision (undefined in the reference implementation).",
+      "actual": {
+        "skillID": "@be/audit",
+        "weight": 0,
+        "memo": null
+      },
+      "reference": "pegasus/packages/hub/src/intent/IntentRouter.ts: routing requires a nonempty intent and a registered decision"
+    },
+    {
+      "id": "P11-reference-nlu-schema",
+      "expected": "Reference empty NLU must be accepted by the contract validator.",
+      "actual": {
+        "valid": false,
+        "errors": [
+          "$.data.entities: expected object, got null"
+        ]
+      },
+      "reference": "pegasus/packages/parser/src/handlers/ParseRequestHandler.ts: EMPTY_NLU"
+    },
+    {
+      "id": "P12-retention-order",
+      "expected": "Once retention has run, expired records must not survive just because they were inserted after a recent record.",
+      "actual": {
+        "countAfterPrune": 2,
+        "sessions": [
+          "recent",
+          "expired"
+        ]
+      },
+      "reference": "pegasus/packages/history/src/skilllaunch/schema/SkillLaunchSchema.ts: timestamp TTL index (eventual cleanup)"
+    },
+    {
+      "id": "P13-default-skill-route",
+      "expected": "The reference report-skill process handles report requests at /v1/main.",
+      "actual": {
+        "status": 200,
+        "responseType": "SKILL_ACTION",
+        "skill": "answer-skill"
+      },
+      "reference": "pegasus/packages/baseskill/src/SkillService.ts; Phoenix compose starts the same skills index for every skill process"
+    },
+    {
+      "id": "P14-lasso-discovery",
+      "expected": "The report client recognizes NET_lasso; it must not require a Phoenix-only NET_data variable.",
+      "actual": "NET_data not configured",
+      "reference": "pegasus/packages/report-skill/src/EnvVars.ts: NET_lasso"
+    }
+  ]
+}

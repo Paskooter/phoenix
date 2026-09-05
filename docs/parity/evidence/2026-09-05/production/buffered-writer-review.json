@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "result": "pass for bounded byte-preserving capture export",
+  "sourceSha256": "9074c4a7302832b41892978d6c276a9bee6d7fa7a2f3e6f2db5944bb382e133d",
+  "change": "Batch small serialized fragments before the stream write; preserve bounded traversal, backpressure, close/error lifecycle and JSON bytes.",
+  "benchmark": [
+    {
+      "name": "original",
+      "durationMs": 378035,
+      "bytes": 41571999,
+      "sha256": "94dc973fb48b3807931ac9066011db87341ff82e072035a447e16be795166f78"
+    },
+    {
+      "name": "buffered",
+      "durationMs": 14759,
+      "bytes": 41571999,
+      "sha256": "94dc973fb48b3807931ac9066011db87341ff82e072035a447e16be795166f78"
+    }
+  ],
+  "benchmarkRuntime": "Pinned Node v8.9.4",
+  "largeOutputBytes": 283121920,
+  "silentDestruction": {
+    "runtime": "v8.9.4",
+    "error": "ERR_STREAM_PREMATURE_CLOSE",
+    "elapsedMs": 28,
+    "remainingListeners": 0
+  },
+  "writerTests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "freshControls": [
+    {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "gaps": 0
+    },
+    {
+      "cases": 73,
+      "differences": 0,
+      "invariants": 0,
+      "gaps": 2
+    }
+  ],
+  "limitations": [
+    "Benchmark is capture serialization/export only, not parser or server throughput.",
+    "Original full control under prior writer remains source-pinned and unchanged.",
+    "Full cross-writer control has zero differences/invariants across 20,534 cases and eight symmetric unhosted action cases. A separate second original startup failed and remains invalid."
+  ],
+  "fullCorpusReview": "buffered-writer-cross-control/review.json"
+}

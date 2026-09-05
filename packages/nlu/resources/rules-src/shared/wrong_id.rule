@@ -1,0 +1,42 @@
+TopRule = ($* $LOOPER | $NOT_IN_LOOP{intent=NOT_IN_LOOP._intent} | $CANCEL{intent=CANCEL._intent} $*){priority='HIGH'};
+
+# Sorry I got it wrong, who are you?
+
+LOOPER =
+(
+    ($GIVEN_NAME ?$LAST_NAME) |
+    (<1.0>+$w<0.0>){% GivenName='' %}
+){% intent='loopmember' %};
+
+GIVEN_NAME @= $factory:first_name {% GivenName = this._parsed%};
+LAST_NAME @= $factory:last_name {% LastName = this._parsed %};
+
+NOT_IN_LOOP =
+(
+    ( ?( i\'m | we\'re | (i | we am | are ) ) not ) |
+    ( ?we aren\'t )
+    $* $V_LOOPMEMBERS
+)
+{_intent='notInLoop'}
+;
+
+CANCEL =
+(
+    cancel |
+    escape |
+    exit |
+    ( i don\'t want ) |
+    ( not do ) |
+    ( i\'m tired ) |
+    ( this is ( stupid | dumb ) ) |
+    ( forget it ) |
+    nevermind |
+    later |
+    (no one) |
+    (nobody)
+)
+{_intent='cancel'}
+;
+
+### USEFUL VOCAB ###
+V_LOOPMEMBERS = [loopmember?s]|[looper?s]|(?(in|(?(a|an) part|[member?s] ?of)) ?(the|your|a|an) loop);

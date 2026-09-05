@@ -1,0 +1,126 @@
+TopRule = $* $RIGHTWORD_INTENTS {intent=RIGHTWORD_INTENTS._intent}{priority='HIGH'} $*;
+### Yes that's right! The word is beeblefat. ###
+### The word is beeblefat. ###
+### Actually, the word is beeblefat. ###
+
+RIGHTWORD_INTENTS =
+(
+    ($INTENT_AGREEMENT) {_intent='agreement'} |
+    ($INTENT_DISAGREEMENT) {_intent='disagreement'} |
+    ($INTENT_CELEBRATION) {_intent='celebration'} |
+    ($INTENT_DISAPPOINTMENT) {_intent='disappointment'} |
+    ($INTENT_AMAZEMENT) {_intent='amazement'} |
+    ($INTENT_INDIFFERENCE) {_intent='indifference'} |
+    ($INTENT_JIBO_MISHEARD) {_intent='jiboMisheard'} |
+    ($factory:yes_no) {_intent=yes_no._nl}
+)
+{%
+    if (this._intent == 'yes') {this._intent = 'agreement'}
+    else if (this._intent == 'no') {this._intent = 'disagreement'}
+%}
+;
+
+INTENT_AGREEMENT =
+(
+    $V_OKAY |
+    (?that sounds|seems ?$V_FILLER $V_RIGHT)|
+    ([ma(d|k)e?s] ?$V_FILLER sense)
+);
+
+INTENT_DISAGREEMENT =
+(
+    ([you?(?(\')re)] ?[are?(n\'t)] ?not serious|$V_KIDDING|$V_SURE) |
+    ([you?(?(\')ve)] ((have|got|must ?to) | gotta) ?be $w03 $V_KIDDING) |
+    (?you can\'t|cannot|(can not) ?be serious|$V_RIGHT) |
+    (are you $w03 $V_SURE) |
+    (is|was that $w03 $V_RIGHT) |
+    (?that (doesn\'t|(does not) make ?any sense)|(makes no sense)) |
+    (?that doesn\'t|(?does not) seem|sound ?$V_FILLER $V_RIGHT) |
+    (i|we don\'t|(?do not) $w03 believe) |
+    (i|we disagree|object) |
+    (?[that?(\'s)] ?is bullshit) |
+    (?[you?(?(\')re)] ?are ?a $w03 liar) |
+    (you lie) |
+    lies  |
+    (([that?(?(\')s)] ?(is|was))|([you?(?(\')r?e)] ?are) wrong) |
+    ([it?(?(\')s)] ?(is|was) not) |
+    false
+);
+
+INTENT_CELEBRATION =
+(
+    yay|yahoo|wow|awesome|yipee|whoopee|huzza|
+    (i|we did|got it ?$V_RIGHT) |
+    (i|we knew it) |
+    (i|we|that|(my|our answer|choice) was|were ?$V_FILLER $V_RIGHT) |
+    ([i?(?(\')m)]|[we?(?(\')re)] ?$V_FILLER $V_SMART|$V_AMAZING) |
+    (aren\'t i|we ?$V_FILLER $V_SMART|$V_AMAZING) |
+    ((i|we did)|(didn\'t i|we do) $w03 $V_AMAZING ?job) |
+    woo | (woo-hoo) | woohoo | hooray | hurray | nice | excellent |
+    ((oh|fuck|hell) (yeah|yes))
+);
+
+INTENT_DISAPPOINTMENT =
+(
+    (i|we ?$V_FILLER should have known|guessed) |
+    (i|we ?$V_FILLER was|were ?$V_FILLER wrong|incorrect) |
+    (that was ?$V_FILLER dumb|stupid ?of me|us) |
+    (?([i?(?(\')m)]|[we?(?(\')re)] ?(am|are) ?$V_FILLER) disappointed) |
+    sadness |
+    boo |
+    (?$V_GOD $w03 $V_DAMNIT)| goddamnit |
+    fuck | shit | jeez | lame | aww
+);
+
+INTENT_AMAZEMENT = (
+    (no $w03 way) |
+    (get $w03 out) |
+    (?oh golly|gosh) |
+    (?([that?(?(\')s)]|this) ?(is|was) $V_AMAZING|$V_FUN|$V_WEIRD)  |
+    (who knew|(would|could ?have known)) |
+    ([that?(?(\')s)]|those ?(is|are|was|were) quite ?(a|an|the) ?($V_AMAZING|$V_WEIRD) ?[vocab?(ulary)] [word?s])
+);
+
+INTENT_INDIFFERENCE = (
+    (?(i|we) don\'t|(?do not) ?$V_FILLER care) |
+    (?([that?(?(\')s)]|this) ?(is|was) $V_UNINTERESTING) |
+    (?it doesn\'t|(does not) ?$V_FILLER  matter) |
+    (gimme|(give me|us) ?a break) |
+    (good lord) |
+    groan |
+    fine |
+    (eye roll) |
+    whatever |
+    meh |
+    please |
+    boring
+);
+
+INTENT_JIBO_MISHEARD =
+(
+    (i|we ?$V_FILLER said that) |
+    ([that?(?(\')s)] ?(is|was) what i|we ?$V_FILLER said ) |
+    (didn\'t|(did not) ?you ?$V_FILLER hear me ?$V_RIGHT) |
+    (have heard me) |
+    (?you misheard|misunderstood ?me ) |
+    (?you heard ?(me|us) wrong|incorrectly)
+);
+
+### USEFUL VOCABULARY ###
+V_FILLER = <1.0>([actual?(ly)]|already|[real?(ly)]|very|reasonably|still|
+    generally|literally|recently|some|just|so|(?a little|lot|(?little bit))|
+    (?so much)|any|(sort|kind ?of)|kinda|about)<0.0>;
+V_AMAZING = (
+    amazing|fantastic|incredible|fascinating|wonderful|astounding|unbelievable|
+    cool|marvelous|superb|impressive|great|outstanding|extraoridinary|fantastic
+);
+V_FUN = (fun|exciting|interesting|amusing|enjoyable|entertaining|worthwhile|useful|rewarding);
+V_KIDDING = (kidding|joking|joshing|teasing|lying|shitting);
+V_OKAY = (okay|ok|o.k.|alright);
+V_RIGHT = (right|real|correct|true|accurate|credible);
+V_SMART = (smart|intelligent|bright|brilliant|clever|genious|knowlegable);
+V_SURE = (sure|positive|certain|(for real));
+V_UNINTERESTING = (uninteresting|stupid|dumb|boring|tedious|dull|pointless|absurd|(isn\'t|not ?$V_FILLER $V_FUN));
+V_WEIRD = (weird|crazy|nuts|wild|unexpected|insane|wacky|mad|bizarre|unusual|peculiar);
+V_GOD = (gosh|god);
+V_DAMNIT = (((damn|dang|darn) ?it)|damnit|dangit|darnit|dammit);

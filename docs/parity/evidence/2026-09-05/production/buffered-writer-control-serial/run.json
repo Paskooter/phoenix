@@ -1,0 +1,159 @@
+{
+  "date": "2026-09-05T22:43:18.993638+00:00",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidate": "original",
+  "images": {
+    "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+  },
+  "commands": [
+    {
+      "name": "image-original",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "image",
+        "inspect",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "--format",
+        "{{.Id}}"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock image inspect node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c --format '{{.Id}}'",
+      "exitCode": 0,
+      "durationMs": 65.378
+    },
+    {
+      "name": "fixtures",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/scripts/parity-production/fixtures.mjs",
+        "--out",
+        "/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/suite.json",
+        "--selection",
+        "smoke",
+        "--offset",
+        "0",
+        "--limit",
+        "0"
+      ],
+      "shellDisplay": "node /home/shell/work/phoenix/scripts/parity-production/fixtures.mjs --out /home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/suite.json --selection smoke --offset 0 --limit 0",
+      "exitCode": 0,
+      "durationMs": 265.391
+    },
+    {
+      "name": "reference",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-production-d660e3f7fb8a",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-production,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial,target=/evidence",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/harness/original.cjs",
+        "/reference",
+        "/evidence/suite.json",
+        "/evidence/reference.json.gz"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-production-d660e3f7fb8a --network none --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-production,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial,target=/evidence --mount type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /harness/original.cjs /reference /evidence/suite.json /evidence/reference.json.gz",
+      "exitCode": 0,
+      "durationMs": 15805.055
+    },
+    {
+      "name": "candidate",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-production-e8ee454d7d60",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-production,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial,target=/evidence",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/harness/original.cjs",
+        "/reference",
+        "/evidence/suite.json",
+        "/evidence/candidate.json.gz"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-production-e8ee454d7d60 --network none --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-production,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial,target=/evidence --mount type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /harness/original.cjs /reference /evidence/suite.json /evidence/candidate.json.gz",
+      "exitCode": 0,
+      "durationMs": 17058.242
+    },
+    {
+      "name": "compare",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/scripts/parity-production/compare.mjs",
+        "--reference",
+        "/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/reference.json.gz",
+        "--candidate",
+        "/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/candidate.json.gz",
+        "--suite",
+        "/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/suite.json",
+        "--out",
+        "/home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/comparison.json"
+      ],
+      "shellDisplay": "node /home/shell/work/phoenix/scripts/parity-production/compare.mjs --reference /home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/reference.json.gz --candidate /home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/candidate.json.gz --suite /home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/suite.json --out /home/shell/work/phoenix/.parity/runs/buffered-writer-control-serial/comparison.json",
+      "exitCode": 0,
+      "durationMs": 165.126
+    }
+  ],
+  "result": "match",
+  "originalCaptureTools": {
+    "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "scripts/parity-production/capture-writer.cjs": "9074c4a7302832b41892978d6c276a9bee6d7fa7a2f3e6f2db5944bb382e133d",
+    "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
+    "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
+  },
+  "referenceIntegrity": {
+    "originalGitFiles": 6144,
+    "intentionalBootstrapRelocations": 2,
+    "emittedFiles": 391,
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "binarySha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54",
+    "fixtureSourcesSha256": "83cfdbcc2dfc645916beaa5629b862a71859fba3dff092fff3fc548915017da8"
+  },
+  "selection": {
+    "name": "smoke",
+    "corpus": null,
+    "offset": 0,
+    "limit": 0
+  },
+  "cases": 43,
+  "differences": 0,
+  "invariants": 0,
+  "coverageGaps": 0,
+  "phoenixSourceTreeSha256": "a0e08d921517adf3960311c2f2e74e215edb4549981feb7a5e852f1b68287b30",
+  "artifacts": {
+    "suite.json": "8e5d1b63851a5b1cc63d2f020a920b921667e24b2c1f7c3d086144c0621ed6c2",
+    "comparison.json": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+    "reference.log": "14e2aef39c142d85701f1fac772b8b4a1c988bca042c2764a6aebc6d1a26e304",
+    "fixtures.log": "7966d2c779a790b1a0ee31453918d1be14e77bdfc12935a0bd97a50a2b0ab069",
+    "candidate.log": "699af7cacd8786996c331fe060c4bc28c6804104e1f354beb7a1b7df5ebc9031",
+    "image-original.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
+    "compare.log": "c106f569fea7fd2ba7cb167081b86f3fe64a92db0570e7d485ba6a79f14d8462",
+    "phoenix-source.json": "01f1c1c205e68d1b6b988faa7429dfdcd4b1c74b7ed7b73166282181128a4c37",
+    "reference.json.gz": "a9f40ba6a2acb9765750b1c9e084a6ce924d21409ffe07f4bfcf46d23b2128a7",
+    "candidate.json.gz": "d36062e2157354773ca3956c8789828f769d9db9076d617a1ece02409e9dd481"
+  }
+}

@@ -1,0 +1,249 @@
+TopRule = (
+    ($* $POSTCONTROL_NO_COLOR $*) {intent=POSTCONTROL_NO_COLOR._intent} |
+    ($* $LIGHTS_COLOR $*) {intent=LIGHTS_COLOR._intent}{color=LIGHTS_COLOR._color}
+){priority='HIGH'};
+
+### (no prompt ) ###
+
+POSTCONTROL_NO_COLOR =
+(
+    $BRIGHTER {_intent = 'lightsUp'} |
+    $DIMMER {_intent = 'lightsDown'} |
+    $WARMUP {_intent = 'lightsWarm'} |
+    $COOLDOWN {_intent = 'lightsCool'} |
+    $ALLTHEWAYUP {_intent = 'lightsUpCompletely'} |
+    $OFF {_intent = 'lightsOff'} |
+    $ON {_intent = 'lightsOn'} |
+    $NOMATCH {_intent = 'noMatch'}
+);
+
+LIGHTS_COLOR =
+(
+    $MAKE $* ?( $LIGHT | $THEM ) $ENT_LIGHT_COLOR
+)
+{_intent='lightsColor'}{_color=ENT_LIGHT_COLOR._color}
+;
+
+BRIGHTER =
+(
+    ( (turn|bring) up $* $LIGHT ) |
+    ( (turn|bring|make) $* $LIGHT brighter ) |
+    ( (turn|bring) $* $LIGHT up ) |
+    ( $ADJUST $* ($LIGHT $HIGHER)|($HIGHER $w03 $LIGHT) ) |
+    ( $LIGHT $HIGHER ) |
+    ( $BRIGHTEN $* $LIGHT) |
+    ( ?even ( brighter | lighter ) ) |
+    ((turn|bring) $THEM up )
+);
+DIMMER =
+(
+    ( (turn|bring) down $* $LIGHT ) |
+    ( (turn|bring|make) $* $LIGHT $DARKER ) |
+    ( $ADJUST $* ($LIGHT $DARKER)|($DARKER $w03 $LIGHT) ) |
+    ( $LIGHT $w03 $DARKER ) |
+    ( ( $DIM  |lower ) $* $LIGHT ) |
+    ( ?even ( dimmer | lower ) ) |
+    ( (turn|bring) $THEM down )
+);
+WARMUP =
+(
+    ( (turn|bring|make) $* $LIGHT $WARMER ) |
+    ( warm $* $LIGHT ) |
+    ( ?even ( warmer | hotter | cozier ) )
+);
+COOLDOWN =
+(
+    ( (turn|bring|make) $* $LIGHT $COOLER ) |
+    ( cool $* $LIGHT ) |
+    ( ?even ( cooler | colder ) )
+);
+ALLTHEWAYUP =
+(
+    ( ?(turn|bring) $* $LIGHT all ?the way ?up ) |
+    ( ?(turn|bring|make) $* $LIGHT ?as bright as possible ) |
+    ( ?(turn|set) $* $LIGHT $* (maximum|max) ?brightness ) |
+    ( all the way up ) |
+    ( completely up ) |
+    ( ( make | $ADJUST ) $* $LIGHT $* brightest )
+);
+OFF =
+(
+    ( ($SWITCH|shut off)|shutoff $* $LIGHT ) |
+    ( $SWITCH|shut $* $LIGHT off ) |
+    ( kill $* $LIGHT ) |
+    ( $SWITCH|shut ?$THEM off ) |
+    ( kill $THEM ) |
+    ( [light?(?(\')s)] off )
+);
+ON =
+(
+    ( $SWITCH on $* $LIGHT ) |
+    ( $SWITCH $* $LIGHT on ) |
+    ( ( let | may ) there be light ) |
+    ( $SWITCH ?$THEM ?back on ) |
+    ( [light?(?(\')s)] on )
+);
+NOMATCH =
+( $* );
+
+### COLORS ###
+ENT_LIGHT_COLOR =
+(
+    ( alice blue ) {_color='aliceblue'} |
+    ( antique white ) {_color='antiquewhite'} |
+    ( aqua ) {_color='aqua'} |
+    ( azure ) {_color='azure'} |
+    ( beige ) {_color='beige'} |
+    ( bisque | bisk ) {_color='bisque'} |
+    ( black ) {_color='black'} |
+    ( blanched almond ) {_color='blanchedalmond'} |
+    ( blue ) {_color='blue'} |
+    ( blue violet ) {_color='blueviolet'} |
+    ( brown ) {_color='brown'} |
+    ( burlywood | ( burly wood) ) {_color='burlywood'} |
+    ( cadet blue ) {_color='cadetblue'} |
+    ( chartreuse ) {_color='chartreuse'} |
+    ( chocolate ) {_color='chocolate'} |
+    ( coral ) {_color='coral'} |
+    ( ( cornflower | ( corn flower ) ) blue ) {_color='cornflowerblue'} |
+    ( corn silk ) {_color='cornsilk'} |
+    ( crimson ) {_color='crimson'} |
+    ( cyan ) {_color='cyan'} |
+    ( dark blue ) {_color='darkblue'} |
+    ( dark cyan ) {_color='darkcyan'} |
+    ( dark goldenrod ) {_color='darkgoldenrod'} |
+    ( dark (gray|grey) ) {_color='darkgray'} |
+    ( dark green ) {_color='darkgreen'} |
+    ( dark khaki ) {_color='darkkhaki'} |
+    ( dark magenta ) {_color='darkmagenta'} |
+    ( dark olive ?green ) {_color='darkolivegreen'} |
+    ( dark orange ) {_color='darkorange'} |
+    ( dark orchid ) {_color='darkorchid'} |
+    ( dark red ) {_color='darkred'} |
+    ( dark salmon ) {_color='darksalmon'} |
+    ( dark sea green ) {_color='darkseagreen'} |
+    ( dark slate blue ) {_color='darkslateblue'} |
+    ( dark slate (gray|grey) ) {_color='darkslategray'} |
+    ( dark turquoise ) {_color='darkturquoise'} |
+    ( dark violet ) {_color='darkviolet'} |
+    ( deep pink ) {_color='deeppink'} |
+    ( deep sky blue ) {_color='deepskyblue'} |
+    ( dim (gray|grey) ) {_color='dimgray'} |
+    ( dodger blue ) {_color='dodgerblue'} |
+    ( fire brick ) {_color='firebrick'} |
+    ( floral white ) {_color='floralwhite'} |
+    ( forest green ) {_color='forestgreen'} |
+    ( fuchsia ) {_color='fuchsia'} |
+    ( gainsboro ) {_color='gainsboro'} |
+    ( ghost white ) {_color='ghostwhite'} |
+    ( gold ) {_color='gold'} |
+    ( (goldenrod|(golden rod)) ) {_color='goldenrod'} |
+    ( gray | grey ) {_color='gray'} |
+    ( green ) {_color='green'} |
+    ( green yellow ) {_color='greenyellow'} |
+    ( honeydew | (honey do) ) {_color='honeydew'} |
+    ( hot pink ) {_color='hotpink'} |
+    ( indian red ) {_color='indianred'} |
+    ( indigo ) {_color='indigo'} |
+    ( ivory ) {_color='ivory'} |
+    ( khaki ) {_color='khaki'} |
+    ( lavender ) {_color='lavender'} |
+    ( lavender blush ) {_color='lavenderblush'} |
+    ( lawn green ) {_color='lawngreen'} |
+    ( lemon chiffon ) {_color='lemonchiffon'} |
+    ( light blue ) {_color='lightblue'} |
+    ( light coral ) {_color='lightcoral'} |
+    ( light cyan ) {_color='lightcyan'} |
+    ( light goldenrod yellow ) {_color='lightgoldenrodyellow'} |
+    ( light gray ) {_color='lightgray'} |
+    ( light green ) {_color='lightgreen'} |
+    ( light pink ) {_color='lightpink'} |
+    ( light salmon ) {_color='lightsalmon'} |
+    ( light sea green ) {_color='lightseagreen'} |
+    ( light sky blue ) {_color='lightskyblue'} |
+    ( light slate (gray|grey) ) {_color='lightslategray'} |
+    ( light steel blue ) {_color='lightsteelblue'} |
+    ( light yellow ) {_color='lightyellow'} |
+    ( lime ) {_color='lime'} |
+    ( lime green ) {_color='limegreen'} |
+    ( linen ) {_color='linen'} |
+    ( magenta ) {_color='magenta'} |
+    ( maroon ) {_color='maroon'} |
+    ( medium aquamarine ) {_color='mediumaquamarine'} |
+    ( medium blue ) {_color='mediumblue'} |
+    ( medium orchid ) {_color='mediumorchid'} |
+    ( medium purple ) {_color='mediumpurple'} |
+    ( medium sea green ) {_color='mediumseagreen'} |
+    ( medium slate blue ) {_color='mediumslateblue'} |
+    ( medium spring green ) {_color='mediumspringgreen'} |
+    ( medium turquoise ) {_color='mediumturquoise'} |
+    ( medium violet red ) {_color='mediumvioletred'} |
+    ( midnight blue ) {_color='midnightblue'} |
+    ( mint cream ) {_color='mintcream'} |
+    ( misty rose ) {_color='mistyrose'} |
+    ( moccasin ) {_color='moccasin'} |
+    ( navajo white ) {_color='navajowhite'} |
+    ( navy ) {_color='navy'} |
+    ( old lace ) {_color='oldlace'} |
+    ( olive ) {_color='olive'} |
+    ( olive drab ) {_color='olivedrab'} |
+    ( orange ) {_color='orange'} |
+    ( orange red ) {_color='orangered'} |
+    ( orchid ) {_color='orchid'} |
+    ( pale goldenrod ) {_color='palegoldenrod'} |
+    ( pale green ) {_color='palegreen'} |
+    ( pale turquoise ) {_color='paleturquoise'} |
+    ( pale violet red ) {_color='palevioletred'} |
+    ( papaya whip ) {_color='papayawhip'} |
+    ( peach puff ) {_color='peachpuff'} |
+    ( peru ) {_color='peru'} |
+    ( pink ) {_color='pink'} |
+    ( plum ) {_color='plum'} |
+    ( powder blue ) {_color='powderblue'} |
+    ( purple ) {_color='purple'} |
+    ( rebecca purple ) {_color='rebeccapurple'} |
+    ( red ) {_color='red'} |
+    ( rosy brown ) {_color='rosybrown'} |
+    ( royal blue ) {_color='royalblue'} |
+    ( saddle brown ) {_color='saddlebrown'} |
+    ( salmon ) {_color='salmon'} |
+    ( sandy brown ) {_color='sandybrown'} |
+    ( sea green | ( seagreen ) ) {_color='seagreen'} |
+    ( seashell | ( sea shell ) ) {_color='seashell'} |
+    ( sienna ) {_color='sienna'} |
+    ( silver ) {_color='silver'} |
+    ( sky blue ) {_color='skyblue'} |
+    ( slate blue ) {_color='slateblue'} |
+    ( slate (gray|grey) ) {_color='slategray'} |
+    ( snow ) {_color='snow'} |
+    ( spring green ) {_color='springgreen'} |
+    ( steel blue ) {_color='steelblue'} |
+    ( tan ) {_color='tan'} |
+    ( teal ) {_color='teal'} |
+    ( thistle ) {_color='thistle'} |
+    ( tomato ) {_color='tomato'} |
+    ( turquoise ) {_color='turquoise'} |
+    ( violet ) {_color='violet'} |
+    ( wheat ) {_color='wheat'} |
+    ( white ) {_color='white'} |
+    ( white smoke ) {_color='whitesmoke'} |
+    ( yellow ) {_color='yellow'} |
+    ( yellow green ) {_color='yellowgreen'}
+);
+### VOCABULARY ###
+LIGHT = ( ?( $PHILIPS | $HUE | ($PHILIPS $HUE ) )
+            ( [light?(?(\')s)]) | [lamp?(?(\')s)]) | [lightbulb?(?(\')s)];
+PHILIPS = philips | phillips | philip\'s | phillip\'s;
+HUE = hue | hugh | hew;
+SWITCH = turn | switch;
+ADJUST = adjust | dial | change;
+DARKER = lower | dimmer | darker | down | back | (less bright);
+HIGHER = higher | brighter | up;
+DIM = dim | darken;
+BRIGHTEN = brighten | (turn up) | increase;
+WARMER =  warmer | hotter | cozier;
+COOLER = cooler | colder;
+MEUS = me | us;
+USE = use | operate;
+THEM = them | em | \'em;
+MAKE = $SWITCH | $ADJUST | make | set;

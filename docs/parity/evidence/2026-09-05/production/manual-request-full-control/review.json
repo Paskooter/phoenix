@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-05",
+  "result": "superseded-diagnostic",
+  "cases": 20533,
+  "differences": 6,
+  "coverageGapOccurrences": 8,
+  "controlGapEntries": 16,
+  "reasons": [
+    {
+      "finding": "The manual skill-request construction bypasses production dialog-reference injection.",
+      "evidence": "71 launch cases have loopMemberReferent in NLU while their emitted runtime.dialog.referent remains null; the original SkillRequestHelper injects the first matching ID.",
+      "owner": "V-03"
+    },
+    {
+      "finding": "MIM VM intrinsic Math.random is unseeded.",
+      "evidence": "JBO_WhoMadeYou.mim contains Math.random()<.2; two original captures differ in ESML, prompt ID and derived length for chitchat:4597:0:base and hub-client:65:0:base.",
+      "owner": "V-03"
+    },
+    {
+      "finding": "Eight original cases select the unhosted external answer service.",
+      "evidence": "Seven hub-client occurrences and report:5:0:base retain their action gaps.",
+      "owners": [
+        "Q-01",
+        "N-08"
+      ]
+    }
+  ],
+  "replacement": "Production v2 executes each implementation's existing skill request builder and seeds VM Math.random separately per case. Fresh original controls are required. No v1 result is credited as complete pipeline parity."
+}

@@ -3,6 +3,7 @@
 // SLIM's play.esml is the embodied-speech string. This is robot-facing, so the shape is fixed.
 
 import { newMsgId, now, SkillResponseType } from '@phoenix/contracts';
+import { newJcpId } from './jcpId.js';
 
 /** Escape user/answer text so it can't inject ESML markup (answer-skill/server.js:188-200). */
 export function escapeForEsml(text) {
@@ -27,19 +28,19 @@ export function escapeForEsml(text) {
 export function buildJcpAction({ esmlText, mimId = 'Reply', mimType = 'announcement', promptSubCategory = 'AN', listenRule, esmlRaw = false } = {}) {
   const slimConfig = {
     play: {
-      id: newMsgId(),
+      id: newJcpId(),
       type: 'PLAY',
       autoRuleConfig: true,
       esml: esmlRaw ? String(esmlText || '') : escapeForEsml(esmlText),
       meta: { mim_id: mimId, mim_type: mimType, prompt_sub_category: promptSubCategory },
     },
   };
-  if (listenRule) slimConfig.listen = { id: newMsgId(), type: 'LISTEN', rule: listenRule };
+  if (listenRule) slimConfig.listen = { id: newJcpId(), type: 'LISTEN', contexts: Array.isArray(listenRule) ? listenRule : [listenRule] };
   return {
     type: 'JCP',
     config: {
       version: '2.0',
-      jcp: { id: newMsgId(), type: 'SEQUENCE', children: [{ id: newMsgId(), type: 'SLIM', config: slimConfig }] },
+      jcp: { id: newJcpId(), type: 'SEQUENCE', children: [{ id: newJcpId(), type: 'SLIM', config: slimConfig }] },
     },
   };
 }
@@ -50,7 +51,7 @@ export function buildJcpFromSlim(slim) {
   if (slim.listen) config.listen = slim.listen;
   return {
     type: 'JCP',
-    config: { version: '2.0', jcp: { id: newMsgId(), type: 'SEQUENCE', children: [{ id: newMsgId(), type: 'SLIM', config }] } },
+    config: { version: '2.0', jcp: { id: newJcpId(), type: 'SEQUENCE', children: [{ id: newJcpId(), type: 'SLIM', config }] } },
   };
 }
 

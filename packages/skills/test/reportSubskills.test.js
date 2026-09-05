@@ -3,7 +3,7 @@
 // traffic tables (Poor/Terrible/Hurry/Now/MinutesLeft) and the calendar count/SummaryAndTime/
 // ParallelEvent/TomorrowOnly walks.
 
-import { test, before, after } from 'node:test';
+import { test, before, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { SkillRequestType } from '@phoenix/contracts';
@@ -11,10 +11,10 @@ import { SkillRequestType } from '@phoenix/contracts';
 process.env.ETCO_report_prefsFromConfig = 'true';
 const { reportSkill } = await import('../src/reportSkill.js');
 
-// Controlled "now": commute math is driven by runtime.location.iso (fully deterministic);
-// calendar today/tomorrow classification uses the real clock, so calendar events are
-// built relative to Date.now() (today events at now+5min — only flaky within 5 minutes
-// of local midnight, accepted).
+// Calendar equality uses dateTime, not the supplied numeric timestamp. Freeze
+// Date so independently constructed concurrent events are exactly simultaneous
+// and today/tomorrow cases cannot cross midnight while the test is running.
+const FIXED_NOW = Date.parse('2026-06-12T12:00:00-04:00');
 const TZ = '-04:00';
 const isoAt = (hhmm) => `2026-06-12T${hhmm}:00${TZ}`;
 const nowISO = () => new Date(Date.now() - 4 * 3600e3).toISOString().replace('Z', TZ);
@@ -25,6 +25,7 @@ let mapsLeg = {};
 let calendarEvents = { google: [], outlook: [] };
 
 before(async () => {
+  mock.timers.enable({ apis: ['Date'], now: FIXED_NOW });
   server = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://x');
     res.writeHead(200, { 'content-type': 'application/json' });
@@ -43,7 +44,7 @@ before(async () => {
   await new Promise((r) => server.listen(0, r));
   process.env.NET_data = `localhost:${server.address().port}`;
 });
-after(() => { server.close(); delete process.env.NET_data; });
+after(() => { server.close(); delete process.env.NET_data; mock.timers.reset(); });
 
 const launch = (intent, iso, entities = {}) => ({
   type: SkillRequestType.LISTEN_LAUNCH, msgID: 'm', ts: 1,

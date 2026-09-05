@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "basis": "Exact byte comparisons for these files only; no complete release or runtime equivalence claim",
+  "files": [
+    {
+      "hashbrownPath": "packages/jetstream-client/src/Api.ts",
+      "be12Path": "jetstream-client/src/Api.ts",
+      "identical": true,
+      "hashbrownSha256": "ee7214512b3c24144857e8469858ee5acda3ce5e2e05a0dd40e0cfe1342773e9",
+      "be12Sha256": "ee7214512b3c24144857e8469858ee5acda3ce5e2e05a0dd40e0cfe1342773e9"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/Client.ts",
+      "be12Path": "jetstream-client/src/Client.ts",
+      "identical": true,
+      "hashbrownSha256": "85a08862450d07ac448590bc40b21ddbe1b437af605e2a874daa5a064073ab6d",
+      "be12Sha256": "85a08862450d07ac448590bc40b21ddbe1b437af605e2a874daa5a064073ab6d"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/CloudResponseRegistry.ts",
+      "be12Path": "jetstream-client/src/CloudResponseRegistry.ts",
+      "identical": true,
+      "hashbrownSha256": "3b37c9f807efb2565adc9c8716b7f1fe6fdaf738b873f792c6fa5c0eee494dcb",
+      "be12Sha256": "3b37c9f807efb2565adc9c8716b7f1fe6fdaf738b873f792c6fa5c0eee494dcb"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/Events.ts",
+      "be12Path": "jetstream-client/src/Events.ts",
+      "identical": true,
+      "hashbrownSha256": "3677f9de9e22e497d55030717da34eadfe294b21b8ac823f4a3de033cca851e4",
+      "be12Sha256": "3677f9de9e22e497d55030717da34eadfe294b21b8ac823f4a3de033cca851e4"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/HotwordMode.ts",
+      "be12Path": "jetstream-client/src/HotwordMode.ts",
+      "identical": true,
+      "hashbrownSha256": "673078f343cb240cf7e1114fe6e9ad017ec69a48385d2b7e8480eb0e2d27f2c6",
+      "be12Sha256": "673078f343cb240cf7e1114fe6e9ad017ec69a48385d2b7e8480eb0e2d27f2c6"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/Request.ts",
+      "be12Path": "jetstream-client/src/Request.ts",
+      "identical": true,
+      "hashbrownSha256": "af8992f7c7778f48c1cbdadcd8625e0b575e0094eb10a8bfc5307fa675bcbb43",
+      "be12Sha256": "af8992f7c7778f48c1cbdadcd8625e0b575e0094eb10a8bfc5307fa675bcbb43"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/Types.ts",
+      "be12Path": "jetstream-client/src/Types.ts",
+      "identical": true,
+      "hashbrownSha256": "501ef560625f3aa95b15936a5338382f183a4748bf1e9ad92da95b486a8a402e",
+      "be12Sha256": "501ef560625f3aa95b15936a5338382f183a4748bf1e9ad92da95b486a8a402e"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/Utils.ts",
+      "be12Path": "jetstream-client/src/Utils.ts",
+      "identical": true,
+      "hashbrownSha256": "daacbfb81fd0842c5150a2705ace2e1eceb4f467dfde8965ce85e602dc5af5c0",
+      "be12Sha256": "daacbfb81fd0842c5150a2705ace2e1eceb4f467dfde8965ce85e602dc5af5c0"
+    },
+    {
+      "hashbrownPath": "packages/jetstream-client/src/index.ts",
+      "be12Path": "jetstream-client/src/index.ts",
+      "identical": true,
+      "hashbrownSha256": "7f1b4f16ee286d94094aeaaf53fab4262f52ce8ed72d72f68357a772d1fdf50c",
+      "be12Sha256": "7f1b4f16ee286d94094aeaaf53fab4262f52ce8ed72d72f68357a772d1fdf50c"
+    },
+    {
+      "hashbrownPath": "skills/nimbus/src/Nimbus.ts",
+      "be12Path": "nimbus/src/Nimbus.ts",
+      "identical": true,
+      "hashbrownSha256": "43294bdf682e21a64cda9f77c3ae2088f59bb92947bb93827300c8a446cc6079",
+      "be12Sha256": "43294bdf682e21a64cda9f77c3ae2088f59bb92947bb93827300c8a446cc6079"
+    },
+    {
+      "hashbrownPath": "skills/nimbus/src/states/ProcessCloud.ts",
+      "be12Path": "nimbus/src/states/ProcessCloud.ts",
+      "identical": true,
+      "hashbrownSha256": "3943c596cbe7928583bb5a3339fc9976fcc951811b1677a45fd8a5939a7ce271",
+      "be12Sha256": "3943c596cbe7928583bb5a3339fc9976fcc951811b1677a45fd8a5939a7ce271"
+    },
+    {
+      "hashbrownPath": "skills/nimbus/src/states/DoCloudAction.ts",
+      "be12Path": "nimbus/src/states/DoCloudAction.ts",
+      "identical": true,
+      "hashbrownSha256": "3043fd932e24e79427bdcdbd7b1457067e7b24753b3e67ed7b77c93675421b7b",
+      "be12Sha256": "3043fd932e24e79427bdcdbd7b1457067e7b24753b3e67ed7b77c93675421b7b"
+    },
+    {
+      "hashbrownPath": "skills/nimbus/src/states/WaitForAdditional.ts",
+      "be12Path": "nimbus/src/states/WaitForAdditional.ts",
+      "identical": true,
+      "hashbrownSha256": "3c974c16aa4f4da18390334f92b3fb0e179543cb9f8faca5917a076a2ce19973",
+      "be12Sha256": "3c974c16aa4f4da18390334f92b3fb0e179543cb9f8faca5917a076a2ce19973"
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "task": "H-07",
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "profile": "Moth archived BE11.0.1, original native microphone SDK local turns; Phoenix port19000 auth-disabled transport profile",
+  "sourceSnapshotSha256": "df7df37f4fc038e8426cfeb14b6a1f39227ef0e4806121a7d334b4b16d4854cd",
+  "wireSha256": "b83148b53704e5972851297f468d1b05e8d317883cfb6766f61cf2a7c65873a2",
+  "independentDecoder": "ffmpeg4.4.2 -ac1 -ar16000 -fs16le; no vendor recognizer used for decoded RMS measurements",
+  "rows": [
+    {
+      "encoding": "OGG_OPUS",
+      "privateCapture": ".parity/robots/moth/20260905/native-audio/audio-1.bin",
+      "encodedSha256": "4b66525e62f8efa07a0ce9f7811f8eac9d5f196af6b5967c0de6e3442c032ea1",
+      "encodedBytes": 106060,
+      "frames": 26,
+      "firstFrameBytes": [
+        47,
+        4286,
+        4239,
+        4275,
+        4272
+      ],
+      "pcmBytes": 415360,
+      "pcmSha256": "d3ca73d9eaf7e64080ec941654771e77a8d2af04f9c73695780009e07972f092",
+      "pcm20msRms": {
+        "min": 43.91130976183698,
+        "max": 106.36692096229918,
+        "median": 67.42806351957618,
+        "framesAbove400": 0,
+        "frames": 649
+      },
+      "nativeEvents": [
+        "TURN_STARTED",
+        "SOS",
+        "EOS",
+        "TURN_RESULT"
+      ],
+      "annotation": "MAX_SPEECH_TIMEOUT",
+      "visualObserverRestored": true,
+      "probeSha256": "f16787e78058783b6a6df1cf79a96fd2cf33fcb0bbd1cb1333ffba42a0bb7bab",
+      "result": "false start of speech on compressed noise"
+    },
+    {
+      "encoding": "FLAC",
+      "privateCapture": ".parity/robots/moth/20260905/native-audio/audio-2.bin",
+      "encodedSha256": "0f8f0c1bb0a183f987f222e8de756ee45cd9f9459a27ad2755efe3eb8f02b4a6",
+      "encodedBytes": 165020,
+      "frames": 52,
+      "firstFrameBytes": [
+        4,
+        38,
+        44,
+        3352,
+        3390
+      ],
+      "pcmBytes": 401408,
+      "pcmSha256": "fc94db1b784c9cf3014353330c0a9acba5c062caca8690b85eda674268dee1c5",
+      "pcm20msRms": {
+        "min": 43.71866735160165,
+        "max": 103.61004113984319,
+        "median": 69.93414312765975,
+        "framesAbove400": 0,
+        "frames": 628
+      },
+      "nativeEvents": [
+        "TURN_STARTED",
+        "SOS",
+        "EOS",
+        "TURN_RESULT"
+      ],
+      "annotation": "MAX_SPEECH_TIMEOUT",
+      "visualObserverRestored": true,
+      "probeSha256": "1f35d0156aafcecf21e1e77703c17fd5851de59059d4bc3438e3950792d8c6af",
+      "result": "false start of speech on compressed noise"
+    },
+    {
+      "encoding": "LINEAR16",
+      "privateCapture": ".parity/robots/moth/20260905/native-audio/audio-3.bin",
+      "encodedSha256": "ce01eb5eb6f5dc46c61b47277314c1c0ba664fbc7be28af16b5bdf62b5ab1e7d",
+      "encodedBytes": 161600,
+      "frames": 101,
+      "firstFrameBytes": [
+        1600,
+        1600,
+        1600,
+        1600,
+        1600
+      ],
+      "pcmBytes": 161600,
+      "pcmSha256": "ce01eb5eb6f5dc46c61b47277314c1c0ba664fbc7be28af16b5bdf62b5ab1e7d",
+      "pcm20msRms": {
+        "min": 47.48986734030745,
+        "max": 142.34801105038315,
+        "median": 69.70814156180037,
+        "framesAbove400": 0,
+        "frames": 253
+      },
+      "nativeEvents": [
+        "TURN_STARTED",
+        "TURN_RESULT"
+      ],
+      "annotation": "SOS_TIMEOUT",
+      "visualObserverRestored": true,
+      "probeSha256": "e75f2a4848b757f667425c1dea6eabf308dfe3b41e841273cf2d50c7de5a6205",
+      "result": "no false start of speech after baseline restore"
+    }
+  ],
+  "conclusion": "Both declared native compressed formats are incorrectly consumed as PCM by the baseline Phoenix provider. Entire independent decoded captures remain below the existing speech threshold; compressed bytes nonetheless triggerSOS andMAX_SPEECH_TIMEOUT. RestoredLINEAR16 returnsSOS_TIMEOUT withoutSOS.",
+  "restoration": {
+    "nativeConfigSha256": "0c9685794e6a7d093955957c8cc7c45d5d13f99fdac92b53b1752b17f3ea7485",
+    "encoding": "LINEAR16",
+    "hub": "192.168.1.182:19000",
+    "be": "11.0.1",
+    "stackPid": 643445,
+    "tunnelPid": 598244
+  },
+  "limitations": [
+    "Raw household audio remains private and ignored; agents can read it for authorized local review only.",
+    "No intentional speech was supplied; this confirms a silence/noise regression, not speech-recognition quality.",
+    "Native encoded audio candidate is not integrated or certified.",
+    "Full H-07 provider, annotations, timeout and language acceptance remains open."
+  ],
+  "privateWireCapture": ".parity/robots/moth/20260905/native-audio/wire-native-audio-baseline.jsonl",
+  "wireCaptureBytes": 52844,
+  "wireProvenance": "Immutable exact prefix of the active capture, matching the originally recorded SHA-256; later robot turns are outside this evidence."
+}

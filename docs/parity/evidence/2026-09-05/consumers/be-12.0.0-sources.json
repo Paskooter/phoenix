@@ -1,0 +1,2358 @@
+{
+  "schemaVersion": 1,
+  "profile": "be-12.0.0-archive-consumer",
+  "basis": "Embedded release source inspection; no client, simulator or hardware runtime claim",
+  "archive": {
+    "url": "https://pvindex.org/repository/skills/jibo-be/jibo-be-12.0.0.tar.gz",
+    "sha256": "e29f476c75e35e9bbd07c0211c75e2385772e4dfb3dd079a1d832e3832450657",
+    "bytes": 192233932
+  },
+  "toolSha256": "88e821e48a1c1d4b2fb0b9ff9ad791e847bcc6ff1d6f9ac30cbbc3e14a79c014",
+  "packages": [
+    {
+      "key": "be",
+      "name": "@be/be",
+      "version": "12.0.0",
+      "sourceRoot": "",
+      "artifacts": [
+        {
+          "archiveMember": "package.json",
+          "path": "be/release/package.json",
+          "sha256": "409ae501e6c4f30ed03fa2511211811b62aaf5f3e2a04e376dee0374f08e230a",
+          "bytes": 7749
+        },
+        {
+          "archiveMember": "index.js.map",
+          "path": "be/release/index.js.map",
+          "sha256": "28d92b3f4dbfc7e7fa7c2911b11162afc8d964e06ba59b12473c0fcc68e3aa87",
+          "bytes": 141074
+        },
+        {
+          "archiveMember": "index.js",
+          "path": "be/release/index.js",
+          "sha256": "ec00118360299001a6c8b6a56a322cc3bb742a6e320072e6e5ee7c24ea28e3da",
+          "bytes": 67154
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/Be.ts",
+          "path": "be/src/Be.ts",
+          "sha256": "e381aa03758ba5a01b2fe06a8dbaf3a1b3a8caedcc9b08824527bd8c98a1c990",
+          "bytes": 27115
+        },
+        {
+          "index": 2,
+          "name": "src/DateSetter.ts",
+          "path": "be/src/DateSetter.ts",
+          "sha256": "b19bc9db220c02a4d453be6c6794e6d4c3d6d16b05e96625424ff93041b75b98",
+          "bytes": 3183
+        },
+        {
+          "index": 3,
+          "name": "src/LibraryAnalytics.ts",
+          "path": "be/src/LibraryAnalytics.ts",
+          "sha256": "420db30adeb98aa03d036b6579a749fa35fd486a119c9ee87f8296e01c4c909e",
+          "bytes": 935
+        },
+        {
+          "index": 4,
+          "name": "src/ModuleVersions.ts",
+          "path": "be/src/ModuleVersions.ts",
+          "sha256": "fd916d9de4c9f0644e6bd55796569c8f4d5243ce32ef33f95c8f7a698fa64761",
+          "bytes": 1277
+        },
+        {
+          "index": 5,
+          "name": "src/SkillLifecycle.ts",
+          "path": "be/src/SkillLifecycle.ts",
+          "sha256": "7791bc0302ae53345ba5fe25ee09f5b33e98b5b2bbbe1b95e37d8426e206713d",
+          "bytes": 5303
+        },
+        {
+          "index": 6,
+          "name": "src/SkillLifecycleEndState.ts",
+          "path": "be/src/SkillLifecycleEndState.ts",
+          "sha256": "f3ac5421d95da99d8eaa737ac369fbb2bd3516d5df96ac31801ff35e3085bc5b",
+          "bytes": 1127
+        },
+        {
+          "index": 7,
+          "name": "src/SkillLifecycleState.ts",
+          "path": "be/src/SkillLifecycleState.ts",
+          "sha256": "1b70340630eab9820c3e3c95105af0018e9eb79be0ec441c839a0c6edb091905",
+          "bytes": 860
+        },
+        {
+          "index": 8,
+          "name": "src/SkillRedirectToken.ts",
+          "path": "be/src/SkillRedirectToken.ts",
+          "sha256": "daf1defebd89b136ae1c6349f4f19704817b3543d989fefe37fad3c0aad35de6",
+          "bytes": 2039
+        },
+        {
+          "index": 9,
+          "name": "src/SkillSwitchData.ts",
+          "path": "be/src/SkillSwitchData.ts",
+          "sha256": "4c872e0bcb94379e45bfc1d7999832e07497b7e38a50ef91e7b37c56557f3358",
+          "bytes": 2420
+        },
+        {
+          "index": 10,
+          "name": "src/SkillSwitchScheduler.ts",
+          "path": "be/src/SkillSwitchScheduler.ts",
+          "sha256": "f5fc32360dac0d7bf1d526712d8600c9306cf5aad054efe6c2c2bb179aa0e748",
+          "bytes": 17916
+        },
+        {
+          "index": 11,
+          "name": "src/SkillSwitchUtil.ts",
+          "path": "be/src/SkillSwitchUtil.ts",
+          "sha256": "13b0a734ed63ea3ff25ac5d98a44e5d19ccc2a6baaf8f9527ff1c632b693b633",
+          "bytes": 9008
+        },
+        {
+          "index": 12,
+          "name": "src/TimerSpy.ts",
+          "path": "be/src/TimerSpy.ts",
+          "sha256": "15c80ee058dd6285134c7f1ea1726e467781f4f250f23747ec70113391d15a70",
+          "bytes": 10863
+        },
+        {
+          "index": 13,
+          "name": "src/index.ts",
+          "path": "be/src/index.ts",
+          "sha256": "d9ec93afd80bf4c8517a165caead8299c3af04edcc73dbbe3bd55c6dbb8eba37",
+          "bytes": 37
+        },
+        {
+          "index": 14,
+          "name": "src/log.ts",
+          "path": "be/src/log.ts",
+          "sha256": "c20f4aa080917370fd790ffd11209c9127414f429915d38b21276f4458608169",
+          "bytes": 1764
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    },
+    {
+      "key": "nimbus",
+      "name": "@be/nimbus",
+      "version": "3.0.4",
+      "sourceRoot": "",
+      "artifacts": [
+        {
+          "archiveMember": "node_modules/@be/nimbus/package.json",
+          "path": "nimbus/release/package.json",
+          "sha256": "a76a079ac1b5773549cef7f5e6b8e3ca5e2de5ba69c029db007d9b58bd7d9317",
+          "bytes": 2289
+        },
+        {
+          "archiveMember": "node_modules/@be/nimbus/index.js.map",
+          "path": "nimbus/release/index.js.map",
+          "sha256": "5d935addf94ffbf590cd1fa1fe28fef4af8fddbf79756fa7cf7ce54d61865b73",
+          "bytes": 74425
+        },
+        {
+          "archiveMember": "node_modules/@be/nimbus/index.js",
+          "path": "nimbus/release/index.js",
+          "sha256": "59fcc567686966d6d99f724bd217dc1c1cebee33e03f58bd3db2ed6763ea0f93",
+          "bytes": 39773
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/Events.ts",
+          "path": "nimbus/src/Events.ts",
+          "sha256": "8ea143db87f0421e96f0073cf212c6e34a2d0d173548df2cbba9379a8bc28fc7",
+          "bytes": 205
+        },
+        {
+          "index": 2,
+          "name": "src/Nimbus.ts",
+          "path": "nimbus/src/Nimbus.ts",
+          "sha256": "43294bdf682e21a64cda9f77c3ae2088f59bb92947bb93827300c8a446cc6079",
+          "bytes": 10610
+        },
+        {
+          "index": 3,
+          "name": "src/index.ts",
+          "path": "nimbus/src/index.ts",
+          "sha256": "9a19590f1492e112559936d70e89d09f354b47d2a88f4986dde3deb6bf9e2880",
+          "bytes": 206
+        },
+        {
+          "index": 4,
+          "name": "src/states/DoCloudAction.ts",
+          "path": "nimbus/src/states/DoCloudAction.ts",
+          "sha256": "3043fd932e24e79427bdcdbd7b1457067e7b24753b3e67ed7b77c93675421b7b",
+          "bytes": 5099
+        },
+        {
+          "index": 5,
+          "name": "src/states/DoTechErrorMiM.ts",
+          "path": "nimbus/src/states/DoTechErrorMiM.ts",
+          "sha256": "f0663c3e5a5881b90486ff9fa9f0f6f3c81a14fac039f72d4758cceb4d7e715f",
+          "bytes": 447
+        },
+        {
+          "index": 6,
+          "name": "src/states/Done.ts",
+          "path": "nimbus/src/states/Done.ts",
+          "sha256": "10a8ab5a9df5e59bdf386bb47c3bee93a47ea8d5144bdf1cbac547f1ec64a587",
+          "bytes": 485
+        },
+        {
+          "index": 7,
+          "name": "src/states/Init.ts",
+          "path": "nimbus/src/states/Init.ts",
+          "sha256": "3a3b8f7edac678814e2bd428053417aeb002286c822e6f571023551edd946a2f",
+          "bytes": 750
+        },
+        {
+          "index": 8,
+          "name": "src/states/OuterInit.ts",
+          "path": "nimbus/src/states/OuterInit.ts",
+          "sha256": "5f1531582eeceff9c10f08fb20007f68df212ce360adb174913712a3b58bea80",
+          "bytes": 1928
+        },
+        {
+          "index": 9,
+          "name": "src/states/ProcessCloud.ts",
+          "path": "nimbus/src/states/ProcessCloud.ts",
+          "sha256": "3943c596cbe7928583bb5a3339fc9976fcc951811b1677a45fd8a5939a7ce271",
+          "bytes": 15827
+        },
+        {
+          "index": 10,
+          "name": "src/states/WaitForAdditional.ts",
+          "path": "nimbus/src/states/WaitForAdditional.ts",
+          "sha256": "3c974c16aa4f4da18390334f92b3fb0e179543cb9f8faca5917a076a2ce19973",
+          "bytes": 2090
+        },
+        {
+          "index": 11,
+          "name": "src/states/index.ts",
+          "path": "nimbus/src/states/index.ts",
+          "sha256": "b0bbef5bd4aed7ee8807b6ff64b1b64ebfa2bff0a15236544526dec1984d075e",
+          "bytes": 212
+        },
+        {
+          "index": 12,
+          "name": "src/utils/MimRunner.ts",
+          "path": "nimbus/src/utils/MimRunner.ts",
+          "sha256": "d0e7740bdf49bf81d11e4cea44a80141e789c30bb7bb2b2f1faddcb843c1efe3",
+          "bytes": 1670
+        },
+        {
+          "index": 13,
+          "name": "src/utils/Utils.ts",
+          "path": "nimbus/src/utils/Utils.ts",
+          "sha256": "d02ce475e0a3dcc87f3ddd9e8b36b3cc0a40f27323b7cddadd244ff69aacee4a",
+          "bytes": 1813
+        },
+        {
+          "index": 14,
+          "name": "src/utils/analytics/Analytics.ts",
+          "path": "nimbus/src/utils/analytics/Analytics.ts",
+          "sha256": "7fdca46d484d941407c7479a0df4dfdd72043692fc1ee94001fe8ef6704d25d7",
+          "bytes": 534
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    },
+    {
+      "key": "be-framework",
+      "name": "@be/be-framework",
+      "version": "13.0.0",
+      "sourceRoot": null,
+      "artifacts": [
+        {
+          "archiveMember": "node_modules/@be/be-framework/package.json",
+          "path": "be-framework/release/package.json",
+          "sha256": "8bedd1b472440f37d23642270a1935270dbd0e698ec485aec096fcc86544196c",
+          "bytes": 1882
+        },
+        {
+          "archiveMember": "node_modules/@be/be-framework/lib/be-framework.js.map",
+          "path": "be-framework/release/lib/be-framework.js.map",
+          "sha256": "2106ea4a13353fed24657db669267c56a1f10cc0c665b42eb65f13b1cb040d3f",
+          "bytes": 213230
+        },
+        {
+          "archiveMember": "node_modules/@be/be-framework/lib/be-framework.js",
+          "path": "be-framework/release/lib/be-framework.js",
+          "sha256": "effc717d41fd747f8d182bf9fb0d5f0505489e115c90791a79bf705a0f2ed1d7",
+          "bytes": 59367
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/BeSkill.ts",
+          "path": "be-framework/src/BeSkill.ts",
+          "sha256": "bb4e5a3f07827ed47dfe160c1b07ddc46bf42f98e7ae21fdf96475c2af0db972",
+          "bytes": 17309
+        },
+        {
+          "index": 2,
+          "name": "src/deprecation.ts",
+          "path": "be-framework/src/deprecation.ts",
+          "sha256": "10f54555c32111cff4dadd6441c5fe891189e5aa75cc2fd5bf8676f07f6c3f60",
+          "bytes": 2672
+        },
+        {
+          "index": 3,
+          "name": "src/libraries.ts",
+          "path": "be-framework/src/libraries.ts",
+          "sha256": "8831e6e09a7a2eaa004085ac6563abfe8b8c72998cab38553e96ac3d3d39456b",
+          "bytes": 187
+        },
+        {
+          "index": 4,
+          "name": "src/log.ts",
+          "path": "be-framework/src/log.ts",
+          "sha256": "963e1ef6b01e960c8c462f05ebc317807fac06d6c9a27506ef0d8a1d7d8cc619",
+          "bytes": 70
+        },
+        {
+          "index": 5,
+          "name": "src/main.ts",
+          "path": "be-framework/src/main.ts",
+          "sha256": "97ff0f91f9aa570e4b06122aa4ecd86cb8fe552f46442e01894019e72ad98bc1",
+          "bytes": 801
+        },
+        {
+          "index": 6,
+          "name": "src/openhooks/attention/index.ts",
+          "path": "be-framework/src/openhooks/attention/index.ts",
+          "sha256": "9dd60d18c6edd5e3e9d1def5de35fffc767a9ea71ac688ce9f3756db3e2fb6ee",
+          "bytes": 315
+        },
+        {
+          "index": 7,
+          "name": "src/openhooks/embodied/index.ts",
+          "path": "be-framework/src/openhooks/embodied/index.ts",
+          "sha256": "62749e5aa225aec8d5737fd438675bfe502fd180a10deac9b88bb36dc029ae92",
+          "bytes": 1012
+        },
+        {
+          "index": 8,
+          "name": "src/openhooks/interactionMemory/index.ts",
+          "path": "be-framework/src/openhooks/interactionMemory/index.ts",
+          "sha256": "fc0592addc2a4223195ac5121d51c59b3f3e5363599aca7aeaff3ec82c65b607",
+          "bytes": 1968
+        },
+        {
+          "index": 9,
+          "name": "src/plugins/analytics/Analytics.ts",
+          "path": "be-framework/src/plugins/analytics/Analytics.ts",
+          "sha256": "9f52dc58d9874744efbf2ce04e3e4b4a0d3de58f9045bd5abb10e821369dac70",
+          "bytes": 9824
+        },
+        {
+          "index": 10,
+          "name": "src/plugins/analytics/SkillConversion.ts",
+          "path": "be-framework/src/plugins/analytics/SkillConversion.ts",
+          "sha256": "07d79c6aed6979b168599861917183514a8f9bba6aceac43a6d9a80df64cd821",
+          "bytes": 3015
+        },
+        {
+          "index": 11,
+          "name": "src/plugins/analytics/index.ts",
+          "path": "be-framework/src/plugins/analytics/index.ts",
+          "sha256": "7d1e8641a0058cb7782651dc1410790b9686411db45c9cf8dd8ea43e5ca8c106",
+          "bytes": 638
+        },
+        {
+          "index": 12,
+          "name": "src/plugins/context/ContextService.ts",
+          "path": "be-framework/src/plugins/context/ContextService.ts",
+          "sha256": "a07225e8b8855cbfb5aa4d5dbad577694fd2322dfc7cc51236fa91c5228d1bad",
+          "bytes": 3418
+        },
+        {
+          "index": 13,
+          "name": "src/plugins/context/index.ts",
+          "path": "be-framework/src/plugins/context/index.ts",
+          "sha256": "2592222bbb0f65017a619d0d4a597e20b7f88013981a98816da2247c76f83781",
+          "bytes": 899
+        },
+        {
+          "index": 14,
+          "name": "src/plugins/holiday/Holiday.ts",
+          "path": "be-framework/src/plugins/holiday/Holiday.ts",
+          "sha256": "e11beba7f7ca0026135830389966402daffa6e92e62b35bcb41b969b21ba4e93",
+          "bytes": 3543
+        },
+        {
+          "index": 15,
+          "name": "src/plugins/holiday/HolidayNode.ts",
+          "path": "be-framework/src/plugins/holiday/HolidayNode.ts",
+          "sha256": "4090fcaffb346c9a58f2bf511e9227b0d429dc31e9558eed36e5610dbfc28efb",
+          "bytes": 1975
+        },
+        {
+          "index": 16,
+          "name": "src/plugins/holiday/index.ts",
+          "path": "be-framework/src/plugins/holiday/index.ts",
+          "sha256": "7bdb389234deff7489d7b589e0154055aa03931e210d8c06ec0be8d552a6bbe5",
+          "bytes": 354
+        },
+        {
+          "index": 17,
+          "name": "src/plugins/index.ts",
+          "path": "be-framework/src/plugins/index.ts",
+          "sha256": "726f54f32e9bd9ca1fbf0a0abde28d37f3cd738942e418508c30dc0ad4906489",
+          "bytes": 63
+        },
+        {
+          "index": 18,
+          "name": "src/plugins/onScreenTimer/index.ts",
+          "path": "be-framework/src/plugins/onScreenTimer/index.ts",
+          "sha256": "1907ae475f7256ce9302cece7442154da42a220a23ceaf7a2036859ee0a92b0d",
+          "bytes": 1908
+        },
+        {
+          "index": 19,
+          "name": "src/plugins/tunable/index.ts",
+          "path": "be-framework/src/plugins/tunable/index.ts",
+          "sha256": "b4fc044f741d8bf81ea22c6a6fcdb7609589f4fcc1124ea7093f7e694c11d4b7",
+          "bytes": 1675
+        },
+        {
+          "index": 20,
+          "name": "src/utils/PackageUtils.ts",
+          "path": "be-framework/src/utils/PackageUtils.ts",
+          "sha256": "e13a0eae9d362fb1b20e9bf95a232f4efb8ee3f9bf445ed3e17d0c3d351a3a0f",
+          "bytes": 2488
+        },
+        {
+          "index": 21,
+          "name": "src/utils/index.ts",
+          "path": "be-framework/src/utils/index.ts",
+          "sha256": "b4b93710854ea792d8486ea401d1b66f7b8bf9449ea2dda43597c3fdcb52790e",
+          "bytes": 308
+        },
+        {
+          "index": 22,
+          "name": "src/index.ts",
+          "path": "be-framework/src/index.ts",
+          "sha256": "b720d1ca4c74d09b36162f2344173a606a83f8ec06469c23e058ac1fb8a1c6ac",
+          "bytes": 288
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    },
+    {
+      "key": "jetstream-client",
+      "name": "@jibo/jetstream-client",
+      "version": "3.0.4",
+      "sourceRoot": null,
+      "artifacts": [
+        {
+          "archiveMember": "node_modules/@jibo/jetstream-client/package.json",
+          "path": "jetstream-client/release/package.json",
+          "sha256": "399c2ea93bc4935b74aec4b53982da8972f37b4855228f392f45283ad453d86f",
+          "bytes": 1745
+        },
+        {
+          "archiveMember": "node_modules/@jibo/jetstream-client/lib/jetstream-client.js.map",
+          "path": "jetstream-client/release/lib/jetstream-client.js.map",
+          "sha256": "907d1dc7f2d63b7d54ae8ec4bce8612fa16eba161ccc29a1f441ec2171ea2b29",
+          "bytes": 317143
+        },
+        {
+          "archiveMember": "node_modules/@jibo/jetstream-client/lib/jetstream-client.js",
+          "path": "jetstream-client/release/lib/jetstream-client.js",
+          "sha256": "a6c8d75e1772c0b8f03877cab17d899708385249260e6b3ff2e75115ab23e982",
+          "bytes": 53770
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/Api.ts",
+          "path": "jetstream-client/src/Api.ts",
+          "sha256": "ee7214512b3c24144857e8469858ee5acda3ce5e2e05a0dd40e0cfe1342773e9",
+          "bytes": 14329
+        },
+        {
+          "index": 2,
+          "name": "src/Client.ts",
+          "path": "jetstream-client/src/Client.ts",
+          "sha256": "85a08862450d07ac448590bc40b21ddbe1b437af605e2a874daa5a064073ab6d",
+          "bytes": 14813
+        },
+        {
+          "index": 3,
+          "name": "src/CloudResponseRegistry.ts",
+          "path": "jetstream-client/src/CloudResponseRegistry.ts",
+          "sha256": "3b37c9f807efb2565adc9c8716b7f1fe6fdaf738b873f792c6fa5c0eee494dcb",
+          "bytes": 2378
+        },
+        {
+          "index": 4,
+          "name": "src/Events.ts",
+          "path": "jetstream-client/src/Events.ts",
+          "sha256": "3677f9de9e22e497d55030717da34eadfe294b21b8ac823f4a3de033cca851e4",
+          "bytes": 3095
+        },
+        {
+          "index": 5,
+          "name": "src/HotwordMode.ts",
+          "path": "jetstream-client/src/HotwordMode.ts",
+          "sha256": "673078f343cb240cf7e1114fe6e9ad017ec69a48385d2b7e8480eb0e2d27f2c6",
+          "bytes": 11726
+        },
+        {
+          "index": 6,
+          "name": "src/Request.ts",
+          "path": "jetstream-client/src/Request.ts",
+          "sha256": "af8992f7c7778f48c1cbdadcd8625e0b575e0094eb10a8bfc5307fa675bcbb43",
+          "bytes": 16609
+        },
+        {
+          "index": 7,
+          "name": "src/Types.ts",
+          "path": "jetstream-client/src/Types.ts",
+          "sha256": "501ef560625f3aa95b15936a5338382f183a4748bf1e9ad92da95b486a8a402e",
+          "bytes": 26096
+        },
+        {
+          "index": 8,
+          "name": "src/Utils.ts",
+          "path": "jetstream-client/src/Utils.ts",
+          "sha256": "daacbfb81fd0842c5150a2705ace2e1eceb4f467dfde8965ce85e602dc5af5c0",
+          "bytes": 3149
+        },
+        {
+          "index": 9,
+          "name": "src/index.ts",
+          "path": "jetstream-client/src/index.ts",
+          "sha256": "7f1b4f16ee286d94094aeaaf53fab4262f52ce8ed72d72f68357a772d1fdf50c",
+          "bytes": 310
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    },
+    {
+      "key": "jibo-command-protocol",
+      "name": "jibo-command-protocol",
+      "version": "5.0.4",
+      "sourceRoot": null,
+      "artifacts": [
+        {
+          "archiveMember": "node_modules/jibo-command-protocol/package.json",
+          "path": "jibo-command-protocol/release/package.json",
+          "sha256": "a65c0799dd11881e2b86ed7b2d1d261fb2bec0a5c4073d95c998885b00308905",
+          "bytes": 1234
+        },
+        {
+          "archiveMember": "node_modules/jibo-command-protocol/lib/jibo-command-protocol.js.map",
+          "path": "jibo-command-protocol/release/lib/jibo-command-protocol.js.map",
+          "sha256": "5e2df1baf5bb8a830c5e8600a37f99dbbc84c0d82bbccabf70c51406657b30de",
+          "bytes": 55648
+        },
+        {
+          "archiveMember": "node_modules/jibo-command-protocol/lib/jibo-command-protocol.js",
+          "path": "jibo-command-protocol/release/lib/jibo-command-protocol.js",
+          "sha256": "8c190b60c3c524fe34ed85b362b558a8c6cc004adef32079e76c699d9d4b4f83",
+          "bytes": 6656
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/Enums.ts",
+          "path": "jibo-command-protocol/src/Enums.ts",
+          "sha256": "647967ca4ed59516d949dd098989a5962d4357ecdc8082faacf1c993e8eeef8f",
+          "bytes": 17178
+        },
+        {
+          "index": 2,
+          "name": "src/TypeGuards.ts",
+          "path": "jibo-command-protocol/src/TypeGuards.ts",
+          "sha256": "110aca50fe804706029f3f13a719bd6f6575d641d08465601c768202fab5c489",
+          "bytes": 911
+        },
+        {
+          "index": 3,
+          "name": "src/index.ts",
+          "path": "jibo-command-protocol/src/index.ts",
+          "sha256": "9951f3807f9c5ba58a32e7f9c1613f5a98ca6ea87e903b7f5448239828867a28",
+          "bytes": 89
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    },
+    {
+      "key": "jibo-service-clients",
+      "name": "jibo-service-clients",
+      "version": "5.0.4",
+      "sourceRoot": null,
+      "artifacts": [
+        {
+          "archiveMember": "node_modules/jibo-service-clients/package.json",
+          "path": "jibo-service-clients/release/package.json",
+          "sha256": "b501e45cbbd37d6275954129be3e2331caf143272e9e01cc734d56be8c19d90c",
+          "bytes": 1581
+        },
+        {
+          "archiveMember": "node_modules/jibo-service-clients/lib/jibo-service-clients.js.map",
+          "path": "jibo-service-clients/release/lib/jibo-service-clients.js.map",
+          "sha256": "f58c801ac7ed35c9c55c13453366f5119c30af49c3e37f7d380db6e38630a22e",
+          "bytes": 761879
+        },
+        {
+          "archiveMember": "node_modules/jibo-service-clients/lib/jibo-service-clients.js",
+          "path": "jibo-service-clients/release/lib/jibo-service-clients.js",
+          "sha256": "7a960ac90c0bee4579623724dfb6ef6ffce0517a6606b434c7a9b77cc0ec38d5",
+          "bytes": 124860
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/services/ErrorService.ts",
+          "path": "jibo-service-clients/src/services/ErrorService.ts",
+          "sha256": "3b9c8b15f078a330777d8171484d74cd9114f1dc94b019ca7de9eeeb798dc5f6",
+          "bytes": 6652
+        },
+        {
+          "index": 2,
+          "name": "src/services/IdentityCreationService.ts",
+          "path": "jibo-service-clients/src/services/IdentityCreationService.ts",
+          "sha256": "4e65330ffd1fe9649d3e33c7ab1085b54c1cda621e64cb5ee6d2cee10709e9fa",
+          "bytes": 8685
+        },
+        {
+          "index": 3,
+          "name": "src/services/LPSService.ts",
+          "path": "jibo-service-clients/src/services/LPSService.ts",
+          "sha256": "5685fce3d0ab942ef66a3e9ab2520b8f17e300ab22087396be5bee1076a802ea",
+          "bytes": 20662
+        },
+        {
+          "index": 4,
+          "name": "src/services/MediaManagerService.ts",
+          "path": "jibo-service-clients/src/services/MediaManagerService.ts",
+          "sha256": "7bb5b5de043452b876ec525a67f2aa4ee3a184f28f63b9bff3d3729d2ffcda2c",
+          "bytes": 7819
+        },
+        {
+          "index": 5,
+          "name": "src/services/MediaService.ts",
+          "path": "jibo-service-clients/src/services/MediaService.ts",
+          "sha256": "6a39c27be7a74d52064318f460c25c8c78980c2d8ec225f755661069d379a5b8",
+          "bytes": 17351
+        },
+        {
+          "index": 6,
+          "name": "src/services/PerformanceService.ts",
+          "path": "jibo-service-clients/src/services/PerformanceService.ts",
+          "sha256": "567715a1faba5bd009b9ab5459962a140067f7149038bfa6f7d3e9c173bf5e05",
+          "bytes": 1414
+        },
+        {
+          "index": 7,
+          "name": "src/services/SchedulerService.ts",
+          "path": "jibo-service-clients/src/services/SchedulerService.ts",
+          "sha256": "9a0ea0fc2245d094997f6abb07250ed54c2aa15e0fb7a2f2fd4b7fc412a5e6ac",
+          "bytes": 10798
+        },
+        {
+          "index": 8,
+          "name": "src/services/SecureTransferService.ts",
+          "path": "jibo-service-clients/src/services/SecureTransferService.ts",
+          "sha256": "11c658fb41b88db45ccb8307f54c1d56dadd20e242194b08d1e3b11026b6fb97",
+          "bytes": 2250
+        },
+        {
+          "index": 9,
+          "name": "src/services/SystemManager.ts",
+          "path": "jibo-service-clients/src/services/SystemManager.ts",
+          "sha256": "0da270ebab8191fde9c2887acb0d693715d485d55ec8c52d80cbd1034fbef3e6",
+          "bytes": 20396
+        },
+        {
+          "index": 10,
+          "name": "src/services/SystemService.ts",
+          "path": "jibo-service-clients/src/services/SystemService.ts",
+          "sha256": "4466b2a0bae10f3a87ab68937995b652c5484ff64fad419923b7daaa368559ca",
+          "bytes": 27492
+        },
+        {
+          "index": 11,
+          "name": "src/services/TTSService.ts",
+          "path": "jibo-service-clients/src/services/TTSService.ts",
+          "sha256": "34c3aa76e2c144e9641ae568ff971d6eb7a1033ab96f11a80be69a93707f5fd3",
+          "bytes": 24075
+        },
+        {
+          "index": 12,
+          "name": "src/services/TouchHandler.ts",
+          "path": "jibo-service-clients/src/services/TouchHandler.ts",
+          "sha256": "0f2e87bd5b1d020ef929fc588c469a142366f62e3004769f5cde4591c4c111b4",
+          "bytes": 3425
+        },
+        {
+          "index": 13,
+          "name": "src/services/WifiService.ts",
+          "path": "jibo-service-clients/src/services/WifiService.ts",
+          "sha256": "a8c758c4411e06a940a3419a08ef8fea108177fd053dacfd31a72eef7b9c583d",
+          "bytes": 9293
+        },
+        {
+          "index": 14,
+          "name": "src/services/detectors/AmbientAudioSpike.ts",
+          "path": "jibo-service-clients/src/services/detectors/AmbientAudioSpike.ts",
+          "sha256": "2d8f031491544a396d564aea5892de3ff8b12244ac615c5986073074238fa5dc",
+          "bytes": 859
+        },
+        {
+          "index": 15,
+          "name": "src/services/detectors/DetectorService.ts",
+          "path": "jibo-service-clients/src/services/detectors/DetectorService.ts",
+          "sha256": "7f8a876f1f7e7117f28098d0e3b80dbff7439a162a7bf6a44c69f50395e57255",
+          "bytes": 463
+        },
+        {
+          "index": 16,
+          "name": "src/services/detectors/index.ts",
+          "path": "jibo-service-clients/src/services/detectors/index.ts",
+          "sha256": "fe6011207fb5ea48a147dbec759d665475e9b4ce233d8031e38b10d5a69e7ded",
+          "bytes": 81
+        },
+        {
+          "index": 17,
+          "name": "src/services/detectors/utils/TunableDebug.ts",
+          "path": "jibo-service-clients/src/services/detectors/utils/TunableDebug.ts",
+          "sha256": "988597ac25eb1a6f70e6c608d022219171142e7cf478e61ee7e3d7386fd381d0",
+          "bytes": 1010
+        },
+        {
+          "index": 18,
+          "name": "src/services/id/DataConverter.ts",
+          "path": "jibo-service-clients/src/services/id/DataConverter.ts",
+          "sha256": "288d54a9fe84b0eb99acc9f9be708eb5b7d40e90f51895ce4f8e9a64f70c6fb1",
+          "bytes": 27884
+        },
+        {
+          "index": 19,
+          "name": "src/services/id/IDEvents.ts",
+          "path": "jibo-service-clients/src/services/id/IDEvents.ts",
+          "sha256": "9aa9c11e41363a4d99cdb8a080ef8f26b6c0f6c1c17d9e2e387ef2eb6ee267dd",
+          "bytes": 2182
+        },
+        {
+          "index": 20,
+          "name": "src/services/id/IdentityService.ts",
+          "path": "jibo-service-clients/src/services/id/IdentityService.ts",
+          "sha256": "619dca1f00de3d0d5f703028c472d3088e2fa3540a5c6ae221ee32a5812f730f",
+          "bytes": 8015
+        },
+        {
+          "index": 21,
+          "name": "src/services/id/index.ts",
+          "path": "jibo-service-clients/src/services/id/index.ts",
+          "sha256": "ba12a8c5d5a00229d8813daf5b26386235c7e4714b5e5c8f83a3ca543cee5972",
+          "bytes": 81
+        },
+        {
+          "index": 22,
+          "name": "src/utils/ServiceOwner.ts",
+          "path": "jibo-service-clients/src/utils/ServiceOwner.ts",
+          "sha256": "8d4ab14a4f675a803f09b8cc1922a9f560e2a446c45de06bd00f7377e7c7ed3d",
+          "bytes": 857
+        },
+        {
+          "index": 23,
+          "name": "src/utils/WebCommunication.ts",
+          "path": "jibo-service-clients/src/utils/WebCommunication.ts",
+          "sha256": "a029dcba6919169847e366fa928d641309a90e462ec48d24cd2905642b469754",
+          "bytes": 2375
+        },
+        {
+          "index": 24,
+          "name": "src/index.ts",
+          "path": "jibo-service-clients/src/index.ts",
+          "sha256": "a997cff581728fef1cb738bd919ecdd9a412c485aec7321ddb8d6eb310f8cc32",
+          "bytes": 3924
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    },
+    {
+      "key": "jibo",
+      "name": "jibo",
+      "version": "15.0.4",
+      "sourceRoot": null,
+      "artifacts": [
+        {
+          "archiveMember": "node_modules/jibo/package.json",
+          "path": "jibo/release/package.json",
+          "sha256": "d2b0c22b0c7656e8537ed599f34268925d9c538e5d94cd3826d62164c3a878ef",
+          "bytes": 3683
+        },
+        {
+          "archiveMember": "node_modules/jibo/lib/jibo.js.map",
+          "path": "jibo/release/lib/jibo.js.map",
+          "sha256": "28bc65f981c703d9d337f2d4225e63a09a31626d37abcaff9aef35a7d80d8348",
+          "bytes": 5300913
+        },
+        {
+          "archiveMember": "node_modules/jibo/lib/jibo.js",
+          "path": "jibo/release/lib/jibo.js",
+          "sha256": "39a7c7769f5c7a2590c73d633f56fb15d5dbc0d4dcb0ab793bdf9eb275d05b75",
+          "bytes": 852204
+        }
+      ],
+      "sources": [
+        {
+          "index": 1,
+          "name": "src/Runtime.ts",
+          "path": "jibo/src/Runtime.ts",
+          "sha256": "8aa9f9fb9d43019cf9ee12ceef737a9fd418ecca0a5931aeea7f33ee07e1d71e",
+          "bytes": 22010
+        },
+        {
+          "index": 2,
+          "name": "src/bt/BaseElement.ts",
+          "path": "jibo/src/bt/BaseElement.ts",
+          "sha256": "98985df1dcf954f00a80d9c7e59d3d031f22af0fb798e0efdd445346e14f357d",
+          "bytes": 4783
+        },
+        {
+          "index": 3,
+          "name": "src/bt/Behavior.ts",
+          "path": "jibo/src/bt/Behavior.ts",
+          "sha256": "f6be9bd6be2b355275b07c6fa8c9fb57a7bb5b391f238a68f6dd60b7c90896cd",
+          "bytes": 8491
+        },
+        {
+          "index": 4,
+          "name": "src/bt/BehaviorEmitter.ts",
+          "path": "jibo/src/bt/BehaviorEmitter.ts",
+          "sha256": "7764f6db811f9fe831d1de7d7c7c3928e3c104bade51b6429275a5e6362fbea4",
+          "bytes": 223
+        },
+        {
+          "index": 5,
+          "name": "src/bt/BehaviorTree.ts",
+          "path": "jibo/src/bt/BehaviorTree.ts",
+          "sha256": "a527820ff588f8c3ee28eb62c33acfb7fe57976846b623f2854b817b91c25656",
+          "bytes": 3968
+        },
+        {
+          "index": 6,
+          "name": "src/bt/Blackboard.ts",
+          "path": "jibo/src/bt/Blackboard.ts",
+          "sha256": "5b2d00a5037700eca09903cacf274b4924f6243f48fd3ec8766340c2d64147ca",
+          "bytes": 85
+        },
+        {
+          "index": 7,
+          "name": "src/bt/Decorator.ts",
+          "path": "jibo/src/bt/Decorator.ts",
+          "sha256": "32d3be85062a9f849d350fe9efd01e885eb5e34eddbb059ec490c7b9ff716d61",
+          "bytes": 3063
+        },
+        {
+          "index": 8,
+          "name": "src/bt/Factory.ts",
+          "path": "jibo/src/bt/Factory.ts",
+          "sha256": "dcaf555c9193d1b0ba8ac00215142aa43dc767248c13ad26ae19700b3659c8c3",
+          "bytes": 12536
+        },
+        {
+          "index": 9,
+          "name": "src/bt/ParentBehavior.ts",
+          "path": "jibo/src/bt/ParentBehavior.ts",
+          "sha256": "4cdf44dd6241c358ea5bd4770bda68f1722e273b87018da71beface839f4bf8e",
+          "bytes": 2445
+        },
+        {
+          "index": 10,
+          "name": "src/bt/Status.ts",
+          "path": "jibo/src/bt/Status.ts",
+          "sha256": "2121dc4a828bd50c7e1aaa002237235843797eef57dd8b4848ab9b0dd1f20a4d",
+          "bytes": 1431
+        },
+        {
+          "index": 11,
+          "name": "src/bt/behaviors/Blink.ts",
+          "path": "jibo/src/bt/behaviors/Blink.ts",
+          "sha256": "503dbdaa138a37da6a2f0508f784850e7a111e0a9bea1c6e23d587b214e91cf9",
+          "bytes": 545
+        },
+        {
+          "index": 12,
+          "name": "src/bt/behaviors/ExecuteScript.ts",
+          "path": "jibo/src/bt/behaviors/ExecuteScript.ts",
+          "sha256": "c80067411261ded6d1a9d398682f3e624df5f6eaf34ae7ca2e86b7c16e864c20",
+          "bytes": 554
+        },
+        {
+          "index": 13,
+          "name": "src/bt/behaviors/ExecuteScriptAsync.ts",
+          "path": "jibo/src/bt/behaviors/ExecuteScriptAsync.ts",
+          "sha256": "f1d010b8d44fb7ce3049837beeb9d7cda0235205f898393c48765c0bd74d0d87",
+          "bytes": 1450
+        },
+        {
+          "index": 14,
+          "name": "src/bt/behaviors/LookAt.ts",
+          "path": "jibo/src/bt/behaviors/LookAt.ts",
+          "sha256": "8f92fbf8d95f55338fb9331211a10ce764f9e797386bfcd60c16de47aa1628a6",
+          "bytes": 2645
+        },
+        {
+          "index": 15,
+          "name": "src/bt/behaviors/Menu.ts",
+          "path": "jibo/src/bt/behaviors/Menu.ts",
+          "sha256": "b547035967d4e6d7fad724be7d95ceb9f6533b89f398b165fef9ddc4a2e7992e",
+          "bytes": 17349
+        },
+        {
+          "index": 16,
+          "name": "src/bt/behaviors/Mim.ts",
+          "path": "jibo/src/bt/behaviors/Mim.ts",
+          "sha256": "4ba1b4a7ec5cfc527c48933d6e38a969243a5e59358fc13c04c49427d63b3122",
+          "bytes": 87604
+        },
+        {
+          "index": 17,
+          "name": "src/bt/behaviors/Null.ts",
+          "path": "jibo/src/bt/behaviors/Null.ts",
+          "sha256": "ad613586b3190d8ca829abc3b54dea960dcb6b0443a1143a761a07d2dfcdb5ff",
+          "bytes": 448
+        },
+        {
+          "index": 18,
+          "name": "src/bt/behaviors/Parallel.ts",
+          "path": "jibo/src/bt/behaviors/Parallel.ts",
+          "sha256": "1b3dbeacf575f1f78085f2c5aec8ca236ba21a4eee172f07958a4b3c0435f220",
+          "bytes": 3993
+        },
+        {
+          "index": 19,
+          "name": "src/bt/behaviors/PlayAnimation.ts",
+          "path": "jibo/src/bt/behaviors/PlayAnimation.ts",
+          "sha256": "604a073360332bc808828a621b8385c4e218d6e391a7290a4208009dacb1eb54",
+          "bytes": 11817
+        },
+        {
+          "index": 20,
+          "name": "src/bt/behaviors/PlayAudio.ts",
+          "path": "jibo/src/bt/behaviors/PlayAudio.ts",
+          "sha256": "b2d15fdf80804da28bd387c3022e0bd50eab299a2feb868c4a12a77a587b668a",
+          "bytes": 2874
+        },
+        {
+          "index": 21,
+          "name": "src/bt/behaviors/Random.ts",
+          "path": "jibo/src/bt/behaviors/Random.ts",
+          "sha256": "835c55d34729f62277304188e330c34102c9683963bea8cc273a2fb6819ee3c2",
+          "bytes": 1403
+        },
+        {
+          "index": 22,
+          "name": "src/bt/behaviors/ReadBarcode.ts",
+          "path": "jibo/src/bt/behaviors/ReadBarcode.ts",
+          "sha256": "0946c27065ec36eea549d6a51ad3432a96771d4d3d41302b06e082a13c34198c",
+          "bytes": 1800
+        },
+        {
+          "index": 23,
+          "name": "src/bt/behaviors/Sequence.ts",
+          "path": "jibo/src/bt/behaviors/Sequence.ts",
+          "sha256": "c09397e62a517626d5247e1614de20e196dfdb5df647eab61456aaf247374ae4",
+          "bytes": 2164
+        },
+        {
+          "index": 24,
+          "name": "src/bt/behaviors/Subtree.ts",
+          "path": "jibo/src/bt/behaviors/Subtree.ts",
+          "sha256": "aea89e4285003f10e52409da0532fbb1d2fa8ac9d0fd9aba3a24333a8b1d2466",
+          "bytes": 2908
+        },
+        {
+          "index": 25,
+          "name": "src/bt/behaviors/SubtreeJs.ts",
+          "path": "jibo/src/bt/behaviors/SubtreeJs.ts",
+          "sha256": "a59837b8351dd7f0e68e0e5aea1241c110030e2eda801008a5111631165e5a26",
+          "bytes": 1974
+        },
+        {
+          "index": 26,
+          "name": "src/bt/behaviors/Switch.ts",
+          "path": "jibo/src/bt/behaviors/Switch.ts",
+          "sha256": "a8113518003142b63631608e9f2a685595cadd1e28eccb76514e94d0320ec694",
+          "bytes": 2088
+        },
+        {
+          "index": 27,
+          "name": "src/bt/behaviors/TakePhoto.ts",
+          "path": "jibo/src/bt/behaviors/TakePhoto.ts",
+          "sha256": "4e614f1086dd7fb7b487b08fa1db493112593ef7cbfb903f8e4449858674bce5",
+          "bytes": 2219
+        },
+        {
+          "index": 28,
+          "name": "src/bt/behaviors/TextToSpeech.ts",
+          "path": "jibo/src/bt/behaviors/TextToSpeech.ts",
+          "sha256": "25da3caa02c2c2898a3288b6400b3babc43350e45e8f295d59d3bd151111cdd5",
+          "bytes": 2427
+        },
+        {
+          "index": 29,
+          "name": "src/bt/behaviors/TextToSpeechJs.ts",
+          "path": "jibo/src/bt/behaviors/TextToSpeechJs.ts",
+          "sha256": "7f747a46f86e44af4e5e24372c847193959fc638d110605ce2bf52b511a712c0",
+          "bytes": 1355
+        },
+        {
+          "index": 30,
+          "name": "src/bt/behaviors/TimeoutJs.ts",
+          "path": "jibo/src/bt/behaviors/TimeoutJs.ts",
+          "sha256": "4bf9f362bf313bccb684aa52f74c4192f4de69be0213eda31d511de35a571088",
+          "bytes": 1481
+        },
+        {
+          "index": 31,
+          "name": "src/bt/behaviors/index.ts",
+          "path": "jibo/src/bt/behaviors/index.ts",
+          "sha256": "e1a47379e5744ea32afd5b0949380cee3edadbfafacd3a8a4b244969c2452a56",
+          "bytes": 1117
+        },
+        {
+          "index": 32,
+          "name": "src/bt/behaviors/log.ts",
+          "path": "jibo/src/bt/behaviors/log.ts",
+          "sha256": "96b2b4abd5af85e357d8253e50c04d150e3e1dc5244d8896e0150208704ca69f",
+          "bytes": 83
+        },
+        {
+          "index": 33,
+          "name": "src/bt/decorators/Case.ts",
+          "path": "jibo/src/bt/decorators/Case.ts",
+          "sha256": "d9bb213ca132d6cc3ca71ad724a0df254c6167b6790e5ac63a1fd72f67e2be69",
+          "bytes": 969
+        },
+        {
+          "index": 34,
+          "name": "src/bt/decorators/FailOnCondition.ts",
+          "path": "jibo/src/bt/decorators/FailOnCondition.ts",
+          "sha256": "2fa3cb0060decb5c1d8e45cebb9dff7b3c9df3e6c6b5f095655f787205c9af99",
+          "bytes": 1349
+        },
+        {
+          "index": 35,
+          "name": "src/bt/decorators/StartOnAnimEvent.ts",
+          "path": "jibo/src/bt/decorators/StartOnAnimEvent.ts",
+          "sha256": "69929e41125d487343d94b3499a85d7726cabe1808c1aa7ed4e72afeee346510",
+          "bytes": 2104
+        },
+        {
+          "index": 36,
+          "name": "src/bt/decorators/StartOnCondition.ts",
+          "path": "jibo/src/bt/decorators/StartOnCondition.ts",
+          "sha256": "99c3124a07fddf446167824e6deadcae0a3bd952a93ffba018a3ccd00c20ba47",
+          "bytes": 1570
+        },
+        {
+          "index": 37,
+          "name": "src/bt/decorators/StartOnEvent.ts",
+          "path": "jibo/src/bt/decorators/StartOnEvent.ts",
+          "sha256": "0d5af53fe34f71f8ef06794b76bc2dd72da96be1bc1d1627eae501d952f3e8a8",
+          "bytes": 1451
+        },
+        {
+          "index": 38,
+          "name": "src/bt/decorators/SucceedOnCondition.ts",
+          "path": "jibo/src/bt/decorators/SucceedOnCondition.ts",
+          "sha256": "0507288bb37315acbb4c51d3ea5fa9189d5474219d4843c15d6353ae3bb60c5d",
+          "bytes": 1280
+        },
+        {
+          "index": 39,
+          "name": "src/bt/decorators/SucceedOnEmbedded.ts",
+          "path": "jibo/src/bt/decorators/SucceedOnEmbedded.ts",
+          "sha256": "2231c73e9450657c37fdfa77f3f6fe8c132f805249563f40955a7599ff867ece",
+          "bytes": 3294
+        },
+        {
+          "index": 40,
+          "name": "src/bt/decorators/SucceedOnEvent.ts",
+          "path": "jibo/src/bt/decorators/SucceedOnEvent.ts",
+          "sha256": "f41d27476b4e52cace4cb287bed73c38b43674222cb46613b3c13161e574e1c1",
+          "bytes": 1470
+        },
+        {
+          "index": 41,
+          "name": "src/bt/decorators/SucceedOnListen.ts",
+          "path": "jibo/src/bt/decorators/SucceedOnListen.ts",
+          "sha256": "e58a0b99d1be3003aa4ce97d08d360082d02965075b6d6395027a52e6bfc3140",
+          "bytes": 3861
+        },
+        {
+          "index": 42,
+          "name": "src/bt/decorators/SucceedOnListenJs.ts",
+          "path": "jibo/src/bt/decorators/SucceedOnListenJs.ts",
+          "sha256": "fd0d32760d1817d0bb12af638873281a7dd3cea5a882c20c360226df03fc30de",
+          "bytes": 6398
+        },
+        {
+          "index": 43,
+          "name": "src/bt/decorators/TimeoutFail.ts",
+          "path": "jibo/src/bt/decorators/TimeoutFail.ts",
+          "sha256": "fa122a22374f9b45af726d0ab3b047964b25ff90bc861da4278eb5e5b06dffdb",
+          "bytes": 890
+        },
+        {
+          "index": 44,
+          "name": "src/bt/decorators/TimeoutSucceed.ts",
+          "path": "jibo/src/bt/decorators/TimeoutSucceed.ts",
+          "sha256": "b6722020900abbf5cc577b989083a6f2a8c2685f17d219e94f632d4ab7f2ca65",
+          "bytes": 875
+        },
+        {
+          "index": 45,
+          "name": "src/bt/decorators/TimeoutSucceedJs.ts",
+          "path": "jibo/src/bt/decorators/TimeoutSucceedJs.ts",
+          "sha256": "0099ddcd5f8cf07805c74ea77899c978fe3197877b81b71ffec2de46837c09aa",
+          "bytes": 1106
+        },
+        {
+          "index": 46,
+          "name": "src/bt/decorators/WhileCondition.ts",
+          "path": "jibo/src/bt/decorators/WhileCondition.ts",
+          "sha256": "2fe5ec40e9d22946919f31a1ee9e97d656aee1043d58030406e6488a4a7c8d4a",
+          "bytes": 1507
+        },
+        {
+          "index": 47,
+          "name": "src/bt/decorators/index.ts",
+          "path": "jibo/src/bt/decorators/index.ts",
+          "sha256": "14820eb60697c123faaab0aeed891d8f981fd41efb1c056fd28143ef08583a0d",
+          "bytes": 1044
+        },
+        {
+          "index": 48,
+          "name": "src/bt/index.ts",
+          "path": "jibo/src/bt/index.ts",
+          "sha256": "643011034b829c85a5a7d2fd5df9caa72352dfeaf44dce02fd541894f715e8e1",
+          "bytes": 623
+        },
+        {
+          "index": 49,
+          "name": "src/bt/log.ts",
+          "path": "jibo/src/bt/log.ts",
+          "sha256": "942b3649c492f2632ce891eb50e7d1a32db0c67c944e29796584606b3c21300c",
+          "bytes": 76
+        },
+        {
+          "index": 50,
+          "name": "src/bt/mim/GenerateListConfig.ts",
+          "path": "jibo/src/bt/mim/GenerateListConfig.ts",
+          "sha256": "78574aa38795bd0366bf4760be8d4a8be03a95a061f83898988f862f6624eb24",
+          "bytes": 4042
+        },
+        {
+          "index": 51,
+          "name": "src/bt/mim/MimConfig.ts",
+          "path": "jibo/src/bt/mim/MimConfig.ts",
+          "sha256": "12f89799930e0c6e9479625a72807fb1fe6adac6d74c046553b43eadc3c434ae",
+          "bytes": 24505
+        },
+        {
+          "index": 52,
+          "name": "src/bt/mim/MimManager.ts",
+          "path": "jibo/src/bt/mim/MimManager.ts",
+          "sha256": "4544377a35bac648165b28a92448091557233a4a84f019ae2cd8dabd9e09aef9",
+          "bytes": 13738
+        },
+        {
+          "index": 53,
+          "name": "src/bt/mim/MimPrompt.ts",
+          "path": "jibo/src/bt/mim/MimPrompt.ts",
+          "sha256": "b70f033daaa146edd7dbae185c9b16213f64b9f55aa1ab0be44d189e73e4b98c",
+          "bytes": 1517
+        },
+        {
+          "index": 54,
+          "name": "src/bt/mim/MimRepeatManager.ts",
+          "path": "jibo/src/bt/mim/MimRepeatManager.ts",
+          "sha256": "689787690a9cc2a03d9d51b79736ea156b71d6a8b3ada52e8b5ba7ceee444b08",
+          "bytes": 4969
+        },
+        {
+          "index": 55,
+          "name": "src/bt/mim/MimState.ts",
+          "path": "jibo/src/bt/mim/MimState.ts",
+          "sha256": "c877a23600aada86de7f1c05579c0e350e37872f626f7365c02a2cdb42040bc0",
+          "bytes": 4432
+        },
+        {
+          "index": 56,
+          "name": "src/bt/mim/WeightedRotation.ts",
+          "path": "jibo/src/bt/mim/WeightedRotation.ts",
+          "sha256": "6d96df1e279bbd1e5457eb423663601c27e30476153f92158a7342343df6db8f",
+          "bytes": 6819
+        },
+        {
+          "index": 57,
+          "name": "src/bt/mim/analytics/Analytics.ts",
+          "path": "jibo/src/bt/mim/analytics/Analytics.ts",
+          "sha256": "ffc99dd1d46bf952626f856663ce353a08ea3f10b9ad2a2da7219f88bd552126",
+          "bytes": 666
+        },
+        {
+          "index": 58,
+          "name": "src/bt/mim/analytics/MimAnalytics.ts",
+          "path": "jibo/src/bt/mim/analytics/MimAnalytics.ts",
+          "sha256": "77f29d23893da9ba3bb2c081c3448a9cfbea48022e77231de8ba8498b2fcd51c",
+          "bytes": 4060
+        },
+        {
+          "index": 59,
+          "name": "src/bt/mim/delegates/GlobalListenDelegate.ts",
+          "path": "jibo/src/bt/mim/delegates/GlobalListenDelegate.ts",
+          "sha256": "4e06df2316aa3c1e6d076ab1450d64d586db53cbfb91ca67d551097de20c4574",
+          "bytes": 6206
+        },
+        {
+          "index": 60,
+          "name": "src/bt/mim/delegates/ListenEvent.ts",
+          "path": "jibo/src/bt/mim/delegates/ListenEvent.ts",
+          "sha256": "3bf7b4f612480643f394b090a21af6e28ffadc8bdf815e8a617057a58bbbb374",
+          "bytes": 544
+        },
+        {
+          "index": 61,
+          "name": "src/bt/mim/flows/NoInputException.flow",
+          "path": "jibo/src/bt/mim/flows/NoInputException.flow",
+          "sha256": "c3ba359fd353421996fca731c9bf8f2af4163645c05bc5034bcfc422aa2e2e12",
+          "bytes": 7387
+        },
+        {
+          "index": 62,
+          "name": "src/bt/mim/flows/NoMatchException.flow",
+          "path": "jibo/src/bt/mim/flows/NoMatchException.flow",
+          "sha256": "8be3e3a492a424897641034a5d0f02e25ba0a56031c62d2ca27c1156d607fab2",
+          "bytes": 9894
+        },
+        {
+          "index": 63,
+          "name": "src/bt/mim/index.ts",
+          "path": "jibo/src/bt/mim/index.ts",
+          "sha256": "a55ad6738f185393e410e9344ac1a929903874533ad0866e4931d2f2006f10a1",
+          "bytes": 134
+        },
+        {
+          "index": 64,
+          "name": "src/bt/mim/log.ts",
+          "path": "jibo/src/bt/mim/log.ts",
+          "sha256": "b7cb5ebd6f98f941fb8743145e0ce89222d203967c2e27e6fcddbf360151ad79",
+          "bytes": 77
+        },
+        {
+          "index": 65,
+          "name": "src/deprecation.ts",
+          "path": "jibo/src/deprecation.ts",
+          "sha256": "9781beaeaf256493352f16336ab8b65a3e3a9d862c92787a9f2dcb7fdad7796e",
+          "bytes": 50039
+        },
+        {
+          "index": 66,
+          "name": "src/flow/ActivityImplementation.ts",
+          "path": "jibo/src/flow/ActivityImplementation.ts",
+          "sha256": "8e8a571f9db05b5bcb54b8c57d1c336ffcbe6bfbebe92db377f773c72fea3c74",
+          "bytes": 19867
+        },
+        {
+          "index": 67,
+          "name": "src/flow/ActivityImplementationFactory.ts",
+          "path": "jibo/src/flow/ActivityImplementationFactory.ts",
+          "sha256": "215c025dd3a4061f1192579b7693534453f4ad794efc96061bd7da57625cd479",
+          "bytes": 7459
+        },
+        {
+          "index": 68,
+          "name": "src/flow/Context.ts",
+          "path": "jibo/src/flow/Context.ts",
+          "sha256": "44934f483ba84118c96fb543355694811bc636544d59e3486577ba53f0b7f5f0",
+          "bytes": 5430
+        },
+        {
+          "index": 69,
+          "name": "src/flow/Environment.ts",
+          "path": "jibo/src/flow/Environment.ts",
+          "sha256": "216068716e35a82a77164d9218787a09811ebac44c5b6c4e5311d122583d3772",
+          "bytes": 1175
+        },
+        {
+          "index": 70,
+          "name": "src/flow/FlowExecutor.ts",
+          "path": "jibo/src/flow/FlowExecutor.ts",
+          "sha256": "2a33fc2ca96aa50b77672688b31787759845f1a442daa57885a72c35df4d1b66",
+          "bytes": 26311
+        },
+        {
+          "index": 71,
+          "name": "src/flow/FlowExecutorFactory.ts",
+          "path": "jibo/src/flow/FlowExecutorFactory.ts",
+          "sha256": "4d84be3384ca103d1afb1daeefad70abb79787c33ca7ee0aebdd6dfb9c937cd7",
+          "bytes": 8897
+        },
+        {
+          "index": 72,
+          "name": "src/flow/State.ts",
+          "path": "jibo/src/flow/State.ts",
+          "sha256": "a14194c213b913c5dd1a4c801dba26ccb031581fb60893263b905387cb55eac7",
+          "bytes": 455
+        },
+        {
+          "index": 73,
+          "name": "src/flow/index.ts",
+          "path": "jibo/src/flow/index.ts",
+          "sha256": "aa44156dbc2d66e6a53b693c3e91d0c2d77faf276f4371b566ca01387107c987",
+          "bytes": 629
+        },
+        {
+          "index": 74,
+          "name": "src/flow/log.ts",
+          "path": "jibo/src/flow/log.ts",
+          "sha256": "90757c7f53ad97a05af4dbd986c61acf4aecbfabb4a101757ac7885801f2a17b",
+          "bytes": 78
+        },
+        {
+          "index": 75,
+          "name": "src/log.ts",
+          "path": "jibo/src/log.ts",
+          "sha256": "d06503f69bd45fbc8c3703191bfd6a6d046734eb64132ab17c99faa71f4b31d0",
+          "bytes": 64
+        },
+        {
+          "index": 76,
+          "name": "src/plugins/ActionPlugin.ts",
+          "path": "jibo/src/plugins/ActionPlugin.ts",
+          "sha256": "0da12834db98322b5823f57ef4796dd812edde1171b7f394c062e9d411af93dc",
+          "bytes": 952
+        },
+        {
+          "index": 77,
+          "name": "src/plugins/AnimDBPlugin.ts",
+          "path": "jibo/src/plugins/AnimDBPlugin.ts",
+          "sha256": "09382f4720d2e07963c213324c12bd1e18d7ff1b6b5d7068603c129f2c8fb2e9",
+          "bytes": 1232
+        },
+        {
+          "index": 78,
+          "name": "src/plugins/AutobotPlugin.ts",
+          "path": "jibo/src/plugins/AutobotPlugin.ts",
+          "sha256": "29e33495cb2dd07d12982c132d11b98ac2dc05b8e3398225f830cc7dde23f3e2",
+          "bytes": 1898
+        },
+        {
+          "index": 79,
+          "name": "src/plugins/DevShellPlugin.ts",
+          "path": "jibo/src/plugins/DevShellPlugin.ts",
+          "sha256": "98c1c92fb812dd31adbb27f5ddf984cd2c9ebe2c60099b0057d5bd2f482babb0",
+          "bytes": 2507
+        },
+        {
+          "index": 80,
+          "name": "src/plugins/EmbodiedPlugin.ts",
+          "path": "jibo/src/plugins/EmbodiedPlugin.ts",
+          "sha256": "b2cdd3523d0325554692a3747ef853ac3bd2a6e91d889406540f0e878c8c858d",
+          "bytes": 884
+        },
+        {
+          "index": 81,
+          "name": "src/plugins/EmotionPlugin.ts",
+          "path": "jibo/src/plugins/EmotionPlugin.ts",
+          "sha256": "799cdcbfdab0cb62a0f979e0094e9d5035fd0f3cf83b7b0a8d1a6f3010f4e88b",
+          "bytes": 713
+        },
+        {
+          "index": 82,
+          "name": "src/plugins/ExpressionPlugin.ts",
+          "path": "jibo/src/plugins/ExpressionPlugin.ts",
+          "sha256": "59b8e1692c6836b8d1f3928f435cfbc5043715104f4b8febfcf12288f4557768",
+          "bytes": 1619
+        },
+        {
+          "index": 83,
+          "name": "src/plugins/FontsPlugin.ts",
+          "path": "jibo/src/plugins/FontsPlugin.ts",
+          "sha256": "1205d789049bef9f8d611b09046bfe70b7f1b674fb87e9fcec9a3f6a6f5b3374",
+          "bytes": 1448
+        },
+        {
+          "index": 84,
+          "name": "src/plugins/InteractionMemoryPlugin.ts",
+          "path": "jibo/src/plugins/InteractionMemoryPlugin.ts",
+          "sha256": "3e7832b67e94099c3e5114dc555864b39f5fd7d105c40f96aca6df6ed9bbabef",
+          "bytes": 1092
+        },
+        {
+          "index": 85,
+          "name": "src/plugins/JetstreamPlugin.ts",
+          "path": "jibo/src/plugins/JetstreamPlugin.ts",
+          "sha256": "547b44860a21339c0470ab583c4e4ce0aec12995e6ca916a860e0bf0234d5b1a",
+          "bytes": 2529
+        },
+        {
+          "index": 86,
+          "name": "src/plugins/Lifecycle.ts",
+          "path": "jibo/src/plugins/Lifecycle.ts",
+          "sha256": "76af03d70d8a667d5970b345d573f0eb2aa600b811a2e48b43e5eba922ff593f",
+          "bytes": 3128
+        },
+        {
+          "index": 87,
+          "name": "src/plugins/LocationPlugin.ts",
+          "path": "jibo/src/plugins/LocationPlugin.ts",
+          "sha256": "12af13fbc394dc789bef31f96462958baf61c5af93c54ba0bb97e6e3465382bb",
+          "bytes": 569
+        },
+        {
+          "index": 88,
+          "name": "src/plugins/MediaPlugin.ts",
+          "path": "jibo/src/plugins/MediaPlugin.ts",
+          "sha256": "9490a5b9c1311da53c236716271bebf95535a04c36502c3a5411b246750eb727",
+          "bytes": 826
+        },
+        {
+          "index": 89,
+          "name": "src/plugins/RegistryPlugin.ts",
+          "path": "jibo/src/plugins/RegistryPlugin.ts",
+          "sha256": "45604ad956656312d09936034d6c4e574bd17597081fc3f0619362550461dd00",
+          "bytes": 2488
+        },
+        {
+          "index": 90,
+          "name": "src/plugins/RenderingPlugin.ts",
+          "path": "jibo/src/plugins/RenderingPlugin.ts",
+          "sha256": "fb8f24447ceefc8b57e47e7cd3907500e59efe0affe7ec2cdba0b9a0038b6fda",
+          "bytes": 1021
+        },
+        {
+          "index": 91,
+          "name": "src/plugins/ServiceRecordsPlugin.ts",
+          "path": "jibo/src/plugins/ServiceRecordsPlugin.ts",
+          "sha256": "7bea652d82b25520dd9b201c15b0e1ccee4a4afdab0319b88db05e657c00a4e4",
+          "bytes": 2815
+        },
+        {
+          "index": 92,
+          "name": "src/plugins/ServicesPlugin.ts",
+          "path": "jibo/src/plugins/ServicesPlugin.ts",
+          "sha256": "663dc85e72bd934f92ce854b9a1e99b7ddee988f567a812b63640bd4db63e53c",
+          "bytes": 3757
+        },
+        {
+          "index": 93,
+          "name": "src/plugins/VersionsPlugin.ts",
+          "path": "jibo/src/plugins/VersionsPlugin.ts",
+          "sha256": "2a81ebcd4a5cecc56a41905499b20c07b5ee3002297f127f77c47a7d77824f14",
+          "bytes": 4818
+        },
+        {
+          "index": 94,
+          "name": "src/plugins/VolumePlugin.ts",
+          "path": "jibo/src/plugins/VolumePlugin.ts",
+          "sha256": "8f7e05b3975962e25608f48f7e837f0ca89097d2013ee94e2aacbea155ff4693",
+          "bytes": 7030
+        },
+        {
+          "index": 95,
+          "name": "src/plugins/context/ContextPlugin.ts",
+          "path": "jibo/src/plugins/context/ContextPlugin.ts",
+          "sha256": "f723446678cf053af899713f2f399df47e9c425c370e5677adb447616ca1f328",
+          "bytes": 744
+        },
+        {
+          "index": 96,
+          "name": "src/plugins/context/ContextProvider.ts",
+          "path": "jibo/src/plugins/context/ContextProvider.ts",
+          "sha256": "adad71f3b3119c72da71417bb2014e9194d59e2194c19ce1dbc898ee6efa9f87",
+          "bytes": 9200
+        },
+        {
+          "index": 97,
+          "name": "src/plugins/context/api.ts",
+          "path": "jibo/src/plugins/context/api.ts",
+          "sha256": "a03321feb3715baccab94c5cd6f525ebfa29a6a6c626542c4279129377b54391",
+          "bytes": 6590
+        },
+        {
+          "index": 98,
+          "name": "src/plugins/index.ts",
+          "path": "jibo/src/plugins/index.ts",
+          "sha256": "f128911791c3df1b99e4a83b09c538c3911c7960d3e008fe2652fa83b7db1b9b",
+          "bytes": 1428
+        },
+        {
+          "index": 99,
+          "name": "src/rendering/FaceRenderer.ts",
+          "path": "jibo/src/rendering/FaceRenderer.ts",
+          "sha256": "79ec31069b971a30740179d10d7efd406edd380c603962e9ada4e88e2959498f",
+          "bytes": 12203
+        },
+        {
+          "index": 100,
+          "name": "src/rendering/animation/KeysAnimation.ts",
+          "path": "jibo/src/rendering/animation/KeysAnimation.ts",
+          "sha256": "01c7e82f3bc7f64cc4273f3d5a4266b062e30b6ef2c8ec31853345b0894cd0ce",
+          "bytes": 17794
+        },
+        {
+          "index": 101,
+          "name": "src/rendering/animation/KeysData.ts",
+          "path": "jibo/src/rendering/animation/KeysData.ts",
+          "sha256": "7645419491233fefded0663a2901a6775f3a293e84b616f6cf12900cef337167",
+          "bytes": 8121
+        },
+        {
+          "index": 102,
+          "name": "src/rendering/animation/KeysLoader.ts",
+          "path": "jibo/src/rendering/animation/KeysLoader.ts",
+          "sha256": "0446ce304f8beb8a1d2bdd63452d0523d9a812ea317fda4b2df53b8c72ad9243",
+          "bytes": 18383
+        },
+        {
+          "index": 103,
+          "name": "src/rendering/animation/Shapes.ts",
+          "path": "jibo/src/rendering/animation/Shapes.ts",
+          "sha256": "2feac3209e2b9508cbd44dcca99c0d3e9b2d138ea547978ece225b406b989580",
+          "bytes": 584
+        },
+        {
+          "index": 104,
+          "name": "src/rendering/animation/Spritesheet.ts",
+          "path": "jibo/src/rendering/animation/Spritesheet.ts",
+          "sha256": "622716c47c586fc9fcbf78e44a187b684b48ced174e030e901152f6aa24aea0b",
+          "bytes": 2391
+        },
+        {
+          "index": 105,
+          "name": "src/rendering/animation/Timeline.ts",
+          "path": "jibo/src/rendering/animation/Timeline.ts",
+          "sha256": "be44e0a47f3a8576e2568bcb433a745a0f5a2480cebfd70f890a8037e7a462e6",
+          "bytes": 3567
+        },
+        {
+          "index": 106,
+          "name": "src/rendering/animation/index.ts",
+          "path": "jibo/src/rendering/animation/index.ts",
+          "sha256": "f395fa7b71d673cf8115dc6f73e8003d1a1eedd6766d7f5400e1ab5cec41fdf6",
+          "bytes": 398
+        },
+        {
+          "index": 107,
+          "name": "src/rendering/animation/log.ts",
+          "path": "jibo/src/rendering/animation/log.ts",
+          "sha256": "9d4de1e5b75fcf5f0f6b9a143c9787f0a34d41370dd0a0f99cfcdddcf304b361",
+          "bytes": 83
+        },
+        {
+          "index": 108,
+          "name": "src/rendering/eye/AbstractEye.ts",
+          "path": "jibo/src/rendering/eye/AbstractEye.ts",
+          "sha256": "a00905bf0157cdea4fff52ebdd567733b5a73bd479a048270f26a41e5054ba88",
+          "bytes": 1548
+        },
+        {
+          "index": 109,
+          "name": "src/rendering/eye/AbstractLayer.ts",
+          "path": "jibo/src/rendering/eye/AbstractLayer.ts",
+          "sha256": "147fd74f8fc7095e484ee48af485062867a230cdb9848f576acc67516225cde1",
+          "bytes": 8329
+        },
+        {
+          "index": 110,
+          "name": "src/rendering/eye/Background.ts",
+          "path": "jibo/src/rendering/eye/Background.ts",
+          "sha256": "11658147bc5459e628cffd96414b1573bf3d15e4ab91db572e3a7855f1f9af92",
+          "bytes": 2207
+        },
+        {
+          "index": 111,
+          "name": "src/rendering/eye/DOFValues.ts",
+          "path": "jibo/src/rendering/eye/DOFValues.ts",
+          "sha256": "2146dfd41ecde744c0b181854443aa6a40399f73f15bd6fa1ef43eff6ca1ab06",
+          "bytes": 7375
+        },
+        {
+          "index": 112,
+          "name": "src/rendering/eye/Eye.ts",
+          "path": "jibo/src/rendering/eye/Eye.ts",
+          "sha256": "839cb5a3bec0615262b3f833a0f46432e9906092d3562882876a5d97cd8505d1",
+          "bytes": 2853
+        },
+        {
+          "index": 113,
+          "name": "src/rendering/eye/EyeContainer.ts",
+          "path": "jibo/src/rendering/eye/EyeContainer.ts",
+          "sha256": "1888fe32c81934a4a072375d81ecfdbf13f2e6e135857d8fc5781c08d9e71c65",
+          "bytes": 15190
+        },
+        {
+          "index": 114,
+          "name": "src/rendering/eye/EyeMesh.ts",
+          "path": "jibo/src/rendering/eye/EyeMesh.ts",
+          "sha256": "08dfdc719367d3946ea008c3ccbdb0b92fdc7d117c524b60a19871d695e4219f",
+          "bytes": 1558
+        },
+        {
+          "index": 115,
+          "name": "src/rendering/eye/EyeOverlay.ts",
+          "path": "jibo/src/rendering/eye/EyeOverlay.ts",
+          "sha256": "03097ab3f765133b37b09dcdc756623ae6b98d25ca2645eb39106fcb826b6143",
+          "bytes": 3094
+        },
+        {
+          "index": 116,
+          "name": "src/rendering/eye/filters/glow/GlowFilter.ts",
+          "path": "jibo/src/rendering/eye/filters/glow/GlowFilter.ts",
+          "sha256": "9dfb9c9b1881d0db2395dc8356ddcad6a8660ea3a5aa88c53865b2ac4ac8b9f6",
+          "bytes": 6910
+        },
+        {
+          "index": 117,
+          "name": "src/rendering/eye/filters/index.ts",
+          "path": "jibo/src/rendering/eye/filters/index.ts",
+          "sha256": "0b84eb0ec6a639cd9888acd4ba951ea2edccd177d98367831e88dd54fa1e02c7",
+          "bytes": 143
+        },
+        {
+          "index": 118,
+          "name": "src/rendering/eye/filters/light/LightFilter.ts",
+          "path": "jibo/src/rendering/eye/filters/light/LightFilter.ts",
+          "sha256": "2e427dba46f50838b2cd79c56e80db31a74144d2532eeb31e3795547414e8b0d",
+          "bytes": 7422
+        },
+        {
+          "index": 119,
+          "name": "src/rendering/eye/index.ts",
+          "path": "jibo/src/rendering/eye/index.ts",
+          "sha256": "f4937199ab1fbb26b9ca20d9b54d1dd1957ca47db078089b2311e13122b2caab",
+          "bytes": 438
+        },
+        {
+          "index": 120,
+          "name": "src/rendering/eye/log.ts",
+          "path": "jibo/src/rendering/eye/log.ts",
+          "sha256": "06534db4f2ae97431d3f779ef12aa15ccd79ef1481ef8287e551301a403c11d5",
+          "bytes": 482
+        },
+        {
+          "index": 121,
+          "name": "src/rendering/gui/Component.ts",
+          "path": "jibo/src/rendering/gui/Component.ts",
+          "sha256": "fa255caffad751911ab6c783588dfc18dc0a670bbd8e415d832210f42328b037",
+          "bytes": 21691
+        },
+        {
+          "index": 122,
+          "name": "src/rendering/gui/ComponentCreator.ts",
+          "path": "jibo/src/rendering/gui/ComponentCreator.ts",
+          "sha256": "30251ac67bc44b74263443fe3dd7694f72fc3483d8f34fbd4cec72a633ba3c61",
+          "bytes": 12061
+        },
+        {
+          "index": 123,
+          "name": "src/rendering/gui/ComponentGroup.ts",
+          "path": "jibo/src/rendering/gui/ComponentGroup.ts",
+          "sha256": "5f522cb3cc1801c7191628beafdec1090605780fd0a41700286a00d154f205b0",
+          "bytes": 29111
+        },
+        {
+          "index": 124,
+          "name": "src/rendering/gui/DisplayUtils.ts",
+          "path": "jibo/src/rendering/gui/DisplayUtils.ts",
+          "sha256": "e0112129a5700e2e3e883eb90249f6effda0ef43e8f55b5778bbd775743ebfb5",
+          "bytes": 4038
+        },
+        {
+          "index": 125,
+          "name": "src/rendering/gui/TouchManager.ts",
+          "path": "jibo/src/rendering/gui/TouchManager.ts",
+          "sha256": "80a2c6fa492efb8d7ebc428992525268a59de19b51dd6811cab039d9416cb0b7",
+          "bytes": 27180
+        },
+        {
+          "index": 126,
+          "name": "src/rendering/gui/ViewGlobalEvents.ts",
+          "path": "jibo/src/rendering/gui/ViewGlobalEvents.ts",
+          "sha256": "81322df66177cbf5a9b66447e8c80c4c52dca3855acf70ee7fb60284289af454",
+          "bytes": 4225
+        },
+        {
+          "index": 127,
+          "name": "src/rendering/gui/ViewManager.ts",
+          "path": "jibo/src/rendering/gui/ViewManager.ts",
+          "sha256": "1db1eeed024d50f9b24c93812635e5d1945d7e318ff51e347084000369daee0d",
+          "bytes": 129446
+        },
+        {
+          "index": 128,
+          "name": "src/rendering/gui/ViewProcess.ts",
+          "path": "jibo/src/rendering/gui/ViewProcess.ts",
+          "sha256": "a60fe9813663e97dae614a3565428aa91a771ab2ad3173456720aec028181e9d",
+          "bytes": 14169
+        },
+        {
+          "index": 129,
+          "name": "src/rendering/gui/ViewState.ts",
+          "path": "jibo/src/rendering/gui/ViewState.ts",
+          "sha256": "337b11f8f6a0a1acd2b50b0990f2d8c1b8eb0a67435bfc52ff1c5ff0c9c54107",
+          "bytes": 3532
+        },
+        {
+          "index": 130,
+          "name": "src/rendering/gui/actions/ActionData.ts",
+          "path": "jibo/src/rendering/gui/actions/ActionData.ts",
+          "sha256": "ea10f13903555fa1a7a24b52cc89f26dd863317101d44a1d1df6d74b25cffb36",
+          "bytes": 13495
+        },
+        {
+          "index": 131,
+          "name": "src/rendering/gui/actions/index.ts",
+          "path": "jibo/src/rendering/gui/actions/index.ts",
+          "sha256": "1cd4385027f5b6da1b7d2f823c1d05d906de4940eb0818bfb1d0cc24177de339",
+          "bytes": 74
+        },
+        {
+          "index": 132,
+          "name": "src/rendering/gui/components/Button.ts",
+          "path": "jibo/src/rendering/gui/components/Button.ts",
+          "sha256": "91f51e8b7d8ae23eede4f7851fb774f6881d7bb5a47f726807f5ccc73e78aaaf",
+          "bytes": 10099
+        },
+        {
+          "index": 133,
+          "name": "src/rendering/gui/components/Clip.ts",
+          "path": "jibo/src/rendering/gui/components/Clip.ts",
+          "sha256": "ad41a1da17081ecd621ae1b3e3a0fe998fcb5774c216dc840b2e72423c4a3840",
+          "bytes": 5763
+        },
+        {
+          "index": 134,
+          "name": "src/rendering/gui/components/ContactButton.ts",
+          "path": "jibo/src/rendering/gui/components/ContactButton.ts",
+          "sha256": "e9f4007267d42635eb91126ad3ae2997a54b9b54df92b121e2bdbdc2218059dd",
+          "bytes": 8778
+        },
+        {
+          "index": 135,
+          "name": "src/rendering/gui/components/ContentButton.ts",
+          "path": "jibo/src/rendering/gui/components/ContentButton.ts",
+          "sha256": "1b0c971761b6a9548b848f7c256fe1135a50cd35b982d05960c5e19907341ed9",
+          "bytes": 6433
+        },
+        {
+          "index": 136,
+          "name": "src/rendering/gui/components/Element.ts",
+          "path": "jibo/src/rendering/gui/components/Element.ts",
+          "sha256": "c2f6f1803f31de9a75cc050fd412943abc86b2b1a3e33f3bc058a152d5c6d4f3",
+          "bytes": 18329
+        },
+        {
+          "index": 137,
+          "name": "src/rendering/gui/components/ElementGroup.ts",
+          "path": "jibo/src/rendering/gui/components/ElementGroup.ts",
+          "sha256": "7066a9c087b7cfbe8a2f82d695a614ad83ce16c3069d9ae8ec00615f9aadf8b1",
+          "bytes": 12267
+        },
+        {
+          "index": 138,
+          "name": "src/rendering/gui/components/Label.ts",
+          "path": "jibo/src/rendering/gui/components/Label.ts",
+          "sha256": "7783a5289720c77b8ab8960e31ed9745fc97941d5ba5b551dc91312af44fa3a2",
+          "bytes": 16806
+        },
+        {
+          "index": 139,
+          "name": "src/rendering/gui/components/List.ts",
+          "path": "jibo/src/rendering/gui/components/List.ts",
+          "sha256": "7a0b5e74340ce1399c92ada1e77b2891d91aa84f66673e8a87245f65a5c727a5",
+          "bytes": 94578
+        },
+        {
+          "index": 140,
+          "name": "src/rendering/gui/components/ListProgress.ts",
+          "path": "jibo/src/rendering/gui/components/ListProgress.ts",
+          "sha256": "3f85dd6a3deb693add0a6eb52f34ed457f43052ba956165414bede72b1079280",
+          "bytes": 12147
+        },
+        {
+          "index": 141,
+          "name": "src/rendering/gui/components/MenuButton.ts",
+          "path": "jibo/src/rendering/gui/components/MenuButton.ts",
+          "sha256": "a2c488c90239de84427fdacdd02c738919a03aef3d041070b75e275f79601fcd",
+          "bytes": 16668
+        },
+        {
+          "index": 142,
+          "name": "src/rendering/gui/components/StandardButton.ts",
+          "path": "jibo/src/rendering/gui/components/StandardButton.ts",
+          "sha256": "e5fd568c2a02b3097cc703b2838e85823a0beb49781133b0e6494ac6487680c4",
+          "bytes": 21233
+        },
+        {
+          "index": 143,
+          "name": "src/rendering/gui/components/index.ts",
+          "path": "jibo/src/rendering/gui/components/index.ts",
+          "sha256": "99e05dfe27620a3815e03076ab75af9dbae8898910420bd7b002222865630089",
+          "bytes": 596
+        },
+        {
+          "index": 144,
+          "name": "src/rendering/gui/components/log.ts",
+          "path": "jibo/src/rendering/gui/components/log.ts",
+          "sha256": "dfb03df8e21c29ae8e30daff19cc0055c190a673240400e19c2d0eef304ee7a9",
+          "bytes": 101
+        },
+        {
+          "index": 145,
+          "name": "src/rendering/gui/components/subcomponents/ListMember.ts",
+          "path": "jibo/src/rendering/gui/components/subcomponents/ListMember.ts",
+          "sha256": "072c850385bbefbf721d69cb8597cc70d9357551f58584756223db81e7ce2890",
+          "bytes": 1267
+        },
+        {
+          "index": 146,
+          "name": "src/rendering/gui/components/subcomponents/Subcomponent.ts",
+          "path": "jibo/src/rendering/gui/components/subcomponents/Subcomponent.ts",
+          "sha256": "98d5f00bd4b31d6bc4e588cecbd4dbe5b4782c37eb5486c80fff12c55930fef0",
+          "bytes": 1618
+        },
+        {
+          "index": 147,
+          "name": "src/rendering/gui/components/subcomponents/TouchInteractive.ts",
+          "path": "jibo/src/rendering/gui/components/subcomponents/TouchInteractive.ts",
+          "sha256": "39d3749bfd75697df2c57c0090d989e26c9396ae0ae62efc416948a36e47dde3",
+          "bytes": 5609
+        },
+        {
+          "index": 148,
+          "name": "src/rendering/gui/index.ts",
+          "path": "jibo/src/rendering/gui/index.ts",
+          "sha256": "9ad1cbbccf9516a8bf1eab341bc9fc76bb13434dd61496a005510a9c27e8ead3",
+          "bytes": 696
+        },
+        {
+          "index": 149,
+          "name": "src/rendering/gui/log.ts",
+          "path": "jibo/src/rendering/gui/log.ts",
+          "sha256": "dc0787e882c9b1daab952e19d582286cb5e561ea67da767fdc0355429960fbc3",
+          "bytes": 80
+        },
+        {
+          "index": 150,
+          "name": "src/rendering/gui/views/ContactsView.ts",
+          "path": "jibo/src/rendering/gui/views/ContactsView.ts",
+          "sha256": "ef6c91db30d87b745c9e7e0d50ce860cf7cb3a12254565d937d0446937d5250d",
+          "bytes": 8420
+        },
+        {
+          "index": 151,
+          "name": "src/rendering/gui/views/EyeView.ts",
+          "path": "jibo/src/rendering/gui/views/EyeView.ts",
+          "sha256": "835c7fb74176175354c2391bbe1244739e1e99120485a48b4ee36a133d5256fb",
+          "bytes": 3139
+        },
+        {
+          "index": 152,
+          "name": "src/rendering/gui/views/ImageView.ts",
+          "path": "jibo/src/rendering/gui/views/ImageView.ts",
+          "sha256": "592b96aa2ea1e61ea3d0985478143f34dad1f013a282a3bf84a55d959914e8e8",
+          "bytes": 6568
+        },
+        {
+          "index": 153,
+          "name": "src/rendering/gui/views/MenuView.ts",
+          "path": "jibo/src/rendering/gui/views/MenuView.ts",
+          "sha256": "22619c6e7bedeacfdfecf74770ce2b1e651ce38f533ece94129f80c531a8d144",
+          "bytes": 27348
+        },
+        {
+          "index": 154,
+          "name": "src/rendering/gui/views/PauseOverlay.ts",
+          "path": "jibo/src/rendering/gui/views/PauseOverlay.ts",
+          "sha256": "90cda70bb1ab703bb82f06dcfbfff9e5d900a2b03d7671f9d3a70f970b331d03",
+          "bytes": 5969
+        },
+        {
+          "index": 155,
+          "name": "src/rendering/gui/views/TextView.ts",
+          "path": "jibo/src/rendering/gui/views/TextView.ts",
+          "sha256": "843471411a84add705ef5475e33edb2fa1ee69cf0973e0bcfb81760f8df1e503",
+          "bytes": 7478
+        },
+        {
+          "index": 156,
+          "name": "src/rendering/gui/views/View.ts",
+          "path": "jibo/src/rendering/gui/views/View.ts",
+          "sha256": "6f6d5e74200530461557a90274c80307762fac717831317dc0a11d0a51d3916b",
+          "bytes": 82167
+        },
+        {
+          "index": 157,
+          "name": "src/rendering/gui/views/index.ts",
+          "path": "jibo/src/rendering/gui/views/index.ts",
+          "sha256": "8934a56513485d31f6d13a05b3bcd93572524c502f1b2f94c9e790c16e711f4a",
+          "bytes": 358
+        },
+        {
+          "index": 158,
+          "name": "src/rendering/gui/views/log.ts",
+          "path": "jibo/src/rendering/gui/views/log.ts",
+          "sha256": "d021d10053d2fa81fbf64ba8d86b8173fcf71793270b074c2be61e2197912b1e",
+          "bytes": 96
+        },
+        {
+          "index": 159,
+          "name": "src/rendering/index.ts",
+          "path": "jibo/src/rendering/index.ts",
+          "sha256": "d84c24ce178af509dab6c191c10255919e7054b47e8476161cc986b0000df232",
+          "bytes": 685
+        },
+        {
+          "index": 160,
+          "name": "src/rendering/input/GestureManager.ts",
+          "path": "jibo/src/rendering/input/GestureManager.ts",
+          "sha256": "54de73199e2c9cdf55689cefababb8f7414d5a69bb174b3dad585a2aa3f4f55b",
+          "bytes": 10226
+        },
+        {
+          "index": 161,
+          "name": "src/rendering/input/index.ts",
+          "path": "jibo/src/rendering/input/index.ts",
+          "sha256": "bd7322ae475a7c657227ebbd03dc43655bd2b5f2a3a300e04d54579ac0eb4892",
+          "bytes": 87
+        },
+        {
+          "index": 162,
+          "name": "src/rendering/log.ts",
+          "path": "jibo/src/rendering/log.ts",
+          "sha256": "62d3e1c5df174a44333d8fcf744d6181eefe6d690c00607849d35593e9b028a5",
+          "bytes": 83
+        },
+        {
+          "index": 163,
+          "name": "src/rendering/tasks/ColorAlphaTask.ts",
+          "path": "jibo/src/rendering/tasks/ColorAlphaTask.ts",
+          "sha256": "49ecb8380260c5e4366c288c99d9b3736cbef3e5f998e8aad57179d5b2f59a65",
+          "bytes": 4203
+        },
+        {
+          "index": 164,
+          "name": "src/rendering/tasks/CompressedImageTask.ts",
+          "path": "jibo/src/rendering/tasks/CompressedImageTask.ts",
+          "sha256": "e4c5c154ccb28ac4a0686ca46acf155f868fffe36c386005139709ca8e630554",
+          "bytes": 4133
+        },
+        {
+          "index": 165,
+          "name": "src/rendering/tasks/KeysDataTask.ts",
+          "path": "jibo/src/rendering/tasks/KeysDataTask.ts",
+          "sha256": "9b93638d15a0ee5a4c9bc3ae1c7dde21ca409d4bfeead4fd62e1fe2c0c9840ad",
+          "bytes": 1151
+        },
+        {
+          "index": 166,
+          "name": "src/rendering/tasks/KeysTask.ts",
+          "path": "jibo/src/rendering/tasks/KeysTask.ts",
+          "sha256": "9e03a81ca0eb3fcc0dd0ef828095b5e6e9e30632b608e1d26fd168251c6b42b6",
+          "bytes": 9305
+        },
+        {
+          "index": 167,
+          "name": "src/rendering/tasks/ShapesTask.ts",
+          "path": "jibo/src/rendering/tasks/ShapesTask.ts",
+          "sha256": "d85dc9184acc9d79c0d4776642d585357f8b38428457eae087c8467850382d32",
+          "bytes": 1883
+        },
+        {
+          "index": 168,
+          "name": "src/rendering/tasks/SpritesheetTask.ts",
+          "path": "jibo/src/rendering/tasks/SpritesheetTask.ts",
+          "sha256": "d2329b52ece69ea4552c0640109d425425dfa361df284092573f1bd726011d73",
+          "bytes": 3467
+        },
+        {
+          "index": 169,
+          "name": "src/rendering/tasks/TextureTask.ts",
+          "path": "jibo/src/rendering/tasks/TextureTask.ts",
+          "sha256": "8e73fea1e410ed658568a85f1ee4e6e62db24abdb2b89bcab2aa8d80ce825a52",
+          "bytes": 3965
+        },
+        {
+          "index": 170,
+          "name": "src/rendering/tasks/TimelineTask.ts",
+          "path": "jibo/src/rendering/tasks/TimelineTask.ts",
+          "sha256": "103adde0947b06a8ee9b454ac25fab74891696f284ea8df2b3d0570dd12dd33b",
+          "bytes": 7424
+        },
+        {
+          "index": 171,
+          "name": "src/rendering/tasks/index.ts",
+          "path": "jibo/src/rendering/tasks/index.ts",
+          "sha256": "8ff9d335aa07b791490f04077a056e963f7f7be945fd7f2d4000afe6ebe11185",
+          "bytes": 522
+        },
+        {
+          "index": 172,
+          "name": "src/rendering/tasks/log.ts",
+          "path": "jibo/src/rendering/tasks/log.ts",
+          "sha256": "19943cd89ec125f34d416f5f96d63799df41bcc94e7229a344801c29f8030d05",
+          "bytes": 79
+        },
+        {
+          "index": 173,
+          "name": "src/rendering/tween/Tween.ts",
+          "path": "jibo/src/rendering/tween/Tween.ts",
+          "sha256": "5954e8b04928f811674b6c5befd4d4c3340720ec928f822f924ad6a7e8c51a75",
+          "bytes": 11476
+        },
+        {
+          "index": 174,
+          "name": "src/rendering/tween/TweenManager.ts",
+          "path": "jibo/src/rendering/tween/TweenManager.ts",
+          "sha256": "aac762bb6739584b22fcc75c05a0cbb5156a8da5c66676e723d943299e2f9e91",
+          "bytes": 10115
+        },
+        {
+          "index": 175,
+          "name": "src/rendering/tween/index.ts",
+          "path": "jibo/src/rendering/tween/index.ts",
+          "sha256": "33be81d2667af1a6ae835e92958a5ce009a0e353a56c56e047830c70fbc2c391",
+          "bytes": 120
+        },
+        {
+          "index": 176,
+          "name": "src/rendering/tween/log.ts",
+          "path": "jibo/src/rendering/tween/log.ts",
+          "sha256": "dc0787e882c9b1daab952e19d582286cb5e561ea67da767fdc0355429960fbc3",
+          "bytes": 80
+        },
+        {
+          "index": 177,
+          "name": "src/services/SessionManager.js",
+          "path": "jibo/src/services/SessionManager.js",
+          "sha256": "cfa0dc2d506ee4c68b0b525357d46c739fbcbe3be51be92c95ac964ce64f80af",
+          "bytes": 172
+        },
+        {
+          "index": 178,
+          "name": "src/services/events/GlobalEvent.ts",
+          "path": "jibo/src/services/events/GlobalEvent.ts",
+          "sha256": "186127c3b8ab68e1e4f5b3bbe68408acc8b15432f89c6e97e22864502dff0da5",
+          "bytes": 5861
+        },
+        {
+          "index": 179,
+          "name": "src/services/events/GlobalEvents.ts",
+          "path": "jibo/src/services/events/GlobalEvents.ts",
+          "sha256": "5714afaef9003cfe5c83670aeb568ea76a7b395808100fc6a3d9444bf4a26d47",
+          "bytes": 13554
+        },
+        {
+          "index": 180,
+          "name": "src/services/events/SharedGlobalEvents.ts",
+          "path": "jibo/src/services/events/SharedGlobalEvents.ts",
+          "sha256": "c4c8e5c78079bf89496a969ad10c157ad710e8a06b4994bdca02686e07120d44",
+          "bytes": 3761
+        },
+        {
+          "index": 181,
+          "name": "src/services/events/index.ts",
+          "path": "jibo/src/services/events/index.ts",
+          "sha256": "b651e69cf497ff530a36dd133f110e3662795269b3bb31ce52be8b0bcba3fba0",
+          "bytes": 818
+        },
+        {
+          "index": 182,
+          "name": "src/services/events/log.ts",
+          "path": "jibo/src/services/events/log.ts",
+          "sha256": "05220580220d57da649cd13dd21a7866a36531f52afda9c01e27ff456799a8ab",
+          "bytes": 83
+        },
+        {
+          "index": 183,
+          "name": "src/services/index.ts",
+          "path": "jibo/src/services/index.ts",
+          "sha256": "af9b248c4fbfe709dbce3e88fdcce449b2b915363dd6f4e4eb394e815c28c29b",
+          "bytes": 424
+        },
+        {
+          "index": 184,
+          "name": "src/services/media/Media.ts",
+          "path": "jibo/src/services/media/Media.ts",
+          "sha256": "a7c027695d45592283f8fc2bc85a2d99c8cdee60158e59a770fdf10abc4ac521",
+          "bytes": 23683
+        },
+        {
+          "index": 185,
+          "name": "src/services/media/MediaModel.ts",
+          "path": "jibo/src/services/media/MediaModel.ts",
+          "sha256": "d02940217704d95af46c0e1840df54b6f8663468c17eacc459a3888bc6746fc5",
+          "bytes": 11891
+        },
+        {
+          "index": 186,
+          "name": "src/services/media/MediaModelEvents.ts",
+          "path": "jibo/src/services/media/MediaModelEvents.ts",
+          "sha256": "11b0dddf3dc51cf4a8d5d0c6ecf1e2e062350ff30b1d5b9ab760e26eb66afeeb",
+          "bytes": 523
+        },
+        {
+          "index": 187,
+          "name": "src/services/media/MediaNode.ts",
+          "path": "jibo/src/services/media/MediaNode.ts",
+          "sha256": "fdce21afdb484d46ae917361effb0b37e09a920adf065a1a14f2656bc3dc51ce",
+          "bytes": 1723
+        },
+        {
+          "index": 188,
+          "name": "src/services/media/log.ts",
+          "path": "jibo/src/services/media/log.ts",
+          "sha256": "05fbdda2e3f7b765180da6f9ee3bf879342c877430d1aa26ef7d2adf6b7393ce",
+          "bytes": 82
+        },
+        {
+          "index": 189,
+          "name": "src/services/remote/Messages.ts",
+          "path": "jibo/src/services/remote/Messages.ts",
+          "sha256": "3941376271d9a87310d35e225e37e66245577e3c3dccf9431426146da640bd9f",
+          "bytes": 1444
+        },
+        {
+          "index": 190,
+          "name": "src/services/remote/RemoteService.ts",
+          "path": "jibo/src/services/remote/RemoteService.ts",
+          "sha256": "d7ad21cad4560e1b7ba10c8c0b8414b9d47e045252c4e9fbf9fdfc5f3c684fe2",
+          "bytes": 11137
+        },
+        {
+          "index": 191,
+          "name": "src/sound/ChainBuilder.ts",
+          "path": "jibo/src/sound/ChainBuilder.ts",
+          "sha256": "facb7bf7dd65fa6e8994b3877d28eed00ccef46df9944453cb15cd1043ae747a",
+          "bytes": 5188
+        },
+        {
+          "index": 192,
+          "name": "src/sound/Sound.ts",
+          "path": "jibo/src/sound/Sound.ts",
+          "sha256": "665e11ab7e4c1cf49ca09bd5ef75c6289eeb09c64d1237fff4aa63ce76636f1a",
+          "bytes": 17638
+        },
+        {
+          "index": 193,
+          "name": "src/sound/SoundContext.ts",
+          "path": "jibo/src/sound/SoundContext.ts",
+          "sha256": "65c6a20b13713ee3cd4990484f8cc4e47fa3baafd94c9f48c28064d3fd3ad80a",
+          "bytes": 3012
+        },
+        {
+          "index": 194,
+          "name": "src/sound/SoundInstance.ts",
+          "path": "jibo/src/sound/SoundInstance.ts",
+          "sha256": "988b88bde5428b6637715f8598669ad26b3356523d898531df0f811c233b77dc",
+          "bytes": 4990
+        },
+        {
+          "index": 195,
+          "name": "src/sound/SoundPlugin.ts",
+          "path": "jibo/src/sound/SoundPlugin.ts",
+          "sha256": "a73a5dccd9aae48b97bac8f412acd83698108e196419fe03db46cd9a48d3daf6",
+          "bytes": 10161
+        },
+        {
+          "index": 196,
+          "name": "src/sound/SoundUtils.ts",
+          "path": "jibo/src/sound/SoundUtils.ts",
+          "sha256": "5abdc00cf59bdb90f0999012331150f162572b3fabddebe3586b3a2cbfaebc8d",
+          "bytes": 3886
+        },
+        {
+          "index": 197,
+          "name": "src/sound/index.ts",
+          "path": "jibo/src/sound/index.ts",
+          "sha256": "9654cdc82b40f5cb1b4fa2897cad394dc0f471f7890aae393136838b7de25454",
+          "bytes": 464
+        },
+        {
+          "index": 198,
+          "name": "src/sound/log.ts",
+          "path": "jibo/src/sound/log.ts",
+          "sha256": "289de4b12d5c1e8ccf5ec9f70a7a52c56821cafd6d5fd8777119935901b29198",
+          "bytes": 79
+        },
+        {
+          "index": 199,
+          "name": "src/sound/tasks/SoundTask.ts",
+          "path": "jibo/src/sound/tasks/SoundTask.ts",
+          "sha256": "9c406c981835a85bc917b88eb9280b33caa0e94fc01bac2a41ae18b352a3ebee",
+          "bytes": 4466
+        },
+        {
+          "index": 200,
+          "name": "src/sound/tasks/index.ts",
+          "path": "jibo/src/sound/tasks/index.ts",
+          "sha256": "18f02b0951f27da46e44ff3ae47115e8c71a76dac5587104e1cfefb3ff1d158a",
+          "bytes": 71
+        },
+        {
+          "index": 201,
+          "name": "src/utils/DelayedCall.ts",
+          "path": "jibo/src/utils/DelayedCall.ts",
+          "sha256": "1c837ed2740e2df17a3d90a62857a927de002c08bdb8564f37cbc39b62157cf5",
+          "bytes": 6206
+        },
+        {
+          "index": 202,
+          "name": "src/utils/Timer.ts",
+          "path": "jibo/src/utils/Timer.ts",
+          "sha256": "d0075e70aea902ec657e5ee0e50c46639053ae6ef378d89dfba8d9c3b7551591",
+          "bytes": 6054
+        },
+        {
+          "index": 203,
+          "name": "src/utils/WipeUtil.ts",
+          "path": "jibo/src/utils/WipeUtil.ts",
+          "sha256": "df53f2a173b19f64377bf0b91dfe501ded5d7ad6a53c02ec488ed89e63aa94df",
+          "bytes": 5206
+        },
+        {
+          "index": 204,
+          "name": "src/utils/decorators.ts",
+          "path": "jibo/src/utils/decorators.ts",
+          "sha256": "f6cf37ceca9bc945434c2abbbfb6a83cc41d97298f646f75cdcec131c41b1df2",
+          "bytes": 6407
+        },
+        {
+          "index": 205,
+          "name": "src/utils/electron.ts",
+          "path": "jibo/src/utils/electron.ts",
+          "sha256": "e03940a9ab0c948649cd5ebd7da113ed45afd8ceae15eb86e20bdd89f9c6e1ec",
+          "bytes": 52
+        },
+        {
+          "index": 206,
+          "name": "src/utils/index.ts",
+          "path": "jibo/src/utils/index.ts",
+          "sha256": "13a84aa6f8c9ba2bdb575fc93d24073de7c1aa74b20849e7432c2bbc19aed85e",
+          "bytes": 703
+        },
+        {
+          "index": 207,
+          "name": "src/utils/location/HomeLocation.ts",
+          "path": "jibo/src/utils/location/HomeLocation.ts",
+          "sha256": "5a221eecba4eb433969d6c838eacef12f4da5461ded3ab4e4f5e8a133bfb3cc6",
+          "bytes": 4562
+        },
+        {
+          "index": 208,
+          "name": "src/utils/log.ts",
+          "path": "jibo/src/utils/log.ts",
+          "sha256": "ca94239edf2309a2e0adc67598de6197dcdaec214ffe6eaef6f906cbf47da588",
+          "bytes": 78
+        },
+        {
+          "index": 209,
+          "name": "src/utils/perf/GlobalPerfTimer.js",
+          "path": "jibo/src/utils/perf/GlobalPerfTimer.js",
+          "sha256": "66875b6e571ebf071cdc682bf77d53b2d0965a076def2463216ea4f4db6927d6",
+          "bytes": 919
+        },
+        {
+          "index": 210,
+          "name": "src/utils/perf/ParallelTimer.js",
+          "path": "jibo/src/utils/perf/ParallelTimer.js",
+          "sha256": "2a8242c9055e1ea13eeab1b16e8f97539d98649c117934873eb887cc2a5e2938",
+          "bytes": 340
+        },
+        {
+          "index": 211,
+          "name": "src/utils/perf/PerformanceTimer.js",
+          "path": "jibo/src/utils/perf/PerformanceTimer.js",
+          "sha256": "c1e35deb61187781e9124dfd56ba55ab4f7442d2cc6caa6444cf3ff6229d8cc1",
+          "bytes": 2947
+        },
+        {
+          "index": 212,
+          "name": "src/utils/perf/SerialTimer.js",
+          "path": "jibo/src/utils/perf/SerialTimer.js",
+          "sha256": "0a9d238a16dca0492ff25242c586acae3ebc41a28b9283b1f5c9c18e7ae5af3c",
+          "bytes": 331
+        },
+        {
+          "index": 213,
+          "name": "src/utils/perf/index.ts",
+          "path": "jibo/src/utils/perf/index.ts",
+          "sha256": "1fe21846e26b6caf65c6c81baa7c350bb6eebe96ad85c88e16dc8c59c35da4f6",
+          "bytes": 388
+        },
+        {
+          "index": 214,
+          "name": "src/index.ts",
+          "path": "jibo/src/index.ts",
+          "sha256": "1227b3cc1ec1fd139976e4764fb21992ec5137ebcd4ceb179ce321c28922dc3c",
+          "bytes": 1653
+        }
+      ],
+      "excludedSources": [
+        {
+          "index": 0,
+          "name": "../../node_modules/browser-pack/_prelude.js",
+          "reason": "Outside this package's src/ tree"
+        }
+      ]
+    }
+  ]
+}

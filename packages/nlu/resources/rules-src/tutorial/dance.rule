@@ -1,0 +1,3 @@
+TopRule = $* (
+    (?(can|could you) ?(do|dance the|a) (dance|breakdance|hula|dab|tango|(break dance)|(cha cha)|foxtrot|(irish jig)|jitterbug|(fast dance)|(slow dance)|(belly dance)))
+)$* {priority='HIGH'}{intent='dance'};

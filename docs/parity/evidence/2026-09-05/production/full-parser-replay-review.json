@@ -1,0 +1,64 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "scope": "Deep exact equality of HTTP status and decoded parser response data; no full wire, skill/action or microphone acceptance",
+  "originalControl": "docs/parity/evidence/2026-09-05/production/stream-writer-full-control/review.json",
+  "referenceSha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+  "cases": 20528,
+  "baseline": {
+    "matches": 0,
+    "groups": {
+      "boundary": {
+        "cases": 21,
+        "matches": 0
+      },
+      "chitchat": {
+        "cases": 11432,
+        "matches": 0
+      },
+      "hub-client": {
+        "cases": 9002,
+        "matches": 0
+      },
+      "report": {
+        "cases": 73,
+        "matches": 0
+      }
+    },
+    "sourceManifest": ".parity/runs/stream-writer-full-control/phoenix-source.json"
+  },
+  "candidate": {
+    "loadedRevision": "799db61",
+    "matches": 20127,
+    "mismatches": 401,
+    "groups": {
+      "boundary": {
+        "cases": 21,
+        "matches": 20
+      },
+      "chitchat": {
+        "cases": 11432,
+        "matches": 11189
+      },
+      "hub-client": {
+        "cases": 9002,
+        "matches": 8865
+      },
+      "report": {
+        "cases": 73,
+        "matches": 53
+      }
+    }
+  },
+  "privateArtifacts": {
+    ".parity/reviews/full-parser-baseline.json": "a133bc8c5405accb4203dede4df120f25446dd4c55eb284b58c4d11a90c2815d",
+    ".parity/reviews/full-parser-integration.json": "d81caa8547d803ef26544bdff56d6596473309f057ca4049645fde7a1ba2e18a",
+    ".parity/reviews/replay-full-parser.mjs": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e",
+    ".parity/reviews/full-original-parser.json": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d"
+  },
+  "limitations": [
+    "Candidate was loaded before subsequent external error-ordering, MIM and audio fixes; this result does not assert automatic reload.",
+    "Baseline zero exact matches includes missing response shape/provenance fields, and does not mean zero correct intents.",
+    "401 original parser mismatches remain assigned to N-08/N-02; duplicate corpus occurrences retained."
+  ]
+}

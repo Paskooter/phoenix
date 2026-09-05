@@ -1,0 +1,38 @@
+TopRule = $* $SETTIMER $* {intent=SETTIMER._intent}{priority='HIGH'};
+
+#I don't have any alarms set right now. Do you want to set one?
+#So do you want to set an alarm?
+
+SETTIMER =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+
+YES_OTHER =
+(
+    guess | gas |
+    ( go for it ) |
+    ( go ahead ) |
+	( you ( can | may ) ) |
+	( that would be ?$V_VERY $V_AMAZING ) |
+	( i ( think | guess | suppose ) ?so ) |
+	( sounds good|fine )
+);
+
+NO_OTHER =
+(
+    know | snow | now |
+    later |
+	( not ?(right) now ) |
+	( i\'m good ) |
+	( i don\'t think so )
+);
+
+### USEFUL VOCAB ###
+V_AMAZING = awesome|amazing|fantastic|incredible|fascinating|wonderful|
+    unbelievable|excellent|fabulous|astounding|cool|marvelous|phenomenal|
+    superb|impressive|great|outstanding|extraordinary;
+V_VERY = very|really|actually|pretty|[absolute?(ly)]|[incredibl(e|y)]|
+    extremely|so|such|most|kinda|sorta|any|(kind|sort of);

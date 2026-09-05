@@ -1,0 +1,65 @@
+TopRule = ($* $CHECK_RELEASE_NOTES $*) {intent = CHECK_RELEASE_NOTES._intent}{priority='HIGH'};
+
+CHECK_RELEASE_NOTES =
+    (
+        ($factory:yes_no {_intent = yes_no._nl}) |
+        ($YES_OTHER {_intent=YES_OTHER._intent}) |
+        ($NO_OTHER {_intent=NO_OTHER._intent})
+#        ($NEVER {_intent=NEVER._intent})
+    )
+;
+
+YES_OTHER =
+    (
+        (
+			(
+				guess | gas |
+				yup |
+				yeah |
+				yep |
+				sure |
+				(why not)
+			) ?$CHECK_IT
+		) |
+		$CHECK_IT
+    )
+{_intent='yes'}
+;
+
+NO_OTHER =
+    (
+        know | snow |
+        (no thanks | (thank you)) |
+        (wait|(hold on) ?(a sec|minute|second|moment))|
+        (later)|
+        (cancel)|
+        (forget it)|
+        (go back)|
+        (exit)|
+        (escape)|
+        (not now)|
+        ((don\'t|(do not)) $CHECK_IT)
+    )
+{_intent='no'}
+;
+
+NEVER =
+	(
+		(
+				never |
+				((don\'t|(do not)) $* ever)
+		) ?($CHECK_IT)
+	)
+{_intent='never'}
+;
+
+CHECK_IT =
+	(
+		(show ?me)|
+		(display)|
+		(tell ?me)|
+		(check ?it)|
+		(open ?it)|
+		((let|lets|let\'s) ?(me|us) see)
+	)
+;

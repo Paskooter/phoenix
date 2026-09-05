@@ -1,0 +1,161 @@
+TopRule = (( $*
+	($D_RADIO_EXCEPTION_PHRASES_WITH_STATION {intent=D_RADIO_EXCEPTION_PHRASES_WITH_STATION._intent}{station=D_RADIO_EXCEPTION_PHRASES_WITH_STATION._station}) |
+	($D_RADIO_EXCEPTION_PHRASES {intent=D_RADIO_EXCEPTION_PHRASES._intent}) |
+	($D_RADIO_INTENT_PLAY {intent=D_RADIO_INTENT_PLAY._intent}) |
+	($D_RADIO_INTENT_PLAY_STATION {intent=D_RADIO_INTENT_PLAY_STATION._intent}{station=D_RADIO_INTENT_PLAY_STATION._station}) |
+	($D_RADIO_INTENT_PLAY_UNSUPPORTED_STATION {intent=D_RADIO_INTENT_PLAY_UNSUPPORTED_STATION._intent}) |
+	($D_RADIO_INTENT_SHOWSTATIONS {intent=D_RADIO_INTENT_SHOWSTATIONS._intent})
+$* ) | (
+	($D_RADIO_EXACTMATCH_INTENT_PLAY {intent=D_RADIO_EXACTMATCH_INTENT_PLAY._intent}) |
+	($D_RADIO_EXACTMATCH_INTENT_PLAY_STATION {intent=D_RADIO_EXACTMATCH_INTENT_PLAY_STATION._intent}{station=D_RADIO_EXACTMATCH_INTENT_PLAY_STATION._station}) |
+	($D_RADIO_EXACTMATCH_INTENT_PLAY_UNSUPPORTED_STATION {intent=D_RADIO_EXACTMATCH_INTENT_PLAY_UNSUPPORTED_STATION._intent})
+))
+{domain='radio'}{skill='\@be/radio'}{priority='HIGH'}
+;
+
+
+D_RADIO_INTENT_PLAY_STATION = (
+((
+	($V_RADIO_PLAY $w03 ?($ENT_RADIO_LOCALE) $ENT_RADIO_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) ?($V_RADIO_GENRES|$V_RADIO_RADIO)) |
+	($V_RADIO_SWITCH $w03 ?($ENT_RADIO_LOCALE) $ENT_RADIO_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) ?($V_RADIO_GENRES|$V_RADIO_RADIO)) |
+	($V_RADIO_SWITCH $V_RADIO_GENRES|$V_RADIO_RADIO $w03 ?($ENT_RADIO_LOCALE) $ENT_RADIO_GENRES $w03 $ENT_RADIO_LOCALE )
+){_intent='play'}{_station=ENT_RADIO_GENRES._genre}) |
+((
+	($V_RADIO_PLAY $w03 $ENT_RADIO_STRICT_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) $V_RADIO_RADIO|[song?s]) |
+	($ENT_RADIO_STRICT_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) $V_RADIO_RADIO|[song?s]) |
+	($V_RADIO_SWITCH $w03 $ENT_RADIO_STRICT_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) ?($V_RADIO_GENRES|$V_RADIO_RADIO)) |
+	($V_RADIO_SWITCH $V_RADIO_GENRES|$V_RADIO_RADIO $w03 ?($ENT_RADIO_LOCALE) $ENT_RADIO_STRICT_GENRES $w03 ?($ENT_RADIO_LOCALE))
+){_intent='play'}{_station=ENT_RADIO_STRICT_GENRES._genre})
+);
+
+D_RADIO_EXACTMATCH_INTENT_PLAY_STATION = (
+	(?($ENT_RADIO_LOCALE) $ENT_RADIO_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) $V_RADIO_RADIO ?please)
+){_intent='play'}{_station=ENT_RADIO_GENRES._genre}
+;
+
+D_RADIO_EXCEPTION_PHRASES = (
+	(($V_RADIO_PLAY ?(us|me) some|the [song?s]){_intent='play'})
+);
+
+D_RADIO_EXCEPTION_PHRASES_WITH_STATION = (
+	(($V_RADIO_PLAY ?(us|me) ?a [song?s]){_intent='play'}{_station='Pop'})
+);
+
+D_RADIO_INTENT_PLAY_UNSUPPORTED_STATION = (
+((
+	($V_RADIO_PLAY $w03 $ENT_RADIO_UNSUPPORTED_RADIO_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) ?($V_RADIO_GENRES|$V_RADIO_RADIO)) |
+	($V_RADIO_SWITCH $w03 $ENT_RADIO_UNSUPPORTED_RADIO_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) ?($V_RADIO_GENRES|$V_RADIO_RADIO)) |
+	($V_RADIO_SWITCH $V_RADIO_GENRES|$V_RADIO_RADIO $w03 $ENT_RADIO_UNSUPPORTED_RADIO_GENRES)
+){_intent=ENT_RADIO_UNSUPPORTED_RADIO_GENRES._genre}) |
+((
+	($V_RADIO_PLAY $w03 $ENT_RADIO_UNSUPPORTED_RADIO_STRICT_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) $V_RADIO_RADIO|[song?s]) |
+	($ENT_RADIO_UNSUPPORTED_RADIO_STRICT_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) $V_RADIO_RADIO|[song?s]) |
+	($V_RADIO_SWITCH $w03 $ENT_RADIO_UNSUPPORTED_RADIO_STRICT_GENRES $w03 ?on ?the ?($ENT_RADIO_LOCALE) ?($V_RADIO_GENRES|$V_RADIO_RADIO)) |
+	($V_RADIO_SWITCH $V_RADIO_GENRES|$V_RADIO_RADIO $w03 $ENT_RADIO_UNSUPPORTED_RADIO_STRICT_GENRES )
+){_intent=ENT_RADIO_UNSUPPORTED_RADIO_STRICT_GENRES._genre})
+);
+
+D_RADIO_EXACTMATCH_INTENT_PLAY_UNSUPPORTED_STATION = (
+	($ENT_RADIO_UNSUPPORTED_RADIO_GENRES $w03 ?on ?the $V_RADIO_RADIO)
+){_intent=ENT_RADIO_UNSUPPORTED_RADIO_GENRES._genre}
+;
+
+D_RADIO_INTENT_PLAY =
+(
+    ($V_RADIO_PLAY|$V_RADIO_SWITCH $w03 ?on ?the ?($ENT_RADIO_LOCALE) $V_RADIO_RADIO) |
+	($ENT_RADIO_LOCALE $V_RADIO_RADIO|[station?(s|(\'s))]|[channel?(s|(\'s))])
+)
+{_intent='play'}
+;
+
+D_RADIO_EXACTMATCH_INTENT_PLAY = (
+	(?$V_JIBO music|radio ?please)
+){_intent='play'}
+;
+
+D_RADIO_INTENT_SHOWSTATIONS =
+(
+    ( show ( me | us ) ?your $V_RADIO_RADIO $V_RADIO_GENRES ) |
+    ( ( what | which ) $V_RADIO_RADIO $V_RADIO_GENRES $* ) |
+    ( $V_RADIO_OPEN $* $V_RADIO_GENRES ) |
+    ( $V_RADIO_RADIO $V_RADIO_GENRES ) |
+    ( $V_RADIO_SWITCH $* $V_RADIO_GENRES )
+)
+{_intent='showStations'}
+;
+# RADIO VOCABULARY #
+V_RADIO_PLAY =
+    play |
+    ( ( i | we ) want ?to ( hear | ( listen ?to ) ) ?( some | the ) ) |
+    ( let\'s ( hear | ( listen ?to ) ) ?( some | the ) ) |
+    ( ( turn | switch | put ) on ?( some | the ) ) |
+    ( ( give ( me | us ) ) | gimme ?( some | the ) ) |
+	$V_LAUNCH
+;
+V_RADIO_SWITCH = (
+	(change|switch)
+);
+V_LAUNCH = open|launch|run;
+
+V_RADIO_RADIO = (?$V_JIBO [radio?s]|[music?s]|[tune?s])|$V_RADIO_IHEART;
+V_RADIO_IHEART =((iheart|(i heart) |(eye heart) ?radio)|iheartradio);
+V_RADIO_GENRES = [genre?(s|(\'s))]|[station?(s|(\'s))]|[listing?(s|(\'s))]|[channel?(s|(\'s))];
+V_RADIO_OPEN = open | show | display;
+V_RADIO_GO = ( ( tune | go | switch | change ) ?to );
+
+ENT_RADIO_GENRES = (
+	(((alternatives|alternative ?[roc?k?s])|[alt-roc?k]|[altroc?k]){_genre='Alternative'}) |
+	((classical|classic){_genre='Classical'}) |
+	((country|western|(country $w03 western)){_genre='Country'}) |
+	((([hiphop?s])|(hip [hop?((\'s)|s)])|(he pops)|(r and b)|(r&b)|(rhythm and blues)|(rnb)|(r n b)|(rap)){_genre='HipHop'}) |
+	((jazz|jazzy|jess|(big band)){_genre='Jazz'}) |
+	((((npr|(national public [radio?s])|(n p r)|(en pee are)) ?[new?s])|(news on (npr|(n p r)|(en pee are)))){_genre='NPR'}) |
+	((?(classic|classical) [roc?k?s]|([roc?k] and|n roll)){_genre='ClassicRock'}) |
+	(($V_SIXTIES|$V_SEVENTIES|($V_EIGHTIES rock)){_genre='ClassicRock'}) |
+	(([pop?s]|poop|pope|pup|bop|popular|(top $w03)|[hit?s]){_genre='Pop'}) |
+	(([reggae?(s|(es)|(\'s))]|ska|jamaican|[island?s]){_genre='ReggaeAndIsland'}) |
+	((latin|spanish|latina|latino|fiesta){_genre='Latin'}) |
+	(( $V_FIFTIES|oldies|oldie|oldy|oldy\'s ){_genre='Oldies'}) |
+	((soft [roc?k?s]){_genre='SoftRock'}) |
+	(gospel{_genre='ChristianAndGospel'}) |
+	(($V_EIGHTIES|$V_NINETIES ?[hit?s]){_genre='EightiesAndNinetiesHits'} )
+);
+
+ENT_RADIO_STRICT_GENRES = (
+	(([new?s]|talk|([new?s] ?and talk)){_genre='NewsAndTalk'}) |
+	(((dance|house|dancing)|edm|(e d m)|(electronic|electric|electronics dance)){_genre='Dance'}) |
+	(([sport?(s|(es)|(\'s))]){_genre='Sports'}) |
+	#((([college?(s|(es)|(\'s))])|university ){_genre='CollegeRadio'}) |
+	(comedy{_genre='Comedy'} ) |
+	(christian{_genre='ChristianAndGospel'} )
+);
+
+ENT_RADIO_LOCALE = (
+	((local){% locale='Local' %})|
+	((national){% locale='National' %})
+);
+
+ENT_RADIO_UNSUPPORTED_RADIO_GENRES = (
+(
+	([electronic?(a|s|(es)|(\'s))]) |
+	((?( country|electric|jump|piano|gospel|soul|chicago|delta |louisiana|(new orleans)|swamp|texas)blues|( boogie-woogie ))) |
+	([folk?(s|(es)|(\'s))]) |
+	(heavy [metal?(s|(es)|(\'s))]) |
+	([opera?(s|(es)|(\'s))]) |
+	punk | punks |
+	metal
+) {_genre='unsupportedGenre'}
+);
+
+ENT_RADIO_UNSUPPORTED_RADIO_STRICT_GENRES = (
+(
+	(([college?(s|(es)|(\'s))])|university) |
+	holiday
+) {_genre='unsupportedGenre'}
+);
+V_JIBO = ([jibo?(?(\')s)] | [geebo?(?(\')s)] | [gebo?(?(\')s)] | [jebo?(?(\')s)] | [cibo?(?(\')s)] | jb | g | kgb | diva);
+V_NINETIES = 90\'s|[90?s]|[1990?s]|ninety\'s|nineties;
+V_EIGHTIES = 80\'s|[80?s]|[1980?s]|eighty\'s|eighties;
+V_SEVENTIES = 70\'s|[70?s]|[1970?s]|seventy\'s|seventies;
+V_SIXTIES = 60\'s|[60?s]|[1960?s]|sixty\'s|sixties;
+V_FIFTIES = 50\'s|[50?s]|[1950?s]|fifty\'s|fifties;

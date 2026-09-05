@@ -1,0 +1,62 @@
+TopRule = ($* $RECOTYPE $*) {intent = RECOTYPE._intent}{priority='HIGH'};
+
+#What am I learning?
+
+RECOTYPE =
+        ($factory:yes_no {_intent = yes_no._nl})|
+        $YES {_intent=YES._intent} |
+        $NO {_intent=NO._intent} |
+        $FACE {_intent=FACE._intent} |
+		$VOICE {_intent=VOICE._intent} |
+        $NAME {_intent=NAME._intent}
+;
+
+YES =
+    (
+        guess | gas |
+        yes | yup | sure
+    )
+{_intent='yes'}
+;
+
+NO =
+    (
+        know | snow | now |
+        no | nope
+    )
+{_intent='no'}
+;
+
+FACE =
+	(
+		(?$TRAIN ?$PRONOUN face) |
+        (face (training | enrollment))
+	)
+{_intent='face'}
+;
+
+VOICE =
+	(
+		(?$TRAIN ?$PRONOUN voice) |
+        (voice (training | enrollment))
+	)
+{_intent='voice'}
+;
+
+NAME =
+	(
+        (?(learn ?(to pronounce)) ?$PRONOUN name) |
+        (?$TRAIN ?$PRONOUN name) |
+        (name (pronunciation | training | enrollment))
+	)
+{_intent='name'}
+;
+
+#Additional rules
+
+TRAIN =
+    (
+        ?please (do | learn | recognize | understand | enroll | (train on))
+    )
+;
+PRONOUN = (my | his | her | their | the | your);

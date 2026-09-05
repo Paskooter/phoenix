@@ -1,0 +1,4430 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "runtime": "v8.9.4",
+  "basis": "Original source modules under TypeScript 2.5.3 emission adapter; original NLU 2.8.3 CLI",
+  "fixture": {
+    "clock": "2018-05-30T12:00:00.000Z",
+    "timezone": "UTC",
+    "mathRandomSeed": "0x50454741",
+    "uuid": "Sequential fixture IDs through the original utils-common export",
+    "asr": "Original CLIENT_ASR wire mode; Google/grpc imports inert",
+    "network": "Docker --network none; all HTTP/WS peers use loopback inside this container",
+    "peerURL": "http://127.0.0.1:40619"
+  },
+  "adapterSha256": "e88380385211aa3a4855fc5b1ef884f7b364d6fbedbc321a9889315e375cf7d4",
+  "providerImports": [
+    "@google-cloud/speech",
+    "grpc"
+  ],
+  "transactions": [
+    {
+      "name": "base-health",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/healthcheck",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "text/html; charset=utf-8",
+          "content-length": "2",
+          "etag": "W/\"2-eoX0dku9ba8cNUXvu/DyeabcC+s\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "ok"
+      },
+      "elapsedMs": 10.793119
+    },
+    {
+      "name": "base-null",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/fixture/null",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "4",
+          "etag": "W/\"4-K+iMpCQsduglOsYkdIUQZQMtaDM\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "null",
+        "json": null
+      },
+      "elapsedMs": 1.904331
+    },
+    {
+      "name": "base-undefined",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/fixture/undefined",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close",
+          "content-length": "0"
+        },
+        "body": ""
+      },
+      "elapsedMs": 0.781742
+    },
+    {
+      "name": "base-head",
+      "transport": "HTTP",
+      "request": {
+        "method": "HEAD",
+        "path": "/fixture/null",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "4",
+          "etag": "W/\"4-K+iMpCQsduglOsYkdIUQZQMtaDM\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": ""
+      },
+      "elapsedMs": 0.619434
+    },
+    {
+      "name": "base-query",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/fixture/query?a=one&a=two&nested%5Bb%5D=c",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "38",
+          "etag": "W/\"26-jLCarBa68C1HWCbHv92zWQILsyQ\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"a\":[\"one\",\"two\"],\"nested\":{\"b\":\"c\"}}",
+        "json": {
+          "a": [
+            "one",
+            "two"
+          ],
+          "nested": {
+            "b": "c"
+          }
+        }
+      },
+      "elapsedMs": 1.293362
+    },
+    {
+      "name": "base-json-echo",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/json",
+          "content-length": 28
+        },
+        "body": "{\"value\":false,\"empty\":null}"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "28",
+          "etag": "W/\"1c-FwhBa2ibS7nT4ghbfXlhFAM5pyw\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"value\":false,\"empty\":null}",
+        "json": {
+          "value": false,
+          "empty": null
+        }
+      },
+      "elapsedMs": 6.219615
+    },
+    {
+      "name": "base-json-invalid",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/json",
+          "content-length": 1
+        },
+        "body": "{"
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "145",
+          "etag": "W/\"91-/WTuihWCZjHQiCs10k7B+GGWwrw\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-000000000001\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"Unexpected end of JSON input\"}}",
+        "json": {
+          "type": "ERROR",
+          "msgID": "00000000-0000-4000-8000-000000000001",
+          "ts": 1527681600000,
+          "final": true,
+          "data": {
+            "message": "Unexpected end of JSON input"
+          }
+        }
+      },
+      "elapsedMs": 4.327006
+    },
+    {
+      "name": "base-form-echo",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": 11
+        },
+        "body": "a=one&a=two"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "19",
+          "etag": "W/\"13-+E/LqVmyGE9yeFXZwC6ug0NOSxc\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"a\":[\"one\",\"two\"]}",
+        "json": {
+          "a": [
+            "one",
+            "two"
+          ]
+        }
+      },
+      "elapsedMs": 1.063988
+    },
+    {
+      "name": "base-not-found",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/missing",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "140",
+          "etag": "W/\"8c-vlVUYW2xLFUgw0umO1Cxv1o2wfs\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-000000000002\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"URL not found: /missing\"}}",
+        "json": {
+          "type": "ERROR",
+          "msgID": "00000000-0000-4000-8000-000000000002",
+          "ts": 1527681600000,
+          "final": true,
+          "data": {
+            "message": "URL not found: /missing"
+          }
+        }
+      },
+      "elapsedMs": 1.142047
+    },
+    {
+      "name": "base-error",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/fixture/error",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 418,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "131",
+          "etag": "W/\"83-Ydtsfg+Z4vsh2lnKZISD4QSdW1I\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-000000000003\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"fixture teapot\"}}",
+        "json": {
+          "type": "ERROR",
+          "msgID": "00000000-0000-4000-8000-000000000003",
+          "ts": 1527681600000,
+          "final": true,
+          "data": {
+            "message": "fixture teapot"
+          }
+        }
+      },
+      "elapsedMs": 1.5712
+    },
+    {
+      "name": "base-auth-required",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/protected/null",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "142",
+          "etag": "W/\"8e-Bgvzq+f0Zf6nhfh2NGAC+Wd3dxk\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-000000000004\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"Authorization is required\"}}",
+        "json": {
+          "type": "ERROR",
+          "msgID": "00000000-0000-4000-8000-000000000004",
+          "ts": 1527681600000,
+          "final": true,
+          "data": {
+            "message": "Authorization is required"
+          }
+        }
+      },
+      "elapsedMs": 1.077052
+    },
+    {
+      "name": "base-auth-valid",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/protected/null",
+        "headers": {
+          "connection": "close",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "4",
+          "etag": "W/\"4-K+iMpCQsduglOsYkdIUQZQMtaDM\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "null",
+        "json": null
+      },
+      "elapsedMs": 1.610864
+    },
+    {
+      "name": "base-ws-echo",
+      "transport": "WS",
+      "request": {
+        "path": "/echo",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": [
+          {
+            "value": "original websocket"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "body": "{\"value\":\"original websocket\"}",
+          "json": {
+            "value": "original websocket"
+          }
+        }
+      ],
+      "close": {
+        "code": 1000,
+        "reason": ""
+      },
+      "elapsedMs": 6.718521
+    },
+    {
+      "name": "base-ws-error",
+      "transport": "WS",
+      "request": {
+        "path": "/error",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": []
+      },
+      "frames": [
+        {
+          "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-000000000005\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"fixture socket failure\"}}",
+          "json": {
+            "type": "ERROR",
+            "msgID": "00000000-0000-4000-8000-000000000005",
+            "ts": 1527681600000,
+            "final": true,
+            "data": {
+              "message": "fixture socket failure"
+            }
+          }
+        }
+      ],
+      "close": {
+        "code": 1000,
+        "reason": ""
+      },
+      "elapsedMs": 2.506744
+    },
+    {
+      "name": "base-ws-auth-required",
+      "transport": "WS",
+      "request": {
+        "path": "/echo",
+        "headers": {},
+        "frames": []
+      },
+      "frames": [],
+      "upgrade": {
+        "status": 401,
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "25"
+        },
+        "body": "Authorization is required"
+      },
+      "elapsedMs": 0.887744,
+      "close": {
+        "code": 1006,
+        "reason": ""
+      }
+    },
+    {
+      "name": "base-ws-not-found",
+      "transport": "WS",
+      "request": {
+        "path": "/missing",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": []
+      },
+      "frames": [],
+      "upgrade": {
+        "status": 404,
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "39"
+        },
+        "body": "WebSocket url '/missing' has no handler"
+      },
+      "elapsedMs": 0.78599,
+      "close": {
+        "code": 1006,
+        "reason": ""
+      }
+    },
+    {
+      "name": "hub-/skills/fixture-robot",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/skills/fixture-robot",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "7835",
+          "etag": "W/\"1e9b-jq3Bgwxp3pOocjVlyrkwyKgzh8U\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"skills\":[{\"id\":\"skill1\",\"URL\":\"http://127.0.0.1:40619/skill\",\"intents\":[{\"name\":\"matchingIntent\",\"memo\":\"fixture memo\"}]},{\"id\":\"report-skill\",\"intents\":[{\"name\":\"launchPersonalReport\",\"entities\":[],\"memo\":\"Reactive\"},{\"name\":\"requestWeatherPR\",\"entities\":[],\"memo\":\"Reactive Weather\"},{\"name\":\"requestCommute\",\"entities\":[],\"memo\":\"Reactive Commute\"},{\"name\":\"requestCalendar\",\"entities\":[],\"memo\":\"Reactive Calendar\"},{\"name\":\"requestNews\",\"entities\":[],\"memo\":\"Reactive News\"}],\"proactives\":[{\"memo\":\"Proactive\",\"topics\":[],\"contextRules\":[{\"field\":\"PART_OF_DAY\",\"matchRule\":\"CONTAINED_IN\",\"value\":[{\"basic\":\"MORNING\",\"detail\":\"EARLY\"},{\"basic\":\"MORNING\",\"detail\":\"MID\"},{\"basic\":\"MORNING\",\"detail\":\"LATE\"}]},{\"field\":\"DAY_OF_WEEK\",\"matchRule\":\"CONTAINED_IN\",\"value\":[0,1,2,3,4,5,6]},{\"field\":\"TRIGGER_SOURCE\",\"value\":\"SURPRISE\",\"matchRule\":\"EXACT\"},{\"field\":\"FOCUSED_PERSON\",\"matchRule\":\"NOT\",\"value\":\"UNKNOWN\"}],\"IHRules\":[{\"query\":\"PersonalReportLaunchCount7LastHours\",\"matchRule\":\"LESS_THAN\",\"value\":1}],\"settingsRules\":[{\"skill\":\"report-skill\",\"key\":\"offerProactively\",\"matchRule\":\"EXACT\",\"value\":{\"value\":true}}]}],\"IHQueries\":{\"PersonalReportLaunchCount7LastHours\":{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\",\"match\":\"EXACT\",\"value\":\"report-skill\"}],\"startTimeOffset\":[-7,\"hours\"],\"endTimeOffset\":[0,\"hours\"]}},\"settings\":{\"view\":{\"type\":\"skill\",\"index\":0,\"title\":\"Personal report\",\"subtitle\":\"Add your commute, calendar and news\",\"icon\":\"personal_report_icon\",\"childViews\":[{\"type\":\"switch\",\"index\":0,\"title\":\"Offer report proactively\",\"subtitle\":\"Jibo offers your Personal Report when he sees you\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"offerProactively\",\"default\":true}},{\"type\":\"subheader\",\"index\":1,\"title\":\"WHAT SHOULD JIBO TELL YOU?\"},{\"type\":\"switch\",\"index\":2,\"title\":\"Weather\",\"subtitle\":\"Change temperature units\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"weatherEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHICH UNITS SHOULD JIBO USE?\"},{\"type\":\"choice\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"weather\"},\"choices\":[{\"id\":0,\"value\":\"Fahrenheit\"},{\"id\":1,\"value\":\"Celsius\"}]},{\"type\":\"footer\",\"index\":2,\"owner\":true,\"title\":\"Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. \",\"links\":[{\"placeholder\":\"JIBO_SETTINGS\",\"text\":\"Jibo settings\",\"url\":\"JIBO_SETTINGS_LINK\"}]}]},{\"type\":\"switch\",\"index\":3,\"title\":\"Commute\",\"subtitle\":\"Set where, when, and how you commute\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHERE DOES YOUR COMMUTE START?\"},{\"type\":\"locationTextField\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"},\"childViews\":[{\"type\":\"location\",\"index\":0,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"}}]},{\"type\":\"subheader\",\"index\":2,\"title\":\"WHERE DOES YOUR COMMUTE END?\"},{\"type\":\"locationTextField\",\"index\":3,\"valueDefinition\":{\"target\":\"person\",\"key\":\"workLocation\"}},{\"type\":\"subheader\",\"index\":4,\"title\":\"HOW DO YOU COMMUTE?\"},{\"type\":\"choice\",\"index\":5,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteType\"},\"choices\":[{\"id\":0,\"value\":\"Drive\",\"icon\":\"ic_drive\"},{\"id\":1,\"value\":\"Public transport\",\"icon\":\"ic_transport\"},{\"id\":2,\"value\":\"Bike\",\"icon\":\"ic_bike\"},{\"id\":3,\"value\":\"Walk\",\"icon\":\"ic_walk\"}]},{\"type\":\"subheader\",\"index\":6,\"title\":\"WHEN DO YOU USUALLY ARRIVE?\"},{\"type\":\"time\",\"index\":7,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteTime\",\"type\":\"string\"}}]},{\"type\":\"switch\",\"index\":4,\"title\":\"Calendars\",\"subtitle\":\"Connect work and personal calendars\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"calendarEnabled\"},\"childViews\":[{\"type\":\"connectable\",\"index\":0,\"title\":\"Personal calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"personalCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR PERSONAL CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:personalCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:personalCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:personalCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:personalCalendar:readonly\"}}]},{\"type\":\"connectable\",\"index\":1,\"title\":\"Work calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"workCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR WORK CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:workCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:workCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:workCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:workCalendar:readonly\"}}]}]},{\"type\":\"switch\",\"index\":5,\"title\":\"News\",\"subtitle\":\"Customize your topics of interest\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEnabled\"},\"childViews\":[{\"type\":\"toggle\",\"index\":0,\"title\":\"International\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsInternational\"}},{\"type\":\"toggle\",\"index\":1,\"title\":\"National\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsNational\"}},{\"type\":\"toggle\",\"index\":2,\"title\":\"Business\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsBusiness\"}},{\"type\":\"toggle\",\"index\":3,\"title\":\"Entertainment\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEntertainment\"}},{\"type\":\"toggle\",\"index\":4,\"title\":\"Sports\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsSports\"}},{\"type\":\"toggle\",\"index\":5,\"title\":\"Health\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsHealth\"}},{\"type\":\"toggle\",\"index\":6,\"title\":\"Politics\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsPolitics\"}},{\"type\":\"toggle\",\"index\":7,\"title\":\"Science\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsScience\"}},{\"type\":\"toggle\",\"index\":8,\"title\":\"Technology\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsTechnology\"}},{\"type\":\"toggle\",\"index\":9,\"title\":\"Strange\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsStrange\"}}]},{\"type\":\"footer\",\"index\":6,\"title\":\"Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines.\"}]}},\"URL\":\"http://127.0.0.1:40619/skill\"}]}",
+        "json": {
+          "skills": [
+            {
+              "id": "skill1",
+              "URL": "http://127.0.0.1:40619/skill",
+              "intents": [
+                {
+                  "name": "matchingIntent",
+                  "memo": "fixture memo"
+                }
+              ]
+            },
+            {
+              "id": "report-skill",
+              "intents": [
+                {
+                  "name": "launchPersonalReport",
+                  "entities": [],
+                  "memo": "Reactive"
+                },
+                {
+                  "name": "requestWeatherPR",
+                  "entities": [],
+                  "memo": "Reactive Weather"
+                },
+                {
+                  "name": "requestCommute",
+                  "entities": [],
+                  "memo": "Reactive Commute"
+                },
+                {
+                  "name": "requestCalendar",
+                  "entities": [],
+                  "memo": "Reactive Calendar"
+                },
+                {
+                  "name": "requestNews",
+                  "entities": [],
+                  "memo": "Reactive News"
+                }
+              ],
+              "proactives": [
+                {
+                  "memo": "Proactive",
+                  "topics": [],
+                  "contextRules": [
+                    {
+                      "field": "PART_OF_DAY",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        {
+                          "basic": "MORNING",
+                          "detail": "EARLY"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "MID"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "LATE"
+                        }
+                      ]
+                    },
+                    {
+                      "field": "DAY_OF_WEEK",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                      ]
+                    },
+                    {
+                      "field": "TRIGGER_SOURCE",
+                      "value": "SURPRISE",
+                      "matchRule": "EXACT"
+                    },
+                    {
+                      "field": "FOCUSED_PERSON",
+                      "matchRule": "NOT",
+                      "value": "UNKNOWN"
+                    }
+                  ],
+                  "IHRules": [
+                    {
+                      "query": "PersonalReportLaunchCount7LastHours",
+                      "matchRule": "LESS_THAN",
+                      "value": 1
+                    }
+                  ],
+                  "settingsRules": [
+                    {
+                      "skill": "report-skill",
+                      "key": "offerProactively",
+                      "matchRule": "EXACT",
+                      "value": {
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ],
+              "IHQueries": {
+                "PersonalReportLaunchCount7LastHours": {
+                  "type": "Count",
+                  "queryRules": [
+                    {
+                      "field": "skillID",
+                      "match": "EXACT",
+                      "value": "report-skill"
+                    }
+                  ],
+                  "startTimeOffset": [
+                    -7,
+                    "hours"
+                  ],
+                  "endTimeOffset": [
+                    0,
+                    "hours"
+                  ]
+                }
+              },
+              "settings": {
+                "view": {
+                  "type": "skill",
+                  "index": 0,
+                  "title": "Personal report",
+                  "subtitle": "Add your commute, calendar and news",
+                  "icon": "personal_report_icon",
+                  "childViews": [
+                    {
+                      "type": "switch",
+                      "index": 0,
+                      "title": "Offer report proactively",
+                      "subtitle": "Jibo offers your Personal Report when he sees you",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "offerProactively",
+                        "default": true
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 1,
+                      "title": "WHAT SHOULD JIBO TELL YOU?"
+                    },
+                    {
+                      "type": "switch",
+                      "index": 2,
+                      "title": "Weather",
+                      "subtitle": "Change temperature units",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weatherEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHICH UNITS SHOULD JIBO USE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "weather"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Fahrenheit"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Celsius"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "footer",
+                          "index": 2,
+                          "owner": true,
+                          "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                          "links": [
+                            {
+                              "placeholder": "JIBO_SETTINGS",
+                              "text": "Jibo settings",
+                              "url": "JIBO_SETTINGS_LINK"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 3,
+                      "title": "Commute",
+                      "subtitle": "Set where, when, and how you commute",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHERE DOES YOUR COMMUTE START?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          },
+                          "childViews": [
+                            {
+                              "type": "location",
+                              "index": 0,
+                              "valueDefinition": {
+                                "target": "person",
+                                "key": "homeLocation"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 2,
+                          "title": "WHERE DOES YOUR COMMUTE END?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 3,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "workLocation"
+                          }
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 4,
+                          "title": "HOW DO YOU COMMUTE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 5,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteType"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Drive",
+                              "icon": "ic_drive"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Public transport",
+                              "icon": "ic_transport"
+                            },
+                            {
+                              "id": 2,
+                              "value": "Bike",
+                              "icon": "ic_bike"
+                            },
+                            {
+                              "id": 3,
+                              "value": "Walk",
+                              "icon": "ic_walk"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 6,
+                          "title": "WHEN DO YOU USUALLY ARRIVE?"
+                        },
+                        {
+                          "type": "time",
+                          "index": 7,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteTime",
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 4,
+                      "title": "Calendars",
+                      "subtitle": "Connect work and personal calendars",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "calendarEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "connectable",
+                          "index": 0,
+                          "title": "Personal calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "personalCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:personalCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:personalCalendar:readonly"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "connectable",
+                          "index": 1,
+                          "title": "Work calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "workCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR WORK CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:workCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:workCalendar:readonly"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 5,
+                      "title": "News",
+                      "subtitle": "Customize your topics of interest",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "toggle",
+                          "index": 0,
+                          "title": "International",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsInternational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 1,
+                          "title": "National",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsNational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 2,
+                          "title": "Business",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsBusiness"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 3,
+                          "title": "Entertainment",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsEntertainment"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 4,
+                          "title": "Sports",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsSports"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 5,
+                          "title": "Health",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsHealth"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 6,
+                          "title": "Politics",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsPolitics"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 7,
+                          "title": "Science",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsScience"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 8,
+                          "title": "Technology",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsTechnology"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 9,
+                          "title": "Strange",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsStrange"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 6,
+                      "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                    }
+                  ]
+                }
+              },
+              "URL": "http://127.0.0.1:40619/skill"
+            }
+          ]
+        }
+      },
+      "elapsedMs": 14.997472
+    },
+    {
+      "name": "hub-/v1/skills/fixture-robot",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/skills/fixture-robot",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "7835",
+          "etag": "W/\"1e9b-jq3Bgwxp3pOocjVlyrkwyKgzh8U\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"skills\":[{\"id\":\"skill1\",\"URL\":\"http://127.0.0.1:40619/skill\",\"intents\":[{\"name\":\"matchingIntent\",\"memo\":\"fixture memo\"}]},{\"id\":\"report-skill\",\"intents\":[{\"name\":\"launchPersonalReport\",\"entities\":[],\"memo\":\"Reactive\"},{\"name\":\"requestWeatherPR\",\"entities\":[],\"memo\":\"Reactive Weather\"},{\"name\":\"requestCommute\",\"entities\":[],\"memo\":\"Reactive Commute\"},{\"name\":\"requestCalendar\",\"entities\":[],\"memo\":\"Reactive Calendar\"},{\"name\":\"requestNews\",\"entities\":[],\"memo\":\"Reactive News\"}],\"proactives\":[{\"memo\":\"Proactive\",\"topics\":[],\"contextRules\":[{\"field\":\"PART_OF_DAY\",\"matchRule\":\"CONTAINED_IN\",\"value\":[{\"basic\":\"MORNING\",\"detail\":\"EARLY\"},{\"basic\":\"MORNING\",\"detail\":\"MID\"},{\"basic\":\"MORNING\",\"detail\":\"LATE\"}]},{\"field\":\"DAY_OF_WEEK\",\"matchRule\":\"CONTAINED_IN\",\"value\":[0,1,2,3,4,5,6]},{\"field\":\"TRIGGER_SOURCE\",\"value\":\"SURPRISE\",\"matchRule\":\"EXACT\"},{\"field\":\"FOCUSED_PERSON\",\"matchRule\":\"NOT\",\"value\":\"UNKNOWN\"}],\"IHRules\":[{\"query\":\"PersonalReportLaunchCount7LastHours\",\"matchRule\":\"LESS_THAN\",\"value\":1}],\"settingsRules\":[{\"skill\":\"report-skill\",\"key\":\"offerProactively\",\"matchRule\":\"EXACT\",\"value\":{\"value\":true}}]}],\"IHQueries\":{\"PersonalReportLaunchCount7LastHours\":{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\",\"match\":\"EXACT\",\"value\":\"report-skill\"}],\"startTimeOffset\":[-7,\"hours\"],\"endTimeOffset\":[0,\"hours\"]}},\"settings\":{\"view\":{\"type\":\"skill\",\"index\":0,\"title\":\"Personal report\",\"subtitle\":\"Add your commute, calendar and news\",\"icon\":\"personal_report_icon\",\"childViews\":[{\"type\":\"switch\",\"index\":0,\"title\":\"Offer report proactively\",\"subtitle\":\"Jibo offers your Personal Report when he sees you\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"offerProactively\",\"default\":true}},{\"type\":\"subheader\",\"index\":1,\"title\":\"WHAT SHOULD JIBO TELL YOU?\"},{\"type\":\"switch\",\"index\":2,\"title\":\"Weather\",\"subtitle\":\"Change temperature units\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"weatherEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHICH UNITS SHOULD JIBO USE?\"},{\"type\":\"choice\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"weather\"},\"choices\":[{\"id\":0,\"value\":\"Fahrenheit\"},{\"id\":1,\"value\":\"Celsius\"}]},{\"type\":\"footer\",\"index\":2,\"owner\":true,\"title\":\"Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. \",\"links\":[{\"placeholder\":\"JIBO_SETTINGS\",\"text\":\"Jibo settings\",\"url\":\"JIBO_SETTINGS_LINK\"}]}]},{\"type\":\"switch\",\"index\":3,\"title\":\"Commute\",\"subtitle\":\"Set where, when, and how you commute\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHERE DOES YOUR COMMUTE START?\"},{\"type\":\"locationTextField\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"},\"childViews\":[{\"type\":\"location\",\"index\":0,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"}}]},{\"type\":\"subheader\",\"index\":2,\"title\":\"WHERE DOES YOUR COMMUTE END?\"},{\"type\":\"locationTextField\",\"index\":3,\"valueDefinition\":{\"target\":\"person\",\"key\":\"workLocation\"}},{\"type\":\"subheader\",\"index\":4,\"title\":\"HOW DO YOU COMMUTE?\"},{\"type\":\"choice\",\"index\":5,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteType\"},\"choices\":[{\"id\":0,\"value\":\"Drive\",\"icon\":\"ic_drive\"},{\"id\":1,\"value\":\"Public transport\",\"icon\":\"ic_transport\"},{\"id\":2,\"value\":\"Bike\",\"icon\":\"ic_bike\"},{\"id\":3,\"value\":\"Walk\",\"icon\":\"ic_walk\"}]},{\"type\":\"subheader\",\"index\":6,\"title\":\"WHEN DO YOU USUALLY ARRIVE?\"},{\"type\":\"time\",\"index\":7,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteTime\",\"type\":\"string\"}}]},{\"type\":\"switch\",\"index\":4,\"title\":\"Calendars\",\"subtitle\":\"Connect work and personal calendars\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"calendarEnabled\"},\"childViews\":[{\"type\":\"connectable\",\"index\":0,\"title\":\"Personal calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"personalCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR PERSONAL CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:personalCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:personalCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:personalCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:personalCalendar:readonly\"}}]},{\"type\":\"connectable\",\"index\":1,\"title\":\"Work calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"workCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR WORK CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:workCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:workCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:workCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:workCalendar:readonly\"}}]}]},{\"type\":\"switch\",\"index\":5,\"title\":\"News\",\"subtitle\":\"Customize your topics of interest\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEnabled\"},\"childViews\":[{\"type\":\"toggle\",\"index\":0,\"title\":\"International\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsInternational\"}},{\"type\":\"toggle\",\"index\":1,\"title\":\"National\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsNational\"}},{\"type\":\"toggle\",\"index\":2,\"title\":\"Business\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsBusiness\"}},{\"type\":\"toggle\",\"index\":3,\"title\":\"Entertainment\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEntertainment\"}},{\"type\":\"toggle\",\"index\":4,\"title\":\"Sports\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsSports\"}},{\"type\":\"toggle\",\"index\":5,\"title\":\"Health\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsHealth\"}},{\"type\":\"toggle\",\"index\":6,\"title\":\"Politics\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsPolitics\"}},{\"type\":\"toggle\",\"index\":7,\"title\":\"Science\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsScience\"}},{\"type\":\"toggle\",\"index\":8,\"title\":\"Technology\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsTechnology\"}},{\"type\":\"toggle\",\"index\":9,\"title\":\"Strange\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsStrange\"}}]},{\"type\":\"footer\",\"index\":6,\"title\":\"Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines.\"}]}},\"URL\":\"http://127.0.0.1:40619/skill\"}]}",
+        "json": {
+          "skills": [
+            {
+              "id": "skill1",
+              "URL": "http://127.0.0.1:40619/skill",
+              "intents": [
+                {
+                  "name": "matchingIntent",
+                  "memo": "fixture memo"
+                }
+              ]
+            },
+            {
+              "id": "report-skill",
+              "intents": [
+                {
+                  "name": "launchPersonalReport",
+                  "entities": [],
+                  "memo": "Reactive"
+                },
+                {
+                  "name": "requestWeatherPR",
+                  "entities": [],
+                  "memo": "Reactive Weather"
+                },
+                {
+                  "name": "requestCommute",
+                  "entities": [],
+                  "memo": "Reactive Commute"
+                },
+                {
+                  "name": "requestCalendar",
+                  "entities": [],
+                  "memo": "Reactive Calendar"
+                },
+                {
+                  "name": "requestNews",
+                  "entities": [],
+                  "memo": "Reactive News"
+                }
+              ],
+              "proactives": [
+                {
+                  "memo": "Proactive",
+                  "topics": [],
+                  "contextRules": [
+                    {
+                      "field": "PART_OF_DAY",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        {
+                          "basic": "MORNING",
+                          "detail": "EARLY"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "MID"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "LATE"
+                        }
+                      ]
+                    },
+                    {
+                      "field": "DAY_OF_WEEK",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                      ]
+                    },
+                    {
+                      "field": "TRIGGER_SOURCE",
+                      "value": "SURPRISE",
+                      "matchRule": "EXACT"
+                    },
+                    {
+                      "field": "FOCUSED_PERSON",
+                      "matchRule": "NOT",
+                      "value": "UNKNOWN"
+                    }
+                  ],
+                  "IHRules": [
+                    {
+                      "query": "PersonalReportLaunchCount7LastHours",
+                      "matchRule": "LESS_THAN",
+                      "value": 1
+                    }
+                  ],
+                  "settingsRules": [
+                    {
+                      "skill": "report-skill",
+                      "key": "offerProactively",
+                      "matchRule": "EXACT",
+                      "value": {
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ],
+              "IHQueries": {
+                "PersonalReportLaunchCount7LastHours": {
+                  "type": "Count",
+                  "queryRules": [
+                    {
+                      "field": "skillID",
+                      "match": "EXACT",
+                      "value": "report-skill"
+                    }
+                  ],
+                  "startTimeOffset": [
+                    -7,
+                    "hours"
+                  ],
+                  "endTimeOffset": [
+                    0,
+                    "hours"
+                  ]
+                }
+              },
+              "settings": {
+                "view": {
+                  "type": "skill",
+                  "index": 0,
+                  "title": "Personal report",
+                  "subtitle": "Add your commute, calendar and news",
+                  "icon": "personal_report_icon",
+                  "childViews": [
+                    {
+                      "type": "switch",
+                      "index": 0,
+                      "title": "Offer report proactively",
+                      "subtitle": "Jibo offers your Personal Report when he sees you",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "offerProactively",
+                        "default": true
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 1,
+                      "title": "WHAT SHOULD JIBO TELL YOU?"
+                    },
+                    {
+                      "type": "switch",
+                      "index": 2,
+                      "title": "Weather",
+                      "subtitle": "Change temperature units",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weatherEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHICH UNITS SHOULD JIBO USE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "weather"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Fahrenheit"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Celsius"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "footer",
+                          "index": 2,
+                          "owner": true,
+                          "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                          "links": [
+                            {
+                              "placeholder": "JIBO_SETTINGS",
+                              "text": "Jibo settings",
+                              "url": "JIBO_SETTINGS_LINK"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 3,
+                      "title": "Commute",
+                      "subtitle": "Set where, when, and how you commute",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHERE DOES YOUR COMMUTE START?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          },
+                          "childViews": [
+                            {
+                              "type": "location",
+                              "index": 0,
+                              "valueDefinition": {
+                                "target": "person",
+                                "key": "homeLocation"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 2,
+                          "title": "WHERE DOES YOUR COMMUTE END?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 3,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "workLocation"
+                          }
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 4,
+                          "title": "HOW DO YOU COMMUTE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 5,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteType"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Drive",
+                              "icon": "ic_drive"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Public transport",
+                              "icon": "ic_transport"
+                            },
+                            {
+                              "id": 2,
+                              "value": "Bike",
+                              "icon": "ic_bike"
+                            },
+                            {
+                              "id": 3,
+                              "value": "Walk",
+                              "icon": "ic_walk"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 6,
+                          "title": "WHEN DO YOU USUALLY ARRIVE?"
+                        },
+                        {
+                          "type": "time",
+                          "index": 7,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteTime",
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 4,
+                      "title": "Calendars",
+                      "subtitle": "Connect work and personal calendars",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "calendarEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "connectable",
+                          "index": 0,
+                          "title": "Personal calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "personalCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:personalCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:personalCalendar:readonly"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "connectable",
+                          "index": 1,
+                          "title": "Work calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "workCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR WORK CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:workCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:workCalendar:readonly"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 5,
+                      "title": "News",
+                      "subtitle": "Customize your topics of interest",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "toggle",
+                          "index": 0,
+                          "title": "International",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsInternational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 1,
+                          "title": "National",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsNational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 2,
+                          "title": "Business",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsBusiness"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 3,
+                          "title": "Entertainment",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsEntertainment"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 4,
+                          "title": "Sports",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsSports"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 5,
+                          "title": "Health",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsHealth"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 6,
+                          "title": "Politics",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsPolitics"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 7,
+                          "title": "Science",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsScience"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 8,
+                          "title": "Technology",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsTechnology"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 9,
+                          "title": "Strange",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsStrange"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 6,
+                      "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                    }
+                  ]
+                }
+              },
+              "URL": "http://127.0.0.1:40619/skill"
+            }
+          ]
+        }
+      },
+      "elapsedMs": 1.013843
+    },
+    {
+      "name": "hub-/skills/settings/fixture-robot",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/skills/settings/fixture-robot",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "7722",
+          "etag": "W/\"1e2a-+WANinfshVfH/MSHMsZPjgf3Yyc\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"skills\":[{\"id\":\"report-skill\",\"intents\":[{\"name\":\"launchPersonalReport\",\"entities\":[],\"memo\":\"Reactive\"},{\"name\":\"requestWeatherPR\",\"entities\":[],\"memo\":\"Reactive Weather\"},{\"name\":\"requestCommute\",\"entities\":[],\"memo\":\"Reactive Commute\"},{\"name\":\"requestCalendar\",\"entities\":[],\"memo\":\"Reactive Calendar\"},{\"name\":\"requestNews\",\"entities\":[],\"memo\":\"Reactive News\"}],\"proactives\":[{\"memo\":\"Proactive\",\"topics\":[],\"contextRules\":[{\"field\":\"PART_OF_DAY\",\"matchRule\":\"CONTAINED_IN\",\"value\":[{\"basic\":\"MORNING\",\"detail\":\"EARLY\"},{\"basic\":\"MORNING\",\"detail\":\"MID\"},{\"basic\":\"MORNING\",\"detail\":\"LATE\"}]},{\"field\":\"DAY_OF_WEEK\",\"matchRule\":\"CONTAINED_IN\",\"value\":[0,1,2,3,4,5,6]},{\"field\":\"TRIGGER_SOURCE\",\"value\":\"SURPRISE\",\"matchRule\":\"EXACT\"},{\"field\":\"FOCUSED_PERSON\",\"matchRule\":\"NOT\",\"value\":\"UNKNOWN\"}],\"IHRules\":[{\"query\":\"PersonalReportLaunchCount7LastHours\",\"matchRule\":\"LESS_THAN\",\"value\":1}],\"settingsRules\":[{\"skill\":\"report-skill\",\"key\":\"offerProactively\",\"matchRule\":\"EXACT\",\"value\":{\"value\":true}}]}],\"IHQueries\":{\"PersonalReportLaunchCount7LastHours\":{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\",\"match\":\"EXACT\",\"value\":\"report-skill\"}],\"startTimeOffset\":[-7,\"hours\"],\"endTimeOffset\":[0,\"hours\"]}},\"settings\":{\"view\":{\"type\":\"skill\",\"index\":0,\"title\":\"Personal report\",\"subtitle\":\"Add your commute, calendar and news\",\"icon\":\"personal_report_icon\",\"childViews\":[{\"type\":\"switch\",\"index\":0,\"title\":\"Offer report proactively\",\"subtitle\":\"Jibo offers your Personal Report when he sees you\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"offerProactively\",\"default\":true}},{\"type\":\"subheader\",\"index\":1,\"title\":\"WHAT SHOULD JIBO TELL YOU?\"},{\"type\":\"switch\",\"index\":2,\"title\":\"Weather\",\"subtitle\":\"Change temperature units\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"weatherEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHICH UNITS SHOULD JIBO USE?\"},{\"type\":\"choice\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"weather\"},\"choices\":[{\"id\":0,\"value\":\"Fahrenheit\"},{\"id\":1,\"value\":\"Celsius\"}]},{\"type\":\"footer\",\"index\":2,\"owner\":true,\"title\":\"Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. \",\"links\":[{\"placeholder\":\"JIBO_SETTINGS\",\"text\":\"Jibo settings\",\"url\":\"JIBO_SETTINGS_LINK\"}]}]},{\"type\":\"switch\",\"index\":3,\"title\":\"Commute\",\"subtitle\":\"Set where, when, and how you commute\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHERE DOES YOUR COMMUTE START?\"},{\"type\":\"locationTextField\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"},\"childViews\":[{\"type\":\"location\",\"index\":0,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"}}]},{\"type\":\"subheader\",\"index\":2,\"title\":\"WHERE DOES YOUR COMMUTE END?\"},{\"type\":\"locationTextField\",\"index\":3,\"valueDefinition\":{\"target\":\"person\",\"key\":\"workLocation\"}},{\"type\":\"subheader\",\"index\":4,\"title\":\"HOW DO YOU COMMUTE?\"},{\"type\":\"choice\",\"index\":5,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteType\"},\"choices\":[{\"id\":0,\"value\":\"Drive\",\"icon\":\"ic_drive\"},{\"id\":1,\"value\":\"Public transport\",\"icon\":\"ic_transport\"},{\"id\":2,\"value\":\"Bike\",\"icon\":\"ic_bike\"},{\"id\":3,\"value\":\"Walk\",\"icon\":\"ic_walk\"}]},{\"type\":\"subheader\",\"index\":6,\"title\":\"WHEN DO YOU USUALLY ARRIVE?\"},{\"type\":\"time\",\"index\":7,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteTime\",\"type\":\"string\"}}]},{\"type\":\"switch\",\"index\":4,\"title\":\"Calendars\",\"subtitle\":\"Connect work and personal calendars\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"calendarEnabled\"},\"childViews\":[{\"type\":\"connectable\",\"index\":0,\"title\":\"Personal calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"personalCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR PERSONAL CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:personalCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:personalCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:personalCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:personalCalendar:readonly\"}}]},{\"type\":\"connectable\",\"index\":1,\"title\":\"Work calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"workCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR WORK CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:workCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:workCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:workCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:workCalendar:readonly\"}}]}]},{\"type\":\"switch\",\"index\":5,\"title\":\"News\",\"subtitle\":\"Customize your topics of interest\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEnabled\"},\"childViews\":[{\"type\":\"toggle\",\"index\":0,\"title\":\"International\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsInternational\"}},{\"type\":\"toggle\",\"index\":1,\"title\":\"National\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsNational\"}},{\"type\":\"toggle\",\"index\":2,\"title\":\"Business\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsBusiness\"}},{\"type\":\"toggle\",\"index\":3,\"title\":\"Entertainment\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEntertainment\"}},{\"type\":\"toggle\",\"index\":4,\"title\":\"Sports\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsSports\"}},{\"type\":\"toggle\",\"index\":5,\"title\":\"Health\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsHealth\"}},{\"type\":\"toggle\",\"index\":6,\"title\":\"Politics\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsPolitics\"}},{\"type\":\"toggle\",\"index\":7,\"title\":\"Science\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsScience\"}},{\"type\":\"toggle\",\"index\":8,\"title\":\"Technology\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsTechnology\"}},{\"type\":\"toggle\",\"index\":9,\"title\":\"Strange\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsStrange\"}}]},{\"type\":\"footer\",\"index\":6,\"title\":\"Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines.\"}]}},\"URL\":\"http://127.0.0.1:40619/skill\"}]}",
+        "json": {
+          "skills": [
+            {
+              "id": "report-skill",
+              "intents": [
+                {
+                  "name": "launchPersonalReport",
+                  "entities": [],
+                  "memo": "Reactive"
+                },
+                {
+                  "name": "requestWeatherPR",
+                  "entities": [],
+                  "memo": "Reactive Weather"
+                },
+                {
+                  "name": "requestCommute",
+                  "entities": [],
+                  "memo": "Reactive Commute"
+                },
+                {
+                  "name": "requestCalendar",
+                  "entities": [],
+                  "memo": "Reactive Calendar"
+                },
+                {
+                  "name": "requestNews",
+                  "entities": [],
+                  "memo": "Reactive News"
+                }
+              ],
+              "proactives": [
+                {
+                  "memo": "Proactive",
+                  "topics": [],
+                  "contextRules": [
+                    {
+                      "field": "PART_OF_DAY",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        {
+                          "basic": "MORNING",
+                          "detail": "EARLY"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "MID"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "LATE"
+                        }
+                      ]
+                    },
+                    {
+                      "field": "DAY_OF_WEEK",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                      ]
+                    },
+                    {
+                      "field": "TRIGGER_SOURCE",
+                      "value": "SURPRISE",
+                      "matchRule": "EXACT"
+                    },
+                    {
+                      "field": "FOCUSED_PERSON",
+                      "matchRule": "NOT",
+                      "value": "UNKNOWN"
+                    }
+                  ],
+                  "IHRules": [
+                    {
+                      "query": "PersonalReportLaunchCount7LastHours",
+                      "matchRule": "LESS_THAN",
+                      "value": 1
+                    }
+                  ],
+                  "settingsRules": [
+                    {
+                      "skill": "report-skill",
+                      "key": "offerProactively",
+                      "matchRule": "EXACT",
+                      "value": {
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ],
+              "IHQueries": {
+                "PersonalReportLaunchCount7LastHours": {
+                  "type": "Count",
+                  "queryRules": [
+                    {
+                      "field": "skillID",
+                      "match": "EXACT",
+                      "value": "report-skill"
+                    }
+                  ],
+                  "startTimeOffset": [
+                    -7,
+                    "hours"
+                  ],
+                  "endTimeOffset": [
+                    0,
+                    "hours"
+                  ]
+                }
+              },
+              "settings": {
+                "view": {
+                  "type": "skill",
+                  "index": 0,
+                  "title": "Personal report",
+                  "subtitle": "Add your commute, calendar and news",
+                  "icon": "personal_report_icon",
+                  "childViews": [
+                    {
+                      "type": "switch",
+                      "index": 0,
+                      "title": "Offer report proactively",
+                      "subtitle": "Jibo offers your Personal Report when he sees you",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "offerProactively",
+                        "default": true
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 1,
+                      "title": "WHAT SHOULD JIBO TELL YOU?"
+                    },
+                    {
+                      "type": "switch",
+                      "index": 2,
+                      "title": "Weather",
+                      "subtitle": "Change temperature units",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weatherEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHICH UNITS SHOULD JIBO USE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "weather"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Fahrenheit"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Celsius"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "footer",
+                          "index": 2,
+                          "owner": true,
+                          "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                          "links": [
+                            {
+                              "placeholder": "JIBO_SETTINGS",
+                              "text": "Jibo settings",
+                              "url": "JIBO_SETTINGS_LINK"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 3,
+                      "title": "Commute",
+                      "subtitle": "Set where, when, and how you commute",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHERE DOES YOUR COMMUTE START?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          },
+                          "childViews": [
+                            {
+                              "type": "location",
+                              "index": 0,
+                              "valueDefinition": {
+                                "target": "person",
+                                "key": "homeLocation"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 2,
+                          "title": "WHERE DOES YOUR COMMUTE END?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 3,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "workLocation"
+                          }
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 4,
+                          "title": "HOW DO YOU COMMUTE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 5,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteType"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Drive",
+                              "icon": "ic_drive"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Public transport",
+                              "icon": "ic_transport"
+                            },
+                            {
+                              "id": 2,
+                              "value": "Bike",
+                              "icon": "ic_bike"
+                            },
+                            {
+                              "id": 3,
+                              "value": "Walk",
+                              "icon": "ic_walk"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 6,
+                          "title": "WHEN DO YOU USUALLY ARRIVE?"
+                        },
+                        {
+                          "type": "time",
+                          "index": 7,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteTime",
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 4,
+                      "title": "Calendars",
+                      "subtitle": "Connect work and personal calendars",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "calendarEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "connectable",
+                          "index": 0,
+                          "title": "Personal calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "personalCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:personalCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:personalCalendar:readonly"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "connectable",
+                          "index": 1,
+                          "title": "Work calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "workCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR WORK CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:workCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:workCalendar:readonly"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 5,
+                      "title": "News",
+                      "subtitle": "Customize your topics of interest",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "toggle",
+                          "index": 0,
+                          "title": "International",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsInternational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 1,
+                          "title": "National",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsNational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 2,
+                          "title": "Business",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsBusiness"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 3,
+                          "title": "Entertainment",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsEntertainment"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 4,
+                          "title": "Sports",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsSports"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 5,
+                          "title": "Health",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsHealth"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 6,
+                          "title": "Politics",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsPolitics"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 7,
+                          "title": "Science",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsScience"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 8,
+                          "title": "Technology",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsTechnology"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 9,
+                          "title": "Strange",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsStrange"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 6,
+                      "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                    }
+                  ]
+                }
+              },
+              "URL": "http://127.0.0.1:40619/skill"
+            }
+          ]
+        }
+      },
+      "elapsedMs": 1.195227
+    },
+    {
+      "name": "hub-/v1/skills/settings/fixture-robot",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/skills/settings/fixture-robot",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "7722",
+          "etag": "W/\"1e2a-+WANinfshVfH/MSHMsZPjgf3Yyc\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"skills\":[{\"id\":\"report-skill\",\"intents\":[{\"name\":\"launchPersonalReport\",\"entities\":[],\"memo\":\"Reactive\"},{\"name\":\"requestWeatherPR\",\"entities\":[],\"memo\":\"Reactive Weather\"},{\"name\":\"requestCommute\",\"entities\":[],\"memo\":\"Reactive Commute\"},{\"name\":\"requestCalendar\",\"entities\":[],\"memo\":\"Reactive Calendar\"},{\"name\":\"requestNews\",\"entities\":[],\"memo\":\"Reactive News\"}],\"proactives\":[{\"memo\":\"Proactive\",\"topics\":[],\"contextRules\":[{\"field\":\"PART_OF_DAY\",\"matchRule\":\"CONTAINED_IN\",\"value\":[{\"basic\":\"MORNING\",\"detail\":\"EARLY\"},{\"basic\":\"MORNING\",\"detail\":\"MID\"},{\"basic\":\"MORNING\",\"detail\":\"LATE\"}]},{\"field\":\"DAY_OF_WEEK\",\"matchRule\":\"CONTAINED_IN\",\"value\":[0,1,2,3,4,5,6]},{\"field\":\"TRIGGER_SOURCE\",\"value\":\"SURPRISE\",\"matchRule\":\"EXACT\"},{\"field\":\"FOCUSED_PERSON\",\"matchRule\":\"NOT\",\"value\":\"UNKNOWN\"}],\"IHRules\":[{\"query\":\"PersonalReportLaunchCount7LastHours\",\"matchRule\":\"LESS_THAN\",\"value\":1}],\"settingsRules\":[{\"skill\":\"report-skill\",\"key\":\"offerProactively\",\"matchRule\":\"EXACT\",\"value\":{\"value\":true}}]}],\"IHQueries\":{\"PersonalReportLaunchCount7LastHours\":{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\",\"match\":\"EXACT\",\"value\":\"report-skill\"}],\"startTimeOffset\":[-7,\"hours\"],\"endTimeOffset\":[0,\"hours\"]}},\"settings\":{\"view\":{\"type\":\"skill\",\"index\":0,\"title\":\"Personal report\",\"subtitle\":\"Add your commute, calendar and news\",\"icon\":\"personal_report_icon\",\"childViews\":[{\"type\":\"switch\",\"index\":0,\"title\":\"Offer report proactively\",\"subtitle\":\"Jibo offers your Personal Report when he sees you\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"offerProactively\",\"default\":true}},{\"type\":\"subheader\",\"index\":1,\"title\":\"WHAT SHOULD JIBO TELL YOU?\"},{\"type\":\"switch\",\"index\":2,\"title\":\"Weather\",\"subtitle\":\"Change temperature units\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"weatherEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHICH UNITS SHOULD JIBO USE?\"},{\"type\":\"choice\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"weather\"},\"choices\":[{\"id\":0,\"value\":\"Fahrenheit\"},{\"id\":1,\"value\":\"Celsius\"}]},{\"type\":\"footer\",\"index\":2,\"owner\":true,\"title\":\"Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. \",\"links\":[{\"placeholder\":\"JIBO_SETTINGS\",\"text\":\"Jibo settings\",\"url\":\"JIBO_SETTINGS_LINK\"}]}]},{\"type\":\"switch\",\"index\":3,\"title\":\"Commute\",\"subtitle\":\"Set where, when, and how you commute\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteEnabled\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"WHERE DOES YOUR COMMUTE START?\"},{\"type\":\"locationTextField\",\"index\":1,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"},\"childViews\":[{\"type\":\"location\",\"index\":0,\"valueDefinition\":{\"target\":\"person\",\"key\":\"homeLocation\"}}]},{\"type\":\"subheader\",\"index\":2,\"title\":\"WHERE DOES YOUR COMMUTE END?\"},{\"type\":\"locationTextField\",\"index\":3,\"valueDefinition\":{\"target\":\"person\",\"key\":\"workLocation\"}},{\"type\":\"subheader\",\"index\":4,\"title\":\"HOW DO YOU COMMUTE?\"},{\"type\":\"choice\",\"index\":5,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteType\"},\"choices\":[{\"id\":0,\"value\":\"Drive\",\"icon\":\"ic_drive\"},{\"id\":1,\"value\":\"Public transport\",\"icon\":\"ic_transport\"},{\"id\":2,\"value\":\"Bike\",\"icon\":\"ic_bike\"},{\"id\":3,\"value\":\"Walk\",\"icon\":\"ic_walk\"}]},{\"type\":\"subheader\",\"index\":6,\"title\":\"WHEN DO YOU USUALLY ARRIVE?\"},{\"type\":\"time\",\"index\":7,\"valueDefinition\":{\"target\":\"person\",\"key\":\"commuteTime\",\"type\":\"string\"}}]},{\"type\":\"switch\",\"index\":4,\"title\":\"Calendars\",\"subtitle\":\"Connect work and personal calendars\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"calendarEnabled\"},\"childViews\":[{\"type\":\"connectable\",\"index\":0,\"title\":\"Personal calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"personalCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR PERSONAL CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:personalCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:personalCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"personalCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:personalCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:personalCalendar:readonly\"}}]},{\"type\":\"connectable\",\"index\":1,\"title\":\"Work calendar\",\"subtitle\":\"\",\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"workCalendarConnected\"},\"childViews\":[{\"type\":\"subheader\",\"index\":0,\"title\":\"CHOOSE YOUR WORK CALENDAR\"},{\"type\":\"oauth\",\"index\":1,\"title\":\"Google Calendar\",\"icon\":\"googleCalendarIcon\",\"serviceName\":\"google\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"iosCallbackUri\":\"com.jibo.link.app:/callback?key=google:workCalendar:readonly\",\"iosClientId\":\"830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com\",\"serverClientId\":\"830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com\",\"scopes\":[\"https://www.googleapis.com/auth/calendar.readonly\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"google:workCalendar:readonly\"}},{\"type\":\"oauth\",\"index\":2,\"title\":\"Outlook Calendar\",\"icon\":\"outlookCalendarIcon\",\"serviceName\":\"outlook\",\"serviceAccountName\":\"workCalendar\",\"authorizationUri\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"iosCallbackUri\":\"com.jibo.link.app://callback/outlook:workCalendar:readonly\",\"iosClientId\":\"398130f2-af6f-42df-8935-18b351383656\",\"scopes\":[\"offline_access\",\"Calendars.Read\"],\"valueDefinition\":{\"target\":\"lasso\",\"key\":\"outlook:workCalendar:readonly\"}}]}]},{\"type\":\"switch\",\"index\":5,\"title\":\"News\",\"subtitle\":\"Customize your topics of interest\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEnabled\"},\"childViews\":[{\"type\":\"toggle\",\"index\":0,\"title\":\"International\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsInternational\"}},{\"type\":\"toggle\",\"index\":1,\"title\":\"National\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsNational\"}},{\"type\":\"toggle\",\"index\":2,\"title\":\"Business\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsBusiness\"}},{\"type\":\"toggle\",\"index\":3,\"title\":\"Entertainment\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsEntertainment\"}},{\"type\":\"toggle\",\"index\":4,\"title\":\"Sports\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsSports\"}},{\"type\":\"toggle\",\"index\":5,\"title\":\"Health\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsHealth\"}},{\"type\":\"toggle\",\"index\":6,\"title\":\"Politics\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsPolitics\"}},{\"type\":\"toggle\",\"index\":7,\"title\":\"Science\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsScience\"}},{\"type\":\"toggle\",\"index\":8,\"title\":\"Technology\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsTechnology\"}},{\"type\":\"toggle\",\"index\":9,\"title\":\"Strange\",\"valueDefinition\":{\"target\":\"person\",\"key\":\"newsStrange\"}}]},{\"type\":\"footer\",\"index\":6,\"title\":\"Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines.\"}]}},\"URL\":\"http://127.0.0.1:40619/skill\"}]}",
+        "json": {
+          "skills": [
+            {
+              "id": "report-skill",
+              "intents": [
+                {
+                  "name": "launchPersonalReport",
+                  "entities": [],
+                  "memo": "Reactive"
+                },
+                {
+                  "name": "requestWeatherPR",
+                  "entities": [],
+                  "memo": "Reactive Weather"
+                },
+                {
+                  "name": "requestCommute",
+                  "entities": [],
+                  "memo": "Reactive Commute"
+                },
+                {
+                  "name": "requestCalendar",
+                  "entities": [],
+                  "memo": "Reactive Calendar"
+                },
+                {
+                  "name": "requestNews",
+                  "entities": [],
+                  "memo": "Reactive News"
+                }
+              ],
+              "proactives": [
+                {
+                  "memo": "Proactive",
+                  "topics": [],
+                  "contextRules": [
+                    {
+                      "field": "PART_OF_DAY",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        {
+                          "basic": "MORNING",
+                          "detail": "EARLY"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "MID"
+                        },
+                        {
+                          "basic": "MORNING",
+                          "detail": "LATE"
+                        }
+                      ]
+                    },
+                    {
+                      "field": "DAY_OF_WEEK",
+                      "matchRule": "CONTAINED_IN",
+                      "value": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                      ]
+                    },
+                    {
+                      "field": "TRIGGER_SOURCE",
+                      "value": "SURPRISE",
+                      "matchRule": "EXACT"
+                    },
+                    {
+                      "field": "FOCUSED_PERSON",
+                      "matchRule": "NOT",
+                      "value": "UNKNOWN"
+                    }
+                  ],
+                  "IHRules": [
+                    {
+                      "query": "PersonalReportLaunchCount7LastHours",
+                      "matchRule": "LESS_THAN",
+                      "value": 1
+                    }
+                  ],
+                  "settingsRules": [
+                    {
+                      "skill": "report-skill",
+                      "key": "offerProactively",
+                      "matchRule": "EXACT",
+                      "value": {
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ],
+              "IHQueries": {
+                "PersonalReportLaunchCount7LastHours": {
+                  "type": "Count",
+                  "queryRules": [
+                    {
+                      "field": "skillID",
+                      "match": "EXACT",
+                      "value": "report-skill"
+                    }
+                  ],
+                  "startTimeOffset": [
+                    -7,
+                    "hours"
+                  ],
+                  "endTimeOffset": [
+                    0,
+                    "hours"
+                  ]
+                }
+              },
+              "settings": {
+                "view": {
+                  "type": "skill",
+                  "index": 0,
+                  "title": "Personal report",
+                  "subtitle": "Add your commute, calendar and news",
+                  "icon": "personal_report_icon",
+                  "childViews": [
+                    {
+                      "type": "switch",
+                      "index": 0,
+                      "title": "Offer report proactively",
+                      "subtitle": "Jibo offers your Personal Report when he sees you",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "offerProactively",
+                        "default": true
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 1,
+                      "title": "WHAT SHOULD JIBO TELL YOU?"
+                    },
+                    {
+                      "type": "switch",
+                      "index": 2,
+                      "title": "Weather",
+                      "subtitle": "Change temperature units",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weatherEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHICH UNITS SHOULD JIBO USE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "weather"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Fahrenheit"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Celsius"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "footer",
+                          "index": 2,
+                          "owner": true,
+                          "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                          "links": [
+                            {
+                              "placeholder": "JIBO_SETTINGS",
+                              "text": "Jibo settings",
+                              "url": "JIBO_SETTINGS_LINK"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 3,
+                      "title": "Commute",
+                      "subtitle": "Set where, when, and how you commute",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "WHERE DOES YOUR COMMUTE START?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 1,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          },
+                          "childViews": [
+                            {
+                              "type": "location",
+                              "index": 0,
+                              "valueDefinition": {
+                                "target": "person",
+                                "key": "homeLocation"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 2,
+                          "title": "WHERE DOES YOUR COMMUTE END?"
+                        },
+                        {
+                          "type": "locationTextField",
+                          "index": 3,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "workLocation"
+                          }
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 4,
+                          "title": "HOW DO YOU COMMUTE?"
+                        },
+                        {
+                          "type": "choice",
+                          "index": 5,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteType"
+                          },
+                          "choices": [
+                            {
+                              "id": 0,
+                              "value": "Drive",
+                              "icon": "ic_drive"
+                            },
+                            {
+                              "id": 1,
+                              "value": "Public transport",
+                              "icon": "ic_transport"
+                            },
+                            {
+                              "id": 2,
+                              "value": "Bike",
+                              "icon": "ic_bike"
+                            },
+                            {
+                              "id": 3,
+                              "value": "Walk",
+                              "icon": "ic_walk"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "subheader",
+                          "index": 6,
+                          "title": "WHEN DO YOU USUALLY ARRIVE?"
+                        },
+                        {
+                          "type": "time",
+                          "index": 7,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "commuteTime",
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 4,
+                      "title": "Calendars",
+                      "subtitle": "Connect work and personal calendars",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "calendarEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "connectable",
+                          "index": 0,
+                          "title": "Personal calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "personalCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:personalCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "personalCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:personalCalendar:readonly"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "connectable",
+                          "index": 1,
+                          "title": "Work calendar",
+                          "subtitle": "",
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "workCalendarConnected"
+                          },
+                          "childViews": [
+                            {
+                              "type": "subheader",
+                              "index": 0,
+                              "title": "CHOOSE YOUR WORK CALENDAR"
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 1,
+                              "title": "Google Calendar",
+                              "icon": "googleCalendarIcon",
+                              "serviceName": "google",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                              "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                              "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                              "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                              "scopes": [
+                                "https://www.googleapis.com/auth/calendar.readonly"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "google:workCalendar:readonly"
+                              }
+                            },
+                            {
+                              "type": "oauth",
+                              "index": 2,
+                              "title": "Outlook Calendar",
+                              "icon": "outlookCalendarIcon",
+                              "serviceName": "outlook",
+                              "serviceAccountName": "workCalendar",
+                              "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                              "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                              "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                              "scopes": [
+                                "offline_access",
+                                "Calendars.Read"
+                              ],
+                              "valueDefinition": {
+                                "target": "lasso",
+                                "key": "outlook:workCalendar:readonly"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "switch",
+                      "index": 5,
+                      "title": "News",
+                      "subtitle": "Customize your topics of interest",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEnabled"
+                      },
+                      "childViews": [
+                        {
+                          "type": "toggle",
+                          "index": 0,
+                          "title": "International",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsInternational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 1,
+                          "title": "National",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsNational"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 2,
+                          "title": "Business",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsBusiness"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 3,
+                          "title": "Entertainment",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsEntertainment"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 4,
+                          "title": "Sports",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsSports"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 5,
+                          "title": "Health",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsHealth"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 6,
+                          "title": "Politics",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsPolitics"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 7,
+                          "title": "Science",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsScience"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 8,
+                          "title": "Technology",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsTechnology"
+                          }
+                        },
+                        {
+                          "type": "toggle",
+                          "index": 9,
+                          "title": "Strange",
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "newsStrange"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 6,
+                      "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                    }
+                  ]
+                }
+              },
+              "URL": "http://127.0.0.1:40619/skill"
+            }
+          ]
+        }
+      },
+      "elapsedMs": 0.807551
+    },
+    {
+      "name": "hub-listen-launch",
+      "transport": "WS",
+      "request": {
+        "path": "/v1/listen",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "matched utterance"
+            },
+            "msgID": "fixture-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "body": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000006\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000006",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000007\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000007",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"LISTEN\",\"msgID\":\"00000000-0000-4000-8000-000000000009\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":true,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "json": {
+            "type": "LISTEN",
+            "msgID": "00000000-0000-4000-8000-000000000009",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "matched utterance",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "matchingIntent",
+                "entities": {},
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": true,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"DONE\",\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"turn\":1}},\"fixturePayload\":{\"esml\":\"<speak>Fixture answer.</speak>\",\"requestType\":\"LISTEN_LAUNCH\"}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "json": {
+            "type": "DONE",
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "turn": 1
+                }
+              },
+              "fixturePayload": {
+                "esml": "<speak>Fixture answer.</speak>",
+                "requestType": "LISTEN_LAUNCH"
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          }
+        }
+      ],
+      "observedOpenAfterFinalMs": 50,
+      "connectionOpenAfterFinal": true,
+      "clientCloseAfterFinal": true,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "elapsedMs": 60.973124
+    },
+    {
+      "name": "hub-listen-relaunch",
+      "transport": "WS",
+      "request": {
+        "path": "/v1/listen",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "turn": 1
+                }
+              }
+            },
+            "msgID": "fixture-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "matched utterance"
+            },
+            "msgID": "fixture-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "body": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-00000000000b\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-00000000000b",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-00000000000c\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-00000000000c",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"LISTEN\",\"msgID\":\"00000000-0000-4000-8000-00000000000e\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":true,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "json": {
+            "type": "LISTEN",
+            "msgID": "00000000-0000-4000-8000-00000000000e",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "matched utterance",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "matchingIntent",
+                "entities": {},
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": true,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"DONE\",\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"turn\":1}},\"fixturePayload\":{\"esml\":\"<speak>Fixture answer.</speak>\",\"requestType\":\"LISTEN_LAUNCH\"}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "json": {
+            "type": "DONE",
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "turn": 1
+                }
+              },
+              "fixturePayload": {
+                "esml": "<speak>Fixture answer.</speak>",
+                "requestType": "LISTEN_LAUNCH"
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          }
+        }
+      ],
+      "clientCloseAfterFinal": true,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "elapsedMs": 4.997388
+    },
+    {
+      "name": "hub-listen-update",
+      "transport": "WS",
+      "request": {
+        "path": "/v1/listen",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "turn": 1
+                }
+              }
+            },
+            "msgID": "fixture-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "local answer"
+            },
+            "msgID": "fixture-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "body": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000010\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000010",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000011\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000011",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"LISTEN\",\"msgID\":\"00000000-0000-4000-8000-000000000013\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"local answer\",\"confidence\":1},\"nlu\":{\"intent\":\"decoyIntent\",\"entities\":{},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":false,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "json": {
+            "type": "LISTEN",
+            "msgID": "00000000-0000-4000-8000-000000000013",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "local answer",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "decoyIntent",
+                "entities": {},
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": false,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"DONE\",\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"turn\":2}},\"fixturePayload\":{\"esml\":\"<speak>Fixture answer.</speak>\",\"requestType\":\"LISTEN_UPDATE\"}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "json": {
+            "type": "DONE",
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "turn": 2
+                }
+              },
+              "fixturePayload": {
+                "esml": "<speak>Fixture answer.</speak>",
+                "requestType": "LISTEN_UPDATE"
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          }
+        }
+      ],
+      "clientCloseAfterFinal": true,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "elapsedMs": 4.109593
+    },
+    {
+      "name": "hub-listen-no-match",
+      "transport": "WS",
+      "request": {
+        "path": "/listen",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "no matching intent"
+            },
+            "msgID": "fixture-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "body": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000015\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000015",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000016\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000016",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"LISTEN\",\"msgID\":\"00000000-0000-4000-8000-000000000018\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"no matching intent\",\"confidence\":1},\"nlu\":{\"intent\":null,\"entities\":{},\"rules\":[\"launch\"]},\"match\":null},\"final\":true,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "json": {
+            "type": "LISTEN",
+            "msgID": "00000000-0000-4000-8000-000000000018",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "no matching intent",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": null,
+                "entities": {},
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": null
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          }
+        }
+      ],
+      "clientCloseAfterFinal": true,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "elapsedMs": 2.612104
+    },
+    {
+      "name": "hub-listen-provider-failure",
+      "transport": "WS",
+      "request": {
+        "path": "/listen",
+        "headers": {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "fixture-transaction"
+        },
+        "frames": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "provider failure"
+            },
+            "msgID": "fixture-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "body": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-000000000019\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-000000000019",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"00000000-0000-4000-8000-00000000001a\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "json": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "00000000-0000-4000-8000-00000000001a",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          }
+        },
+        {
+          "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-00000000001c\",\"ts\":1527681600000,\"data\":{\"code\":\"PARSER\",\"message\":\"Request failed with status code 503\"},\"timings\":{\"total\":0},\"final\":true}",
+          "json": {
+            "type": "ERROR",
+            "msgID": "00000000-0000-4000-8000-00000000001c",
+            "ts": 1527681600000,
+            "data": {
+              "code": "PARSER",
+              "message": "Request failed with status code 503"
+            },
+            "timings": {
+              "total": 0
+            },
+            "final": true
+          }
+        }
+      ],
+      "clientCloseAfterFinal": true,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "elapsedMs": 3.681483
+    },
+    {
+      "name": "hub-listen-auth-required",
+      "transport": "WS",
+      "request": {
+        "path": "/listen",
+        "headers": {},
+        "frames": []
+      },
+      "frames": [],
+      "upgrade": {
+        "status": 401,
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "25"
+        },
+        "body": "Authorization is required"
+      },
+      "elapsedMs": 0.837147,
+      "close": {
+        "code": 1006,
+        "reason": ""
+      }
+    },
+    {
+      "name": "hub-settings-client",
+      "transport": "module",
+      "request": {
+        "accountId": "fixture-account",
+        "loopId": "fixture-loop",
+        "skills": [
+          "report-skill"
+        ]
+      },
+      "result": [
+        [
+          "report-skill",
+          {
+            "weatherEnabled": {
+              "value": true
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "parser-empty",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/v1/parse",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/json",
+          "content-length": 95
+        },
+        "body": "{\"type\":\"NLU\",\"data\":{\"text\":\"  \",\"rules\":[\"launch\"]},\"msgID\":\"fixture-NLU\",\"ts\":1527681600000}"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "130",
+          "etag": "W/\"82-TCvcZKUNtIhqPwe4JL32yQl7xDg\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-00000000001d\",\"ts\":1527681600000,\"data\":{\"intent\":null,\"entities\":null,\"rules\":[]}}",
+        "json": {
+          "type": "NLU",
+          "msgID": "00000000-0000-4000-8000-00000000001d",
+          "ts": 1527681600000,
+          "data": {
+            "intent": null,
+            "entities": null,
+            "rules": []
+          }
+        }
+      },
+      "elapsedMs": 1.521145
+    },
+    {
+      "name": "parser-malformed",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/v1/parse",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/json",
+          "content-length": 2
+        },
+        "body": "{}"
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "132",
+          "etag": "W/\"84-wxtMwL1PQIIT2YOHXeg82NhJDxs\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"ERROR\",\"msgID\":\"00000000-0000-4000-8000-00000000001e\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"Bad request: {}\"}}",
+        "json": {
+          "type": "ERROR",
+          "msgID": "00000000-0000-4000-8000-00000000001e",
+          "ts": 1527681600000,
+          "final": true,
+          "data": {
+            "message": "Bad request: {}"
+          }
+        }
+      },
+      "elapsedMs": 1.136656
+    },
+    {
+      "name": "parser-no-match",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/v1/parse",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/json",
+          "content-length": 108
+        },
+        "body": "{\"type\":\"NLU\",\"data\":{\"text\":\"no match\",\"rules\":[\"shared.yes_no\"]},\"msgID\":\"fixture-NLU\",\"ts\":1527681600000}"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "130",
+          "etag": "W/\"82-BRN7HiFHw5KLp6FPH9yCi44+xy8\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-00000000001f\",\"ts\":1527681600000,\"data\":{\"intent\":null,\"entities\":null,\"rules\":[]}}",
+        "json": {
+          "type": "NLU",
+          "msgID": "00000000-0000-4000-8000-00000000001f",
+          "ts": 1527681600000,
+          "data": {
+            "intent": null,
+            "entities": null,
+            "rules": []
+          }
+        }
+      },
+      "elapsedMs": 1.127448
+    },
+    {
+      "name": "parser-robust-match",
+      "transport": "HTTP",
+      "request": {
+        "method": "POST",
+        "path": "/v1/parse",
+        "headers": {
+          "connection": "close",
+          "content-type": "application/json",
+          "content-length": 140
+        },
+        "body": "{\"type\":\"NLU\",\"data\":{\"text\":\"robust match\",\"rules\":[\"clock.timer_set_value\"],\"loop\":{\"users\":[]}},\"msgID\":\"fixture-NLU\",\"ts\":1527681600000}"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "172",
+          "etag": "W/\"ac-w2hCGxn6V+InG5xW3a4VD8H7Er4\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-000000000020\",\"ts\":1527681600000,\"data\":{\"intent\":\"matchingIntent\",\"entities\":{\"value\":5},\"rules\":[\"clock.timer_set_value\"]}}",
+        "json": {
+          "type": "NLU",
+          "msgID": "00000000-0000-4000-8000-000000000020",
+          "ts": 1527681600000,
+          "data": {
+            "intent": "matchingIntent",
+            "entities": {
+              "value": 5
+            },
+            "rules": [
+              "clock.timer_set_value"
+            ]
+          }
+        }
+      },
+      "elapsedMs": 0.787694
+    },
+    {
+      "name": "relay-cache-miss",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/calendar?key=calendar",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "54",
+          "etag": "W/\"36-ubWu+rtBDjPOL6hoZGQ200T4yHI\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"relayData\":{\"events\":[]},\"lassoDataFromRedis\":false}",
+        "json": {
+          "relayData": {
+            "events": []
+          },
+          "lassoDataFromRedis": false
+        }
+      },
+      "elapsedMs": 1.356813
+    },
+    {
+      "name": "relay-cache-hit",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/calendar?key=calendar",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "text/html; charset=utf-8",
+          "content-length": "107",
+          "etag": "W/\"6b-yAQpi7If9eBMRZJx3ChHya1ztDU\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"relayData\":{\"events\":[]},\"lassoDataFromRedis\":true,\"lassoInsertedIntoRedisAt\":\"2018-05-30T12:00:00.000Z\"}",
+        "json": {
+          "relayData": {
+            "events": []
+          },
+          "lassoDataFromRedis": true,
+          "lassoInsertedIntoRedisAt": "2018-05-30T12:00:00.000Z"
+        }
+      },
+      "elapsedMs": 0.677235
+    },
+    {
+      "name": "relay-skip-cache-string-false",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/calendar?key=calendar&skipCache=false",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "54",
+          "etag": "W/\"36-ubWu+rtBDjPOL6hoZGQ200T4yHI\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "{\"relayData\":{\"events\":[]},\"lassoDataFromRedis\":false}",
+        "json": {
+          "relayData": {
+            "events": []
+          },
+          "lassoDataFromRedis": false
+        }
+      },
+      "elapsedMs": 0.722751
+    },
+    {
+      "name": "relay-head-prefetch",
+      "transport": "HTTP",
+      "request": {
+        "method": "HEAD",
+        "path": "/v1/calendar?key=prefetch",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-powered-by": "Express",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": ""
+      },
+      "elapsedMs": 0.619384
+    },
+    {
+      "name": "relay-invalid-input",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/calendar",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "text/html; charset=utf-8",
+          "content-length": "20",
+          "etag": "W/\"14-zxZbQCsV+3+3cKwnMkFxZY5y3pg\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "fixture key required"
+      },
+      "elapsedMs": 0.656095
+    },
+    {
+      "name": "relay-provider-failure",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/calendar?key=failure",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "text/html; charset=utf-8",
+          "content-length": "71",
+          "etag": "W/\"47-YyLi7eIvFZfWP7CFcet3O7Dquds\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "Error getting FixtureCalendar data: Error: fixture provider unavailable"
+      },
+      "elapsedMs": 1.02304
+    },
+    {
+      "name": "relay-empty-provider",
+      "transport": "HTTP",
+      "request": {
+        "method": "GET",
+        "path": "/v1/calendar?key=empty",
+        "headers": {
+          "connection": "close"
+        }
+      },
+      "response": {
+        "status": 502,
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "text/html; charset=utf-8",
+          "content-length": "32",
+          "etag": "W/\"20-2193Mgn8o694I2ybIPPvURAp1Ks\"",
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "connection": "close"
+        },
+        "body": "Empty reply from FixtureCalendar"
+      },
+      "elapsedMs": 0.751556
+    }
+  ],
+  "sideEffects": [
+    {
+      "method": "POST",
+      "path": "/v1/parse",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "155",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-000000000008\",\"ts\":1527681600000,\"data\":{\"text\":\"matched utterance\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+      "json": {
+        "type": "NLU",
+        "msgID": "00000000-0000-4000-8000-000000000008",
+        "ts": 1527681600000,
+        "data": {
+          "text": "matched utterance",
+          "rules": [
+            "launch"
+          ],
+          "loop": {
+            "users": []
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "NLU",
+          "data": {
+            "intent": "matchingIntent",
+            "entities": {},
+            "rules": [
+              "launch"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/skill",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "448",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"00000000-0000-4000-8000-00000000000a\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"::ffff:127.0.0.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\"},\"result\":{\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"memo\":\"fixture memo\"}}}",
+      "json": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "00000000-0000-4000-8000-00000000000a",
+        "ts": 1527681600000,
+        "data": {
+          "general": {
+            "accountID": "fixture-account",
+            "robotID": "fixture-robot",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "::ffff:127.0.0.1"
+          },
+          "runtime": {
+            "perception": {
+              "speaker": null
+            }
+          },
+          "skill": {
+            "id": "skill1"
+          },
+          "result": {
+            "nlu": {
+              "intent": "matchingIntent",
+              "entities": {},
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": "matched utterance",
+              "confidence": 1
+            },
+            "memo": "fixture memo"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "DONE",
+          "data": {
+            "skill": {
+              "id": "skill1",
+              "session": {
+                "id": "fixture-session",
+                "turn": 1
+              }
+            },
+            "fixturePayload": {
+              "esml": "<speak>Fixture answer.</speak>",
+              "requestType": "LISTEN_LAUNCH"
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "126",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"matchingIntent\",\"personIDs\":[\"UNKNOWN\"]}",
+      "json": {
+        "robotID": "fixture-robot",
+        "sessionID": "fixture-session",
+        "skillID": "skill1",
+        "intent": "matchingIntent",
+        "personIDs": [
+          "UNKNOWN"
+        ]
+      },
+      "response": {
+        "status": 200,
+        "json": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/parse",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "155",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-00000000000d\",\"ts\":1527681600000,\"data\":{\"text\":\"matched utterance\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+      "json": {
+        "type": "NLU",
+        "msgID": "00000000-0000-4000-8000-00000000000d",
+        "ts": 1527681600000,
+        "data": {
+          "text": "matched utterance",
+          "rules": [
+            "launch"
+          ],
+          "loop": {
+            "users": []
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "NLU",
+          "data": {
+            "intent": "matchingIntent",
+            "entities": {},
+            "rules": [
+              "launch"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/skill",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "448",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"00000000-0000-4000-8000-00000000000f\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"::ffff:127.0.0.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\"},\"result\":{\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"memo\":\"fixture memo\"}}}",
+      "json": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "00000000-0000-4000-8000-00000000000f",
+        "ts": 1527681600000,
+        "data": {
+          "general": {
+            "accountID": "fixture-account",
+            "robotID": "fixture-robot",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "::ffff:127.0.0.1"
+          },
+          "runtime": {
+            "perception": {
+              "speaker": null
+            }
+          },
+          "skill": {
+            "id": "skill1"
+          },
+          "result": {
+            "nlu": {
+              "intent": "matchingIntent",
+              "entities": {},
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": "matched utterance",
+              "confidence": 1
+            },
+            "memo": "fixture memo"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "DONE",
+          "data": {
+            "skill": {
+              "id": "skill1",
+              "session": {
+                "id": "fixture-session",
+                "turn": 1
+              }
+            },
+            "fixturePayload": {
+              "esml": "<speak>Fixture answer.</speak>",
+              "requestType": "LISTEN_LAUNCH"
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "126",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"matchingIntent\",\"personIDs\":[\"UNKNOWN\"]}",
+      "json": {
+        "robotID": "fixture-robot",
+        "sessionID": "fixture-session",
+        "skillID": "skill1",
+        "intent": "matchingIntent",
+        "personIDs": [
+          "UNKNOWN"
+        ]
+      },
+      "response": {
+        "status": 200,
+        "json": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/parse",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "150",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-000000000012\",\"ts\":1527681600000,\"data\":{\"text\":\"local answer\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+      "json": {
+        "type": "NLU",
+        "msgID": "00000000-0000-4000-8000-000000000012",
+        "ts": 1527681600000,
+        "data": {
+          "text": "local answer",
+          "rules": [
+            "launch"
+          ],
+          "loop": {
+            "users": []
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "NLU",
+          "data": {
+            "intent": "decoyIntent",
+            "entities": {},
+            "rules": [
+              "launch"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/skill",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "462",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"LISTEN_UPDATE\",\"msgID\":\"00000000-0000-4000-8000-000000000014\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"::ffff:127.0.0.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"turn\":1}},\"result\":{\"nlu\":{\"intent\":\"decoyIntent\",\"entities\":{},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"local answer\",\"confidence\":1}}}}",
+      "json": {
+        "type": "LISTEN_UPDATE",
+        "msgID": "00000000-0000-4000-8000-000000000014",
+        "ts": 1527681600000,
+        "data": {
+          "general": {
+            "accountID": "fixture-account",
+            "robotID": "fixture-robot",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "::ffff:127.0.0.1"
+          },
+          "runtime": {
+            "perception": {
+              "speaker": null
+            }
+          },
+          "skill": {
+            "id": "skill1",
+            "session": {
+              "id": "fixture-session",
+              "turn": 1
+            }
+          },
+          "result": {
+            "nlu": {
+              "intent": "decoyIntent",
+              "entities": {},
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": "local answer",
+              "confidence": 1
+            }
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "DONE",
+          "data": {
+            "skill": {
+              "id": "skill1",
+              "session": {
+                "id": "fixture-session",
+                "turn": 2
+              }
+            },
+            "fixturePayload": {
+              "esml": "<speak>Fixture answer.</speak>",
+              "requestType": "LISTEN_UPDATE"
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "123",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"decoyIntent\",\"personIDs\":[\"UNKNOWN\"]}",
+      "json": {
+        "robotID": "fixture-robot",
+        "sessionID": "fixture-session",
+        "skillID": "skill1",
+        "intent": "decoyIntent",
+        "personIDs": [
+          "UNKNOWN"
+        ]
+      },
+      "response": {
+        "status": 200,
+        "json": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/parse",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "156",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-000000000017\",\"ts\":1527681600000,\"data\":{\"text\":\"no matching intent\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+      "json": {
+        "type": "NLU",
+        "msgID": "00000000-0000-4000-8000-000000000017",
+        "ts": 1527681600000,
+        "data": {
+          "text": "no matching intent",
+          "rules": [
+            "launch"
+          ],
+          "loop": {
+            "users": []
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "json": {
+          "type": "NLU",
+          "data": {
+            "intent": null,
+            "entities": {},
+            "rules": [
+              "launch"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/parse",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-jibo-transid": "fixture-transaction",
+        "x-jibo-robotid": "fixture-robot",
+        "x-jibo-logging-config": "{}",
+        "user-agent": "axios/0.17.1",
+        "content-length": "154",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"type\":\"NLU\",\"msgID\":\"00000000-0000-4000-8000-00000000001b\",\"ts\":1527681600000,\"data\":{\"text\":\"provider failure\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+      "json": {
+        "type": "NLU",
+        "msgID": "00000000-0000-4000-8000-00000000001b",
+        "ts": 1527681600000,
+        "data": {
+          "text": "provider failure",
+          "rules": [
+            "launch"
+          ],
+          "loop": {
+            "users": []
+          }
+        }
+      },
+      "response": {
+        "status": 503,
+        "json": {
+          "message": "fixture NLU unavailable"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "content-type": "application/json;charset=utf-8",
+        "x-amz-credentials": "{\"id\":\"fixture-account\"}",
+        "x-amz-target": "Settings_20160801.GetSettings",
+        "user-agent": "axios/0.17.1",
+        "content-length": "93",
+        "host": "127.0.0.1:40619",
+        "connection": "close"
+      },
+      "body": "{\"loopId\":\"fixture-loop\",\"transId\":\"fixture-trans\",\"skills\":[\"report-skill\"],\"getView\":false}",
+      "json": {
+        "loopId": "fixture-loop",
+        "transId": "fixture-trans",
+        "skills": [
+          "report-skill"
+        ],
+        "getView": false
+      },
+      "response": {
+        "status": 200,
+        "json": [
+          {
+            "skillId": "report-skill",
+            "data": {
+              "weatherEnabled": {
+                "value": true
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "checks": [
+    "BaseService health response",
+    "BaseHttpHandler preserves JSON null",
+    "BaseService not-found status/envelope",
+    "BaseService HTTP auth boundary",
+    "Original hub serves /skills/fixture-robot",
+    "Original hub serves /v1/skills/fixture-robot",
+    "Original hub serves /skills/settings/fixture-robot",
+    "Original hub serves /v1/skills/settings/fixture-robot",
+    "Original listen launches through ordered SOS/EOS/LISTEN/DONE frames",
+    "Original hub leaves the socket open after a final transaction frame",
+    "A matching global intent launches again despite the existing session",
+    "Original hub sends a skill continuation",
+    "Original Settings client reaches legacy target with original payload",
+    "Original parser empty request result",
+    "Original relay wraps an empty calendar in relayData",
+    "Original relay cache marks the response and insertion time",
+    "Original relay HEAD succeeds with an empty body",
+    "Original NLU 2.8.3 CLI executes against the original launch FST",
+    "Original hub produced launch history calls"
+  ],
+  "exclusions": [
+    "Original Gulp/browserify release build and type checking",
+    "Live Google streaming ASR/gRPC and Dialogflow",
+    "Mongo/Redis durability, OAuth/live providers, GQA process",
+    "Complete skill sessions, proactivity, firmware/hardware and full corpora"
+  ],
+  "parserInputs": [
+    {
+      "provider": "robust",
+      "data": {
+        "text": "no match",
+        "rules": [
+          "shared.yes_no"
+        ]
+      }
+    },
+    {
+      "provider": "dialogflow",
+      "data": {
+        "text": "no match",
+        "rules": [
+          "shared.yes_no"
+        ]
+      }
+    },
+    {
+      "provider": "robust",
+      "data": {
+        "text": "robust match",
+        "rules": [
+          "clock.timer_set_value"
+        ],
+        "loop": {
+          "users": []
+        }
+      }
+    },
+    {
+      "provider": "dialogflow",
+      "data": {
+        "text": "robust match",
+        "rules": [
+          "clock.timer_set_value"
+        ],
+        "loop": {
+          "users": []
+        }
+      }
+    }
+  ],
+  "relayEffects": [
+    {
+      "operation": "redis.get",
+      "key": "fixture:calendar"
+    },
+    {
+      "operation": "provider.fetch",
+      "input": {
+        "key": "calendar"
+      }
+    },
+    {
+      "operation": "redis.set",
+      "key": "fixture:calendar",
+      "value": "{\"relayData\":{\"events\":[]},\"lassoDataFromRedis\":true,\"lassoInsertedIntoRedisAt\":\"2018-05-30T12:00:00.000Z\"}",
+      "ex": "EX",
+      "ttl": 60
+    },
+    {
+      "operation": "redis.get",
+      "key": "fixture:calendar"
+    },
+    {
+      "operation": "provider.fetch",
+      "input": {
+        "key": "calendar"
+      }
+    },
+    {
+      "operation": "redis.set",
+      "key": "fixture:calendar",
+      "value": "{\"relayData\":{\"events\":[]},\"lassoDataFromRedis\":true,\"lassoInsertedIntoRedisAt\":\"2018-05-30T12:00:00.000Z\"}",
+      "ex": "EX",
+      "ttl": 60
+    },
+    {
+      "operation": "redis.get",
+      "key": "fixture:prefetch"
+    },
+    {
+      "operation": "provider.fetch",
+      "input": {
+        "key": "prefetch"
+      }
+    },
+    {
+      "operation": "redis.set",
+      "key": "fixture:prefetch",
+      "value": "{\"relayData\":{\"events\":[]},\"lassoDataFromRedis\":true,\"lassoInsertedIntoRedisAt\":\"2018-05-30T12:00:00.000Z\"}",
+      "ex": "EX",
+      "ttl": 60
+    },
+    {
+      "operation": "redis.get",
+      "key": "fixture:failure"
+    },
+    {
+      "operation": "provider.fetch",
+      "input": {
+        "key": "failure"
+      }
+    },
+    {
+      "operation": "redis.get",
+      "key": "fixture:empty"
+    },
+    {
+      "operation": "provider.fetch",
+      "input": {
+        "key": "empty"
+      }
+    }
+  ],
+  "nluBinary": {
+    "command": [
+      "/parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/build/bin/parse",
+      "--fst",
+      "/parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_fst/launch.fst",
+      "--txt",
+      "/evidence/nlu-input.txt",
+      "--json"
+    ],
+    "input": [
+      "tell me a joke",
+      "set a timer for five minutes",
+      "purple dishwasher giraffe"
+    ],
+    "binarySha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "fstSha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
+    "exitCode": 0,
+    "stdout": "[{\"Input\":\"tell me a joke\", \"NLParse\":{\"intent\":\"requestTellJiboContent\",\"JiboContent\":\"Joke\",\"priority\":\"HIGH\",\"union_original_fst_name\":\"handle:chitchat/launch\"}, \"heuristic_score\":15, \"index\":0}]\n[{\"Input\":\"set a timer for five minutes\", \"NLParse\":{\"domain\":\"timer\",\"intent\":\"start\",\"hours\":\"null\",\"minutes\":\"5\",\"seconds\":\"null\",\"skill\":\"@be/clock\",\"priority\":\"HIGH\",\"union_original_fst_name\":\"handle:clock/launch\"}, \"heuristic_score\":27, \"index\":0}]\n[]\n",
+    "stderr": ""
+  },
+  "result": "pass"
+}

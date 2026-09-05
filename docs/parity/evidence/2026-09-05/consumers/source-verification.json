@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "result": "pass",
+  "scope": "Source provenance only",
+  "archiveVerified": true,
+  "filesVerified": 485,
+  "profileComparisonsVerified": 13,
+  "identicalComparedFiles": 13,
+  "robotRuntimeVerified": false,
+  "simulatorRuntimeVerified": false,
+  "toolSha256": "e54dd80cc5b34aafbc565ad5f07e35c97819822d2b0739764b3adf76cede759b",
+  "evidenceSha256": {
+    "be-12.0.0-sources.json": "fa9377371e56fbebd2ed1df34ec7aa3c6f3caa97c278353104af3cfc966c9132",
+    "git-sources.json": "a1b544187271f0d61f5084e6658db108ed23e5eebe535dd0ef290d6d77ee1838",
+    "be-12.0.0-server-clients.json": "971c1ea9cb38297587cab2beb748d61a5faa5a742663a6f44e6e465a5bebbc20",
+    "profile-comparison.json": "fb0cce7a07704601a113ab099ef8220e54a21f67e4a773150892dc82a5bc4062"
+  }
+}

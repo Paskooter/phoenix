@@ -1,0 +1,19 @@
+loaded 20 skills
+
+INTENT PARITY: 74/89 (83%)
+MISSES:
+  x "what day is it today"  want=generalWhatQuestions  got=askForDate
+  x "hi jibo"  want=heyJibo  got=hello
+  x "whats the weather"  want=requestWeatherPR  got=requestWeather
+  x "weather"  want=requestWeatherPR  got=requestWeather
+  x "whats the forecast"  want=requestWeatherPR  got=requestWeather
+  x "give me the headlines"  want=requestJiboGiveThing  got=start
+  x "morning report"  want=launchPersonalReport  got=goodMorning
+  x "what do i have today"  want=idle  got=generalQuestions
+  x "who is ada lovelace"  want=whoIsPerson  got=generalWhoQuestions
+  x "who was albert einstein"  want=whoIsPerson  got=generalWhoQuestions
+  x "when did world war two end"  want=generalWhenQuestions  got=generalQuestions
+  x "how many planets are there"  want=generalHowQuestions  got=generalQuestions
+  x "what is the capital of france"  want=requestTellAboutThing  got=generalWhatQuestions
+  x "whats your name"  want=idle  got=whatIsJiboDescriptor
+  x "what can i ask you"  want=idle  got=generalQuestions

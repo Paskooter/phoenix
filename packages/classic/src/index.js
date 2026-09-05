@@ -14,6 +14,7 @@ import { makeRobotHandler } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 import { KeyStore, makeKeyHandler } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
+import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { stubRegistrations } from './stubs.js';
 
 export { createClassicRouter } from './router.js';
@@ -23,6 +24,7 @@ export { makeRobotHandler } from './robot.js';
 export { NotificationHub } from './notification.js';
 export { KeyStore } from './key.js';
 export { DeviceRegistry } from './push.js';
+export { BackupStore } from './backup.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -39,9 +41,10 @@ export function classicRoutes(hub, extra = []) {
     { match: /^notification/i, handler: makeNotificationHandler(hub) },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/backup/ifttt/nlp/collision)
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/ifttt/nlp/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
+    { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^update/i, proxyTo: () => netUrl('ota', DefaultPort.ota) },
   ]);
@@ -55,10 +58,15 @@ export function classicRoutes(hub, extra = []) {
  */
 export function createClassicEntrypoint({ extra = [] } = {}) {
   const hub = new NotificationHub();
+  const backups = new BackupStore();
+  // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
+  // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
+  const baseFor = (req) => process.env.ETCO_classic_publicUrl || `http://${(req.headers && req.headers.host) || 'localhost'}`;
   const service = createService({
     name: 'classic',
     routes: {
-      ...classicRoutes(hub, extra),
+      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }]),
+      ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': ({ res, body }) => {
         if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
@@ -68,7 +76,7 @@ export function createClassicEntrypoint({ extra = [] } = {}) {
     },
   });
   const wss = attachNotificationSocket(service.server, hub);
-  return { ...service, hub, wss };
+  return { ...service, hub, wss, backups };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {

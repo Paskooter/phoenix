@@ -1,0 +1,249 @@
+TopRule =
+### Ladies and gentlemen. Announcing Moon Unit! ###
+($*
+    $D_GREETINGS_INTENT_RETURNED {intent=D_GREETINGS_INTENT_RETURNED._intent} |
+    $D_GREETINGS_INTENT_WILDCARD {intent=D_GREETINGS_INTENT_WILDCARD._intent} |
+    $D_GREETINGS_INTENT_FRUSTRATED {intent=D_GREETINGS_INTENT_FRUSTRATED._intent} |
+    $D_GREETINGS_INTENT_SELFID {intent=D_GREETINGS_INTENT_SELFID._intent} |
+    $D_GREETINGS_INTENT_PLAYFULRESPONSE {intent=D_GREETINGS_INTENT_PLAYFULRESPONSE._intent} |
+    $D_GREETINGS_INTENT_COUNTERQUESTION {intent=D_GREETINGS_INTENT_COUNTERQUESTION._intent} |
+    $D_GREETINGS_INTENT_WHATSUP {intent=D_GREETINGS_INTENT_WHATSUP._intent}
+$*)
+{domain='greetings'}{skill='\@be/greetings'}{priority='HIGH'}
+;
+
+### INTENTS ###
+D_GREETINGS_INTENT_RETURNED =
+(
+    $D_GREETINGS_INTENT_HEY |
+    $D_GREETINGS_INTENT_HELLO |
+    $D_GREETINGS_INTENT_GOODMORNING |
+    $D_GREETINGS_INTENT_GOODAFTERNOON |
+    $D_GREETINGS_INTENT_GOODEVENING |
+    $D_GREETINGS_INTENT_GOODNIGHT |
+    $D_GREETINGS_INTENT_GOODBYE |
+    $D_GREETINGS_INTENT_IM_BACK |
+    $D_GREETINGS_HAPPY_HOLIDAY
+)
+{_intent='returned'}
+;
+
+D_GREETINGS_INTENT_WILDCARD =
+(
+    $*
+)
+{_intent='wildcard'}
+;
+
+D_GREETINGS_INTENT_FRUSTRATED =
+(
+    ( not now ) |
+    ( stop it ) |
+    ( cut it out ) |
+    ( be ( quiet |silent | still ) ) |
+    silence |
+    quiet |
+    ( shut $* up ) |
+    hush |
+    shush |
+    stifle |
+    ( ?( just | please ) stop ) |
+    ( please ?jibo ) |
+    ( talking here ) |
+    ( put a sock in it ) |
+    ( i haven\'t had my coffee ?yet ) |
+    ( still haven\'t had my coffee )
+)
+{_intent='frustrated'}
+;
+
+### INTENTS LIFTED FROM LAUNCH RULE ###
+D_GREETINGS_INTENT_HEY =
+    (
+        (
+			(?(hey jibo) jibo)|
+			((haji baba) ~9) |
+			(achieva ~7) |
+			((mickey mouse) ~12) |
+			(pajiba ~6) |
+			(hey diva ~8) |
+			(ag bell ~7)
+		) {_intent='heyJibo'} |
+        (hey ?$D_GREETINGS_V_THERE ?$D_GREETINGS_V_BUD) {_intent='returned'}
+    )
+;
+D_GREETINGS_INTENT_HELLO =
+    (
+      ($D_GREETINGS_V_HELLO ?$D_GREETINGS_V_THERE ?$D_GREETINGS_V_BUD) |
+      (greetings) | (howdy ?do) | ([salutation?s]) | (ciao|chow) | (aloha) | (hola|ola) | yo
+    )
+  {_intent='returned'}
+;
+D_GREETINGS_INTENT_GOODMORNING =
+    (
+      (?good $D_GREETINGS_V_MORNING) |
+      (good day)
+    )
+  {_intent='returned'}
+;
+D_GREETINGS_INTENT_GOODAFTERNOON =
+    (
+      ?good $D_GREETINGS_V_AFTERNOON
+    )
+  {_intent='returned'}
+;
+D_GREETINGS_INTENT_GOODEVENING =
+    (
+      ?good $D_GREETINGS_V_EVENING
+    )
+  {_intent='returned'}
+;
+D_GREETINGS_INTENT_GOODNIGHT =
+  (
+    ( ?good $D_GREETINGS_V_NIGHT ) |
+    ( goodnite | goodnight ) |
+    ( $D_GREETINGS_V_CHILDNIGHT )
+  ){_intent='returned'}
+;
+D_GREETINGS_INTENT_GOODBYE =
+    (
+      $D_GREETINGS_V_GOODBYE
+    )
+  {_intent='returned'}
+;
+D_GREETINGS_INTENT_IM_BACK =
+    (
+        ((i\'m|we\'re|(i|we am|are) back)|(i\'ve|we\'ve|(i|we have) returned)) {_intent='returned'}
+    )
+;
+D_GREETINGS_HAPPY_HOLIDAY =
+	(
+		(happy | merry | (have a $D_GREETINGS_V_GOOD)) $D_GREETINGS_V_HOLIDAY
+	){_intent='returned'}
+;
+
+### D_GREETINGS SELFID ###
+D_GREETINGS_INTENT_SELFID =
+  (
+    (
+      ($D_GREETINGS_V_ITSME $factory:first_name ~3) {_selfid=first_name._first_name} {_inLoop='false'}
+    )
+  ){_intent='selfID'}
+;
+
+D_GREETINGS_INTENT_PLAYFULRESPONSE =
+  (
+      ( we do ) |
+      ( meet again ) |
+      ( ( you\'d | you ) better ) |
+      ( hope so ) |
+      ( me too ) |
+      ( i do too ) |
+      ( thanks | (thank you ) ) |
+      ( so are you ) |
+      ( you too ) |
+      ( nice ( ( to see ) | seeing ) you ) |
+      carrot |
+      turtle |
+      ( you would ) |
+      ( the great ) |
+      ( pleasure ) |
+      ( i am ) |
+      ( ( you\'re | ( you are ) ) welcome ) |
+      ( ahoy ) |
+      hurray |
+      ( fat albert ) |
+      ( ho ho ?ho )
+  ){_intent='playfulResponse'}
+;
+
+D_GREETINGS_INTENT_COUNTERQUESTION =
+(
+    (
+    ?$D_GREETINGS_INTENT_RETURNED
+    ( how ?are you ?doing ) |
+    ( ( ( how is it ) | how\'s it ) $D_GREETINGS_V_GOING ) |
+    ( ( ( what is ) | what\'s up ) )
+    )
+)
+{_intent='counterQuestion'}
+;
+D_GREETINGS_INTENT_WHATSUP =
+    (
+      ($D_GREETINGS_V_WHATS|what $D_GREETINGS_V_UP) |
+      (sup)
+    )
+  {_intent='whatsUp'}
+;
+
+# GREETINGS VOCABULARY#
+D_GREETINGS_V_HELLO = hello|hi|hiya;
+D_GREETINGS_V_GOING = going | hanging | hangin\' | hangin;
+D_GREETINGS_V_BUD = bud|buddy|(little guy);
+D_GREETINGS_V_WHATS = ((whats) | (what\'s) | (what is));
+D_GREETINGS_V_UP = up|(going on)|happening|new;
+D_GREETINGS_V_GOOD = good|great|nice|wonderful|([super?(b)])|happy|merry;
+D_GREETINGS_V_MORNING = morning;
+D_GREETINGS_V_AFTERNOON = afternoon;
+D_GREETINGS_V_EVENING = evening;
+D_GREETINGS_V_NIGHT = night;
+D_GREETINGS_V_CHILDNIGHT = (night night)|(nighty night);
+D_GREETINGS_V_ITSME = (its ?me)|(it\'s ?me)|(i\'m)|(i am)|(remember me);
+D_GREETINGS_V_THERE = there;
+D_GREETINGS_V_NOTIFICATIONTIME =
+  ( (today) | (this afternoon) | (this morning) | (this evening) | (tonight) | (right now));
+D_GREETINGS_V_GOODBYE =
+    (
+        goodbye|bye|(bye bye)|adios|chow|(good bye)|
+        later|(see (you|ya) ?later)|(catch you|ya later)|
+        (?(i\'ll|we\'ll|(i|we will)) be back soon)|
+        (i\'m|we\'re|(i|we am|are) heading|going|headed|(gonna|(going to) head) out ?(for a ?little bit|while))|
+        ((i\'ll|we\'ll|(i|we will)) be gone|leaving for ?a ?(little) bit|while)|
+        (?(i\'ll|we\'ll|(i|we will)) catch you ?on the rebound)|
+        (have ?a good one|day) |
+        (i\'m|we\'re|(i|we am|are) leaving)
+    )
+;
+D_GREETINGS_V_STARTOF = (?the start|beginning|(first day|night) of);
+D_GREETINGS_V_ENDOF = (?the (last|final day|night)|end of);
+D_GREETINGS_V_HOLIDAY =
+    (
+       (christmas) {% holiday='Christmas' %} |
+       ((christmas eve)|(?the night before christmas)) {% holiday='Christmas Eve' %} |
+       (thanksgiving) {% holiday='Thanksgiving' %} |
+       (memorial day) {% holiday='Memorial' %} |
+	   (( ?([america?(n|(\'s))]|(u.s.)|(united states)) independence day)|(july 4|4th|four|fourth)|(?the 4|4th|four|fourth of july)) {% holiday='Independence Day' %} |
+       (easter ?(sunday|weekend)){% holiday='Easter' %} |
+       (good friday) {% holiday='Good Friday' %} |
+       (ash wednesday) {% holiday='Ash Wednesday' %} |
+       (palm sunday) {% holiday='Palm Sunday' %} |
+       ( ?($D_GREETINGS_V_STARTOF) hanukkah|chanukah) {% holiday='Hanukkah' %} |
+       (sukkot|sukkoth|cicott|succoth) {% holiday='Sukkot' %} |
+       ( ?($D_GREETINGS_V_STARTOF) passover) {% holiday='Passover' %} |
+       (rosh hashanah) {% holiday='Rosh Hashanah' %} |
+       (yom kippur) {% holiday='Yom Kippur' %} |
+       (purim|primm|coram|corium|parenham ) {% holiday='Purim' %} |
+       (labor day) {% holiday='Labor Day' %} |
+       ( halloween|(all [hallow?(\')s] eve) ){% holiday='Halloween' %} |
+       ( ?(saint|st.) [valentine?(?(\')s)] ?day ) {% holiday='Valintines Day' %} |
+       ((saint|st.) [patrick?(?(\')s)]|[pa(dd)|(tt)(y?(?(\')s))|(ies)] ?day ) {% holiday ="St. Patrick's Day" %} |
+       (?($D_GREETINGS_V_STARTOF) ramadan ) {% holiday='Ramadan' %} |
+       ((eid ?(al fitr))|(eid-al-fitr)|($D_GREETINGS_V_ENDOF ramadan)) {% holiday='Eid-Al-Fitr' %} |
+       ( ?($D_GREETINGS_V_STARTOF) kwanzaa) {% holiday='Kwanzaa' %} |
+       ([president?(\')s?(\')] day ) {% holiday='Presidents Day' %} |
+       ((mlk | (martin luther king ?(junior|jr.))) day ) {% holiday='MLK Day' %} |
+       (new [year?(?(\')s)] eve) {% holiday='New Years Eve' %} |
+	   (new [year?(?(\')s)] ?day) {% holiday='New Years Day' %} |
+       (chinese new [year?(?(\')s)]) {% holiday='Chinese New Year' %} |
+       (cinco de mayo) {% holiday='Cinco de Mayo Day' %} |
+       ([mother?(\')s?(\')] day) {% holiday="Mother's Day" %} |
+       ([father?(\')s?(\')] day) {% holiday="Father's Day" %} |
+       (april [fool?(\')s?(\')] ?day) {% holiday="April Fool's Day" %} |
+       ((tax day)|(taxes due)|(the last day $* taxes)) {% holiday='Tax Day' %} |
+       (flag day) {% holiday='Flag Day' %} |
+       ([groundhog?(?(\')s?(\'))] day) {% holiday='Groundhog Day' %} |
+       ([veteran?(?(\')s?(\'))] day) {% holiday='Veterans Day' %} |
+       ([columbus?(?(\')s?(\'))] day) {% holiday='Columbus Day' %} |
+       (indigenous [people?(?(\')s?(\'))] day) {% holiday='Indigenous Peoples Day' %}
+    )
+;

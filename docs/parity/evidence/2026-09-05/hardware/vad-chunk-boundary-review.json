@@ -1,0 +1,64 @@
+{
+  "task": "H-07",
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "b2bd849a7b1e4060a1a4ee994707bb837f009c14",
+  "productionAudioCodeRevision": "6ff23e4",
+  "result": "failed",
+  "fixture": "Checked-in1.3s PCM:300ms voiced signal then1000ms silence at16kHz",
+  "fixtureSha256": "095b97214735ad0450919e8105def5ad53f72df7586bca5a98b9123ab390d7c6",
+  "recognizer": "local deterministic _postToParakeet response; no external recognizer request",
+  "cases": [
+    {
+      "chunkBytes": 41600,
+      "beforeManualStop": {
+        "state": "SPEAKING",
+        "totalBytes": 41600,
+        "events": [
+          {
+            "type": "SOS"
+          }
+        ]
+      }
+    },
+    {
+      "chunkBytes": 1600,
+      "beforeManualStop": {
+        "state": "DONE",
+        "totalBytes": 32000,
+        "events": [
+          {
+            "type": "SOS"
+          },
+          {
+            "type": "EOS"
+          },
+          {
+            "type": "recognizer-request",
+            "bytes": 32000
+          }
+        ]
+      }
+    },
+    {
+      "chunkBytes": 640,
+      "beforeManualStop": {
+        "state": "DONE",
+        "totalBytes": 32000,
+        "events": [
+          {
+            "type": "SOS"
+          },
+          {
+            "type": "EOS"
+          },
+          {
+            "type": "recognizer-request",
+            "bytes": 32000
+          }
+        ]
+      }
+    }
+  ],
+  "conclusion": "Identical samples produce different EOS/results depending on decoder/input chunk boundaries. The large chunk never finalizes naturally; fixed-size input does. Candidate repair requested; no H-07 acceptance."
+}

@@ -1,0 +1,226 @@
+TAP version 13
+# Subtest: normalization preserves complete sessions, identifiers and timing fields
+ok 1 - normalization preserves complete sessions, identifiers and timing fields
+  ---
+  duration_ms: 1.643662
+  type: 'test'
+  ...
+# Subtest: stream comparison does not silently erase identifiers and timestamps
+ok 2 - stream comparison does not silently erase identifiers and timestamps
+  ---
+  duration_ms: 0.561654
+  type: 'test'
+  ...
+# Subtest: D1 catches a wrong message-type sequence
+ok 3 - D1 catches a wrong message-type sequence
+  ---
+  duration_ms: 0.226659
+  type: 'test'
+  ...
+# Subtest: D2 catches a payload divergence (different intent)
+ok 4 - D2 catches a payload divergence (different intent)
+  ---
+  duration_ms: 0.161116
+  type: 'test'
+  ...
+# Subtest: stream comparison preserves port numbers unless a trace policy explicitly binds an endpoint
+ok 5 - stream comparison preserves port numbers unless a trace policy explicitly binds an endpoint
+  ---
+  duration_ms: 0.219166
+  type: 'test'
+  ...
+# Subtest: JSON object key order is insignificant; missing fields are significant
+ok 6 - JSON object key order is insignificant; missing fields are significant
+  ---
+  duration_ms: 0.16363
+  type: 'test'
+  ...
+# Subtest: original execution fixture is intact and satisfies independent invariants
+ok 7 - original execution fixture is intact and satisfies independent invariants
+  ---
+  duration_ms: 41.763856
+  type: 'test'
+  ...
+# Subtest: gate rejects HTTP status
+ok 8 - gate rejects HTTP status
+  ---
+  duration_ms: 30.753447
+  type: 'test'
+  ...
+# Subtest: gate rejects content type
+ok 9 - gate rejects content type
+  ---
+  duration_ms: 22.414205
+  type: 'test'
+  ...
+# Subtest: gate rejects HTTP clock
+ok 10 - gate rejects HTTP clock
+  ---
+  duration_ms: 27.340914
+  type: 'test'
+  ...
+# Subtest: gate rejects null versus empty object
+ok 11 - gate rejects null versus empty object
+  ---
+  duration_ms: 26.368964
+  type: 'test'
+  ...
+# Subtest: gate rejects field absence
+ok 12 - gate rejects field absence
+  ---
+  duration_ms: 24.959614
+  type: 'test'
+  ...
+# Subtest: gate rejects intent
+ok 13 - gate rejects intent
+  ---
+  duration_ms: 18.534708
+  type: 'test'
+  ...
+# Subtest: gate rejects entities
+ok 14 - gate rejects entities
+  ---
+  duration_ms: 17.899645
+  type: 'test'
+  ...
+# Subtest: gate rejects winning rules
+ok 15 - gate rejects winning rules
+  ---
+  duration_ms: 19.21637
+  type: 'test'
+  ...
+# Subtest: gate rejects memo
+ok 16 - gate rejects memo
+  ---
+  duration_ms: 21.823264
+  type: 'test'
+  ...
+# Subtest: gate rejects ESML
+ok 17 - gate rejects ESML
+  ---
+  duration_ms: 18.122739
+  type: 'test'
+  ...
+# Subtest: gate rejects JCP
+ok 18 - gate rejects JCP
+  ---
+  duration_ms: 18.062705
+  type: 'test'
+  ...
+# Subtest: gate rejects analytics
+ok 19 - gate rejects analytics
+  ---
+  duration_ms: 22.879525
+  type: 'test'
+  ...
+# Subtest: gate rejects opaque session contents
+ok 20 - gate rejects opaque session contents
+  ---
+  duration_ms: 23.146862
+  type: 'test'
+  ...
+# Subtest: gate rejects continuation forwarding
+ok 21 - gate rejects continuation forwarding
+  ---
+  duration_ms: 20.528774
+  type: 'test'
+  ...
+# Subtest: gate rejects timing sentinel
+ok 22 - gate rejects timing sentinel
+  ---
+  duration_ms: 20.340158
+  type: 'test'
+  ...
+# Subtest: gate rejects missing timing
+ok 23 - gate rejects missing timing
+  ---
+  duration_ms: 22.441858
+  type: 'test'
+  ...
+# Subtest: gate rejects frame order
+ok 24 - gate rejects frame order
+  ---
+  duration_ms: 20.197687
+  type: 'test'
+  ...
+# Subtest: gate rejects duplicate terminal
+ok 25 - gate rejects duplicate terminal
+  ---
+  duration_ms: 20.490561
+  type: 'test'
+  ...
+# Subtest: gate rejects wall-time bound
+ok 26 - gate rejects wall-time bound
+  ---
+  duration_ms: 21.085558
+  type: 'test'
+  ...
+# Subtest: gate rejects close behavior
+ok 27 - gate rejects close behavior
+  ---
+  duration_ms: 17.069644
+  type: 'test'
+  ...
+# Subtest: gate rejects dropped side effect
+ok 28 - gate rejects dropped side effect
+  ---
+  duration_ms: 16.953645
+  type: 'test'
+  ...
+# Subtest: gate rejects fixture substitution
+ok 29 - gate rejects fixture substitution
+  ---
+  duration_ms: 19.09563
+  type: 'test'
+  ...
+# Subtest: gate rejects case omission
+ok 30 - gate rejects case omission
+  ---
+  duration_ms: 15.750827
+  type: 'test'
+  ...
+# Subtest: generated identifier bindings are bijective even if a reused ID equals the reference literal
+ok 31 - generated identifier bindings are bijective even if a reused ID equals the reference literal
+  ---
+  duration_ms: 25.185763
+  type: 'test'
+  ...
+# Subtest: fresh generated identifiers may differ while relationships remain intact
+ok 32 - fresh generated identifiers may differ while relationships remain intact
+  ---
+  duration_ms: 19.980567
+  type: 'test'
+  ...
+# Subtest: only declared fixture endpoint paths may change ports
+ok 33 - only declared fixture endpoint paths may change ports
+  ---
+  duration_ms: 22.12634
+  type: 'test'
+  ...
+# Subtest: raw bytes and derived ETags are independently checked
+ok 34 - raw bytes and derived ETags are independently checked
+  ---
+  duration_ms: 17.024579
+  type: 'test'
+  ...
+# Subtest: CLI exits nonzero for a corrupted session and retains a diff report
+ok 35 - CLI exits nonzero for a corrupted session and retains a diff report
+  ---
+  duration_ms: 71.585206
+  type: 'test'
+  ...
+# Subtest: clock fixture freezes automatic HTTP dates while preserving explicit headers and suppression
+ok 36 - clock fixture freezes automatic HTTP dates while preserving explicit headers and suppression
+  ---
+  duration_ms: 71.70777
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 847.430483

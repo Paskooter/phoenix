@@ -1,0 +1,14 @@
+TopRule = ($* $YOU_TOO_INTENT $*) {intent = 'youToo'}{priority='HIGH'};
+
+YOU_TOO_INTENT =
+    (
+        (?($THANKS ?$JIBO) $YOUTOO_VARIATIONS) |
+        (?$THANKS $YOUTOO_VARIATIONS $JIBO)
+    )
+;
+
+THANKS = thanks | (thank you) | ( ?i (appreciate | got) it|that );
+JIBO = Jibo | (?little $GUY);
+GUY = guy | dude | robot | buddy;
+YOUTOO_VARIATIONS = (?(?and ?to) ($YOUTOO)|(you (also | (as well))) ) | (?right back at (you | ya) );
+YOUTOO = ((you too|to|two|2)|(u2));

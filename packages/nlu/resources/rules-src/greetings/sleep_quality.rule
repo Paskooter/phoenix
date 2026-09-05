@@ -1,0 +1,81 @@
+TopRule = ($* $SLEEPQUALITY $*) {intent = SLEEPQUALITY._intent}{priority='HIGH'};
+
+### Did you have a good night's sleep?
+### Did you have another good night's sleep?
+### Did you sleep better last night?
+
+SLEEPQUALITY =
+	(
+		$factory:yes_no {_intent = yes_no._nl} |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent} |
+		$COUNTER_QUESTION {_intent=COUNTER_QUESTION._intent}
+	)
+;
+YES =
+	(
+		guess | gas |
+		definitely |
+		( i ( think | suppose | guess ) ?so) |
+        ( like a|the ( log | baby | kitten | dead ) ) |
+        ( ?( (i slept) | (my sleep $w03) ) $GREAT ) |
+        ( ?slept all night ) |
+        ( ( seven | eight ) hours ) |
+        ( i $* did ) |
+        ( sure did ) |
+        ( another $GREAT) |
+        ( you know it ) |
+        ( you bet ) |
+        thankfully |
+		(not|wasn\'t|didn\'t $w03 $TERRIBLE|worst) |
+		(could ?(be|(have been)) worse)
+	)
+{_intent='yes'}
+;
+NO =
+	(
+		know | snow | now |
+		( not ?now ) |
+		don\'t |
+		( do not ) |
+        unfortunately |
+        regrettably |
+        ( did not ) |
+        didn\'t |
+        (?( (i slept )|(my sleep $w03)) $TERRIBLE) |
+        ( $UPAWAKE all night ) |
+        ( kept me $UPAWAKE ) |
+        ( ( two | three | four | five ) hours ) |
+        ( ?( i ( was | felt ) ) $SICK ?( all night ) ) |
+        $INSOMNIA |
+        ( like|(it was) $CRAP ) |
+		( another $TERRIBLE ?night) |
+        ( i wish ) |
+		(not|wasn\'t|didn\'t $w03 $GREAT|nice|better|best) |
+		(could ?(be|(have been)) better)
+	)
+{_intent='no'}
+;
+
+
+COUNTER_QUESTION =
+(
+    (how|what about you|jibo) |
+    ([how?(?(\')s)] $w03 ?($GREAT|$TERRIBLE|$OKAY) ?(is|was) your night|nap|(?[night?((\')s)] sleep)) |
+	([how?(?(\')d)] $w03 ?(well|poorly|$GREAT|$TERRIBLE|$OKAY) ?did you sleep|nap) |
+	(did you $w03 have $w03 $GREAT|$TERRIBLE|$OKAY $w03 nap|night|(?[night?((\')s)] sleep)) |
+	(did you $w03 sleep well|poorly|$OKAY) |
+	(was your night|nap|(?[night?(?(\')s)] sleep) $w03 $GREAT|$TERRIBLE|$OKAY) |
+    (and you) |
+	(sleep)
+){_intent='noMatch'}; #change to counterQuestion in future
+
+
+#USEFUL VOCABULARY
+GREAT = great | wonderful | wonderfully | awesome | good | super;
+TERRIBLE = terrible | terribly | awful | awfully | horrible | horribly | bad;
+OKAY = okay | alright | fine | decent;
+UPAWAKE = up | awake;
+SICK = sick | ill | ( ( throwing | spitting) up ) | barfing | puking | coughing | achy | headache;
+INSOMNIA = insomnia | ( ( couldn\'t | ( could not ) ) sleep );
+CRAP = crap | shit | hell;

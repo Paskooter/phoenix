@@ -1,0 +1,92 @@
+TopRule = (
+    ($* $RESPONSE $*) {intent=RESPONSE._intent}{priority='HIGH'} |
+    ($* $GLOBAL_ITEM_SELECTION $*)
+        {intent='selectItem'}
+        {itemPosition=GLOBAL_ITEM_SELECTION._itemPosition}
+        {domain='gui_command'}{priority='HIGH'} |
+    ($ANYTHING) {intent='guess'}{guess=ANYTHING._guess}{priority='HIGH'}
+);
+### What do you think the word is? Word1, Word2, Word3 ###
+### Which is the right word, do you think? Word1, Word2, Word3 ###
+### Say that again please? Word1, Word2, Word3 ###
+
+RESPONSE =
+($SURRENDER) {_intent='surrender'} |
+($REDEFINE) {_intent='redefine'}
+;
+ANYTHING @= +$w {_guess = _parsed}~5;
+SURRENDER =
+(
+    ( ( which | what ) $* ( is it ) ) |
+    ( ?$IWE ( surrender | ( give ( up | in ) ) | ( don\'t know ) ) ) |
+    ( ?( $IWE have ) no ( clue | idea ) ) |
+    ( ( tell | help ) $MEUS ) |
+    ( do tell ) |
+    ( ( i\'m | we\'re) ( ( at a loss ) | ( not sure ) | clueless ) )
+)
+;
+REDEFINE =
+(
+    ( [what?(?(\')s)] ?(is|was) that ?again ) |
+    ( repeat ?that ) |
+    ( come again ) |
+    ( say ?( that | it | $* ) again ) |
+    redefine |
+    ( tell $MEUS $* $OPTIONS ?again ) |
+    ( what are $* $OPTIONS ?again ) |
+    ( ?([what?(?(\')s)] ?(is|was)) $* definition ) |
+    ( describe ( it | (?the $OPTIONS) ) ?again ) |
+    ( once more ) |
+    ( one more time )
+)
+;
+### item/word number one
+### the left/middle/right word
+
+GLOBAL_ITEM_SELECTION =
+    (?$GENERIC_ACTION ?$THE $ORDINAL $ITEM {_itemPosition=ORDINAL._ordinal}) |
+    (?$GENERIC_ACTION ?$THE $POSITION $ITEM {_itemPosition=POSITION._position}) |
+    (?$GENERIC_ACTION ?$THE ?$ITEM ?(on | in) ?the $POSITION  {_itemPosition=POSITION._position}) |
+    (?$GENERIC_ACTION ?$THE $ITEM ?in ?the $ORDINAL $LOCATION {_itemPosition=ORDINAL._ordinal})  |
+    (?$GENERIC_ACTION ?$THE ?$ITEM ?(on | in) ?the $NUMBER  {_itemPosition=NUMBER._number}) |
+    (?$GENERIC_ACTION ?$THE ?$ITEM ?in ?the $NUMBER $LOCATION {_itemPosition=NUMBER._number})
+;
+POSITION = (
+    ($POSITION_TOP {_position='top'}) |
+    ($POSITION_MIDDLE {_position ='middle'}) |
+    ($POSITION_BOTTOM {_position ='bottom'})
+);
+ORDINAL =
+    ($ORDINAL_FIRST {_ordinal='first'} |
+    $ORDINAL_SECOND {_ordinal='second'} |
+    $ORDINAL_THIRD {_ordinal='third'})
+;
+NUMBER =
+    ($NUMBER_FIRST {_number='first'} |
+    $NUMBER_SECOND {_number='second'} |
+    $NUMBER_THIRD {_number='third'})
+;
+
+
+### USEFUL VOCABULARY ###
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select);
+SEE = ((let/’s | (let me) | (let us)) see);
+DO = (?(let/’s | (let me) | (let us)) (do | try) );
+SHOW = (show ?(me | us));
+POSITION_MIDDLE = (center | middle);
+POSITION_TOP = (top|topmost|upper|uppermost|higher|highest|(top most)|(upper most));
+POSITION_BOTTOM = (bottom|bottommost|lower|lowest|(bottom most));
+ORDINAL_FIRST = ?the first;
+ORDINAL_SECOND = ?the second;
+ORDINAL_THIRD = ?the third;
+NUMBER_FIRST = (?number (one|1));
+NUMBER_SECOND = (?number (two|2));
+NUMBER_THIRD = (?number (three|3));
+THE = (the | that);
+ITEM = (word | one | thing | item | icon);
+LOCATION = (spot | slot | position);
+PAGE = ( page | set | group | screen );
+MEUS = me | us;
+IWE = i | we;
+OPTIONS = definition | choices | options | words | word;

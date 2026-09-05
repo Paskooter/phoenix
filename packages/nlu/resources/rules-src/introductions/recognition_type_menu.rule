@@ -1,0 +1,57 @@
+TopRule = ($* $RECOTYPE $*) {intent = RECOTYPE._intent}{priority='HIGH'};
+
+#What am I learning?
+
+RECOTYPE =
+		$FACE {_intent=FACE._intent} |
+		$VOICE {_intent=VOICE._intent} |
+        $NAME {_intent=NAME._intent}
+        #$ALL {_intent=ALL._intent}
+;
+
+FACE =
+	(
+		(?$TRAIN ?$PRONOUN face) |
+        (face (training | enrollment))
+	)
+{_intent='face'}
+;
+
+VOICE =
+	(
+		(?$TRAIN ?$PRONOUN voice) |
+        (voice (training | enrollment))
+	)
+{_intent='voice'}
+;
+
+NAME =
+	(
+        (?(learn ?(?how to pronounce)) ?$PRONOUN name) |
+        (?$TRAIN ?$PRONOUN name) |
+        (name (pronunciation | training | enrollment))
+	)
+{_intent='name'}
+;
+
+#ALL =
+#	(
+#        all |
+#        (?$TRAIN ?$PRONOUN $VFN_COMBOS) |
+#        (?$TRAIN ((all ?(of it)) | (it all) | (all three) | everything | (the whole thing))) |
+#		(complete|entire|full ?recognition [?(re)train?(ing)]|enrollment)
+#	)
+#{_intent='all'}
+#;
+
+#Additional rules
+
+TRAIN =
+    (
+        ([?(re)do] | [?(re)learn] | recognize | understand | enroll | (train on))
+    )
+;
+
+#VFN_COMBOS = (?$VFN $VFN and $VFN);
+#VFN = (voice|face|name);
+PRONOUN = (my | his | her | their | the);

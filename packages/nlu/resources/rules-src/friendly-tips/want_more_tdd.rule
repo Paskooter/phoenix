@@ -1,0 +1,43 @@
+TopRule = ($* $MORETHINGS $*) {intent = MORETHINGS._intent}{priority='HIGH'};
+
+### Do you want to see other things I can do?
+
+MORETHINGS =
+	(
+		$factory:yes_no {_intent = yes_no._nl} |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent}
+	)
+;
+YES =
+	(
+		definitely |
+		( i (think | suppose | guess) ?so) |
+		( if you ( must | want | desire ( feel like it ) ) ) |
+		( why not ) |
+		( if it please you ) |
+        ( i do ) |
+        ( show $* more ) |
+        ( more ?things )
+	)
+{_intent='yes'}
+;
+
+NO =
+	(
+        now |
+        ( not ?now ) |
+		don\'t |
+		( do not ) |
+		( ?probably shouldn\'t ) |
+		( ( we\'re | I\'m ) done ) |
+		( ?that\'s enough ) |
+		( ( that\'ll | ( that will ) ) do ) |
+		finish |
+		finished |
+        ( that\'s ( alright | okay ) ) |
+        ( ?maybe later ) |
+        ( i\'m ( good | cool ) )
+	)
+{_intent='no'}
+;

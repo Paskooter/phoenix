@@ -1,0 +1,42 @@
+TopRule = ($* $ALARMTIMEROTHERSET $*) {intent = ALARMTIMEROTHERSET._intent}{priority='HIGH'};
+
+#I don't have a timer set right now, but I do have an alarm set. Do you want to delete that?
+
+ALARMTIMEROTHERSET =
+	(
+		($factory:yes_no{_intent = yes_no._nl}) |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent}
+	)
+	{%
+		if (this._intent == 'yes') {this._intent = 'replace'}
+		else if (this._intent == 'no') {this._intent = 'keep'}
+	%}
+;
+
+YES =
+	(
+		guess | gas |
+		(yes | yup | sure | okay) |
+		(don\'t|(do not) $V_KEEP ?(it|that)) |
+        ($V_REPLACE ?(it | that)) |
+        ( i do ) |
+        fine |
+        ( i ( think | guess | suppose ) ?so )
+	)
+{_intent='replace'}
+;
+
+NO =
+	(
+		know | snow | now |
+		(no | nope | don\'t | (no way)) |
+		(don\'t|(do not) $V_REPLACE ?(it|that)) |
+        ($V_KEEP ?(it | that)) |
+        ( i ( ( do not ) | don\'t ) )
+	)
+{_intent='keep'}
+;
+
+V_KEEP = keep|save|preserve;
+V_REPLACE = cancel|replace|delete|trash|discard|(throw ?(it|that) out|away);

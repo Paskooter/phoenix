@@ -1,0 +1,39 @@
+TopRule =
+			$*
+				$SELECT_CREATE_ITEM {intent = SELECT_CREATE_ITEM._intent}{priority='HIGH'}
+			$*
+;
+
+SELECT_CREATE_ITEM =
+
+    (
+        ( ?($GENERIC_ACTION) ?($THE) $CREATENAME {_intent=CREATENAME._intent} ?$ITEM )
+    )
+;
+
+
+CREATENAME =
+    (
+        ( $AUDIO {_intent='createAudio'} ) |
+		( $ONE_PHOTO {_intent='createOnePhoto'} ) |
+		( $SOME_PHOTOS {_intent='createSomePhotos'} ) |
+        ( $VIDEO {_intent='createVideo'} )
+	)
+;
+
+
+### USEFUL VOCABULARY ###
+ITEM = (one | thing | item | icon);
+THE = (the | that | your);
+LOTS = (some|many|several|((a ?whole lot|bunch)|lots|(a few|ton) ?of));
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select);
+SHOW = (show ?(me | us));
+SEE = ((let\'s | (let me) | (let us)) see);
+DO = (?(let\'s | (let me) | (let us)) (do | try) );
+AUDIO = ([voice?s]|[audio?s]|[message?s]|[note?s]);
+ONE_PHOTO = (picture | photo | pic | photograph | selfie);
+SOME_PHOTOS = (pictures|photos|pics|photographs|selfies|($LOTS $PHOTO)|$PHOTOBOOTH);
+PHOTOBOOTH = [photobooth?s] | [photoshoot?s] | (photo ([shoot?s]|[booth?s]|[collage?s]|[set?s]|[group?s]));
+PHOTO = ([picture?s] | [photo?s] | [pic?s] | [photograph?s] | [selfie?s]);
+VIDEO = ([video?s] | [movie?s] | [film?s] | [flick?s]);

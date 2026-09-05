@@ -92,6 +92,13 @@ export function robotFaceRoutes(store) {
         return void settingsAwsDispatch(store, { req, res, body: body || {}, op, log });
       }
 
+      // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
+      // before Backup.new). v1 implements List; other loop ops are not needed for robot revival.
+      if (/^loop/i.test(prefix)) {
+        log.info('loop request', { op });
+        return void loopDispatch({ req, res, body: body || {}, op, log });
+      }
+
       const handler = ops[op.toLowerCase()];
       if (!handler) {
         log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
@@ -157,6 +164,67 @@ export function robotFaceRoutes(store) {
     if (!body || !body.token) return void sendAmzError(res, Errors.VALIDATION, 'token is required');
     const { token } = findToken(store, body.token);
     return void sendAmz(res, 200, { complete: !token });
+  }
+
+  // -- Loop_* ------------------------------------------------------------------
+
+  /** loop-2016-03-24 Loop shape (members the robot's server-client reads: it needs `id`). */
+  function loopToWire(loop) {
+    const robot = store.accounts.get(loop.robot);
+    return {
+      id: loop._id,
+      name: loop.name,
+      owner: loop.owner,
+      robot: loop.robot,
+      robotFriendlyId: (robot && robot.friendlyId) || undefined,
+      members: loop.members,
+      created: loop.created,
+      updated: loop.updated,
+    };
+  }
+
+  function loopDispatch({ req, res, body, op, log }) {
+    // The robot's server-client sends the operation's wire `name` (loop-2016-03-24):
+    //   Loop.list()    -> "ListLoops"
+    //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
+    const o = op.toLowerCase();
+    if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
+    if (o === 'suspendloop' || o === 'suspendrobotloop') return void loopSuspend({ res, body, op, log });
+    log.warn('unimplemented Loop op', { op });
+    return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unimplemented Loop op ${op}`);
+  }
+
+  /** Loop.List/ListLoops: "loops for the current account." */
+  function loopList({ req, res, log }) {
+    // The robot signs with its own credentials, so resolve the account from the SigV4 accessKeyId
+    // and return the loop(s) it owns/belongs to. With auth disabled (dev/LAN), fall back to every
+    // loop — a single-robot deployment has one, which is what jibo-system-backup.js requires.
+    const accessKeyId = accessKeyIdFromAuth(req);
+    const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+    const loops = account
+      ? [...store.loops.values()].filter((l) => l.robot === account._id || l.owner === account._id)
+      : [...store.loops.values()];
+    log.info('Loop.List', { accessKeyId: accessKeyId || '(none)', accountFound: !!account, returned: loops.length });
+    return void sendAmz(res, 200, loops.map(loopToWire));
+  }
+
+  /**
+   * Loop.SuspendLoop {loopId} / SuspendRobotLoop {friendlyId} — the robot's WipeUtil suspends its
+   * loop before erasing. WipeUtil aborts the whole wipe ("wipeFail") on any suspend error that
+   * isn't LOOP_NOT_FOUND, so this must succeed: mark the loop suspended (if we have it) and return
+   * the CommandResponse {result}. The robot is on its way out the door — we never reject.
+   */
+  function loopSuspend({ res, body, op, log }) {
+    let loop = null;
+    if (op.toLowerCase() === 'suspendrobotloop' && body.friendlyId) {
+      const robot = store.accountByFriendlyId(body.friendlyId);
+      loop = robot ? [...store.loops.values()].find((l) => l.robot === robot._id) || null : null;
+    } else if (body.loopId) {
+      loop = store.loops.get(body.loopId) || null;
+    }
+    if (loop) { loop.isSuspended = true; store.flush(); }
+    log.info('Loop.Suspend', { op, loopId: body.loopId, friendlyId: body.friendlyId, found: !!loop });
+    return void sendAmz(res, 200, { result: 'Command accepted' });
   }
 
   // -- Update_* proxy ----------------------------------------------------------

@@ -7,6 +7,7 @@
   "dependencies": {
     "@phoenix/common": "*",
     "@phoenix/contracts": "*",
+    "@wasm-audio-decoders/flac": "0.2.11",
     "ws": "^8.21.0"
   },
   "license": "UNLICENSED"

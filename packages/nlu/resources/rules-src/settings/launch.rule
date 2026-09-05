@@ -1,0 +1,136 @@
+TopRule = (
+(($*
+        (
+            ?$KU_PREFIXES $D_SETTINGS {intent=D_SETTINGS._intent}
+        )
+$* ){domain='settings'}{skill='\@be/settings'} ) |
+(($*
+        (
+            ?$KU_PREFIXES $STRICT_D_SETTINGS {intent=D_SETTINGS._intent}
+        )
+){domain='settings'}{skill='\@be/settings'})
+){priority='HIGH'}
+;
+
+### SETTINGS DOMAIN ###
+D_SETTINGS =
+(
+      $D_SETTINGS_INTENT_BATTERY {_intent=D_SETTINGS_INTENT_BATTERY._intent}
+)|
+(
+      $D_SETTINGS_INTENT_VOLUMEQUERY {_intent=D_SETTINGS_INTENT_VOLUMEQUERY._intent}
+)|
+# (
+#       $D_SETTINGS_INTENT_STORAGESTATUS
+#           {_intent=D_SETTINGS_INTENT_STORAGESTATUS._intent}
+# )|
+(
+      $D_SETTINGS_INTENT_WIFISTATUS {_intent=D_SETTINGS_INTENT_WIFISTATUS._intent}
+)|
+(
+      $D_SETTINGS_INTENT_WIFIADDNETWORK {_intent=D_SETTINGS_INTENT_WIFIADDNETWORK._intent}
+)|
+(
+      $D_SETTINGS_INTENT_WIFIREMOVENETWORK {_intent=D_SETTINGS_INTENT_WIFIREMOVENETWORK._intent}
+)|
+(
+      $D_SETTINGS_INTENT_UPDATES {_intent=D_SETTINGS_INTENT_UPDATES._intent}
+)|
+(
+      $D_SETTINGS_INTENT_MENU {_intent='menu'}
+)
+;
+
+STRICT_D_SETTINGS =
+(
+      $STRICT_D_SETTINGS_INTENT_WIFISTATUS {_intent=STRICT_D_SETTINGS_INTENT_WIFISTATUS._intent}
+)
+;
+
+
+### INTENTS ###
+D_SETTINGS_INTENT_BATTERY =
+(
+    ( ?([what?(\')?s] ?is the|your) [batter(y|(ies))] ?status)|
+    ( $D_SETTINGS_V_SHOW ?(the|your) [batter(y|(ies))] ?(status|menu|page)) |
+    ( tell me|us $* ?(the|your) [batter(y|(ies))] ?(status|level)) |
+    ( [how?(?(\')s)] ?(is|are) your [batter(y|(ies))] ?(status|level))
+) {_intent='battery'};
+D_SETTINGS_INTENT_VOLUMEQUERY =
+(
+    ( ?([what?(\')?s] ?is the|your) volume ?level) |
+    ( $D_SETTINGS_V_SHOW ?(the|your) volume ?(menu|level|page)) |
+    ( tell me|us $* ?(the|your) volume ?level) |
+    ( [how?(?(\')s)] ?(is|are) your volume ?level)
+)
+{_intent='volumeQuery'}
+;
+D_SETTINGS_INTENT_STORAGESTATUS =
+(
+        ( ?([what?(\')?s] ?is the|your) storage|memory ?status)|
+        ( $D_SETTINGS_V_SHOW ?(the|your) storage|memory ?(status|menu|page))
+)
+{_intent='storageStatus'}
+;
+
+STRICT_D_SETTINGS_INTENT_WIFISTATUS =
+(
+	(are you connected)
+)
+{_intent='wifiStatus'}
+;
+D_SETTINGS_INTENT_WIFISTATUS =
+(
+        ( ?([what?(\')?s]|[which?(\')?s] ?is (the|your|$*)) $D_SETTINGS_V_WIFI ?status) |
+        ([what?(\')?s]|[which?(\')?s] $D_SETTINGS_V_WIFI $w03 you|[jibo?s] $w03 using|on|[connect?((ed)|(ing))] ) |
+        ( $D_SETTINGS_V_SHOW ?(the|your|$*) $D_SETTINGS_V_WIFI ?(status|menu|page)) |
+        ( tell me|us $* ?(the|your) $D_SETTINGS_V_WIFI ?status) |
+        ( are you|we connected to $D_SETTINGS_V_WIFI ) |
+        ( [how?(?(\')s)] ?(is|are) your $D_SETTINGS_V_WIFI ?status)
+)
+{_intent='wifiStatus'}
+;
+D_SETTINGS_INTENT_WIFIADDNETWORK =
+(
+        ( add | setup ) ?a ?new $D_SETTINGS_V_WIFI
+)
+{_intent='wifiStatus'}#wifiAddNetwork is not currently a valid intent, but may be desired in the future
+;
+D_SETTINGS_INTENT_WIFIREMOVENETWORK =
+(
+        ( remove | delete ) $* $D_SETTINGS_V_WIFI
+)
+{_intent='wifiStatus'}#wifiRemoveNetwork is not currently a valid intent, but may be desired in the future
+;
+
+D_SETTINGS_INTENT_UPDATES =
+(
+    (([check?(ing)] ?for)|(?do i|we|you have)|(is|are there)|[download?(ing)] $w03 ?software [update?s]) |
+    ([update?s] ~6)
+){_intent='updates'};
+
+D_SETTINGS_INTENT_MENU = ?$D_SETTINGS_V_SHOW ?($D_SETTINGS_V_THE) [setting?s] ?($D_SETTINGS_V_MENU);
+
+
+### USEFUL VOCABULARY ###
+D_SETTINGS_V_SHOW = (open | (go to) | (show ?(me|us)) | (bring up) | ((bring|take) (me|us) to) | load | access | display | launch | (let (me|us) see)) ;
+D_SETTINGS_V_MENU = (menu | options | list | app) ;
+D_SETTINGS_V_WIFI = wifi|network|(wi-fi)|(why fy)|wireless ?network;
+D_SETTINGS_V_THE = (the|that|your);
+
+KU_PREFIXES = (
+    (i (was ?$V_ACTUALLY saying|(trying to say))|(meant to say) $*) |
+    ($V_CANYOU ?$V_ACTUALLY ?(tell ?(me|us) ?about) $*) |
+    ($V_CANYOU ?$V_ACTUALLY access $*) |
+    ($V_CANYOU ?$V_ACTUALLY get ?(me|us) $*) |
+    ($V_CANYOU ?$V_ACTUALLY give ?(me|us) $*) |
+    (do you ?$V_ACTUALLY have $*) |
+    ((i ?$V_ACTUALLY want)|(i\'d|(i would) ?$V_ACTUALLY like) ?to $*) |
+    (i ?$V_ACTUALLY wish ?to $*) |
+    (i ?$V_ACTUALLY wish you $*) |
+    ($V_CANWE|(let me|us) see $*)
+~0.1);
+
+V_ACTUALLY = <1.0>(really|actually|usually|ever)<0.0>;
+V_CANYOU = ((can you)|(do you (?$V_ACTUALLY know how ?to))|(are you ?$V_ACTUALLY able|capable|allowed|permitted ?(to|of)));
+V_CANWE = ((can|may|could i|we|people)|((are we)|(am i) ?$V_ACTUALLY allowed|able|permitted|capable ?(to|of)));

@@ -1,0 +1,3 @@
+!use_equivalent_words = true;
+TopRule = ($ANYTHING {intent='wildcard'}{content = ANYTHING._content}{priority = 'HIGH'});
+ANYTHING @= +$w {_content = _parsed};

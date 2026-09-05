@@ -2,6 +2,133 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-09-05 — **Checkpoint reviewed parity repairs and preserve exact progress.**
+  Integrated bounded HTTP middleware, named-rule NLU, JCP/MIM and audio decoder/VAD
+  repairs after root review. All 329 unit tests pass; strict smoke still fails
+  with 736 field differences and one gap, while 21/26 complete actions agree.
+  Full original controls agree across 20,534 cases, including an independent
+  cross-writer comparison, with eight symmetric external-action gaps. Retained
+  the new second native startup failure at zero cases as an invalid run.
+  Moth quiet OGG/FLAC/LINEAR16 now avoid false SOS; exact LINEAR16 configuration
+  restored. Timer cancellation and a fresh smiling-eye animation work through
+  original BE 11.0.1. The next report-view candidate matches all 61 original
+  helper comparisons and visibly renders weather on Moth; other displays and
+  complete report parity remain open. Authentication and prompt-data corrections
+  remain isolated candidates under review. The user authorized regular commits
+  and pushes to both configured remotes, origin (Gitty) and github; private
+  `.parity` worktrees, recordings, credentials and unreviewed branches stay local.
+
+- 2026-09-05 — **Moth verification loop reviewed; native audio failures captured; full corpus control resumed.**
+  V-04 is checked off for test infrastructure only. Descending archived BE releases
+  restore the listening LED command/cyan eye and proactive initialization in 11.0.1;
+  physical wake-word/ring confirmation and complete robot acceptance remain open.
+  The original parser confirms the real timer-cancel failure is a named-rule gap.
+  Moth's native Opus and FLAC recordings also expose false speech detection from
+  treating compressed bytes as PCM. Both decoded noise captures stay below the
+  speech threshold; restored LINEAR16 correctly avoids SOS. Audio configuration is
+  restored byte-for-byte. [Hardware evidence](docs/parity/evidence/2026-09-05/hardware/native-audio-baseline.json)
+  retains hashes and metrics; household recordings stay private.
+  Root integrated the Luna capture writer plus an asynchronous Node 8 shutdown fix.
+  Fresh 43/73-case original controls have zero measured differences; the report's
+  external action gap remains visible. The full 20,534-case control is running.
+  V-03 is the active lead task. HTTP, audio and named-rule candidates remain under
+  Luna implementation/root review; none closes a product parity checkbox.
+
+- 2026-09-05 — **Moth connected to an isolated Phoenix run; candidate worktrees established.**
+  User released Moth for testing. Preserved Hermes and the separate port-9000 server,
+  verified the native/SSM binaries, and installed release-verified BE in distinct slots.
+  A native microphone time request reached Phoenix/Parakeet and displayed/spoke the
+  time; the user confirmed both. Native text injection also exercised Nimbus joke TTS.
+  Authentication and Classic services remain outside the transport-only trial.
+  Luna Max located the missing listening cues at BE 11.0.1 → 11.0.2; root is testing
+  the release ladder. [HARDWARE.md](docs/parity/HARDWARE.md) records evidence and rollback.
+  HTTP, encoded-audio and full-corpus writer work now use separate branches/worktrees.
+  Root requested repairs after finding defects in the first HTTP and audio candidates;
+  neither was integrated or marked verified. V-04 is the active lead verification task.
+
+- 2026-09-05 — **Robot consumer sources recovered and contracts audited; runtime parity remains open.**
+  Followed the user's Hermes BE and Jibo Server Client guide leads. Independently verified
+  the original BE 12 release archive and recovered 300 embedded source files. Pinned
+  Hashbrown SDK and original native Jetstream source; 13 inspected client/Nimbus files
+  match across the two consumer profiles. Verified 485 cached files, including four
+  bundled Jibo Server Client instances and their differing API models.
+  [CONSUMERS.md](docs/parity/CONSUMERS.md) maps token bootstrap/SigV4, encoded audio,
+  framing, sessions, actions and follow-ups to existing tasks. The web simulator is
+  excluded as an oracle; the two robots remain reserved and were not contacted.
+  V-03 stays open: the full v2 reference loop finished but its Node 8 export exceeded
+  the string limit, leaving no usable full capture. No product task is checked off.
+
+- 2026-09-05 — **V-03 production fixture review and v2 controls; task remains open.**
+  Full v1 controls executed 20,533 cases each and exposed two fixture defects: 71 launches
+  bypassed the production dialog-reference builder, and a MIM VM condition used unseeded
+  randomness (six field differences across two occurrences). V2 uses each server's existing
+  builder and separately seeds VM randomness. With supported serial native RPC and a local
+  performance sink, two original smoke captures agree across 42 cases and two report
+  captures agree on all measured outputs across 73 cases. The report gate still fails its
+  one external `answer` action gap. Fresh Phoenix baselines have 1,659/6,751 differences,
+  respectively, with no trace failures. [PRODUCTION.md](docs/parity/PRODUCTION.md) retains
+  complete provenance, superseded diagnostics and owning-task assignments. All 280 unit
+  tests pass; `npm test` correctly exits 1 on the strict comparison. Revised full corpus
+  controls and baseline review remain in progress; no product parity task is checked off.
+
+- 2026-09-05 — **V-03 coverage inventory and production smoke grader implemented; task remains open.**
+  This entry records v1 diagnostics, superseded by the fixture review above.
+  [COVERAGE.md](docs/parity/COVERAGE.md) maps 960 original source cases, 89 public operation
+  instances, 223 wire declarations, 117 grammar sources and 45 asset sets to owning tasks.
+  All three corpora are preserved unchanged: 17,137 base occurrences and 3,370 conditional
+  variants, retaining overlaps and missing expectations. The recovered original NLU 2.8.3
+  service loads 98 FSTs and produces real parser/router/chitchat/report HTTP traces.
+  Two original 40-case captures agree; seven grader tests reject corrupt fields, bytes and
+  sessions. [PRODUCTION.md](docs/parity/PRODUCTION.md) records Phoenix's 1,521 differences and
+  one action coverage gap. `npm test` now passes 277 unit tests and tracker validation, then
+  correctly exits 1 on strict parity failure. Both older diagnostic graders now fail on
+  mismatches; the alternate oracle moved outside unit discovery. Fixed an existing calendar
+  fixture's clock race, with eight focused passes and no production logic change. Full
+  corpus captures/review are next; no additional parity task is checked off.
+
+- 2026-09-05 — **V-02 strict original/Phoenix comparison infrastructure verified.**
+  `npm run harness` now runs the same 28 HTTP/hub fixtures in isolated pinned Node runtimes,
+  retaining raw requests/responses, ordered frames, full sessions/actions and peer side effects.
+  Removed blanket ID/time/session/port deletion; bounded ID/address/timing/ETag rules have
+  independent checks and corruption tests. Two original runs match all 28 cases; Phoenix
+  returns exit 1 with 267 field differences across 26 cases and zero invariant failures.
+  [COMPARISON.md](docs/parity/COMPARISON.md) maps these to HTTP/routes/headers, history identity,
+  parser/authentication errors and final-socket behavior. Fixed the fixture's automatic HTTP
+  clock and separated slow Docker cleanup from per-case timing; no production handler changed.
+  36 focused tests and 263 regressions pass; all pre-existing application edits are preserved.
+  Full corpora, parser/skill/provider/client/persistence/hardware gates remain open. Next: V-03
+  source coverage and strict production grading; no Phoenix product-parity task checked off.
+
+- 2026-09-05 — **PM-03 compatibility baseline and V-01 executable original reference verified.**
+  [COMPATIBILITY.md](docs/parity/COMPATIBILITY.md) freezes original Hashbrown/client/dependency
+  pins, classifies all historical divergences and retains the entire companion-cloud backlog.
+  Jibo MCP release/QA documentation and the artifact archive identified the historical client
+  matrix, the legacy `Settings_20160801.GetSettings` dependency and the requested NLU 2.8.3
+  binary. [REFERENCE.md](docs/parity/REFERENCE.md) records 38 original transactions, 19 fixture
+  checks and raw HTTP/WS/relay/settings/history-request evidence. The isolated Node 8.9.4
+  runtime uses TypeScript 2.5.3 module emission; 376 source inputs and 15 service manifests
+  match original Git objects. Full development install hit ENOSPC; a production dependency
+  profile succeeds, and only generated artifacts were removed. Original Gulp/type checks,
+  full providers/persistence/skills and real clients remain unverified. Fresh Phoenix tests:
+  232 pass; all 4,838 inventoried baseline package/script files are unchanged. Next: V-02
+  strict comparisons; no Phoenix feature-parity task is checked off by this infrastructure.
+
+- 2026-09-05 — **Initial 1:1 source audit and parity lifecycle plan.** Published
+  [AUDIT.md](docs/parity/AUDIT.md), [PLAN.md](docs/parity/PLAN.md), a 76-task
+  [checklist](docs/parity/TASKS.md) generated from an evidence/dependency ledger, and
+  `parity:status` / `parity:check` commands. Compared the current dirty Phoenix baseline with
+  Pegasus `d682547a` and identified original hashbrown `5c0a7390` separately from restoration
+  changes. Used Jibo MCP for internal docs, original NLU/GQA/JCP source discovery and all 26
+  Classic API definitions (134 wire targets). Fresh evidence: 232 tests pass; chitchat corpus
+  9,851/10,035 intent and 9,714/10,035 MIM routing, with 329 mismatching utterances and zero
+  negative/no-match cases; static oracle grader 74/89, despite its test process passing.
+  Preserved all 4,506 chitchat/report MIMs; found 88 of 117 named grammar files missing from
+  the full import. Added 14 repeatable source-backed probes exposing parser, history,
+  calendar, skill-route and configuration defects. Corrected completion claims and labeled
+  earlier reports historical. Existing application edits are preserved; no product parity
+  task was closed and no original-runtime, live-provider or hardware run was claimed.
+  Next: PM-03 compatibility manifest, then V-01/V-02 reference oracle and strict comparisons.
+
 - 2026-06-13 — **H.6 + PHASE H COMPLETE (loop, stopping).** Wired the classic-service entrypoint
   into the runtime + closed out docs. run-compose-stack.sh starts it on :9012 (CLASSIC=1,
   NET_account=localhost:9011 NET_ota=localhost:9010, echoes "robot front door"); docker-compose.yml
@@ -478,3 +605,7 @@ Both boot the Phoenix stack (gateway+nlu+skills) + the sim server themselves.
   answer-skill is implemented (others fall through to the answer handler).
 - M4 data/lasso still a shell; server-side ASR (M8); MIM/GraphSkill dialog engine.
 - `mimic_global_turn` path (bare CLIENT_NLU, no LISTEN) not yet handled by the gateway.
+
+## 2026-09-05 — reviewed integration and real timer cancellation
+
+Accepted bounded C-01 and N-01 candidate implementations in an isolated lead worktree. Fresh identical43-case production comparisons reduced field mismatches from1,670 to1,063; parser HTTP agreement is36/37, winning rules33/33 and empty results9/9, with zero trace invariants. Moth BE11.0.1 now closes its timer prompt on cancel with the exact original local-rule result. Full product parity stays open. Combined unit run307/308 exposed OGG startup latency and failed-test cleanup; audio revision requested. Classic SigV4/CreateHubToken and S-04 MIM/JCP candidates are active. Root main remains frozen for the full original20,534-case control export.

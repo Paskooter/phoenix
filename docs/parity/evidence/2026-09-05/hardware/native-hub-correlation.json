@@ -1,0 +1,11 @@
+{
+  "scenario": "BE11.0.1 native CLIENT_ASR joke",
+  "connection": 19,
+  "transID": "tid-64ea9e98-a955-11f1-9afe-5cf821ea7bf9",
+  "nativeActionEqualsHubData": true,
+  "nativeCaptureSha256": "0316bc116dc0d1d4cedd612196e8115dd27cdde4c25157e0b8b505b3d0a2b86e",
+  "serverFrameSha256": "0864e70037568894d2ee8394bbb5405b82a16548cc939139d4e4824a653f6135",
+  "originalInput": "tell me a joke",
+  "result": "Native event delivers the same complete action data as Phoenix; Nimbus and TTS observed",
+  "captureProfile": "Unauthenticated transport trial; no acoustic input or gesture fidelity claim"
+}

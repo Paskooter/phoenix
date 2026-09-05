@@ -1,0 +1,145 @@
+{
+  "date": "2026-09-05",
+  "scope": "Descending archived BE release comparison on Moth; initial transport-only Phoenix profile",
+  "order": [
+    "12.0.0",
+    "11.0.3",
+    "11.0.2",
+    "11.0.1"
+  ],
+  "phoenixBase": "b654de598255ba023f33ff31656bfa5bc84057d4",
+  "productionPackagesDifferFromBase": false,
+  "hub": "192.168.1.182:19000",
+  "auth": "disabled, native entrypoint empty; not auth acceptance",
+  "encoding": "LINEAR16",
+  "rows": [
+    {
+      "version": "12.0.0",
+      "probe": "original BE SDK startLocalTurn; real microphone, no injected cloud response",
+      "rawCapture": ".parity/robots/moth/20260905/release-12.0.0-listen.json",
+      "rawSha256": "7676064f42dc54816ebaa59ac8a40b2d136fb8f9621d0e297f3248f53a642d81",
+      "ledCommands": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "queuedListeningAnimations": [],
+      "proactiveInitialized": false,
+      "observerRestored": true,
+      "nativeEventCount": 4
+    },
+    {
+      "version": "11.0.3",
+      "probe": "original BE SDK startLocalTurn; real microphone, no injected cloud response",
+      "rawCapture": ".parity/robots/moth/20260905/release-11.0.3-listen.json",
+      "rawSha256": "ecf44b5ac9bb5841a73bf103a4a65fb87b12255c54a250dbd91169859915bfc7",
+      "ledCommands": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "queuedListeningAnimations": [],
+      "proactiveInitialized": false,
+      "observerRestored": true,
+      "nativeEventCount": 2
+    },
+    {
+      "version": "11.0.2",
+      "probe": "original BE SDK startLocalTurn; real microphone, no injected cloud response",
+      "rawCapture": ".parity/robots/moth/20260905/release-11.0.2-listen.json",
+      "rawSha256": "1501d1560cc52ca45016e2c74dd893fc751ec598d696273c2307167756521b9b",
+      "ledCommands": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "queuedListeningAnimations": [],
+      "proactiveInitialized": false,
+      "observerRestored": true,
+      "nativeEventCount": 2
+    },
+    {
+      "version": "11.0.1",
+      "probe": "original BE SDK startLocalTurn; real microphone, no injected cloud response",
+      "rawCapture": ".parity/robots/moth/20260905/release-11.0.1-listen.json",
+      "rawSha256": "0bb826238622c8bd8a74d8e8ff4fdbbb03c73c3c680e7734253a718b40e60e6a",
+      "ledCommands": [
+        [
+          0.05,
+          0.73,
+          0.94
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "queuedListeningAnimations": [
+        "hj-sp-transition-to-blink-ns"
+      ],
+      "proactiveInitialized": true,
+      "observerRestored": true,
+      "nativeEventCount": 2
+    }
+  ],
+  "screenshots": [
+    {
+      "version": "12.0.0",
+      "path": "docs/parity/evidence/2026-09-05/hardware/be-12.0.0-listening-eye.png",
+      "sha256": "a036a38e55c95563e6a2e93527d1a25d3e2c15f7c29c488bf1ae504f09e7c98d",
+      "leadInspected": true,
+      "observation": "ordinary pale eye; no listening coloration"
+    },
+    {
+      "version": "11.0.1",
+      "path": "docs/parity/evidence/2026-09-05/hardware/be-11.0.1-listening-eye.png",
+      "sha256": "8660c7930c5a3c3e7cbb7e5060ec0eb9a0d287ce1651c1b8e830d4235c02afcf",
+      "leadInspected": true,
+      "observation": "cyan listening eye"
+    }
+  ],
+  "conclusion": "11.0.1 is the first descending release to restore original local-listening LED commands and visible listening eye; it also initializes the proactive runtime. Full functionality and physical wake-word ring confirmation remain open.",
+  "limitations": [
+    "Local SDK turns exercise original expression code but do not by themselves certify acoustic Hey Jibo detection.",
+    "Pixel screenshots verify screen content, not physical ring LEDs.",
+    "No Classic/auth/provider or complete skill-family gate closes from this comparison."
+  ],
+  "initialProbeCorrection": "11.0.2 first probe began before embodied initialization; retained separately as before-ready, then repeated after readiness.",
+  "baseVerification": {
+    "method": "Compare actual file Git blob hashes against private snapshot tree; root index differs because snapshot includes untracked source files.",
+    "files": 4845,
+    "changed": []
+  },
+  "clockVerification": {
+    "version": "11.0.1",
+    "input": "original native SDK clientASR text injection, not microphone recognition",
+    "capture": ".parity/robots/moth/20260905/release-11.0.1-clock-stable.json",
+    "captureSha256": "1f3bdbc1bd110dfc76bf27ee7b457788b8ddabe9a2fb566b01002d6be052fb4d",
+    "screenshot": "docs/parity/evidence/2026-09-05/hardware/be-11.0.1-clock.png",
+    "screenshotSha256": "254715ba4edabe4f042bd98a2480460700438225f7ae7425e609a2b9a4f75aa9",
+    "leadInspected": true,
+    "observation": "Fully rendered clock face including hour, minute and second hands; TTS active then ended; subsequent original surprise/local listening observed."
+  }
+}

@@ -1,0 +1,40 @@
+TopRule = $* $WANTTOENROLL $* {intent=WANTTOENROLL._intent}{priority='HIGH'};
+
+#I can learn your voice and face, so I'll recognize you in the future. Want to do that now?
+#If you want me to call you by your name sometimes, I'll have to learn your voice and face. Can we do that now?
+#Not sure what you said. Can I learn your voice and face now?
+
+WANTTOENROLL =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+
+YES_OTHER =
+(
+    guess | gas |
+    (go for it) |
+	(you can|may) |
+	(that would be ?$V_VERY $V_AMAZING) |
+	(knock yourself out) |
+	(i guess|suppose ?so) |
+	(sounds good|fine)
+);
+
+NO_OTHER =
+(
+    know | snow |
+    later |
+	(not ?right now ) |
+	(probably shouldn\'t|(should not)) |
+	(i\'m|(i am) fine|good) |
+	(not ?a good|great idea)
+);
+
+### USEFUL VOCAB ###
+V_AMAZING = awesome|amazing|fantastic|incredible|fascinating|wonderful|
+    unbelievable|excellent|fabulous|astounding|cool|marvelous|phenomenal|
+    superb|impressive|great|outstanding|extraordinary;
+V_VERY = very|really|actually|pretty|[absolute?(ly)]|[incredibl(e|y)]|
+    extremely|so|such|most|kinda|sorta|any|(kind|sort of);

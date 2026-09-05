@@ -1,8 +1,16 @@
 # Phoenix ↔ Pegasus 1:1 Parity Status & Plan
 
-Synthesized 2026-06-09 from the full atlas (`pegasus/docs/atlas/`), the pegasus source, and
-the archive. This is the master tracker for the 1:1 recreation; ROADMAP.md holds the
-per-feature checklist, DIVERGENCES.md the deliberate-deviation ledger.
+**Current status (2026-09-05): 1:1 parity is incomplete.** The source-backed
+[audit](docs/parity/AUDIT.md), [execution plan](docs/parity/PLAN.md) and
+[task checklist](docs/parity/TASKS.md) supersede the status matrix below.
+[tasks.json](docs/parity/tasks.json) owns task status, dependencies and verification evidence.
+Run `npm run parity:status`; validate updates with `npm run parity:check`.
+
+## Historical notes — June 2026
+
+The following notes were synthesized from the atlas, Pegasus source and archive on
+2026-06-09 and updated during the initial rebuild. Checkmarks and `[DEAD]` exclusions below
+record that earlier scope; they are not acceptance of gaps under the current 1:1 target.
 
 Rebuild-plan milestones (atlas 01-rebuild-plan.md): M1 contracts ✅ · M2 service shell ✅ ·
 M3 history ✅ · M4 lasso ✅ · M5 parser ✅(98% oracle parity) · M6 hub ✅(client modes) ·

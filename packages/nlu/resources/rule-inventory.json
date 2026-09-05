@@ -1,0 +1,2294 @@
+{
+  "factories": {
+    "timer": {
+      "path": "factory/timer.grm",
+      "sha256": "a2190154582ac2d003d131345e2e8d9b6a07c08fbcfab4dc580caadde03915e6"
+    },
+    "yes_no": {
+      "path": "factory/yes_no.grm",
+      "sha256": "d3020d043f3a9b34af8ce74df5622d4031249569f548f4b871a566ff469ff5e4"
+    }
+  },
+  "factoryCount": 2,
+  "factoryDependencies": {
+    "canada_city_province": {
+      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "referencePath": "build/data/en-us/factory_rules/canada_city_province.fst",
+      "referenceSha256": "3f51276ae65825ab22aa0ebba97766e5fdea055e6db7d89ce9e77e9195cf5076",
+      "status": "unsupported"
+    },
+    "canada_province": {
+      "implementation": "factory-words/canada_province.txt",
+      "note": "Finite extracted word list; full factory semantics are not claimed.",
+      "referencePath": "build/data/en-us/factory_rules/canada_province.fst",
+      "referenceSha256": "d671f80c98845fdd9a29dc6cf381689a9d42119a82d376c4f05d278f7e07eaea",
+      "status": "word-list"
+    },
+    "city_state": {
+      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "referencePath": "build/data/en-us/factory_rules/city_state.fst",
+      "referenceSha256": "e42af10ecb18f487b639290f60d83677f9c9b0294201add41983d3ba6f587d7e",
+      "status": "unsupported"
+    },
+    "country": {
+      "implementation": "factory-words/country.txt",
+      "note": "Finite extracted word list; full factory semantics are not claimed.",
+      "referencePath": "build/data/en-us/factory_rules/country.fst",
+      "referenceSha256": "0ee7a77ac8d64bedde7416954929ff9ae33bab9946e897f13841dcffda68791c",
+      "status": "word-list"
+    },
+    "digits": {
+      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "referencePath": "build/data/en-us/factory_rules/digits.fst",
+      "referenceSha256": "e32543cebaef266f65e03ff8458f8b5278c37573f245d0efbf427457a59c5831",
+      "status": "unsupported"
+    },
+    "first_name": {
+      "implementation": "factory-words/first_name.txt",
+      "note": "Finite extracted word list; full factory semantics are not claimed.",
+      "referencePath": "build/data/en-us/factory_rules/first_name.fst",
+      "referenceSha256": "3fb01bdf8c39aa4bbf1d7eaa2e74da880faeb30b714db506fd62b4eb624b2056",
+      "status": "word-list"
+    },
+    "last_name": {
+      "implementation": "factory-words/last_name.txt",
+      "note": "Finite extracted word list; full factory semantics are not claimed.",
+      "referencePath": "build/data/en-us/factory_rules/last_name.fst",
+      "referenceSha256": "19862ddaa95bca44582eb811b7235370c5d291efcc21ce7c5f43027ca44ac66c",
+      "status": "word-list"
+    },
+    "state": {
+      "implementation": "factory-words/state.txt",
+      "note": "Finite extracted word list; full factory semantics are not claimed.",
+      "referencePath": "build/data/en-us/factory_rules/state.fst",
+      "referenceSha256": "b9ed3ebb1cd8c13117642743cca71616e1774801ec9b85ebdeea79aced6fb862",
+      "status": "word-list"
+    },
+    "time": {
+      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "referencePath": "build/data/en-us/factory_rules/time.fst",
+      "referenceSha256": "ccc50d3c0fb06e43e75433fa828d370c787429a443bfa407c6e91be73cd9d86b",
+      "status": "unsupported"
+    },
+    "timer": {
+      "implementation": "factory/timer.grm",
+      "note": "Hand-authored source grammar; behavior is bounded and not the original FST.",
+      "referencePath": "build/data/en-us/factory_rules/timer.fst",
+      "referenceSha256": "b499a09296f1d5ca2429c191d81f80b0e2f73044da1801d09fd89010b6aefa3e",
+      "status": "bounded-compatibility"
+    },
+    "world_city_country": {
+      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "referencePath": "build/data/en-us/factory_rules/world_city_country.fst",
+      "referenceSha256": "08738ae15c69785f593c0f2024d25e10292831c6e0fbe8961efadb2e3a2ea0f3",
+      "status": "unsupported"
+    },
+    "year": {
+      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "referencePath": "build/data/en-us/factory_rules/year.fst",
+      "referenceSha256": "a7306d576b909940f506d4151a800d900b95f943da2d5901bc0db987a61d3cbc",
+      "status": "unsupported"
+    },
+    "yes_no": {
+      "implementation": "factory/yes_no.grm",
+      "note": "Hand-authored source grammar; behavior is bounded and not the original FST.",
+      "referencePath": "build/data/en-us/factory_rules/yes_no.fst",
+      "referenceSha256": "8e86171f2758430610f487640fdbc4c23b2e2f04c2b5cc5446e875972de67fa4",
+      "status": "bounded-compatibility"
+    }
+  },
+  "publicRuleCount": 98,
+  "publicRules": {
+    "circuit-saver/play_again": {
+      "compiledPath": "rules_fst/circuit-saver/play_again.fst",
+      "sha256": "dce2a0ad91d850550b53c542f7da4c52a55ac6dde89d0b72c6f641bf56bf5ae9",
+      "sources": [
+        "circuit-saver/play_again"
+      ]
+    },
+    "clock/alarm_set_value": {
+      "compiledPath": "rules_fst/clock/alarm_set_value.fst",
+      "sha256": "aadf32b0361fb41fb364dfe7b8f5bdfa4773f0f4dfaa67e66c71d8cbb32b8d32",
+      "sources": [
+        "clock/alarm_set_value"
+      ]
+    },
+    "clock/alarm_timer_ampm": {
+      "compiledPath": "rules_fst/clock/alarm_timer_ampm.fst",
+      "sha256": "da7e8cc7c7b3b941d639fefba60ddb939bafa123b1d15e8f306f6f47b532498b",
+      "sources": [
+        "clock/alarm_timer_ampm"
+      ]
+    },
+    "clock/alarm_timer_change": {
+      "compiledPath": "rules_fst/clock/alarm_timer_change.fst",
+      "sha256": "5d0863977e849f3b1971649e8ee6d9c2f7496ddef650be46530beba14b06915d",
+      "sources": [
+        "clock/alarm_timer_change"
+      ]
+    },
+    "clock/alarm_timer_info": {
+      "compiledPath": "rules_fst/clock/alarm_timer_info.fst",
+      "sha256": "8a9a7da75a6fedd6337a69ab00264935164bc506a2eb3ea1af8c1fb129bcd342",
+      "sources": [
+        "clock/alarm_timer_info"
+      ]
+    },
+    "clock/alarm_timer_none_set": {
+      "compiledPath": "rules_fst/clock/alarm_timer_none_set.fst",
+      "sha256": "b8075fa43fc75b4c8dd47ba0ce3fac6a70eefe1a590b2537da731ec72457c310",
+      "sources": [
+        "clock/alarm_timer_none_set"
+      ]
+    },
+    "clock/alarm_timer_okay": {
+      "compiledPath": "rules_fst/clock/alarm_timer_okay.fst",
+      "sha256": "baefc143b82e8fb0e43a4612266c01a84773bc3c43d24887146346581e0d8841",
+      "sources": [
+        "clock/alarm_timer_okay"
+      ]
+    },
+    "clock/alarm_timer_other_set": {
+      "compiledPath": "rules_fst/clock/alarm_timer_other_set.fst",
+      "sha256": "1af667547dff89b5616666ae30901a03a09db9b676f9e42a05d2d1a3b3d088c3",
+      "sources": [
+        "clock/alarm_timer_other_set"
+      ]
+    },
+    "clock/alarm_timer_query_menu": {
+      "compiledPath": "rules_fst/clock/alarm_timer_query_menu.fst",
+      "sha256": "4c57af4c52232e28ac339df2051c63928bb178c87b2be735d55a42fd814b7845",
+      "sources": [
+        "clock/alarm_timer_query_menu"
+      ]
+    },
+    "clock/alarm_timer_too_long": {
+      "compiledPath": "rules_fst/clock/alarm_timer_too_long.fst",
+      "sha256": "d97becf696026d7d7d90310bca340fe946980048f4fcf21a52044b81e6f473b3",
+      "sources": [
+        "clock/alarm_timer_too_long"
+      ]
+    },
+    "clock/clock_menu": {
+      "compiledPath": "rules_fst/clock/clock_menu.fst",
+      "sha256": "82af3ed16e53cd225f1b5d417d63c5d8127fab030b4fca086834655401182608",
+      "sources": [
+        "clock/clock_menu"
+      ]
+    },
+    "clock/stop_timer": {
+      "compiledPath": "rules_fst/clock/stop_timer.fst",
+      "sha256": "db89efb3e152215411b23cb86546dddc8e6dd15e9923d525653eb2411c246650",
+      "sources": [
+        "clock/stop_timer"
+      ]
+    },
+    "clock/timer_set_value": {
+      "compiledPath": "rules_fst/clock/timer_set_value.fst",
+      "sha256": "eac301ce95bab3a2b278ca0af6caf4cd97c2391f3e82002a7f1c58c911322d14",
+      "sources": [
+        "clock/timer_set_value"
+      ]
+    },
+    "create/execute_create_menu": {
+      "compiledPath": "rules_fst/create/execute_create_menu.fst",
+      "sha256": "7f5cb36721a1de1b870471b34066c09dafcba1b88ee665b97bb259b35765061d",
+      "sources": [
+        "create/execute_create_menu"
+      ]
+    },
+    "create/is_it_a_keeper": {
+      "compiledPath": "rules_fst/create/is_it_a_keeper.fst",
+      "sha256": "31182613713c643a7ecaf31baf899d13f1cf284436092bdd36a40524e79c74b3",
+      "sources": [
+        "create/is_it_a_keeper"
+      ]
+    },
+    "create/take_another_photo": {
+      "compiledPath": "rules_fst/create/take_another_photo.fst",
+      "sha256": "84344c674f1119317b3b015a42f556f53ff79829b99106247ab2821d74d90194",
+      "sources": [
+        "create/take_another_photo"
+      ]
+    },
+    "exercise/pause_hold": {
+      "compiledPath": "rules_fst/exercise/pause_hold.fst",
+      "sha256": "df4e2919d457f118befe60d423041913b581af9ef829a42d7720f5e8d100af81",
+      "sources": [
+        "exercise/pause_hold"
+      ]
+    },
+    "exercise/ready_now": {
+      "compiledPath": "rules_fst/exercise/ready_now.fst",
+      "sha256": "0e9e4e75e3282e461cb1dd6048b178ba6f9bc99d242cfe61b681c4fc67dad8d4",
+      "sources": [
+        "exercise/ready_now"
+      ]
+    },
+    "exercise/ready_to_start": {
+      "compiledPath": "rules_fst/exercise/ready_to_start.fst",
+      "sha256": "585fe61abdd972e1ce377dd6c3091b7766fde336fa7126bd2a6a904c9da9bb0c",
+      "sources": [
+        "exercise/ready_to_start"
+      ]
+    },
+    "exercise/routine_selector": {
+      "compiledPath": "rules_fst/exercise/routine_selector.fst",
+      "sha256": "5349d790dd13815adc8483ff121a82f53a30cc66a1a08982682e6faa5ea30e72",
+      "sources": [
+        "exercise/routine_selector"
+      ]
+    },
+    "exercise/run_control": {
+      "compiledPath": "rules_fst/exercise/run_control.fst",
+      "sha256": "89a1d19b47468644f76b0a3f546531be064ee603deec6983cb59eac18b7a6f77",
+      "sources": [
+        "exercise/run_control"
+      ]
+    },
+    "exercise/want_to": {
+      "compiledPath": "rules_fst/exercise/want_to.fst",
+      "sha256": "aa130c6c4aab073f247b75a3c71bee4a06371a5a03c345809fea292d5cfc8e08",
+      "sources": [
+        "exercise/want_to"
+      ]
+    },
+    "friendly-tips/want_more_tdd": {
+      "compiledPath": "rules_fst/friendly-tips/want_more_tdd.fst",
+      "sha256": "e058d05ca4ddb8d1406efc5c054c149f4d86de54ab10d1a015b1573d13f8305d",
+      "sources": [
+        "friendly-tips/want_more_tdd"
+      ]
+    },
+    "gallery/confirm_delete_item": {
+      "compiledPath": "rules_fst/gallery/confirm_delete_item.fst",
+      "sha256": "84a7ef4af8ce8a2b6e69fe4b210208bb59213951c37747b39ec05967ba32ad9e",
+      "sources": [
+        "gallery/confirm_delete_item"
+      ]
+    },
+    "gallery/gallery_preview": {
+      "compiledPath": "rules_fst/gallery/gallery_preview.fst",
+      "sha256": "0c6a46e10b30c3a1eeb77311b151dde21f8a5778ac2faf42e3f95382425fabfd",
+      "sources": [
+        "gallery/gallery_preview"
+      ]
+    },
+    "gallery/item_pause": {
+      "compiledPath": "rules_fst/gallery/item_pause.fst",
+      "sha256": "c0b194e69086f4601a15fcc32ca6f442e4cf92e40ea7b7485419775fb74f572f",
+      "sources": [
+        "gallery/item_pause"
+      ]
+    },
+    "gallery/item_view": {
+      "compiledPath": "rules_fst/gallery/item_view.fst",
+      "sha256": "4f5a4e48ba5d43542f3b7ed03dd8d818b98d6809a6968c7d95e3d56b2dfd354e",
+      "sources": [
+        "gallery/item_view"
+      ]
+    },
+    "globals/global_commands_launch": {
+      "compiledPath": "rules_fst/globals/global_commands_launch.fst",
+      "sha256": "fc9b3828de70a9c58b46bcf12f0475315334bb7cfa2fc9a92df7c4e0d6a40293",
+      "sources": [
+        "globals/global_commands_launch"
+      ]
+    },
+    "globals/gui_nav": {
+      "compiledPath": "rules_fst/globals/gui_nav.fst",
+      "sha256": "25f377b617976df489f1030e49eaca6da4925b7fa166dd5b44935ebe157f9e35",
+      "sources": [
+        "globals/gui_nav"
+      ]
+    },
+    "globals/mim_repeat": {
+      "compiledPath": "rules_fst/globals/mim_repeat.fst",
+      "sha256": "e0d3cb9d2b32d9fb7b3ee9189952b5eee11a519470abb23bf4b9340ec8787bf3",
+      "sources": [
+        "globals/mim_repeat"
+      ]
+    },
+    "globals/mim_thanks": {
+      "compiledPath": "rules_fst/globals/mim_thanks.fst",
+      "sha256": "28560fee8605de5116054f24ee0dade0fe3cbd99b32db87489c205606e242ac9",
+      "sources": [
+        "globals/mim_thanks"
+      ]
+    },
+    "greetings/bedtime_reminder": {
+      "compiledPath": "rules_fst/greetings/bedtime_reminder.fst",
+      "sha256": "fd81ab5d1d97082303a99f9da90c51c0d225caa2176185ed0851ccd498e9e242",
+      "sources": [
+        "greetings/bedtime_reminder"
+      ]
+    },
+    "greetings/day_quality": {
+      "compiledPath": "rules_fst/greetings/day_quality.fst",
+      "sha256": "e6111fb609be86e0920433b4dfcf24e7e4351c6d7d6b5a2df1d37b7e36c75f74",
+      "sources": [
+        "greetings/day_quality"
+      ]
+    },
+    "greetings/greetings_hello": {
+      "compiledPath": "rules_fst/greetings/greetings_hello.fst",
+      "sha256": "573b60a2dd7d2125256ba7e1bb5cdeabcf21e217030a5e6c685a9538092ebede",
+      "sources": [
+        "greetings/greetings_hello"
+      ]
+    },
+    "greetings/proactive_general_question": {
+      "compiledPath": "rules_fst/greetings/proactive_general_question.fst",
+      "sha256": "e782ac3143a9a7115a996355981ac7cf6595304f77e951931b48616abc82e85e",
+      "sources": [
+        "greetings/proactive_general_question"
+      ]
+    },
+    "greetings/proactive_general_statement": {
+      "compiledPath": "rules_fst/greetings/proactive_general_statement.fst",
+      "sha256": "2d4571be1f15fb31f7e986df14e2e97931a3b37ed5f90b6b63a1ed5670b3f52b",
+      "sources": [
+        "greetings/proactive_general_statement"
+      ]
+    },
+    "greetings/proactive_morning_question": {
+      "compiledPath": "rules_fst/greetings/proactive_morning_question.fst",
+      "sha256": "1158d9abd78aac789a9772a3b988c3259aab112433933c46a6befa32769da289",
+      "sources": [
+        "greetings/proactive_morning_question"
+      ]
+    },
+    "greetings/proactive_morning_statement": {
+      "compiledPath": "rules_fst/greetings/proactive_morning_statement.fst",
+      "sha256": "51eeec671f14a9bda377c6b21559d20aced8f4950a637fb2125d36d47fe11e69",
+      "sources": [
+        "greetings/proactive_morning_statement"
+      ]
+    },
+    "greetings/proactive_playful_question": {
+      "compiledPath": "rules_fst/greetings/proactive_playful_question.fst",
+      "sha256": "aaa3974ebdae0853df408db8bad41a9ada63a763a1a445bf97a71b9fe87bc02c",
+      "sources": [
+        "greetings/proactive_playful_question"
+      ]
+    },
+    "greetings/proactive_playful_statement": {
+      "compiledPath": "rules_fst/greetings/proactive_playful_statement.fst",
+      "sha256": "27a56bc37946fe1b25d60d22cd3537ae2d35be1989405e4a8d58499c60b5cd26",
+      "sources": [
+        "greetings/proactive_playful_statement"
+      ]
+    },
+    "greetings/sleep_quality": {
+      "compiledPath": "rules_fst/greetings/sleep_quality.fst",
+      "sha256": "8933b046ae4f7e9e9f1c11be88074cd7234d23d4606f6a56e50ee3e9613d0ddd",
+      "sources": [
+        "greetings/sleep_quality"
+      ]
+    },
+    "greetings/you_too": {
+      "compiledPath": "rules_fst/greetings/you_too.fst",
+      "sha256": "99615bec9df31b2fe9019784cd0afd1b953012472fa5a5932825681eaedd7c1a",
+      "sources": [
+        "greetings/you_too"
+      ]
+    },
+    "hue-control/are_lights": {
+      "compiledPath": "rules_fst/hue-control/are_lights.fst",
+      "sha256": "f7f0362ef9143b009f21dc1bfe6b98390dcdcae9372cb0ab5619543823c9a330",
+      "sources": [
+        "hue-control/are_lights"
+      ]
+    },
+    "hue-control/delete_data_confirmation": {
+      "compiledPath": "rules_fst/hue-control/delete_data_confirmation.fst",
+      "sha256": "12df886c1ca2e881269d87a4364f10f177bdb357f2ffc8978d8ba3878c289bc2",
+      "sources": [
+        "hue-control/delete_data_confirmation"
+      ]
+    },
+    "hue-control/did_flash": {
+      "compiledPath": "rules_fst/hue-control/did_flash.fst",
+      "sha256": "2130268aea6d0c3f9f9ac55922d397237b31629742d4db42007c06cf04037461",
+      "sources": [
+        "hue-control/did_flash"
+      ]
+    },
+    "hue-control/first_time": {
+      "compiledPath": "rules_fst/hue-control/first_time.fst",
+      "sha256": "ee29010c3a945c1fb8e31a4797a327c96c4cee22b3c42c3691a2e1e6d66c2081",
+      "sources": [
+        "hue-control/first_time"
+      ]
+    },
+    "hue-control/get_close": {
+      "compiledPath": "rules_fst/hue-control/get_close.fst",
+      "sha256": "d23c21d0fca21bd670791e80e436a31e5b5b063c8df4f74e22a7188d40dd3173",
+      "sources": [
+        "hue-control/get_close"
+      ]
+    },
+    "hue-control/have_app": {
+      "compiledPath": "rules_fst/hue-control/have_app.fst",
+      "sha256": "8e5eafcb5475b7ac48b03ceb38655916be5ec00a0ec0b64c94bc27f0e4c23603",
+      "sources": [
+        "hue-control/have_app"
+      ]
+    },
+    "hue-control/near_lights": {
+      "compiledPath": "rules_fst/hue-control/near_lights.fst",
+      "sha256": "39bd156a1803d4a2d326c178fb49ffe468374db5d7fc47a8577acea8ad81d95d",
+      "sources": [
+        "hue-control/near_lights"
+      ]
+    },
+    "hue-control/need_some_more_time": {
+      "compiledPath": "rules_fst/hue-control/need_some_more_time.fst",
+      "sha256": "87c80fe24ea1c26acc5c9ca1b02b51c42e69f9e777197fdea07c8e3680562fdd",
+      "sources": [
+        "hue-control/need_some_more_time"
+      ]
+    },
+    "hue-control/post_control": {
+      "compiledPath": "rules_fst/hue-control/post_control.fst",
+      "sha256": "8f27f1957f7d6a4fcf95695ef8d35e9508f57a79b2ddae928a3b1924b5e5f38c",
+      "sources": [
+        "hue-control/post_control"
+      ]
+    },
+    "hue-control/press_screen": {
+      "compiledPath": "rules_fst/hue-control/press_screen.fst",
+      "sha256": "e1d4d117521fe8119c232458fa64161ad6333aa4fef5e1fe990ca77b6722be8f",
+      "sources": [
+        "hue-control/press_screen"
+      ]
+    },
+    "hue-control/ready": {
+      "compiledPath": "rules_fst/hue-control/ready.fst",
+      "sha256": "df5f7fcb130c876624193083b2157aacf64a54246f61bdd8ba6deaeeb4f05df2",
+      "sources": [
+        "hue-control/ready"
+      ]
+    },
+    "hue-control/want_to_set_up": {
+      "compiledPath": "rules_fst/hue-control/want_to_set_up.fst",
+      "sha256": "4c3823818574909c80aaeecdb1a0119b11a7eb88b0b2554c4ef4a51cfb4a48f6",
+      "sources": [
+        "hue-control/want_to_set_up"
+      ]
+    },
+    "hue-control/you_still_here": {
+      "compiledPath": "rules_fst/hue-control/you_still_here.fst",
+      "sha256": "c0c1e0779fe694daa6b90c7a079561cfed0aeeea60952e218cd408d3cd01e261",
+      "sources": [
+        "hue-control/you_still_here"
+      ]
+    },
+    "idle/turn_back_question": {
+      "compiledPath": "rules_fst/idle/turn_back_question.fst",
+      "sha256": "b8c2441433a5d6134857f4643f250ce780edcfc435ddf19e4b857b0b38058e1c",
+      "sources": [
+        "idle/turn_back_question"
+      ]
+    },
+    "introductions/any_more_intros": {
+      "compiledPath": "rules_fst/introductions/any_more_intros.fst",
+      "sha256": "6c5ca3fb53aab3443bc11f72452ff763540ebc8030a5052a8218acd7216e8762",
+      "sources": [
+        "introductions/any_more_intros"
+      ]
+    },
+    "introductions/face_capture_ready": {
+      "compiledPath": "rules_fst/introductions/face_capture_ready.fst",
+      "sha256": "2e349f1c8d8ff1d6dec4ff3988ff617be7042eb9cccc88a825e70b0ad68c30c0",
+      "sources": [
+        "introductions/face_capture_ready"
+      ]
+    },
+    "introductions/intro_looper": {
+      "compiledPath": "rules_fst/introductions/intro_looper.fst",
+      "sha256": "f3c7a83acc78e5224f37a6177e64f759773e4242b00874fa48454781cd1e3771",
+      "sources": [
+        "introductions/intro_looper"
+      ]
+    },
+    "introductions/is_name_right": {
+      "compiledPath": "rules_fst/introductions/is_name_right.fst",
+      "sha256": "a05081e76359d46c0e336fc0a4628a8d7264f7541e96ebcb91650cd737a3ab95",
+      "sources": [
+        "introductions/is_name_right"
+      ]
+    },
+    "introductions/recognition_any_more": {
+      "compiledPath": "rules_fst/introductions/recognition_any_more.fst",
+      "sha256": "41d89913b859d518209c40b3a71f75aec7d2e7f91cb36fd0d6e04d4d637753a3",
+      "sources": [
+        "introductions/recognition_any_more"
+      ]
+    },
+    "introductions/recognition_type_menu": {
+      "compiledPath": "rules_fst/introductions/recognition_type_menu.fst",
+      "sha256": "b0a785ce3f093eae6cd5f45ddb5ac7c8a0dfe55b01389afe9d5bc243135caaa0",
+      "sources": [
+        "introductions/recognition_type_menu"
+      ]
+    },
+    "launch": {
+      "compiledPath": "rules_fst/launch.fst",
+      "sha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
+      "sourceHandles": {
+        "chitchat/launch": "handle:chitchat/launch",
+        "circuit-saver/launch": "handle:circuit-saver/launch",
+        "clock/launch": "handle:clock/launch",
+        "create/launch": "handle:create/launch",
+        "exercise/launch": "handle:exercise/launch",
+        "friendly-tips/launch": "handle:friendly-tips/launch",
+        "gallery/launch": "handle:gallery/launch",
+        "greetings/launch": "handle:greetings/launch",
+        "hue-control/launch": "handle:hue-control/launch",
+        "ifttt/launch": "handle:ifttt/launch",
+        "introductions/launch": "handle:introductions/launch",
+        "main-menu/launch": "handle:main-menu/launch",
+        "radio/launch": "handle:radio/launch",
+        "report/launch": "handle:personal-report/launch",
+        "settings/launch": "handle:settings/launch",
+        "surprises-ota/launch": "handle:surprises-ota/launch",
+        "template-skill/launch": "handle:template-skill/launch",
+        "tutorial/launch": "handle:tutorial/launch",
+        "who-am-i/launch": "handle:who-am-i/launch",
+        "word-of-the-day/launch": "handle:word-of-the-day/launch"
+      },
+      "sources": [
+        "chitchat/launch",
+        "circuit-saver/launch",
+        "clock/launch",
+        "create/launch",
+        "exercise/launch",
+        "friendly-tips/launch",
+        "gallery/launch",
+        "greetings/launch",
+        "hue-control/launch",
+        "ifttt/launch",
+        "introductions/launch",
+        "main-menu/launch",
+        "radio/launch",
+        "report/launch",
+        "settings/launch",
+        "surprises-ota/launch",
+        "template-skill/launch",
+        "tutorial/launch",
+        "who-am-i/launch",
+        "word-of-the-day/launch"
+      ]
+    },
+    "main-menu/execute_fun_stuff": {
+      "compiledPath": "rules_fst/main-menu/execute_fun_stuff.fst",
+      "sha256": "4d041f1c2a0f8fc39882b83aadef26581ff2db6e25b7ebac7154a204e70b8ea3",
+      "sources": [
+        "main-menu/execute_fun_stuff"
+      ]
+    },
+    "main-menu/execute_main_menu": {
+      "compiledPath": "rules_fst/main-menu/execute_main_menu.fst",
+      "sha256": "84f3db23cd2ef9ced742bacfeb1c6c8432da1b1d2b78e836ea4f47e0305ee4c7",
+      "sources": [
+        "main-menu/execute_main_menu"
+      ]
+    },
+    "main-menu/execute_personal_report": {
+      "compiledPath": "rules_fst/main-menu/execute_personal_report.fst",
+      "sha256": "3eeb3e4d3dfb64129d782f9001070853f24f8b4acfd5f8caad63a313e8c6cfe9",
+      "sources": [
+        "main-menu/execute_personal_report"
+      ]
+    },
+    "radio/radio_get_genre": {
+      "compiledPath": "rules_fst/radio/radio_get_genre.fst",
+      "sha256": "9d38def60c28990c94ad8f76cca905f49c9325aee383ab75cd61654e9b983a70",
+      "sources": [
+        "radio/radio_get_genre"
+      ]
+    },
+    "radio/radio_get_genre_ca": {
+      "compiledPath": "rules_fst/radio/radio_get_genre_ca.fst",
+      "sha256": "85f11dfc12a5740d317cc8f33f1e94963f6e5d321f50c3a50a9dce419005dc5e",
+      "sources": [
+        "radio/radio_get_genre_ca"
+      ]
+    },
+    "radio/run_control": {
+      "compiledPath": "rules_fst/radio/run_control.fst",
+      "sha256": "e9c661d3db057c4b676bd956861081b32f16a2f65554a102c77ea3167b8fc991",
+      "sources": [
+        "radio/run_control"
+      ]
+    },
+    "settings/download_now_later": {
+      "compiledPath": "rules_fst/settings/download_now_later.fst",
+      "sha256": "063de3f26a2f6e888371b9a8d6df04c490351a55e56a2a947927f369add28cd3",
+      "sources": [
+        "settings/download_now_later"
+      ]
+    },
+    "settings/execute_settings_menu": {
+      "compiledPath": "rules_fst/settings/execute_settings_menu.fst",
+      "sha256": "b329da5f40abd9c295ae333c39c5e9927d8311d6babf83d119bc8ef56ed88585",
+      "sources": [
+        "settings/execute_settings_menu"
+      ]
+    },
+    "settings/okay_thanks_to_clear": {
+      "compiledPath": "rules_fst/settings/okay_thanks_to_clear.fst",
+      "sha256": "be8fb7a6288b4d2f03a5825dec3418528e7553f0e1088538b0c487425422c028",
+      "sources": [
+        "settings/okay_thanks_to_clear"
+      ]
+    },
+    "settings/shut_down_confirmation": {
+      "compiledPath": "rules_fst/settings/shut_down_confirmation.fst",
+      "sha256": "1bf12a512eadc7a458f916e834636f6c14e29bd154b767ba00307926b72b9e15",
+      "sources": [
+        "settings/shut_down_confirmation"
+      ]
+    },
+    "settings/volume_control": {
+      "compiledPath": "rules_fst/settings/volume_control.fst",
+      "sha256": "1c8a7f91f8fafdf01e0f127ccf25ad5cbd3f41525ff94d35200b8a8d49e0a789",
+      "sources": [
+        "settings/volume_control"
+      ]
+    },
+    "shared/no_id": {
+      "compiledPath": "rules_fst/shared/no_id.fst",
+      "sha256": "6383b76443030d01726d2c31aa7b85313a222b6da9d86b37dc454363e382a887",
+      "sources": [
+        "shared/no_id"
+      ]
+    },
+    "shared/verify_id": {
+      "compiledPath": "rules_fst/shared/verify_id.fst",
+      "sha256": "8c484db531b6a0ad19cfe75f84abdbad1745d7ee62cf3ff2b73e4544673faa62",
+      "sources": [
+        "shared/verify_id"
+      ]
+    },
+    "shared/wildcard": {
+      "compiledPath": "rules_fst/shared/wildcard.fst",
+      "sha256": "6e34bcf8a16fef7f79ef4f927e74ffb08e4274dfb383cb7075d54cc4876cf942",
+      "sources": [
+        "shared/wildcard"
+      ]
+    },
+    "shared/wrong_id": {
+      "compiledPath": "rules_fst/shared/wrong_id.fst",
+      "sha256": "adf1c8ac2454d9c792e02b6fd72eaa83e28b000b62c9b7eec4bdb84f36d4d3d9",
+      "sources": [
+        "shared/wrong_id"
+      ]
+    },
+    "shared/yes_no": {
+      "compiledPath": "rules_fst/shared/yes_no.fst",
+      "sha256": "45663f9fc51f2880972e106881ea96bb75cfdc68a630236a75f0ba8e4cbf46b1",
+      "sources": [
+        "shared/yes_no"
+      ]
+    },
+    "surprises-date/offer_date_fact": {
+      "compiledPath": "rules_fst/surprises-date/offer_date_fact.fst",
+      "sha256": "ad779d8663d277e51b61db1e40442df89f859699adbaa9608d445a4b0ac862ad",
+      "sources": [
+        "surprises-date/offer_date_fact"
+      ]
+    },
+    "surprises-ota/offer_ota_release_notes": {
+      "compiledPath": "rules_fst/surprises-ota/offer_ota_release_notes.fst",
+      "sha256": "b279050ed20bd16128edf98a23d5fe4f8ee4f56700497cb7eaf8578a620dd823",
+      "sources": [
+        "surprises-ota/offer_ota_release_notes"
+      ]
+    },
+    "surprises-ota/want_to_download_now": {
+      "compiledPath": "rules_fst/surprises-ota/want_to_download_now.fst",
+      "sha256": "063de3f26a2f6e888371b9a8d6df04c490351a55e56a2a947927f369add28cd3",
+      "sources": [
+        "surprises-ota/want_to_download_now"
+      ]
+    },
+    "surprises-user-research/future_feature_frequency": {
+      "compiledPath": "rules_fst/surprises-user-research/future_feature_frequency.fst",
+      "sha256": "571ec1df6d50b058c874486c5e061c2cfe2f6d97712c6966dd87f56810759518",
+      "sources": [
+        "surprises-user-research/future_feature_frequency"
+      ]
+    },
+    "surprises-user-research/future_feature_yes_no_maybe": {
+      "compiledPath": "rules_fst/surprises-user-research/future_feature_yes_no_maybe.fst",
+      "sha256": "40013cc0c7e12434ff63b6cc1c2a646081780ce27110269aa1571d849bf125e8",
+      "sources": [
+        "surprises-user-research/future_feature_yes_no_maybe"
+      ]
+    },
+    "tutorial/dance": {
+      "compiledPath": "rules_fst/tutorial/dance.fst",
+      "sha256": "2568277f7506a3bedd6fe0442044f3895406a266cb636e0d2ed216adc7321c9f",
+      "sources": [
+        "tutorial/dance"
+      ]
+    },
+    "tutorial/keep_photo": {
+      "compiledPath": "rules_fst/tutorial/keep_photo.fst",
+      "sha256": "f00242034476e386f271a90c8408e299ccf869cb934f7292b92ab815997e8268",
+      "sources": [
+        "tutorial/keep_photo"
+      ]
+    },
+    "tutorial/take_photo": {
+      "compiledPath": "rules_fst/tutorial/take_photo.fst",
+      "sha256": "7cc1035d5be26050625276193d15c9d73b79f76d9b670f5b98186a67073814af",
+      "sources": [
+        "tutorial/take_photo"
+      ]
+    },
+    "tutorial/where_are_you": {
+      "compiledPath": "rules_fst/tutorial/where_are_you.fst",
+      "sha256": "49e6c5520e44a7e939202e346d9c25eb5060e949978adccc6c2a902b9dd9ca82",
+      "sources": [
+        "tutorial/where_are_you"
+      ]
+    },
+    "tutorial/yes_no": {
+      "compiledPath": "rules_fst/tutorial/yes_no.fst",
+      "sha256": "c7633aedf9d3638ca18320d2a8906851230d0f54fdb738338abec584d57ee8a8",
+      "sources": [
+        "tutorial/yes_no"
+      ]
+    },
+    "who-am-i/collect_looper": {
+      "compiledPath": "rules_fst/who-am-i/collect_looper.fst",
+      "sha256": "3ac548a20efe6fb82cd4b90db3e5f259739354bb2703d1c5411f0f08c007f4db",
+      "sources": [
+        "who-am-i/collect_looper"
+      ]
+    },
+    "who-am-i/confirm": {
+      "compiledPath": "rules_fst/who-am-i/confirm.fst",
+      "sha256": "bdbd7aa1b826f61de637a95a60eaeb5be576b1bb368efab0cee4c84ca3bfeb38",
+      "sources": [
+        "who-am-i/confirm"
+      ]
+    },
+    "who-am-i/name_is_right": {
+      "compiledPath": "rules_fst/who-am-i/name_is_right.fst",
+      "sha256": "86f8969d1e1b96a5a9be095ca188ce0fb036a2b3787d02a0feef36f2e74486e0",
+      "sources": [
+        "who-am-i/name_is_right"
+      ]
+    },
+    "who-am-i/want_to_enroll": {
+      "compiledPath": "rules_fst/who-am-i/want_to_enroll.fst",
+      "sha256": "55dfb44632321f8baf157995860bf3b53601cf7691f50e7bc089bbe02193c63c",
+      "sources": [
+        "who-am-i/want_to_enroll"
+      ]
+    },
+    "word-of-the-day/fun_fact": {
+      "compiledPath": "rules_fst/word-of-the-day/fun_fact.fst",
+      "sha256": "188aa4a9298fdb8e8bb25ea21e6f05cbee4c42ef1f982122f6f61ed001f5a9e6",
+      "sources": [
+        "word-of-the-day/fun_fact"
+      ]
+    },
+    "word-of-the-day/offer": {
+      "compiledPath": "rules_fst/word-of-the-day/offer.fst",
+      "sha256": "29ba8ae35068efccfba38ae6fd54b81d677ced4432d82fb3200484f90ac0832f",
+      "sources": [
+        "word-of-the-day/offer"
+      ]
+    },
+    "word-of-the-day/puzzle": {
+      "compiledPath": "rules_fst/word-of-the-day/puzzle.fst",
+      "sha256": "d40fce55753c5e1784dd157b4e6c9c854af877b9372bf4760f4876295eea5765",
+      "sources": [
+        "word-of-the-day/puzzle"
+      ]
+    },
+    "word-of-the-day/right_word": {
+      "compiledPath": "rules_fst/word-of-the-day/right_word.fst",
+      "sha256": "914bbfb00dc5ff116e3c4bec9e98f8f2459d1ab8d9c33ecb5c8a172cddf6d1fd",
+      "sources": [
+        "word-of-the-day/right_word"
+      ]
+    },
+    "word-of-the-day/surprise": {
+      "compiledPath": "rules_fst/word-of-the-day/surprise.fst",
+      "sha256": "05c8af84e31271dd22111a2b5de5effe93dcaaa7db2cff39637b61d0724f8e01",
+      "sources": [
+        "word-of-the-day/surprise"
+      ]
+    }
+  },
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "ruleCount": 117,
+  "ruleDependencies": {
+    "chitchat/launch": {
+      "bounded": [],
+      "factories": [
+        "canada_city_province",
+        "canada_province",
+        "city_state",
+        "country",
+        "digits",
+        "first_name",
+        "last_name",
+        "state",
+        "world_city_country",
+        "year"
+      ],
+      "status": "unsupported-dependencies",
+      "unsupported": [
+        "canada_city_province",
+        "city_state",
+        "digits",
+        "world_city_country",
+        "year"
+      ]
+    },
+    "circuit-saver/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "circuit-saver/play_again": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "clock/alarm_set_value": {
+      "bounded": [],
+      "factories": [
+        "time"
+      ],
+      "status": "unsupported-dependencies",
+      "unsupported": [
+        "time"
+      ]
+    },
+    "clock/alarm_timer_ampm": {
+      "bounded": [],
+      "factories": [
+        "time"
+      ],
+      "status": "unsupported-dependencies",
+      "unsupported": [
+        "time"
+      ]
+    },
+    "clock/alarm_timer_change": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "clock/alarm_timer_info": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "clock/alarm_timer_none_set": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "clock/alarm_timer_okay": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "clock/alarm_timer_other_set": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "clock/alarm_timer_query_menu": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "clock/alarm_timer_too_long": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "clock/clock_menu": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "clock/launch": {
+      "bounded": [
+        "timer"
+      ],
+      "factories": [
+        "canada_city_province",
+        "canada_province",
+        "city_state",
+        "country",
+        "first_name",
+        "last_name",
+        "state",
+        "time",
+        "timer",
+        "world_city_country"
+      ],
+      "status": "unsupported-dependencies",
+      "unsupported": [
+        "canada_city_province",
+        "city_state",
+        "time",
+        "world_city_country"
+      ]
+    },
+    "clock/stop_timer": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "clock/timer_set_value": {
+      "bounded": [
+        "timer"
+      ],
+      "factories": [
+        "timer"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "create/execute_create_menu": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "create/is_it_a_keeper": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "create/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "create/take_another_photo": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "exercise/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "exercise/pause_hold": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "exercise/ready_now": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "exercise/ready_to_start": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "exercise/routine_selector": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "exercise/run_control": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "exercise/want_to": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "friendly-tips/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "friendly-tips/want_more_tdd": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "gallery/confirm_delete_item": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "gallery/gallery_preview": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "gallery/item_pause": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "gallery/item_view": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "gallery/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "globals/global_commands_launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "globals/gui_nav": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "globals/mim_repeat": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "globals/mim_thanks": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "greetings/bedtime_reminder": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "greetings/day_quality": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "greetings/greetings_hello": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "greetings/launch": {
+      "bounded": [],
+      "factories": [
+        "first_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "greetings/proactive_general_question": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "first_name",
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "greetings/proactive_general_statement": {
+      "bounded": [],
+      "factories": [
+        "first_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "greetings/proactive_morning_question": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "first_name",
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "greetings/proactive_morning_statement": {
+      "bounded": [],
+      "factories": [
+        "first_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "greetings/proactive_playful_question": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "first_name",
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "greetings/proactive_playful_statement": {
+      "bounded": [],
+      "factories": [
+        "first_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "greetings/sleep_quality": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "greetings/you_too": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "hue-control/are_lights": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/delete_data_confirmation": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/did_flash": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/first_time": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/get_close": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "hue-control/have_app": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "hue-control/near_lights": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/need_some_more_time": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/post_control": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "hue-control/press_screen": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "hue-control/ready": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "hue-control/want_to_set_up": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "hue-control/you_still_here": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "idle/turn_back_question": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "ifttt/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "introductions/any_more_intros": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "introductions/face_capture_ready": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "introductions/intro_looper": {
+      "bounded": [],
+      "factories": [
+        "first_name",
+        "last_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "introductions/is_name_right": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "introductions/launch": {
+      "bounded": [],
+      "factories": [
+        "first_name",
+        "last_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "introductions/recognition_any_more": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "introductions/recognition_type_menu": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "main-menu/execute_fun_stuff": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "main-menu/execute_main_menu": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "main-menu/execute_personal_report": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "main-menu/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "radio/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "radio/radio_get_genre": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "radio/radio_get_genre_ca": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "radio/run_control": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "report/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "settings/download_now_later": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "settings/execute_settings_menu": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "settings/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "settings/okay_thanks_to_clear": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "settings/shut_down_confirmation": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "settings/volume_control": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "shared/no_id": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "shared/verify_id": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "shared/wildcard": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "shared/wrong_id": {
+      "bounded": [],
+      "factories": [
+        "first_name",
+        "last_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "shared/yes_no": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "surprises-date/offer_date_fact": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "surprises-ota/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "surprises-ota/offer_ota_release_notes": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "surprises-ota/want_to_download_now": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "surprises-user-research/future_feature_frequency": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "surprises-user-research/future_feature_yes_no_maybe": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "template-skill/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "tutorial/dance": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "tutorial/keep_photo": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "tutorial/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "tutorial/take_photo": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "tutorial/where_are_you": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "tutorial/yes_no": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "who-am-i/collect_looper": {
+      "bounded": [],
+      "factories": [
+        "first_name",
+        "last_name"
+      ],
+      "status": "word-list",
+      "unsupported": []
+    },
+    "who-am-i/confirm": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "who-am-i/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "who-am-i/name_is_right": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "who-am-i/want_to_enroll": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "word-of-the-day/fun_fact": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "word-of-the-day/launch": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "word-of-the-day/offer": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "word-of-the-day/puzzle": {
+      "bounded": [],
+      "factories": [],
+      "status": "source-only",
+      "unsupported": []
+    },
+    "word-of-the-day/right_word": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    },
+    "word-of-the-day/surprise": {
+      "bounded": [
+        "yes_no"
+      ],
+      "factories": [
+        "yes_no"
+      ],
+      "status": "bounded-compatibility",
+      "unsupported": []
+    }
+  },
+  "rules": {
+    "chitchat/launch": {
+      "path": "rules-src/chitchat/launch.rule",
+      "sha256": "e6bab3053a0793c60da8ed19c47d0f53c4d30e3164020082c626d4c32c54049f"
+    },
+    "circuit-saver/launch": {
+      "path": "rules-src/circuit-saver/launch.rule",
+      "sha256": "1638274a242932125ca6954f6c2c6150b3624a321e584826535e6fa8a2110d68"
+    },
+    "circuit-saver/play_again": {
+      "path": "rules-src/circuit-saver/play_again.rule",
+      "sha256": "425eb182d4528e24a4f593ea5eb14b11ea28c775fc5fec3793f251f9d3312163"
+    },
+    "clock/alarm_set_value": {
+      "path": "rules-src/clock/alarm_set_value.rule",
+      "sha256": "6abcc1900a853a7eebf7ea8bdcb3412136954dcfe22660509c8afdd154f6bdda"
+    },
+    "clock/alarm_timer_ampm": {
+      "path": "rules-src/clock/alarm_timer_ampm.rule",
+      "sha256": "9da20dec12cf491db5b810d78227d54670e055a29120e28b78d3ba47ce3453ae"
+    },
+    "clock/alarm_timer_change": {
+      "path": "rules-src/clock/alarm_timer_change.rule",
+      "sha256": "e9991f373e4a0547d9e0023ae7adbf3a64e6564b4b6101b3834fe991b713e0c7"
+    },
+    "clock/alarm_timer_info": {
+      "path": "rules-src/clock/alarm_timer_info.rule",
+      "sha256": "401f90dab58557304f5e625117e1785439ce6de4bcc0130091abbf4c3d6503e8"
+    },
+    "clock/alarm_timer_none_set": {
+      "path": "rules-src/clock/alarm_timer_none_set.rule",
+      "sha256": "8a2f2eb7366a47daf747e8f91e37062065e00aeb077584837c258cad19530b88"
+    },
+    "clock/alarm_timer_okay": {
+      "path": "rules-src/clock/alarm_timer_okay.rule",
+      "sha256": "b3501b24450608d134d248586b6a3daee01207fdcbe48f8741829603e2921649"
+    },
+    "clock/alarm_timer_other_set": {
+      "path": "rules-src/clock/alarm_timer_other_set.rule",
+      "sha256": "b2fc74299ba34fe8d706681ad0f763eca1883141555cec8d631da9059471ff1d"
+    },
+    "clock/alarm_timer_query_menu": {
+      "path": "rules-src/clock/alarm_timer_query_menu.rule",
+      "sha256": "c6f1a671175373bc44dc48cb1b8a64558bc0e0722eb4557f41956b0e0175853e"
+    },
+    "clock/alarm_timer_too_long": {
+      "path": "rules-src/clock/alarm_timer_too_long.rule",
+      "sha256": "e1c637fb5e6eb37596847c8b39230bf49760eedfb034b84b3b57cec38feaffaf"
+    },
+    "clock/clock_menu": {
+      "path": "rules-src/clock/clock_menu.rule",
+      "sha256": "c193b436adc81fa4fa2869290570554da6c42604c157279c287bc9473450abd6"
+    },
+    "clock/launch": {
+      "path": "rules-src/clock/launch.rule",
+      "sha256": "a298789dda79ab71cd450a39cc2e28b570abdf85db71d0447d3a4b8b2809f421"
+    },
+    "clock/stop_timer": {
+      "path": "rules-src/clock/stop_timer.rule",
+      "sha256": "b0890ada9d37e42c0c3ab576257c6a52ef8f177747a1027ed3ce76d25266255a"
+    },
+    "clock/timer_set_value": {
+      "path": "rules-src/clock/timer_set_value.rule",
+      "sha256": "8d8610d6ea3259d7f8f97d34e0ae056ac3631d2611907d8b2ddf003484bfb67a"
+    },
+    "create/execute_create_menu": {
+      "path": "rules-src/create/execute_create_menu.rule",
+      "sha256": "b11fd10c69adea6af5c000c16d7ca3db5744b0071b82494ef6761ec4d4e6e0b7"
+    },
+    "create/is_it_a_keeper": {
+      "path": "rules-src/create/is_it_a_keeper.rule",
+      "sha256": "34e00169bc77357966f824918e967b283eb03814ed16e1bded0dd0dbf3704a94"
+    },
+    "create/launch": {
+      "path": "rules-src/create/launch.rule",
+      "sha256": "9811fac032889b319b776a39562bfec08c6923f74fc116d051294c5fa12bb9b3"
+    },
+    "create/take_another_photo": {
+      "path": "rules-src/create/take_another_photo.rule",
+      "sha256": "8475006f68e2169a4b15af27ccf379aa3b8115f719d6abcc77b7aea5ecd569f3"
+    },
+    "exercise/launch": {
+      "path": "rules-src/exercise/launch.rule",
+      "sha256": "1e585b0406fd37c1bc8e5a0f2be4084dd20cd6160c40110c78b55dd6f341fbbb"
+    },
+    "exercise/pause_hold": {
+      "path": "rules-src/exercise/pause_hold.rule",
+      "sha256": "da450c149d7164860c1fb9d6786d25b2b7bf8556e9d068032b3904919f1037d6"
+    },
+    "exercise/ready_now": {
+      "path": "rules-src/exercise/ready_now.rule",
+      "sha256": "e6691404d9e7fac43ff31ea963949239a76122b56ffc646a538264c60253a865"
+    },
+    "exercise/ready_to_start": {
+      "path": "rules-src/exercise/ready_to_start.rule",
+      "sha256": "6fabc25ae65122ad4de6bb00841b6612470cfd7a631ff4720a66cdf70ddde556"
+    },
+    "exercise/routine_selector": {
+      "path": "rules-src/exercise/routine_selector.rule",
+      "sha256": "16be509e953f23cb0a84c2d2476e9686309cc14a448869e2135aa342538ce0bc"
+    },
+    "exercise/run_control": {
+      "path": "rules-src/exercise/run_control.rule",
+      "sha256": "4bf1771596155e280b4151fec7f1d535eeb659fb0cd9c583efbf12dd91845cdf"
+    },
+    "exercise/want_to": {
+      "path": "rules-src/exercise/want_to.rule",
+      "sha256": "8c52cef4fa2157fc2b8a56fceb70b4b90859cd7df4ad61345454e6ebee7751be"
+    },
+    "friendly-tips/launch": {
+      "path": "rules-src/friendly-tips/launch.rule",
+      "sha256": "34e57c465428a85eeafc07a0885faee7cb9f00825224fe638dec981e3038a987"
+    },
+    "friendly-tips/want_more_tdd": {
+      "path": "rules-src/friendly-tips/want_more_tdd.rule",
+      "sha256": "89830f760796084a3e2e1ef65f90f3ab1a293b98a41f6f09e5a687ccfa4be244"
+    },
+    "gallery/confirm_delete_item": {
+      "path": "rules-src/gallery/confirm_delete_item.rule",
+      "sha256": "c026e37942e9c3774338e1e820db18b5b4d61f163804792f6b8d4097950c5348"
+    },
+    "gallery/gallery_preview": {
+      "path": "rules-src/gallery/gallery_preview.rule",
+      "sha256": "764ab58ada240f8e2ed5aada9cb0ba60e1eeb1220a7d9b510206a1336783d727"
+    },
+    "gallery/item_pause": {
+      "path": "rules-src/gallery/item_pause.rule",
+      "sha256": "ecba8bc8e32d0b0a7cf7faf5d9592e4a1f24982822bddb29d86363c9a58aeb99"
+    },
+    "gallery/item_view": {
+      "path": "rules-src/gallery/item_view.rule",
+      "sha256": "73c5acaec4a1d7777cdb7cf12ed0a5b8f9bdba5319295e83ce1ef9f610e686df"
+    },
+    "gallery/launch": {
+      "path": "rules-src/gallery/launch.rule",
+      "sha256": "aa659f0a3935bc223a7df626fb9ae6940d4b70e72385de2096dc9d29327c1ed7"
+    },
+    "globals/global_commands_launch": {
+      "path": "rules-src/globals/global_commands_launch.rule",
+      "sha256": "28578c35b0d0dce4cc6b7ff064c4761197a6e7199148f90e497cb21e388989c0"
+    },
+    "globals/gui_nav": {
+      "path": "rules-src/globals/gui_nav.rule",
+      "sha256": "869d7a9a58a2fe0470660d330901b4990a78d3fb6e2aecf70a1ba7681952771d"
+    },
+    "globals/mim_repeat": {
+      "path": "rules-src/globals/mim_repeat.rule",
+      "sha256": "e8014239148fce111744728b0505dd9d9d997abc2017b70d7b0d599329a85492"
+    },
+    "globals/mim_thanks": {
+      "path": "rules-src/globals/mim_thanks.rule",
+      "sha256": "ffe9872730b73573a68e62b803c44d85b0293b0f3ad0110794e71a03e14b7bd9"
+    },
+    "greetings/bedtime_reminder": {
+      "path": "rules-src/greetings/bedtime_reminder.rule",
+      "sha256": "4b58d6f9a7b567bcfc54b5471338818c030cfb7357bcf7e91f02708fbee4709d"
+    },
+    "greetings/day_quality": {
+      "path": "rules-src/greetings/day_quality.rule",
+      "sha256": "5f4c1a8b07ff5369c8ab4a4bee80230a935897f086ddd544de6f05aac5f08b86"
+    },
+    "greetings/greetings_hello": {
+      "path": "rules-src/greetings/greetings_hello.rule",
+      "sha256": "9cc3aa8fbee1ac04e32467153b98dcafcd468a3974e40f9a11c20f0f95d09137"
+    },
+    "greetings/launch": {
+      "path": "rules-src/greetings/launch.rule",
+      "sha256": "bf1ce853e0e2f2cc52f6c97100ca58b4ac59238c621d013032fad6c490ffc722"
+    },
+    "greetings/proactive_general_question": {
+      "path": "rules-src/greetings/proactive_general_question.rule",
+      "sha256": "042aad8d9244c23749ba15fe36a62a732e8b2ca354bf6804b33665764ec83fd3"
+    },
+    "greetings/proactive_general_statement": {
+      "path": "rules-src/greetings/proactive_general_statement.rule",
+      "sha256": "b1f63e35dd181591866ac9afb813b1b815e474c07461a8e3c7a67846112d195a"
+    },
+    "greetings/proactive_morning_question": {
+      "path": "rules-src/greetings/proactive_morning_question.rule",
+      "sha256": "091ec188b2af255bbfdaa96a9c9e8895cf72b2bc888ca2078f7f79ffbe5a3ac2"
+    },
+    "greetings/proactive_morning_statement": {
+      "path": "rules-src/greetings/proactive_morning_statement.rule",
+      "sha256": "6c543d708a47804b4eb71acb44c37317e4d6271c97a151bc2d429626439c4ad8"
+    },
+    "greetings/proactive_playful_question": {
+      "path": "rules-src/greetings/proactive_playful_question.rule",
+      "sha256": "80b37562da4fb77b31f289664927146db15b638c2b278dce47db65ab6090f20e"
+    },
+    "greetings/proactive_playful_statement": {
+      "path": "rules-src/greetings/proactive_playful_statement.rule",
+      "sha256": "d19a6294442bcf9a1b2ea3365f7d0cdf71c6f8a9c7cb8396962b30821fa2ca2e"
+    },
+    "greetings/sleep_quality": {
+      "path": "rules-src/greetings/sleep_quality.rule",
+      "sha256": "95b6630c40126811511042ceac314bf7a0c4157f311c869591a571891d69b0e7"
+    },
+    "greetings/you_too": {
+      "path": "rules-src/greetings/you_too.rule",
+      "sha256": "916b5370955a725a8875c7a70bb57a851348cee4e2a8a7af1270b2d32c64764e"
+    },
+    "hue-control/are_lights": {
+      "path": "rules-src/hue-control/are_lights.rule",
+      "sha256": "0fd807bbd37b8f034205afe7dfc5c955608bcd670d205e3cc595688714e7e70b"
+    },
+    "hue-control/delete_data_confirmation": {
+      "path": "rules-src/hue-control/delete_data_confirmation.rule",
+      "sha256": "1b3fdd991d5918a9e857cf158c62a88747e1b80074efb995bcf0a3ab07602eaf"
+    },
+    "hue-control/did_flash": {
+      "path": "rules-src/hue-control/did_flash.rule",
+      "sha256": "ff7d1a3fac37f983c17b5107d4d7edff79ba4ac474a65fbcd4995366d655e9e4"
+    },
+    "hue-control/first_time": {
+      "path": "rules-src/hue-control/first_time.rule",
+      "sha256": "1f39855dff0d893f3f30812043dde4c300c5c652e0df85cf9c0e2247955caeff"
+    },
+    "hue-control/get_close": {
+      "path": "rules-src/hue-control/get_close.rule",
+      "sha256": "2016d80b1fd1748d90f78f69949b750e7139a56cc7ba9f8f430abb9c36f50faa"
+    },
+    "hue-control/have_app": {
+      "path": "rules-src/hue-control/have_app.rule",
+      "sha256": "7fc46a44c7e515fca670e20e99edec3e5268d9fba47629caa1b69c6baaf029da"
+    },
+    "hue-control/launch": {
+      "path": "rules-src/hue-control/launch.rule",
+      "sha256": "6eec78d6ad560b23c67da472116254d495a773c0831ce210105007428b0ccb42"
+    },
+    "hue-control/near_lights": {
+      "path": "rules-src/hue-control/near_lights.rule",
+      "sha256": "c31ed3adfbd8df0cfe4207cfb8f1cf05f893e9a4c8da47ed5d404d958d4e0f59"
+    },
+    "hue-control/need_some_more_time": {
+      "path": "rules-src/hue-control/need_some_more_time.rule",
+      "sha256": "d8be2fd7a7a430498631345254d2bce935d37ae3184730f398d5651119505c4a"
+    },
+    "hue-control/post_control": {
+      "path": "rules-src/hue-control/post_control.rule",
+      "sha256": "4b7ae3b0dbafe4fb32af4e9bd4982df7a21685747ed940e2ae6541c6495a37f1"
+    },
+    "hue-control/press_screen": {
+      "path": "rules-src/hue-control/press_screen.rule",
+      "sha256": "0f8ad21fb264575e6ce7371dd06bdaeb5d1ab4efad2fc2465a26d620377a3d21"
+    },
+    "hue-control/ready": {
+      "path": "rules-src/hue-control/ready.rule",
+      "sha256": "785bd4d980d2ccebd0d6e436784b76daf402bfc047812bb922f9b45f37d8ff5b"
+    },
+    "hue-control/want_to_set_up": {
+      "path": "rules-src/hue-control/want_to_set_up.rule",
+      "sha256": "98a283c341f0a5bf9196bb2dae0190b1f5cf6745c2e9e36db0705a4625889273"
+    },
+    "hue-control/you_still_here": {
+      "path": "rules-src/hue-control/you_still_here.rule",
+      "sha256": "b4926595d0d506030ec89687637cfdc2d01bf49e12d1e3140f104924e55bcf42"
+    },
+    "idle/turn_back_question": {
+      "path": "rules-src/idle/turn_back_question.rule",
+      "sha256": "143b6f9c0849416be06afab74768b14e2a0eec210ebdf5fae941fe25d1e99b90"
+    },
+    "ifttt/launch": {
+      "path": "rules-src/ifttt/launch.rule",
+      "sha256": "657bb52529a74b43f6a55eae66d2df77e9d514c9f3dc150a0cea3e793b55c06d"
+    },
+    "introductions/any_more_intros": {
+      "path": "rules-src/introductions/any_more_intros.rule",
+      "sha256": "db2f83f431b680e9ad4fab6bd3e850492574f1f2bd1b9a41415e67893ed42079"
+    },
+    "introductions/face_capture_ready": {
+      "path": "rules-src/introductions/face_capture_ready.rule",
+      "sha256": "ea5a266b2d7867e2c930a487009274dd3399157b13828fbd7cf6a5ea578966e1"
+    },
+    "introductions/intro_looper": {
+      "path": "rules-src/introductions/intro_looper.rule",
+      "sha256": "77be4275e8afa56fd7320b5b28a82ad349738adeb43ddb1c77ef2862ae43d2ca"
+    },
+    "introductions/is_name_right": {
+      "path": "rules-src/introductions/is_name_right.rule",
+      "sha256": "6e85baf1aef3f3acef4284c11bd023102e45eba2c9e2ee8d11ce7701bb4412c5"
+    },
+    "introductions/launch": {
+      "path": "rules-src/introductions/launch.rule",
+      "sha256": "a357775253c111d1b69f2f4312e66892863cfa3659e2824a79f5cec320b08cab"
+    },
+    "introductions/recognition_any_more": {
+      "path": "rules-src/introductions/recognition_any_more.rule",
+      "sha256": "71d50d7e9f0c7aaed7f050eb358deb2e894320c78053a1f10eac41a6cb24008b"
+    },
+    "introductions/recognition_type_menu": {
+      "path": "rules-src/introductions/recognition_type_menu.rule",
+      "sha256": "dfe8ae85bdc3d61ac6b1578f7841db2836ecc4f4cba9493e1bf1c84d02075251"
+    },
+    "main-menu/execute_fun_stuff": {
+      "path": "rules-src/main-menu/execute_fun_stuff.rule",
+      "sha256": "0fd9b964877ce9719a2180a763e862fdad9dbd4a2ca7f597eb35d4ce9e8880da"
+    },
+    "main-menu/execute_main_menu": {
+      "path": "rules-src/main-menu/execute_main_menu.rule",
+      "sha256": "addbe09a589a34ffe0091ed1640046d802677e28942d49de2a6ca3a360ac34f3"
+    },
+    "main-menu/execute_personal_report": {
+      "path": "rules-src/main-menu/execute_personal_report.rule",
+      "sha256": "54de00ee92aaf3283d29a75b068a1cc2195b15b5407ee5680680a3d2843b1faa"
+    },
+    "main-menu/launch": {
+      "path": "rules-src/main-menu/launch.rule",
+      "sha256": "6e3aeed3aadbd6e0b5635085bdd79fc75c445532e1c5069fc574501ee0a34363"
+    },
+    "radio/launch": {
+      "path": "rules-src/radio/launch.rule",
+      "sha256": "753558b2cf5c5d0a600bb86c7451205f9811a414e099e764aa55a6c4de886009"
+    },
+    "radio/radio_get_genre": {
+      "path": "rules-src/radio/radio_get_genre.rule",
+      "sha256": "969f77bbca6c8ed808eea43ddb30608c312e66e03f8040c2ef13e25145c85468"
+    },
+    "radio/radio_get_genre_ca": {
+      "path": "rules-src/radio/radio_get_genre_ca.rule",
+      "sha256": "0fc5cadf7317afdcaae9667937c539f99cbe17764b91d47dbbf035f222a21a59"
+    },
+    "radio/run_control": {
+      "path": "rules-src/radio/run_control.rule",
+      "sha256": "709b00f71c9d6497bbadf0ea9095b14fcc7215c1499a4fb8dd3d1d870e26696f"
+    },
+    "report/launch": {
+      "path": "rules-src/report/launch.rule",
+      "sha256": "a218bd782d8ca7fd1d1dc6636b77cbc6c27fe94456f9d24d5d093eaccafc7d75"
+    },
+    "settings/download_now_later": {
+      "path": "rules-src/settings/download_now_later.rule",
+      "sha256": "eb9d82d145200a9e93afeb182094b98934b959cb4b819b441e1a273b5bb06e61"
+    },
+    "settings/execute_settings_menu": {
+      "path": "rules-src/settings/execute_settings_menu.rule",
+      "sha256": "038a2dfee515b78bc801b6a5e419d46a0ed878850e5053aeb35bb365c04d3b59"
+    },
+    "settings/launch": {
+      "path": "rules-src/settings/launch.rule",
+      "sha256": "cf2da9f1a48599942a6aa07d4360e2fe57045b691502ff039b98bf5dfb07fdd2"
+    },
+    "settings/okay_thanks_to_clear": {
+      "path": "rules-src/settings/okay_thanks_to_clear.rule",
+      "sha256": "d714c01570a1d6bf9d6f6c92163994d2af4be3a748df735280e9577b91e13271"
+    },
+    "settings/shut_down_confirmation": {
+      "path": "rules-src/settings/shut_down_confirmation.rule",
+      "sha256": "75f5dd8627adb8cf1d3c613961aabd3017fe1df461e7d4995f37ec621ff6343a"
+    },
+    "settings/volume_control": {
+      "path": "rules-src/settings/volume_control.rule",
+      "sha256": "2d657745d28a9740a7d8184f9673fde0a911f1240105c49065279a583ec91c1d"
+    },
+    "shared/no_id": {
+      "path": "rules-src/shared/no_id.rule",
+      "sha256": "d2463a978c53e8def887b714132fc8aad83379683805062d38684c3f97092b9f"
+    },
+    "shared/verify_id": {
+      "path": "rules-src/shared/verify_id.rule",
+      "sha256": "564dfbe8dcb0a8368a32ae8007af090fb4ae9221e48aa0f697f540040835f821"
+    },
+    "shared/wildcard": {
+      "path": "rules-src/shared/wildcard.rule",
+      "sha256": "94e6e9949e5b856ecea530d679c4dd32bf6cf5090b877f4a099aaa2e1c7f22f9"
+    },
+    "shared/wrong_id": {
+      "path": "rules-src/shared/wrong_id.rule",
+      "sha256": "a27d0e85fbc000b9cb225a98a9452cc7793ee56b0b3fb3726e81bec5c927a661"
+    },
+    "shared/yes_no": {
+      "path": "rules-src/shared/yes_no.rule",
+      "sha256": "e4eba28fa24295defe52d96d7730d98a5a0855f8ed5d13921a95ce8818a2b8f5"
+    },
+    "surprises-date/offer_date_fact": {
+      "path": "rules-src/surprises-date/offer_date_fact.rule",
+      "sha256": "b3819cb70ae7f99fd2f2457961b286ddb034f4cf33bbf38d70d52cef8cb6fcb9"
+    },
+    "surprises-ota/launch": {
+      "path": "rules-src/surprises-ota/launch.rule",
+      "sha256": "56c219b021a8108d5fb6e0aeeb1d9fad23d0ed067bd9844295d0abd37b149c2a"
+    },
+    "surprises-ota/offer_ota_release_notes": {
+      "path": "rules-src/surprises-ota/offer_ota_release_notes.rule",
+      "sha256": "566443b7011ef3509080979d410988e2be684033c3cc1e9b4cc9f9817d8e2193"
+    },
+    "surprises-ota/want_to_download_now": {
+      "path": "rules-src/surprises-ota/want_to_download_now.rule",
+      "sha256": "959b2398f3733dd8043752411d1dc70eb21c460f92d86681687ab0b1867984d7"
+    },
+    "surprises-user-research/future_feature_frequency": {
+      "path": "rules-src/surprises-user-research/future_feature_frequency.rule",
+      "sha256": "e234907d3de0a8d58b38a2944195e54871aaeee4d43d9ebe082d6287d73b190d"
+    },
+    "surprises-user-research/future_feature_yes_no_maybe": {
+      "path": "rules-src/surprises-user-research/future_feature_yes_no_maybe.rule",
+      "sha256": "94d9cad7ae2a7dc84ac940815bbadb6016980aa01a78dabbe6653af0b07eaca7"
+    },
+    "template-skill/launch": {
+      "path": "rules-src/template-skill/launch.rule",
+      "sha256": "e79dc166add97ea21198464db5e08675af41b578d2949ea97b5537e4f71776e8"
+    },
+    "tutorial/dance": {
+      "path": "rules-src/tutorial/dance.rule",
+      "sha256": "7e2e67e60aa48f4f5e0fe60fbfca1d40c259c591608ea0831410c2388655ecfa"
+    },
+    "tutorial/keep_photo": {
+      "path": "rules-src/tutorial/keep_photo.rule",
+      "sha256": "01606de5d34a5d35e2a7d19cc20c0cae6ef7d83ddae7da76616da4e56cad042e"
+    },
+    "tutorial/launch": {
+      "path": "rules-src/tutorial/launch.rule",
+      "sha256": "519f2ed813c7cfaea1c194423c51a88873a1b9e110d9c626119fc9d4646dcfac"
+    },
+    "tutorial/take_photo": {
+      "path": "rules-src/tutorial/take_photo.rule",
+      "sha256": "dd91fb1c0901d0a55e1094e4cd0645e184b724ba54565354cf57ee10f22b71b8"
+    },
+    "tutorial/where_are_you": {
+      "path": "rules-src/tutorial/where_are_you.rule",
+      "sha256": "a514112ab17e24b0f2a88a0cd16604f51d8f83e63cac8d1458cfdc9a48f5c1d8"
+    },
+    "tutorial/yes_no": {
+      "path": "rules-src/tutorial/yes_no.rule",
+      "sha256": "aed853beef6fe43e3304b9a93d1644691e2298265c5f9fe667c7aab0d1a9b642"
+    },
+    "who-am-i/collect_looper": {
+      "path": "rules-src/who-am-i/collect_looper.rule",
+      "sha256": "fe06b9934641ccb5ef700dfbb44d5f9cc1913cf4402ed3385faf45d60199a9e3"
+    },
+    "who-am-i/confirm": {
+      "path": "rules-src/who-am-i/confirm.rule",
+      "sha256": "747146c8378275dcdd5c0251cb61aa2c5a59ebfe98ad9131d8bd7ef7f6431c24"
+    },
+    "who-am-i/launch": {
+      "path": "rules-src/who-am-i/launch.rule",
+      "sha256": "3dbcdf6bb94716c28e16686dee2eed2c7738f19d65e5461e8830127ab9293048"
+    },
+    "who-am-i/name_is_right": {
+      "path": "rules-src/who-am-i/name_is_right.rule",
+      "sha256": "0f01d49e829abc5614cda54c1c533f6360342de69962414f0e4645b47c3f2c7f"
+    },
+    "who-am-i/want_to_enroll": {
+      "path": "rules-src/who-am-i/want_to_enroll.rule",
+      "sha256": "330690da81a3474a82c291636023529476942b2d2f822af33a78048be35ca688"
+    },
+    "word-of-the-day/fun_fact": {
+      "path": "rules-src/word-of-the-day/fun_fact.rule",
+      "sha256": "9758f50f0b7c787f159debb5da0f8d699135b54b899bd95eb1f039b974467ae0"
+    },
+    "word-of-the-day/launch": {
+      "path": "rules-src/word-of-the-day/launch.rule",
+      "sha256": "77f9eeaf014bea4bc15a7d05738dac6a2e558587fd4ac66b03063e817e80ed24"
+    },
+    "word-of-the-day/offer": {
+      "path": "rules-src/word-of-the-day/offer.rule",
+      "sha256": "a59ec1f4dfd1739b2d6c54b238f661b96a7705a10aab62d16107b67cd2568130"
+    },
+    "word-of-the-day/puzzle": {
+      "path": "rules-src/word-of-the-day/puzzle.rule",
+      "sha256": "4e2af2c5339821c4cf60797d2f5958055a640b7e967b745abfadb1f131188254"
+    },
+    "word-of-the-day/right_word": {
+      "path": "rules-src/word-of-the-day/right_word.rule",
+      "sha256": "305432fe6ed7efd37505e8d104286073577bb5fd0bdc6d9e9cc4afdde1c24938"
+    },
+    "word-of-the-day/surprise": {
+      "path": "rules-src/word-of-the-day/surprise.rule",
+      "sha256": "c3464737e0ecad4e34a00fa54a3c313dcb446eae90af809cd3ceefe860149d69"
+    }
+  },
+  "supporting": {
+    "data/eq_words.txt": {
+      "path": "data/eq_words.txt",
+      "sha256": "df1c0b74afa2cf72bd0f7afc3d4a88d7bbe7fa089c216e860a47b75c02fdd62a"
+    },
+    "factory-words/canada_province": {
+      "path": "factory-words/canada_province.txt",
+      "sha256": "a8e566f2189b9ed202480c6140afb2bdec4e9e786e6751971628ec515e4d6553"
+    },
+    "factory-words/country": {
+      "path": "factory-words/country.txt",
+      "sha256": "792c6f1b7f532abfec7d1cc39194027a89413b02b4b61afce7668af58a0ae536"
+    },
+    "factory-words/first_name": {
+      "path": "factory-words/first_name.txt",
+      "sha256": "c5cef118d476f5657f8eea58f1fc0303d6dd90f1adef670d237ecbb1edd7d951"
+    },
+    "factory-words/last_name": {
+      "path": "factory-words/last_name.txt",
+      "sha256": "998909077d09d6519334b06e0cff0c4db6a9c30ff8134b9e438f6189dd2fa9f8"
+    },
+    "factory-words/music_genre": {
+      "path": "factory-words/music_genre.txt",
+      "sha256": "2f740daa6454e543017375383077bf29b20cb4f847feb812bd7886a26662841d"
+    },
+    "factory-words/state": {
+      "path": "factory-words/state.txt",
+      "sha256": "4b834cc5f9d8fe332aca2335c039169f779b2f35e050c928e7f4cdef1e8fb7ba"
+    }
+  }
+}

@@ -1,0 +1,243 @@
+T.Jibo.Log Wrote local config to /root/.jibo/t.logging.json
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"52cdb0ac3dcd","level":"error","message":"robust-parser stderr: cerr: NLU service is ready.","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Parser.Robust.Process"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"52cdb0ac3dcd","level":"error","message":"Request failed: 'Error: TypeError: Cannot read property \\'external\\' of null\\\\n    at ParseRequestHandler.getNLUResult (/reference/packages/parser/lib/handlers/ParseRequestHandler.js:57:48)\\\\n    at <anonymous>\\\\n    at process._tickCallback (internal/process/next_tick.js:188:7)'","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Util.Service.Base"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"52cdb0ac3dcd","level":"error","message":"Request failed: 'Error:      SyntaxError: Unexpected token # in JSON at position 0\\\\n    at JSON.parse (<anonymous>)\\\\n    at createStrictSyntaxError (/reference/node_modules/body-parser/lib/types/json.js:157:10)\\\\n    at parse (/reference/node_modules/body-parser/lib/types/json.js:83:15)\\\\n    at /reference/node_modules/body-parser/lib/read.js:121:18\\\\n    at invokeCallback (/reference/node_modules/raw-body/index.js:224:16)\\\\n    at done (/reference/node_modules/raw-body/index.js:213:7)\\\\n    at IncomingMessage.onEnd (/reference/node_modules/raw-body/index.js:273:7)\\\\n    at emitNone (events.js:106:13)\\\\n    at IncomingMessage.emit (events.js:208:7)\\\\n    at endReadableNT (_stream_readable.js:1055:12)\\\\n    at _combinedTickCallback (internal/process/next_tick.js:138:11)\\\\n    at process._tickCallback (internal/process/next_tick.js:180:9)\\\\nexpose:     true\\\\nstatusCode: 400\\\\nstatus:     400\\\\nbody:       null\\\\ntype:       entity.parse.failed'","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Util.Service.Base"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"52cdb0ac3dcd","level":"error","message":"Request failed: 'Error:      Bad request: {}\\\\n    at ParseRequestHandler.handleParseRequest (/reference/packages/parser/lib/handlers/ParseRequestHandler.js:22:19)\\\\n    at ParseRequestHandler.addPostHandler (/reference/packages/parser/lib/handlers/ParseRequestHandler.js:16:54)\\\\n    at router.post (/reference/packages/utils/lib/service/handlers/BaseHttpHandler.js:57:13)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at next (/reference/node_modules/express/lib/router/route.js:137:13)\\\\n    at Route.dispatch (/reference/node_modules/express/lib/router/route.js:112:3)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at /reference/node_modules/express/lib/router/index.js:281:22\\\\n    at Function.process_params (/reference/node_modules/express/lib/router/index.js:335:12)\\\\n    at next (/reference/node_modules/express/lib/router/index.js:275:10)\\\\n    at Function.handle (/reference/node_modules/express/lib/router/index.js:174:3)\\\\n    at router (/reference/node_modules/express/lib/router/index.js:47:12)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at trim_prefix (/reference/node_modules/express/lib/router/index.js:317:13)\\\\n    at /reference/node_modules/express/lib/router/index.js:284:7\\\\n    at Function.process_params (/reference/node_modules/express/lib/router/index.js:335:12)\\\\n    at next (/reference/node_modules/express/lib/router/index.js:275:10)\\\\n    at app.use (/reference/packages/utils/lib/service/BaseService.js:121:13)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at trim_prefix (/reference/node_modules/express/lib/router/index.js:317:13)\\\\n    at /reference/node_modules/express/lib/router/index.js:284:7\\\\n    at Function.process_params (/reference/node_modules/express/lib/router/index.js:335:12)\\\\n    at next (/reference/node_modules/express/lib/router/index.js:275:10)\\\\n    at /reference/node_modules/body-parser/lib/read.js:130:5\\\\n    at invokeCallback (/reference/node_modules/raw-body/index.js:224:16)\\\\n    at done (/reference/node_modules/raw-body/index.js:213:7)\\\\n    at IncomingMessage.onEnd (/reference/node_modules/raw-body/index.js:273:7)\\\\n    at emitNone (events.js:106:13)\\\\n    at IncomingMessage.emit (events.js:208:7)\\\\n    at endReadableNT (_stream_readable.js:1055:12)\\\\nstatusCode: 400'","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Util.Service.Base"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"52cdb0ac3dcd","level":"error","message":"Request failed: 'Error:      Bad request: {\"data\":{\"text\":12,\"rules\":[\"launch\"]}}\\\\n    at ParseRequestHandler.handleParseRequest (/reference/packages/parser/lib/handlers/ParseRequestHandler.js:22:19)\\\\n    at ParseRequestHandler.addPostHandler (/reference/packages/parser/lib/handlers/ParseRequestHandler.js:16:54)\\\\n    at router.post (/reference/packages/utils/lib/service/handlers/BaseHttpHandler.js:57:13)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at next (/reference/node_modules/express/lib/router/route.js:137:13)\\\\n    at Route.dispatch (/reference/node_modules/express/lib/router/route.js:112:3)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at /reference/node_modules/express/lib/router/index.js:281:22\\\\n    at Function.process_params (/reference/node_modules/express/lib/router/index.js:335:12)\\\\n    at next (/reference/node_modules/express/lib/router/index.js:275:10)\\\\n    at Function.handle (/reference/node_modules/express/lib/router/index.js:174:3)\\\\n    at router (/reference/node_modules/express/lib/router/index.js:47:12)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at trim_prefix (/reference/node_modules/express/lib/router/index.js:317:13)\\\\n    at /reference/node_modules/express/lib/router/index.js:284:7\\\\n    at Function.process_params (/reference/node_modules/express/lib/router/index.js:335:12)\\\\n    at next (/reference/node_modules/express/lib/router/index.js:275:10)\\\\n    at app.use (/reference/packages/utils/lib/service/BaseService.js:121:13)\\\\n    at Layer.handle [as handle_request] (/reference/node_modules/express/lib/router/layer.js:95:5)\\\\n    at trim_prefix (/reference/node_modules/express/lib/router/index.js:317:13)\\\\n    at /reference/node_modules/express/lib/router/index.js:284:7\\\\n    at Function.process_params (/reference/node_modules/express/lib/router/index.js:335:12)\\\\n    at next (/reference/node_modules/express/lib/router/index.js:275:10)\\\\n    at /reference/node_modules/body-parser/lib/read.js:130:5\\\\n    at invokeCallback (/reference/node_modules/raw-body/index.js:224:16)\\\\n    at done (/reference/node_modules/raw-body/index.js:213:7)\\\\n    at IncomingMessage.onEnd (/reference/node_modules/raw-body/index.js:273:7)\\\\n    at emitNone (events.js:106:13)\\\\n    at IncomingMessage.emit (events.js:208:7)\\\\n    at endReadableNT (_stream_readable.js:1055:12)\\\\nstatusCode: 400'","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Util.Service.Base"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"'Error: Chitchat launched without required memo!\\\\n    at IntentSplitNode.exit (/reference/packages/chitchat-skill/lib/nodes/IntentSplitNode.js:24:19)\\\\n    at GraphManager.exitNode (/reference/packages/baseskill/lib/graph/GraphManager.js:92:39)\\\\n    at GraphManager.enterNode (/reference/packages/baseskill/lib/graph/GraphManager.js:75:25)\\\\n    at <anonymous>\\\\n    at process._tickCallback (internal/process/next_tick.js:188:7)'","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"skill:chitchat-missing-memo"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error getting user prefs: Error getting Settings data: undefined, Request failed with status code 503","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"skill:report-provider-failure"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Report.GetUserPrefsNode"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error getting weather data: 503 [object Object]","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"skill:report-provider-failure"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Report.WeatherData"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error parsing news: 'Error: There was a problem getting NewsData. Error: Request failed with status code 503\\\\n    at newsData.forEach.rawCat (/reference/packages/report-skill/lib/subskills/news/NewsParse.js:72:19)\\\\n    at Array.forEach (<anonymous>)\\\\n    at Object.newsParse (/reference/packages/report-skill/lib/subskills/news/NewsParse.js:70:14)\\\\n    at ParseDataNode.exit (/reference/packages/report-skill/lib/nodes/ParseDataNode.js:48:47)\\\\n    at GraphManager.exitNode (/reference/packages/baseskill/lib/graph/GraphManager.js:92:39)\\\\n    at GraphManager.enterNode (/reference/packages/baseskill/lib/graph/GraphManager.js:75:25)\\\\n    at <anonymous>\\\\n    at process._tickCallback (internal/process/next_tick.js:188:7)'","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"skill:report-provider-failure"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Report.ParseDataNode"}}
+{"progress":100,"total":20534}
+{"progress":200,"total":20534}
+{"progress":300,"total":20534}
+{"progress":400,"total":20534}
+{"progress":500,"total":20534}
+{"progress":600,"total":20534}
+{"progress":700,"total":20534}
+{"progress":800,"total":20534}
+{"progress":900,"total":20534}
+{"progress":1000,"total":20534}
+{"progress":1100,"total":20534}
+{"progress":1200,"total":20534}
+{"progress":1300,"total":20534}
+{"progress":1400,"total":20534}
+{"progress":1500,"total":20534}
+{"progress":1600,"total":20534}
+{"progress":1700,"total":20534}
+{"progress":1800,"total":20534}
+{"progress":1900,"total":20534}
+{"progress":2000,"total":20534}
+{"progress":2100,"total":20534}
+{"progress":2200,"total":20534}
+{"progress":2300,"total":20534}
+{"progress":2400,"total":20534}
+{"progress":2500,"total":20534}
+{"progress":2600,"total":20534}
+{"progress":2700,"total":20534}
+{"progress":2800,"total":20534}
+{"progress":2900,"total":20534}
+{"progress":3000,"total":20534}
+{"progress":3100,"total":20534}
+{"progress":3200,"total":20534}
+{"progress":3300,"total":20534}
+{"progress":3400,"total":20534}
+{"progress":3500,"total":20534}
+{"progress":3600,"total":20534}
+{"progress":3700,"total":20534}
+{"progress":3800,"total":20534}
+{"progress":3900,"total":20534}
+{"progress":4000,"total":20534}
+{"progress":4100,"total":20534}
+{"progress":4200,"total":20534}
+{"progress":4300,"total":20534}
+{"progress":4400,"total":20534}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error resolving prompt text on prompt  RI_JBO_Is_SS_Zodiac_AN_01 evalmachine.<anonymous>:1\\n`I'm ${jibo.zodiac.supplemented}. First powered up on ${jiboNLBirthdate}.`\\n                                                        ^\\n\\nReferenceError: jiboNLBirthdate is not defined\\n    at evalmachine.<anonymous>:1:57\\n    at ContextifyScript.Script.runInContext (vm.js:59:29)\\n    at Object.runInContext (vm.js:120:6)\\n    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:126:41)\\n    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)\\n    at <anonymous>","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"chitchat:2257:0:base"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat.Slimmer"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error resolving prompt text on prompt  RI_JBO_Is_SS_Zodiac_AN_01 evalmachine.<anonymous>:1\\n`I'm ${jibo.zodiac.supplemented}. First powered up on ${jiboNLBirthdate}.`\\n                                                        ^\\n\\nReferenceError: jiboNLBirthdate is not defined\\n    at evalmachine.<anonymous>:1:57\\n    at ContextifyScript.Script.runInContext (vm.js:59:29)\\n    at Object.runInContext (vm.js:120:6)\\n    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:126:41)\\n    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)\\n    at <anonymous>","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"chitchat:2257:1:base"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat.Slimmer"}}
+{"progress":4500,"total":20534}
+{"progress":4600,"total":20534}
+{"progress":4700,"total":20534}
+{"progress":4800,"total":20534}
+{"progress":4900,"total":20534}
+{"progress":5000,"total":20534}
+{"progress":5100,"total":20534}
+{"progress":5200,"total":20534}
+{"progress":5300,"total":20534}
+{"progress":5400,"total":20534}
+{"progress":5500,"total":20534}
+{"progress":5600,"total":20534}
+{"progress":5700,"total":20534}
+{"progress":5800,"total":20534}
+{"progress":5900,"total":20534}
+{"progress":6000,"total":20534}
+{"progress":6100,"total":20534}
+{"progress":6200,"total":20534}
+{"progress":6300,"total":20534}
+{"progress":6400,"total":20534}
+{"progress":6500,"total":20534}
+{"progress":6600,"total":20534}
+{"progress":6700,"total":20534}
+{"progress":6800,"total":20534}
+{"progress":6900,"total":20534}
+{"progress":7000,"total":20534}
+{"progress":7100,"total":20534}
+{"progress":7200,"total":20534}
+{"progress":7300,"total":20534}
+{"progress":7400,"total":20534}
+{"progress":7500,"total":20534}
+{"progress":7600,"total":20534}
+{"progress":7700,"total":20534}
+{"progress":7800,"total":20534}
+{"progress":7900,"total":20534}
+{"progress":8000,"total":20534}
+{"progress":8100,"total":20534}
+{"progress":8200,"total":20534}
+{"progress":8300,"total":20534}
+{"progress":8400,"total":20534}
+{"progress":8500,"total":20534}
+{"progress":8600,"total":20534}
+{"progress":8700,"total":20534}
+{"progress":8800,"total":20534}
+{"progress":8900,"total":20534}
+TypeError: Cannot read property '1' of null
+    at DateTime.isInRange (/reference/node_modules/jibo-data-utils/lib/jibo-data-utils.js:855:46)
+    at evalmachine.<anonymous>:1:8
+    at ContextifyScript.Script.runInContext (vm.js:59:29)
+    at Object.runInContext (vm.js:120:6)
+    at indexedPrompts.filter.prompt (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:109:54)
+    at Array.filter (<anonymous>)
+    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:107:49)
+    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)
+    at <anonymous>
+TypeError: Cannot read property '1' of null
+    at DateTime.isInRange (/reference/node_modules/jibo-data-utils/lib/jibo-data-utils.js:857:42)
+    at evalmachine.<anonymous>:1:8
+    at ContextifyScript.Script.runInContext (vm.js:59:29)
+    at Object.runInContext (vm.js:120:6)
+    at indexedPrompts.filter.prompt (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:109:54)
+    at Array.filter (<anonymous>)
+    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:107:49)
+    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)
+    at <anonymous>
+{"progress":9000,"total":20534}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error resolving prompt text on prompt  OI_USR_DislikesSummerSolstice_AN_03_FnL evalmachine.<anonymous>:1\\n`That's okay ${loopMember}. Not everyone has to like the Summer Solstice.`\\n               ^\\n\\nReferenceError: loopMember is not defined\\n    at evalmachine.<anonymous>:1:16\\n    at ContextifyScript.Script.runInContext (vm.js:59:29)\\n    at Object.runInContext (vm.js:120:6)\\n    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:126:41)\\n    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)\\n    at <anonymous>","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"chitchat:3630:0:base"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat.Slimmer"}}
+{"progress":9100,"total":20534}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error resolving prompt text on prompt  OI_USR_DislikesWinterSolstice_AN_03_FnL evalmachine.<anonymous>:1\\n`That's okay ${loopMember}. Not everyone has to like the Winter Solstice.`\\n               ^\\n\\nReferenceError: loopMember is not defined\\n    at evalmachine.<anonymous>:1:16\\n    at ContextifyScript.Script.runInContext (vm.js:59:29)\\n    at Object.runInContext (vm.js:120:6)\\n    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:126:41)\\n    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)\\n    at <anonymous>","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"chitchat:3637:0:base"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat.Slimmer"}}
+{"progress":9200,"total":20534}
+{"progress":9300,"total":20534}
+{"progress":9400,"total":20534}
+{"progress":9500,"total":20534}
+{"progress":9600,"total":20534}
+{"progress":9700,"total":20534}
+{"progress":9800,"total":20534}
+{"progress":9900,"total":20534}
+{"progress":10000,"total":20534}
+{"progress":10100,"total":20534}
+{"progress":10200,"total":20534}
+{"progress":10300,"total":20534}
+{"progress":10400,"total":20534}
+{"progress":10500,"total":20534}
+{"progress":10600,"total":20534}
+{"progress":10700,"total":20534}
+{"progress":10800,"total":20534}
+{"progress":10900,"total":20534}
+{"progress":11000,"total":20534}
+{"progress":11100,"total":20534}
+{"progress":11200,"total":20534}
+{"progress":11300,"total":20534}
+{"progress":11400,"total":20534}
+{"progress":11500,"total":20534}
+{"progress":11600,"total":20534}
+{"progress":11700,"total":20534}
+{"progress":11800,"total":20534}
+{"progress":11900,"total":20534}
+{"progress":12000,"total":20534}
+{"progress":12100,"total":20534}
+{"progress":12200,"total":20534}
+{"progress":12300,"total":20534}
+{"progress":12400,"total":20534}
+{"progress":12500,"total":20534}
+{"progress":12600,"total":20534}
+{"progress":12700,"total":20534}
+{"progress":12800,"total":20534}
+{"progress":12900,"total":20534}
+{"progress":13000,"total":20534}
+{"progress":13100,"total":20534}
+{"progress":13200,"total":20534}
+{"progress":13300,"total":20534}
+{"progress":13400,"total":20534}
+{"progress":13500,"total":20534}
+{"progress":13600,"total":20534}
+{"progress":13700,"total":20534}
+{"progress":13800,"total":20534}
+{"progress":13900,"total":20534}
+{"progress":14000,"total":20534}
+{"progress":14100,"total":20534}
+{"progress":14200,"total":20534}
+{"progress":14300,"total":20534}
+{"progress":14400,"total":20534}
+{"progress":14500,"total":20534}
+{"progress":14600,"total":20534}
+{"progress":14700,"total":20534}
+{"progress":14800,"total":20534}
+{"progress":14900,"total":20534}
+{"progress":15000,"total":20534}
+{"progress":15100,"total":20534}
+{"progress":15200,"total":20534}
+{"progress":15300,"total":20534}
+{"progress":15400,"total":20534}
+{"progress":15500,"total":20534}
+{"progress":15600,"total":20534}
+{"progress":15700,"total":20534}
+{"progress":15800,"total":20534}
+{"progress":15900,"total":20534}
+{"progress":16000,"total":20534}
+{"progress":16100,"total":20534}
+{"progress":16200,"total":20534}
+{"progress":16300,"total":20534}
+{"progress":16400,"total":20534}
+{"progress":16500,"total":20534}
+{"progress":16600,"total":20534}
+{"progress":16700,"total":20534}
+{"progress":16800,"total":20534}
+{"progress":16900,"total":20534}
+{"progress":17000,"total":20534}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error resolving prompt text on prompt  RI_JBO_Is_SS_Zodiac_AN_01 evalmachine.<anonymous>:1\\n`I'm ${jibo.zodiac.supplemented}. First powered up on ${jiboNLBirthdate}.`\\n                                                        ^\\n\\nReferenceError: jiboNLBirthdate is not defined\\n    at evalmachine.<anonymous>:1:57\\n    at ContextifyScript.Script.runInContext (vm.js:59:29)\\n    at Object.runInContext (vm.js:120:6)\\n    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:126:41)\\n    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)\\n    at <anonymous>","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"hub-client:1802:0:base"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat.Slimmer"}}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"fixture-robot","level":"error","message":"Error resolving prompt text on prompt  RI_JBO_Is_SS_Zodiac_AN_02 evalmachine.<anonymous>:1\\n`I'm a robot. <break size='0.5'/> And I'm ${jibo.zodiac.supplemented}. First powered up on ${jiboNLBirthdate}.`\\n                                                                                             ^\\n\\nReferenceError: jiboNLBirthdate is not defined\\n    at evalmachine.<anonymous>:1:94\\n    at ContextifyScript.Script.runInContext (vm.js:59:29)\\n    at Object.runInContext (vm.js:120:6)\\n    at generatePlay (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:126:41)\\n    at Object.generateSlim (/reference/packages/baseskill/lib/graph/mims/utils/slimmer/Slimmer.js:25:19)\\n    at <anonymous>","structuredData":{"versions@1":{"release":"8.67.5309"},"messageContext@1":{"transID":"hub-client:1802:1:base"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Chitchat.Slimmer"}}
+{"progress":17100,"total":20534}
+{"progress":17200,"total":20534}
+{"progress":17300,"total":20534}
+{"progress":17400,"total":20534}
+{"progress":17500,"total":20534}
+{"progress":17600,"total":20534}
+{"progress":17700,"total":20534}
+{"progress":17800,"total":20534}
+{"progress":17900,"total":20534}
+{"progress":18000,"total":20534}
+{"progress":18100,"total":20534}
+{"progress":18200,"total":20534}
+{"progress":18300,"total":20534}
+{"progress":18400,"total":20534}
+{"progress":18500,"total":20534}
+{"progress":18600,"total":20534}
+{"progress":18700,"total":20534}
+{"progress":18800,"total":20534}
+{"progress":18900,"total":20534}
+{"progress":19000,"total":20534}
+{"progress":19100,"total":20534}
+{"progress":19200,"total":20534}
+{"progress":19300,"total":20534}
+{"progress":19400,"total":20534}
+{"progress":19500,"total":20534}
+{"progress":19600,"total":20534}
+{"progress":19700,"total":20534}
+{"progress":19800,"total":20534}
+{"progress":19900,"total":20534}
+{"progress":20000,"total":20534}
+{"progress":20100,"total":20534}
+{"progress":20200,"total":20534}
+{"progress":20300,"total":20534}
+{"progress":20400,"total":20534}
+{"progress":20500,"total":20534}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"52cdb0ac3dcd","level":"error","message":"Robust Parser process closed","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"52cdb0ac3dcd","program":"parity-production-original","pid":1,"namespace":"H.Parser.Robust.Process"}}
+{"complete":true,"cases":20534,"failures":0}

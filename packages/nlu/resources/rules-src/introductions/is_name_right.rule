@@ -1,0 +1,65 @@
+TopRule = ($* $CONTROL $*) {intent = CONTROL._intent}{priority='HIGH'};
+
+### Did I say it right?
+### Did I get it right this time?
+
+CONTROL =
+	(
+		$factory:yes_no {_intent = yes_no._nl} |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent} |
+		$CANCEL {_intent=CANCEL._intent}
+	)
+;
+YES =
+	(
+		guess | gas |
+		yes  |
+		yeah |
+		sure |
+		yeah |
+		yep |
+		(you did) |
+		certainly |
+		definitely |
+		indeed |
+		( i (think | suppose | guess) ?so) |
+		( you did ) |
+		( got it ) |
+		( nailed it ) |
+		perfect |
+		exactly |
+		(close enough) |
+		(more ?or less) |
+		(?([that?(?(\')s)] ?is) right|correct)|
+		amazingly
+	)
+{_intent='yes'}
+;
+
+NO =
+	(
+		know | snow | now |
+		no  |
+		nope |
+		not |
+		( you did not ) |
+		don\'t |
+		( do not ) |
+		(?([that?(?(\')s)] ?is) not correct|right) |
+		(not close enough) |
+		wrong |
+		incorrect
+	)
+{_intent='no'}
+;
+CANCEL =
+	(
+		cancel |
+		( i don\'t want ) |
+		( not do ) |
+		( i\'m tired ) |
+		( this is ( stupid | dumb ) )
+	)
+{_intent='cancel'}
+;

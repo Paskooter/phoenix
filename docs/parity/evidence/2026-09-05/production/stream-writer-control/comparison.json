@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "pass": true,
+  "measuredAgreement": true,
+  "cases": 43,
+  "groups": {
+    "parser-boundary": {
+      "selected": 21,
+      "agreement": 21,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 21,
+          "agreement": 21,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 17,
+          "agreement": 17,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 17,
+          "agreement": 17,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 17,
+          "agreement": 17,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 21,
+          "agreement": 21,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "noMatch": {
+          "compared": 9,
+          "agreement": 9,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "direct-skill": {
+      "selected": 6,
+      "agreement": 6,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "skillRequest": {
+          "compared": 7,
+          "agreement": 7,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "chitchat:base": {
+      "selected": 4,
+      "agreement": 4,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "chitchat:conditional": {
+      "selected": 1,
+      "agreement": 1,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "hub-client:base": {
+      "selected": 4,
+      "agreement": 4,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "hub-client:conditional": {
+      "selected": 1,
+      "agreement": 1,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 1,
+          "agreement": 1,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "report:base": {
+      "selected": 6,
+      "agreement": 6,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    }
+  },
+  "denominators": [
+    {
+      "corpus": "chitchat",
+      "entries": 4705,
+      "baseOccurrences": 10035,
+      "conditionalOccurrences": 1397,
+      "sha256": "ea70a399299e0d5cc3c654268b407a5bdc61cfa0602ce3f8d8db34dc8a177ccd"
+    },
+    {
+      "corpus": "hub-client",
+      "entries": 2573,
+      "baseOccurrences": 7029,
+      "conditionalOccurrences": 1973,
+      "sha256": "0d7dde285b90cdbc3c9e49d0ae90afe443be78b6086c0a05521dd155ff110f80"
+    },
+    {
+      "corpus": "report",
+      "entries": 6,
+      "baseOccurrences": 73,
+      "conditionalOccurrences": 0,
+      "sha256": "3a64d8de41f751e7dab02843db76487533b12e8d59598f7342e480bafeb9bf73"
+    }
+  ],
+  "selection": {
+    "name": "smoke",
+    "corpus": null,
+    "offset": 0,
+    "limit": 0
+  },
+  "dimensions": {
+    "parserHttp": {
+      "compared": 37,
+      "agreement": 37,
+      "differences": 0,
+      "invalid": 0
+    },
+    "intent": {
+      "compared": 33,
+      "agreement": 33,
+      "differences": 0,
+      "invalid": 0
+    },
+    "entities": {
+      "compared": 33,
+      "agreement": 33,
+      "differences": 0,
+      "invalid": 0
+    },
+    "rules": {
+      "compared": 33,
+      "agreement": 33,
+      "differences": 0,
+      "invalid": 0
+    },
+    "selectedSkill": {
+      "compared": 37,
+      "agreement": 37,
+      "differences": 0,
+      "invalid": 0
+    },
+    "memo": {
+      "compared": 20,
+      "agreement": 20,
+      "differences": 0,
+      "invalid": 0
+    },
+    "skillRequest": {
+      "compared": 27,
+      "agreement": 27,
+      "differences": 0,
+      "invalid": 0
+    },
+    "action": {
+      "compared": 26,
+      "agreement": 26,
+      "differences": 0,
+      "invalid": 0
+    },
+    "session": {
+      "compared": 26,
+      "agreement": 26,
+      "differences": 0,
+      "invalid": 0
+    },
+    "analytics": {
+      "compared": 26,
+      "agreement": 26,
+      "differences": 0,
+      "invalid": 0
+    },
+    "noMatch": {
+      "compared": 9,
+      "agreement": 9,
+      "differences": 0,
+      "invalid": 0
+    },
+    "providerRequests": {
+      "compared": 10,
+      "agreement": 10,
+      "differences": 0,
+      "invalid": 0
+    }
+  },
+  "invariants": [],
+  "differences": [],
+  "coverageGaps": [],
+  "policy": {
+    "fields": "All status/headers, JSON field presence/types/order, parser inputs/results, winning rules, decisions/memos, production request-builder inputs and emitted requests, JCP/ESML/analytics and complete session contents.",
+    "generatedIDs": "Bijective v4 envelope/session IDs and 32-hex JCP command IDs at command-container paths only; view/domain IDs stay literal.",
+    "derivedBytes": "Raw JSON, Content-Length and ETag are independently validated. Only validated duplicate raw bytes and ETag digest values are removed.",
+    "timing": "Per-request and per-case measured times are bounded; message timestamps and application timing fields remain compared.",
+    "endpoints": "Only the fixture peer authority in outbound Host headers is rebound.",
+    "gaps": "Unhosted cloud action targets are explicit coverage gaps and prevent a full gate pass."
+  }
+}

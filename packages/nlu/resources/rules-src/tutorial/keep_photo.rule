@@ -1,0 +1,55 @@
+TopRule = ($* $KEEPER $*) {intent = KEEPER._intent}{priority='HIGH'};
+
+#Is it a keeper?
+
+KEEPER =
+		$factory:yes_no {_intent=yes_no._nl} |
+		$YES_INTENT {_intent=YES_INTENT._intent} |
+		$NO_INTENT {_intent=NO_INTENT._intent}
+;
+
+YES_INTENT =
+	(
+		guess | gas |
+		yes |
+		yup |
+		sure |
+		$SAVE_LOVE | $SAVE_GOOD | $SAVE_BEST |
+		(?$MANDATORY ?$ABSOLUTELY $SAVE_BASIC) |
+		($ABSOLUTELY $MANDATORY $SAVE_BASIC) |
+		(?$ABSOLUTELY $DONT $DELETE_BASIC|$THROW_AWAY)
+	)
+	{_intent='yes'}
+;
+
+NO_INTENT =
+	(
+		know | snow | now |
+		no |
+		nope |
+		(no way) |
+		(?$MANDATORY ?$ABSOLUTELY $DELETE_BASIC|$THROW_AWAY) |
+		($ABSOLUTELY $MANDATORY $DELETE_BASIC|$THROW_AWAY) |
+		(?$ABSOLUTELY $DONT $SAVE_BASIC) |
+		$DELETE_TERRIBLE
+	)
+	{_intent='no'}
+;
+
+### Useful Vocabulary
+SAVE_BASIC = (save|keep|(hold onto) ?(it|(this|that|the ?$PHOTO)));
+SAVE_LOVE = (?(i|we) like|love (it|(this|that|the ?$PHOTO)));
+SAVE_GOOD = ((that is)|that\'s (?(a|an) ?$VERY $GREAT ?$PHOTO)|(worth keeping|saving));
+SAVE_BEST = ((that is)|that\'s the|my|our|your $BEST ?$PHOTO ?(i\'ve|(i have) ?ever seen|taken));
+DELETE_BASIC = ((delete|toss|trash|destroy|burn|(get rid of)|destroy) ?(it|(this|that|the ?$BAD_PHOTO)));
+THROW_AWAY = (throw ?(it|(this|that) ?$BAD_PHOTO) away|out);
+DELETE_TERRIBLE = ((that is)|that\'s (?(a|an) ?$VERY $TERRIBLE ?$PHOTO)|(not worth keeping|saving));
+ABSOLUTELY = (totally | certainly | definitely | absolutely);
+MANDATORY = (you|i|we ?$ABSOLUTELY must|should|(have|need to));
+PHOTO = (one|picture|photo|pic|photograph|shot|image|selfie);
+BAD_PHOTO = (?$TERRIBLE one|picture|photo|pic|photograph|shot|image|selfie|(?(piece of) shit|crap));
+DONT = (?(you|i|we) don\'t|shouldn\'t|(do|should not)|not|(no need|reason to));
+VERY = (very|really|totally|seriously|extremely);
+GREAT = (good|great|wonderful|awesome|excellent|amazing|cool|magnificent);
+TERRIBLE = (worthless|garbage|terrible|awful|shitty|crappy|disappointing|unacceptable|dreadful|bad|horrible);
+BEST = (best|greatest|coolest|prettiest|(most $GREAT));

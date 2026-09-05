@@ -1,0 +1,106 @@
+TopRule = $* ($COMMANDS){intent=COMMANDS._intent}{priority='HIGH'} $*;
+
+COMMANDS =
+    ($D_INTENT_START_DANCING){_intent='start_dancing'} |
+    ($D_INTENT_STOP_DANCING){_intent='stop_dancing'} |
+    ($D_INTENT_VOLUMEQUERY){_intent='get_volume'} |
+    #($D_RADIO_INTENT_PLAY_LOCAL_STATION){_intent='local'} |
+    #($D_RADIO_INTENT_PLAY_NATIONAL_STATION){_intent='national'} |
+    ($D_INTENT_STATIONS){_intent='stations'} |
+    ($D_INTENT_GENREQUERY){_intent='get_genre'} |
+    ($D_INTENT_TRACKQUERY){_intent='get_track'}
+;
+### INTENTS ###
+
+D_RADIO_INTENT_PLAY_LOCAL_STATION = (
+    ($V_RADIO_PLAY|$V_RADIO_SWITCH $w03 local $V_RADIO_RADIO) |
+	(local $V_RADIO_RADIO|[station?(s|(\'s))]|[channel?(s|(\'s))]) |
+	local
+);
+D_RADIO_INTENT_PLAY_NATIONAL_STATION = (
+    ($V_RADIO_PLAY|$V_RADIO_SWITCH $w03 national $V_RADIO_RADIO) |
+	(national $V_RADIO_RADIO|[station?(s|(\'s))]|[channel?(s|(\'s))]) |
+	national
+);
+D_INTENT_START_DANCING =
+(
+    (?(do ?a) $V_DANCE ?$V_FORME) |
+    (can|would|could|will you ?please ?(ever|usually|$V_ACTUALLY) $V_DANCE) |
+    (?please ((would you mind)|(are you willing ?to)) ?$V_ACTUALLY $V_DANCE ?$V_FORME) |
+    (i|we (?$V_ACTUALLY want)|(would ?$V_ACTUALLY like) you ?to ?please $V_DANCE ?$V_FORME) |
+	($V_CANYOU|(do you) ?$V_ACTUALLY $V_DANCE ~2) |
+    (shake it|(your|that $V_FANNY) ?$V_FORME) |
+    ($V_BEGIN dancing ?$V_FORME)
+);
+D_INTENT_STOP_DANCING =
+(
+    ($V_CEASE ?(your|the) dancing|dance|moving|shaking) |
+    (don\'t|(do not) dance)
+);
+D_INTENT_VOLUMEQUERY =
+(
+    ( ?([what?(\'s)] ?is the|your) volume ?level) |
+    ( $V_SHOW ?(the|your) volume ?(menu|level|page)) |
+    ( tell me|us $w03 ?(the|your) volume ?level) |
+    ( [how?(\'(s|(re)))] ?(is|are) your volume ?level)
+);
+D_INTENT_STATIONS =
+( [station?(s|(\'s))] | [channel?(s|(\'s))] | [genre?(s|(\'s))] )
+;
+D_INTENT_GENREQUERY =
+(
+    ( $V_WHAT $D_INTENT_STATIONS ?is ( this | playing ) ) |
+    ( $V_WHAT $D_INTENT_STATIONS ?are you playing ) |
+    ( $V_WHAT this $D_INTENT_STATIONS ) |
+    ( tell (me|us) $V_WHAT $D_INTENT_STATIONS ?( (this is) | (is this) ) )
+)
+;
+D_INTENT_TRACKQUERY =
+(
+    ( ( $V_WHAT | who ) $* ?is ( this | playing ) ) |
+    ( $V_WHAT ( playing | on ) ) |
+    ( what ?are you playing ) |
+    ( what ( (am i) | (are we) ) $V_HEARING ) |
+    ( ( what | which ) $V_SONG is this ) |
+    ( what\'s this $V_SONG ) |
+    ( ( what | which ) $V_ARTIST is this) |
+    ( $V_WHO $* $V_ARTIST )
+)
+;
+
+### USEFUL VOCABULARY ###
+V_HEARING = ( hearing | ( listening ?to ) );
+V_WHAT = ( what | what\'s | (what is ) | which | (who is) | whose | who\'s );
+V_WHO =  ( (who is) | whose | who\'s );
+V_SONG = ( song | track | album );
+V_ARTIST = ( artist | musician | group | band | composer );
+V_RADIO_SWITCH = ( change | switch );
+V_RADIO_RADIO = (?$V_JIBO [radio?s]|[music?s]|[tune?s])|$V_RADIO_IHEART;
+V_RADIO_IHEART =((iheart|(i heart) |(eye heart) ?radio)|iheartradio);
+V_LAUNCH = open|launch|run;
+V_RADIO_PLAY =
+    play |
+    ( ( i | we ) want ?to ( hear | ( listen ?to ) ) ?( some | the ) ) |
+    ( let\'s ( hear | ( listen ?to ) ) ?( some | the ) ) |
+    ( ( turn | switch | put ) on ?( some | the ) ) |
+    ( ( give ( me | us ) ) | gimme ?( some | the ) ) |
+	$V_LAUNCH
+;
+V_ACTUALLY = <1.0>(actually|already|really|reasonably|still|generally|literally|recently)<0.0>;
+V_BEGIN = ((commence to) | begin | start | be | get);
+V_CANYOU = ((can you)|(is ?it possible ?for you ?to)|(are you able|capable|allowed|permitted ?(to|of)));
+V_CEASE = (cease | stop | quit | (no more ?of) | (enough ?(with ?all ?the)));
+V_CUTE = (cute|adorable|charming|delightful|darling|precious|endearing|lovely|lovable|pleasant|suave|sweet|(?a sweetie ?pie));
+V_DANCE = (
+    (?([do?(ing)] ?a) ?$V_CUTE ?little [danc(e|(ing))]) |
+    (boogie | (get down) | (shake a leg) | (cut a|the rug) )
+);
+V_FANNY =(fanny | keester | keister | patoot | bum | bottom | behind | booty | bootie | (rear end) | (tail feathers) | (money maker));
+V_FORME = ( for ( me | us ));
+V_SHOW =
+(
+    open | (go to) | (show ?(me|us)) | (bring up) |
+    ((bring|take) (me|us) to) | load | access |
+    display | launch | (let (me|us) see) | change
+);
+V_JIBO = ([jibo?(?(\')s)] | [geebo?(?(\')s)] | [gebo?(?(\')s)] | [jebo?(?(\')s)] | [cibo?(?(\')s)] | jb | g | kgb | diva);

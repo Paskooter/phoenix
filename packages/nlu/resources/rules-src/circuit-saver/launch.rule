@@ -1,0 +1,39 @@
+TopRule = (
+    ($* $CIRCUIT_SAVER_LAUNCH $*) |
+    ($CIRCUIT_SAVER_LAUNCH_STRICT)
+
+){skill='\@be/circuit-saver'}{domain='game'}{intent='launchGame'}{priority='HIGH'};
+
+CIRCUIT_SAVER_LAUNCH =
+(
+    (?$PREFIX $w03 ?($PLAY|$OPEN) $w03 $SKILL_NAME_DESC) |
+    (?$PREFIX $w03 ($PLAY|$OPEN) $* ?a [game?s]) |
+    ($PREFIX $w03 $PLAY) |
+    (?$PREFIX $w03 $PLAY $w03 again) |
+    (?$PREFIX $w03 ?$PLAY $w03 another $w03 [game?s]) |
+    ((do you have)|(is|are there)|got $w03 [game?s])
+)
+;
+
+CIRCUIT_SAVER_LAUNCH_STRICT = (
+    (can you play)
+);
+
+SKILL_NAME_DESC =
+(
+    (?(the|that) [circuit?s] [game?s]) |
+    (?(the|that) [circuit?s] [sav((er)|(ing))] ?[game?s]) |
+    (?(the|that) $CIRCUIT_HOMOPHONES $SAVER_HOMOPHONES) |
+    (?(the|that) letsplaysoccer $SAVER_HOMOPHONES) |
+    (?(the|that) suck youtuber)
+);
+
+
+### USEFUL VOCAB ###
+CIRCUIT_HOMOPHONES = (circuit|surface|service|circus|circle|soccer|(some cute)|target|(suck you)|succumbus);
+SAVER_HOMOPHONES = (saver|savor|server|safer|setter|saber|sabre|favor|favorite|taylor|tabor|tuber|table|neighbor|paper|ever|era|tape|fabric);
+PLAY = [play?(ing)];
+PREFIX = (i|we|(?(do|would) you) wanna|(want|(?would like) ?to))|(let\'s)|
+    (i\'d|we\'d like ?to)|(can|could|may i|we)|(would you mind ?(letting me|us));
+OPEN = (open|(go ?to)|(show ?(me|us))|(bring up)|(bring|take me|us ?to)|load|
+    access|display|launch|(?((let (me|us))|let\'s) see));

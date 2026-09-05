@@ -1,0 +1,29 @@
+TopRule = $* $WANTTO $* {intent=WANTTO._intent}{priority='HIGH'};
+
+### Do you want to do yoga now? ###
+
+WANTTO =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( $IWE do ) |
+    ( you bet ) |
+    ( of course ) |
+    ( ( let\'s | ( let us ) ) ( go | ( do it ) | exercise | (work out) | ( do yoga ) | rock ) ) |
+    ( sure do )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( not now ) |
+    ( ?maybe later ) |
+    tomorrow |
+    ( $IWE ( don\'t | ( do not ) ) )
+);
+### USEFUL VOCAB ###
+IWE = i | we;

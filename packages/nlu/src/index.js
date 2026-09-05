@@ -8,12 +8,13 @@
 //   2. LLM fallback (phoenix: LM Studio + Gemma tool-calling) when grammar misses AND
 //      ETCO_parser_llmUrl is configured. Off by default -> a miss returns the no-match NLUResult.
 
-import { createService, sendJson } from '@phoenix/common';
+import { createService } from '@phoenix/common';
 import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { grammarParse } from './grammar.js';
 import { launchParse } from './launchRules.js';
 import { fullParse } from './fullGrammar.js';
 import { llmFallback } from './llmFallback.js';
+import { parseRequest } from './requestParser.js';
 
 /**
  * Parse an utterance into an NLUResult, mirroring the reference
@@ -115,10 +116,11 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         // Reference ParseRequestHandler.ts:28-30 — 400 on a malformed request
         // (data.text must be a string), not a silent coercion to ''.
         if (!body || !body.data || typeof body.data.text !== 'string') {
-          sendJson(res, 400, { error: `Bad request: ${JSON.stringify(body)}` });
-          return undefined;
+          const error = new Error(`Bad request: ${JSON.stringify(body)}`);
+          error.statusCode = 400;
+          throw error;
         }
-        const nlu = await parse(body.data.text);
+        const nlu = parseRequest(body.data);
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
       },
       // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's

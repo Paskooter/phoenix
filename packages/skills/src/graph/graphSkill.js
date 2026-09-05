@@ -80,6 +80,15 @@ export function createGraphSkill({ name, build }) {
     let nodeResponse;
     if (body.type === SkillRequestType.LISTEN_LAUNCH || body.type === SkillRequestType.PROACTIVE_LAUNCH) {
       if (data.skill.session) delete data.skill.session; // a launch must start a fresh session
+      // GraphSkill records the framework-level entry event before entering the
+      // graph.  Skill-specific nodes append their own events afterwards.
+      facade.track(data, 'Skill Entry', {
+        initial_intent: 'n/a',
+        domain: '',
+        was_hey_jibo_launch: body.type === SkillRequestType.LISTEN_LAUNCH,
+        user_initiated: body.type === SkillRequestType.LISTEN_LAUNCH,
+        last_skill: 'n/a',
+      });
       nodeResponse = await gm.start(initial, data);
     } else if (body.type === SkillRequestType.LISTEN_UPDATE) {
       if (!data.skill.session) throw new Error('LISTEN_UPDATE without a session');

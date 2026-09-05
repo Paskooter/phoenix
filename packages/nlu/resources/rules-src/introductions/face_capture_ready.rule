@@ -1,0 +1,41 @@
+TopRule = ($* $READY $*) {intent = READY._intent}{priority='HIGH'};
+
+### You'll want to make sure the room has as much light as possible. Are you ready?
+
+READY =
+	(
+		($factory:yes_no {_intent = yes_no._nl}) |
+		($YES_OTHER {_intent=YES_OTHER._intent}) |
+		($NO_OTHER {_intent=NO_OTHER._intent}) |
+		($CANCEL {_intent=CANCEL._intent})
+	)
+;
+
+YES_OTHER =
+        (
+				guess | gas |
+				(?why yes | yeah | yep ?(i am)) |
+                (?i sure am) |
+                (i ?(?most certainly) am) |
+                (?(i\'m|(i am)) ready )|
+                (?yes go ahead) |
+				(got|nailed it) |
+				(perfect)
+        )
+{_intent='yes'}
+;
+
+
+
+NO_OTHER =
+        (
+			know | snow | now |
+			(no thanks | (thank you)) |
+			(?no ?(i\'m|(i am)) not ?ready ?yet) |
+			(?no $* never $* ready)|
+			(wait|(hold on) ?(a sec|minute|second|moment))
+        )
+{_intent='no'}
+;
+
+CANCEL = (cancel|later|(forget it)|(go back)|exit|escape){_intent='cancel'};

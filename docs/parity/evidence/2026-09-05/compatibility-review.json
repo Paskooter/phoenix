@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-05",
+  "task": "PM-03",
+  "result": "pass",
+  "basis": "management deliverable",
+  "criteria": {
+    "sourceConsumerAndArtifactPins": "recorded; historical firmware candidates/ambiguous release strings explicitly labeled",
+    "divergences": "all 26 distinct historical IDs mapped; B3 and B3-checkmark share one row",
+    "companionBoundary": "legacy Settings dependency identified, robot journeys prioritized, all 134 SDK targets and non-SDK discovery retained"
+  },
+  "artifacts": {
+    "docs/parity/COMPATIBILITY.md": "3b3edc8bd4cbbe7ef539e297eb3822d3af3db4913af0001179964999bd5c3254",
+    "docs/parity/evidence/2026-09-05/compatibility-pins.json": "bc44d26f345325ec4fd0135a5db69888742de1a09718b5bddcd470c3f80f3820"
+  },
+  "limitations": [
+    "No firmware, hardware, live provider or product parity certified.",
+    "Scope can be revised on new evidence or user steering with invalidation of affected checks."
+  ]
+}

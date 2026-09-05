@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-05",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "profile": "isolated Phoenix port19000, auth disabled, LINEAR16",
+  "task": "N-01",
+  "scenario": "set a timer -> original clock asks duration -> cancel through original LocalTurnRequest.update",
+  "input": "CLIENT_ASR text injection, not microphone recognition",
+  "requestedRules": [
+    "clock/timer_set_value",
+    "globals/gui_nav",
+    "globals/mim_repeat"
+  ],
+  "scopeGuard": {
+    "skill": "@be/clock",
+    "rule": "clock/timer_set_value",
+    "maximumInjectedFollowups": 1
+  },
+  "updateCompleted": true,
+  "result": {
+    "global": false,
+    "result": {
+      "asr": {
+        "confidence": 1,
+        "text": "cancel"
+      },
+      "match": null,
+      "nlu": {
+        "entities": {},
+        "intent": null,
+        "rules": []
+      }
+    },
+    "status": "SUCCEEDED"
+  },
+  "observed": "Clock treats cancel as no match, retries the question, then leaves after no-input timeouts.",
+  "expectedBasis": "Archived AlarmTimer_TimerValue.mim names clock/timer_set_value, parse_launch:false; original clock flow handles cancel as close. Original grammar result to be executed separately.",
+  "rawCapture": ".parity/robots/moth/20260905/release-11.0.1-timer-cancel.json",
+  "sha256": "2d078fc0ee2d6f0aea0f38565b4e357d3aa86e4f664ae722adde958fa6ec3513",
+  "observerRestored": true,
+  "status": "failed; root reproduction of known local-rule parser gap; no parity acceptance"
+}

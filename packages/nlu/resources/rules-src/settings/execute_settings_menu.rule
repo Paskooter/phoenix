@@ -1,0 +1,38 @@
+TopRule =
+			$*
+				$SELECT_SETTINGS_ITEM {intent = SELECT_SETTINGS_ITEM._intent}{priority='HIGH'}
+			$*
+;
+
+
+
+SELECT_SETTINGS_ITEM =
+
+    (
+        ( ?($GENERIC_ACTION) ?($THE) $SETTINGSNAME {_intent=SETTINGSNAME._intent} ?($SETTINGSSUFFIX | $ITEM) )
+    )
+;
+
+
+SETTINGSNAME =
+    (
+	    ( battery {_intent='battery'} ) |
+		( ( ( ( shut | power ) $* down ) | ( turn $* off ) | shutdown ) {_intent='shutDown'} ) |
+		( about {_intent='about'} ) |
+		( ( volume | loudness ) {_intent='volumeQuery'} ) |
+		( ( wifi | wi-fi | network ) {_intent='wifiStatus'} ) |
+		( [update?s] {_intent='updates'} ) |
+		( wipe {_intent='wipe'} )
+	)
+;
+
+
+### USEFUL VOCABULARY ###
+ITEM = (one | thing | item | icon);
+THE = (the | that | your);
+SETTINGSSUFFIX = (skill | app | application | setting | settings);
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select);
+SHOW = (show ?(me | us));
+SEE = ((let\'s | (let me) | (let us)) see);
+DO = (?(let\'s | (let me) | (let us)) (do | try) );

@@ -1,3 +1,6 @@
+// Legacy intent/MIM diagnostic, not a complete parity gate. Use parity:gate for
+// strict production HTTP/parser/router/skill comparison. This command retains
+// its historical chitchat-only denominator and now fails when mismatches remain.
 // Corpus runner — drives the vendored reference test-manifest (4,705 entries, the
 // chitchat/hub regression corpus: command[] -> {intent, entities, memo, mimId}) through
 // the in-process Phoenix NLU + IntentRouter and grades parity at two diff levels:
@@ -90,5 +93,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`no-match:   ${stats.noMatchOk}/${stats.noMatchTotal} correct`);
     writeFileSync(OUT, JSON.stringify({ stats, misses }, null, 1));
     console.log(`misses: ${misses.length} -> ${OUT}`);
+    process.exitCode = misses.length ? 1 : 0;
   }).catch((e) => { console.error(e); process.exit(1); });
 }

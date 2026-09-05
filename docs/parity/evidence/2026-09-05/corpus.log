@@ -1,0 +1,25 @@
+  ...250/4705 entries (D3 99.2%)
+  ...500/4705 entries (D3 99.3%)
+  ...750/4705 entries (D3 98.7%)
+  ...1000/4705 entries (D3 99%)
+  ...1250/4705 entries (D3 98.8%)
+  ...1500/4705 entries (D3 99%)
+  ...1750/4705 entries (D3 99%)
+  ...2000/4705 entries (D3 98.3%)
+  ...2250/4705 entries (D3 98.2%)
+  ...2500/4705 entries (D3 98.4%)
+  ...2750/4705 entries (D3 98.6%)
+  ...3000/4705 entries (D3 98.8%)
+  ...3250/4705 entries (D3 98.7%)
+  ...3500/4705 entries (D3 98.7%)
+  ...3750/4705 entries (D3 98.8%)
+  ...4000/4705 entries (D3 98.8%)
+  ...4250/4705 entries (D3 98.8%)
+  ...4500/4705 entries (D3 98.5%)
+
+==== corpus parity (1108s) ====
+entries:    4705   utterances: 10035
+D3 intent:  9851/10035 (98.2%)
+D4 mim:     9714/10035 (96.8%)
+no-match:   0/0 correct
+misses: 329 -> /tmp/phoenix-parity-audit-2026-09-05/corpus.json

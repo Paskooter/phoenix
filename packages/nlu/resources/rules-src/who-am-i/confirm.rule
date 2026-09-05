@@ -1,0 +1,56 @@
+TopRule =
+
+### So, Peter, is that you?
+### Peter. Am I talking to you right now?
+### Just to make sure, since I got it wrong before, you're Peter, right?
+### Did you say you're Peter?
+
+($*
+        $factory:yes_no {intent = yes_no._nl} |
+        $LOOPMEMBER_INTENT{loopmember=LOOPMEMBER_INTENT._loopmember} |
+        $YES {intent=YES._intent} |
+    	$NO {intent=NO._intent}
+
+$*){priority='HIGH'}
+;
+# TODO - FIX THIS
+LOOPMEMBER_INTENT = (jibo){_loopmember='speaker'}#$handle:crew{_loopmember = crew._users}
+;
+YES =
+	(
+        guess | gas |
+        ( it is ) |
+        ( ( that\'s | it\'s ) me ) |
+        ( you bet ) |
+        ( ?that\'s right ) |
+        correct |
+        affirmative |
+        indeed |
+        ( that\'s my name ) |
+        ( in person ) |
+        ( you ?sure are ) |
+        ( i ?sure did ) |
+        definitely |
+        ( that\'s what i said ) |
+        ( in the flesh ) |
+        ( you\'ve got ( him | her ) ) |
+        ( standing ?right here ) |
+        ( i\'m here )
+	)
+{_intent='yes'}
+;
+NO =
+	(
+        know | snow | now |
+        nope |
+        ( wrong ?again ) |
+        ( you\'re not ) |
+        ( it\'s not ) |
+        ( this is ) |
+        ( ?still wrong ) |
+        ( i ( ( did not ) | didn\'t ) ) |
+        ( not me ) |
+        ( you think ?that ( i\'m | ( i am ) ) )
+	)
+{_intent='no'}
+;

@@ -1,0 +1,17 @@
+TopRule = $* $CONTINUE $* {intent=CONTINUE._intent}{priority='HIGH'};
+
+### Okay. When you're ready to go on, say hey Jibo, continue. ###
+
+CONTINUE =
+(
+    $READY {_intent = 'continue'}
+);
+READY =
+(
+    continue |
+    resume |
+    unpause |
+    ( go on ) |
+    ( ( i\'m | ( i am ) ) ready|back ) |
+    ( ( let\'s | ( let us ) ) ( go | ( do it ) | exercise | (work out) | ( do yoga ) | rock ) )
+);

@@ -1,0 +1,116 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "scope": "Original execution repeatability and source provenance, not Phoenix parity",
+  "result": "measured agreement with explicit coverage gaps",
+  "cases": 20534,
+  "differences": 0,
+  "invariants": 0,
+  "uniqueCoverageGaps": 8,
+  "gapInstances": 16,
+  "fullGatePass": false,
+  "coverageGaps": [
+    {
+      "side": "reference",
+      "id": "hub-client:7:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:28:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:42:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:168:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:1372:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:1372:4:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:1588:3:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "report:5:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:7:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:28:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:42:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:168:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:1372:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:1372:4:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:1588:3:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "report:5:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    }
+  ],
+  "runArtifact": "docs/parity/evidence/2026-09-05/production/stream-writer-full-control/run.json",
+  "limitations": [
+    "Original reference and candidate ran sequentially under pinned Node 8.9.4.",
+    "Eight unhosted answer-service actions remain uncovered symmetrically; the gate correctly exits 1.",
+    "This run predates buffered export optimization; its tool hashes remain unchanged."
+  ]
+}

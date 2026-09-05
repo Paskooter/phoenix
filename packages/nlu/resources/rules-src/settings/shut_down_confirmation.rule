@@ -1,0 +1,42 @@
+TopRule = ($* $CONTROL $*) {intent = CONTROL._intent}{priority='HIGH'};
+
+#Shut down? Are you sure?
+
+CONTROL =
+		$factory:yes_no {_intent=yes_no._nl} |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent}
+;
+
+YES =
+	(
+		guess | gas |
+		yes  |
+		yeah |
+		sure |
+		yeah |
+		yep |
+		certainly |
+		definitely |
+		(i (think | suppose | guess) so) |
+		please |
+		shutdown |
+		(turn|power|shut down|off) |
+		(go $w03 ?to sleep|bed)
+	)
+{_intent='yes'}
+;
+
+NO =
+	(
+		know | snow | now |
+		no  |
+		nope |
+		not |
+		don\'t |
+		(do not) |
+		(stay on|awake) |
+		(don\'t|(do not) $w03 shutdown|(turn|power|shut down|off))
+	)
+{_intent='no'}
+;

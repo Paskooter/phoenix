@@ -1,0 +1,136 @@
+{
+    "tests": [
+        {
+            "command": [
+                "check my personal report",
+                "check personnel reports",
+                "give me my full personal report",
+                "how does the rest of my morning seem",
+                "how does today look",
+                "how's my day looking",
+                "launch personal report",
+                "persona rapport",
+                "personal report",
+                "personal report",
+                "tell the entire personal report",
+                "what is my day going to be like",
+                "what will my day be like",
+                "what's my morning look like",
+                "what's my report"
+            ],
+            "entities": [],
+            "intent": "launchPersonalReport",
+            "memo": "Reactive Personal Report",
+            "smoke": false,
+            "testGroup": []
+        },
+        {
+            "command": [
+                "are there any events on my calendar",
+                "calendar",
+                "check for meetings",
+                "check my schedule",
+                "did i plan a meeting for today",
+                "do i have any meetings today",
+                "how's my schedule looking",
+                "is there a meeting planned today",
+                "launch the calendar skill",
+                "look up my schedule",
+                "what will be on today's calendar",
+                "what's on the calendar",
+                "what's on today's calendar"
+            ],
+            "entities": [],
+            "intent": "requestCalendar",
+            "memo": "Reactive Personal Report Calendar",
+            "smoke": false,
+            "testGroup": []
+        },
+        {
+            "command": [
+                "check my commute to work",
+                "commute",
+                "does my commute seem okay",
+                "does the traffic going to work look awful",
+                "does today's commute look long",
+                "how long will it take to get to work",
+                "how much time will i need to drive to work",
+                "how's my commute looking",
+                "launch the commute skill",
+                "what does my commute look like",
+                "what will my commute look like today",
+                "what'll today's commute look like",
+                "will the traffic be bad on my way to work"
+            ],
+            "entities": [],
+            "intent": "requestCommute",
+            "memo": "Reactive Personal Report Commute",
+            "smoke": false,
+            "testGroup": []
+        },
+        {
+            "command": [
+                "launch the news skill",
+                "news",
+                "news headlines",
+                "play news",
+                "what is new in the world",
+                "what is the new",
+                "what's going on in the world right now",
+                "what's happening in the world today",
+                "what's in the news",
+                "what's the news today"
+            ],
+            "entities": [],
+            "intent": "requestNews",
+            "memo": "Reactive Personal Report News",
+            "smoke": false,
+            "testGroup": []
+        },
+        {
+            "command": [
+                "check the weather",
+                "check the weather for our street",
+                "how is the weather in the neighborhood",
+                "how is the weather right now",
+                "how's the weather today",
+                "launch the weather skill",
+                "look up the forecast",
+                "look up the weather for our town",
+                "weather",
+                "what will the weather look like in this city",
+                "what will the weather look like today",
+                "what's the weather outside",
+                "what's the weather today",
+                "what's today's forecast",
+                "what's today's weather look like"
+            ],
+            "entities": [],
+            "intent": "requestWeatherPR",
+            "memo": "Reactive Personal Report Weather",
+            "smoke": false,
+            "testGroup": []
+        },
+        {
+            "command": [
+                "check the weather tomorrow",
+                "how is tomorrow's weather looking",
+                "how's the weather tomorrow",
+                "look up tomorrow's forecast",
+                "what will the weather look like tomorrow",
+                "what's the weather tomorrow",
+                "what's tomorrow's weather look like"
+            ],
+            "entities": [
+                {
+                    "name": "date",
+                    "value": "tomorrow"
+                }
+            ],
+            "intent": "requestWeatherPR",
+            "memo": "Reactive Personal Report Weather",
+            "smoke": false,
+            "testGroup": []
+        }
+    ]
+}

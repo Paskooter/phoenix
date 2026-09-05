@@ -10,8 +10,9 @@
 > **entrypoint front door** (`packages/classic`, `@phoenix/classic`) that the robot's region
 > resolves to and that dispatches by `X-Amz-Target` prefix. Built: `update` (OTA, `packages/ota`),
 > `account`+`loop`+`oobe`+`settings`+portal+per-robot-auth (`packages/account`), and `log`,
-> `robot`, `notification`+entrypoint-socket, `key`, `push` plus build-to-spec stubs for
-> `rom`/`media`/`person`/`backup`/`ifttt`/`nlp`/`collision` (`packages/classic`). Not built (no
+> `robot`, `notification`+entrypoint-socket, `key`, `push`, `backup` (the UI wipe's "Backing
+> up…" step, self-hosted blob store) plus build-to-spec stubs for
+> `rom`/`media`/`person`/`ifttt`/`nlp`/`collision` (`packages/classic`). Not built (no
 > client API contract in the archive): `voicetraining`, `jot`. The conversational stack
 > (hub/parser/skills) is Phoenix's main body and is separate from these.
 >
@@ -87,7 +88,7 @@ gotchas (see §4).
 |---|---|---|---|---|---|
 | **update** | `update-2016-03-01` | `server/update-ws`, `jiborobot/srv-update-ws` | Firmware OTA: tells the robot which os/services/skill subsystems have updates; serves the packages | **✅ `packages/ota`** | **Done.** See §4. |
 | **account** | `account-2015-11-11` | `srv-account-ws` (in `jiboV2/pegasus/.../cloud-services`) | Accounts; **issues the robot's `accessKeyId`/`secretAccessKey` during OOBE** (`setupRobot`); owns the Loop | **✅ `packages/account`** | **Done.** OOBE `setupRobot`/`prepareRobot`/`getStatus` over AWS-JSON, plus the web portal that mints setup tokens + QR, and per-robot hub-token issuance (`/api/token`, `/api/verify`). v1 = the new-robot + same-robot-reissue paths (reconnect/suspended-loop/managed-members deferred). |
-| **loop** | `loop-2016-03-24` | (part of `srv-account-ws`) | The "Loop" = a Jibo household: members, ownership, which robot belongs to whom | **✅ `packages/account`** | **Done** (v1: one owner, N robots, one robot per loop; find-or-create robot account, getLoopName dedupe). |
+| **loop** | `loop-2016-03-24` | (part of `srv-account-ws`) | The "Loop" = a Jibo household: members, ownership, which robot belongs to whom | **✅ `packages/account`** | **Done** (v1: one owner, N robots, one robot per loop; find-or-create robot account, getLoopName dedupe). **`Loop.List`/`ListLoops`** + **`SuspendLoop`/`SuspendRobotLoop`** added (entrypoint `/^loop/i` → account). The robot reads its `loopId` here before backup/restore, and `WipeUtil` suspends the loop here during a factory wipe — **`SuspendLoop` is the actual wipe gate** (the settings skill aborts the wipe on a non-`LOOP_NOT_FOUND` suspend error). Member ops deferred. |
 | **robot** | `robot-2016-02-25` | `jiborobot/srv-robots-ws` | Robot manufacturing/lifecycle events | **✅ `packages/classic`** | Boot-time reads (GetRobot/GetCalibrationData return valid empty records; calibration stays on the robot /var). |
 | **robotread** | — | `jiborobot/srv-robots-read-ws` | Read-side snapshot of robot state | **✅** | Folded into the `robot` handler. |
 | **key** | `key-2016-02-01` | `jiborobot/srv-key-ws` | UGC encryption-key exchange | **✅ `packages/classic`** | In-memory KeyStore: CreateRequest/Share/GetRequest/ShouldCreate/Backup/Restore. |
@@ -99,7 +100,7 @@ gotchas (see §4).
 | **person** | `person-2016-08-01` | `jiborobot/srv-person-ws` | Person/loop/account properties | **◑ stub** | real in-memory property round-trip + holidays; unverified without the app. |
 | **voicetraining** | — | (locate) | Sync voice-enrollment models | ➖ | No client API contract in the archive `apis/`; not built (on-robot enrollment works without it). |
 | **jot** | — | (locate) | Cloud storage for the Jot skill | ➖ | No client API contract in the archive `apis/`; not built. |
-| **backup** | `backup-2017-02-22` | `jiborobot/srv-backup-ws` | Robot backup-to-cloud | **◑ stub** | New/List shapes; no S3. |
+| **backup** | `backup-2017-02-22` | `jiborobot/srv-backup-ws` | Robot backup-to-cloud (the UI wipe's "Backing up…" step) | **✅ `packages/classic`** | **Working** — `Backup.New`→self-hosted upload URL, `PUT /backup/blob`→ETag, `Backup.List`→matching etag + download URL, `GET /backup/blob`→restore. No S3 (blobs on disk, process-lifetime). Audited against `srv-backup-ws` + the robot's `jibo-system-{backup,restore}.js`; verified end-to-end. See DIVERGENCES H-backup. |
 | **entrypoint-socket** | — (the `wss://…-socket` door) | `jiborobot/srv-entrypoint-socket-ws` | Exposes the robot's WebSocket; works with `notification` to push events to the robot | ⬜ | **Tier 2 — transport for Commander/notifications.** Pairs with `notification`. |
 | **rom** | `rom-2017-10-11` | `jiborobot/srv-rom-ws` | Commander (Remote Operation Mode) | **◑ stub** | Create/SetupClient/SetupServer cert-bundle shapes; needs the app. |
 | **gqa** | — (consumed by the hub, not the robot directly) | `jiborobot/srv-gqa-ws` (Python) | General Q&A ("who is X") | **🟡** | **Replaced** by `packages/skills` answer-skill (LLM-backed) via the hub. No classic shim needed. |
@@ -135,8 +136,9 @@ gotchas (see §4).
 - **Tier 2 — remote control & notifications** (Commander, push, the phone app live features):
   `entrypoint-socket` (the `wss` door) + `notification` + `push` + `rom` + supporting `key`, `robot`.
   This is the biggest unbuilt cluster and the next obvious milestone after OTA.
-- **Tier 3 — features**: `media`, `person`, `voicetraining`, `jot`, `backup`, `log`, `skill`, `ifttt`.
-  Most can be stubbed (return empty/no-op) without breaking the robot.
+- **Tier 3 — features**: `media`, `person`, `voicetraining`, `jot`, `log`, `skill`, `ifttt`.
+  Most can be stubbed (return empty/no-op) without breaking the robot. `backup` is **built for
+  real** (✅) because the UI's wipe/factory-reset gates on it — see the inventory + DIVERGENCES H-backup.
 
 A robot can be **alive, conversational, self-updating, and app-pairable today** with: Phoenix
 hub (✅) + `update` (✅) + `account`/`loop`/`oobe` + portal (✅). Tiers 2–3 add the remaining

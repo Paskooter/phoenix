@@ -1,0 +1,27 @@
+TopRule = $* $NEARLIGHTS $* {intent=NEARLIGHTS._intent}{priority='HIGH'};
+
+### Are you near the lights now? ###
+### So, are you near the lights now? ###
+
+NEARLIGHTS =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( $IAMWEARE $* ?$NEAR )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( $IAMWEARE not ?$NEAR )
+);
+### USEFUL VOCAB ###
+IWE = i | we;
+SURE = sure | certainly;
+THEM = them | em | \'em;
+NEAR = near | here | nearby | ( by them );
+IAMWEARE = ( i am ) | i\'m | ( we are ) | we\'re;

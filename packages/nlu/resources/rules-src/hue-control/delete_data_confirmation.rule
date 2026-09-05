@@ -1,0 +1,29 @@
+TopRule = $* $DELETEDATA $* {intent=DELETEDATA._intent}{priority='HIGH'};
+
+### Are you really sure you want me to forget about your philips hue lights? ###
+
+
+DELETEDATA =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( i\'m | we\'re | (i am) | ( we are ) $* $SURE ) |
+    ( do it )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( i\'m | we\'re | (i am) | ( we are ) not $SURE ) |
+    ( actually keep ) |
+    ( don\'t do it ) |
+    ( $IWE don\'t know )
+);
+### USEFUL VOCAB ###
+IWE = i | we;
+SURE = sure | positive | certain;
+THEM = them | em | \'em;

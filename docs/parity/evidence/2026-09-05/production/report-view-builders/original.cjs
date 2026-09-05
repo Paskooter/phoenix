@@ -1,0 +1,3 @@
+const fs=require('fs'),shared=require('./cases.cjs'),base=process.argv[2]+'/packages/report-skill/lib/subskills/';
+const fn={weather:require(base+'weather/WeatherViews').hiLoTempView,news:require(base+'news/NewsViews').newsViews,traffic:require(base+'commute/CommuteViews').trafficView,depart:require(base+'commute/CommuteViews').departView,calendar:require(base+'calendar/CalendarViews').calEventViews};
+(async()=>{const output=[];for(const row of shared.cases()){output.push({kind:row.kind,input:row.args,output:await fn[row.kind].apply(null,shared.argumentsFor(row))});}fs.writeFileSync('/review/original.json',JSON.stringify(output,null,2)+'\n');console.log(JSON.stringify({runtime:process.version,cases:output.length}));})().catch(e=>{console.error(e);process.exitCode=1;});

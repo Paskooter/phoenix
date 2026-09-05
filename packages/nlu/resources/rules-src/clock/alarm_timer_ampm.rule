@@ -1,0 +1,13 @@
+TopRule =
+$* (
+        $D_ALARM_TIME_VALUE {domain = 'alarm'}
+                             {intent = D_ALARM_TIME_VALUE._intent}
+                            {ampm = D_ALARM_TIME_VALUE._ampm}
+                            {priority='HIGH'}
+) $* ;
+
+###### D_ALARM
+D_ALARM_TIME_VALUE = $factory:time {_ampm=time._time_ampm}{_intent='set'} | $AM_PM{_ampm=AM_PM._ampm}{_intent='set'};
+
+AM_PM = (a.m.|am|(a m)|(a. m.)) {_ampm='AM'} |
+        (p.m.|pm|(p m)|(p. m.)) {_ampm='PM'};

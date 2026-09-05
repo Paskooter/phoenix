@@ -1,0 +1,82 @@
+# Bounded source grammar for the reference factory:timer contract.
+# Numeric words and digits map to the private _value field consumed by the
+# clock/timer_set_value rule; the rule itself supplies public intent/domain tags.
+TopRule = $TIMER;
+
+TIMER =
+    ($NUMBER {_hours=NUMBER._value} [hour?s])
+        {_minutes='null'}{_seconds='null'} |
+    ($NUMBER {_minutes=NUMBER._value} [minute?s])
+        {_hours='null'}{_seconds='null'} |
+    ($NUMBER {_seconds=NUMBER._value} [second?s])
+        {_hours='null'}{_minutes='null'} |
+    ($NUMBER {_hours=NUMBER._value} [hour?s] and $NUMBER {_minutes=NUMBER._value} [minute?s])
+        {_seconds='null'} |
+    ($NUMBER {_hours=NUMBER._value} [hour?s] and $NUMBER {_seconds=NUMBER._value} [second?s])
+        {_minutes='null'} |
+    ($NUMBER {_minutes=NUMBER._value} [minute?s] and $NUMBER {_seconds=NUMBER._value} [second?s])
+        {_hours='null'} |
+    ($NUMBER {_hours=NUMBER._value} [hour?s] and $NUMBER {_minutes=NUMBER._value} [minute?s] and $NUMBER {_seconds=NUMBER._value} [second?s]);
+
+NUMBER =
+(zero|0){_value='0'} |
+(one|1){_value='1'} |
+(two|2){_value='2'} |
+(three|3){_value='3'} |
+(four|4){_value='4'} |
+(five|5){_value='5'} |
+(six|6){_value='6'} |
+(seven|7){_value='7'} |
+(eight|8){_value='8'} |
+(nine|9){_value='9'} |
+(ten|10){_value='10'} |
+(eleven|11){_value='11'} |
+(twelve|12){_value='12'} |
+(thirteen|13){_value='13'} |
+(fourteen|14){_value='14'} |
+(fifteen|15){_value='15'} |
+(sixteen|16){_value='16'} |
+(seventeen|17){_value='17'} |
+(eighteen|18){_value='18'} |
+(nineteen|19){_value='19'} |
+(twenty|20){_value='20'} |
+(twenty one|21){_value='21'} |
+(twenty two|22){_value='22'} |
+(twenty three|23){_value='23'} |
+(twenty four|24){_value='24'} |
+(twenty five|25){_value='25'} |
+(twenty six|26){_value='26'} |
+(twenty seven|27){_value='27'} |
+(twenty eight|28){_value='28'} |
+(twenty nine|29){_value='29'} |
+(thirty|30){_value='30'} |
+(thirty one|31){_value='31'} |
+(thirty two|32){_value='32'} |
+(thirty three|33){_value='33'} |
+(thirty four|34){_value='34'} |
+(thirty five|35){_value='35'} |
+(thirty six|36){_value='36'} |
+(thirty seven|37){_value='37'} |
+(thirty eight|38){_value='38'} |
+(thirty nine|39){_value='39'} |
+(forty|40){_value='40'} |
+(forty one|41){_value='41'} |
+(forty two|42){_value='42'} |
+(forty three|43){_value='43'} |
+(forty four|44){_value='44'} |
+(forty five|45){_value='45'} |
+(forty six|46){_value='46'} |
+(forty seven|47){_value='47'} |
+(forty eight|48){_value='48'} |
+(forty nine|49){_value='49'} |
+(fifty|50){_value='50'} |
+(fifty one|51){_value='51'} |
+(fifty two|52){_value='52'} |
+(fifty three|53){_value='53'} |
+(fifty four|54){_value='54'} |
+(fifty five|55){_value='55'} |
+(fifty six|56){_value='56'} |
+(fifty seven|57){_value='57'} |
+(fifty eight|58){_value='58'} |
+(fifty nine|59){_value='59'} |
+(sixty|60){_value='60'};

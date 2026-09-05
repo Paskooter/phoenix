@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "basis": "Pinned source inspection, not native client runtime verification",
+  "files": [
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/Api.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/Api.ts",
+      "sha256": "ee7214512b3c24144857e8469858ee5acda3ce5e2e05a0dd40e0cfe1342773e9",
+      "bytes": 14329
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/Client.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/Client.ts",
+      "sha256": "85a08862450d07ac448590bc40b21ddbe1b437af605e2a874daa5a064073ab6d",
+      "bytes": 14813
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/CloudResponseRegistry.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/CloudResponseRegistry.ts",
+      "sha256": "3b37c9f807efb2565adc9c8716b7f1fe6fdaf738b873f792c6fa5c0eee494dcb",
+      "bytes": 2378
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/Events.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/Events.ts",
+      "sha256": "3677f9de9e22e497d55030717da34eadfe294b21b8ac823f4a3de033cca851e4",
+      "bytes": 3095
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/HotwordMode.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/HotwordMode.ts",
+      "sha256": "673078f343cb240cf7e1114fe6e9ad017ec69a48385d2b7e8480eb0e2d27f2c6",
+      "bytes": 11726
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/Request.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/Request.ts",
+      "sha256": "af8992f7c7778f48c1cbdadcd8625e0b575e0094eb10a8bfc5307fa675bcbb43",
+      "bytes": 16609
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/Types.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/Types.ts",
+      "sha256": "501ef560625f3aa95b15936a5338382f183a4748bf1e9ad92da95b486a8a402e",
+      "bytes": 26096
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/Utils.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/Utils.ts",
+      "sha256": "daacbfb81fd0842c5150a2705ace2e1eceb4f467dfde8965ce85e602dc5af5c0",
+      "bytes": 3149
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/src/index.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/src/index.ts",
+      "sha256": "7f1b4f16ee286d94094aeaaf53fab4262f52ce8ed72d72f68357a772d1fdf50c",
+      "bytes": 310
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "skills/nimbus/src/Nimbus.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/skills/nimbus/src/Nimbus.ts",
+      "sha256": "43294bdf682e21a64cda9f77c3ae2088f59bb92947bb93827300c8a446cc6079",
+      "bytes": 10610
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "skills/nimbus/src/states/ProcessCloud.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/skills/nimbus/src/states/ProcessCloud.ts",
+      "sha256": "3943c596cbe7928583bb5a3339fc9976fcc951811b1677a45fd8a5939a7ce271",
+      "bytes": 15827
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "skills/nimbus/src/states/DoCloudAction.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/skills/nimbus/src/states/DoCloudAction.ts",
+      "sha256": "3043fd932e24e79427bdcdbd7b1457067e7b24753b3e67ed7b77c93675421b7b",
+      "bytes": 5099
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "skills/nimbus/src/states/WaitForAdditional.ts",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/skills/nimbus/src/states/WaitForAdditional.ts",
+      "sha256": "3c974c16aa4f4da18390334f92b3fb0e179543cb9f8faca5917a076a2ce19973",
+      "bytes": 2090
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "skills/be/package.json",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/skills/be/package.json",
+      "sha256": "09a7e06b7d4fbd2e6e17626b157940b05379d31a961fddc50d93ac6cd43cfcfe",
+      "bytes": 7663
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "skills/nimbus/package.json",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/skills/nimbus/package.json",
+      "sha256": "d50a458432f876d7e470e50490c9fc4d7377bcb6731a8d7d5b860830791f21fa",
+      "bytes": 2259
+    },
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "path": "packages/jetstream-client/package.json",
+      "url": "https://pvindex.org/gitea/sdk/sdk/raw/commit/793e5ae469ec48d280bf837564035696848629ab/packages/jetstream-client/package.json",
+      "sha256": "bbb3f088c88e773b4c47358dda741e3503ff9c15b2a7725f8a5e729534089683",
+      "bytes": 1646
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jibohub-client/src/ClientCloudConnection.cpp",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jibohub-client/src/ClientCloudConnection.cpp",
+      "sha256": "d7336b9e01c47dbf6d968368c560b2eaffb559be15ea4737184c27d438d97b4a",
+      "bytes": 11958
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/LhubClient.cc",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/LhubClient.cc",
+      "sha256": "d8d64197a84b449c58837b910b7a140946ce2d66e91223eda1a620fac0a22175",
+      "bytes": 15697
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/PhubClient.cc",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/PhubClient.cc",
+      "sha256": "1b3f98c6dcceb71930b73029440c91f010536f50657b5804439d8585b886d5a1",
+      "bytes": 4583
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/Hubmsg.h",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/Hubmsg.h",
+      "sha256": "7ea9be0607c38e2f6c9cb9939ebc44726ea21ac98de25734fa0178efd4931a6a",
+      "bytes": 6564
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/Context.cc",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/Context.cc",
+      "sha256": "d37e4872e937f587eca220684b48c77b7030363303b1d711e5116837e81dc400",
+      "bytes": 9447
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/ListenLoop.cc",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/ListenLoop.cc",
+      "sha256": "5a8ab191160ca43fa4f00697c89662f162c9ee5bcd6a10ff608e309db8846753",
+      "bytes": 32924
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/WSmsg.cc",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/WSmsg.cc",
+      "sha256": "e2489b33c0883b2d6229b30d46a1f6af7959df3f029b39525a056ff9474be387",
+      "bytes": 650
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/Proactivity.cc",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/Proactivity.cc",
+      "sha256": "a3c0d9d5a0d0c0560bb48ed77d16273ac9340155f293ec7d2c61beafebe02e7b",
+      "bytes": 1868
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jetstream/src/HubclientSettings.h",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jetstream/src/HubclientSettings.h",
+      "sha256": "e15ac4adcbd52582ad638b59483a660f41eee4d4f28a10d7f8ec7ee9569f2e04",
+      "bytes": 3826
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "path": "jibohub-client/src/Authentication.cpp",
+      "url": "https://pvindex.org/gitea/jiboV2/jetstream/raw/commit/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb/jibohub-client/src/Authentication.cpp",
+      "sha256": "6ab97185ea7caad3bdad0d4586a16f4dbd09543de3a499a2abb1b67349c6394a",
+      "bytes": 8251
+    }
+  ],
+  "revisions": [
+    {
+      "repo": "sdk/sdk",
+      "commit": "793e5ae469ec48d280bf837564035696848629ab",
+      "date": "2018-05-23T14:38:23-05:00",
+      "message": "Merge pull request #3497 from sdk/release/perez/hashbrown-rc6\n\nv23.4.0 version bumps",
+      "metadataUrl": "https://pvindex.org/gitea/api/v1/repos/sdk/sdk/git/commits/793e5ae469ec48d280bf837564035696848629ab"
+    },
+    {
+      "repo": "jiboV2/jetstream",
+      "commit": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+      "date": "2018-05-30T19:07:51-04:00",
+      "message": "Change AWSAuthV4Signer interface to comply with AWS-SDK-CPP >= 1.3 (#44)\n\n",
+      "metadataUrl": "https://pvindex.org/gitea/api/v1/repos/jiboV2/jetstream/git/commits/01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb"
+    }
+  ],
+  "discovery": {
+    "nativeArchiveHead": "8170355a0accc03e8bfd9ee5bfabb3b7173d684e",
+    "selection": "Use its pre-URL-migration parent; all eight inspected files are byte-identical. Installed firmware mapping remains unverified."
+  }
+}

@@ -1,0 +1,83 @@
+TopRule = $* $FUNFACT_INTENTS {intent=FUNFACT_INTENTS._intent}{priority='HIGH'} $*;
+### The word comes from Greek. Hepta means seven, like in heptathlon. ###
+
+FUNFACT_INTENTS =
+(
+    ($INTENT_AMAZEMENT|$INTENT_DISAGREEMENT) {_intent='interesting'} |
+    ($INTENT_INDIFFERENCE) {_intent='stupid'} |
+    ($INTENT_ISTHATRIGHT) {_intent='isThatRight'} |
+    ($INTENT_METOO) {_intent='meToo'} |
+    ($INTENT_OKAY) {_intent='okay'} |
+    ($INTENT_THATSFUNNY) {_intent='thatsFunny'}
+);
+
+INTENT_THATSFUNNY =
+(
+    ?( that\'s | ( that is ) ) ( funny | hilarious )
+);
+
+INTENT_OKAY =
+(
+    okay | ok | alright
+);
+
+INTENT_METOO =
+(
+    ( me | mine ) too
+);
+
+INTENT_ISTHATRIGHT =
+(
+    ?is that ( right | so | true )
+);
+
+INTENT_AMAZEMENT = (
+    (no $w03 way) |
+    (get $w03 out) |
+    (?([that?(?(\')s)]|this) ?(is|was) $V_AMAZING|$V_FUN|$V_WEIRD)  |
+    (who knew|(would|could ?have known)) |
+    ([that?(?(\')s)]|those ?(is|are|was|were) quite ?(a|an) ?($V_AMAZING|$V_WEIRD) ?[vocab?(ulary)] [word?s])
+);
+
+INTENT_DISAGREEMENT =
+(
+    ([you?(?(\')re)] ?[are?(n\'t)] ?not serious|$V_KIDDING|$V_SURE) |
+    ([you?(?(\')ve)] have|got|must ?to ?be $V_KIDDING) |
+    (?you can\'t|cannot|(can not) ?be serious|$V_RIGHT) |
+    (are you $w03 $V_SURE) |
+    (is|was that $w03 $V_RIGHT) |
+    (?that (doesn\'t|(does not) make ?any sense)|(makes no sense)) |
+    (?that doesn\'t|(?does not) seem|sound ?$V_FILLER $V_RIGHT) |
+    (i|we don\'t|(?do not) $w03 believe) |
+    (i|we disagree|object)
+);
+
+
+INTENT_INDIFFERENCE = (
+    (?(i|we) don\'t|(?do not) ?$V_FILLER care) |
+    (?([that?(?(\')s)]|this) ?(is|was) $V_UNINTERESTING) |
+    (?it doesn\'t|(does not) ?$V_FILLER  matter) |
+    (gimme|(give me|us) ?a break) |
+    (good lord) |
+    groan |
+    (eye roll) |
+    whatever |
+    meh |
+    please
+);
+
+
+### USEFUL VOCABULARY ###
+V_FILLER = <1.0>([actual?(ly)]|already|[real?(ly)]|very|reasonably|still|
+    generally|literally|recently|some|just|so|(?a little|lot|(?little bit))|
+    (?so much)|(sort|kind ?of)|kinda)<0.0>;
+V_AMAZING = (
+    amazing|fantastic|incredible|fascinating|wonderful|astounding|unbelievable|
+    cool|marvelous|superb|impressive|great|outstanding|extraoridinary|fantastic
+);
+V_FUN = (fun|exciting|interesting|amusing|enjoyable|entertaining|worthwhile|useful|rewarding);
+V_KIDDING = (kidding|joking|joshing|teasing|lying);
+V_RIGHT = (right|real|correct|true|accurate|credible);
+V_SURE = (sure|positive|certain|(for real));
+V_UNINTERESTING = (uninteresting|stupid|dumb|boring|tedious|dull|pointless|absurd|(not ?$V_FILLER $V_FUN));
+V_WEIRD = (weird|crazy|nuts|wild|unexpected|insane|wacky|mad|bizarre|unusual|peculiar);

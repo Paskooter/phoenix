@@ -7,6 +7,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Source .env so friendly names (PARAKEET_URL, LLM_URL, LLM_MODEL, …) are populated for the
+# ETCO_*/NET_* mappings below. The node services already read .env via @phoenix/common's dotenv
+# loader, but this bash launcher does NOT — without this, `${PARAKEET_URL:-}` etc. resolve empty
+# and the hub silently falls back to mock ASR even though .env has a real PARAKEET_URL.
+if [ -f .env ]; then set -a; . ./.env; set +a; fi
+
 LLM_URL="${LLM_URL:-}"
 LLM_MODEL="${LLM_MODEL:-google/gemma-4-e4b}"
 PARAKEET_URL="${PARAKEET_URL:-}"

@@ -1,0 +1,1615 @@
+# Phoenix parity task checklist
+
+Generated from [tasks.json](tasks.json). Edit the ledger, then run `npm run parity:status -- --write`; `npm run parity:check` checks evidence/dependencies and detects stale output.
+
+A checked box means the acceptance criteria and linked evidence were reviewed. Existing code and green unit tests are recorded independently of verified product parity. Counts below measure this task plan, not a percentage of server functionality.
+
+Parallel candidates have their own implementation checkbox. A checked candidate means a proposed implementation was submitted; only the main task checkbox means the lead verified every acceptance criterion. Candidate submissions do not increase the verified counts.
+
+| Track | Verified | Total | In progress | Blocked |
+|---|---:|---:|---:|---:|
+| management | 3 | 3 | 0 | 0 |
+| verification | 3 | 4 | 1 | 0 |
+| pegasus | 0 | 46 | 0 | 0 |
+| classic | 0 | 18 | 0 | 0 |
+| restoration | 0 | 1 | 0 | 0 |
+| release | 0 | 5 | 0 | 0 |
+
+Current task: **V-03 — Map all original tests and resources into a coverage denominator**.
+
+Next ready task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
+
+See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
+
+## 0. Establish the verification baseline
+
+### PM-01 — Establish the source-backed audit baseline
+
+- [x] **verified** · P0 · management · implementation: complete
+
+Owner: Codex. Dependencies: none.
+
+Completed this audit pass; this verifies the audit work, not product parity.
+
+Done when:
+
+- Pin the compared revisions and record existing working-tree changes.
+- Retain fresh test results, source/asset inventories and reproducible discrepancy probes.
+
+Source: [Restored Pegasus docs/atlas/branch-archaeology.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/branch-archaeology.md); [jiborobot/srv-jibo-server-client/apis](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis).
+
+Phoenix: [docs/parity/AUDIT.md](../../docs/parity/AUDIT.md); [docs/parity/evidence/2026-09-05](../../docs/parity/evidence/2026-09-05).
+
+Evidence: [docs/parity/evidence/2026-09-05/baseline.json](../../docs/parity/evidence/2026-09-05/baseline.json) (2026-09-05; management deliverable).
+
+### PM-02 — Publish the dependency-ordered parity tracker
+
+- [x] **verified** · P0 · management · implementation: complete
+
+Owner: Codex. Dependencies: PM-01.
+
+Completed initial planning; historical milestone checkmarks do not certify the new scope.
+
+Done when:
+
+- Every task has source references, an implementation finding, dependencies and verifiable acceptance criteria.
+- The tracker validates IDs, dependency order, evidence for verified work and generated documentation.
+
+Source: [Restored Pegasus docs/atlas/verification-strategy.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/verification-strategy.md).
+
+Phoenix: [docs/parity/tasks.json](../../docs/parity/tasks.json); [docs/parity/PLAN.md](../../docs/parity/PLAN.md); [scripts/parity-status.mjs](../../scripts/parity-status.mjs).
+
+Evidence: [docs/parity/evidence/2026-09-05/tracker-check.log](../../docs/parity/evidence/2026-09-05/tracker-check.log) (2026-09-05; management deliverable).
+
+### PM-03 — Freeze the original compatibility target and divergence policy
+
+- [x] **verified** · P0 · management · implementation: complete
+
+Owner: Codex. Dependencies: PM-02.
+
+Original Hashbrown source/client and dependency artifacts are frozen. All historical divergences are classified; firmware ambiguity, original credential-deletion behavior and legacy Settings version verification remain in their product tasks.
+
+Done when:
+
+- Record the original release, restored reference, client/firmware versions and dependency artifact versions in a compatibility manifest.
+- Classify every existing divergence as internal-only, required repair, or a separately selectable extension; keep unresolved differences open.
+- Determine which external Classic operations are required for Pegasus and which belong to the additional full-cloud target without deleting either backlog.
+
+Source: [Restored Pegasus docs/atlas/branch-archaeology.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/branch-archaeology.md); [Restored Pegasus docs/atlas/external-services.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/external-services.md).
+
+Phoenix: [DIVERGENCES.md](../../DIVERGENCES.md); [docs/parity/PLAN.md](../../docs/parity/PLAN.md); [docs/parity/COMPATIBILITY.md](../../docs/parity/COMPATIBILITY.md); [docs/parity/evidence/2026-09-05/compatibility-pins.json](../../docs/parity/evidence/2026-09-05/compatibility-pins.json).
+
+Evidence: [docs/parity/evidence/2026-09-05/compatibility-review.json](../../docs/parity/evidence/2026-09-05/compatibility-review.json) (2026-09-05; management deliverable).
+
+### V-01 — Make the reference executable with deterministic dependency fixtures
+
+- [x] **verified** · P0 · verification · implementation: complete
+
+Owner: Codex. Dependencies: PM-03.
+
+Verified executable reference infrastructure: 38 original transactions and 19 fixture checks under Node 8.9.4, 376 source inputs/15 manifests checked against original Git, exact NLU 2.8.3 CLI. TypeScript module emission and fixture providers are explicit; original Gulp build, complete services/providers/persistence/clients remain unverified under their own tasks.
+
+Done when:
+
+- Start an isolated pinned reference runtime or independently executable service modules, with fixed time/randomness and fake ASR/NLU/data/settings responses.
+- Capture successful and failing reference HTTP/WS transactions with source commit, artifact hashes, fixture inputs and launch commands.
+- Keep any service that still cannot run explicitly unverified; document reproducible build blockers and a source-derived test fallback.
+
+Source: [Original Pegasus Dockerfile](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/Dockerfile); [Original Pegasus packages/test-utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils); [Original Pegasus packages/parser/robust-parser](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser); [jiborobot/srv-gqa-ws/README.md](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/README.md).
+
+Phoenix: [packages/harness](../../packages/harness); [docs/parity/evidence](../../docs/parity/evidence); [scripts/parity-reference](../../scripts/parity-reference); [docs/parity/REFERENCE.md](../../docs/parity/REFERENCE.md).
+
+Evidence: [docs/parity/evidence/2026-09-05/reference/review.json](../../docs/parity/evidence/2026-09-05/reference/review.json) (2026-09-05; original source module execution with recorded emission/provider adapters).
+
+### V-02 — Finish the two-server comparison runner and strict comparison rules
+
+- [x] **verified** · P0 · verification · implementation: complete
+
+Owner: Codex. Dependencies: V-01.
+
+Verified strict comparison infrastructure: identical 28-case HTTP/hub fixtures, passing independent original control, 36 focused tests including corruption/CLI rejection. Phoenix baseline fails with 267 JSON-pointer differences across 26 cases, zero invariant failures. Full parser/skill/provider/consumer coverage remains in V-03 and product tasks; no Phoenix feature parity certified.
+
+Done when:
+
+- One command runs identical fixtures against reference and Phoenix and saves requests, ordered responses, side effects and diffs; a mismatch exits nonzero.
+- Check status, headers, field presence, null versus empty, entities, rules, memo, JCP/ESML and analytics; normalize only explicitly allowed volatile paths.
+- Verify session continuation, ID relationships and timing bounds independently, and prove intentionally corrupted frames/sessions fail the gate.
+
+Source: [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client); [Original Pegasus packages/hub-client-cli](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client-cli); [Restored Pegasus docs/atlas/verification-strategy.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/verification-strategy.md).
+
+Phoenix: [packages/harness](../../packages/harness); [scripts/parity-compare](../../scripts/parity-compare); [docs/parity/COMPARISON.md](../../docs/parity/COMPARISON.md); [docs/parity/evidence/2026-09-05/comparison](../../docs/parity/evidence/2026-09-05/comparison).
+
+Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/parity/evidence/2026-09-05/comparison/review.json) (2026-09-05; Executable original/Phoenix HTTP and hub differential; independent invariant/mutation tests).
+
+### V-03 — Map all original tests and resources into a coverage denominator
+
+- [ ] **in_progress** · P0 · verification · implementation: partial
+
+Owner: Codex. Dependencies: PM-03.
+
+The complete 20,534-case original control agrees with zero differences/invariants and eight symmetric external-action gaps. An independently completed buffered-writer capture also agrees with it. A separate second native startup failed at zero cases and remains invalid. Root integrated bounded C-01/N-01/S-04/H-07; 329 unit tests pass, but strict smoke still has 736 differences and one gap. Full Phoenix corpus baseline remains open.
+
+Done when:
+
+- Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.
+- Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.
+- Grade the production parser with complete requests, intents, entities, winning rules, no-match behavior, skill/memo and action outputs; pin golden provenance and reject mismatches in CI.
+
+Source: [Original Pegasus packages/integration-tests-int](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-int); [Original Pegasus packages/integration-tests-ext](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-ext); [Original Pegasus packages/hub/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/tests); [Original Pegasus packages/parser/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/tests); [Original Pegasus packages/test-utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils).
+
+Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-05/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-05/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+
+Candidate scope: Bounded Node 8 full-corpus trace writer; candidate only, root recaptures and reviews original controls before accepting V-03.
+
+Candidate report: [docs/parity/candidates/V-03.md](../../docs/parity/candidates/V-03.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json](../../docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json). Complete task acceptance is still governed by the main checkbox above.
+
+### V-04 — Establish the Moth real-robot verification loop
+
+- [x] **verified** · P0 · verification · implementation: complete
+
+Owner: Codex. Dependencies: PM-03, V-02.
+
+Lead verified the bounded Moth test infrastructure, preserved rollback configuration, correlated native/Hub actions, and completed source-pinned BE release and timer-local failure iterations. V-04 certifies this verification loop only; authentication, encoded audio, physical wake-word/ring confirmation and full skill/release acceptance remain open.
+
+Done when:
+
+- Pin robot/native/client/server inputs and preserve recoverable starting configuration without altering the other robot or unrelated services.
+- Run the original BE consumer in an isolated slot against this Phoenix checkout; retain correlated native events, cloud wire traces and observed Nimbus execution.
+- Provide repeatable global/local text and real-audio probes with bounded capture and precise rollback; distinguish injected text, recorded audio and physical observations.
+- Record failing-before/passing-after hardware iterations and map every unresolved result to product tasks; no bypass or fixture result closes its production acceptance.
+
+Source: [Jibo documentation](https://pvindex.org/confluence/display/SER/Jetstream+Service+Details); docs/parity/CONSUMERS.md.
+
+Phoenix: [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md); [packages/gateway/src](../../packages/gateway/src).
+
+Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/parity/evidence/2026-09-05/hardware/review.json) (2026-09-05; Lead review of all four infrastructure acceptance criteria and real Moth evidence).
+
+### A-01 — Map every Classic operation to controllers, consumers and tests
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: PM-03.
+
+The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md).
+
+Done when:
+
+- Assign all 134 targets, including admin variants, to a handler, source controller, consumer, parity task and verification scenario.
+- Record auth/ownership, schema, errors, persistence and observable side effects per operation; dispatch/shape support alone is not verification.
+- Investigate services with no client API file, including voice training, Jot and other archive services, and register any additional required contracts.
+- Recover legacy contract versions used by the original clients, including Settings_20160801.GetSettings; keep the 20171219 SDK surface independently mapped.
+
+Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/account-2015-11-11.normal.json); [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/loop-2016-03-24.normal.json); [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oobe-2016-10-26.normal.json).
+
+Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic).
+
+Evidence: pending.
+
+## 1. Repair public contract blockers
+
+### C-01 — Match the shared HTTP response and error contract
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: V-02.
+
+Shared HTTP boundary candidate now matches the expanded malformed JSON and serialization/routing fixtures, including the root317-case mutation review. Accepted for integration; authentication and broader service boundaries remain unverified.
+
+Done when:
+
+- Compare null, undefined, arrays, empty bodies, malformed JSON, handler errors, unknown routes, trailing slashes and supported HTTP methods.
+- Preserve reference status codes, response bodies, content types and headers on all service boundaries.
+
+Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/service/BaseService.ts); [Original Pegasus packages/utils/src/service/handlers/BaseHttpHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/service/handlers/BaseHttpHandler.ts).
+
+Phoenix: [packages/common/src/service.js](../../packages/common/src/service.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair.
+
+Candidate scope: Repair source-confirmed common HTTP response/error serialization; lead reviews differential evidence and remaining C-01 acceptance.
+
+Candidate report: [docs/parity/candidates/C-01.md](../../docs/parity/candidates/C-01.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/comparison/http-review.json](../../docs/parity/evidence/2026-09-05/comparison/http-review.json). Complete task acceptance is still governed by the main checkbox above.
+
+### C-02 — Complete the wire schemas and message builders
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-01, V-03.
+
+P11 rejects the original empty NLU response. Proactive, manifest, JCP/SLIM and MIM coverage is incomplete.
+
+Done when:
+
+- Build a field/enum/nullability/requiredness matrix from the pinned interfaces and consumer code, including ListenResult precedence.
+- All captured valid reference requests/responses are accepted and the reference's invalid-input behavior is reproduced.
+- Cover proactive requests/results, skill redirects/actions, JCP/display, MIMs, manifests and analytics without rejecting valid optional fields.
+
+Source: [Original Pegasus packages/interfaces/src](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/interfaces/src); [jiboV2/jibo-command-protocol/index.d.ts](https://pvindex.org/gitea/jiboV2/jibo-command-protocol/src/branch/master/index.d.ts).
+
+Phoenix: [packages/contracts/src/messages.js](../../packages/contracts/src/messages.js); [packages/contracts/src/constants.js](../../packages/contracts/src/constants.js); [packages/contracts/src/validate.js](../../packages/contracts/src/validate.js).
+
+Evidence: pending.
+
+### C-03 — Restore configuration, registry and service-discovery compatibility
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: V-02.
+
+Unreadable manifests are silently skipped, metadata/basePath are dropped, and report-skill requires NET_data where Pegasus uses NET_lasso.
+
+Done when:
+
+- Load unmodified reference registries including settings metadata, paths, versions and URL composition; reject invalid configurations as the reference does.
+- Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.
+- Document optional alias behavior and prove an individual Phoenix service works under the reference environment.
+
+Source: [Original Pegasus packages/hub/src/config](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/config); [Original Pegasus packages/hub/src/skill/SkillUtils.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/skill/SkillUtils.ts); [Original Pegasus packages/report-skill/src/EnvVars.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/EnvVars.ts); [Original Pegasus packages/utils/src/config](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/config).
+
+Phoenix: [packages/gateway/src/config.js](../../packages/gateway/src/config.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js); [packages/common/src/env.js](../../packages/common/src/env.js).
+
+Evidence: pending.
+
+### H-01 — Restore the robot-specific skill-list endpoints
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-01, C-03.
+
+P03 and the V-02 original/Phoenix comparison reproduce 404s on all four original robot/settings skill-list URLs. Original execution returns full configurations; current Phoenix routes and registry omit paths and metadata. Raw baseline retains 44 differences including shared HTTP headers.
+
+Done when:
+
+- GET /skills/:robotId and /v1/skills/:robotId return full reference-shaped skill configurations.
+- Both settings-filtered URL variants return exactly the configurations with settings, including empty registries and unknown robot IDs.
+
+Source: [Original Pegasus packages/hub/src/HubService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/HubService.ts); [Original Pegasus packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts).
+
+Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js).
+
+Evidence: pending.
+
+### H-02 — Verify listen transaction ordering, cancellation and failure behavior
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-02.
+
+V-02 captures launch/relaunch/update/no-match/provider/malformed paths, but full race/error/timeout conformance remains unproved. At 2.1 seconds after final, original stays open and Phoenix closes near 2 seconds: original ResponseWrapper.closed starts true, making its guarded close ineffective. Parser failures also lose the PARSER code and change message text. Full cancellation/audio/long-timeout matrix remains open. Consumer inspection also identifies _beginGlobalTurn as a simulator-specific bare CLIENT_ASR/NLU shortcut absent from frozen Pegasus and normal native Jetstream framing; differential reproduction and scope review remain required (CONSUMERS.md).
+
+Done when:
+
+- Replay SERVER_ASR, CLIENT_ASR and CLIENT_NLU transactions with reordered/delayed/duplicate/malformed messages and both endpoint aliases.
+- Verify exactly one terminal outcome, SOS/EOS ordering, close timing, all timeout/error codes, disconnect cleanup and no late writes.
+- Exercise local/global turns, speaker/context updates and empty/garbage audio using the original client framing.
+
+Source: [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts); [Original Pegasus packages/hub/src/utils/TransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/TransactionHandler.ts); [Original Pegasus packages/hub-client/src/session](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client/src/session); [Original Pegasus packages/utils/src/service/handlers/BaseWebsocketHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/service/handlers/BaseWebsocketHandler.ts).
+
+Phoenix: [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/src/responseWrapper.js](../../packages/gateway/src/responseWrapper.js); [packages/gateway/test/listen.e2e.test.js](../../packages/gateway/test/listen.e2e.test.js).
+
+Evidence: pending.
+
+### H-03 — Match the original intent decision tree
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: V-02.
+
+P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree.
+
+Done when:
+
+- Match exact/NOT/wildcard/nested-entity matching, parent fallback, weights, registration ties and case behavior against original fixtures.
+- An intentless or unregistered decision never launches merely because an entities.skill value names a skill; local-turn rule gating is preserved.
+
+Source: [Original Pegasus packages/hub/src/intent](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/intent); [Original Pegasus packages/hub/tests/intent](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/tests/intent).
+
+Phoenix: [packages/gateway/src/intentRouter.js](../../packages/gateway/src/intentRouter.js).
+
+Evidence: pending.
+
+### H-04 — Match skill launches, updates, redirects and session handoff
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: H-02, H-03.
+
+Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification.
+
+Done when:
+
+- Compare general/runtime/skill/result/memo and trace propagation on launch, update, action completion and redirect.
+- Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution.
+
+Source: [Original Pegasus packages/hub/src/skill](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/skill); [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts).
+
+Phoenix: [packages/gateway/src/skillClient.js](../../packages/gateway/src/skillClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js).
+
+Evidence: pending.
+
+### H-05 — Enforce proactive user settings
+
+- [ ] **todo** · P0 · pegasus · implementation: missing
+
+Owner: Codex. Dependencies: H-02, C-03.
+
+Settings rules are unconditionally accepted despite a Phoenix settings service now existing.
+
+Done when:
+
+- Use the reference settings request, account/loop identity and rule operators to filter candidates.
+- No-settings, missing-key, disabled preference, unknown person and settings-service failure produce the reference result; opt-in/out affects real proactive routing.
+
+Source: [Original Pegasus packages/hub/src/proactive/tools/SettingsRulesChecker.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/proactive/tools/SettingsRulesChecker.ts); [Original Pegasus packages/hub/src/utils/SettingsClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/SettingsClient.ts).
+
+Phoenix: [packages/gateway/src/proactive/proactiveTransaction.js](../../packages/gateway/src/proactive/proactiveTransaction.js); [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js).
+
+Evidence: pending.
+
+### H-09 — Match each skill process at the reference /v1/main URL
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-01, C-03.
+
+P13 shows the shared service entrypoint selects answer-skill at /v1/main even when used as the report-skill process.
+
+Done when:
+
+- Give each independently deployed skill the reference /v1/main behavior and retain any namespaced aliases without requiring caller changes.
+- Start report/chitchat/example/template replacements independently and verify original requests reach the intended skill; run the native and compose entrypoint configurations.
+
+Source: [Original Pegasus packages/baseskill/src/SkillService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/SkillService.ts); [Original Pegasus packages/report-skill/src/index.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/index.ts); [Original Pegasus packages/chitchat-skill/src/index.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/chitchat-skill/src/index.ts).
+
+Phoenix: [packages/skills/src/index.js](../../packages/skills/src/index.js); [packages/skills/src/skillService.js](../../packages/skills/src/skillService.js); [docker-compose.yml](../../docker-compose.yml).
+
+Evidence: pending.
+
+### H-10 — Match hub authentication and context identity checks
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-02, A-02.
+
+JWT and account-backed checks exist; exact original upgrade rejection and identity behavior has not been differentially verified. V-02 confirms invalid JWT signatures return different rejection text and content length; missing authorization agrees in this fixture, without closing the full auth/identity matrix. Original native Authentication.cpp calls signed Account_20151111.CreateHubToken and refetches once after an upgrade 401. Phoenix robotFace has no CreateHubToken operation; /api/token has a different body/path contract. A-02 owns the original entrypoint/signature repair.
+
+Done when:
+
+- Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.
+- Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.
+- Verify the optional account-backed extension with revocation, unavailable account service and bounded upgrade latency separately from original shared-secret behavior.
+- Run the original signed CreateHubToken-to-Bearer-upgrade sequence, including expiry and the native single 401 refetch/retry; do not substitute portal token creation.
+
+Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/service/BaseService.ts); [Original Pegasus packages/hub/src/utils/MessagePreProcessor.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/MessagePreProcessor.ts); [Original Pegasus packages/hub/src/utils/MessageValidator.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/MessageValidator.ts); [Original Pegasus packages/hub-client/src/Client.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client/src/Client.ts).
+
+Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/preprocessor.js](../../packages/gateway/src/preprocessor.js); [packages/common/src/jwt.js](../../packages/common/src/jwt.js); [packages/gateway/test/hubAuth.test.js](../../packages/gateway/test/hubAuth.test.js).
+
+Evidence: pending.
+
+### N-01 — Honor complete parser requests and load every named rule
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-02, V-03.
+
+Integrated request/rule candidate now repairs the real Moth clock cancellation path: original LocalTurnRequest.update(cancel) returns the exact original clock/timer_set_value intent/entities and closes the timer screen without retry. Root43 smoke has36/37 exact parser responses and33/33 winning-rule agreement. Missing factory coverage and the launch loop-name grammar remain open.
+
+Done when:
+
+- Accept text/rules/loop/external as one request; select only requested known rules and return the winning rule name.
+- Inventory and import every required named rule and dependency with hashes; do not silently skip parse/load failures.
+- Cover empty/unknown/multiple rules and local turns that must never activate launch rules.
+
+Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/robustparser/RobustParserClient.ts); [Original Pegasus packages/parser/src/utils/RulesRegistry.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/utils/RulesRegistry.ts); [Original Pegasus packages/parser/robust-parser/rules_src](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src).
+
+Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/nlu/resources](../../packages/nlu/resources).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+
+Candidate scope: Full parser request and named-rule selection/dependency loading; generalized local-turn repair, pending lead original/hardware verification.
+
+Candidate report: [docs/parity/candidates/N-01.md](../../docs/parity/candidates/N-01.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration-smoke/comparison.json](../../docs/parity/evidence/2026-09-05/production/integration-smoke/comparison.json). Complete task acceptance is still governed by the main checkbox above.
+
+### I-01 — Match all history HTTP routes and payloads
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-01.
+
+P04-P07 reproduce empty-result, GET-route, input-validation and saved-record response differences.
+
+Done when:
+
+- Implement GET and POST query variants, complete saved launch/payload records, no-match null and speech create/update behavior.
+- Compare URL/query/body parsing, errors and unknown IDs using the unmodified history client.
+
+Source: [Original Pegasus packages/history/src/HistoryService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/HistoryService.ts); [Original Pegasus packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts); [Original Pegasus packages/history/src/speech/SpeechHistoryRequestsHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/speech/SpeechHistoryRequestsHandler.ts).
+
+Phoenix: [packages/history/src/index.js](../../packages/history/src/index.js).
+
+Evidence: pending.
+
+### D-01 — Match the common relay and cache contract
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-01.
+
+Weather/news/maps share a useful relay implementation; cache/error/prefetch equivalence is not fully verified. Original execution confirms cache-hit JSON bytes use text/html, skipCache=false still skips cache, and empty calendars retain the relayData envelope.
+
+Done when:
+
+- Compare GET/HEAD validation, cache hit/miss, skipCache, TTLs, metadata, warming and upstream status/error envelopes.
+- Use deterministic cache/time/upstream fixtures to prove prefetch responds immediately and handles upstream/cache failures as the reference does.
+
+Source: [Original Pegasus packages/lasso/src/relay/AbstractRelayRequestHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/AbstractRelayRequestHandler.ts); [Original Pegasus packages/lasso/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/tests).
+
+Phoenix: [packages/data/src/relay.js](../../packages/data/src/relay.js); [packages/data/src/cache.js](../../packages/data/src/cache.js); [packages/data/src/index.js](../../packages/data/src/index.js).
+
+Evidence: pending.
+
+## 2. Complete parsing, data and state behavior
+
+### H-06 — Verify proactive context/history selection and payloads
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: H-05, I-02.
+
+Context/IH implementations and random selection exist; the complete filter pipeline and history side effects need differential verification.
+
+Done when:
+
+- Replay NEW_ARRIVAL and SURPRISE with focused person, multiple/no candidates, every context/IH operator and date boundary.
+- Verify memo, speaker/referent, skipSurprises, no-action/final frames and seeded selection through actual history/settings services.
+
+Source: [Original Pegasus packages/hub/src/proactive](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/proactive); [Original Pegasus packages/interfaces/src/proactive](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/interfaces/src/proactive).
+
+Phoenix: [packages/gateway/src/proactive](../../packages/gateway/src/proactive).
+
+Evidence: pending.
+
+### H-07 — Complete original ASR behavior through a replaceable provider
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: H-02.
+
+Decoded OGG/FLAC support and chunk-independent VAD are integrated after lead correction/review. All 329 integrated unit tests passed; Moth quiet OGG, FLAC and LINEAR16 each returned SOS_TIMEOUT without false SOS. LINEAR16 config restored exactly. Full provider/acoustic speech acceptance remains open.
+
+Done when:
+
+- Use recorded/fake recognizer streams to verify original config languages/encodings/rates, hints, earlyEOS, interim/final transcripts, annotations and timeout behavior.
+- Verify chunk boundaries, silence/noise/partial speech, upstream failures and cancellation without live vendor dependence.
+- Measure real audio quality/latency separately; a provider replacement cannot silently remove client-visible features.
+
+Source: [Original Pegasus packages/hub/src/asr/google](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/asr/google); [Original Pegasus packages/hub/src/asr/ASRUtils.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/asr/ASRUtils.ts); [Original Pegasus packages/hub/src/utils/FastEOS.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/FastEOS.ts); [Restored Pegasus packages/hub/src/asr/parakeet](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/packages/hub/src/asr/parakeet).
+
+Phoenix: [packages/gateway/src/asr](../../packages/gateway/src/asr); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/test/asr.test.js](../../packages/gateway/test/asr.test.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
+
+Candidate scope: Bounded streaming OGG/FLAC decoding and chunk-independent PCM VAD; unit and native quiet-microphone review. Complete H-07 remains open.
+
+Candidate report: [docs/parity/candidates/H-07.md](../../docs/parity/candidates/H-07.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/hardware/native-audio-fixed.json](../../docs/parity/evidence/2026-09-05/hardware/native-audio-fixed.json). Complete task acceptance is still governed by the main checkbox above.
+
+### H-08 — Restore speech and launch-history side effects
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: H-04, I-01, I-03.
+
+Only launch writes exist; speech-history recording/configuration and optional speech logging are absent. V-02 also proves the unknown-speaker launch record differs: original TransactionHelper writes personIDs:["UNKNOWN"], Phoenix filters it to []. Outbound history HTTP headers differ as well; both remain required repairs.
+
+Done when:
+
+- Record and update reference speech fields across ASR, NLU, matches, skill output, redirects and failure paths.
+- Verify launch versus update behavior, session/person IDs, redirected skill IDs, flags, fire-and-forget failures and optional log-sink contract.
+
+Source: [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts); [Original Pegasus packages/hub/src/utils/TransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/TransactionHandler.ts); [Original Pegasus packages/history-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history-client); [Original Pegasus packages/hub/src/utils/TransactionHelper.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/TransactionHelper.ts).
+
+Phoenix: [packages/gateway/src/historyClient.js](../../packages/gateway/src/historyClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/src/config.js](../../packages/gateway/src/config.js).
+
+Evidence: pending.
+
+### N-02 — Match grammar execution, factory entities and scoring
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: N-01, V-01.
+
+The grammar engine approximates the original; a static golden grader currently scores 74/89 and is not the production parser.
+
+Done when:
+
+- Differentially test semantic actions, recursion, optional/repeated rules, wildcards, equivalents, locale/token normalization, weights and designated-loser ties.
+- Recover all factory entity semantics, including names, places, dates, times, durations and numeric entities, from version-matched source/artifacts.
+- Use the production parser in the oracle harness and preserve exact entity values/types; report mismatches per feature.
+
+Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/robustparser/RobustParserClient.ts); [Original Pegasus packages/parser/robust-parser](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser); [ConvTech/jibo-nlu/parser/parser.cpp](https://pvindex.org/gitea/ConvTech/jibo-nlu/src/branch/master/parser/parser.cpp).
+
+Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/test/oracle](../../packages/nlu/test/oracle).
+
+Evidence: pending.
+
+### N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
+
+- [ ] **todo** · P0 · pegasus · implementation: missing
+
+Owner: Codex. Dependencies: N-02.
+
+Most named clock and menu follow-up grammars are missing; launch-corpus results cannot cover them.
+
+Done when:
+
+- Replay every clock/settings/main-menu named rule with positive, negative and boundary utterances.
+- Verify alarm/timer values, AM/PM, cancellation, confirmation, volume and menu selections through local-turn WS sessions.
+
+Source: [Original Pegasus packages/parser/robust-parser/rules_src/clock](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/clock); [Original Pegasus packages/parser/robust-parser/rules_src/settings](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/settings); [Original Pegasus packages/parser/robust-parser/rules_src/main-menu](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/main-menu).
+
+Phoenix: [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar); [packages/harness](../../packages/harness).
+
+Evidence: pending.
+
+### N-04 — Verify identity, introduction and greeting follow-up rules
+
+- [ ] **todo** · P0 · pegasus · implementation: missing
+
+Owner: Codex. Dependencies: N-02, N-06.
+
+Enrollment, name confirmation, looper selection and greeting follow-up files are absent from the full-grammar import.
+
+Done when:
+
+- Cover each named introduction/who-am-i/greeting rule, including no-input/no-match and ambiguous name responses.
+- Compare entities/referents and rule names in multi-turn robot transcripts using known and unknown loop members.
+
+Source: [Original Pegasus packages/parser/robust-parser/rules_src/introductions](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/introductions); [Original Pegasus packages/parser/robust-parser/rules_src/who-am-i](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/who-am-i); [Original Pegasus packages/parser/robust-parser/rules_src/greetings](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/greetings).
+
+Phoenix: [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar); [packages/harness](../../packages/harness).
+
+Evidence: pending.
+
+### N-05 — Verify remaining device/content rules and global commands
+
+- [ ] **todo** · P0 · pegasus · implementation: missing
+
+Owner: Codex. Dependencies: N-02.
+
+Globals are intentionally not matched as top-level rules. Follow-ups for Hue, media, exercise, radio, tutorials, surprises and word-of-the-day are missing.
+
+Done when:
+
+- Use the rule inventory to cover all remaining named rules and explicit global stop/repeat/thanks/navigation behavior.
+- Exercise global interruption and local-rule precedence without false launches or over-triggering; no named rule is left without a fixture.
+
+Source: [Original Pegasus packages/parser/robust-parser/rules_src](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src); [Original Pegasus packages/parser/robust-parser/rules_src/globals](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_src/globals).
+
+Phoenix: [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar).
+
+Evidence: pending.
+
+### N-06 — Implement LoopMemberDetector and contextual entity resolution
+
+- [ ] **todo** · P0 · pegasus · implementation: missing
+
+Owner: Codex. Dependencies: N-01.
+
+The HTTP handler discards loop data and has no detector equivalent.
+
+Done when:
+
+- Port the source's ordered name/referent resolution and given-name/last-name/loopMemberReferent output semantics.
+- Match source fixtures for aliases, punctuation, duplicates, missing members, ambiguous references and speaker/referent interactions.
+
+Source: [Original Pegasus packages/parser/src/utils/LoopMemberDetector.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/utils/LoopMemberDetector.ts); [Original Pegasus packages/parser/tests/utils/LoopMemberDetector.test.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/tests/utils/LoopMemberDetector.test.ts).
+
+Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js).
+
+Evidence: pending.
+
+### N-07 — Match fallback arbitration and external-agent behavior
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: N-01, V-01.
+
+The fallback has eight generic tools, ignores external agents/enabled flags, and defaults to a 12-second timeout while the gateway parser budget is 10 seconds.
+
+Done when:
+
+- Exercise original HIGH/LOW/SKIP, absent/invalid/decoy fallback, per-rule failure and external-agent matrices against recorded provider outputs.
+- Preserve fallback entities, rules and external result structure through a replaceable provider; cover the archived intent/entity catalog.
+- Verify enabled/disabled configuration, timeout budgets, cancellation and unavailable-provider behavior for each supported profile.
+
+Source: [Original Pegasus packages/parser/src/handlers/ParseRequestHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/handlers/ParseRequestHandler.ts); [Original Pegasus packages/parser/src/dialogflow](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/dialogflow); [Restored Pegasus packages/parser/src/llm](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/packages/parser/src/llm); [Original Pegasus packages/parser/tests/ParserService.test.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/tests/ParserService.test.ts).
+
+Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/llmFallback.js](../../packages/nlu/src/llmFallback.js).
+
+Evidence: pending.
+
+### N-08 — Restore exact NLU outputs and close corpus mismatches
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
+
+Full original HTTP parser replay has 401 mismatches across 20,528 requests; 20,127 exact responses match. Luna is implementing source-backed grammar/scoring repairs in an isolated worktree; no corpus hardcodes or relaxed equality allowed.
+
+Done when:
+
+- Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.
+- Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.
+- Reach zero unexplained mismatches across the full pinned corpus, including entities, rules, no-match and skill/memo; split remaining mismatch groups into tracked child tasks.
+
+Source: [Original Pegasus packages/parser/src/handlers/ParseRequestHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/handlers/ParseRequestHandler.ts); [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/robustparser/RobustParserClient.ts); [Original Pegasus packages/chitchat-skill/resources/test-manifest.json](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/chitchat-skill/resources/test-manifest.json).
+
+Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/harness/src/corpusRunner.js](../../packages/harness/src/corpusRunner.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair.
+
+Candidate scope: Source grammar priority, token metadata and semantic-literal normalization repair89/401 previous failures. Root full replay is running to check all prior passes for regressions.
+
+Candidate report: [docs/parity/candidates/N-08.md](../../docs/parity/candidates/N-08.md).
+
+Lead verification: pending. This candidate does not certify task parity.
+
+### I-02 — Match history validation and query semantics
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: I-01.
+
+Only partial validation exists; array equality, allowed operator/field combinations and conflicting query conditions need parity.
+
+Done when:
+
+- Port the original event/query/rule validation matrix, timestamps, identifier constraints and failure payloads.
+- Verify sorted array EXACT/NOT, all payload operators, nested keys, empty arrays, missing fields, session exclusions and time boundaries against a database oracle.
+
+Source: [Original Pegasus packages/history/src/skilllaunch/validators](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/skilllaunch/validators); [Original Pegasus packages/history/src/skilllaunch/db/SkillLaunchQueryBuilder.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/skilllaunch/db/SkillLaunchQueryBuilder.ts); [Original Pegasus packages/history/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/tests).
+
+Phoenix: [packages/history/src/query.js](../../packages/history/src/query.js); [packages/history/src/store.js](../../packages/history/src/store.js); [packages/history/test/history.test.js](../../packages/history/test/history.test.js).
+
+Evidence: pending.
+
+### I-03 — Preserve history across restart and verify retention
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: I-01.
+
+All history is process-local. P12 demonstrates expired out-of-order insertions survive the current pruning path.
+
+Done when:
+
+- Persist skill-launch and speech records with restart/recovery, stable identifiers, ordering and payload-update semantics.
+- Verify eventual 14-day launch expiry independent of insertion order and reference speech retention, including concurrent access and crash recovery.
+
+Source: [Original Pegasus packages/history/src/skilllaunch/schema/SkillLaunchSchema.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/skilllaunch/schema/SkillLaunchSchema.ts); [Original Pegasus packages/history/src/common/db](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/common/db); [Original Pegasus packages/history/src/speech](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history/src/speech).
+
+Phoenix: [packages/history/src/store.js](../../packages/history/src/store.js).
+
+Evidence: pending.
+
+### D-02 — Complete credential CRUD, uniqueness and durable state
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-01.
+
+Credentials are in memory; scope parsing and mutation/duplicate semantics differ, and the legacy assignment-bug fix is an explicit unresolved compatibility decision.
+
+Done when:
+
+- Match required fields, scope handling, active/inactive lookup, duplicate auth codes, wildcard deletion and cross-provider replacement using original fixtures.
+- Persist credentials with unique keys and atomic updates across restarts.
+- Record the assignment-bug decision with a regression fixture; do not silently label changed deletion behavior as parity.
+
+Source: [Original Pegasus packages/lasso/src/credential](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/credential); [Original Pegasus packages/lasso/src/mongo](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/mongo).
+
+Phoenix: [packages/data/src/credentials.js](../../packages/data/src/credentials.js).
+
+Evidence: pending.
+
+### D-03 — Implement OAuth exchange, refresh and invalidation
+
+- [ ] **todo** · P0 · pegasus · implementation: missing
+
+Owner: Codex. Dependencies: D-02.
+
+Non-test Google/Outlook auth codes return 501; testAuthCode coverage does not exercise OAuth.
+
+Done when:
+
+- Implement exchange/refresh through configurable providers, preserving scopes, expiry, error codes and inactive/revoked state.
+- Test success, refresh failure, revoked access, duplicate/replayed codes and credential cache invalidation with recorded provider fixtures.
+- Verify a supported current provider using test-owned credentials when available; lack of live access remains a separately visible gate.
+
+Source: [Original Pegasus packages/lasso/src/oauth2](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/oauth2); [Original Pegasus packages/lasso/src/calendar-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/calendar-client); [Original Pegasus packages/lasso/src/credential/Credentials.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/credential/Credentials.ts).
+
+Phoenix: [packages/data/src/credentials.js](../../packages/data/src/credentials.js).
+
+Evidence: pending.
+
+### D-04 — Implement Google/Outlook calendar relay compatibility
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: D-01, D-03.
+
+P08-P09 reproduce a missing relay envelope and HEAD handler. Default providers return 501.
+
+Done when:
+
+- Use the common relay envelope, HEAD, 60-second cache and credential-triggered invalidation; integrate each provider.
+- Match endDate defaults/validation, pagination, timezone/all-day normalization, ordering and filtered/invalid events.
+- Run report-skill -> Phoenix data -> provider-fixture integration; a provider returning events must reach the report rather than fail envelope parsing.
+
+Source: [Original Pegasus packages/lasso/src/relay/GoogleCalendarHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/GoogleCalendarHandler.ts); [Original Pegasus packages/lasso/src/relay/OutlookCalendarHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/OutlookCalendarHandler.ts); [Original Pegasus packages/lasso/src/utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/utils).
+
+Phoenix: [packages/data/src/calendar.js](../../packages/data/src/calendar.js); [packages/data/src/index.js](../../packages/data/src/index.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js).
+
+Evidence: pending.
+
+### D-05 — Match weather data and forecast/date semantics
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: D-01.
+
+Open-Meteo substitution exists; historical dates, today/yesterday indexing and complete DarkSky-shaped fields require checks for both baselines.
+
+Done when:
+
+- Replay reference current/historical requests and success/error payloads, preserving units, timezone, icons and optional fields.
+- Verify the restored weather shim separately, including past_days indexing and error behavior; any deliberate bug fix has an explicit compatibility test.
+
+Source: [Original Pegasus packages/lasso/src/relay/DarkSkyHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/DarkSkyHandler.ts); [Original Pegasus packages/interfaces/src/personalreport/darksky.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/interfaces/src/personalreport/darksky.ts); [Original Pegasus packages/test-utils/src/lasso-test/DarkSkyTestData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils/src/lasso-test/DarkSkyTestData.ts).
+
+Phoenix: [packages/data/src/weather.js](../../packages/data/src/weather.js).
+
+Evidence: pending.
+
+### D-06 — Match news payloads, categories and prefetch scheduling
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: D-01.
+
+RSS transformation exists; the original hourly category poller is absent and report image/header assumptions changed.
+
+Done when:
+
+- Match all category IDs, XML structure, image/attribution/header handling and upstream/cache errors with original AP fixtures.
+- Reproduce configurable polling/prefetch behavior, category-specific cache updates and shutdown cleanup.
+- Verify RSS translation as an adapter without treating omitted reference fields as parity.
+
+Source: [Original Pegasus packages/lasso/src/relay/APNewsHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/APNewsHandler.ts); [Original Pegasus packages/test-utils/src/lasso-test/APNewsTestData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils/src/lasso-test/APNewsTestData.ts).
+
+Phoenix: [packages/data/src/news.js](../../packages/data/src/news.js); [packages/data/src/index.js](../../packages/data/src/index.js).
+
+Evidence: pending.
+
+### D-07 — Match maps routes, modes and commute payloads
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: D-01.
+
+ORS produces Google-shaped responses but does not establish original route-mode/traffic/transit behavior.
+
+Done when:
+
+- Compare coordinate validation, nested query parsing, modes, geometry, units, duration/traffic fields, empty routes and upstream errors.
+- Supply equivalent provider behavior or explicitly retain an unresolved feature gap for unsupported modes; do not count shape-only mocks as functional verification.
+
+Source: [Original Pegasus packages/lasso/src/relay/GoogleMapsHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/GoogleMapsHandler.ts); [Original Pegasus packages/test-utils/src/lasso-test/GoogleMapsTestData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils/src/lasso-test/GoogleMapsTestData.ts).
+
+Phoenix: [packages/data/src/maps.js](../../packages/data/src/maps.js).
+
+Evidence: pending.
+
+### A-02 — Match Classic dispatch, authentication and error handling
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-01, C-01.
+
+SigV4 is not verified; prefixes are broad/tolerant and the proxy forwards only selected headers. New per-account keys already exist in Phoenix. The user-supplied Jibo Server Client guide confirms the AWS-derived signing/retry transport. Actual packaged JSON code emits application/json with versioned X-Amz-Target. Native Jetstream requires Account_20151111.CreateHubToken, which the robot-face operation map lacks; preserve native and JS signing/canonicalization variants in fixtures.
+
+Done when:
+
+- Match target version/name aliases, body validation, status, x-amzn-errortype and signed-request parsing with original SDK requests.
+- Verify signatures, caller identity, ownership/permissions, expiry/replay behavior and trusted internal credentials using issued test keys.
+- Forward required signed/request context headers and exact payloads; keep any LAN bypass explicit and separately tested.
+- Implement the original signed Account_20151111.CreateHubToken operation with its token/expires contract and verify it using source-pinned native and JS client requests.
+
+Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/account-2015-11-11.normal.json); [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oobe-2016-10-26.normal.json); [jiborobot/srv-security-gw/src/controllers/auth.ctrl.ts](https://pvindex.org/gitea/jiborobot/srv-security-gw/src/branch/master/src/controllers/auth.ctrl.ts).
+
+Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic/src/awsJson.js](../../packages/classic/src/awsJson.js); [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair.
+
+Candidate scope: Signed CreateHubToken source-claim and422 validation correction. Root found that original AccountController reloads the account and signs its own secret; previous forwarded-envelope redaction claim was wrong and superseded. Original controller/SDK evidence review remains active.
+
+Candidate report: [docs/parity/candidates/A-02.md](../../docs/parity/candidates/A-02.md).
+
+Lead verification: pending. This candidate does not certify task parity.
+
+### A-06 — Complete Settings data/view/ownership compatibility
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02, H-01.
+
+Settings are primarily report-specific; the original API supports skill lists, data/view retrieval, updates and deletion. Original Pegasus sends Settings_20160801.GetSettings, with a string skill selector in report and an array in hub.
+
+Done when:
+
+- Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.
+- Integrate report and proactive consumers with the reference header/version variants and persisted settings.
+- Cover non-report skills and malformed/unknown settings using controller-derived fixtures.
+
+Source: [jiborobot/srv-jibo-server-client/apis/settings-2017-12-19.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/settings-2017-12-19.normal.json); [Original Pegasus packages/hub/src/utils/SettingsClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/SettingsClient.ts); [Original Pegasus packages/report-skill/src/SettingsClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/SettingsClient.ts).
+
+Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js); [packages/account/src/settingsData.js](../../packages/account/src/settingsData.js).
+
+Evidence: pending.
+
+## 3. Verify complete skill output and interactions
+
+### S-01 — Verify GraphSkill sessions and graph execution
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: H-04, V-02.
+
+The framework is substantial, but the diff normalizer hides session contents and there is no complete reference continuation comparison.
+
+Done when:
+
+- Compare graph finalization, subgraph composition, transitions, trace/data updates, terminal states and invalid graph/session errors.
+- Continue captured sessions through all follow-up actions, including retries and global interruptions; detect corrupted/replayed sessions.
+- Specify whether in-flight reference sessions must survive a cutover and verify the migration/reset policy before release.
+
+Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/GraphSkill.ts); [Original Pegasus packages/baseskill/src/graph/Graph.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/Graph.ts); [Original Pegasus packages/baseskill/src/graph/GraphManager.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/GraphManager.ts); [Original Pegasus packages/baseskill/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/tests).
+
+Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/graph.js](../../packages/skills/src/graph/graph.js); [packages/skills/src/graph/graphManager.js](../../packages/skills/src/graph/graphManager.js).
+
+Evidence: pending.
+
+### S-02 — Verify global results, speaker overrides and supplemental behaviors
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-01, C-02.
+
+Framework result precedence, analytics and supplemental JCP behavior coverage have not been fully mapped.
+
+Done when:
+
+- Match ListenResult precedence and global cancel/repeat/thanks handling across skill updates.
+- Compare speaker overrides, sequence/parallel supplemental behaviors, analytics names/fields and failure handling using original framework tests.
+
+Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/GraphSkill.ts); [Original Pegasus packages/interfaces/src/skill/behaviors.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/interfaces/src/skill/behaviors.ts); [Original Pegasus packages/baseskill/src](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src).
+
+Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/nodes.js](../../packages/skills/src/graph/nodes.js).
+
+Evidence: pending.
+
+### S-03 — Verify MIM factories, no-input/no-match escalation and opt-in
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-01, N-06.
+
+QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified.
+
+Done when:
+
+- Replay each factory's success, failure, no-input, no-match, escalation and terminal branches with frozen inputs.
+- Verify repeat, thanks, cancel, wrong identity, unknown speaker, accept/decline and dialog referent changes through complete sessions.
+
+Source: [Original Pegasus packages/baseskill/src/graph/mims/factories](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/factories); [Original Pegasus packages/baseskill/src/graph/mims/nodes](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/nodes).
+
+Phoenix: [packages/skills/src/graph/mims/factories.js](../../packages/skills/src/graph/mims/factories.js); [packages/skills/src/graph/mims/optIn.js](../../packages/skills/src/graph/mims/optIn.js).
+
+Evidence: pending.
+
+### S-04 — Match MIM rendering, conditions, selection and JCP output
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: C-02, S-01.
+
+Bounded command serialization and analytics integrated. Strict smoke has21/26 exact complete actions; source SDK timer cancel and actual smile eye animation work on Moth. Complete MIM/selection/timing parity remains open.
+
+Done when:
+
+- Compare loaded MIM merging, conditions, weighted variants, dice/coin, template expansion, ESML escaping, prompt IDs and meta fields under fixed inputs.
+- Verify full JCP action/listen/display trees, timing/GUI thresholds and cancellation behavior against reference output.
+- Test variation distributions separately where the reference is intentionally random; do not loosen exact structural comparisons.
+
+Source: [Original Pegasus packages/baseskill/src/graph/mims/utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils); [jiboV2/jibo-command-protocol/index.d.ts](https://pvindex.org/gitea/jiboV2/jibo-command-protocol/src/branch/master/index.d.ts).
+
+Phoenix: [packages/skills/src/graph/mims/slimmer.js](../../packages/skills/src/graph/mims/slimmer.js); [packages/skills/src/graph/mims/unify.js](../../packages/skills/src/graph/mims/unify.js); [packages/skills/src/jcp.js](../../packages/skills/src/jcp.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+
+Candidate scope: Source-backed general MIM/JCP command structure and serialization from existing S-04 findings; root original and hardware review required.
+
+Candidate report: [docs/parity/candidates/S-04.md](../../docs/parity/candidates/S-04.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration-s04-smoke/comparison.json](../../docs/parity/evidence/2026-09-05/production/integration-s04-smoke/comparison.json). Complete task acceptance is still governed by the main checkbox above.
+
+### S-05 — Match runtime prompt data and date/time behavior
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-04.
+
+Loop names/location text are lean substitutes; prompt time uses host-local Date accessors and report DateTime uses fixed offsets.
+
+Done when:
+
+- Match pronounceable names/lists, owner/speaker/referent, age/birthdays, emotion and location values for reference contexts.
+- Verify date phrasing, timezone offsets, DST, midnight, leap days and seasonal windows independently of the server timezone.
+
+Source: [Original Pegasus packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts); [Original Pegasus packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts); [Original Pegasus packages/baseskill/src/graph/mims/utils/slimmer/NLData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/NLData.ts).
+
+Phoenix: [packages/skills/src/graph/mims/promptData.js](../../packages/skills/src/graph/mims/promptData.js); [packages/skills/src/report/dateTime.js](../../packages/skills/src/report/dateTime.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **changes_requested**; Luna Max / http_contract_repair.
+
+Candidate scope: Fixture-dependent fallbacks removed; independent review is repairing source guarded partial failures, duplicate speaker selection and DateTime edge methods.
+
+Candidate report: [docs/parity/candidates/S-05.md](../../docs/parity/candidates/S-05.md).
+
+Lead verification: pending. This candidate does not certify task parity.
+
+### S-06 — Verify all MIM, manifest and grammar asset provenance
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: V-03.
+
+The initial inventory hashes vendored assets; imported files alone do not prove reachability or rendering parity.
+
+Done when:
+
+- Map every source MIM, category CSV, view/config, manifest entry and required helper to a Phoenix asset and consuming behavior.
+- Check hashes or documented transformations, parse/load every asset and validate that referenced assets resolve.
+- Preserve legacy robot asset names/paths; uncovered files become explicit tasks rather than being omitted from progress.
+
+Source: [Original Pegasus packages/chitchat-skill/mims](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/chitchat-skill/mims); [Original Pegasus packages/report-skill/mims](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/mims); [Original Pegasus packages/hub/resources/skills](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/resources/skills).
+
+Phoenix: [packages/skills/resources](../../packages/skills/resources); [packages/gateway/resources](../../packages/gateway/resources); [packages/nlu/resources](../../packages/nlu/resources).
+
+Evidence: pending.
+
+### S-07 — Verify the complete chitchat behavior
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-03, S-04, S-05, S-06, N-08.
+
+The large library and dispatcher exist, but the current corpus grades intent/memo only.
+
+Done when:
+
+- Replay source intent/entity/memo branches, semi-specific categories, fun-and-games transformations and fallback/deflection behavior.
+- Compare resulting MIM/ESML/JCP/analytics under identity, emotion, birthday and seasonal contexts, including multi-turn paths.
+
+Source: [Original Pegasus packages/chitchat-skill/src](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/chitchat-skill/src); [Original Pegasus packages/chitchat-skill/resources/test-manifest.json](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/chitchat-skill/resources/test-manifest.json).
+
+Phoenix: [packages/skills/src/chitchatSkill.js](../../packages/skills/src/chitchatSkill.js); [packages/skills/src/chitchat](../../packages/skills/src/chitchat).
+
+Evidence: pending.
+
+### S-08 — Verify personal-report orchestration, preferences and identity
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-03, S-05, H-05, C-03.
+
+The report graph exists; settings, local identity and data-service integration gaps prevent full parity claims.
+
+Done when:
+
+- Compare launch intents, UserID/opt-in, ordering/toggles, prefsFromConfig and Settings requests/defaults using the original report tests.
+- Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation and matching analytics.
+
+Source: [Original Pegasus packages/report-skill/src/PersonalReport.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/PersonalReport.ts); [Original Pegasus packages/report-skill/src/nodes](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/nodes); [Original Pegasus packages/report-skill/src/subgraphs](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subgraphs).
+
+Phoenix: [packages/skills/src/report/personalReport.js](../../packages/skills/src/report/personalReport.js); [packages/skills/src/report/nodes.js](../../packages/skills/src/report/nodes.js); [packages/skills/src/report/userId.js](../../packages/skills/src/report/userId.js); [packages/skills/src/report/settingsClient.js](../../packages/skills/src/report/settingsClient.js).
+
+Evidence: pending.
+
+### S-09 — Verify report weather language and condition tables
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-08, D-05.
+
+Weather condition tables are implemented but need source-driven coverage beyond a few fixtures.
+
+Done when:
+
+- Cover each WeatherParse/MimLogic branch with frozen current/yesterday data, units, precipitation, temperature change and missing values.
+- Compare selected MIMs, dynamic values, speech and fallback behavior through the report graph.
+
+Source: [Original Pegasus packages/report-skill/src/subskills/weather](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/weather); [Original Pegasus packages/report-skill/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/tests).
+
+Phoenix: [packages/skills/src/report/weather.js](../../packages/skills/src/report/weather.js).
+
+Evidence: pending.
+
+### S-10 — Verify report news selection and presentation
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-08, D-06.
+
+Image-required and feed-header behavior changed; RSS compatibility is not original AP parity.
+
+Done when:
+
+- Cover configured categories, available/unavailable stories, image/URL requirements, parsing, limits and story order.
+- Compare original AP fixture MIMs, titles/attributions, ESML and error paths; verify RSS adapter behavior separately.
+
+Source: [Original Pegasus packages/report-skill/src/subskills/news](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/news).
+
+Phoenix: [packages/skills/src/report/news.js](../../packages/skills/src/report/news.js); [packages/skills/src/report/xml.js](../../packages/skills/src/report/xml.js).
+
+Evidence: pending.
+
+### S-11 — Verify report commute calculations and condition tables
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-08, D-07.
+
+Commute tables exist but maps mode/traffic fidelity and time boundaries remain open.
+
+Done when:
+
+- Cover all travel modes, missing traffic data, severity thresholds, departure times, units and invalid preferences.
+- Compare calculations, MIMs, spoken values and failure paths with the reference under frozen time.
+
+Source: [Original Pegasus packages/report-skill/src/subskills/commute](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/commute).
+
+Phoenix: [packages/skills/src/report/commute.js](../../packages/skills/src/report/commute.js).
+
+Evidence: pending.
+
+### S-12 — Verify report calendar classification and phrasing
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-08, D-04.
+
+The report's calendar logic is tested with mocks while the actual data-service envelope is incompatible.
+
+Done when:
+
+- Run personal/work Google/Outlook fixtures through the real Phoenix data and report services.
+- Cover no events, merged ordering, all-day/overnight events, today/tomorrow, work hours, timezone/DST and expired credentials.
+- Compare classifications, MIM selection, names/times and complete action output.
+
+Source: [Original Pegasus packages/report-skill/src/subskills/calendar](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/calendar).
+
+Phoenix: [packages/skills/src/report/calendar.js](../../packages/skills/src/report/calendar.js).
+
+Evidence: pending.
+
+### S-13 — Implement the report's robot display views
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-09, S-10, S-11, S-12.
+
+Isolated candidate now generates all six original view configs. Root full-view JSON comparison matches61/61 and Moth visibly renders the weather view. News/calendar/commute robot behavior and provider error paths remain open; candidate is not yet integrated into main.
+
+Done when:
+
+- Generate every original view config, dynamic field, image path, geometry, unit label and display threshold.
+- Compare payloads with source fixtures and render them on a compatible robot/client; lack of simulator rendering is not a completion exemption.
+
+Source: [Original Pegasus packages/report-skill/src/subskills/weather/WeatherViews.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/weather/WeatherViews.ts); [Original Pegasus packages/report-skill/src/subskills/news/NewsViews.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/news/NewsViews.ts); [Original Pegasus packages/report-skill/src/subskills/commute/CommuteViews.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/commute/CommuteViews.ts); [Original Pegasus packages/report-skill/src/subskills/calendar/CalendarViews.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/calendar/CalendarViews.ts); [Original Pegasus packages/report-skill/resources/views](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/resources/views).
+
+Phoenix: [packages/skills/src/report/weather.js](../../packages/skills/src/report/weather.js); [packages/skills/src/report/news.js](../../packages/skills/src/report/news.js); [packages/skills/src/report/commute.js](../../packages/skills/src/report/commute.js); [packages/skills/src/report/calendar.js](../../packages/skills/src/report/calendar.js).
+
+Evidence: pending.
+
+- [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair.
+
+Candidate scope: Six original report view resources and four dynamic builders; root source/runtime/hardware review.
+
+Candidate report: [docs/parity/candidates/S-13.md](../../docs/parity/candidates/S-13.md).
+
+Lead verification: pending. This candidate does not certify task parity.
+
+### S-14 — Verify example/template skills and skill-host compatibility
+
+- [ ] **todo** · P1 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: S-01, S-02.
+
+Implementations and tests exist; default /v1/main selection and independently deployed skill equivalence need verification.
+
+Done when:
+
+- Replay the original example/template launch/action graphs and skill-host malformed/error behavior.
+- Run each replacement on its own reference URL/port with the original requests and verify all default/explicit route forms.
+
+Source: [Original Pegasus packages/example-skill](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/example-skill); [Original Pegasus packages/template-skill](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/template-skill); [Original Pegasus packages/baseskill/src/SkillService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/SkillService.ts); [Original Pegasus packages/baseskill/src/BaseSkill.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/BaseSkill.ts).
+
+Phoenix: [packages/skills/src/exampleSkill.js](../../packages/skills/src/exampleSkill.js); [packages/skills/src/templateSkill.js](../../packages/skills/src/templateSkill.js); [packages/skills/src/skillService.js](../../packages/skills/src/skillService.js); [packages/skills/src/index.js](../../packages/skills/src/index.js).
+
+Evidence: pending.
+
+### Q-01 — Restore original GQA service contracts and behaviors
+
+- [ ] **todo** · P0 · pegasus · implementation: partial
+
+Owner: Codex. Dependencies: V-01, C-02, N-08.
+
+The original out-of-monorepo GQA source and fake services survive. A generic LLM answer does not establish those behaviors.
+
+Done when:
+
+- Inventory Pegasus GQA/news entrypoints and question routing, Wikipedia/Wolfram/Bing fallbacks, attributions and no-answer behavior from original source.
+- Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.
+- Use replaceable live providers while preserving client-visible functionality and mark unresolved provider-specific features explicitly.
+
+Source: [jiborobot/srv-gqa-ws/README.md](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/README.md); [jiborobot/srv-gqa-ws/gqa](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/gqa); [jiborobot/srv-gqa-ws/tests](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/tests); [jiborobot/srv-gqa-ws/pegasus_mims](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/pegasus_mims).
+
+Phoenix: [packages/skills/src/answerSkill.js](../../packages/skills/src/answerSkill.js); [packages/skills/src/jcp.js](../../packages/skills/src/jcp.js); [packages/gateway/resources/skills](../../packages/gateway/resources/skills).
+
+Evidence: pending.
+
+## 4. Complete companion-cloud and restored features
+
+### X-01 — Verify restored-branch answer and NLU extensions separately
+
+- [ ] **todo** · P1 · restoration · implementation: partial
+
+Owner: Codex. Dependencies: Q-01, N-07, PM-03.
+
+The 2026 answer path includes Wikipedia-first and different fallback/text behavior; Phoenix currently uses only an LLM or placeholder.
+
+Done when:
+
+- If the restored profile is retained, match Wikipedia-first, LLM tool catalog, fallback text, response normalization, timing and output limits against that specific branch.
+- Keep its corpus, configuration and verified counts separate from original Pegasus and prevent implicit intent remaps in the original profile.
+
+Source: [Restored Pegasus packages/answer-skill/server.js](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/packages/answer-skill/server.js); [Restored Pegasus packages/parser/src/llm/LLMClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/packages/parser/src/llm/LLMClient.ts).
+
+Phoenix: [packages/skills/src/answerSkill.js](../../packages/skills/src/answerSkill.js); [packages/nlu/src/llmFallback.js](../../packages/nlu/src/llmFallback.js).
+
+Evidence: pending.
+
+### A-03 — Complete Account operations and account lifecycle
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02.
+
+A Phoenix portal/account model exists, but the robot AWS face mainly handles OOBE; 26 Account and two admin operations cannot be credited from portal tests.
+
+Done when:
+
+- Implement/verify every Account and AccountAdmin operation from the inventory, including signup/authentication, profile, credentials, deactivation and recovery flows.
+- Match original validation, roles, errors, ownership, durable state and downstream effects using SDK fixtures.
+- Verify the Phoenix portal against the completed backend and preserve existing paired robots during migration.
+
+Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/account-2015-11-11.normal.json); [jiborobot/srv-jibo-server-client/apis/accountadmin-2015-11-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/accountadmin-2015-11-11.normal.json).
+
+Phoenix: [packages/account/src](../../packages/account/src); [packages/account/portal](../../packages/account/portal).
+
+Evidence: pending.
+
+### A-04 — Complete Loop operations and membership lifecycle
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-03.
+
+Only List/ListLoops, SuspendLoop and SuspendRobotLoop are dispatched; the archive defines 23 operations. Suspension currently succeeds even for an unknown loop.
+
+Done when:
+
+- Cover all 23 wire operations: creation/update/removal, invitations/membership, robot association, enrollment, names/photos, legal guardian/agreement and suspension.
+- Match ownership, membership states, side effects, errors and persistence with real client sequences.
+- Preserve adoption/revival behavior in an explicit mode if it requires accepting obsolete loop IDs; do not redefine original errors silently.
+
+Source: [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/loop-2016-03-24.normal.json).
+
+Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/model.js](../../packages/account/src/model.js); [packages/account/src/store.js](../../packages/account/src/store.js).
+
+Evidence: pending.
+
+### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-03, A-04.
+
+Setup/prepare/status and QR flows exist. Reconnect/service-token and complete lifecycle semantics are not established.
+
+Done when:
+
+- Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.
+- Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.
+- Retain hardware evidence by robot/firmware/date; prior notes are not a fresh parity run.
+
+Source: [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oobe-2016-10-26.normal.json); [jiborobot/srv-jibo-server-client/apis/oobeadmin-2016-10-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oobeadmin-2016-10-26.normal.json).
+
+Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/qrPayload.js](../../packages/account/src/qrPayload.js); [packages/account/portal/qr.js](../../packages/account/portal/qr.js).
+
+Evidence: pending.
+
+### A-07 — Complete Robot records, provisioning and calibration/history behavior
+
+- [ ] **todo** · P1 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02, A-04.
+
+Robot operations mostly return defaults/empty data; original persistence and admin/provisioning semantics are unverified.
+
+Done when:
+
+- Map all normal/admin targets and implement durable records, updates, friendly IDs and history/calibration responses from source.
+- Verify manufacturing/owner/robot permissions and correct missing-record/error behavior with fixture data.
+
+Source: [jiborobot/srv-jibo-server-client/apis/robot-2016-02-25.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/robot-2016-02-25.normal.json); [jiborobot/srv-jibo-server-client/apis/robotadmin-2016-02-25.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/robotadmin-2016-02-25.normal.json).
+
+Phoenix: [packages/classic/src/robot.js](../../packages/classic/src/robot.js).
+
+Evidence: pending.
+
+### A-08 — Complete Update selection, reporting and package delivery
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02.
+
+OTA package catalog/download paths work under tests, but the API inventory has five normal and three admin operations.
+
+Done when:
+
+- Verify every update operation, version/release/subsystem selection, no-update behavior, progress/reporting and admin publication semantics.
+- Check package format, integrity, streaming, retry and restart behavior against the original client with temporary fixture packages.
+- Require a controlled hardware update/rollback test before claiming end-to-end firmware parity.
+
+Source: [jiborobot/srv-jibo-server-client/apis/update-2016-03-01.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/update-2016-03-01.normal.json); [jiborobot/srv-jibo-server-client/apis/updateadmin-2016-03-01.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/updateadmin-2016-03-01.normal.json).
+
+Phoenix: [packages/ota/src](../../packages/ota/src); [packages/ota/test/ota.test.js](../../packages/ota/test/ota.test.js); [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh).
+
+Evidence: pending.
+
+### A-09 — Make backups durable and match ownership/restore semantics
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02, A-04.
+
+The uncommitted backup implementation stores blobs on disk but its index is in memory and ownership enforcement is dropped.
+
+Done when:
+
+- Preserve New/List shapes, signed upload/download semantics, content integrity, limits, ordering and source ownership checks.
+- Recover index and blobs across process crashes/restarts; verify backup -> restart -> list -> restore with the original client sequence.
+- Perform destructive wipe/restore only in a separately authorized controlled hardware run after backup validation.
+
+Source: [jiborobot/srv-jibo-server-client/apis/backup-2017-02-22.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/backup-2017-02-22.normal.json).
+
+Phoenix: [packages/classic/src/backup.js](../../packages/classic/src/backup.js); [packages/classic/test/backup.test.js](../../packages/classic/test/backup.test.js).
+
+Evidence: pending.
+
+### A-10 — Verify notification token and socket delivery lifecycle
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02, A-03.
+
+Live/pending queues and sockets exist, but storage is ephemeral and full original delivery semantics have not been verified.
+
+Done when:
+
+- Compare token issuance/reuse, socket authentication, status, framing, delivery/reconnect/expiry and queue behavior with the original consumer.
+- Verify ordering, replay/ack behavior where present in source, persistence and multiple-device/account isolation.
+- Exercise the real robot socket endpoint and DNS/TLS configuration separately from HTTP service discovery.
+
+Source: [jiborobot/srv-jibo-server-client/apis/notification-2015-05-05.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/notification-2015-05-05.normal.json).
+
+Phoenix: [packages/classic/src/notification.js](../../packages/classic/src/notification.js).
+
+Evidence: pending.
+
+### A-11 — Complete key exchange, backup and binary-key operations
+
+- [ ] **todo** · P0 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02, A-04.
+
+The nine operation names are present but state is ephemeral; binary and ownership semantics need controller comparison.
+
+Done when:
+
+- Verify all nine operations, request state transitions, encrypted key sharing, backup/restore and binary exchange with original SDK fixtures.
+- Preserve ownership, key material, expiry/errors and restart behavior using test-owned keys; prove consumer encryption/decryption round trips.
+
+Source: [jiborobot/srv-jibo-server-client/apis/key-2016-02-01.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/key-2016-02-01.normal.json).
+
+Phoenix: [packages/classic/src/key.js](../../packages/classic/src/key.js).
+
+Evidence: pending.
+
+### A-12 — Implement log ingestion and binary-upload behavior
+
+- [ ] **todo** · P1 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02.
+
+Events are a no-op sink; binary uploads return empty destinations.
+
+Done when:
+
+- Match the six normal and one admin operations, validation/errors and synchronous/asynchronous acknowledgments.
+- Provide usable binary/ASR upload destinations and a retrievable durable sink where source semantics require them.
+- Verify producer retries, trace metadata and retention behavior with the original log client.
+
+Source: [jiborobot/srv-jibo-server-client/apis/log-2015-03-09.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/log-2015-03-09.normal.json); [jiborobot/srv-jibo-server-client/apis/logadmin-2015-03-09.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/logadmin-2015-03-09.normal.json).
+
+Phoenix: [packages/classic/src/log.js](../../packages/classic/src/log.js).
+
+Evidence: pending.
+
+### A-13 — Implement push delivery behind a replaceable provider
+
+- [ ] **todo** · P1 · classic · implementation: partial
+
+Owner: Codex. Dependencies: A-02, A-03.
+
+Device registration exists; delivery is a no-op and registrations are in memory.
+
+Done when:
+
+- Match device creation/removal, durable registration, ownership and errors.
+- Exercise notification delivery, provider failure/token invalidation and downstream effects through a fixture provider and then an available real client.
+
+Source: [jiborobot/srv-jibo-server-client/apis/push-2016-07-29.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/push-2016-07-29.normal.json).
+
+Phoenix: [packages/classic/src/push.js](../../packages/classic/src/push.js).
+
+Evidence: pending.
+
+### A-14 — Implement functional Media and MediaAdmin storage
+
+- [ ] **todo** · P1 · classic · implementation: stub
+
+Owner: Codex. Dependencies: A-02, A-11.
+
+Media create returns empty URLs and list/get return empty arrays.
+
+Done when:
+
+- Implement create/upload/list/get/remove and admin semantics with usable URLs, metadata, encryption flags, access checks and persistence.
+- Verify pagination/filtering if required by source, deletion and original photo/media client round trips.
+
+Source: [jiborobot/srv-jibo-server-client/apis/media-2016-07-25.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/media-2016-07-25.normal.json); [jiborobot/srv-jibo-server-client/apis/mediaadmin-2016-07-25.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/mediaadmin-2016-07-25.normal.json).
+
+Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
+
+Evidence: pending.
+
+### A-15 — Complete Person data and Collision behavior
+
+- [ ] **todo** · P1 · classic · implementation: stub
+
+Owner: Codex. Dependencies: A-02, A-04.
+
+Person properties have limited in-memory round trips; holidays/answers are placeholders and Collision always reports no collision.
+
+Done when:
+
+- Verify every Person operation, personalized answers, properties and holiday behavior with original fixtures and durable state.
+- Implement collision/name matching, thresholds and error responses from archived source, including real collisions and boundary examples.
+
+Source: [jiborobot/srv-jibo-server-client/apis/person-2016-08-01.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/person-2016-08-01.normal.json); [jiborobot/srv-jibo-server-client/apis/collision-2016-11-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/collision-2016-11-26.normal.json).
+
+Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
+
+Evidence: pending.
+
+### A-16 — Implement ROM certificate exchange and remote operation
+
+- [ ] **todo** · P1 · classic · implementation: stub
+
+Owner: Codex. Dependencies: A-02, A-04.
+
+ROM returns empty certificate/key material.
+
+Done when:
+
+- Implement Create/SetupClient/SetupServer with the original validation, ownership and certificate/credential lifecycle.
+- Verify usable remote-operation sessions with the original client, including expiration, failure and reconnect.
+
+Source: [jiborobot/srv-jibo-server-client/apis/rom-2017-10-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/rom-2017-10-11.normal.json).
+
+Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
+
+Evidence: pending.
+
+### A-17 — Implement IFTTT and Classic NLP behavior
+
+- [ ] **todo** · P1 · classic · implementation: stub
+
+Owner: Codex. Dependencies: A-02, A-04.
+
+IFTTT lists/actions and NLP responses are placeholders.
+
+Done when:
+
+- Match all seven IFTTT operations with identities, triggers/actions/media, delivery side effects and failure behavior through fixture adapters.
+- Implement part-of-speech and named-entity output contracts using original examples; empty placeholder arrays are not completion.
+
+Source: [jiborobot/srv-jibo-server-client/apis/ifttt-2017-02-07.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/ifttt-2017-02-07.normal.json); [jiborobot/srv-jibo-server-client/apis/nlp-2016-10-31.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/nlp-2016-10-31.normal.json).
+
+Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
+
+Evidence: pending.
+
+### A-18 — Close remaining admin, OAuth-client and LPS contracts
+
+- [ ] **todo** · P1 · classic · implementation: unassessed
+
+Owner: Codex. Dependencies: A-01, A-02, A-03.
+
+The API inventory includes services/admin operations beyond the current prefix router; full controller coverage is unassessed.
+
+Done when:
+
+- Cover remaining targets from A-01, including OAuth-client administration and LPS, with source-derived permissions and side effects.
+- Resolve newly discovered non-API-file services into explicit child tasks; do not assume absence of one SDK definition means a feature never existed.
+- Finish an operation-by-operation coverage review with no unassigned required surface.
+
+Source: [jiborobot/srv-jibo-server-client/apis/oauthclientsadmin-2017-11-08.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oauthclientsadmin-2017-11-08.normal.json); [jiborobot/srv-jibo-server-client/apis/lps-2017-12-01.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/lps-2017-12-01.normal.json).
+
+Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/account/src](../../packages/account/src).
+
+Evidence: pending.
+
+## 5. Verify integration, deployment and hardware
+
+### R-01 — Pass full reference-client and service-substitution tests
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: C-01, C-02, C-03, H-01, H-02, H-03, H-04, H-05, H-06, H-07, H-08, N-01, N-02, N-03, N-04, N-05, N-06, N-07, N-08, I-01, I-02, I-03, D-01, D-02, D-03, D-04, D-05, D-06, D-07, S-01, S-02, S-03, S-04, S-05, S-06, S-07, S-08, S-09, S-10, S-11, S-12, S-13, S-14, Q-01, H-09, H-10.
+
+Existing compose smoke checks use Phoenix-specific skill paths and cannot prove individual service substitution.
+
+Done when:
+
+- Replace one reference service at a time with Phoenix and run original client/fixture scenarios without changing callers, URLs or request shapes.
+- Pass complete HTTP/WS/JCP/speech/history/data side-effect comparisons, then run an all-Phoenix stack on the same scenarios.
+- Publish exact case counts, failures, missing cases and evidence revisions; require zero unexplained behavioral differences.
+
+Source: [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client); [Original Pegasus packages/history-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/history-client); [Original Pegasus packages/integration-tests-int](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-int); [Original Pegasus packages/integration-tests-ext](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-ext).
+
+Phoenix: [packages/harness](../../packages/harness); [scripts/verify-compose-contract.mjs](../../scripts/verify-compose-contract.mjs).
+
+Evidence: pending.
+
+### R-02 — Verify installation, native/compose startup and data migration
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-01, A-02, A-06, A-09.
+
+Ports look similar, but environment aliases, default skill routes, state durability and reference substitution have not been proven.
+
+Done when:
+
+- Test a clean install and isolated native/compose deployments with correct service names, ports, configuration, startup/shutdown and readiness.
+- Verify migration from the current Phoenix stores and, where available, original database fixtures with backup/restore and rollback.
+- Make verification commands use temporary stores/test accounts and avoid depending on this machine's .env, siblings or live robot.
+
+Source: [Original Pegasus docker-compose.yml](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/docker-compose.yml); [Original Pegasus cli](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/cli); [Restored Pegasus docs/atlas/runtime-topology.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/runtime-topology.md).
+
+Phoenix: [docker-compose.yml](../../docker-compose.yml); [scripts/run-compose-stack.sh](../../scripts/run-compose-stack.sh); [scripts/run-sim-stack.sh](../../scripts/run-sim-stack.sh); [README.md](../../README.md).
+
+Evidence: pending.
+
+### R-03 — Verify reliability, limits and observability
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-01, H-07, H-08, I-03.
+
+Default timeouts, uncancelled fetches, restart behavior and concurrent load need measured acceptance rather than green unit tests.
+
+Done when:
+
+- Measure latency/throughput against pinned reference budgets with concurrency, slow/unavailable peers, disconnects and repeated restarts.
+- Verify bounded memory/queues, timeout cancellation, no cross-robot state leakage and expected error/retry behavior.
+- Check trace/log/metrics/configuration behavior and make failures observable without falsely healthy service state.
+
+Source: [Original Pegasus packages/utils/src/service](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/service); [Original Pegasus packages/hub/src/listen](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen); [Original Pegasus packages/parser/src/utils/ConcurrentQueue.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/utils/ConcurrentQueue.ts).
+
+Phoenix: [packages/common](../../packages/common); [packages/gateway](../../packages/gateway); [packages/nlu](../../packages/nlu); [packages/history](../../packages/history); [packages/data](../../packages/data).
+
+Evidence: pending.
+
+### R-04 — Verify supported robot/firmware and original-client journeys
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-02, R-03, A-05, A-08, A-10, S-13, V-04.
+
+Consumer provenance is recorded in CONSUMERS.md. The user released Moth for SSH testing on 2026-09-05; V-04 now establishes the actual robot loop against this checkout. The simulator remains excluded as an oracle, and the other robot is not touched. Full firmware/client journeys, real microphone behavior, persistence and every skill-family acceptance remain open.
+
+Done when:
+
+- Use pinned original client/source contracts as expectations and Moth for runtime evidence; simulator output cannot close parity. Keep source inspection, native text injection and physical microphone observations distinct.
+- Pin supported firmware/client versions and record setup/adoption, auth, real microphone turns, local/global follow-ups, displays, proactive preferences and reconnect.
+- Exercise each user-visible skill family and data provider, plus account/loop/settings persistence across server/robot restart.
+- Record robot/firmware/configuration, scenario results and logs; arrange explicit authorization for destructive reset/OTA trials when needed.
+
+Source: [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client); [Jibo documentation](https://pvindex.org/confluence/display/SER/Jetstream+Service+Details).
+
+Phoenix: [HW-OOBE-TEST.md](../../HW-OOBE-TEST.md); [packages/harness](../../packages/harness); [scripts/point-robot-at-phoenix.sh](../../scripts/point-robot-at-phoenix.sh); [docs/parity/CONSUMERS.md](../../docs/parity/CONSUMERS.md); [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md).
+
+Evidence: pending.
+
+## 6. Close the release checklist
+
+### R-05 — Close the source checklist and publish a release parity report
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18.
+
+Completion must cover the scoped product and every required behavior, not just the previous M1-M9 milestone labels.
+
+Done when:
+
+- Reconcile every source operation/rule/asset/test scenario with evidence and require zero missing, stubbed or unexplained-divergent required behaviors.
+- Publish separate Pegasus, companion-cloud, hardware and optional restoration results, including evidence revisions and approved exceptions.
+- Verify migration/rollback/runbooks, update user-facing status claims and retain regression gates for future changes.
+
+Source: [Restored Pegasus docs/atlas/verification-strategy.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/verification-strategy.md); [jiborobot/srv-jibo-server-client/apis](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis).
+
+Phoenix: [docs/parity/tasks.json](../../docs/parity/tasks.json); [README.md](../../README.md); [PARITY.md](../../PARITY.md); [ROADMAP.md](../../ROADMAP.md); [DIVERGENCES.md](../../DIVERGENCES.md).
+
+Evidence: pending.

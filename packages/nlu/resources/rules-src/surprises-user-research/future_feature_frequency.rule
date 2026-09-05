@@ -1,0 +1,59 @@
+TopRule = $* $QUESTION {intent=QUESTION._intent}{priority='HIGH'} $*;
+### If I could do that, how often would it get used? ###
+### If I got some new educational games, how often would they get played? ###
+### If I learned to do that, how often would someone meditate with me?? ###
+
+QUESTION =
+(
+    ( $LOT {_intent=LOT._intent} ) |
+    ( $SOMETIMES {_intent=SOMETIMES._intent} ) |
+    ( $RARELY {_intent=RARELY._intent} )
+)
+;
+LOT =
+(
+    ( a $* $TON ) |
+    lots |
+    tons |
+    daily |
+    constantly |
+    frequently |
+    frequent |
+    ( all the time ) |
+    ( every day ) |
+    ( without ceasing ) |
+    ( ?$VERY often )
+)
+{_intent='lot'}
+;
+SOMETIMES =
+(
+    sometimes |
+    sometime |
+    occasionally |
+    ( some times ) |
+    ( some time ) |
+    ( from time to time ) |
+    ( ( few | couple ) times )
+)
+{_intent='sometimes'}
+;
+RARELY =
+(
+    rarely |
+    never |
+    once |
+    twice |
+    ( not ( much | ever ) ) |
+    ( hardly ?( ever | ( at all ) ) ) |
+    ( not ?very often ) |
+    infrequently |
+    infrequent |
+    ( why ( would | should ) i ) |
+    ( ( maybe | may be ) | ( a little ) )
+)
+{_intent='rarely'}
+;
+### USEFUL VOCAB ###
+TON = lot | ton | shitload | bunch;
+VERY = very | extremely | pretty;

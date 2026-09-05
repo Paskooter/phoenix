@@ -1,0 +1,141 @@
+{
+  "date": "2026-09-05",
+  "task": "V-02",
+  "result": "pass",
+  "reviewer": "Codex",
+  "basis": "Executable original/Phoenix HTTP and hub differential; independent invariant/mutation tests",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "phoenixRevision": "5e240a7047d43dc5cadd3b14debf0102c3bfab7e",
+  "phoenixSourceTreeSha256": "87106501626aa2e1c2a61767d0828f5f7b08c07e4961fa2b7039367ca46eda60",
+  "referenceIntegrity": {
+    "sourceFiles": 376,
+    "emittedFiles": 391,
+    "manifestSha256": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884"
+  },
+  "commands": {
+    "control": "npm run harness -- --candidate original --out .parity/runs/compare-control-final",
+    "comparison": "npm run harness -- --out .parity/runs/compare-final-reviewed",
+    "focused": "node --test packages/harness/test/diff.test.js packages/harness/test/parityCompare.test.js",
+    "regression": "npm test"
+  },
+  "acceptanceReview": [
+    {
+      "criterion": 1,
+      "result": "pass",
+      "evidence": "One command captures all 28 identical fixtures from separate pinned runtimes with raw inputs/responses, ordered frames and attributed peer side effects. Original-vs-original returns 0; Phoenix mismatch returns 1. Both captures complete; zero invariant failures."
+    },
+    {
+      "criterion": 2,
+      "result": "pass",
+      "evidence": "Every field/presence/type/array order, status/header, NLU entities/rules, memo and complete synthetic action/analytics are compared. Explicit UUID/address/duration/derived-ETag rules are listed in comparison.json and guarded by tests; no blanket session/time/port deletion."
+    },
+    {
+      "criterion": 3,
+      "result": "pass",
+      "evidence": "Independent issued/supplied/forwarded/advanced session, ID relationship, frame/terminal order, raw-byte, clock and timing bounds pass original controls. Corrupted frames, session payloads, reused identifiers, timing sentinels and other payloads fail; CLI corrupted-session test proves nonzero exit."
+    }
+  ],
+  "calibration": {
+    "cases": 28,
+    "differences": 0,
+    "invariantFailures": 0,
+    "exitCode": 0
+  },
+  "phoenixComparison": {
+    "cases": 28,
+    "casesWithDifferences": 26,
+    "differences": 267,
+    "invariantFailures": 0,
+    "exitCode": 1
+  },
+  "tests": {
+    "focused": {
+      "pass": 36,
+      "fail": 0
+    },
+    "regression": {
+      "pass": 263,
+      "fail": 0,
+      "skipped": 0
+    },
+    "caveat": "The historical static NLU oracle subtest still prints 74/89 and exits zero. V-03 remains open; this is not certified parser equivalence."
+  },
+  "preservation": {
+    "baselineFiles": 4838,
+    "unchangedBaselineFiles": 4833,
+    "changedBaselineFiles": [
+      "packages/harness/README.md",
+      "packages/harness/src/diff.js",
+      "packages/harness/src/index.js",
+      "packages/harness/src/normalize.js",
+      "packages/harness/test/diff.test.js"
+    ],
+    "preExistingApplicationEditsPreserved": true,
+    "referencePreparationToolsUnchanged": true
+  },
+  "limitations": [
+    "Foundation HTTP/hub suite only; other source scenarios/corpora remain V-03 and product-task work.",
+    "Fixture NLU/skill/history peers test forwarding and continuation, not production parser/skill rendering/provider correctness.",
+    "No original consumer, live audio/provider, persistence, deployment or hardware run.",
+    "The 50 ms side-effect drain and 2.1 second terminal observation cannot establish arbitrary later behavior.",
+    "Frozen application and automatic HTTP clocks; explicit application Date headers and suppression remain observable.",
+    "Container lifecycle timeout is operational and independent of 5 second case bounds; a prior completed capture hit Docker cleanup timeout and is retained under operation-timeout/."
+  ],
+  "toolSha256": {
+    "packages/harness/README.md": "ab0dbf89554268f357c04aaa9b77545983cdfb7b46a937a652e9e785decfb9a7",
+    "packages/harness/src/diff.js": "8005ae693ff960cc821217da4263be77986d3f16a1dad0fd6cef146251d2f5ae",
+    "packages/harness/src/index.js": "635102d9112b8b69837ebb07c2a63933ab40a0e954cb59e640fb2901ff62ee1c",
+    "packages/harness/src/normalize.js": "0fcfc400c9ba04bfa2b9597eba07940345a09ce03b052f87ac110ec2abcdb5ef",
+    "packages/harness/src/parityCompare.js": "2095234d3b9a17ca47fa06fdf4933665be6621b45b785af9a53c5cd78455f633",
+    "packages/harness/test/diff.test.js": "0fd0421cbf7b6f618b1d5231dac2673bcf051f96c03a8c4aa4e7707b75d7d9ce",
+    "packages/harness/test/fixtures/foundation-reference.json": "c02fe16daacf5613465ee5f7bf7b4a457bd7e9100fbb281573fe041dc552c686",
+    "packages/harness/test/fixtures/foundation-reference.source.json": "3e5b274d058840c77f750fa324bcec4af4df5a121acf888dcbd0c66dfe9e2a2e",
+    "packages/harness/test/parityCompare.test.js": "098a9c7ca032da6376b4f4080ecc3c4cea4a5419257eea3da1cab86f4b7a6621",
+    "scripts/parity-compare/README.md": "6d2afc4a3dd96944673e2f4c8d835d76b972b9e831aab396976d756f6419b7fa",
+    "scripts/parity-compare/driver.cjs": "a9448ce33a3dfd6bf79825a5d08109acd558647702839d19778807fd73d5b24d",
+    "scripts/parity-compare/original.cjs": "7b151004bfdb8ec6163ffa641c5e357ed8016f554ef153b033a0cc10a7e30dae",
+    "scripts/parity-compare/phoenix.mjs": "67004cc385c66fe5723034203dbe5780b8cd900f4dc2672d6aa307f2367e1b74",
+    "scripts/parity-compare/run.py": "2e76eb08b188097a5985107e6f863d725531fb88ab8cb28d31a827d29abc8918",
+    "scripts/parity-compare/suite.json": "a1b517934563cd84e162e2ff6a281c3b8fd880f5c9e6a66610fb65f2da665b59"
+  },
+  "controlToBaselineSourceDelta": [
+    "packages/harness/test/fixtures/foundation-reference.json",
+    "packages/harness/test/fixtures/foundation-reference.source.json",
+    "scripts/parity-compare/README.md",
+    "scripts/parity-compare/run.py"
+  ],
+  "controlToBaselineNote": "Only saved test fixture refresh and runner duration/outer-timeout documentation changed after calibration; the wire driver, suite, adapters, comparator and all production services are identical.",
+  "artifacts": {
+    "baseline/candidate.json": "db16f0fa8cc2682422cfc0f6f076c3d15ab7d7d2dbfca0a124d08c89c3634148",
+    "baseline/candidate.log": "8c6e20b392464b0d9a793b86fe758e7dc47c1bff7bc43e47dc273d7313d0ecd4",
+    "baseline/compare.log": "86fb68de0272c591a7ee73eeb752c6b74b7a9e283e83e31ea9e5ba60b1b0fc53",
+    "baseline/comparison.json": "aebd2dfeb2a2bfa16d3d5b6f037e242cefd44659fdc69f533231c0abe96ac4b0",
+    "baseline/image-original.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
+    "baseline/image-phoenix.log": "702dc249dc15bfd8509bb8cc2956bd9432e93068922c95f323b8cae363028167",
+    "baseline/phoenix-source.json": "3a7ff02f8233fef36870ec551254216d10a836486ac74354de8d53989ef138f9",
+    "baseline/reference.json": "ac1bc4a82be749002670baf6841060b4565dda7d34160004c0ab8efdfd7d507b",
+    "baseline/reference.log": "de4df4b9eca19e8dcc2722f8f9c79f91be765c2d96256b425e95d0bc8e8300bd",
+    "baseline/run.json": "1134a920f87b2a866a6f113d745f1e6eedc8eb180e66fc6524439641c0b634a8",
+    "baseline-summary.json": "73957c4a1bd2451411a3e8d4ae4af881b3782b5b3b93470f44d23449fe624e2c",
+    "control/candidate.json": "bc96f1fde73a1e1116abace46908b676df26dd8cb1f7a5c253366af1bdde3124",
+    "control/candidate.log": "33fff59ae0bcb867a3f4aee6c0748f9351890fcec41265222a17b26761323c2f",
+    "control/compare.log": "fd70cecefa03e4f23410ccc9db7f800010984856c422c3c7f2cc466360e4df6e",
+    "control/comparison.json": "6b255ca3a97095a74dbf5063ff7f379b045af7df26bf57fe1ff0d080ce46710f",
+    "control/image-original.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
+    "control/phoenix-source.json": "c2915b1375ca249a38aab996710618e4cfd1683717ef7e322a41d50f60c29eb2",
+    "control/reference.json": "c02fe16daacf5613465ee5f7bf7b4a457bd7e9100fbb281573fe041dc552c686",
+    "control/reference.log": "b281425c0ed5182d4dfb76a6015cacbce71b608a4f9f0796a2027bb2cfb98942",
+    "control/run.json": "02d5564dcee1c974a3199d764a484ce1daaa32fd3f31e9d8200152e733434c21",
+    "npm-test.log": "548238c38a0737ab9be102155089f7bf3774c6625d0aff25cce604c0d2b04fe4",
+    "operation-timeout/image-original.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
+    "operation-timeout/image-phoenix.log": "702dc249dc15bfd8509bb8cc2956bd9432e93068922c95f323b8cae363028167",
+    "operation-timeout/phoenix-source.json": "fbb2b5e351df776c00377f35284b9553c838b4bca3b630542d46fd70772cad81",
+    "operation-timeout/reference.json": "c17fa973ebabba9090fbd77b1b2a6a93e1a46ae27bbd4d444201d946e58b7629",
+    "operation-timeout/reference.log": "d47ba2b86a787882947da7c684338e5202a66d422956eeede10ecf5149282b48",
+    "operation-timeout/run.json": "0b96b43d95a4769eddb331ca69ba79b5ddc395df86561f913830088bb8909d5c",
+    "tracker-check.log": "6392cfa8553a15403e1f54909e51bb9a1100778952b1c84b202cdb5635b1d77b",
+    "unit-tests.log": "b18dec4c3bdd2985447da60adbb0054a6abe11ec02cb43f93d4e48c05f549a54"
+  },
+  "scopeDocumentSha256": "de995f48bc957534bf5de10b0b0bf05924083f5809958abe63792a2faad30855"
+}

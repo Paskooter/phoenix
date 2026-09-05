@@ -1,0 +1,32 @@
+TopRule =
+		$* $SELECT_FUN_STUFF_ITEM
+				{intent='loadMenu'}
+				{destination=SELECT_FUN_STUFF_ITEM._destination}
+				{priority='HIGH'}
+		$*
+;
+
+
+SELECT_FUN_STUFF_ITEM = ( ?($GENERIC_ACTION) ?($THE|$*) $SKILLS ?($SKILLSUFFIX) ) {_destination=SKILLS._destination} ;
+
+
+SKILLS =
+(
+	( (([circuit?s] ?[sav((er)|(ing))] ?game)|(?([play?(ing)] $w03) game)) {_destination='circuit-saver'}) |
+	( ([word?s] ?of ?the ?[day?s]) {_destination='word-of-the-day'} ) |
+	( [joke?s] {_destination='joke'}) |
+	( [danc(e?s)|(ing)] {_destination='dance'}) |
+	( ([surprise?s] ?(me)) {_destination='surprise'})
+)
+;
+
+### USEFUL VOCABULARY ###
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+SKILLSUFFIX = (skill | app | application | thing | one);
+THE = (the | that | your);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select | load);
+SHOW = (show ?(me | us));
+SEE = ((let\'s | (let me) | (let us)) see);
+DO = (?(let\'s | (let me) | (let us)) (do | try) );
+ITEM = (one | thing | item | icon);
+LOCATION = (spot | slot | position);

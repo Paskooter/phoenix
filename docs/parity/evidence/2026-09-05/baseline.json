@@ -1,0 +1,73 @@
+{
+  "auditDate": "2026-09-05",
+  "node": "v22.22.0",
+  "npm": "10.9.4",
+  "phoenixCommit": "5e240a7047d43dc5cadd3b14debf0102c3bfab7e",
+  "phoenixWorkingTree": "source-inventory.json",
+  "phoenixSourceTreeSha256": "c0996017139b01558a36521e59849dc025775761b00de2fe89d1c171c2e4ef8a",
+  "referenceCommit": "d682547a31511cd164db0913b6104eb1786455a2",
+  "originalPegasusCandidate": "5c0a7390539663ba749d360de348a428c088505c",
+  "classicApiCommit": "155d20a8102960b2aeb89c197bdf04dc1f1fc344",
+  "runs": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "tests": 232,
+      "passed": 232,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 36163.614467,
+      "artifact": "npm-test.log",
+      "limitation": "Includes oracle grade.mjs as a passing subtest even though it reports 74/89."
+    },
+    {
+      "command": "env -u ETCO_parser_llmUrl -u ETCO_hub_skillsConfig node packages/harness/src/corpusRunner.js --out /tmp/phoenix-parity-audit-2026-09-05/corpus.json",
+      "exitCode": 0,
+      "durationSeconds": 1108,
+      "stats": {
+        "entries": 4705,
+        "utterances": 10035,
+        "d3Intent": 9851,
+        "d4Mim": 9714,
+        "noMatchOk": 0,
+        "noMatchTotal": 0
+      },
+      "mismatchUtterances": 329,
+      "artifacts": [
+        "corpus.log",
+        "corpus.json"
+      ],
+      "limitation": "Single chitchat manifest; intent and memo.mim only; no no-match cases; no live reference execution; mismatches do not fail the command."
+    },
+    {
+      "command": "env -u ETCO_parser_llmUrl node packages/nlu/test/oracle/grade.mjs",
+      "exitCode": 0,
+      "matched": 74,
+      "total": 89,
+      "artifact": "oracle-grade.log",
+      "limitation": "Static golden file, alternate grammar pipeline, no live binary execution, mismatches do not fail the command."
+    },
+    {
+      "command": "node scripts/parity-probes.mjs --out /tmp/phoenix-parity-audit-2026-09-05/probes.json",
+      "exitCode": 0,
+      "observations": 14,
+      "artifact": "probes.json",
+      "limitation": "Records Phoenix behavior compared with inspected source; does not execute the original server or declare parity."
+    }
+  ],
+  "notExecuted": [
+    "Original Pegasus build, tests or running service comparison",
+    "Live speech/data/LLM vendor tests",
+    "Native/compose full-stack verifier",
+    "Robot reset, OTA, hardware or browser-simulator parity journey"
+  ],
+  "evidenceSha256": {
+    "classic-api-inventory.json": "43735051b241e5f2451b1398bab14103a1d8e19e56dd5b45dcbad020fc53602b",
+    "corpus.json": "049472a27254cf46e7a60951acbfa3b0c77843216d9460ea218e1c7509ed73f8",
+    "corpus.log": "34a0c2742860b3f0a2a8ce8507f981ca6f3af87e8409e0e88441a4c740fbff74",
+    "npm-test.log": "8860575007ead93d3015deab19f337c9f6e2cce28862ab4f6f1b52547625c9a9",
+    "oracle-grade.log": "4f4520ff7b1399837c01e0c64a68ac3c71469b5e931e162bfc980e5b5d0adfc1",
+    "probes.json": "00279e9ce27572e0a470eac25cd1d2065cdd6248a3cb4d3ddf2f82d9204a0fa5",
+    "source-inventory.json": "4630e3d717089de3b2100cfe49c3f2f5c4893cb74a5cacb441038374bc6aad78"
+  }
+}

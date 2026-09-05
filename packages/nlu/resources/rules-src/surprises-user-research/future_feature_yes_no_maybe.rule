@@ -1,0 +1,58 @@
+TopRule = $* $QUESTION {intent=QUESTION._intent}{priority='HIGH'} $*;
+### If you could get special Jiboey costumes, and hats, and other things that you could put on me, do you think you'd want some? ###
+### So, if there were fun hats and stuff you could put on me, would you want that? ###
+
+QUESTION =
+(
+    ($factory:yes_no {_intent = yes_no._nl}) |
+    ($YES_OTHER {_intent=YES_OTHER._intent}) |
+    ($NO_OTHER {_intent=NO_OTHER._intent}) |
+    ($MAYBE {_intent=MAYBE._intent})
+)
+;
+YES_OTHER =
+(
+    guess | gas |
+    indeed |
+    definitely |
+    ( i do ?( like that ) ) |
+    ( ( like | appreciate ) ( it | that ) ) |
+    ( love ( it | you ) ) |
+    certainly |
+    ( i $* love that ) |
+    ( sign me up ) |
+    ( ( when | where ) can i ( get | buy ) )
+)
+{_intent='yes'}
+;
+NO_OTHER =
+(
+    know | snow | now |
+    ( not really ) |
+    ( not so much ) |
+    ( ( certainly | definitely ) not ) |
+    ( i\'m sorry ) |
+    ( i hate that ) |
+    ( ?i ( wouldn\'t | ( would not ) ) ) |
+    never
+)
+{_intent='no'}
+;
+MAYBE =
+(
+    possibly |
+    ( not sure ) |
+    ( i ( think | suppose | guess ) ?so ) |
+    meh |
+    maybe |
+    ( may be ) |
+    (a little) |
+    (a bit) |
+    kinda | sorta |
+    ( sort of ) |
+    ( kind of ) |
+    kinda |
+    ( why not )
+)
+{_intent='maybe'}
+;

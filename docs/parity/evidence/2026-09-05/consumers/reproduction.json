@@ -1,0 +1,35 @@
+{
+  "scope": "Fresh source cache restoration; no product/runtime verification",
+  "archiveSource": "Symlink to independently SHA-256-verified download",
+  "steps": [
+    {
+      "command": [
+        "python3",
+        "scripts/parity-consumers/recover-be12.py",
+        "--archive",
+        ".parity/runs/consumer-source-repro-20260905/cache/downloads/jibo-be-12.0.0.tar.gz",
+        "--out",
+        ".parity/runs/consumer-source-repro-20260905/cache/be-12.0.0",
+        "--manifest",
+        "docs/parity/evidence/2026-09-05/consumers/be-12.0.0-sources.json"
+      ],
+      "exitCode": 0,
+      "log": ".parity/runs/consumer-source-repro-20260905/0.log",
+      "logSha256": "dbcab3e9245b088ca6460616cd90e1798bb06b213fa9b0d11119e1d5a14d1d85"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/parity-consumers/verify-sources.py",
+        "--cache",
+        ".parity/runs/consumer-source-repro-20260905/cache",
+        "--restore",
+        "--out",
+        ".parity/runs/consumer-source-repro-20260905/verification.json"
+      ],
+      "exitCode": 0,
+      "log": ".parity/runs/consumer-source-repro-20260905/1.log",
+      "logSha256": "dcad9f0fb6fedcd1328a16e3576b70dd82ce834fa2104f13b4884d114a49f916"
+    }
+  ]
+}

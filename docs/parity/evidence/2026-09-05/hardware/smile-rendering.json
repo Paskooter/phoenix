@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "input": "smile through original Jetstream SDK CLIENT_ASR; not acoustic recognition",
+  "profile": "Phoenix port19000, authdisabled, restoredLINEAR16",
+  "play": {
+    "autoRuleConfig": true,
+    "esml": "Ah, one of my favorite facial expressions. <anim cat='happy' filter='smile'/>",
+    "id": "3dd4f27c-a5e1-4946-9982-a9d1daffc060",
+    "meta": {
+      "mim_id": "RA_JBO_Smile",
+      "mim_type": "announcement",
+      "prompt_id": "RA_JBO_Smile_AN_03",
+      "prompt_sub_category": "AN"
+    },
+    "type": "PLAY"
+  },
+  "playback": {
+    "calls": [
+      {
+        "at": 1788642949686,
+        "name": "Eye_Long_Blink_01",
+        "hasScreenDOFs": true,
+        "returnKeys": [],
+        "completedAt": 1788642950644,
+        "completed": true,
+        "valueType": "string",
+        "outcome": "STOPPED"
+      },
+      {
+        "at": 1788642949722,
+        "name": "Initiation_01",
+        "hasScreenDOFs": false,
+        "returnKeys": [],
+        "completedAt": 1788642951246,
+        "completed": true,
+        "valueType": "string",
+        "outcome": "STOPPED"
+      },
+      {
+        "at": 1788642952142,
+        "name": "Eye_Quick_Blink_01",
+        "hasScreenDOFs": true,
+        "returnKeys": [],
+        "completedAt": 1788642952480,
+        "completed": true,
+        "valueType": "string",
+        "outcome": "STOPPED"
+      },
+      {
+        "at": 1788642952480,
+        "name": "happy_01",
+        "hasScreenDOFs": true,
+        "returnKeys": [],
+        "completedAt": 1788642954279,
+        "completed": true,
+        "valueType": "string",
+        "outcome": "STOPPED"
+      }
+    ],
+    "restored": true
+  },
+  "sourceObservation": "Original embodied speech TimelineManager builds Animation.createFromConfig playback objects; BuildDispatchable calls Playback.play. The animation client distinguishes STOPPED completion from CANCELLED and REJECTED.",
+  "visualReview": {
+    "result": "pass for this explicit smile scenario",
+    "observations": [
+      "Baseline is an ordinary round pale eye.",
+      "During happy_01 playback the screenshot shows the bright smiling eye shape."
+    ],
+    "screenshots": {
+      "be-11.0.1-eye-before-smile.png": "71a842177506cec00740ecc8311ec525a34db3c5c793498dc6e59641d76e6fdd",
+      "be-11.0.1-smile.png": "706df70b728f4e24c2a667fc11d7d4827c3a5b7d264c82cee5e3c03abf81a597"
+    }
+  },
+  "privateProbeSha256": "271f0c1de7c332dd5480a660b32bed452351f1a2d240942e3c8559a3a0318772",
+  "privatePlaybackSha256": "f7ebcc3a9836a4ed45846bc652b05b2ae9a48b062f6deb207a74180137a33601",
+  "sourceManifest": ".parity/consumers/be11-speech-review/manifest.json",
+  "limitations": [
+    "Individual client animation/rendering scenario; no full gesture or chitchat parity gate closed.",
+    "The guitar/fish joke source specifies speech/autotagging without a separate illustration.",
+    "The physical ring and acoustic wake-word confirmation remain separate."
+  ]
+}

@@ -62,7 +62,7 @@ test('report: launchPersonalReport without an ID asks WhoIsThis (QN, non-final)'
   const r = await reportSkill(reportReq('launchPersonalReport'));
   assert.equal(r.data.final, false, 'WhoIsThis is a question');
   assert.deepEqual(reportMims(r), ['PersonalReportWhoIsThis']);
-  assert.equal(slimsOf(r)[0].config.listen.rule, 'shared/wrong_id');
+  assert.deepEqual(slimsOf(r)[0].config.listen.contexts, ['shared/wrong_id']);
 });
 
 test('report: full report for an IDed adult -> SettingsFailed + per-service degradation + outro MAN', async () => {
@@ -108,7 +108,7 @@ test('report: proactive launch -> opt-in proposal question (VERIFY_ID base MIM)'
   });
   assert.equal(r.data.final, false, 'proposal is a question');
   assert.deepEqual(reportMims(r), ['OptInProposalVerifyID'], 'unified base MIM identity');
-  assert.equal(slimsOf(r)[0].config.listen.rule, 'shared/verify_id');
+  assert.deepEqual(slimsOf(r)[0].config.listen.contexts, ['shared/verify_id']);
 });
 
 // Chitchat memo-driven dispatch over the REAL vendored MIM library (mirrors

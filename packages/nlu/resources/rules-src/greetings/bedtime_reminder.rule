@@ -1,0 +1,58 @@
+TopRule =
+### Hey, don't forget to get a good night's sleep tonight. ###
+### Try to get to bed early tonight. Okay? ###
+### I hope you sleep better tonight. Sometimes I count electric sheep. You could try counting the wooly ones. ###
+($*
+    $D_GREETINGS_BEDTIME_REREMIND {intent=D_GREETINGS_BEDTIME_REREMIND._intent} |
+    $D_GREETINGS_BEDTIME_IWILL {intent=D_GREETINGS_BEDTIME_IWILL._intent} |
+    $D_GREETINGS_INTENT_WILDCARD {intent=D_GREETINGS_INTENT_WILDCARD._intent} |
+    $D_GREETINGS_INTENT_FRUSTRATED {intent=D_GREETINGS_INTENT_FRUSTRATED._intent}
+$*)
+{domain='greetings'}{skill='\@be/greetings'}{priority='HIGH'}
+;
+### INTENTS ###
+D_GREETINGS_BEDTIME_REREMIND =
+(
+    $V_BEDTIME_REMIND ( ( ?again later ) | (?again (at|in) ) )
+)
+{_intent='reRemind'}
+;
+D_GREETINGS_BEDTIME_IWILL =
+(
+    ( i won\'t ?forget ) |
+    ( i\'ll try not to forget ) |
+    ( ( ( i will) | i\'ll ?try ) ) |
+    ( okay | ( o k ) | yes ) |
+    ( me too ) |
+    ( sounds ( good | great ) )
+)
+{_intent='iWill'}
+;
+D_GREETINGS_INTENT_WILDCARD =
+(
+    $*
+)
+{_intent='wildcard'}
+;
+D_GREETINGS_INTENT_FRUSTRATED =
+(
+    ( not now ) |
+    ( stop it ) |
+    ( cut it out ) |
+    ( be ( quiet |silent | still ) ) |
+    silence |
+    quiet |
+    ( shut $* up ) |
+    hush |
+    shush |
+    stifle |
+    ( ?( just | please ) stop ) |
+    ( please ?jibo ) |
+    ( talking here ) |
+    ( put a sock in it ) |
+    whatever
+)
+{_intent='frustrated'}
+;
+### VOCABULARY ###
+V_BEDTIME_REMIND = (remind ?(me|us))|(tell ?(me|us))|(alert ?(me|us));

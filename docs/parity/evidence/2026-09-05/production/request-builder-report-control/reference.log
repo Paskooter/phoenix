@@ -1,0 +1,4 @@
+T.Jibo.Log Wrote local config to /root/.jibo/t.logging.json
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"1d9df9be2120","level":"error","message":"robust-parser stderr: cerr: NLU service is ready.","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"1d9df9be2120","program":"parity-production-original","pid":1,"namespace":"H.Parser.Robust.Process"}}
+{"complete":true,"cases":73,"failures":0}
+{"created":1527681600000,"createdTime":"2018-05-30T12:00:00.000Z","robotId":"1d9df9be2120","level":"error","message":"Robust Parser process closed","structuredData":{"versions@1":{"release":"8.67.5309"}},"payload":{"kind":"LOG","hostname":"1d9df9be2120","program":"parity-production-original","pid":1,"namespace":"H.Parser.Robust.Process"}}

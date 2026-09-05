@@ -1,0 +1,18 @@
+{"t":"2018-05-30T12:00:00.000Z","level":"info","ns":"fixture","msg":"listening","port":0}
+{"t":"2018-05-30T12:00:00.000Z","level":"info","ns":"gateway","msg":"listening","port":0}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"fixture","msg":"handler threw","transId":"http-malformed-json","error":"invalid JSON body: Expected property name or '}' in JSON at position 1 (line 1 column 2)"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"fixture","msg":"handler threw","transId":"http-form","error":"invalid JSON body: Unexpected token 'a', \"a=one&a=two\" is not valid JSON"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"fixture","msg":"no route","transId":"http-not-found","method":"GET","path":"/missing"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"fixture","msg":"handler threw","transId":"http-typed-error","error":"fixture teapot"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"fixture","msg":"no route","transId":"http-trailing-slash","method":"GET","path":"/fixture/null/"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"fixture","msg":"no route","transId":"http-head","method":"HEAD","path":"/fixture/null"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"fixture","msg":"no route","transId":"http-options","method":"OPTIONS","path":"/fixture/echo"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"gateway","msg":"no route","transId":"skills-legacy","method":"GET","path":"/skills/fixture-robot"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"gateway","msg":"no route","transId":"skills-v1","method":"GET","path":"/v1/skills/fixture-robot"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"gateway","msg":"no route","transId":"settings-legacy","method":"GET","path":"/skills/settings/fixture-robot"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"gateway","msg":"no route","transId":"settings-v1","method":"GET","path":"/v1/skills/settings/fixture-robot"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"gateway.listen","msg":"transaction failed","transId":"listen-provider-error","error":"parser 503"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Authorization is required"}
+{"t":"2018-05-30T12:00:00.000Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"invalid signature"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"gateway.listen","msg":"transaction failed","transId":"listen-malformed-frame","error":"Invalid JSON arrived into socket: {"}
+{"implementation":"phoenix","cases":28,"complete":true}

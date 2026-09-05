@@ -1,0 +1,64 @@
+TopRule =
+        $*
+            (
+                $D_ALARM_SET_VALUE
+                            {intent = D_ALARM_SET_VALUE._intent}
+                            {time   = D_ALARM_SET_VALUE._time}
+                            {ampm   = D_ALARM_SET_VALUE._ampm}
+                            {domain = 'alarm'}{priority='HIGH'}
+            )
+            |
+            (
+                $D_ALARM_CANCEL
+                        {intent = D_ALARM_CANCEL._intent}
+                        {time   = 'null'}
+                        {ampm   = 'null'}
+                        {domain = 'alarm'}{priority='HIGH'}
+            )
+        $*
+;
+
+
+### ALARM DOMAIN: ###
+
+D_ALARM_SET_VALUE =
+(
+        ( ?($D_ALARM_SET $*) $D_ALARM_TIME_VALUE ) |
+        ( ?($D_ALARM_V_SET $*) $D_ALARM_TIME_VALUE $* $D_ALARM_V_ALARM )
+)
+{_intent='alarmValue'}
+{_time=D_ALARM_TIME_VALUE._time}
+{_ampm=D_ALARM_TIME_VALUE._ampm}
+;
+
+D_ALARM_SET =
+(
+    (?($D_ALARM_V_SET $*) $D_ALARM_V_ALARM) |
+    ($D_ALARM_V_TELL_USER when $*)
+);
+
+D_ALARM_TIME_VALUE =
+(
+    (
+        $factory:time
+    ){_time = time._time_nl}{_ampm = time._time_ampm}
+    |
+    (
+        $* ?$factory:time $* $D_ALARM_V_INVALID_TIMESCALE $* ?$factory:time $* ~0.1
+    ){_time='25h0m0s'} {_ampm='null'}
+    |
+    (
+        1|one [day?s] ?(from now)
+    ){_time='24h0m0s'}{_ampm='null'}
+);
+
+D_ALARM_CANCEL =
+(
+    cancel|exit|escape|quit|(go back)|nevermind|(never mind)|(that\'s|(that is) enough)|(forget ?about it)
+) {_intent='cancel'};
+
+### USEFUL VOCABULARY ###
+D_ALARM_V_SET = [start?(ing)]|[set?(ting)]|[begin?(ning)]|[configur(e|(ing))]|[creat(e|(ing))];
+D_ALARM_V_ALARM = [alarm?s];
+D_ALARM_V_TELL_USER = (tell me|us)|(let me|us know);
+D_ALARM_V_INVALID_TIMESCALE = ([day?s]|[week?s]|[weekend?s]|[fortnight?s]|[month?s]|[season?s]|[semester?s]|[year?s]|[olympiad?s]|[lustrum?s]|[decade?s]);

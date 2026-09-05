@@ -1,0 +1,36 @@
+TopRule = $* $READY $* {intent=READY._intent}{priority='HIGH'};
+
+### So, are you ready to start? ###
+
+READY =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    (?$V_IAMWEARE $w03 ready) |
+    guess | gas |
+    ( you bet ) |
+    ( of course ) |
+    ( ( let\'s | ( let us ) ) ( go | ( do it ) | exercise | (work out) | ( do yoga ) | rock ) ) |
+    ( i am ) |
+    ( we are ) |
+    ( carry on ) |
+    go |
+    ( do it )
+);
+NO_OTHER =
+(
+    (?$V_IAMWEARE (not | never) $w03 ready) |
+    (not | never)|
+    know | snow | now |
+    ( not now ) |
+    ( ?maybe later ) |
+    ( ( i\'m | we\'re ) not ) |
+    ( not yet ) |
+    sorry
+);
+
+V_IAMWEARE = (i\'m | we\'re | ( i am ) | ( we are ));

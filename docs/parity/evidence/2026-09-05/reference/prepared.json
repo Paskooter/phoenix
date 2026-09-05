@@ -1,0 +1,18 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "originalLockSha256": "a712460d4d4653e6ff349917906fc9293b53c3ab77f2e30fed8b8db408edfbde",
+  "relocatedLockSha256": "8c271aefba35f68bc7669a99d2f5818836b02e1ea8fde947fa2cac35b5672b60",
+  "relocatedUrls": 1443,
+  "sourceArchiveSha256": "1c4aed6d938a1247bc67949c5934405b0ec9b4d76827bc47cbbbdfd8a00ecb94",
+  "adaptations": [
+    "Relocate 1443 registry URLs, preserving versions and original SHA-1 fragments",
+    "Use a fixture-only archive registry .npmrc"
+  ],
+  "excludedWorkspaces": [
+    "hub-client-cli",
+    "integration-tests-ext",
+    "integration-tests-int"
+  ],
+  "installProfile": "Production dependencies for 15 server/client/library workspaces; no lifecycle scripts or development dependencies",
+  "rootManifestSha256": "410afd8bc2efee5ef2532c3fa57133d175464974352cfb79986d6fbec6aeb4ed"
+}

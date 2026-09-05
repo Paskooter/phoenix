@@ -1,5 +1,10 @@
 # Phoenix Roadmap (atlas-derived feature checklist)
 
+**Historical implementation checklist.** Current source-backed progress and acceptance criteria
+live in the [parity plan](docs/parity/PLAN.md) and [task checklist](docs/parity/TASKS.md).
+The [2026-09-05 audit](docs/parity/AUDIT.md) supersedes completion claims below; old checkmarks
+describe the previous rebuild scope, not verified 1:1 compatibility.
+
 Derived from the Pegasus atlas (`pegasus/docs/atlas/`). Every feature the reference implements,
 grouped by subsystem, checked off as Phoenix gains it. The loop works top-to-bottom by priority,
 always referencing the original source in `/home/shell/work/pegasus` and verifying on the

@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "candidateRevision": "f33048098500dd04e09f86baa59667e3909f47d4",
+  "input": "smile via original Jetstream SDK CLIENT_ASR",
+  "microphoneAcceptance": false,
+  "observed": "Original BE dispatched happy_01 with screen DOFs. Root visually inspected the captured smiling eye; playback completed and scoped observers restored.",
+  "jcpIds": [
+    "08eea8f3b4a7cdbc2b71f0876d40de0f",
+    "847e1935100a84c8bebdfd4f84208f80"
+  ],
+  "screenshot": "s04-smile-reviewed.png",
+  "screenshotSha256": "656b070e73eb6f95164f429c0b48056a840077aed6c0280c8e2c0cc54f0f2b93",
+  "probeReportSha256": "880da124750d25d489fbcd79e61103b9a92ce28e893de9704b183343c8fc62d2",
+  "limits": [
+    "One selected smile prompt, not all animation timing/variants.",
+    "Physical wake-word and ring observation remain open."
+  ]
+}

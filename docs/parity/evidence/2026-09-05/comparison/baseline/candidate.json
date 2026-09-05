@@ -1,0 +1,2764 @@
+{
+  "schemaVersion": 1,
+  "implementation": "phoenix",
+  "runtime": "v22.22.0",
+  "suite": "foundation-v1",
+  "suiteSha256": "343624c93a861c0b7e0beff4d3ac273723b85c81f531d0df022bc6e32c33a415",
+  "driverSha256": "a9448ce33a3dfd6bf79825a5d08109acd558647702839d19778807fd73d5b24d",
+  "manifestSha256": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
+  "clock": "2018-05-30T12:00:00.000Z",
+  "endpoints": {
+    "peer": "http://127.0.0.1:43229",
+    "base": "http://127.0.0.1:33123",
+    "hub": "http://127.0.0.1:36189"
+  },
+  "cases": [
+    {
+      "id": "http-health",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/healthcheck",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-health",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "text/plain; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "ok",
+        "body": {
+          "kind": "text",
+          "value": "ok"
+        },
+        "durationMs": 10.706424
+      },
+      "durationMs": 10.877379
+    },
+    {
+      "id": "http-null",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/fixture/null",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-null",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{}",
+        "body": {
+          "kind": "json",
+          "value": {}
+        },
+        "durationMs": 2.426001
+      },
+      "durationMs": 2.479914
+    },
+    {
+      "id": "http-undefined",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/fixture/undefined",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-undefined",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{}",
+        "body": {
+          "kind": "json",
+          "value": {}
+        },
+        "durationMs": 2.294472
+      },
+      "durationMs": 2.534158
+    },
+    {
+      "id": "http-array",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/fixture/array",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-array",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "[null,false,0,\"\"]",
+        "body": {
+          "kind": "json",
+          "value": [
+            null,
+            false,
+            0,
+            ""
+          ]
+        },
+        "durationMs": 1.710653
+      },
+      "durationMs": 1.748815
+    },
+    {
+      "id": "http-empty-body",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-empty-body",
+          "x-forwarded-for": "192.0.2.1",
+          "content-type": "application/json",
+          "content-length": 0
+        },
+        "body": ""
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{}",
+        "body": {
+          "kind": "json",
+          "value": {}
+        },
+        "durationMs": 2.019579
+      },
+      "durationMs": 2.078652
+    },
+    {
+      "id": "http-json",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-json",
+          "x-forwarded-for": "192.0.2.1",
+          "content-type": "application/json",
+          "content-length": 37
+        },
+        "body": "{\"value\":false,\"empty\":null,\"zero\":0}"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"value\":false,\"empty\":null,\"zero\":0}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "value": false,
+            "empty": null,
+            "zero": 0
+          }
+        },
+        "durationMs": 1.287618
+      },
+      "durationMs": 1.323045
+    },
+    {
+      "id": "http-malformed-json",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-malformed-json",
+          "x-forwarded-for": "192.0.2.1",
+          "content-type": "application/json",
+          "content-length": 1
+        },
+        "body": "{"
+      },
+      "response": {
+        "status": 500,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"d95eb4dd-cc4a-4d7a-a2d3-e94036e775b5\",\"ts\":1527681600000,\"data\":{\"message\":\"invalid JSON body: Expected property name or '}' in JSON at position 1 (line 1 column 2)\",\"code\":\"INTERNAL\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "d95eb4dd-cc4a-4d7a-a2d3-e94036e775b5",
+            "ts": 1527681600000,
+            "data": {
+              "message": "invalid JSON body: Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+              "code": "INTERNAL"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 2.38806
+      },
+      "durationMs": 2.437434
+    },
+    {
+      "id": "http-form",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "POST",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-form",
+          "x-forwarded-for": "192.0.2.1",
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": 11
+        },
+        "body": "a=one&a=two"
+      },
+      "response": {
+        "status": 500,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"62958b13-f1ca-45ae-be65-9e41ae79c0b1\",\"ts\":1527681600000,\"data\":{\"message\":\"invalid JSON body: Unexpected token 'a', \\\"a=one&a=two\\\" is not valid JSON\",\"code\":\"INTERNAL\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "62958b13-f1ca-45ae-be65-9e41ae79c0b1",
+            "ts": 1527681600000,
+            "data": {
+              "message": "invalid JSON body: Unexpected token 'a', \"a=one&a=two\" is not valid JSON",
+              "code": "INTERNAL"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.950608
+      },
+      "durationMs": 2.038165
+    },
+    {
+      "id": "http-not-found",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/missing",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-not-found",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"0e9853b9-00f5-4d6c-b8ca-a41c72bd6b79\",\"ts\":1527681600000,\"data\":{\"message\":\"no route GET /missing\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "0e9853b9-00f5-4d6c-b8ca-a41c72bd6b79",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route GET /missing",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 2.166789
+      },
+      "durationMs": 2.206976
+    },
+    {
+      "id": "http-typed-error",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/fixture/error",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-typed-error",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 500,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"4cb2016a-6cdd-433a-b75d-cc457a1617cd\",\"ts\":1527681600000,\"data\":{\"message\":\"fixture teapot\",\"code\":\"INTERNAL\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "4cb2016a-6cdd-433a-b75d-cc457a1617cd",
+            "ts": 1527681600000,
+            "data": {
+              "message": "fixture teapot",
+              "code": "INTERNAL"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.637873
+      },
+      "durationMs": 1.681387
+    },
+    {
+      "id": "http-trailing-slash",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/fixture/null/",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-trailing-slash",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"77569070-0a19-43a1-a756-2be5f5879303\",\"ts\":1527681600000,\"data\":{\"message\":\"no route GET /fixture/null/\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "77569070-0a19-43a1-a756-2be5f5879303",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route GET /fixture/null/",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.156249
+      },
+      "durationMs": 1.190743
+    },
+    {
+      "id": "http-head",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "HEAD",
+        "path": "/fixture/null",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-head",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close"
+        },
+        "rawBody": "",
+        "body": {
+          "kind": "empty",
+          "value": ""
+        },
+        "durationMs": 1.163452
+      },
+      "durationMs": 1.197387
+    },
+    {
+      "id": "http-options",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "OPTIONS",
+        "path": "/fixture/echo",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-options",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"d306b48e-43ef-47c6-939e-4b9c1e32d62d\",\"ts\":1527681600000,\"data\":{\"message\":\"no route OPTIONS /fixture/echo\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "d306b48e-43ef-47c6-939e-4b9c1e32d62d",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route OPTIONS /fixture/echo",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.390203
+      },
+      "durationMs": 1.428406
+    },
+    {
+      "id": "http-auth-required",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/protected/null",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-auth-required",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{}",
+        "body": {
+          "kind": "json",
+          "value": {}
+        },
+        "durationMs": 0.924257
+      },
+      "durationMs": 0.96323
+    },
+    {
+      "id": "http-auth-valid",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/protected/null",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "http-auth-valid",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{}",
+        "body": {
+          "kind": "json",
+          "value": {}
+        },
+        "durationMs": 1.018326
+      },
+      "durationMs": 1.475925
+    },
+    {
+      "id": "skills-legacy",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/skills/fixture-robot",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "skills-legacy",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"6a251d49-e074-4329-a171-a147c2eaf78b\",\"ts\":1527681600000,\"data\":{\"message\":\"no route GET /skills/fixture-robot\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "6a251d49-e074-4329-a171-a147c2eaf78b",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route GET /skills/fixture-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.49857
+      },
+      "durationMs": 1.533736
+    },
+    {
+      "id": "skills-v1",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/v1/skills/fixture-robot",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "skills-v1",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"52442fa1-f813-4a7e-809c-9f918998812e\",\"ts\":1527681600000,\"data\":{\"message\":\"no route GET /v1/skills/fixture-robot\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "52442fa1-f813-4a7e-809c-9f918998812e",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route GET /v1/skills/fixture-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.198759
+      },
+      "durationMs": 1.240909
+    },
+    {
+      "id": "settings-legacy",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/skills/settings/fixture-robot",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "settings-legacy",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"0dc79ac5-1fde-414c-b58a-7bfed9586375\",\"ts\":1527681600000,\"data\":{\"message\":\"no route GET /skills/settings/fixture-robot\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "0dc79ac5-1fde-414c-b58a-7bfed9586375",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route GET /skills/settings/fixture-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 1.066788
+      },
+      "durationMs": 1.102025
+    },
+    {
+      "id": "settings-v1",
+      "transport": "HTTP",
+      "effects": [],
+      "input": {
+        "method": "GET",
+        "path": "/v1/skills/settings/fixture-robot",
+        "headers": {
+          "connection": "close",
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "settings-v1",
+          "x-forwarded-for": "192.0.2.1"
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "date": "Wed, 30 May 2018 12:00:00 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "connection": "close",
+          "transfer-encoding": "chunked"
+        },
+        "rawBody": "{\"type\":\"ERROR\",\"msgID\":\"8c585e1a-b676-4cb3-8f45-42ba2cc69c32\",\"ts\":1527681600000,\"data\":{\"message\":\"no route GET /v1/skills/settings/fixture-robot\",\"code\":\"NOT_FOUND\"},\"final\":true}",
+        "body": {
+          "kind": "json",
+          "value": {
+            "type": "ERROR",
+            "msgID": "8c585e1a-b676-4cb3-8f45-42ba2cc69c32",
+            "ts": 1527681600000,
+            "data": {
+              "message": "no route GET /v1/skills/settings/fixture-robot",
+              "code": "NOT_FOUND"
+            },
+            "final": true
+          }
+        },
+        "durationMs": 2.520312
+      },
+      "durationMs": 2.56662
+    },
+    {
+      "id": "listen-launch",
+      "transport": "WS",
+      "effects": [
+        {
+          "order": 0,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/parse",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-launch",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "155"
+          },
+          "rawBody": "{\"type\":\"NLU\",\"msgID\":\"98389d81-1f81-4ef6-834b-6baa934d043d\",\"ts\":1527681600000,\"data\":{\"text\":\"matched utterance\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "NLU",
+              "msgID": "98389d81-1f81-4ef6-834b-6baa934d043d",
+              "ts": 1527681600000,
+              "data": {
+                "text": "matched utterance",
+                "rules": [
+                  "launch"
+                ],
+                "loop": {
+                  "users": []
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "NLU",
+              "msgID": "fixture-parser-response",
+              "ts": 1527681600000,
+              "data": {
+                "intent": "matchingIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              }
+            }
+          },
+          "durationMs": 0.379
+        },
+        {
+          "order": 1,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/skill",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-launch",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "496"
+          },
+          "rawBody": "{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"8aecb461-feda-487f-a25c-3d8513d6eab0\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"192.0.2.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\"},\"result\":{\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"memo\":{\"route\":\"fixture\",\"enabled\":false}}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "LISTEN_LAUNCH",
+              "msgID": "8aecb461-feda-487f-a25c-3d8513d6eab0",
+              "ts": 1527681600000,
+              "data": {
+                "general": {
+                  "accountID": "fixture-account",
+                  "robotID": "fixture-robot",
+                  "lang": "en",
+                  "release": "1.8.0",
+                  "remoteAddress": "192.0.2.1"
+                },
+                "runtime": {
+                  "perception": {
+                    "speaker": null
+                  }
+                },
+                "skill": {
+                  "id": "skill1"
+                },
+                "result": {
+                  "nlu": {
+                    "intent": "matchingIntent",
+                    "entities": {
+                      "fixtureEntity": "keep every field"
+                    },
+                    "rules": [
+                      "launch"
+                    ]
+                  },
+                  "asr": {
+                    "text": "matched utterance",
+                    "confidence": 1
+                  },
+                  "memo": {
+                    "route": "fixture",
+                    "enabled": false
+                  }
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "SKILL_ACTION",
+              "msgID": "fixture-skill-response",
+              "ts": 1527681600000,
+              "data": {
+                "skill": {
+                  "id": "skill1",
+                  "session": {
+                    "id": "fixture-session",
+                    "nodeID": 7,
+                    "data": {
+                      "answer": "preserve me",
+                      "turn": 1
+                    },
+                    "trace": [
+                      "fixture-node"
+                    ]
+                  }
+                },
+                "action": {
+                  "type": "JCP",
+                  "config": {
+                    "version": "2.0.0",
+                    "jcp": {
+                      "type": "SLIM",
+                      "config": {
+                        "play": {
+                          "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                        }
+                      }
+                    }
+                  }
+                },
+                "analytics": {
+                  "skill1": [
+                    {
+                      "event": "Fixture action",
+                      "properties": {
+                        "nullValue": null,
+                        "count": 0,
+                        "enabled": false,
+                        "requestType": "LISTEN_LAUNCH",
+                        "continued": false
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "durationMs": 0.411783
+        },
+        {
+          "order": 2,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/skill/launch",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-launch",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "117"
+          },
+          "rawBody": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"matchingIntent\",\"personIDs\":[]}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "robotID": "fixture-robot",
+              "sessionID": "fixture-session",
+              "skillID": "skill1",
+              "intent": "matchingIntent",
+              "personIDs": []
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {}
+          },
+          "durationMs": 0.375794
+        }
+      ],
+      "input": {
+        "path": "/v1/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-launch",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-input-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-input-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "matched utterance"
+            },
+            "msgID": "fixture-input-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"0e5c8bd9-7c80-422b-9794-e3aaa7da4125\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "0e5c8bd9-7c80-422b-9794-e3aaa7da4125",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 12.026835
+        },
+        {
+          "raw": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"950b0704-6fce-4f8a-a537-11a873d29272\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "950b0704-6fce-4f8a-a537-11a873d29272",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 12.052274
+        },
+        {
+          "raw": "{\"type\":\"LISTEN\",\"msgID\":\"8da23d66-2adc-44a0-a18c-18d9c1b2aeae\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":true,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "message": {
+            "type": "LISTEN",
+            "msgID": "8da23d66-2adc-44a0-a18c-18d9c1b2aeae",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "matched utterance",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "matchingIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": true,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          },
+          "receivedAtMs": 22.970662
+        },
+        {
+          "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"fixture-skill-response\",\"ts\":1527681600000,\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"nodeID\":7,\"data\":{\"answer\":\"preserve me\",\"turn\":1},\"trace\":[\"fixture-node\"]}},\"action\":{\"type\":\"JCP\",\"config\":{\"version\":\"2.0.0\",\"jcp\":{\"type\":\"SLIM\",\"config\":{\"play\":{\"esml\":\"<speak>Fixture answer <break size=\\\"0.2\\\"/> intact.</speak>\"}}}}},\"analytics\":{\"skill1\":[{\"event\":\"Fixture action\",\"properties\":{\"nullValue\":null,\"count\":0,\"enabled\":false,\"requestType\":\"LISTEN_LAUNCH\",\"continued\":false}}]}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "message": {
+            "type": "SKILL_ACTION",
+            "msgID": "fixture-skill-response",
+            "ts": 1527681600000,
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "nodeID": 7,
+                  "data": {
+                    "answer": "preserve me",
+                    "turn": 1
+                  },
+                  "trace": [
+                    "fixture-node"
+                  ]
+                }
+              },
+              "action": {
+                "type": "JCP",
+                "config": {
+                  "version": "2.0.0",
+                  "jcp": {
+                    "type": "SLIM",
+                    "config": {
+                      "play": {
+                        "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                      }
+                    }
+                  }
+                }
+              },
+              "analytics": {
+                "skill1": [
+                  {
+                    "event": "Fixture action",
+                    "properties": {
+                      "nullValue": null,
+                      "count": 0,
+                      "enabled": false,
+                      "requestType": "LISTEN_LAUNCH",
+                      "continued": false
+                    }
+                  }
+                ]
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          },
+          "receivedAtMs": 27.239867
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "client",
+      "opened": true,
+      "openAfterFinal": true,
+      "holdAfterFinalMs": 30.369587,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "durationMs": 59.878939
+    },
+    {
+      "id": "listen-relaunch",
+      "transport": "WS",
+      "effects": [
+        {
+          "order": 3,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/parse",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-relaunch",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "155"
+          },
+          "rawBody": "{\"type\":\"NLU\",\"msgID\":\"8a91ce0f-6d89-496b-8914-d3f796d3dcea\",\"ts\":1527681600000,\"data\":{\"text\":\"matched utterance\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "NLU",
+              "msgID": "8a91ce0f-6d89-496b-8914-d3f796d3dcea",
+              "ts": 1527681600000,
+              "data": {
+                "text": "matched utterance",
+                "rules": [
+                  "launch"
+                ],
+                "loop": {
+                  "users": []
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "NLU",
+              "msgID": "fixture-parser-response",
+              "ts": 1527681600000,
+              "data": {
+                "intent": "matchingIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              }
+            }
+          },
+          "durationMs": 0.156087
+        },
+        {
+          "order": 4,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/skill",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-relaunch",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "496"
+          },
+          "rawBody": "{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"7e7423ca-f5b3-44dc-8618-a52bbbdaeed4\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"192.0.2.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\"},\"result\":{\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"memo\":{\"route\":\"fixture\",\"enabled\":false}}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "LISTEN_LAUNCH",
+              "msgID": "7e7423ca-f5b3-44dc-8618-a52bbbdaeed4",
+              "ts": 1527681600000,
+              "data": {
+                "general": {
+                  "accountID": "fixture-account",
+                  "robotID": "fixture-robot",
+                  "lang": "en",
+                  "release": "1.8.0",
+                  "remoteAddress": "192.0.2.1"
+                },
+                "runtime": {
+                  "perception": {
+                    "speaker": null
+                  }
+                },
+                "skill": {
+                  "id": "skill1"
+                },
+                "result": {
+                  "nlu": {
+                    "intent": "matchingIntent",
+                    "entities": {
+                      "fixtureEntity": "keep every field"
+                    },
+                    "rules": [
+                      "launch"
+                    ]
+                  },
+                  "asr": {
+                    "text": "matched utterance",
+                    "confidence": 1
+                  },
+                  "memo": {
+                    "route": "fixture",
+                    "enabled": false
+                  }
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "SKILL_ACTION",
+              "msgID": "fixture-skill-response",
+              "ts": 1527681600000,
+              "data": {
+                "skill": {
+                  "id": "skill1",
+                  "session": {
+                    "id": "fixture-session",
+                    "nodeID": 7,
+                    "data": {
+                      "answer": "preserve me",
+                      "turn": 1
+                    },
+                    "trace": [
+                      "fixture-node"
+                    ]
+                  }
+                },
+                "action": {
+                  "type": "JCP",
+                  "config": {
+                    "version": "2.0.0",
+                    "jcp": {
+                      "type": "SLIM",
+                      "config": {
+                        "play": {
+                          "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                        }
+                      }
+                    }
+                  }
+                },
+                "analytics": {
+                  "skill1": [
+                    {
+                      "event": "Fixture action",
+                      "properties": {
+                        "nullValue": null,
+                        "count": 0,
+                        "enabled": false,
+                        "requestType": "LISTEN_LAUNCH",
+                        "continued": false
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "durationMs": 0.210181
+        },
+        {
+          "order": 5,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/skill/launch",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-relaunch",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "117"
+          },
+          "rawBody": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"matchingIntent\",\"personIDs\":[]}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "robotID": "fixture-robot",
+              "sessionID": "fixture-session",
+              "skillID": "skill1",
+              "intent": "matchingIntent",
+              "personIDs": []
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {}
+          },
+          "durationMs": 0.136009
+        }
+      ],
+      "input": {
+        "path": "/v1/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-relaunch",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-input-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "nodeID": 7,
+                  "data": {
+                    "answer": "preserve me",
+                    "turn": 1
+                  },
+                  "trace": [
+                    "fixture-node"
+                  ]
+                }
+              }
+            },
+            "msgID": "fixture-input-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "matched utterance"
+            },
+            "msgID": "fixture-input-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"0a3f4632-839a-4bff-a5f8-e87b75ad29fd\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "0a3f4632-839a-4bff-a5f8-e87b75ad29fd",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.6778
+        },
+        {
+          "raw": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"ed77989b-ad8e-41de-a4d1-01d88ab71775\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "ed77989b-ad8e-41de-a4d1-01d88ab71775",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.692518
+        },
+        {
+          "raw": "{\"type\":\"LISTEN\",\"msgID\":\"39737335-b08f-490a-a661-9a0db4a18e36\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":true,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "message": {
+            "type": "LISTEN",
+            "msgID": "39737335-b08f-490a-a661-9a0db4a18e36",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "matched utterance",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "matchingIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": true,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          },
+          "receivedAtMs": 5.205345
+        },
+        {
+          "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"fixture-skill-response\",\"ts\":1527681600000,\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"nodeID\":7,\"data\":{\"answer\":\"preserve me\",\"turn\":1},\"trace\":[\"fixture-node\"]}},\"action\":{\"type\":\"JCP\",\"config\":{\"version\":\"2.0.0\",\"jcp\":{\"type\":\"SLIM\",\"config\":{\"play\":{\"esml\":\"<speak>Fixture answer <break size=\\\"0.2\\\"/> intact.</speak>\"}}}}},\"analytics\":{\"skill1\":[{\"event\":\"Fixture action\",\"properties\":{\"nullValue\":null,\"count\":0,\"enabled\":false,\"requestType\":\"LISTEN_LAUNCH\",\"continued\":false}}]}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "message": {
+            "type": "SKILL_ACTION",
+            "msgID": "fixture-skill-response",
+            "ts": 1527681600000,
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "nodeID": 7,
+                  "data": {
+                    "answer": "preserve me",
+                    "turn": 1
+                  },
+                  "trace": [
+                    "fixture-node"
+                  ]
+                }
+              },
+              "action": {
+                "type": "JCP",
+                "config": {
+                  "version": "2.0.0",
+                  "jcp": {
+                    "type": "SLIM",
+                    "config": {
+                      "play": {
+                        "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                      }
+                    }
+                  }
+                }
+              },
+              "analytics": {
+                "skill1": [
+                  {
+                    "event": "Fixture action",
+                    "properties": {
+                      "nullValue": null,
+                      "count": 0,
+                      "enabled": false,
+                      "requestType": "LISTEN_LAUNCH",
+                      "continued": false
+                    }
+                  }
+                ]
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          },
+          "receivedAtMs": 6.919084
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "client",
+      "opened": true,
+      "openAfterFinal": true,
+      "holdAfterFinalMs": 30.133459,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "durationMs": 38.31867
+    },
+    {
+      "id": "listen-update",
+      "transport": "WS",
+      "effects": [
+        {
+          "order": 6,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/parse",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-update",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "150"
+          },
+          "rawBody": "{\"type\":\"NLU\",\"msgID\":\"5f59236b-a126-47c9-927f-7eb7fae80ca6\",\"ts\":1527681600000,\"data\":{\"text\":\"local answer\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "NLU",
+              "msgID": "5f59236b-a126-47c9-927f-7eb7fae80ca6",
+              "ts": 1527681600000,
+              "data": {
+                "text": "local answer",
+                "rules": [
+                  "launch"
+                ],
+                "loop": {
+                  "users": []
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "NLU",
+              "msgID": "fixture-parser-response",
+              "ts": 1527681600000,
+              "data": {
+                "intent": "decoyIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              }
+            }
+          },
+          "durationMs": 0.22594
+        },
+        {
+          "order": 7,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/skill",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-update",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "557"
+          },
+          "rawBody": "{\"type\":\"LISTEN_UPDATE\",\"msgID\":\"5b509239-a34c-4a4f-8bfa-53e74155c9f2\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"192.0.2.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"nodeID\":7,\"data\":{\"answer\":\"preserve me\",\"turn\":1},\"trace\":[\"fixture-node\"]}},\"result\":{\"nlu\":{\"intent\":\"decoyIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"local answer\",\"confidence\":1}}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "LISTEN_UPDATE",
+              "msgID": "5b509239-a34c-4a4f-8bfa-53e74155c9f2",
+              "ts": 1527681600000,
+              "data": {
+                "general": {
+                  "accountID": "fixture-account",
+                  "robotID": "fixture-robot",
+                  "lang": "en",
+                  "release": "1.8.0",
+                  "remoteAddress": "192.0.2.1"
+                },
+                "runtime": {
+                  "perception": {
+                    "speaker": null
+                  }
+                },
+                "skill": {
+                  "id": "skill1",
+                  "session": {
+                    "id": "fixture-session",
+                    "nodeID": 7,
+                    "data": {
+                      "answer": "preserve me",
+                      "turn": 1
+                    },
+                    "trace": [
+                      "fixture-node"
+                    ]
+                  }
+                },
+                "result": {
+                  "nlu": {
+                    "intent": "decoyIntent",
+                    "entities": {
+                      "fixtureEntity": "keep every field"
+                    },
+                    "rules": [
+                      "launch"
+                    ]
+                  },
+                  "asr": {
+                    "text": "local answer",
+                    "confidence": 1
+                  }
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "SKILL_ACTION",
+              "msgID": "fixture-skill-response",
+              "ts": 1527681600000,
+              "data": {
+                "skill": {
+                  "id": "skill1",
+                  "session": {
+                    "id": "fixture-session",
+                    "nodeID": 8,
+                    "data": {
+                      "answer": "preserve me",
+                      "turn": 2
+                    },
+                    "trace": [
+                      "fixture-node"
+                    ]
+                  }
+                },
+                "action": {
+                  "type": "JCP",
+                  "config": {
+                    "version": "2.0.0",
+                    "jcp": {
+                      "type": "SLIM",
+                      "config": {
+                        "play": {
+                          "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                        }
+                      }
+                    }
+                  }
+                },
+                "analytics": {
+                  "skill1": [
+                    {
+                      "event": "Fixture action",
+                      "properties": {
+                        "nullValue": null,
+                        "count": 0,
+                        "enabled": false,
+                        "requestType": "LISTEN_UPDATE",
+                        "continued": true
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "durationMs": 0.164051
+        },
+        {
+          "order": 8,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/skill/launch",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-update",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "114"
+          },
+          "rawBody": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"decoyIntent\",\"personIDs\":[]}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "robotID": "fixture-robot",
+              "sessionID": "fixture-session",
+              "skillID": "skill1",
+              "intent": "decoyIntent",
+              "personIDs": []
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {}
+          },
+          "durationMs": 0.168741
+        }
+      ],
+      "input": {
+        "path": "/v1/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-update",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-input-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "nodeID": 7,
+                  "data": {
+                    "answer": "preserve me",
+                    "turn": 1
+                  },
+                  "trace": [
+                    "fixture-node"
+                  ]
+                }
+              }
+            },
+            "msgID": "fixture-input-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "local answer"
+            },
+            "msgID": "fixture-input-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"47bdbac4-e9ad-4fc4-9540-eb82143e9784\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "47bdbac4-e9ad-4fc4-9540-eb82143e9784",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.394372
+        },
+        {
+          "raw": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"0062a953-5281-4199-b256-f5548b8cb9c7\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "0062a953-5281-4199-b256-f5548b8cb9c7",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.409611
+        },
+        {
+          "raw": "{\"type\":\"LISTEN\",\"msgID\":\"c76e1df8-7868-4b0b-a03a-c5c2ebd043d6\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"local answer\",\"confidence\":1},\"nlu\":{\"intent\":\"decoyIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":false,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "message": {
+            "type": "LISTEN",
+            "msgID": "c76e1df8-7868-4b0b-a03a-c5c2ebd043d6",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "local answer",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "decoyIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": false,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          },
+          "receivedAtMs": 4.19754
+        },
+        {
+          "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"fixture-skill-response\",\"ts\":1527681600000,\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"nodeID\":8,\"data\":{\"answer\":\"preserve me\",\"turn\":2},\"trace\":[\"fixture-node\"]}},\"action\":{\"type\":\"JCP\",\"config\":{\"version\":\"2.0.0\",\"jcp\":{\"type\":\"SLIM\",\"config\":{\"play\":{\"esml\":\"<speak>Fixture answer <break size=\\\"0.2\\\"/> intact.</speak>\"}}}}},\"analytics\":{\"skill1\":[{\"event\":\"Fixture action\",\"properties\":{\"nullValue\":null,\"count\":0,\"enabled\":false,\"requestType\":\"LISTEN_UPDATE\",\"continued\":true}}]}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "message": {
+            "type": "SKILL_ACTION",
+            "msgID": "fixture-skill-response",
+            "ts": 1527681600000,
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "nodeID": 8,
+                  "data": {
+                    "answer": "preserve me",
+                    "turn": 2
+                  },
+                  "trace": [
+                    "fixture-node"
+                  ]
+                }
+              },
+              "action": {
+                "type": "JCP",
+                "config": {
+                  "version": "2.0.0",
+                  "jcp": {
+                    "type": "SLIM",
+                    "config": {
+                      "play": {
+                        "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                      }
+                    }
+                  }
+                }
+              },
+              "analytics": {
+                "skill1": [
+                  {
+                    "event": "Fixture action",
+                    "properties": {
+                      "nullValue": null,
+                      "count": 0,
+                      "enabled": false,
+                      "requestType": "LISTEN_UPDATE",
+                      "continued": true
+                    }
+                  }
+                ]
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          },
+          "receivedAtMs": 6.094747
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "client",
+      "opened": true,
+      "openAfterFinal": true,
+      "holdAfterFinalMs": 30.473855,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "durationMs": 37.524999
+    },
+    {
+      "id": "listen-no-match",
+      "transport": "WS",
+      "effects": [
+        {
+          "order": 9,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/parse",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-no-match",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "156"
+          },
+          "rawBody": "{\"type\":\"NLU\",\"msgID\":\"3841f1f2-c82a-4f5b-b3e3-c7b0e5dfcd07\",\"ts\":1527681600000,\"data\":{\"text\":\"no matching intent\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "NLU",
+              "msgID": "3841f1f2-c82a-4f5b-b3e3-c7b0e5dfcd07",
+              "ts": 1527681600000,
+              "data": {
+                "text": "no matching intent",
+                "rules": [
+                  "launch"
+                ],
+                "loop": {
+                  "users": []
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "NLU",
+              "msgID": "fixture-parser-response",
+              "ts": 1527681600000,
+              "data": {
+                "intent": null,
+                "entities": null,
+                "rules": [
+                  "launch"
+                ]
+              }
+            }
+          },
+          "durationMs": 0.231631
+        }
+      ],
+      "input": {
+        "path": "/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-no-match",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-input-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-input-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "no matching intent"
+            },
+            "msgID": "fixture-input-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"7a90a45b-0717-432e-8282-a06f281b286a\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "7a90a45b-0717-432e-8282-a06f281b286a",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 3.252805
+        },
+        {
+          "raw": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"25fb17a3-54d4-488d-a67e-574ab4b27b14\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "25fb17a3-54d4-488d-a67e-574ab4b27b14",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 3.262363
+        },
+        {
+          "raw": "{\"type\":\"LISTEN\",\"msgID\":\"64da144b-9ac2-419d-8804-1d2814aa7a1f\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"no matching intent\",\"confidence\":1},\"nlu\":{\"intent\":null,\"entities\":null,\"rules\":[\"launch\"]},\"match\":null},\"final\":true,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "message": {
+            "type": "LISTEN",
+            "msgID": "64da144b-9ac2-419d-8804-1d2814aa7a1f",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "no matching intent",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": null,
+                "entities": null,
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": null
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          },
+          "receivedAtMs": 4.509243
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "client",
+      "opened": true,
+      "openAfterFinal": true,
+      "holdAfterFinalMs": 30.217958,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "durationMs": 36.207555
+    },
+    {
+      "id": "listen-provider-error",
+      "transport": "WS",
+      "effects": [
+        {
+          "order": 10,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/parse",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-provider-error",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "154"
+          },
+          "rawBody": "{\"type\":\"NLU\",\"msgID\":\"06d2e731-bb2f-42f6-a466-e0a1128771de\",\"ts\":1527681600000,\"data\":{\"text\":\"provider failure\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "NLU",
+              "msgID": "06d2e731-bb2f-42f6-a466-e0a1128771de",
+              "ts": 1527681600000,
+              "data": {
+                "text": "provider failure",
+                "rules": [
+                  "launch"
+                ],
+                "loop": {
+                  "users": []
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 503,
+            "body": {
+              "message": "fixture NLU unavailable"
+            }
+          },
+          "durationMs": 0.159964
+        }
+      ],
+      "input": {
+        "path": "/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-provider-error",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-input-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-input-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "provider failure"
+            },
+            "msgID": "fixture-input-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"26ea2125-ef5a-48ec-8e66-6ddc7e2b5e61\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "26ea2125-ef5a-48ec-8e66-6ddc7e2b5e61",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.649928
+        },
+        {
+          "raw": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"b9c3b485-1228-48d1-ba5e-82b230c30ac6\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "b9c3b485-1228-48d1-ba5e-82b230c30ac6",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.658875
+        },
+        {
+          "raw": "{\"type\":\"ERROR\",\"msgID\":\"47530c8c-d340-4dbb-8509-aff64d643c95\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"parser 503\"},\"timings\":{\"total\":0}}",
+          "message": {
+            "type": "ERROR",
+            "msgID": "47530c8c-d340-4dbb-8509-aff64d643c95",
+            "ts": 1527681600000,
+            "final": true,
+            "data": {
+              "message": "parser 503"
+            },
+            "timings": {
+              "total": 0
+            }
+          },
+          "receivedAtMs": 3.707169
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "client",
+      "opened": true,
+      "openAfterFinal": true,
+      "holdAfterFinalMs": 30.185807,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "durationMs": 35.166908
+    },
+    {
+      "id": "listen-auth-required",
+      "transport": "WS",
+      "effects": [],
+      "input": {
+        "path": "/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-auth-required",
+          "x-forwarded-for": "192.0.2.1"
+        },
+        "messages": []
+      },
+      "frames": [],
+      "terminalCount": 0,
+      "closeOrigin": "server",
+      "upgrade": {
+        "status": 401,
+        "statusMessage": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "25"
+        },
+        "rawBody": "Authorization is required",
+        "body": {
+          "kind": "text",
+          "value": "Authorization is required"
+        }
+      },
+      "durationMs": 1.694011,
+      "close": {
+        "code": 1006,
+        "reason": ""
+      }
+    },
+    {
+      "id": "listen-auth-invalid",
+      "transport": "WS",
+      "effects": [],
+      "input": {
+        "path": "/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-auth-invalid",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.5VSu8PrA-aIN4nyb_wv6EwG98HFIRJySv1zTSvQ29EU"
+        },
+        "messages": []
+      },
+      "frames": [],
+      "terminalCount": 0,
+      "closeOrigin": "server",
+      "upgrade": {
+        "status": 401,
+        "statusMessage": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "17"
+        },
+        "rawBody": "invalid signature",
+        "body": {
+          "kind": "text",
+          "value": "invalid signature"
+        }
+      },
+      "durationMs": 1.452972,
+      "close": {
+        "code": 1006,
+        "reason": ""
+      }
+    },
+    {
+      "id": "listen-malformed-frame",
+      "transport": "WS",
+      "effects": [],
+      "input": {
+        "path": "/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-malformed-frame",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          "{"
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"ERROR\",\"msgID\":\"0c06bf6b-0e08-4910-b4ca-03487a10a265\",\"ts\":1527681600000,\"final\":true,\"data\":{\"message\":\"Invalid JSON arrived into socket: {\"},\"timings\":{\"total\":0}}",
+          "message": {
+            "type": "ERROR",
+            "msgID": "0c06bf6b-0e08-4910-b4ca-03487a10a265",
+            "ts": 1527681600000,
+            "final": true,
+            "data": {
+              "message": "Invalid JSON arrived into socket: {"
+            },
+            "timings": {
+              "total": 0
+            }
+          },
+          "receivedAtMs": 2.204222
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "client",
+      "opened": true,
+      "openAfterFinal": true,
+      "holdAfterFinalMs": 30.187621,
+      "close": {
+        "code": 1000,
+        "reason": "fixture complete"
+      },
+      "durationMs": 33.469161
+    },
+    {
+      "id": "listen-final-lifetime",
+      "transport": "WS",
+      "effects": [
+        {
+          "order": 11,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/parse",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-final-lifetime",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "155"
+          },
+          "rawBody": "{\"type\":\"NLU\",\"msgID\":\"d13c79b9-e994-44b5-8d31-73c56d687b4a\",\"ts\":1527681600000,\"data\":{\"text\":\"matched utterance\",\"rules\":[\"launch\"],\"loop\":{\"users\":[]}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "NLU",
+              "msgID": "d13c79b9-e994-44b5-8d31-73c56d687b4a",
+              "ts": 1527681600000,
+              "data": {
+                "text": "matched utterance",
+                "rules": [
+                  "launch"
+                ],
+                "loop": {
+                  "users": []
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "NLU",
+              "msgID": "fixture-parser-response",
+              "ts": 1527681600000,
+              "data": {
+                "intent": "matchingIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              }
+            }
+          },
+          "durationMs": 0.140567
+        },
+        {
+          "order": 12,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/skill",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-final-lifetime",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "496"
+          },
+          "rawBody": "{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"3c35b2cb-edf6-4498-904d-371d2463eed0\",\"ts\":1527681600000,\"data\":{\"general\":{\"accountID\":\"fixture-account\",\"robotID\":\"fixture-robot\",\"lang\":\"en\",\"release\":\"1.8.0\",\"remoteAddress\":\"192.0.2.1\"},\"runtime\":{\"perception\":{\"speaker\":null}},\"skill\":{\"id\":\"skill1\"},\"result\":{\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"memo\":{\"route\":\"fixture\",\"enabled\":false}}}}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "type": "LISTEN_LAUNCH",
+              "msgID": "3c35b2cb-edf6-4498-904d-371d2463eed0",
+              "ts": 1527681600000,
+              "data": {
+                "general": {
+                  "accountID": "fixture-account",
+                  "robotID": "fixture-robot",
+                  "lang": "en",
+                  "release": "1.8.0",
+                  "remoteAddress": "192.0.2.1"
+                },
+                "runtime": {
+                  "perception": {
+                    "speaker": null
+                  }
+                },
+                "skill": {
+                  "id": "skill1"
+                },
+                "result": {
+                  "nlu": {
+                    "intent": "matchingIntent",
+                    "entities": {
+                      "fixtureEntity": "keep every field"
+                    },
+                    "rules": [
+                      "launch"
+                    ]
+                  },
+                  "asr": {
+                    "text": "matched utterance",
+                    "confidence": 1
+                  },
+                  "memo": {
+                    "route": "fixture",
+                    "enabled": false
+                  }
+                }
+              }
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "type": "SKILL_ACTION",
+              "msgID": "fixture-skill-response",
+              "ts": 1527681600000,
+              "data": {
+                "skill": {
+                  "id": "skill1",
+                  "session": {
+                    "id": "fixture-session",
+                    "nodeID": 7,
+                    "data": {
+                      "answer": "preserve me",
+                      "turn": 1
+                    },
+                    "trace": [
+                      "fixture-node"
+                    ]
+                  }
+                },
+                "action": {
+                  "type": "JCP",
+                  "config": {
+                    "version": "2.0.0",
+                    "jcp": {
+                      "type": "SLIM",
+                      "config": {
+                        "play": {
+                          "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                        }
+                      }
+                    }
+                  }
+                },
+                "analytics": {
+                  "skill1": [
+                    {
+                      "event": "Fixture action",
+                      "properties": {
+                        "nullValue": null,
+                        "count": 0,
+                        "enabled": false,
+                        "requestType": "LISTEN_LAUNCH",
+                        "continued": false
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "durationMs": 0.153361
+        },
+        {
+          "order": 13,
+          "attribution": "trace-header",
+          "method": "POST",
+          "path": "/v1/skill/launch",
+          "headers": {
+            "host": "127.0.0.1:43229",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "x-jibo-transid": "listen-final-lifetime",
+            "x-jibo-robotid": "fixture-robot",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "117"
+          },
+          "rawBody": "{\"robotID\":\"fixture-robot\",\"sessionID\":\"fixture-session\",\"skillID\":\"skill1\",\"intent\":\"matchingIntent\",\"personIDs\":[]}",
+          "body": {
+            "kind": "json",
+            "value": {
+              "robotID": "fixture-robot",
+              "sessionID": "fixture-session",
+              "skillID": "skill1",
+              "intent": "matchingIntent",
+              "personIDs": []
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {}
+          },
+          "durationMs": 0.165855
+        }
+      ],
+      "input": {
+        "path": "/listen",
+        "headers": {
+          "x-jibo-robotid": "fixture-robot",
+          "x-jibo-transid": "listen-final-lifetime",
+          "x-forwarded-for": "192.0.2.1",
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZpeHR1cmUtYWNjb3VudCIsImZyaWVuZGx5SWQiOiJmaXh0dXJlLXJvYm90IiwiZXhwIjoxNTI3Njg1MjAwfQ.ob6kKJuOOXACh8izvq2BGSJPu6F9PCyA_LIpR86PLxc"
+        },
+        "messages": [
+          {
+            "type": "LISTEN",
+            "data": {
+              "rules": [
+                "launch"
+              ],
+              "mode": "CLIENT_ASR",
+              "lang": "en-US"
+            },
+            "msgID": "fixture-input-LISTEN",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CONTEXT",
+            "data": {
+              "general": {
+                "accountID": "fixture-account",
+                "robotID": "fixture-robot"
+              },
+              "runtime": {
+                "perception": {
+                  "speaker": null
+                }
+              },
+              "skill": {}
+            },
+            "msgID": "fixture-input-CONTEXT",
+            "ts": 1527681600000
+          },
+          {
+            "type": "CLIENT_ASR",
+            "data": {
+              "text": "matched utterance"
+            },
+            "msgID": "fixture-input-CLIENT_ASR",
+            "ts": 1527681600000
+          }
+        ]
+      },
+      "frames": [
+        {
+          "raw": "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"d6cdaef1-41b0-489c-aa7a-705dee7dd41e\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "SOS",
+            "data": null,
+            "msgID": "d6cdaef1-41b0-489c-aa7a-705dee7dd41e",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.288771
+        },
+        {
+          "raw": "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"6a69b1a0-6bc6-44ef-9de9-7e0debc113d1\",\"ts\":1527681600000,\"timings\":{\"total\":-1}}",
+          "message": {
+            "type": "EOS",
+            "data": null,
+            "msgID": "6a69b1a0-6bc6-44ef-9de9-7e0debc113d1",
+            "ts": 1527681600000,
+            "timings": {
+              "total": -1
+            }
+          },
+          "receivedAtMs": 2.301165
+        },
+        {
+          "raw": "{\"type\":\"LISTEN\",\"msgID\":\"ca50d6c6-e33d-45d8-80aa-69c1cac5b325\",\"ts\":1527681600000,\"data\":{\"asr\":{\"text\":\"matched utterance\",\"confidence\":1},\"nlu\":{\"intent\":\"matchingIntent\",\"entities\":{\"fixtureEntity\":\"keep every field\"},\"rules\":[\"launch\"]},\"match\":{\"skillID\":\"skill1\",\"launch\":true,\"onRobot\":false}},\"final\":false,\"timings\":{\"total\":0,\"asr\":-1,\"nlu\":0}}",
+          "message": {
+            "type": "LISTEN",
+            "msgID": "ca50d6c6-e33d-45d8-80aa-69c1cac5b325",
+            "ts": 1527681600000,
+            "data": {
+              "asr": {
+                "text": "matched utterance",
+                "confidence": 1
+              },
+              "nlu": {
+                "intent": "matchingIntent",
+                "entities": {
+                  "fixtureEntity": "keep every field"
+                },
+                "rules": [
+                  "launch"
+                ]
+              },
+              "match": {
+                "skillID": "skill1",
+                "launch": true,
+                "onRobot": false
+              }
+            },
+            "final": false,
+            "timings": {
+              "total": 0,
+              "asr": -1,
+              "nlu": 0
+            }
+          },
+          "receivedAtMs": 3.389755
+        },
+        {
+          "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"fixture-skill-response\",\"ts\":1527681600000,\"data\":{\"skill\":{\"id\":\"skill1\",\"session\":{\"id\":\"fixture-session\",\"nodeID\":7,\"data\":{\"answer\":\"preserve me\",\"turn\":1},\"trace\":[\"fixture-node\"]}},\"action\":{\"type\":\"JCP\",\"config\":{\"version\":\"2.0.0\",\"jcp\":{\"type\":\"SLIM\",\"config\":{\"play\":{\"esml\":\"<speak>Fixture answer <break size=\\\"0.2\\\"/> intact.</speak>\"}}}}},\"analytics\":{\"skill1\":[{\"event\":\"Fixture action\",\"properties\":{\"nullValue\":null,\"count\":0,\"enabled\":false,\"requestType\":\"LISTEN_LAUNCH\",\"continued\":false}}]}},\"final\":true,\"timings\":{\"total\":0,\"skill\":0}}",
+          "message": {
+            "type": "SKILL_ACTION",
+            "msgID": "fixture-skill-response",
+            "ts": 1527681600000,
+            "data": {
+              "skill": {
+                "id": "skill1",
+                "session": {
+                  "id": "fixture-session",
+                  "nodeID": 7,
+                  "data": {
+                    "answer": "preserve me",
+                    "turn": 1
+                  },
+                  "trace": [
+                    "fixture-node"
+                  ]
+                }
+              },
+              "action": {
+                "type": "JCP",
+                "config": {
+                  "version": "2.0.0",
+                  "jcp": {
+                    "type": "SLIM",
+                    "config": {
+                      "play": {
+                        "esml": "<speak>Fixture answer <break size=\"0.2\"/> intact.</speak>"
+                      }
+                    }
+                  }
+                }
+              },
+              "analytics": {
+                "skill1": [
+                  {
+                    "event": "Fixture action",
+                    "properties": {
+                      "nullValue": null,
+                      "count": 0,
+                      "enabled": false,
+                      "requestType": "LISTEN_LAUNCH",
+                      "continued": false
+                    }
+                  }
+                ]
+              }
+            },
+            "final": true,
+            "timings": {
+              "total": 0,
+              "skill": 0
+            }
+          },
+          "receivedAtMs": 4.62873
+        }
+      ],
+      "terminalCount": 1,
+      "closeOrigin": "server",
+      "opened": true,
+      "close": {
+        "code": 1005,
+        "reason": ""
+      },
+      "openAfterFinal": false,
+      "holdAfterFinalMs": 2000.72463,
+      "durationMs": 2005.54312
+    }
+  ],
+  "lateEffects": [],
+  "captureComplete": true
+}

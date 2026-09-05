@@ -1,0 +1,38 @@
+TopRule =
+		$* $SELECT_MAIN_MENU_ITEM
+				{intent='loadMenu'}
+				{destination=SELECT_MAIN_MENU_ITEM._destination}
+				{priority='HIGH'}
+		$*
+;
+
+
+SELECT_MAIN_MENU_ITEM = ( ?($GENERIC_ACTION) ?($THE|$*) $SKILLS ?($SKILLSUFFIX) ) {_destination=SKILLS._destination} ;
+
+SKILLS =
+(
+	( ([tutorial?s]|[tip?s]|(?[?(ro)bot] [basic?s])) {_destination='tutorial'}) |
+	( ([thing?s](((i|we|you)can)|(to|two|2))(do|dew|doo)) {_destination='friendly-tips'}) |
+	( ((fun ?(stuff|activities|[thing?s]))|[game?s]) {_destination='fun'}) |
+	( (snapshot|photo|picture) {_destination='snapshot'}) |
+	( (?my ?(daily|morning|[person?((a?l)|(nel))]) [report?s]|rapport) ){_destination='personal-report'} |
+	( (photobooth|photoshoot|(photo booth|shoot)) {_destination='photobooth'}) |
+	( (gallery|photos|pictures) {_destination='gallery'}) |
+	( (clock|time) {_destination='clock'}) |
+	( (indroduce|[introduction?s]|[enroll?(ment)]) {_destination='introductions'}) |
+	( ([setting?s]|[preference?s]) {_destination='settings'}) |
+	( (radio|music) {_destination='radio'}) |
+	( (yoga|exercise) {_destination='exercise'})
+)
+;
+
+### USEFUL VOCABULARY ###
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+SKILLSUFFIX = (skill | app | application | thing | one);
+THE = (the | that | your);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select | load);
+SHOW = (show ?(me | us));
+SEE = ((let\'s | (let me) | (let us)) see);
+DO = (?(let\'s | (let me) | (let us)) (do | try) );
+ITEM = (one | thing | item | icon);
+LOCATION = (spot | slot | position);

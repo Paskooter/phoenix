@@ -1,0 +1,114 @@
+{
+  "date": "2026-09-05T05:23:35.216250+00:00",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "source": "/home/shell/work/pegasus",
+  "commands": [
+    {
+      "name": "prepare",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/shell/work/phoenix/scripts/parity-reference/prepare.py",
+        "--source",
+        "/home/shell/work/pegasus"
+      ],
+      "shellDisplay": "/usr/bin/python3 /home/shell/work/phoenix/scripts/parity-reference/prepare.py --source /home/shell/work/pegasus",
+      "exitCode": 0
+    },
+    {
+      "name": "image",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "image",
+        "inspect",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "--format",
+        "{{.Id}}"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock image inspect node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c --format '{{.Id}}'",
+      "exitCode": 0
+    },
+    {
+      "name": "compile",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-7dc48d67dde2",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity,target=/parity",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-reference,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/reference-final,target=/evidence",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/harness/compile.cjs",
+        "/parity/reference/5c0a7390539663ba749d360de348a428c088505c",
+        "/parity/tools/typescript-2.5.3"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-7dc48d67dde2 --network none --mount type=bind,source=/home/shell/work/phoenix/.parity,target=/parity --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-reference,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/reference-final,target=/evidence node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /harness/compile.cjs /parity/reference/5c0a7390539663ba749d360de348a428c088505c /parity/tools/typescript-2.5.3",
+      "exitCode": 0
+    },
+    {
+      "name": "capture",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-3abcebd2dd3b",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity,target=/parity",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-reference,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/reference-final,target=/evidence",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/harness/capture.cjs",
+        "/parity/reference/5c0a7390539663ba749d360de348a428c088505c",
+        "/evidence/transactions.json"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-3abcebd2dd3b --network none --mount type=bind,source=/home/shell/work/phoenix/.parity,target=/parity --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-reference,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/reference-final,target=/evidence node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /harness/capture.cjs /parity/reference/5c0a7390539663ba749d360de348a428c088505c /evidence/transactions.json",
+      "exitCode": 0
+    }
+  ],
+  "result": "pass",
+  "installation": "Existing production dependency closure; see installation.json",
+  "imageId": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "sourceIntegrity": {
+    "compiledInputsVerified": 376,
+    "workspaceManifestsVerified": 15
+  },
+  "transactions": 38,
+  "fixtureChecks": 19,
+  "limitations": [
+    "Original Gulp/browserify release build and type checking",
+    "Live Google streaming ASR/gRPC and Dialogflow",
+    "Mongo/Redis durability, OAuth/live providers, GQA process",
+    "Complete skill sessions, proactivity, firmware/hardware and full corpora"
+  ],
+  "artifacts": {
+    "capture.log": "a07cfa31acca6c085ed33735db90d1eceeaedf9202e7f7bb3b7ceeb11ce21178",
+    "compile.log": "1565bc162b35aaf4dd3dd7d7150581ee391374ea69fa671b81cfb4fb48cee2a6",
+    "compiled.json": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "image.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
+    "installation.json": "c44d298588949021488cd3112bc1d304b2b611ffd64667c55ac2c4506597c007",
+    "nlu-input.txt": "3070b6b1cbed1410fd1cbf8ffcf9eaeae8aa633bc2d62e2c0fbff6593e744c21",
+    "prepare.log": "307935b082d8a75ad9feef64fcfcfea6f8204bb6bc7f4e363a4e2d975c4ab586",
+    "prepared.json": "6ea32b67f579e69225b98446db63789c117328206e04c780e98b5a47339f4e4f",
+    "transactions.json": "cfadcf89e9f1f7c304f22cd8e6cf76b9100d708c4ae8a2f76036956b368fe0a1"
+  }
+}

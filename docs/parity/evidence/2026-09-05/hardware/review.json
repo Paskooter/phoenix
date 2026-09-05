@@ -1,0 +1,69 @@
+{
+  "task": "V-04",
+  "date": "2026-09-05",
+  "reviewedAt": "2026-09-05T20:48:22.297057+00:00",
+  "reviewedBy": "Codex root",
+  "result": "pass",
+  "scope": "Real-robot verification infrastructure only; no complete product or release acceptance",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "phoenixRuntimeSnapshot": "b654de598255ba023f33ff31656bfa5bc84057d4",
+  "nativeRevision": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+  "acceptanceReview": [
+    {
+      "criterion": 1,
+      "result": "pass",
+      "basis": "Robot/native binary/configuration pins and verified release deployment manifests retained; original skill/config preserved in separate slots/private backup. Other robot and pre-existing Hermes/port-9000 stack untouched."
+    },
+    {
+      "criterion": 2,
+      "result": "pass",
+      "basis": "Original BE runs in isolated @be slot against this checkout. Native SKILL_ACTION.data is byte-structure equal to the corresponding Phoenix action data; Nimbus and TTS execute."
+    },
+    {
+      "criterion": 3,
+      "result": "pass",
+      "basis": "Bounded original SDK global/local CLIENT_ASR probes, scoped LocalTurnRequest.update, real microphone turns, passive observation and reviewed screenshots executed. Rollback paths, service API commands and expected backup hash documented in HARDWARE.md. Text injection is distinguished from user-confirmed microphone speech/display."
+    },
+    {
+      "criterion": 4,
+      "result": "pass",
+      "basis": "Archived BE release ladder retains before/after listening-expression evidence; 11.0.1 restores LED commands/cyan eye and proactive initialization. Hardware timer-cancel failure retained and mapped to N-01; no bypass closes product acceptance."
+    }
+  ],
+  "commands": [
+    "python3 scripts/parity-robot/turn.py --slot phoenix-be-11-0-1-parity --mode local --duration 12 --visuals --screenshots --out .parity/robots/moth/20260905/release-11.0.1-listen.json",
+    "python3 scripts/parity-robot/turn.py --slot phoenix-be-11-0-1-parity --text \"what time is it\" --duration 15 --visuals --screenshots --out .parity/robots/moth/20260905/release-11.0.1-clock-stable.json",
+    "python3 scripts/parity-robot/turn.py --slot phoenix-be-11-0-1-parity --text \"set a timer\" --duration 30 --followup-text cancel --followup-skill @be/clock --followup-rule clock/timer_set_value --out .parity/robots/moth/20260905/release-11.0.1-timer-cancel.json"
+  ],
+  "lastRechecked": {
+    "at": "2026-09-05T20:48:22.297057+00:00",
+    "runningSlot": "phoenix-be-11-0-1-parity",
+    "electronPid": 27913,
+    "stackPid": 509895,
+    "tunnelPid": 598244,
+    "rootMount": "read-only",
+    "usrLocalMount": "read-only",
+    "nativeConfigSha256": "0c9685794e6a7d093955957c8cc7c45d5d13f99fdac92b53b1752b17f3ea7485",
+    "backupConfigSha256": "e7200416a9d64e2087b775ca91350c684b9b3bf56e0bc517ad0d1047084e03d3"
+  },
+  "evidence": {
+    "docs/parity/evidence/2026-09-05/hardware/moth-baseline.json": "6e61e472f1ea609296d56c89638d3d74381c84266b895f9df3c0783fed62dfba",
+    "docs/parity/evidence/2026-09-05/hardware/be-release-ladder.json": "238cb0a59d9c3c53344a1d6a0e28db2d1e95f5250d8708048150b2375563f2c2",
+    "docs/parity/evidence/2026-09-05/hardware/native-hub-correlation.json": "d5ecaacd552bda203c311e2aed916ea451e88ed38aec5479a8c13d63b4f3c3c2",
+    "docs/parity/evidence/2026-09-05/hardware/timer-local-cancel.json": "0fc5b8fd07f173a50af6ca30b1329176eda5136e81781067516cf5242379a589",
+    "docs/parity/evidence/2026-09-05/hardware/be-12.0.0-listening-eye.png": "a036a38e55c95563e6a2e93527d1a25d3e2c15f7c29c488bf1ae504f09e7c98d",
+    "docs/parity/evidence/2026-09-05/hardware/be-11.0.1-listening-eye.png": "8660c7930c5a3c3e7cbb7e5060ec0eb9a0d287ce1651c1b8e830d4235c02afcf",
+    "docs/parity/evidence/2026-09-05/hardware/be-11.0.1-clock.png": "254715ba4edabe4f042bd98a2480460700438225f7ae7425e609a2b9a4f75aa9"
+  },
+  "openProductGates": [
+    "C-03/H-01/A-02: authenticated account/Classic and Hub connection",
+    "N-01/N-02: local named rules and parser semantics",
+    "H-07: native encoded audio, provider behavior and timeouts",
+    "R-04: physical wake-word/ring confirmation, full skill families, gestures, persistence and rollback rehearsal"
+  ],
+  "limitations": [
+    "The root checkout common service file now differs from the runtime snapshot by the rawBody opt-out; the running process predates that on-disk difference. Future stack restarts must pin fresh source inputs.",
+    "Blue LED commands and screen screenshots do not independently verify physical ring illumination or acoustic Hey Jibo detection.",
+    "Full operational rollback rehearsal remains part of release hardware acceptance."
+  ]
+}

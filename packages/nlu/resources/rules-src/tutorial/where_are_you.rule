@@ -1,0 +1,12 @@
+TopRule = ($* $WHEREAREYOU $*) {intent = WHEREAREYOU._intent}{priority='HIGH'};
+
+#Where are you?
+
+WHEREAREYOU =
+		$HERE
+		{_intent='here'}
+;
+
+### Useful Vocabulary
+HERE = ?im ?right ?over here
+;

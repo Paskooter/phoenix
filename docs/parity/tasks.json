@@ -1,0 +1,2554 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-09-05",
+  "objective": "A feature-complete, behavior-compatible reimplementation of original Pegasus, with companion-cloud and restored-branch work explicitly tracked.",
+  "owner": "Codex (project management and task execution)",
+  "baseline": {
+    "original": {
+      "repository": "jiboV2/pegasus",
+      "commit": "5c0a7390539663ba749d360de348a428c088505c",
+      "selection": "Frozen original Hashbrown source target; docs/parity/COMPATIBILITY.md records consumer/dependency pins, unresolved historical metadata and divergence policy."
+    },
+    "restored": {
+      "repository": "jiboV2/pegasus",
+      "commit": "d682547a31511cd164db0913b6104eb1786455a2"
+    },
+    "phoenix": {
+      "commit": "5e240a7047d43dc5cadd3b14debf0102c3bfab7e",
+      "workingTreeInventory": "docs/parity/evidence/2026-09-05/source-inventory.json"
+    },
+    "classicApi": {
+      "repository": "jiborobot/srv-jibo-server-client",
+      "commit": "155d20a8102960b2aeb89c197bdf04dc1f1fc344"
+    },
+    "compatibilityManifest": "docs/parity/COMPATIBILITY.md"
+  },
+  "tracks": {
+    "management": "Audit, scope and lifecycle control (not product parity)",
+    "verification": "Original oracle, comparison gates and coverage inventory",
+    "pegasus": "Required original Pegasus server behavior",
+    "classic": "Companion cloud and existing Phoenix account/OTA/Classic features",
+    "restoration": "2026 restored-branch behavior, independently verified if retained",
+    "release": "Integration, operation, hardware and final parity closure"
+  },
+  "phases": {
+    "0": "Establish the verification baseline",
+    "1": "Repair public contract blockers",
+    "2": "Complete parsing, data and state behavior",
+    "3": "Verify complete skill output and interactions",
+    "4": "Complete companion-cloud and restored features",
+    "5": "Verify integration, deployment and hardware",
+    "6": "Close the release checklist"
+  },
+  "statusDefinitions": {
+    "todo": "Not started in the new verification plan; existing implementation may be substantial.",
+    "in_progress": "The single task currently undergoing lead integration/verification. Parallel candidate implementation is tracked separately in implementationReview.",
+    "blocked": "The task is waiting on a named external prerequisite; partial work is retained.",
+    "verified": "Every acceptance criterion is satisfied and linked evidence has been reviewed."
+  },
+  "tasks": [
+    {
+      "id": "PM-01",
+      "title": "Establish the source-backed audit baseline",
+      "track": "management",
+      "phase": 0,
+      "priority": "P0",
+      "status": "verified",
+      "implementation": "complete",
+      "owner": "Codex",
+      "dependsOn": [],
+      "reference": [
+        "pegasus-restored:docs/atlas/branch-archaeology.md",
+        "jibo:jiborobot/srv-jibo-server-client/apis"
+      ],
+      "phoenix": [
+        "docs/parity/AUDIT.md",
+        "docs/parity/evidence/2026-09-05"
+      ],
+      "finding": "Completed this audit pass; this verifies the audit work, not product parity.",
+      "acceptance": [
+        "Pin the compared revisions and record existing working-tree changes.",
+        "Retain fresh test results, source/asset inventories and reproducible discrepancy probes."
+      ],
+      "verification": [
+        {
+          "date": "2026-09-05",
+          "basis": "management deliverable",
+          "artifact": "docs/parity/evidence/2026-09-05/baseline.json",
+          "result": "pass",
+          "notes": "Audit evidence and baseline published; no feature-completion claim."
+        }
+      ]
+    },
+    {
+      "id": "PM-02",
+      "title": "Publish the dependency-ordered parity tracker",
+      "track": "management",
+      "phase": 0,
+      "priority": "P0",
+      "status": "verified",
+      "implementation": "complete",
+      "owner": "Codex",
+      "dependsOn": [
+        "PM-01"
+      ],
+      "reference": [
+        "pegasus-restored:docs/atlas/verification-strategy.md"
+      ],
+      "phoenix": [
+        "docs/parity/tasks.json",
+        "docs/parity/PLAN.md",
+        "scripts/parity-status.mjs"
+      ],
+      "finding": "Completed initial planning; historical milestone checkmarks do not certify the new scope.",
+      "acceptance": [
+        "Every task has source references, an implementation finding, dependencies and verifiable acceptance criteria.",
+        "The tracker validates IDs, dependency order, evidence for verified work and generated documentation."
+      ],
+      "verification": [
+        {
+          "date": "2026-09-05",
+          "basis": "management deliverable",
+          "artifact": "docs/parity/evidence/2026-09-05/tracker-check.log",
+          "result": "pass",
+          "notes": "Dependency-ordered plan and evidence rules published; run npm run parity:check to validate tracker consistency."
+        }
+      ]
+    },
+    {
+      "id": "PM-03",
+      "title": "Freeze the original compatibility target and divergence policy",
+      "track": "management",
+      "phase": 0,
+      "priority": "P0",
+      "status": "verified",
+      "implementation": "complete",
+      "owner": "Codex",
+      "dependsOn": [
+        "PM-02"
+      ],
+      "reference": [
+        "pegasus-restored:docs/atlas/branch-archaeology.md",
+        "pegasus-restored:docs/atlas/external-services.md"
+      ],
+      "phoenix": [
+        "DIVERGENCES.md",
+        "docs/parity/PLAN.md",
+        "docs/parity/COMPATIBILITY.md",
+        "docs/parity/evidence/2026-09-05/compatibility-pins.json"
+      ],
+      "finding": "Original Hashbrown source/client and dependency artifacts are frozen. All historical divergences are classified; firmware ambiguity, original credential-deletion behavior and legacy Settings version verification remain in their product tasks.",
+      "acceptance": [
+        "Record the original release, restored reference, client/firmware versions and dependency artifact versions in a compatibility manifest.",
+        "Classify every existing divergence as internal-only, required repair, or a separately selectable extension; keep unresolved differences open.",
+        "Determine which external Classic operations are required for Pegasus and which belong to the additional full-cloud target without deleting either backlog."
+      ],
+      "verification": [
+        {
+          "date": "2026-09-05",
+          "basis": "management deliverable",
+          "artifact": "docs/parity/evidence/2026-09-05/compatibility-review.json",
+          "result": "pass",
+          "notes": "Reviewed all PM-03 criteria. Historical firmware candidates are identified but not certified; no product/hardware parity gate is closed."
+        }
+      ]
+    },
+    {
+      "id": "V-01",
+      "title": "Make the reference executable with deterministic dependency fixtures",
+      "track": "verification",
+      "phase": 0,
+      "priority": "P0",
+      "status": "verified",
+      "implementation": "complete",
+      "owner": "Codex",
+      "dependsOn": [
+        "PM-03"
+      ],
+      "reference": [
+        "pegasus:Dockerfile",
+        "pegasus:packages/test-utils",
+        "pegasus:packages/parser/robust-parser",
+        "jibo:jiborobot/srv-gqa-ws/README.md"
+      ],
+      "phoenix": [
+        "packages/harness",
+        "docs/parity/evidence",
+        "scripts/parity-reference",
+        "docs/parity/REFERENCE.md"
+      ],
+      "finding": "Verified executable reference infrastructure: 38 original transactions and 19 fixture checks under Node 8.9.4, 376 source inputs/15 manifests checked against original Git, exact NLU 2.8.3 CLI. TypeScript module emission and fixture providers are explicit; original Gulp build, complete services/providers/persistence/clients remain unverified under their own tasks.",
+      "acceptance": [
+        "Start an isolated pinned reference runtime or independently executable service modules, with fixed time/randomness and fake ASR/NLU/data/settings responses.",
+        "Capture successful and failing reference HTTP/WS transactions with source commit, artifact hashes, fixture inputs and launch commands.",
+        "Keep any service that still cannot run explicitly unverified; document reproducible build blockers and a source-derived test fallback."
+      ],
+      "verification": [
+        {
+          "date": "2026-09-05",
+          "basis": "original source module execution with recorded emission/provider adapters",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c; NLU 2.8.3 sha256:388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b",
+          "phoenixRevision": "5e240a7047d43dc5cadd3b14debf0102c3bfab7e plus dirty baseline c0996017139b01558a36521e59849dc025775761b00de2fe89d1c171c2e4ef8a; reference tool hashes in review.json",
+          "command": "python3 scripts/parity-reference/run.py --skip-install --out .parity/runs/reference-final",
+          "artifact": "docs/parity/evidence/2026-09-05/reference/review.json",
+          "result": "pass",
+          "notes": "All three infrastructure criteria reviewed; this does not certify Phoenix equivalence. Full install and recorded adapters/exclusions are described in REFERENCE.md."
+        }
+      ]
+    },
+    {
+      "id": "V-02",
+      "title": "Finish the two-server comparison runner and strict comparison rules",
+      "track": "verification",
+      "phase": 0,
+      "priority": "P0",
+      "status": "verified",
+      "implementation": "complete",
+      "owner": "Codex",
+      "dependsOn": [
+        "V-01"
+      ],
+      "reference": [
+        "pegasus:packages/hub-client",
+        "pegasus:packages/hub-client-cli",
+        "pegasus-restored:docs/atlas/verification-strategy.md"
+      ],
+      "phoenix": [
+        "packages/harness",
+        "scripts/parity-compare",
+        "docs/parity/COMPARISON.md",
+        "docs/parity/evidence/2026-09-05/comparison"
+      ],
+      "finding": "Verified strict comparison infrastructure: identical 28-case HTTP/hub fixtures, passing independent original control, 36 focused tests including corruption/CLI rejection. Phoenix baseline fails with 267 JSON-pointer differences across 26 cases, zero invariant failures. Full parser/skill/provider/consumer coverage remains in V-03 and product tasks; no Phoenix feature parity certified.",
+      "acceptance": [
+        "One command runs identical fixtures against reference and Phoenix and saves requests, ordered responses, side effects and diffs; a mismatch exits nonzero.",
+        "Check status, headers, field presence, null versus empty, entities, rules, memo, JCP/ESML and analytics; normalize only explicitly allowed volatile paths.",
+        "Verify session continuation, ID relationships and timing bounds independently, and prove intentionally corrupted frames/sessions fail the gate."
+      ],
+      "verification": [
+        {
+          "date": "2026-09-05",
+          "basis": "Executable original/Phoenix HTTP and hub differential; independent invariant/mutation tests",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "5e240a7047d43dc5cadd3b14debf0102c3bfab7e plus working tree 87106501626aa2e1c2a61767d0828f5f7b08c07e4961fa2b7039367ca46eda60",
+          "command": "npm run harness -- --out .parity/runs/compare-final-reviewed; npm run harness -- --candidate original --out .parity/runs/compare-control-final; node --test packages/harness/test/diff.test.js packages/harness/test/parityCompare.test.js",
+          "artifact": "docs/parity/evidence/2026-09-05/comparison/review.json",
+          "result": "pass",
+          "notes": "All V-02 infrastructure acceptance criteria reviewed. Original control exits 0, actual Phoenix mismatch exits 1, corrupted session CLI exits 1; 263 regression tests pass. Scope and operational retry recorded in COMPARISON.md."
+        }
+      ]
+    },
+    {
+      "id": "V-03",
+      "title": "Map all original tests and resources into a coverage denominator",
+      "track": "verification",
+      "phase": 0,
+      "priority": "P0",
+      "status": "in_progress",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "PM-03"
+      ],
+      "reference": [
+        "pegasus:packages/integration-tests-int",
+        "pegasus:packages/integration-tests-ext",
+        "pegasus:packages/hub/tests",
+        "pegasus:packages/parser/tests",
+        "pegasus:packages/test-utils"
+      ],
+      "phoenix": [
+        "docs/parity/COVERAGE.md",
+        "docs/parity/evidence/2026-09-05/coverage/source-inventory.json",
+        "scripts/parity-coverage",
+        "scripts/parity-production",
+        "packages/harness/resources/corpora/sources.json",
+        "packages/harness/src/corpusManifest.js",
+        "packages/harness/src/productionCompare.js",
+        "packages/nlu/tools/legacyOracleDiagnostic.mjs",
+        "packages/harness/resources/goldens/production-smoke/source.json",
+        "scripts/parity-production/gate.mjs"
+      ],
+      "finding": "The complete 20,534-case original control agrees with zero differences/invariants and eight symmetric external-action gaps. An independently completed buffered-writer capture also agrees with it. A separate second native startup failed at zero cases and remains invalid. Root integrated bounded C-01/N-01/S-04/H-07; 329 unit tests pass, but strict smoke still has 736 differences and one gap. Full Phoenix corpus baseline remains open.",
+      "acceptance": [
+        "Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.",
+        "Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.",
+        "Grade the production parser with complete requests, intents, entities, winning rules, no-match behavior, skill/memo and action outputs; pin golden provenance and reject mismatches in CI."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Bounded Node 8 full-corpus trace writer; candidate only, root recaptures and reviews original controls before accepting V-03.",
+        "worktree": ".parity/worktrees/capture-writer",
+        "branch": "codex/candidate-capture-20260905",
+        "baseRevision": "b654de598255ba023f33ff31656bfa5bc84057d4",
+        "candidateRevision": "0ba431ca2b9c6c6d7bebfce7819621b12084c95f",
+        "artifact": "docs/parity/candidates/V-03.md",
+        "reviewFinding": "Node 8 bounded writer and byte-preserving batching reviewed, including >256 MiB output, premature close, fresh 43/73 controls and complete 20,534-case cross-writer comparison. No Phoenix product gate is closed by original repeatability.",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json"
+      }
+    },
+    {
+      "id": "V-04",
+      "title": "Establish the Moth real-robot verification loop",
+      "track": "verification",
+      "phase": 0,
+      "priority": "P0",
+      "status": "verified",
+      "implementation": "complete",
+      "owner": "Codex",
+      "dependsOn": [
+        "PM-03",
+        "V-02"
+      ],
+      "reference": [
+        "jibo:confluence/display/SER/Jetstream+Service+Details",
+        "docs/parity/CONSUMERS.md"
+      ],
+      "phoenix": [
+        "docs/parity/HARDWARE.md",
+        "packages/gateway/src"
+      ],
+      "finding": "Lead verified the bounded Moth test infrastructure, preserved rollback configuration, correlated native/Hub actions, and completed source-pinned BE release and timer-local failure iterations. V-04 certifies this verification loop only; authentication, encoded audio, physical wake-word/ring confirmation and full skill/release acceptance remain open.",
+      "acceptance": [
+        "Pin robot/native/client/server inputs and preserve recoverable starting configuration without altering the other robot or unrelated services.",
+        "Run the original BE consumer in an isolated slot against this Phoenix checkout; retain correlated native events, cloud wire traces and observed Nimbus execution.",
+        "Provide repeatable global/local text and real-audio probes with bounded capture and precise rollback; distinguish injected text, recorded audio and physical observations.",
+        "Record failing-before/passing-after hardware iterations and map every unresolved result to product tasks; no bypass or fixture result closes its production acceptance."
+      ],
+      "verification": [
+        {
+          "date": "2026-09-05",
+          "basis": "Lead review of all four infrastructure acceptance criteria and real Moth evidence",
+          "result": "pass",
+          "artifact": "docs/parity/evidence/2026-09-05/hardware/review.json",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "b654de598255ba023f33ff31656bfa5bc84057d4",
+          "command": "See reproducible probe commands and rollback in hardware/review.json and docs/parity/HARDWARE.md"
+        }
+      ]
+    },
+    {
+      "id": "C-01",
+      "title": "Match the shared HTTP response and error contract",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "V-02"
+      ],
+      "reference": [
+        "pegasus:packages/utils/src/service/BaseService.ts",
+        "pegasus:packages/utils/src/service/handlers/BaseHttpHandler.ts"
+      ],
+      "phoenix": [
+        "packages/common/src/service.js"
+      ],
+      "finding": "Shared HTTP boundary candidate now matches the expanded malformed JSON and serialization/routing fixtures, including the root317-case mutation review. Accepted for integration; authentication and broader service boundaries remain unverified.",
+      "acceptance": [
+        "Compare null, undefined, arrays, empty bodies, malformed JSON, handler errors, unknown routes, trailing slashes and supported HTTP methods.",
+        "Preserve reference status codes, response bodies, content types and headers on all service boundaries."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / http_contract_repair",
+        "scope": "Repair source-confirmed common HTTP response/error serialization; lead reviews differential evidence and remaining C-01 acceptance.",
+        "worktree": ".parity/worktrees/http-contract",
+        "branch": "codex/candidate-http-20260905",
+        "baseRevision": "b654de5",
+        "artifact": "docs/parity/candidates/C-01.md",
+        "candidateRevision": "3f2ca91988af951c2054b51bca2ac0428a5ebb30",
+        "reviewFinding": "Root reran all317 original JSON diagnostics with zero differences and no prototype pollution; reviewed actual pinned Express/body-parser boundary and expanded69-case original control. Accepted bounded HTTP implementation in isolated lead integration, root deployment/full service matrix pending; C-01 stays open.",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/comparison/http-review.json"
+      }
+    },
+    {
+      "id": "C-02",
+      "title": "Complete the wire schemas and message builders",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01",
+        "V-03"
+      ],
+      "reference": [
+        "pegasus:packages/interfaces/src",
+        "jibo:jiboV2/jibo-command-protocol/index.d.ts"
+      ],
+      "phoenix": [
+        "packages/contracts/src/messages.js",
+        "packages/contracts/src/constants.js",
+        "packages/contracts/src/validate.js"
+      ],
+      "finding": "P11 rejects the original empty NLU response. Proactive, manifest, JCP/SLIM and MIM coverage is incomplete.",
+      "acceptance": [
+        "Build a field/enum/nullability/requiredness matrix from the pinned interfaces and consumer code, including ListenResult precedence.",
+        "All captured valid reference requests/responses are accepted and the reference's invalid-input behavior is reproduced.",
+        "Cover proactive requests/results, skill redirects/actions, JCP/display, MIMs, manifests and analytics without rejecting valid optional fields."
+      ],
+      "verification": []
+    },
+    {
+      "id": "C-03",
+      "title": "Restore configuration, registry and service-discovery compatibility",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "V-02"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/config",
+        "pegasus:packages/hub/src/skill/SkillUtils.ts",
+        "pegasus:packages/report-skill/src/EnvVars.ts",
+        "pegasus:packages/utils/src/config"
+      ],
+      "phoenix": [
+        "packages/gateway/src/config.js",
+        "packages/gateway/src/registry.js",
+        "packages/skills/src/report/lassoClient.js",
+        "packages/common/src/env.js"
+      ],
+      "finding": "Unreadable manifests are silently skipped, metadata/basePath are dropped, and report-skill requires NET_data where Pegasus uses NET_lasso.",
+      "acceptance": [
+        "Load unmodified reference registries including settings metadata, paths, versions and URL composition; reject invalid configurations as the reference does.",
+        "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.",
+        "Document optional alias behavior and prove an individual Phoenix service works under the reference environment."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-01",
+      "title": "Restore the robot-specific skill-list endpoints",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01",
+        "C-03"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/HubService.ts",
+        "pegasus:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts"
+      ],
+      "phoenix": [
+        "packages/gateway/src/index.js",
+        "packages/gateway/src/registry.js"
+      ],
+      "finding": "P03 and the V-02 original/Phoenix comparison reproduce 404s on all four original robot/settings skill-list URLs. Original execution returns full configurations; current Phoenix routes and registry omit paths and metadata. Raw baseline retains 44 differences including shared HTTP headers.",
+      "acceptance": [
+        "GET /skills/:robotId and /v1/skills/:robotId return full reference-shaped skill configurations.",
+        "Both settings-filtered URL variants return exactly the configurations with settings, including empty registries and unknown robot IDs."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-02",
+      "title": "Verify listen transaction ordering, cancellation and failure behavior",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-02"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/listen/ListenTransactionHandler.ts",
+        "pegasus:packages/hub/src/utils/TransactionHandler.ts",
+        "pegasus:packages/hub-client/src/session",
+        "pegasus:packages/utils/src/service/handlers/BaseWebsocketHandler.ts"
+      ],
+      "phoenix": [
+        "packages/gateway/src/listenTransaction.js",
+        "packages/gateway/src/responseWrapper.js",
+        "packages/gateway/test/listen.e2e.test.js"
+      ],
+      "finding": "V-02 captures launch/relaunch/update/no-match/provider/malformed paths, but full race/error/timeout conformance remains unproved. At 2.1 seconds after final, original stays open and Phoenix closes near 2 seconds: original ResponseWrapper.closed starts true, making its guarded close ineffective. Parser failures also lose the PARSER code and change message text. Full cancellation/audio/long-timeout matrix remains open. Consumer inspection also identifies _beginGlobalTurn as a simulator-specific bare CLIENT_ASR/NLU shortcut absent from frozen Pegasus and normal native Jetstream framing; differential reproduction and scope review remain required (CONSUMERS.md).",
+      "acceptance": [
+        "Replay SERVER_ASR, CLIENT_ASR and CLIENT_NLU transactions with reordered/delayed/duplicate/malformed messages and both endpoint aliases.",
+        "Verify exactly one terminal outcome, SOS/EOS ordering, close timing, all timeout/error codes, disconnect cleanup and no late writes.",
+        "Exercise local/global turns, speaker/context updates and empty/garbage audio using the original client framing."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-03",
+      "title": "Match the original intent decision tree",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "V-02"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/intent",
+        "pegasus:packages/hub/tests/intent"
+      ],
+      "phoenix": [
+        "packages/gateway/src/intentRouter.js"
+      ],
+      "finding": "P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree.",
+      "acceptance": [
+        "Match exact/NOT/wildcard/nested-entity matching, parent fallback, weights, registration ties and case behavior against original fixtures.",
+        "An intentless or unregistered decision never launches merely because an entities.skill value names a skill; local-turn rule gating is preserved."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-04",
+      "title": "Match skill launches, updates, redirects and session handoff",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "H-02",
+        "H-03"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/skill",
+        "pegasus:packages/hub/src/listen/ListenTransactionHandler.ts"
+      ],
+      "phoenix": [
+        "packages/gateway/src/skillClient.js",
+        "packages/gateway/src/listenTransaction.js"
+      ],
+      "finding": "Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification.",
+      "acceptance": [
+        "Compare general/runtime/skill/result/memo and trace propagation on launch, update, action completion and redirect.",
+        "Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-05",
+      "title": "Enforce proactive user settings",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "missing",
+      "owner": "Codex",
+      "dependsOn": [
+        "H-02",
+        "C-03"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/proactive/tools/SettingsRulesChecker.ts",
+        "pegasus:packages/hub/src/utils/SettingsClient.ts"
+      ],
+      "phoenix": [
+        "packages/gateway/src/proactive/proactiveTransaction.js",
+        "packages/account/src/settingsFace.js"
+      ],
+      "finding": "Settings rules are unconditionally accepted despite a Phoenix settings service now existing.",
+      "acceptance": [
+        "Use the reference settings request, account/loop identity and rule operators to filter candidates.",
+        "No-settings, missing-key, disabled preference, unknown person and settings-service failure produce the reference result; opt-in/out affects real proactive routing."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-06",
+      "title": "Verify proactive context/history selection and payloads",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "H-05",
+        "I-02"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/proactive",
+        "pegasus:packages/interfaces/src/proactive"
+      ],
+      "phoenix": [
+        "packages/gateway/src/proactive"
+      ],
+      "finding": "Context/IH implementations and random selection exist; the complete filter pipeline and history side effects need differential verification.",
+      "acceptance": [
+        "Replay NEW_ARRIVAL and SURPRISE with focused person, multiple/no candidates, every context/IH operator and date boundary.",
+        "Verify memo, speaker/referent, skipSurprises, no-action/final frames and seeded selection through actual history/settings services."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-07",
+      "title": "Complete original ASR behavior through a replaceable provider",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "H-02"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/asr/google",
+        "pegasus:packages/hub/src/asr/ASRUtils.ts",
+        "pegasus:packages/hub/src/utils/FastEOS.ts",
+        "pegasus-restored:packages/hub/src/asr/parakeet"
+      ],
+      "phoenix": [
+        "packages/gateway/src/asr",
+        "packages/gateway/src/listenTransaction.js",
+        "packages/gateway/test/asr.test.js"
+      ],
+      "finding": "Decoded OGG/FLAC support and chunk-independent VAD are integrated after lead correction/review. All 329 integrated unit tests passed; Moth quiet OGG, FLAC and LINEAR16 each returned SOS_TIMEOUT without false SOS. LINEAR16 config restored exactly. Full provider/acoustic speech acceptance remains open.",
+      "acceptance": [
+        "Use recorded/fake recognizer streams to verify original config languages/encodings/rates, hints, earlyEOS, interim/final transcripts, annotations and timeout behavior.",
+        "Verify chunk boundaries, silence/noise/partial speech, upstream failures and cancellation without live vendor dependence.",
+        "Measure real audio quality/latency separately; a provider replacement cannot silently remove client-visible features."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Bounded streaming OGG/FLAC decoding and chunk-independent PCM VAD; unit and native quiet-microphone review. Complete H-07 remains open.",
+        "worktree": ".parity/worktrees/audio-encoding",
+        "branch": "codex/candidate-audio-20260905",
+        "baseRevision": "b654de5",
+        "candidateRevision": "ed77ead2fd24d475e78c7d9526d6b1b9d7dd2aaf",
+        "artifact": "docs/parity/candidates/H-07.md",
+        "reviewFinding": "Root caught and repaired chunk-boundary-dependent VAD. Five chunk sizes now yield the same 32,000-byte PCM result. All329 integrated unit tests pass; native quiet OGG/FLAC/LINEAR16 have no false SOS, and LINEAR16 configuration is restored exactly. Bounded decoding/VAD accepted; complete H-07 remains open.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/hardware/native-audio-fixed.json",
+        "reviewedBy": "Codex root",
+        "reviewedAt": "2026-09-05",
+        "evidence": [
+          "docs/parity/evidence/2026-09-05/hardware/native-audio-fixed.json"
+        ]
+      }
+    },
+    {
+      "id": "H-08",
+      "title": "Restore speech and launch-history side effects",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "H-04",
+        "I-01",
+        "I-03"
+      ],
+      "reference": [
+        "pegasus:packages/hub/src/listen/ListenTransactionHandler.ts",
+        "pegasus:packages/hub/src/utils/TransactionHandler.ts",
+        "pegasus:packages/history-client",
+        "pegasus:packages/hub/src/utils/TransactionHelper.ts"
+      ],
+      "phoenix": [
+        "packages/gateway/src/historyClient.js",
+        "packages/gateway/src/listenTransaction.js",
+        "packages/gateway/src/config.js"
+      ],
+      "finding": "Only launch writes exist; speech-history recording/configuration and optional speech logging are absent. V-02 also proves the unknown-speaker launch record differs: original TransactionHelper writes personIDs:[\"UNKNOWN\"], Phoenix filters it to []. Outbound history HTTP headers differ as well; both remain required repairs.",
+      "acceptance": [
+        "Record and update reference speech fields across ASR, NLU, matches, skill output, redirects and failure paths.",
+        "Verify launch versus update behavior, session/person IDs, redirected skill IDs, flags, fire-and-forget failures and optional log-sink contract."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-09",
+      "title": "Match each skill process at the reference /v1/main URL",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01",
+        "C-03"
+      ],
+      "reference": [
+        "pegasus:packages/baseskill/src/SkillService.ts",
+        "pegasus:packages/report-skill/src/index.ts",
+        "pegasus:packages/chitchat-skill/src/index.ts"
+      ],
+      "phoenix": [
+        "packages/skills/src/index.js",
+        "packages/skills/src/skillService.js",
+        "docker-compose.yml"
+      ],
+      "finding": "P13 shows the shared service entrypoint selects answer-skill at /v1/main even when used as the report-skill process.",
+      "acceptance": [
+        "Give each independently deployed skill the reference /v1/main behavior and retain any namespaced aliases without requiring caller changes.",
+        "Start report/chitchat/example/template replacements independently and verify original requests reach the intended skill; run the native and compose entrypoint configurations."
+      ],
+      "verification": []
+    },
+    {
+      "id": "H-10",
+      "title": "Match hub authentication and context identity checks",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-02",
+        "A-02"
+      ],
+      "reference": [
+        "pegasus:packages/utils/src/service/BaseService.ts",
+        "pegasus:packages/hub/src/utils/MessagePreProcessor.ts",
+        "pegasus:packages/hub/src/utils/MessageValidator.ts",
+        "pegasus:packages/hub-client/src/Client.ts"
+      ],
+      "phoenix": [
+        "packages/gateway/src/index.js",
+        "packages/gateway/src/preprocessor.js",
+        "packages/common/src/jwt.js",
+        "packages/gateway/test/hubAuth.test.js"
+      ],
+      "finding": "JWT and account-backed checks exist; exact original upgrade rejection and identity behavior has not been differentially verified. V-02 confirms invalid JWT signatures return different rejection text and content length; missing authorization agrees in this fixture, without closing the full auth/identity matrix. Original native Authentication.cpp calls signed Account_20151111.CreateHubToken and refetches once after an upgrade 401. Phoenix robotFace has no CreateHubToken operation; /api/token has a different body/path contract. A-02 owns the original entrypoint/signature repair.",
+      "acceptance": [
+        "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
+        "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
+        "Verify the optional account-backed extension with revocation, unavailable account service and bounded upgrade latency separately from original shared-secret behavior.",
+        "Run the original signed CreateHubToken-to-Bearer-upgrade sequence, including expiry and the native single 401 refetch/retry; do not substitute portal token creation."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-01",
+      "title": "Honor complete parser requests and load every named rule",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-02",
+        "V-03"
+      ],
+      "reference": [
+        "pegasus:packages/parser/src/robustparser/RobustParserClient.ts",
+        "pegasus:packages/parser/src/utils/RulesRegistry.ts",
+        "pegasus:packages/parser/robust-parser/rules_src"
+      ],
+      "phoenix": [
+        "packages/nlu/src/index.js",
+        "packages/nlu/src/fullGrammar.js",
+        "packages/nlu/resources"
+      ],
+      "finding": "Integrated request/rule candidate now repairs the real Moth clock cancellation path: original LocalTurnRequest.update(cancel) returns the exact original clock/timer_set_value intent/entities and closes the timer screen without retry. Root43 smoke has36/37 exact parser responses and33/33 winning-rule agreement. Missing factory coverage and the launch loop-name grammar remain open.",
+      "acceptance": [
+        "Accept text/rules/loop/external as one request; select only requested known rules and return the winning rule name.",
+        "Inventory and import every required named rule and dependency with hashes; do not silently skip parse/load failures.",
+        "Cover empty/unknown/multiple rules and local turns that must never activate launch rules."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Full parser request and named-rule selection/dependency loading; generalized local-turn repair, pending lead original/hardware verification.",
+        "worktree": ".parity/worktrees/nlu-requests",
+        "branch": "codex/candidate-nlu-requests-20260905",
+        "baseRevision": "b654de598255ba023f33ff31656bfa5bc84057d4",
+        "artifact": "docs/parity/candidates/N-01.md",
+        "candidateRevision": "7622ac6b3a7340cd5321302a4f608f15866a9bb6",
+        "reviewFinding": "Accepted bounded request/rule selection in lead integration with C-01. Fresh identical43-case smoke improves parser HTTP0/37 to36/37; rules33/33 and empty results9/9 exact. Full task remains open for missing factories/loop grammar; real timer-cancel verification underway.",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/production/integration-smoke/comparison.json",
+        "hardwareEvidence": "docs/parity/evidence/2026-09-05/hardware/timer-local-cancel-fixed.json"
+      }
+    },
+    {
+      "id": "N-02",
+      "title": "Match grammar execution, factory entities and scoring",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-01",
+        "V-01"
+      ],
+      "reference": [
+        "pegasus:packages/parser/src/robustparser/RobustParserClient.ts",
+        "pegasus:packages/parser/robust-parser",
+        "jibo:ConvTech/jibo-nlu/parser/parser.cpp"
+      ],
+      "phoenix": [
+        "packages/nlu/src/grammar",
+        "packages/nlu/resources/factory-words",
+        "packages/nlu/test/oracle"
+      ],
+      "finding": "The grammar engine approximates the original; a static golden grader currently scores 74/89 and is not the production parser.",
+      "acceptance": [
+        "Differentially test semantic actions, recursion, optional/repeated rules, wildcards, equivalents, locale/token normalization, weights and designated-loser ties.",
+        "Recover all factory entity semantics, including names, places, dates, times, durations and numeric entities, from version-matched source/artifacts.",
+        "Use the production parser in the oracle harness and preserve exact entity values/types; report mismatches per feature."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-03",
+      "title": "Verify clock, alarm, timer and settings/menu follow-up rules",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "missing",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-02"
+      ],
+      "reference": [
+        "pegasus:packages/parser/robust-parser/rules_src/clock",
+        "pegasus:packages/parser/robust-parser/rules_src/settings",
+        "pegasus:packages/parser/robust-parser/rules_src/main-menu"
+      ],
+      "phoenix": [
+        "packages/nlu/resources/grammar",
+        "packages/harness"
+      ],
+      "finding": "Most named clock and menu follow-up grammars are missing; launch-corpus results cannot cover them.",
+      "acceptance": [
+        "Replay every clock/settings/main-menu named rule with positive, negative and boundary utterances.",
+        "Verify alarm/timer values, AM/PM, cancellation, confirmation, volume and menu selections through local-turn WS sessions."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-04",
+      "title": "Verify identity, introduction and greeting follow-up rules",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "missing",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-02",
+        "N-06"
+      ],
+      "reference": [
+        "pegasus:packages/parser/robust-parser/rules_src/introductions",
+        "pegasus:packages/parser/robust-parser/rules_src/who-am-i",
+        "pegasus:packages/parser/robust-parser/rules_src/greetings"
+      ],
+      "phoenix": [
+        "packages/nlu/resources/grammar",
+        "packages/harness"
+      ],
+      "finding": "Enrollment, name confirmation, looper selection and greeting follow-up files are absent from the full-grammar import.",
+      "acceptance": [
+        "Cover each named introduction/who-am-i/greeting rule, including no-input/no-match and ambiguous name responses.",
+        "Compare entities/referents and rule names in multi-turn robot transcripts using known and unknown loop members."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-05",
+      "title": "Verify remaining device/content rules and global commands",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "missing",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-02"
+      ],
+      "reference": [
+        "pegasus:packages/parser/robust-parser/rules_src",
+        "pegasus:packages/parser/robust-parser/rules_src/globals"
+      ],
+      "phoenix": [
+        "packages/nlu/src/fullGrammar.js",
+        "packages/nlu/resources/grammar"
+      ],
+      "finding": "Globals are intentionally not matched as top-level rules. Follow-ups for Hue, media, exercise, radio, tutorials, surprises and word-of-the-day are missing.",
+      "acceptance": [
+        "Use the rule inventory to cover all remaining named rules and explicit global stop/repeat/thanks/navigation behavior.",
+        "Exercise global interruption and local-rule precedence without false launches or over-triggering; no named rule is left without a fixture."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-06",
+      "title": "Implement LoopMemberDetector and contextual entity resolution",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "missing",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-01"
+      ],
+      "reference": [
+        "pegasus:packages/parser/src/utils/LoopMemberDetector.ts",
+        "pegasus:packages/parser/tests/utils/LoopMemberDetector.test.ts"
+      ],
+      "phoenix": [
+        "packages/nlu/src/index.js"
+      ],
+      "finding": "The HTTP handler discards loop data and has no detector equivalent.",
+      "acceptance": [
+        "Port the source's ordered name/referent resolution and given-name/last-name/loopMemberReferent output semantics.",
+        "Match source fixtures for aliases, punctuation, duplicates, missing members, ambiguous references and speaker/referent interactions."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-07",
+      "title": "Match fallback arbitration and external-agent behavior",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-01",
+        "V-01"
+      ],
+      "reference": [
+        "pegasus:packages/parser/src/handlers/ParseRequestHandler.ts",
+        "pegasus:packages/parser/src/dialogflow",
+        "pegasus-restored:packages/parser/src/llm",
+        "pegasus:packages/parser/tests/ParserService.test.ts"
+      ],
+      "phoenix": [
+        "packages/nlu/src/index.js",
+        "packages/nlu/src/llmFallback.js"
+      ],
+      "finding": "The fallback has eight generic tools, ignores external agents/enabled flags, and defaults to a 12-second timeout while the gateway parser budget is 10 seconds.",
+      "acceptance": [
+        "Exercise original HIGH/LOW/SKIP, absent/invalid/decoy fallback, per-rule failure and external-agent matrices against recorded provider outputs.",
+        "Preserve fallback entities, rules and external result structure through a replaceable provider; cover the archived intent/entity catalog.",
+        "Verify enabled/disabled configuration, timeout budgets, cancellation and unavailable-provider behavior for each supported profile."
+      ],
+      "verification": []
+    },
+    {
+      "id": "N-08",
+      "title": "Restore exact NLU outputs and close corpus mismatches",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "N-02",
+        "N-07",
+        "H-03",
+        "V-03"
+      ],
+      "reference": [
+        "pegasus:packages/parser/src/handlers/ParseRequestHandler.ts",
+        "pegasus:packages/parser/src/robustparser/RobustParserClient.ts",
+        "pegasus:packages/chitchat-skill/resources/test-manifest.json"
+      ],
+      "phoenix": [
+        "packages/nlu/src/index.js",
+        "packages/nlu/src/fullGrammar.js",
+        "packages/harness/src/corpusRunner.js"
+      ],
+      "finding": "Full original HTTP parser replay has 401 mismatches across 20,528 requests; 20,127 exact responses match. Luna is implementing source-backed grammar/scoring repairs in an isolated worktree; no corpus hardcodes or relaxed equality allowed.",
+      "acceptance": [
+        "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
+        "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
+        "Reach zero unexplained mismatches across the full pinned corpus, including entities, rules, no-match and skill/memo; split remaining mismatch groups into tracked child tasks."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Source grammar priority, token metadata and semantic-literal normalization repair89/401 previous failures. Root full replay is running to check all prior passes for regressions.",
+        "worktree": ".parity/worktrees/nlu-corpus",
+        "baseRevision": "54459ca561c9e217e380384f43abf8283c54476c",
+        "evidence": [
+          "docs/parity/evidence/2026-09-05/production/full-parser-replay-review.json"
+        ],
+        "candidateRevision": "130ec3784274d25dbba9ae5f5cf51353a71f8308",
+        "artifact": "docs/parity/candidates/N-08.md"
+      }
+    },
+    {
+      "id": "I-01",
+      "title": "Match all history HTTP routes and payloads",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01"
+      ],
+      "reference": [
+        "pegasus:packages/history/src/HistoryService.ts",
+        "pegasus:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts",
+        "pegasus:packages/history/src/speech/SpeechHistoryRequestsHandler.ts"
+      ],
+      "phoenix": [
+        "packages/history/src/index.js"
+      ],
+      "finding": "P04-P07 reproduce empty-result, GET-route, input-validation and saved-record response differences.",
+      "acceptance": [
+        "Implement GET and POST query variants, complete saved launch/payload records, no-match null and speech create/update behavior.",
+        "Compare URL/query/body parsing, errors and unknown IDs using the unmodified history client."
+      ],
+      "verification": []
+    },
+    {
+      "id": "I-02",
+      "title": "Match history validation and query semantics",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "I-01"
+      ],
+      "reference": [
+        "pegasus:packages/history/src/skilllaunch/validators",
+        "pegasus:packages/history/src/skilllaunch/db/SkillLaunchQueryBuilder.ts",
+        "pegasus:packages/history/tests"
+      ],
+      "phoenix": [
+        "packages/history/src/query.js",
+        "packages/history/src/store.js",
+        "packages/history/test/history.test.js"
+      ],
+      "finding": "Only partial validation exists; array equality, allowed operator/field combinations and conflicting query conditions need parity.",
+      "acceptance": [
+        "Port the original event/query/rule validation matrix, timestamps, identifier constraints and failure payloads.",
+        "Verify sorted array EXACT/NOT, all payload operators, nested keys, empty arrays, missing fields, session exclusions and time boundaries against a database oracle."
+      ],
+      "verification": []
+    },
+    {
+      "id": "I-03",
+      "title": "Preserve history across restart and verify retention",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "I-01"
+      ],
+      "reference": [
+        "pegasus:packages/history/src/skilllaunch/schema/SkillLaunchSchema.ts",
+        "pegasus:packages/history/src/common/db",
+        "pegasus:packages/history/src/speech"
+      ],
+      "phoenix": [
+        "packages/history/src/store.js"
+      ],
+      "finding": "All history is process-local. P12 demonstrates expired out-of-order insertions survive the current pruning path.",
+      "acceptance": [
+        "Persist skill-launch and speech records with restart/recovery, stable identifiers, ordering and payload-update semantics.",
+        "Verify eventual 14-day launch expiry independent of insertion order and reference speech retention, including concurrent access and crash recovery."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-01",
+      "title": "Match the common relay and cache contract",
+      "track": "pegasus",
+      "phase": 1,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/relay/AbstractRelayRequestHandler.ts",
+        "pegasus:packages/lasso/tests"
+      ],
+      "phoenix": [
+        "packages/data/src/relay.js",
+        "packages/data/src/cache.js",
+        "packages/data/src/index.js"
+      ],
+      "finding": "Weather/news/maps share a useful relay implementation; cache/error/prefetch equivalence is not fully verified. Original execution confirms cache-hit JSON bytes use text/html, skipCache=false still skips cache, and empty calendars retain the relayData envelope.",
+      "acceptance": [
+        "Compare GET/HEAD validation, cache hit/miss, skipCache, TTLs, metadata, warming and upstream status/error envelopes.",
+        "Use deterministic cache/time/upstream fixtures to prove prefetch responds immediately and handles upstream/cache failures as the reference does."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-02",
+      "title": "Complete credential CRUD, uniqueness and durable state",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/credential",
+        "pegasus:packages/lasso/src/mongo"
+      ],
+      "phoenix": [
+        "packages/data/src/credentials.js"
+      ],
+      "finding": "Credentials are in memory; scope parsing and mutation/duplicate semantics differ, and the legacy assignment-bug fix is an explicit unresolved compatibility decision.",
+      "acceptance": [
+        "Match required fields, scope handling, active/inactive lookup, duplicate auth codes, wildcard deletion and cross-provider replacement using original fixtures.",
+        "Persist credentials with unique keys and atomic updates across restarts.",
+        "Record the assignment-bug decision with a regression fixture; do not silently label changed deletion behavior as parity."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-03",
+      "title": "Implement OAuth exchange, refresh and invalidation",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "missing",
+      "owner": "Codex",
+      "dependsOn": [
+        "D-02"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/oauth2",
+        "pegasus:packages/lasso/src/calendar-client",
+        "pegasus:packages/lasso/src/credential/Credentials.ts"
+      ],
+      "phoenix": [
+        "packages/data/src/credentials.js"
+      ],
+      "finding": "Non-test Google/Outlook auth codes return 501; testAuthCode coverage does not exercise OAuth.",
+      "acceptance": [
+        "Implement exchange/refresh through configurable providers, preserving scopes, expiry, error codes and inactive/revoked state.",
+        "Test success, refresh failure, revoked access, duplicate/replayed codes and credential cache invalidation with recorded provider fixtures.",
+        "Verify a supported current provider using test-owned credentials when available; lack of live access remains a separately visible gate."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-04",
+      "title": "Implement Google/Outlook calendar relay compatibility",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "D-01",
+        "D-03"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/relay/GoogleCalendarHandler.ts",
+        "pegasus:packages/lasso/src/relay/OutlookCalendarHandler.ts",
+        "pegasus:packages/lasso/src/utils"
+      ],
+      "phoenix": [
+        "packages/data/src/calendar.js",
+        "packages/data/src/index.js",
+        "packages/skills/src/report/lassoClient.js"
+      ],
+      "finding": "P08-P09 reproduce a missing relay envelope and HEAD handler. Default providers return 501.",
+      "acceptance": [
+        "Use the common relay envelope, HEAD, 60-second cache and credential-triggered invalidation; integrate each provider.",
+        "Match endDate defaults/validation, pagination, timezone/all-day normalization, ordering and filtered/invalid events.",
+        "Run report-skill -> Phoenix data -> provider-fixture integration; a provider returning events must reach the report rather than fail envelope parsing."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-05",
+      "title": "Match weather data and forecast/date semantics",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "D-01"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/relay/DarkSkyHandler.ts",
+        "pegasus:packages/interfaces/src/personalreport/darksky.ts",
+        "pegasus:packages/test-utils/src/lasso-test/DarkSkyTestData.ts"
+      ],
+      "phoenix": [
+        "packages/data/src/weather.js"
+      ],
+      "finding": "Open-Meteo substitution exists; historical dates, today/yesterday indexing and complete DarkSky-shaped fields require checks for both baselines.",
+      "acceptance": [
+        "Replay reference current/historical requests and success/error payloads, preserving units, timezone, icons and optional fields.",
+        "Verify the restored weather shim separately, including past_days indexing and error behavior; any deliberate bug fix has an explicit compatibility test."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-06",
+      "title": "Match news payloads, categories and prefetch scheduling",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "D-01"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/relay/APNewsHandler.ts",
+        "pegasus:packages/test-utils/src/lasso-test/APNewsTestData.ts"
+      ],
+      "phoenix": [
+        "packages/data/src/news.js",
+        "packages/data/src/index.js"
+      ],
+      "finding": "RSS transformation exists; the original hourly category poller is absent and report image/header assumptions changed.",
+      "acceptance": [
+        "Match all category IDs, XML structure, image/attribution/header handling and upstream/cache errors with original AP fixtures.",
+        "Reproduce configurable polling/prefetch behavior, category-specific cache updates and shutdown cleanup.",
+        "Verify RSS translation as an adapter without treating omitted reference fields as parity."
+      ],
+      "verification": []
+    },
+    {
+      "id": "D-07",
+      "title": "Match maps routes, modes and commute payloads",
+      "track": "pegasus",
+      "phase": 2,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "D-01"
+      ],
+      "reference": [
+        "pegasus:packages/lasso/src/relay/GoogleMapsHandler.ts",
+        "pegasus:packages/test-utils/src/lasso-test/GoogleMapsTestData.ts"
+      ],
+      "phoenix": [
+        "packages/data/src/maps.js"
+      ],
+      "finding": "ORS produces Google-shaped responses but does not establish original route-mode/traffic/transit behavior.",
+      "acceptance": [
+        "Compare coordinate validation, nested query parsing, modes, geometry, units, duration/traffic fields, empty routes and upstream errors.",
+        "Supply equivalent provider behavior or explicitly retain an unresolved feature gap for unsupported modes; do not count shape-only mocks as functional verification."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-01",
+      "title": "Verify GraphSkill sessions and graph execution",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "H-04",
+        "V-02"
+      ],
+      "reference": [
+        "pegasus:packages/baseskill/src/GraphSkill.ts",
+        "pegasus:packages/baseskill/src/graph/Graph.ts",
+        "pegasus:packages/baseskill/src/graph/GraphManager.ts",
+        "pegasus:packages/baseskill/tests"
+      ],
+      "phoenix": [
+        "packages/skills/src/graph/graphSkill.js",
+        "packages/skills/src/graph/graph.js",
+        "packages/skills/src/graph/graphManager.js"
+      ],
+      "finding": "The framework is substantial, but the diff normalizer hides session contents and there is no complete reference continuation comparison.",
+      "acceptance": [
+        "Compare graph finalization, subgraph composition, transitions, trace/data updates, terminal states and invalid graph/session errors.",
+        "Continue captured sessions through all follow-up actions, including retries and global interruptions; detect corrupted/replayed sessions.",
+        "Specify whether in-flight reference sessions must survive a cutover and verify the migration/reset policy before release."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-02",
+      "title": "Verify global results, speaker overrides and supplemental behaviors",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-01",
+        "C-02"
+      ],
+      "reference": [
+        "pegasus:packages/baseskill/src/GraphSkill.ts",
+        "pegasus:packages/interfaces/src/skill/behaviors.ts",
+        "pegasus:packages/baseskill/src"
+      ],
+      "phoenix": [
+        "packages/skills/src/graph/graphSkill.js",
+        "packages/skills/src/graph/nodes.js"
+      ],
+      "finding": "Framework result precedence, analytics and supplemental JCP behavior coverage have not been fully mapped.",
+      "acceptance": [
+        "Match ListenResult precedence and global cancel/repeat/thanks handling across skill updates.",
+        "Compare speaker overrides, sequence/parallel supplemental behaviors, analytics names/fields and failure handling using original framework tests."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-03",
+      "title": "Verify MIM factories, no-input/no-match escalation and opt-in",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-01",
+        "N-06"
+      ],
+      "reference": [
+        "pegasus:packages/baseskill/src/graph/mims/factories",
+        "pegasus:packages/baseskill/src/graph/mims/nodes"
+      ],
+      "phoenix": [
+        "packages/skills/src/graph/mims/factories.js",
+        "packages/skills/src/graph/mims/optIn.js"
+      ],
+      "finding": "QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified.",
+      "acceptance": [
+        "Replay each factory's success, failure, no-input, no-match, escalation and terminal branches with frozen inputs.",
+        "Verify repeat, thanks, cancel, wrong identity, unknown speaker, accept/decline and dialog referent changes through complete sessions."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-04",
+      "title": "Match MIM rendering, conditions, selection and JCP output",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-02",
+        "S-01"
+      ],
+      "reference": [
+        "pegasus:packages/baseskill/src/graph/mims/utils",
+        "jibo:jiboV2/jibo-command-protocol/index.d.ts"
+      ],
+      "phoenix": [
+        "packages/skills/src/graph/mims/slimmer.js",
+        "packages/skills/src/graph/mims/unify.js",
+        "packages/skills/src/jcp.js"
+      ],
+      "finding": "Bounded command serialization and analytics integrated. Strict smoke has21/26 exact complete actions; source SDK timer cancel and actual smile eye animation work on Moth. Complete MIM/selection/timing parity remains open.",
+      "acceptance": [
+        "Compare loaded MIM merging, conditions, weighted variants, dice/coin, template expansion, ESML escaping, prompt IDs and meta fields under fixed inputs.",
+        "Verify full JCP action/listen/display trees, timing/GUI thresholds and cancellation behavior against reference output.",
+        "Test variation distributions separately where the reference is intentionally random; do not loosen exact structural comparisons."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Source-backed general MIM/JCP command structure and serialization from existing S-04 findings; root original and hardware review required.",
+        "worktree": ".parity/worktrees/mim-jcp",
+        "branch": "codex/candidate-mim-jcp-20260905",
+        "baseRevision": "16d91169bdd4e1153cb5021eb493afe7b37f381d",
+        "artifact": "docs/parity/candidates/S-04.md",
+        "candidateRevision": "fb247e9",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/production/integration-s04-smoke/comparison.json",
+        "reviewFinding": "Root source review and56 skill tests pass; independently repeated43-case comparison has736 differences, zero invariants,21/26 complete action agreement. Root preserved array-valued listening contexts. Bounded serialization/analytics implementation accepted; full S-04 acceptance remains open.",
+        "evidence": [
+          "docs/parity/evidence/2026-09-05/hardware/s04-smile-reviewed.json"
+        ]
+      }
+    },
+    {
+      "id": "S-05",
+      "title": "Match runtime prompt data and date/time behavior",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-04"
+      ],
+      "reference": [
+        "pegasus:packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts",
+        "pegasus:packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts",
+        "pegasus:packages/baseskill/src/graph/mims/utils/slimmer/NLData.ts"
+      ],
+      "phoenix": [
+        "packages/skills/src/graph/mims/promptData.js",
+        "packages/skills/src/report/dateTime.js"
+      ],
+      "finding": "Loop names/location text are lean substitutes; prompt time uses host-local Date accessors and report DateTime uses fixed offsets.",
+      "acceptance": [
+        "Match pronounceable names/lists, owner/speaker/referent, age/birthdays, emotion and location values for reference contexts.",
+        "Verify date phrasing, timezone offsets, DST, midnight, leap days and seasonal windows independently of the server timezone."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "changes_requested",
+        "assignee": "Luna Max / http_contract_repair",
+        "scope": "Fixture-dependent fallbacks removed; independent review is repairing source guarded partial failures, duplicate speaker selection and DateTime edge methods.",
+        "worktree": ".parity/worktrees/prompt-data-review",
+        "branch": "codex/review-prompt-data-20260905",
+        "baseRevision": "9be63b17ff298b77f91ee0071778dae05de3dd46",
+        "artifact": "docs/parity/candidates/S-05.md",
+        "candidateRevision": "9be63b17ff298b77f91ee0071778dae05de3dd46"
+      }
+    },
+    {
+      "id": "S-06",
+      "title": "Verify all MIM, manifest and grammar asset provenance",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "V-03"
+      ],
+      "reference": [
+        "pegasus:packages/chitchat-skill/mims",
+        "pegasus:packages/report-skill/mims",
+        "pegasus:packages/hub/resources/skills"
+      ],
+      "phoenix": [
+        "packages/skills/resources",
+        "packages/gateway/resources",
+        "packages/nlu/resources"
+      ],
+      "finding": "The initial inventory hashes vendored assets; imported files alone do not prove reachability or rendering parity.",
+      "acceptance": [
+        "Map every source MIM, category CSV, view/config, manifest entry and required helper to a Phoenix asset and consuming behavior.",
+        "Check hashes or documented transformations, parse/load every asset and validate that referenced assets resolve.",
+        "Preserve legacy robot asset names/paths; uncovered files become explicit tasks rather than being omitted from progress."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-07",
+      "title": "Verify the complete chitchat behavior",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-03",
+        "S-04",
+        "S-05",
+        "S-06",
+        "N-08"
+      ],
+      "reference": [
+        "pegasus:packages/chitchat-skill/src",
+        "pegasus:packages/chitchat-skill/resources/test-manifest.json"
+      ],
+      "phoenix": [
+        "packages/skills/src/chitchatSkill.js",
+        "packages/skills/src/chitchat"
+      ],
+      "finding": "The large library and dispatcher exist, but the current corpus grades intent/memo only.",
+      "acceptance": [
+        "Replay source intent/entity/memo branches, semi-specific categories, fun-and-games transformations and fallback/deflection behavior.",
+        "Compare resulting MIM/ESML/JCP/analytics under identity, emotion, birthday and seasonal contexts, including multi-turn paths."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-08",
+      "title": "Verify personal-report orchestration, preferences and identity",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-03",
+        "S-05",
+        "H-05",
+        "C-03"
+      ],
+      "reference": [
+        "pegasus:packages/report-skill/src/PersonalReport.ts",
+        "pegasus:packages/report-skill/src/nodes",
+        "pegasus:packages/report-skill/src/subgraphs"
+      ],
+      "phoenix": [
+        "packages/skills/src/report/personalReport.js",
+        "packages/skills/src/report/nodes.js",
+        "packages/skills/src/report/userId.js",
+        "packages/skills/src/report/settingsClient.js"
+      ],
+      "finding": "The report graph exists; settings, local identity and data-service integration gaps prevent full parity claims.",
+      "acceptance": [
+        "Compare launch intents, UserID/opt-in, ordering/toggles, prefsFromConfig and Settings requests/defaults using the original report tests.",
+        "Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation and matching analytics."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-09",
+      "title": "Verify report weather language and condition tables",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-08",
+        "D-05"
+      ],
+      "reference": [
+        "pegasus:packages/report-skill/src/subskills/weather",
+        "pegasus:packages/report-skill/tests"
+      ],
+      "phoenix": [
+        "packages/skills/src/report/weather.js"
+      ],
+      "finding": "Weather condition tables are implemented but need source-driven coverage beyond a few fixtures.",
+      "acceptance": [
+        "Cover each WeatherParse/MimLogic branch with frozen current/yesterday data, units, precipitation, temperature change and missing values.",
+        "Compare selected MIMs, dynamic values, speech and fallback behavior through the report graph."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-10",
+      "title": "Verify report news selection and presentation",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-08",
+        "D-06"
+      ],
+      "reference": [
+        "pegasus:packages/report-skill/src/subskills/news"
+      ],
+      "phoenix": [
+        "packages/skills/src/report/news.js",
+        "packages/skills/src/report/xml.js"
+      ],
+      "finding": "Image-required and feed-header behavior changed; RSS compatibility is not original AP parity.",
+      "acceptance": [
+        "Cover configured categories, available/unavailable stories, image/URL requirements, parsing, limits and story order.",
+        "Compare original AP fixture MIMs, titles/attributions, ESML and error paths; verify RSS adapter behavior separately."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-11",
+      "title": "Verify report commute calculations and condition tables",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-08",
+        "D-07"
+      ],
+      "reference": [
+        "pegasus:packages/report-skill/src/subskills/commute"
+      ],
+      "phoenix": [
+        "packages/skills/src/report/commute.js"
+      ],
+      "finding": "Commute tables exist but maps mode/traffic fidelity and time boundaries remain open.",
+      "acceptance": [
+        "Cover all travel modes, missing traffic data, severity thresholds, departure times, units and invalid preferences.",
+        "Compare calculations, MIMs, spoken values and failure paths with the reference under frozen time."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-12",
+      "title": "Verify report calendar classification and phrasing",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-08",
+        "D-04"
+      ],
+      "reference": [
+        "pegasus:packages/report-skill/src/subskills/calendar"
+      ],
+      "phoenix": [
+        "packages/skills/src/report/calendar.js"
+      ],
+      "finding": "The report's calendar logic is tested with mocks while the actual data-service envelope is incompatible.",
+      "acceptance": [
+        "Run personal/work Google/Outlook fixtures through the real Phoenix data and report services.",
+        "Cover no events, merged ordering, all-day/overnight events, today/tomorrow, work hours, timezone/DST and expired credentials.",
+        "Compare classifications, MIM selection, names/times and complete action output."
+      ],
+      "verification": []
+    },
+    {
+      "id": "S-13",
+      "title": "Implement the report's robot display views",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-09",
+        "S-10",
+        "S-11",
+        "S-12"
+      ],
+      "reference": [
+        "pegasus:packages/report-skill/src/subskills/weather/WeatherViews.ts",
+        "pegasus:packages/report-skill/src/subskills/news/NewsViews.ts",
+        "pegasus:packages/report-skill/src/subskills/commute/CommuteViews.ts",
+        "pegasus:packages/report-skill/src/subskills/calendar/CalendarViews.ts",
+        "pegasus:packages/report-skill/resources/views"
+      ],
+      "phoenix": [
+        "packages/skills/src/report/weather.js",
+        "packages/skills/src/report/news.js",
+        "packages/skills/src/report/commute.js",
+        "packages/skills/src/report/calendar.js"
+      ],
+      "finding": "Isolated candidate now generates all six original view configs. Root full-view JSON comparison matches61/61 and Moth visibly renders the weather view. News/calendar/commute robot behavior and provider error paths remain open; candidate is not yet integrated into main.",
+      "acceptance": [
+        "Generate every original view config, dynamic field, image path, geometry, unit label and display threshold.",
+        "Compare payloads with source fixtures and render them on a compatible robot/client; lack of simulator rendering is not a completion exemption."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Six original report view resources and four dynamic builders; root source/runtime/hardware review.",
+        "worktree": ".parity/worktrees/report-views",
+        "branch": "codex/candidate-report-views-20260905",
+        "candidateRevision": "bfd4ac532febe1a7d93c0d81419d54d4a956fc38",
+        "evidence": [
+          "docs/parity/evidence/2026-09-05/production/report-view-builders/source.json",
+          "docs/parity/evidence/2026-09-05/hardware/s13-weather-reviewed.json"
+        ],
+        "artifact": "docs/parity/candidates/S-13.md"
+      }
+    },
+    {
+      "id": "S-14",
+      "title": "Verify example/template skills and skill-host compatibility",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "S-01",
+        "S-02"
+      ],
+      "reference": [
+        "pegasus:packages/example-skill",
+        "pegasus:packages/template-skill",
+        "pegasus:packages/baseskill/src/SkillService.ts",
+        "pegasus:packages/baseskill/src/BaseSkill.ts"
+      ],
+      "phoenix": [
+        "packages/skills/src/exampleSkill.js",
+        "packages/skills/src/templateSkill.js",
+        "packages/skills/src/skillService.js",
+        "packages/skills/src/index.js"
+      ],
+      "finding": "Implementations and tests exist; default /v1/main selection and independently deployed skill equivalence need verification.",
+      "acceptance": [
+        "Replay the original example/template launch/action graphs and skill-host malformed/error behavior.",
+        "Run each replacement on its own reference URL/port with the original requests and verify all default/explicit route forms."
+      ],
+      "verification": []
+    },
+    {
+      "id": "Q-01",
+      "title": "Restore original GQA service contracts and behaviors",
+      "track": "pegasus",
+      "phase": 3,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "V-01",
+        "C-02",
+        "N-08"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-gqa-ws/README.md",
+        "jibo:jiborobot/srv-gqa-ws/gqa",
+        "jibo:jiborobot/srv-gqa-ws/tests",
+        "jibo:jiborobot/srv-gqa-ws/pegasus_mims"
+      ],
+      "phoenix": [
+        "packages/skills/src/answerSkill.js",
+        "packages/skills/src/jcp.js",
+        "packages/gateway/resources/skills"
+      ],
+      "finding": "The original out-of-monorepo GQA source and fake services survive. A generic LLM answer does not establish those behaviors.",
+      "acceptance": [
+        "Inventory Pegasus GQA/news entrypoints and question routing, Wikipedia/Wolfram/Bing fallbacks, attributions and no-answer behavior from original source.",
+        "Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.",
+        "Use replaceable live providers while preserving client-visible functionality and mark unresolved provider-specific features explicitly."
+      ],
+      "verification": []
+    },
+    {
+      "id": "X-01",
+      "title": "Verify restored-branch answer and NLU extensions separately",
+      "track": "restoration",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "Q-01",
+        "N-07",
+        "PM-03"
+      ],
+      "reference": [
+        "pegasus-restored:packages/answer-skill/server.js",
+        "pegasus-restored:packages/parser/src/llm/LLMClient.ts"
+      ],
+      "phoenix": [
+        "packages/skills/src/answerSkill.js",
+        "packages/nlu/src/llmFallback.js"
+      ],
+      "finding": "The 2026 answer path includes Wikipedia-first and different fallback/text behavior; Phoenix currently uses only an LLM or placeholder.",
+      "acceptance": [
+        "If the restored profile is retained, match Wikipedia-first, LLM tool catalog, fallback text, response normalization, timing and output limits against that specific branch.",
+        "Keep its corpus, configuration and verified counts separate from original Pegasus and prevent implicit intent remaps in the original profile."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-01",
+      "title": "Map every Classic operation to controllers, consumers and tests",
+      "track": "classic",
+      "phase": 0,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "PM-03"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json"
+      ],
+      "phoenix": [
+        "docs/parity/evidence/2026-09-05/classic-api-inventory.json",
+        "CLASSIC-SERVICES.md",
+        "packages/classic"
+      ],
+      "finding": "The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md).",
+      "acceptance": [
+        "Assign all 134 targets, including admin variants, to a handler, source controller, consumer, parity task and verification scenario.",
+        "Record auth/ownership, schema, errors, persistence and observable side effects per operation; dispatch/shape support alone is not verification.",
+        "Investigate services with no client API file, including voice training, Jot and other archive services, and register any additional required contracts.",
+        "Recover legacy contract versions used by the original clients, including Settings_20160801.GetSettings; keep the 20171219 SDK surface independently mapped."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-02",
+      "title": "Match Classic dispatch, authentication and error handling",
+      "track": "classic",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-01",
+        "C-01"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json",
+        "jibo:jiborobot/srv-security-gw/src/controllers/auth.ctrl.ts"
+      ],
+      "phoenix": [
+        "packages/classic/src/router.js",
+        "packages/classic/src/awsJson.js",
+        "packages/account/src/robotFace.js"
+      ],
+      "finding": "SigV4 is not verified; prefixes are broad/tolerant and the proxy forwards only selected headers. New per-account keys already exist in Phoenix. The user-supplied Jibo Server Client guide confirms the AWS-derived signing/retry transport. Actual packaged JSON code emits application/json with versioned X-Amz-Target. Native Jetstream requires Account_20151111.CreateHubToken, which the robot-face operation map lacks; preserve native and JS signing/canonicalization variants in fixtures.",
+      "acceptance": [
+        "Match target version/name aliases, body validation, status, x-amzn-errortype and signed-request parsing with original SDK requests.",
+        "Verify signatures, caller identity, ownership/permissions, expiry/replay behavior and trusted internal credentials using issued test keys.",
+        "Forward required signed/request context headers and exact payloads; keep any LAN bypass explicit and separately tested.",
+        "Implement the original signed Account_20151111.CreateHubToken operation with its token/expires contract and verify it using source-pinned native and JS client requests."
+      ],
+      "verification": [],
+      "implementationReview": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Signed CreateHubToken source-claim and422 validation correction. Root found that original AccountController reloads the account and signs its own secret; previous forwarded-envelope redaction claim was wrong and superseded. Original controller/SDK evidence review remains active.",
+        "worktree": ".parity/worktrees/auth-token-review",
+        "branch": "codex/review-auth-token-20260905",
+        "baseRevision": "3f2ca91988af951c2054b51bca2ac0428a5ebb30",
+        "artifact": "docs/parity/candidates/A-02.md",
+        "referenceRevision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
+        "candidateRevision": "c29c23ef164d962a2ce193110d81b90b047ef70c"
+      }
+    },
+    {
+      "id": "A-03",
+      "title": "Complete Account operations and account lifecycle",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/accountadmin-2015-11-11.normal.json"
+      ],
+      "phoenix": [
+        "packages/account/src",
+        "packages/account/portal"
+      ],
+      "finding": "A Phoenix portal/account model exists, but the robot AWS face mainly handles OOBE; 26 Account and two admin operations cannot be credited from portal tests.",
+      "acceptance": [
+        "Implement/verify every Account and AccountAdmin operation from the inventory, including signup/authentication, profile, credentials, deactivation and recovery flows.",
+        "Match original validation, roles, errors, ownership, durable state and downstream effects using SDK fixtures.",
+        "Verify the Phoenix portal against the completed backend and preserve existing paired robots during migration."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-04",
+      "title": "Complete Loop operations and membership lifecycle",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-03"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json"
+      ],
+      "phoenix": [
+        "packages/account/src/robotFace.js",
+        "packages/account/src/model.js",
+        "packages/account/src/store.js"
+      ],
+      "finding": "Only List/ListLoops, SuspendLoop and SuspendRobotLoop are dispatched; the archive defines 23 operations. Suspension currently succeeds even for an unknown loop.",
+      "acceptance": [
+        "Cover all 23 wire operations: creation/update/removal, invitations/membership, robot association, enrollment, names/photos, legal guardian/agreement and suspension.",
+        "Match ownership, membership states, side effects, errors and persistence with real client sequences.",
+        "Preserve adoption/revival behavior in an explicit mode if it requires accepting obsolete loop IDs; do not redefine original errors silently."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-05",
+      "title": "Complete OOBE reconnect, service tokens and administrative behavior",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-03",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/oobeadmin-2016-10-26.normal.json"
+      ],
+      "phoenix": [
+        "packages/account/src/robotFace.js",
+        "packages/account/src/qrPayload.js",
+        "packages/account/portal/qr.js"
+      ],
+      "finding": "Setup/prepare/status and QR flows exist. Reconnect/service-token and complete lifecycle semantics are not established.",
+      "acceptance": [
+        "Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.",
+        "Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.",
+        "Retain hardware evidence by robot/firmware/date; prior notes are not a fresh parity run."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-06",
+      "title": "Complete Settings data/view/ownership compatibility",
+      "track": "classic",
+      "phase": 2,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "H-01"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/settings-2017-12-19.normal.json",
+        "pegasus:packages/hub/src/utils/SettingsClient.ts",
+        "pegasus:packages/report-skill/src/SettingsClient.ts"
+      ],
+      "phoenix": [
+        "packages/account/src/settingsFace.js",
+        "packages/account/src/settingsData.js"
+      ],
+      "finding": "Settings are primarily report-specific; the original API supports skill lists, data/view retrieval, updates and deletion. Original Pegasus sends Settings_20160801.GetSettings, with a string skill selector in report and an array in hub.",
+      "acceptance": [
+        "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
+        "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
+        "Cover non-report skills and malformed/unknown settings using controller-derived fixtures."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-07",
+      "title": "Complete Robot records, provisioning and calibration/history behavior",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/robot-2016-02-25.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/robotadmin-2016-02-25.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/robot.js"
+      ],
+      "finding": "Robot operations mostly return defaults/empty data; original persistence and admin/provisioning semantics are unverified.",
+      "acceptance": [
+        "Map all normal/admin targets and implement durable records, updates, friendly IDs and history/calibration responses from source.",
+        "Verify manufacturing/owner/robot permissions and correct missing-record/error behavior with fixture data."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-08",
+      "title": "Complete Update selection, reporting and package delivery",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/update-2016-03-01.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/updateadmin-2016-03-01.normal.json"
+      ],
+      "phoenix": [
+        "packages/ota/src",
+        "packages/ota/test/ota.test.js",
+        "scripts/build-ota-packages.sh"
+      ],
+      "finding": "OTA package catalog/download paths work under tests, but the API inventory has five normal and three admin operations.",
+      "acceptance": [
+        "Verify every update operation, version/release/subsystem selection, no-update behavior, progress/reporting and admin publication semantics.",
+        "Check package format, integrity, streaming, retry and restart behavior against the original client with temporary fixture packages.",
+        "Require a controlled hardware update/rollback test before claiming end-to-end firmware parity."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-09",
+      "title": "Make backups durable and match ownership/restore semantics",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/backup-2017-02-22.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/backup.js",
+        "packages/classic/test/backup.test.js"
+      ],
+      "finding": "The uncommitted backup implementation stores blobs on disk but its index is in memory and ownership enforcement is dropped.",
+      "acceptance": [
+        "Preserve New/List shapes, signed upload/download semantics, content integrity, limits, ordering and source ownership checks.",
+        "Recover index and blobs across process crashes/restarts; verify backup -> restart -> list -> restore with the original client sequence.",
+        "Perform destructive wipe/restore only in a separately authorized controlled hardware run after backup validation."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-10",
+      "title": "Verify notification token and socket delivery lifecycle",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-03"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/notification-2015-05-05.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/notification.js"
+      ],
+      "finding": "Live/pending queues and sockets exist, but storage is ephemeral and full original delivery semantics have not been verified.",
+      "acceptance": [
+        "Compare token issuance/reuse, socket authentication, status, framing, delivery/reconnect/expiry and queue behavior with the original consumer.",
+        "Verify ordering, replay/ack behavior where present in source, persistence and multiple-device/account isolation.",
+        "Exercise the real robot socket endpoint and DNS/TLS configuration separately from HTTP service discovery."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-11",
+      "title": "Complete key exchange, backup and binary-key operations",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/key-2016-02-01.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/key.js"
+      ],
+      "finding": "The nine operation names are present but state is ephemeral; binary and ownership semantics need controller comparison.",
+      "acceptance": [
+        "Verify all nine operations, request state transitions, encrypted key sharing, backup/restore and binary exchange with original SDK fixtures.",
+        "Preserve ownership, key material, expiry/errors and restart behavior using test-owned keys; prove consumer encryption/decryption round trips."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-12",
+      "title": "Implement log ingestion and binary-upload behavior",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/log-2015-03-09.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/logadmin-2015-03-09.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/log.js"
+      ],
+      "finding": "Events are a no-op sink; binary uploads return empty destinations.",
+      "acceptance": [
+        "Match the six normal and one admin operations, validation/errors and synchronous/asynchronous acknowledgments.",
+        "Provide usable binary/ASR upload destinations and a retrievable durable sink where source semantics require them.",
+        "Verify producer retries, trace metadata and retention behavior with the original log client."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-13",
+      "title": "Implement push delivery behind a replaceable provider",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "partial",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-03"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/push-2016-07-29.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/push.js"
+      ],
+      "finding": "Device registration exists; delivery is a no-op and registrations are in memory.",
+      "acceptance": [
+        "Match device creation/removal, durable registration, ownership and errors.",
+        "Exercise notification delivery, provider failure/token invalidation and downstream effects through a fixture provider and then an available real client."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-14",
+      "title": "Implement functional Media and MediaAdmin storage",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "stub",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-11"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/media-2016-07-25.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/mediaadmin-2016-07-25.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/stubs.js"
+      ],
+      "finding": "Media create returns empty URLs and list/get return empty arrays.",
+      "acceptance": [
+        "Implement create/upload/list/get/remove and admin semantics with usable URLs, metadata, encryption flags, access checks and persistence.",
+        "Verify pagination/filtering if required by source, deletion and original photo/media client round trips."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-15",
+      "title": "Complete Person data and Collision behavior",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "stub",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/person-2016-08-01.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/collision-2016-11-26.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/stubs.js"
+      ],
+      "finding": "Person properties have limited in-memory round trips; holidays/answers are placeholders and Collision always reports no collision.",
+      "acceptance": [
+        "Verify every Person operation, personalized answers, properties and holiday behavior with original fixtures and durable state.",
+        "Implement collision/name matching, thresholds and error responses from archived source, including real collisions and boundary examples."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-16",
+      "title": "Implement ROM certificate exchange and remote operation",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "stub",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/rom-2017-10-11.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/stubs.js"
+      ],
+      "finding": "ROM returns empty certificate/key material.",
+      "acceptance": [
+        "Implement Create/SetupClient/SetupServer with the original validation, ownership and certificate/credential lifecycle.",
+        "Verify usable remote-operation sessions with the original client, including expiration, failure and reconnect."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-17",
+      "title": "Implement IFTTT and Classic NLP behavior",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "stub",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-02",
+        "A-04"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/ifttt-2017-02-07.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/nlp-2016-10-31.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/stubs.js"
+      ],
+      "finding": "IFTTT lists/actions and NLP responses are placeholders.",
+      "acceptance": [
+        "Match all seven IFTTT operations with identities, triggers/actions/media, delivery side effects and failure behavior through fixture adapters.",
+        "Implement part-of-speech and named-entity output contracts using original examples; empty placeholder arrays are not completion."
+      ],
+      "verification": []
+    },
+    {
+      "id": "A-18",
+      "title": "Close remaining admin, OAuth-client and LPS contracts",
+      "track": "classic",
+      "phase": 4,
+      "priority": "P1",
+      "status": "todo",
+      "implementation": "unassessed",
+      "owner": "Codex",
+      "dependsOn": [
+        "A-01",
+        "A-02",
+        "A-03"
+      ],
+      "reference": [
+        "jibo:jiborobot/srv-jibo-server-client/apis/oauthclientsadmin-2017-11-08.normal.json",
+        "jibo:jiborobot/srv-jibo-server-client/apis/lps-2017-12-01.normal.json"
+      ],
+      "phoenix": [
+        "packages/classic/src/router.js",
+        "packages/account/src"
+      ],
+      "finding": "The API inventory includes services/admin operations beyond the current prefix router; full controller coverage is unassessed.",
+      "acceptance": [
+        "Cover remaining targets from A-01, including OAuth-client administration and LPS, with source-derived permissions and side effects.",
+        "Resolve newly discovered non-API-file services into explicit child tasks; do not assume absence of one SDK definition means a feature never existed.",
+        "Finish an operation-by-operation coverage review with no unassigned required surface."
+      ],
+      "verification": []
+    },
+    {
+      "id": "R-01",
+      "title": "Pass full reference-client and service-substitution tests",
+      "track": "release",
+      "phase": 5,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "unverified",
+      "owner": "Codex",
+      "dependsOn": [
+        "C-01",
+        "C-02",
+        "C-03",
+        "H-01",
+        "H-02",
+        "H-03",
+        "H-04",
+        "H-05",
+        "H-06",
+        "H-07",
+        "H-08",
+        "N-01",
+        "N-02",
+        "N-03",
+        "N-04",
+        "N-05",
+        "N-06",
+        "N-07",
+        "N-08",
+        "I-01",
+        "I-02",
+        "I-03",
+        "D-01",
+        "D-02",
+        "D-03",
+        "D-04",
+        "D-05",
+        "D-06",
+        "D-07",
+        "S-01",
+        "S-02",
+        "S-03",
+        "S-04",
+        "S-05",
+        "S-06",
+        "S-07",
+        "S-08",
+        "S-09",
+        "S-10",
+        "S-11",
+        "S-12",
+        "S-13",
+        "S-14",
+        "Q-01",
+        "H-09",
+        "H-10"
+      ],
+      "reference": [
+        "pegasus:packages/hub-client",
+        "pegasus:packages/history-client",
+        "pegasus:packages/integration-tests-int",
+        "pegasus:packages/integration-tests-ext"
+      ],
+      "phoenix": [
+        "packages/harness",
+        "scripts/verify-compose-contract.mjs"
+      ],
+      "finding": "Existing compose smoke checks use Phoenix-specific skill paths and cannot prove individual service substitution.",
+      "acceptance": [
+        "Replace one reference service at a time with Phoenix and run original client/fixture scenarios without changing callers, URLs or request shapes.",
+        "Pass complete HTTP/WS/JCP/speech/history/data side-effect comparisons, then run an all-Phoenix stack on the same scenarios.",
+        "Publish exact case counts, failures, missing cases and evidence revisions; require zero unexplained behavioral differences."
+      ],
+      "verification": []
+    },
+    {
+      "id": "R-02",
+      "title": "Verify installation, native/compose startup and data migration",
+      "track": "release",
+      "phase": 5,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "unverified",
+      "owner": "Codex",
+      "dependsOn": [
+        "R-01",
+        "A-02",
+        "A-06",
+        "A-09"
+      ],
+      "reference": [
+        "pegasus:docker-compose.yml",
+        "pegasus:cli",
+        "pegasus-restored:docs/atlas/runtime-topology.md"
+      ],
+      "phoenix": [
+        "docker-compose.yml",
+        "scripts/run-compose-stack.sh",
+        "scripts/run-sim-stack.sh",
+        "README.md"
+      ],
+      "finding": "Ports look similar, but environment aliases, default skill routes, state durability and reference substitution have not been proven.",
+      "acceptance": [
+        "Test a clean install and isolated native/compose deployments with correct service names, ports, configuration, startup/shutdown and readiness.",
+        "Verify migration from the current Phoenix stores and, where available, original database fixtures with backup/restore and rollback.",
+        "Make verification commands use temporary stores/test accounts and avoid depending on this machine's .env, siblings or live robot."
+      ],
+      "verification": []
+    },
+    {
+      "id": "R-03",
+      "title": "Verify reliability, limits and observability",
+      "track": "release",
+      "phase": 5,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "unverified",
+      "owner": "Codex",
+      "dependsOn": [
+        "R-01",
+        "H-07",
+        "H-08",
+        "I-03"
+      ],
+      "reference": [
+        "pegasus:packages/utils/src/service",
+        "pegasus:packages/hub/src/listen",
+        "pegasus:packages/parser/src/utils/ConcurrentQueue.ts"
+      ],
+      "phoenix": [
+        "packages/common",
+        "packages/gateway",
+        "packages/nlu",
+        "packages/history",
+        "packages/data"
+      ],
+      "finding": "Default timeouts, uncancelled fetches, restart behavior and concurrent load need measured acceptance rather than green unit tests.",
+      "acceptance": [
+        "Measure latency/throughput against pinned reference budgets with concurrency, slow/unavailable peers, disconnects and repeated restarts.",
+        "Verify bounded memory/queues, timeout cancellation, no cross-robot state leakage and expected error/retry behavior.",
+        "Check trace/log/metrics/configuration behavior and make failures observable without falsely healthy service state."
+      ],
+      "verification": []
+    },
+    {
+      "id": "R-04",
+      "title": "Verify supported robot/firmware and original-client journeys",
+      "track": "release",
+      "phase": 5,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "unverified",
+      "owner": "Codex",
+      "dependsOn": [
+        "R-02",
+        "R-03",
+        "A-05",
+        "A-08",
+        "A-10",
+        "S-13",
+        "V-04"
+      ],
+      "reference": [
+        "pegasus:packages/hub-client",
+        "jibo:confluence/display/SER/Jetstream+Service+Details"
+      ],
+      "phoenix": [
+        "HW-OOBE-TEST.md",
+        "packages/harness",
+        "scripts/point-robot-at-phoenix.sh",
+        "docs/parity/CONSUMERS.md",
+        "docs/parity/HARDWARE.md"
+      ],
+      "finding": "Consumer provenance is recorded in CONSUMERS.md. The user released Moth for SSH testing on 2026-09-05; V-04 now establishes the actual robot loop against this checkout. The simulator remains excluded as an oracle, and the other robot is not touched. Full firmware/client journeys, real microphone behavior, persistence and every skill-family acceptance remain open.",
+      "acceptance": [
+        "Use pinned original client/source contracts as expectations and Moth for runtime evidence; simulator output cannot close parity. Keep source inspection, native text injection and physical microphone observations distinct.",
+        "Pin supported firmware/client versions and record setup/adoption, auth, real microphone turns, local/global follow-ups, displays, proactive preferences and reconnect.",
+        "Exercise each user-visible skill family and data provider, plus account/loop/settings persistence across server/robot restart.",
+        "Record robot/firmware/configuration, scenario results and logs; arrange explicit authorization for destructive reset/OTA trials when needed."
+      ],
+      "verification": []
+    },
+    {
+      "id": "R-05",
+      "title": "Close the source checklist and publish a release parity report",
+      "track": "release",
+      "phase": 6,
+      "priority": "P0",
+      "status": "todo",
+      "implementation": "unverified",
+      "owner": "Codex",
+      "dependsOn": [
+        "R-01",
+        "R-02",
+        "R-03",
+        "R-04",
+        "A-01",
+        "A-02",
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "A-07",
+        "A-08",
+        "A-09",
+        "A-10",
+        "A-11",
+        "A-12",
+        "A-13",
+        "A-14",
+        "A-15",
+        "A-16",
+        "A-17",
+        "A-18"
+      ],
+      "reference": [
+        "pegasus-restored:docs/atlas/verification-strategy.md",
+        "jibo:jiborobot/srv-jibo-server-client/apis"
+      ],
+      "phoenix": [
+        "docs/parity/tasks.json",
+        "README.md",
+        "PARITY.md",
+        "ROADMAP.md",
+        "DIVERGENCES.md"
+      ],
+      "finding": "Completion must cover the scoped product and every required behavior, not just the previous M1-M9 milestone labels.",
+      "acceptance": [
+        "Reconcile every source operation/rule/asset/test scenario with evidence and require zero missing, stubbed or unexplained-divergent required behaviors.",
+        "Publish separate Pegasus, companion-cloud, hardware and optional restoration results, including evidence revisions and approved exceptions.",
+        "Verify migration/rollback/runbooks, update user-facing status claims and retain regression gates for future changes."
+      ],
+      "verification": []
+    }
+  ]
+}

@@ -2,13 +2,15 @@
   "name": "@phoenix/common",
   "version": "0.0.0",
   "type": "module",
-  "description": "Shared service scaffolding for Phoenix: env/service discovery, a zero-dependency HTTP service runner with a free /healthcheck, trace-header propagation and structured logging.",
+  "description": "Shared service scaffolding for Phoenix: env/service discovery, an Express HTTP service runner with a free /healthcheck, trace-header propagation and structured logging.",
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js"
   },
   "dependencies": {
-    "@phoenix/contracts": "*"
+    "@phoenix/contracts": "*",
+    "body-parser": "1.18.2",
+    "express": "4.16.2"
   },
   "license": "UNLICENSED"
 }

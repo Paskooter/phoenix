@@ -1,0 +1,21 @@
+{
+  "pass": true,
+  "cases": 28,
+  "invariants": [],
+  "differences": [],
+  "policy": {
+    "generatedIDs": [
+      "/cases/*/response/body/value/msgID",
+      "/cases/*/frames/*/message/msgID",
+      "/cases/*/effects/*/body/value/msgID"
+    ],
+    "endpointPaths": [
+      "/cases/*/response/body/value/skills/*/URL",
+      "/cases/*/frames/*/message/data/message",
+      "/cases/*/effects/*/headers/host"
+    ],
+    "measuredDurations": "Finite ordered wall times with per-fixture bounds; message timestamps/timing keys/sentinels remain compared",
+    "etag": "Exact SHA-1/length relation to raw entity; presence and weak/strong form remain compared",
+    "sessions": "Full contents compared, plus issued/supplied/forwarded/advanced continuation checks"
+  }
+}

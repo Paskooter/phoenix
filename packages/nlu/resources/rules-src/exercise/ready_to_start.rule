@@ -1,0 +1,19 @@
+TopRule = $* $GETCLOSE $* {intent=GETCLOSE._intent}{priority='HIGH'};
+
+### When you're ready to start, say I'm ready! ###
+
+GETCLOSE =
+(
+    $IMREADY {_intent = 'imReady'}
+);
+IMREADY =
+(
+    ( ?$IAMWEARE ready ) |
+    ( okay $IAMWEARE ready ) |
+    ( ( let\'s | ( let us ) ) ( go | ( do it ) | exercise | (work out) | ( do yoga ) | rock ) ) |
+    ( ?$IAMWEARE $NEAR )
+);
+
+### USEFUL VOCAB ###
+IAMWEARE = ( i am ) | i\'m | ( we are ) | we\'re;
+NEAR = near | close | nearby | closeby | ( next to ) | ( ( sitting | standing ) $w03 by );

@@ -1,0 +1,54 @@
+TopRule = ($* $CONTROL $*) {intent = CONTROL._intent}{priority='HIGH'};
+
+#Whoa, are... are you my person?
+#hey jibo required FALSE
+
+CONTROL =
+                ($factory:yes_no{_intent = yes_no._nl}) |
+                $YES_OTHER {_intent=YES_OTHER._intent} |
+                $NO_OTHER {_intent=NO_OTHER._intent} |
+                $HOLDON {_intent=HOLDON._intent};
+
+YES_OTHER =
+        (
+                guess | gas |
+                yes  |
+                yeah |
+                sure |
+                yeah |
+                yea |
+                yep |
+                sure |
+                certainly |
+                definitely |
+                ( i ( think | suppose | guess ) so ) |
+                ( go for it ) |
+                ( do it ) |
+                ( please do )
+        )
+{_intent='yes'}
+;
+
+NO_OTHER =
+        (
+                know | snow | now |
+                no  |
+                nope |
+                not |
+                (certainly not) |
+                (definitely not) |
+                don\'t
+        )
+{_intent='no'}
+;
+
+HOLDON =
+        (
+                ( hold on ) |
+                ( take a break ) |
+                pause |
+                stop |
+                wait
+    )
+{_intent='holdOn'}
+;

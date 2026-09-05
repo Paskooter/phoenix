@@ -1,0 +1,27 @@
+TopRule = $* $STILLHERE $* {intent=STILLHERE._intent}{priority='HIGH'};
+
+### Are you still there? ###
+### Hello? You still there? ###
+
+STILLHERE =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( i am ) |
+    ( we are ) |
+    ( ( $IAM | $WEARE ) ?still here ) |
+    ( still here ) |
+    hello
+);
+NO_OTHER =
+(
+    know | snow | now
+);
+#USEFUL VOCAB
+IAM = ( i am ) | i\'m;
+WEARE = ( we are) | we\'re;

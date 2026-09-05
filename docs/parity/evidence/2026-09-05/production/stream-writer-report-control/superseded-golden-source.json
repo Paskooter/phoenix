@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 2,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "driverSha256": "0782fefd77d37a76622b8cdba5aab6a4534bd9db5bfd6e552a54e9bc6a83efca",
+  "originalCaptureTools": {
+    "scripts/parity-production/driver.cjs": "0782fefd77d37a76622b8cdba5aab6a4534bd9db5bfd6e552a54e9bc6a83efca",
+    "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
+    "scripts/parity-production/fixtures.mjs": "c5e089603b28c1260c7fb70be536b49e7e875a1f0922afc0e50c593d2eac577e"
+  },
+  "files": {
+    "suite.json": "b5e8a7bc01a15de10232b783f2b3e1742e51b409c0c0f879c7c67eda2c067f7a",
+    "reference.json.gz": "2e0781f296a65e78f8a8cd9dc8b4b8fb8036cde30cad8dea3b418befac03ba30"
+  },
+  "referenceIntegrity": {
+    "originalGitFiles": 6144,
+    "intentionalBootstrapRelocations": 2,
+    "emittedFiles": 391,
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "binarySha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54",
+    "fixtureSourcesSha256": "83cfdbcc2dfc645916beaa5629b862a71859fba3dff092fff3fc548915017da8"
+  },
+  "images": {
+    "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+  },
+  "originalControlArtifact": "docs/parity/evidence/2026-09-05/production/request-builder-report-control/run.json",
+  "originalControlArtifactSha256": "83a17eb253bd1464c10840e83a9ddf62eb7d3f0a85191cb6c8bfd5afa9dddc63",
+  "review": {
+    "date": "2026-09-05",
+    "reviewer": "Codex",
+    "result": "pass",
+    "scope": "All measured outputs in 73 production v2 report cases agree in two separate Node 8.9.4 containers with zero differences/invariants. All 98 native grammars and performance notifications succeed. The external answer action for report:5:0:base is not hosted; complete-gate pass is false. This review approves golden provenance/repeatability only, not complete action coverage or Phoenix parity."
+  },
+  "limitations": [
+    "Original production ParserService/RobustParserClient and native 2.8.3 FSTs; Dialogflow is explicitly disabled. Native process clock is not faked.",
+    "Native RPC uses the supported maxConcurrentRequests=1 setting and a localhost performance sink. This component profile does not verify concurrent parser load or native telemetry parity.",
+    "Production IntentRouter uses each implementation's actual skills-local registry. Cloud actions are hosted only for original chitchat/report in this profile; unhosted targets are reported as coverage gaps.",
+    "Production skill request builders execute dialog-reference injection and launch/update/proactive envelope construction. The shared driver supplies transport; full HubService orchestration is outside this component profile.",
+    "Node Math.random and VM intrinsic Math.random use separate case-seeded streams. MIM conditions and prompt selection are unmodified; native parser and VM Date clocks remain host clocks.",
+    "Original test-runtime context is synthetic; uid0001 is assigned to its default mock speaker. Dates use noon UTC. Historical conditional person details were not recovered.",
+    "Provider replies are frozen test weather and synthetic settings/news/calendar/maps; no current-provider availability or hardware rendering is claimed.",
+    "Every selected occurrence is executed separately. Scores retain corpus/conditional denominators, duplicates and absent manifest expectations."
+  ],
+  "supersedes": "docs/parity/evidence/2026-09-05/production/report-control/golden-source-v1.json"
+}

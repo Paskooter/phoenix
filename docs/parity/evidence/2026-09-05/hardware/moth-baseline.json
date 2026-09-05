@@ -1,0 +1,97 @@
+{
+  "date": "2026-09-05",
+  "robot": "Moth-Radius-Breazeal-Felt",
+  "reference": "Pegasus 5c0a7390539663ba749d360de348a428c088505c and independently verified BE12 release",
+  "profile": {
+    "be": "12.0.0",
+    "packageName": "@be/phoenix-parity",
+    "slot": "/opt/jibo/Jibo/Skills/phoenix-be12-parity",
+    "deployedFileCount": 23526,
+    "compiledFilesMatchRelease": true,
+    "packageJsonSha256": "192ba43d8de99eb17b6ed5799c0c5230868c9b4bd1893579af2f4253669a3641",
+    "ssmVersion": "16.0.0",
+    "ssmSha256": "88daae19883921238efbf2a56dd8e8670b89bec95d967953ab060b74db1b4e38",
+    "jetstreamBinary": {
+      "path": "/usr/local/bin/jibo-jetstream-service",
+      "sha256": "c3c138ff1d3599d7fe50bf9afdc036dfd7165897cf4481fadd54cbc236046f30",
+      "mode": 488,
+      "size": 24956064
+    },
+    "hub": "192.168.1.182:19000",
+    "phoenixCheckout": "/home/shell/work/phoenix",
+    "auth": "disabled for initial transport trial",
+    "encoding": "LINEAR16",
+    "asr": "Parakeet at 192.168.1.252:6972",
+    "nluLlm": false,
+    "answerLlm": false
+  },
+  "results": [
+    {
+      "scenario": "Joke (guitar and fish)",
+      "input": "native CLIENT_ASR text injection",
+      "nativeResult": "SUCCEEDED",
+      "nimbusObserved": true,
+      "ttsObserved": true,
+      "userHeard": true,
+      "prompt": "RA_JBO_TellAJoke_AN_41",
+      "sourceExpectation": "TTS joke with auto tagging enabled; no separate illustration specified",
+      "status": "basic speech path passes; gesture fidelity open"
+    },
+    {
+      "scenario": "What time is it",
+      "input": "real microphone; separately repeated with native CLIENT_ASR injection",
+      "audioBytes": 73600,
+      "hubLatencyMs": 2558,
+      "intent": "askForTime",
+      "skill": "@be/clock",
+      "userHeard": true,
+      "userSawClock": true,
+      "status": "observed working interaction; not full clock-task parity"
+    },
+    {
+      "scenario": "Listening indicator",
+      "input": "original SDK startLocalTurn with real microphone capture",
+      "observedStates": [
+        "Engage",
+        "Listen",
+        "Off Expression + Thinking",
+        "Idle"
+      ],
+      "ledColorsObserved": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "userReported": "Hey Jibo does not show blue ring",
+      "status": "fails expected listening cue; BE12 bundled code explicitly turns LED off"
+    },
+    {
+      "scenario": "After-skill surprises",
+      "status": "error observed",
+      "error": "Cannot read property 'checkEnvironmentInhibitors' of null",
+      "next": "Compare original BE bundled action/proactive behavior across releases"
+    }
+  ],
+  "setupCorrection": {
+    "initialPackageName": "@phoenix/be12-parity",
+    "effect": "Native cloud messages arrived but SSM did not relaunch Nimbus",
+    "source": "Installed SSM GlobalManagerService checks currentSkill.name.startsWith(@be/)",
+    "correction": "Use @be/phoenix-parity; Nimbus and TTS then execute",
+    "classification": "test deployment issue, not Phoenix product defect"
+  },
+  "limitations": [
+    "Authentication and Classic requests not yet moved into this isolated stack.",
+    "BE12 static and hardware feature regressions are being compared with earlier releases.",
+    "User-visible full skill families, persistence, encoded audio, failures and follow-ups remain open.",
+    "Early view screenshot was taken during clock transition and does not itself establish rendered clock content; user observation and clock_view/TTS trace are retained separately."
+  ],
+  "rawEvidence": "Ignored .parity/robots/moth/20260905/; credentials/tokens not published",
+  "overall": "partial; no complete product task or release gate certified"
+}

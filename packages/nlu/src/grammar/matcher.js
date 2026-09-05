@@ -200,6 +200,13 @@ function* match(node, start, ctx, depth) {
         }
         return; // membership is a CONSTRAINT — no wildcard fallback for listed factories
       }
+      if (!target && node.prefix === 'factory' && ctx.strictFactories) {
+        // A request-scoped source rule must not turn an unavailable factory
+        // dependency into an arbitrary 1..3-word wildcard. The broad legacy
+        // parser keeps its historical fallback; named requests opt into this
+        // strict path so missing factory support becomes a no-match.
+        return;
+      }
       if (!target) {
         // Fallback: match 1..3 words greedily (factory slots typically span
         // a short noun phrase). The lit-vs-subfield tag eval handles missing

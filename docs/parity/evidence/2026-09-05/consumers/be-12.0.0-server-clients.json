@@ -1,0 +1,2502 @@
+{
+  "schemaVersion": 1,
+  "archiveSha256": "e29f476c75e35e9bbd07c0211c75e2385772e4dfb3dd079a1d832e3832450657",
+  "basis": "Selected release files inspected without executing packages",
+  "packages": [
+    {
+      "archiveRoot": "node_modules/@jibo/jibo-server-client/",
+      "name": "@jibo/jibo-server-client",
+      "version": "3.0.79"
+    },
+    {
+      "archiveRoot": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/",
+      "name": "@jibo/jibo-server-client",
+      "version": "3.0.117"
+    },
+    {
+      "archiveRoot": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/",
+      "name": "@jibo/jibo-server-client",
+      "version": "3.0.117"
+    },
+    {
+      "archiveRoot": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/",
+      "name": "@jibo/jibo-server-client",
+      "version": "3.0.117"
+    }
+  ],
+  "files": [
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/package.json",
+      "path": "root/package.json",
+      "sha256": "0fd67c613d625a9c16efbd7306070083f637ca854aa774905d58647a25d4c553",
+      "bytes": 3123
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/lib/event_listeners.js",
+      "path": "root/lib/event_listeners.js",
+      "sha256": "5e83694266ed2411734d44c53eb191e3b15ccd439fbd084741018778a79150c7",
+      "bytes": 17851
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/lib/service.js",
+      "path": "root/lib/service.js",
+      "sha256": "400ca4dd1a1572791709603a9227dbc4603612db1f120ec75c543ef28887586d",
+      "bytes": 16328
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/lib/region_config.json",
+      "path": "root/lib/region_config.json",
+      "sha256": "f1514e59a030b87da7aac8ac5e9b56f5fc0e4dd034e12ad2f1eadb1cca904bcb",
+      "bytes": 721
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/lib/region_config.js",
+      "path": "root/lib/region_config.js",
+      "sha256": "b64d172c09a5480768b3daf531fbe167727e0f40145f5a614ab135754c5727cb",
+      "bytes": 1872
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/lib/signers/v4.js",
+      "path": "root/lib/signers/v4.js",
+      "sha256": "ebc5dde15aeb011ae128e3bb8988615bd1631e827becb822e0444d55e044ef1d",
+      "bytes": 7604
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/lib/protocol/json.js",
+      "path": "root/lib/protocol/json.js",
+      "sha256": "6cf151a37c4b1b394eefaae34b59ef1b06d1599524b4783c02175e45329399b4",
+      "bytes": 3024
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/package.json",
+      "path": "surprises-ota/package.json",
+      "sha256": "d45197a13e6a27cedf6693af1b6a4d981ccb16aefed4aa94c7984791e3e20f63",
+      "bytes": 3124
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/lib/event_listeners.js",
+      "path": "surprises-ota/lib/event_listeners.js",
+      "sha256": "5e83694266ed2411734d44c53eb191e3b15ccd439fbd084741018778a79150c7",
+      "bytes": 17851
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/lib/service.js",
+      "path": "surprises-ota/lib/service.js",
+      "sha256": "400ca4dd1a1572791709603a9227dbc4603612db1f120ec75c543ef28887586d",
+      "bytes": 16328
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+      "path": "surprises-ota/lib/region_config.json",
+      "sha256": "f1514e59a030b87da7aac8ac5e9b56f5fc0e4dd034e12ad2f1eadb1cca904bcb",
+      "bytes": 721
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/lib/region_config.js",
+      "path": "surprises-ota/lib/region_config.js",
+      "sha256": "b64d172c09a5480768b3daf531fbe167727e0f40145f5a614ab135754c5727cb",
+      "bytes": 1872
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/lib/signers/v4.js",
+      "path": "surprises-ota/lib/signers/v4.js",
+      "sha256": "ebc5dde15aeb011ae128e3bb8988615bd1631e827becb822e0444d55e044ef1d",
+      "bytes": 7604
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/lib/protocol/json.js",
+      "path": "surprises-ota/lib/protocol/json.js",
+      "sha256": "6cf151a37c4b1b394eefaae34b59ef1b06d1599524b4783c02175e45329399b4",
+      "bytes": 3024
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/package.json",
+      "path": "ifttt/package.json",
+      "sha256": "d45197a13e6a27cedf6693af1b6a4d981ccb16aefed4aa94c7984791e3e20f63",
+      "bytes": 3124
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/lib/event_listeners.js",
+      "path": "ifttt/lib/event_listeners.js",
+      "sha256": "5e83694266ed2411734d44c53eb191e3b15ccd439fbd084741018778a79150c7",
+      "bytes": 17851
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/lib/service.js",
+      "path": "ifttt/lib/service.js",
+      "sha256": "400ca4dd1a1572791709603a9227dbc4603612db1f120ec75c543ef28887586d",
+      "bytes": 16328
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+      "path": "ifttt/lib/region_config.json",
+      "sha256": "f1514e59a030b87da7aac8ac5e9b56f5fc0e4dd034e12ad2f1eadb1cca904bcb",
+      "bytes": 721
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/lib/region_config.js",
+      "path": "ifttt/lib/region_config.js",
+      "sha256": "b64d172c09a5480768b3daf531fbe167727e0f40145f5a614ab135754c5727cb",
+      "bytes": 1872
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/lib/signers/v4.js",
+      "path": "ifttt/lib/signers/v4.js",
+      "sha256": "ebc5dde15aeb011ae128e3bb8988615bd1631e827becb822e0444d55e044ef1d",
+      "bytes": 7604
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/lib/protocol/json.js",
+      "path": "ifttt/lib/protocol/json.js",
+      "sha256": "6cf151a37c4b1b394eefaae34b59ef1b06d1599524b4783c02175e45329399b4",
+      "bytes": 3024
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/package.json",
+      "path": "settings/package.json",
+      "sha256": "d45197a13e6a27cedf6693af1b6a4d981ccb16aefed4aa94c7984791e3e20f63",
+      "bytes": 3124
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/lib/event_listeners.js",
+      "path": "settings/lib/event_listeners.js",
+      "sha256": "5e83694266ed2411734d44c53eb191e3b15ccd439fbd084741018778a79150c7",
+      "bytes": 17851
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/lib/service.js",
+      "path": "settings/lib/service.js",
+      "sha256": "400ca4dd1a1572791709603a9227dbc4603612db1f120ec75c543ef28887586d",
+      "bytes": 16328
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+      "path": "settings/lib/region_config.json",
+      "sha256": "f1514e59a030b87da7aac8ac5e9b56f5fc0e4dd034e12ad2f1eadb1cca904bcb",
+      "bytes": 721
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/lib/region_config.js",
+      "path": "settings/lib/region_config.js",
+      "sha256": "b64d172c09a5480768b3daf531fbe167727e0f40145f5a614ab135754c5727cb",
+      "bytes": 1872
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/lib/signers/v4.js",
+      "path": "settings/lib/signers/v4.js",
+      "sha256": "ebc5dde15aeb011ae128e3bb8988615bd1631e827becb822e0444d55e044ef1d",
+      "bytes": 7604
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/lib/protocol/json.js",
+      "path": "settings/lib/protocol/json.js",
+      "sha256": "6cf151a37c4b1b394eefaae34b59ef1b06d1599524b4783c02175e45329399b4",
+      "bytes": 3024
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/mediaadmin-2016-07-25.min.json",
+      "path": "root/apis/mediaadmin-2016-07-25.min.json",
+      "sha256": "3a51698e73a4ebe50faeaf5cf498316b48b5c5ef45f4c387faf6ae5ee86b3e3e",
+      "bytes": 1081,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "mediaadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "RemoveAllMediaFromLoop"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/account-2015-11-11.min.json",
+      "path": "root/apis/account-2015-11-11.min.json",
+      "sha256": "dbcac75c3ffc60f7fd2015fdd48a0964773004ba82c35aa4e5f10e3a94c730a3",
+      "bytes": 8829,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "account",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "CheckEmail",
+        "Create",
+        "Login",
+        "Search",
+        "ResetKeys",
+        "Get",
+        "Update",
+        "Remove",
+        "ActivateByCode",
+        "ResendActivationCode",
+        "ChangePassword",
+        "ChangeEmail",
+        "ConfirmEmailReset",
+        "SendPasswordReset",
+        "PasswordResetByCode",
+        "UpdatePhoto",
+        "RemovePhoto",
+        "SendPhoneVerificationCode",
+        "VerifyPhoneByCode",
+        "CreateAccessToken",
+        "GetAccountByAccessToken",
+        "FacebookPrepareLogin",
+        "FacebookConnect",
+        "FacebookMobileConnect",
+        "AcceptTerms"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/notification-2015-05-05.min.json",
+      "path": "root/apis/notification-2015-05-05.min.json",
+      "sha256": "bd7f14fe98bbab35a02f152741259d99947b1a4c1f4a481c4574efb88302e496",
+      "bytes": 1080,
+      "apiMetadata": {
+        "apiVersion": "2015-05-05",
+        "endpointPrefix": "notification",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Notification",
+        "signatureVersion": "v4",
+        "targetPrefix": "Notification_20150505",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewRobotToken",
+        "GetStatus"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/rom-2017-10-11.min.json",
+      "path": "root/apis/rom-2017-10-11.min.json",
+      "sha256": "6458bbe451666a91afc48c095789df8b75a844471144cb8aa5119342301af90d",
+      "bytes": 2074,
+      "apiMetadata": {
+        "apiVersion": "2017-10-11",
+        "endpointPrefix": "rom",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo ROM",
+        "signatureVersion": "v4",
+        "targetPrefix": "ROM_20171011",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "SetupClient",
+        "SetupServer"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/update-2016-03-01.min.json",
+      "path": "root/apis/update-2016-03-01.min.json",
+      "sha256": "effb34109073d0319e853c96fac761b09033c6a8c6279f0d36fd4f1ec9001353",
+      "bytes": 3514,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "update",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUpdates",
+        "ListUpdatesFrom",
+        "GetUpdateFrom",
+        "CreateUpdate",
+        "RemoveUpdate"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/ifttt-2017-02-07.min.json",
+      "path": "root/apis/ifttt-2017-02-07.min.json",
+      "sha256": "68c24dc56b5226b3e5d297816be4ac5b39897ac0ba8bbe02a7bcef8576f02a43",
+      "bytes": 3404,
+      "apiMetadata": {
+        "apiVersion": "2017-02-07",
+        "endpointPrefix": "ifttt",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo IFTTT",
+        "signatureVersion": "v4",
+        "targetPrefix": "IFTTT_20170207",
+        "protocol": "json"
+      },
+      "operations": [
+        "Trigger",
+        "ListTriggers",
+        "ListMedia",
+        "DeleteIdentity",
+        "Action",
+        "ListActions",
+        "UserInfo"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/oobeadmin-2016-10-26.min.json",
+      "path": "root/apis/oobeadmin-2016-10-26.min.json",
+      "sha256": "977b970101b3ff6df15114319fae945387c60ad609fae754aa17394c81d5a1ee",
+      "bytes": 534,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobeadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetServiceToken"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/log-2015-03-09.min.json",
+      "path": "root/apis/log-2015-03-09.min.json",
+      "sha256": "d1203dcff6c1a0d3f2715920b9f289abbda3ec1ea9309836e6fc54629d4d4629",
+      "bytes": 3608,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "log",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "PutEvents",
+        "PutEventsAsync",
+        "NewKinesisCredentials",
+        "PutBinary",
+        "PutBinaryAsync"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/updateadmin-2016-03-01.min.json",
+      "path": "root/apis/updateadmin-2016-03-01.min.json",
+      "sha256": "b22cc6f7355efff0a987bd45394ba527202fca57cb5278e9df0cf5a980bb3bfb",
+      "bytes": 760,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "updateadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUniqueFilters",
+        "SetTarget",
+        "ListTargets"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/robot-2016-02-25.min.json",
+      "path": "root/apis/robot-2016-02-25.min.json",
+      "sha256": "e533bd7fa29f5b4e4d70eef2d5015ded3bc99bcbbdc7c99d079746c8b8727cc4",
+      "bytes": 2873,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetFriendlyIds",
+        "RemoveRobot",
+        "UpdateRobot",
+        "GetRobot",
+        "GetRobotHistory",
+        "GetCalibrationData"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/backup-2017-02-22.min.json",
+      "path": "root/apis/backup-2017-02-22.min.json",
+      "sha256": "78bb2368df9982c540a7e58fdeb986f7b9df408c24288e318f3a73924b987b89",
+      "bytes": 1484,
+      "apiMetadata": {
+        "apiVersion": "2017-02-22",
+        "endpointPrefix": "backup",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Backup",
+        "signatureVersion": "v4",
+        "targetPrefix": "Backup_20170222",
+        "protocol": "json"
+      },
+      "operations": [
+        "New",
+        "List"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/metadata.json",
+      "path": "root/apis/metadata.json",
+      "sha256": "f7d88c6520015e979ff93afe26400a9fe8ff6731a7c16f265b68ed3abe98d663",
+      "bytes": 1041
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/media-2016-07-25.min.json",
+      "path": "root/apis/media-2016-07-25.min.json",
+      "sha256": "f23d78814608fdab4a0ec5b4cffb003a75515f883bff22defd29fb2cb07e55ac",
+      "bytes": 2832,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "media",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "List",
+        "Remove",
+        "Get"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/collision-2016-11-26.min.json",
+      "path": "root/apis/collision-2016-11-26.min.json",
+      "sha256": "63631b2f1d65c7dd9c26efa7b5e06cb21affe897bf29e095d3dae1ae8c15683b",
+      "bytes": 960,
+      "apiMetadata": {
+        "apiVersion": "2016-11-26",
+        "endpointPrefix": "collision",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Collision",
+        "signatureVersion": "v4",
+        "targetPrefix": "Collision_20161126",
+        "protocol": "json"
+      },
+      "operations": [
+        "Match"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/accountadmin-2015-11-11.min.json",
+      "path": "root/apis/accountadmin-2015-11-11.min.json",
+      "sha256": "bce0905e25a035107674fb8ebc6b18b477e5e71bcaf761f16bb3df811850975e",
+      "bytes": 1907,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "accountadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "ActivateById",
+        "ResetEmail"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/person-2016-08-01.min.json",
+      "path": "root/apis/person-2016-08-01.min.json",
+      "sha256": "2a4a4437e941405eaa8b168a4c7865ec578de9b90e20b3cf67194a76efc97305",
+      "bytes": 2895,
+      "apiMetadata": {
+        "apiVersion": "2016-08-01",
+        "endpointPrefix": "person",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Person",
+        "signatureVersion": "v4",
+        "targetPrefix": "Person_20160801",
+        "protocol": "json"
+      },
+      "operations": [
+        "List",
+        "Answer",
+        "EnableHolidays",
+        "ListHolidays",
+        "DisableHolidays"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/metadata-sdk.json",
+      "path": "root/apis/metadata-sdk.json",
+      "sha256": "78bceb5adf6233f1a28007492e5b09ef8e0058fef6576112208b7c67f6640cea",
+      "bytes": 357
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/key-2016-02-01.min.json",
+      "path": "root/apis/key-2016-02-01.min.json",
+      "sha256": "e5a0601fe986d6d3f0f1af59ec2a66dac41816e933837285df55ebd62d9528dc",
+      "bytes": 3717,
+      "apiMetadata": {
+        "apiVersion": "2016-02-01",
+        "endpointPrefix": "key",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Key",
+        "signatureVersion": "v4",
+        "targetPrefix": "Key_20160201",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetRequest",
+        "CreateRequest",
+        "Share",
+        "ListIncomingRequests",
+        "ShouldCreate",
+        "Backup",
+        "Restore",
+        "ListBinaryRequests",
+        "ShareBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/loop-2016-03-24.min.json",
+      "path": "root/apis/loop-2016-03-24.min.json",
+      "sha256": "1f3731c87e5f5173361ba7f817cc843818693133ef3310640b03c7bf38be3e5e",
+      "bytes": 10166,
+      "apiMetadata": {
+        "apiVersion": "2016-03-24",
+        "endpointPrefix": "Loop",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Loop",
+        "signatureVersion": "v4",
+        "targetPrefix": "Loop_20160324",
+        "protocol": "json"
+      },
+      "operations": [
+        "InviteMember",
+        "AcceptInvitation",
+        "DeclineInvitation",
+        "ListMembers",
+        "UpdateMember",
+        "RemoveMember",
+        "ListOwnerRobots",
+        "ClearRobot",
+        "GetRobot",
+        "Create",
+        "Update",
+        "List",
+        "Remove",
+        "SetEnrollment",
+        "FindOwner",
+        "SetLegalGuardian",
+        "UpdateAgreementStatus",
+        "UpdateNickname",
+        "UpdatePhoneticName",
+        "SuspendLoop",
+        "UpdateMemberPhoto",
+        "RemoveMemberPhoto"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/oauthclientsadmin-2017-11-08.min.json",
+      "path": "root/apis/oauthclientsadmin-2017-11-08.min.json",
+      "sha256": "895f2785cce97d7eb1b8c4473ece1d7d29ea5466015caebc10bc1f706768baba",
+      "bytes": 3735,
+      "apiMetadata": {
+        "apiVersion": "2017-11-08",
+        "endpointPrefix": "oauthclientsadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OAuth Clients",
+        "signatureVersion": "v4",
+        "targetPrefix": "OauthClients_20171108",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListClients",
+        "Create",
+        "Update",
+        "Remove"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/gqa-2016-09-30.min.json",
+      "path": "root/apis/gqa-2016-09-30.min.json",
+      "sha256": "ee7a3eea90f84a3dd1f316cd24c625c8d1d1953812d1f63c7ce5ed86e60f9830",
+      "bytes": 3532,
+      "apiMetadata": {
+        "apiVersion": "2016-09-30",
+        "endpointPrefix": "gqa",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo GQA",
+        "signatureVersion": "v4",
+        "targetPrefix": "GQA_20160930",
+        "protocol": "json"
+      },
+      "operations": [
+        "Question",
+        "ListAttribution"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/nlp-2016-10-31.min.json",
+      "path": "root/apis/nlp-2016-10-31.min.json",
+      "sha256": "01dd6b6de398acffedd96837159576d8e9a880eb2c7180f5ec4414bade5676c3",
+      "bytes": 1752,
+      "apiMetadata": {
+        "apiVersion": "2016-10-31",
+        "endpointPrefix": "nlp",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo NLP",
+        "signatureVersion": "v4",
+        "targetPrefix": "NLP_20161031",
+        "protocol": "json"
+      },
+      "operations": [
+        "PartOfSpeech",
+        "NamedEntityRecognition"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/oobe-2016-10-26.min.json",
+      "path": "root/apis/oobe-2016-10-26.min.json",
+      "sha256": "29122e8a4ae495dc051400a733714c01eae2a1ee746f9404220a180e3a3e97ce",
+      "bytes": 1954,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobe",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "PrepareRobot",
+        "GetStatus",
+        "SetupRobot",
+        "ReconnectRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/robotadmin-2016-02-25.min.json",
+      "path": "root/apis/robotadmin-2016-02-25.min.json",
+      "sha256": "1f12cf5d4f97a1261b91d2a1c500cce3fe0339c597285a5f8cd16894a6710f16",
+      "bytes": 1320,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robotadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateRobot",
+        "CreateRobotBatch",
+        "CalibrateRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/logadmin-2015-03-09.min.json",
+      "path": "root/apis/logadmin-2015-03-09.min.json",
+      "sha256": "007a9aec43b5ad99a78dab4185aa7a4ce2b35aa55a81e35044df6e8a071a6549",
+      "bytes": 1058,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "logadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "SetLevel"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@jibo/jibo-server-client/apis/push-2016-07-29.min.json",
+      "path": "root/apis/push-2016-07-29.min.json",
+      "sha256": "2d027c32eddc5605eefefadbae70e05674cfaba7a434a930cd1988f2c9e655c8",
+      "bytes": 979,
+      "apiMetadata": {
+        "apiVersion": "2016-07-29",
+        "endpointPrefix": "push",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Push",
+        "signatureVersion": "v4",
+        "targetPrefix": "Push_20160729",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateDevice",
+        "RemoveDevice"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/mediaadmin-2016-07-25.min.json",
+      "path": "surprises-ota/apis/mediaadmin-2016-07-25.min.json",
+      "sha256": "3a51698e73a4ebe50faeaf5cf498316b48b5c5ef45f4c387faf6ae5ee86b3e3e",
+      "bytes": 1081,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "mediaadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "RemoveAllMediaFromLoop"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/account-2015-11-11.min.json",
+      "path": "surprises-ota/apis/account-2015-11-11.min.json",
+      "sha256": "05835c7bf9764d017ccc3edf137750af57d65c43c8130b2e21833e9cf222b7be",
+      "bytes": 8989,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "account",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "CheckEmail",
+        "Create",
+        "Login",
+        "Search",
+        "ResetKeys",
+        "Get",
+        "Update",
+        "Remove",
+        "ActivateByCode",
+        "ResendActivationCode",
+        "ChangePassword",
+        "ChangeEmail",
+        "ConfirmEmailReset",
+        "SendPasswordReset",
+        "PasswordResetByCode",
+        "UpdatePhoto",
+        "RemovePhoto",
+        "SendPhoneVerificationCode",
+        "VerifyPhoneByCode",
+        "CreateAccessToken",
+        "CreateHubToken",
+        "GetAccountByAccessToken",
+        "FacebookPrepareLogin",
+        "FacebookConnect",
+        "FacebookMobileConnect",
+        "AcceptTerms"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/notification-2015-05-05.min.json",
+      "path": "surprises-ota/apis/notification-2015-05-05.min.json",
+      "sha256": "bd7f14fe98bbab35a02f152741259d99947b1a4c1f4a481c4574efb88302e496",
+      "bytes": 1080,
+      "apiMetadata": {
+        "apiVersion": "2015-05-05",
+        "endpointPrefix": "notification",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Notification",
+        "signatureVersion": "v4",
+        "targetPrefix": "Notification_20150505",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewRobotToken",
+        "GetStatus"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/rom-2017-10-11.min.json",
+      "path": "surprises-ota/apis/rom-2017-10-11.min.json",
+      "sha256": "5fe4aa2a36463e6093e7ae94fb3e56f905184fb859aae98dc0c2a20d598cd144",
+      "bytes": 2191,
+      "apiMetadata": {
+        "apiVersion": "2017-10-11",
+        "endpointPrefix": "rom",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo ROM",
+        "signatureVersion": "v4",
+        "targetPrefix": "ROM_20171011",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "SetupClient",
+        "SetupServer"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/update-2016-03-01.min.json",
+      "path": "surprises-ota/apis/update-2016-03-01.min.json",
+      "sha256": "effb34109073d0319e853c96fac761b09033c6a8c6279f0d36fd4f1ec9001353",
+      "bytes": 3514,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "update",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUpdates",
+        "ListUpdatesFrom",
+        "GetUpdateFrom",
+        "CreateUpdate",
+        "RemoveUpdate"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/ifttt-2017-02-07.min.json",
+      "path": "surprises-ota/apis/ifttt-2017-02-07.min.json",
+      "sha256": "68c24dc56b5226b3e5d297816be4ac5b39897ac0ba8bbe02a7bcef8576f02a43",
+      "bytes": 3404,
+      "apiMetadata": {
+        "apiVersion": "2017-02-07",
+        "endpointPrefix": "ifttt",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo IFTTT",
+        "signatureVersion": "v4",
+        "targetPrefix": "IFTTT_20170207",
+        "protocol": "json"
+      },
+      "operations": [
+        "Trigger",
+        "ListTriggers",
+        "ListMedia",
+        "DeleteIdentity",
+        "Action",
+        "ListActions",
+        "UserInfo"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/oobeadmin-2016-10-26.min.json",
+      "path": "surprises-ota/apis/oobeadmin-2016-10-26.min.json",
+      "sha256": "977b970101b3ff6df15114319fae945387c60ad609fae754aa17394c81d5a1ee",
+      "bytes": 534,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobeadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetServiceToken"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/lps-2017-12-01.min.json",
+      "path": "surprises-ota/apis/lps-2017-12-01.min.json",
+      "sha256": "8aa15804fd4b2b1eee5f3d41dbd293702a51a492d798e2af09e01eff945e55d0",
+      "bytes": 1389,
+      "apiMetadata": {
+        "apiVersion": "2017-12-01",
+        "endpointPrefix": "lps",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Lps",
+        "signatureVersion": "v4",
+        "targetPrefix": "Lps_20171201",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewCredentials"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/log-2015-03-09.min.json",
+      "path": "surprises-ota/apis/log-2015-03-09.min.json",
+      "sha256": "866dc447ba23a92a8dfecf5970337e78407d946297fe2dfff52d7b8b7f7b30ff",
+      "bytes": 4450,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "log",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "PutEvents",
+        "PutEventsAsync",
+        "NewKinesisCredentials",
+        "PutBinary",
+        "PutBinaryAsync",
+        "PutAsrBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/updateadmin-2016-03-01.min.json",
+      "path": "surprises-ota/apis/updateadmin-2016-03-01.min.json",
+      "sha256": "b22cc6f7355efff0a987bd45394ba527202fca57cb5278e9df0cf5a980bb3bfb",
+      "bytes": 760,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "updateadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUniqueFilters",
+        "SetTarget",
+        "ListTargets"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/robot-2016-02-25.min.json",
+      "path": "surprises-ota/apis/robot-2016-02-25.min.json",
+      "sha256": "e533bd7fa29f5b4e4d70eef2d5015ded3bc99bcbbdc7c99d079746c8b8727cc4",
+      "bytes": 2873,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetFriendlyIds",
+        "RemoveRobot",
+        "UpdateRobot",
+        "GetRobot",
+        "GetRobotHistory",
+        "GetCalibrationData"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/backup-2017-02-22.min.json",
+      "path": "surprises-ota/apis/backup-2017-02-22.min.json",
+      "sha256": "78bb2368df9982c540a7e58fdeb986f7b9df408c24288e318f3a73924b987b89",
+      "bytes": 1484,
+      "apiMetadata": {
+        "apiVersion": "2017-02-22",
+        "endpointPrefix": "backup",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Backup",
+        "signatureVersion": "v4",
+        "targetPrefix": "Backup_20170222",
+        "protocol": "json"
+      },
+      "operations": [
+        "New",
+        "List"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/metadata.json",
+      "path": "surprises-ota/apis/metadata.json",
+      "sha256": "f6765daf7c29d1a5bae868608883ff00903f100bec6e13a4bf4c57a945d7e360",
+      "bytes": 1119
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/media-2016-07-25.min.json",
+      "path": "surprises-ota/apis/media-2016-07-25.min.json",
+      "sha256": "f23d78814608fdab4a0ec5b4cffb003a75515f883bff22defd29fb2cb07e55ac",
+      "bytes": 2832,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "media",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "List",
+        "Remove",
+        "Get"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/collision-2016-11-26.min.json",
+      "path": "surprises-ota/apis/collision-2016-11-26.min.json",
+      "sha256": "63631b2f1d65c7dd9c26efa7b5e06cb21affe897bf29e095d3dae1ae8c15683b",
+      "bytes": 960,
+      "apiMetadata": {
+        "apiVersion": "2016-11-26",
+        "endpointPrefix": "collision",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Collision",
+        "signatureVersion": "v4",
+        "targetPrefix": "Collision_20161126",
+        "protocol": "json"
+      },
+      "operations": [
+        "Match"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/accountadmin-2015-11-11.min.json",
+      "path": "surprises-ota/apis/accountadmin-2015-11-11.min.json",
+      "sha256": "bce0905e25a035107674fb8ebc6b18b477e5e71bcaf761f16bb3df811850975e",
+      "bytes": 1907,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "accountadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "ActivateById",
+        "ResetEmail"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/person-2016-08-01.min.json",
+      "path": "surprises-ota/apis/person-2016-08-01.min.json",
+      "sha256": "1f195e379e15a578599611cdf14da9c290c5dd33222d584ba26d6cfb1709ff7f",
+      "bytes": 4510,
+      "apiMetadata": {
+        "apiVersion": "2016-08-01",
+        "endpointPrefix": "person",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Person",
+        "signatureVersion": "v4",
+        "targetPrefix": "Person_20160801",
+        "protocol": "json"
+      },
+      "operations": [
+        "List",
+        "Answer",
+        "EnableHolidays",
+        "ListHolidays",
+        "DisableHolidays",
+        "SetLoopProperty",
+        "GetLoopProperties",
+        "SetAccountProperty",
+        "GetAccountProperties",
+        "ListAccountPropertyKeys"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/metadata-sdk.json",
+      "path": "surprises-ota/apis/metadata-sdk.json",
+      "sha256": "78bceb5adf6233f1a28007492e5b09ef8e0058fef6576112208b7c67f6640cea",
+      "bytes": 357
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/key-2016-02-01.min.json",
+      "path": "surprises-ota/apis/key-2016-02-01.min.json",
+      "sha256": "e5a0601fe986d6d3f0f1af59ec2a66dac41816e933837285df55ebd62d9528dc",
+      "bytes": 3717,
+      "apiMetadata": {
+        "apiVersion": "2016-02-01",
+        "endpointPrefix": "key",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Key",
+        "signatureVersion": "v4",
+        "targetPrefix": "Key_20160201",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetRequest",
+        "CreateRequest",
+        "Share",
+        "ListIncomingRequests",
+        "ShouldCreate",
+        "Backup",
+        "Restore",
+        "ListBinaryRequests",
+        "ShareBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/loop-2016-03-24.min.json",
+      "path": "surprises-ota/apis/loop-2016-03-24.min.json",
+      "sha256": "0abdc8481e512edeace21a90587177663bda69f4cbb1102dedfc1f8170648213",
+      "bytes": 10312,
+      "apiMetadata": {
+        "apiVersion": "2016-03-24",
+        "endpointPrefix": "Loop",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Loop",
+        "signatureVersion": "v4",
+        "targetPrefix": "Loop_20160324",
+        "protocol": "json"
+      },
+      "operations": [
+        "SuspendRobotLoop",
+        "InviteMember",
+        "AcceptInvitation",
+        "DeclineInvitation",
+        "ListMembers",
+        "UpdateMember",
+        "RemoveMember",
+        "ListOwnerRobots",
+        "ClearRobot",
+        "GetRobot",
+        "Create",
+        "Update",
+        "List",
+        "Remove",
+        "SetEnrollment",
+        "FindOwner",
+        "SetLegalGuardian",
+        "UpdateAgreementStatus",
+        "UpdateNickname",
+        "UpdatePhoneticName",
+        "SuspendLoop",
+        "UpdateMemberPhoto",
+        "RemoveMemberPhoto"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/oauthclientsadmin-2017-11-08.min.json",
+      "path": "surprises-ota/apis/oauthclientsadmin-2017-11-08.min.json",
+      "sha256": "090f18f40b77a96b266b99cec2debccba3ade0d11c4fcf4df32751d4de7b5691",
+      "bytes": 2791,
+      "apiMetadata": {
+        "apiVersion": "2017-11-08",
+        "endpointPrefix": "oauthclientsadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OAuth Clients",
+        "signatureVersion": "v4",
+        "targetPrefix": "OauthClients_20171108",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListClients",
+        "Create",
+        "Update",
+        "Remove"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/settings-2017-12-19.min.json",
+      "path": "surprises-ota/apis/settings-2017-12-19.min.json",
+      "sha256": "93f282f110c5d9e1a1f8c28f8f3836a2e37faffb88e660d08d4690148269d86a",
+      "bytes": 4818,
+      "apiMetadata": {
+        "apiVersion": "2017-12-19",
+        "endpointPrefix": "settings",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Settings",
+        "signatureVersion": "v4",
+        "targetPrefix": "Settings_20171219",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetSettings",
+        "GetDataForSettings",
+        "UpdateSettings",
+        "DeleteSettings"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/gqa-2016-09-30.min.json",
+      "path": "surprises-ota/apis/gqa-2016-09-30.min.json",
+      "sha256": "ee7a3eea90f84a3dd1f316cd24c625c8d1d1953812d1f63c7ce5ed86e60f9830",
+      "bytes": 3532,
+      "apiMetadata": {
+        "apiVersion": "2016-09-30",
+        "endpointPrefix": "gqa",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo GQA",
+        "signatureVersion": "v4",
+        "targetPrefix": "GQA_20160930",
+        "protocol": "json"
+      },
+      "operations": [
+        "Question",
+        "ListAttribution"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/nlp-2016-10-31.min.json",
+      "path": "surprises-ota/apis/nlp-2016-10-31.min.json",
+      "sha256": "01dd6b6de398acffedd96837159576d8e9a880eb2c7180f5ec4414bade5676c3",
+      "bytes": 1752,
+      "apiMetadata": {
+        "apiVersion": "2016-10-31",
+        "endpointPrefix": "nlp",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo NLP",
+        "signatureVersion": "v4",
+        "targetPrefix": "NLP_20161031",
+        "protocol": "json"
+      },
+      "operations": [
+        "PartOfSpeech",
+        "NamedEntityRecognition"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/oobe-2016-10-26.min.json",
+      "path": "surprises-ota/apis/oobe-2016-10-26.min.json",
+      "sha256": "29122e8a4ae495dc051400a733714c01eae2a1ee746f9404220a180e3a3e97ce",
+      "bytes": 1954,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobe",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "PrepareRobot",
+        "GetStatus",
+        "SetupRobot",
+        "ReconnectRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/robotadmin-2016-02-25.min.json",
+      "path": "surprises-ota/apis/robotadmin-2016-02-25.min.json",
+      "sha256": "1f12cf5d4f97a1261b91d2a1c500cce3fe0339c597285a5f8cd16894a6710f16",
+      "bytes": 1320,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robotadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateRobot",
+        "CreateRobotBatch",
+        "CalibrateRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/logadmin-2015-03-09.min.json",
+      "path": "surprises-ota/apis/logadmin-2015-03-09.min.json",
+      "sha256": "007a9aec43b5ad99a78dab4185aa7a4ce2b35aa55a81e35044df6e8a071a6549",
+      "bytes": 1058,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "logadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "SetLevel"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/surprises-ota/node_modules/@jibo/jibo-server-client/apis/push-2016-07-29.min.json",
+      "path": "surprises-ota/apis/push-2016-07-29.min.json",
+      "sha256": "2d027c32eddc5605eefefadbae70e05674cfaba7a434a930cd1988f2c9e655c8",
+      "bytes": 979,
+      "apiMetadata": {
+        "apiVersion": "2016-07-29",
+        "endpointPrefix": "push",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Push",
+        "signatureVersion": "v4",
+        "targetPrefix": "Push_20160729",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateDevice",
+        "RemoveDevice"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/mediaadmin-2016-07-25.min.json",
+      "path": "ifttt/apis/mediaadmin-2016-07-25.min.json",
+      "sha256": "3a51698e73a4ebe50faeaf5cf498316b48b5c5ef45f4c387faf6ae5ee86b3e3e",
+      "bytes": 1081,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "mediaadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "RemoveAllMediaFromLoop"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/account-2015-11-11.min.json",
+      "path": "ifttt/apis/account-2015-11-11.min.json",
+      "sha256": "05835c7bf9764d017ccc3edf137750af57d65c43c8130b2e21833e9cf222b7be",
+      "bytes": 8989,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "account",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "CheckEmail",
+        "Create",
+        "Login",
+        "Search",
+        "ResetKeys",
+        "Get",
+        "Update",
+        "Remove",
+        "ActivateByCode",
+        "ResendActivationCode",
+        "ChangePassword",
+        "ChangeEmail",
+        "ConfirmEmailReset",
+        "SendPasswordReset",
+        "PasswordResetByCode",
+        "UpdatePhoto",
+        "RemovePhoto",
+        "SendPhoneVerificationCode",
+        "VerifyPhoneByCode",
+        "CreateAccessToken",
+        "CreateHubToken",
+        "GetAccountByAccessToken",
+        "FacebookPrepareLogin",
+        "FacebookConnect",
+        "FacebookMobileConnect",
+        "AcceptTerms"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/notification-2015-05-05.min.json",
+      "path": "ifttt/apis/notification-2015-05-05.min.json",
+      "sha256": "bd7f14fe98bbab35a02f152741259d99947b1a4c1f4a481c4574efb88302e496",
+      "bytes": 1080,
+      "apiMetadata": {
+        "apiVersion": "2015-05-05",
+        "endpointPrefix": "notification",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Notification",
+        "signatureVersion": "v4",
+        "targetPrefix": "Notification_20150505",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewRobotToken",
+        "GetStatus"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/rom-2017-10-11.min.json",
+      "path": "ifttt/apis/rom-2017-10-11.min.json",
+      "sha256": "5fe4aa2a36463e6093e7ae94fb3e56f905184fb859aae98dc0c2a20d598cd144",
+      "bytes": 2191,
+      "apiMetadata": {
+        "apiVersion": "2017-10-11",
+        "endpointPrefix": "rom",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo ROM",
+        "signatureVersion": "v4",
+        "targetPrefix": "ROM_20171011",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "SetupClient",
+        "SetupServer"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/update-2016-03-01.min.json",
+      "path": "ifttt/apis/update-2016-03-01.min.json",
+      "sha256": "effb34109073d0319e853c96fac761b09033c6a8c6279f0d36fd4f1ec9001353",
+      "bytes": 3514,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "update",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUpdates",
+        "ListUpdatesFrom",
+        "GetUpdateFrom",
+        "CreateUpdate",
+        "RemoveUpdate"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/ifttt-2017-02-07.min.json",
+      "path": "ifttt/apis/ifttt-2017-02-07.min.json",
+      "sha256": "68c24dc56b5226b3e5d297816be4ac5b39897ac0ba8bbe02a7bcef8576f02a43",
+      "bytes": 3404,
+      "apiMetadata": {
+        "apiVersion": "2017-02-07",
+        "endpointPrefix": "ifttt",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo IFTTT",
+        "signatureVersion": "v4",
+        "targetPrefix": "IFTTT_20170207",
+        "protocol": "json"
+      },
+      "operations": [
+        "Trigger",
+        "ListTriggers",
+        "ListMedia",
+        "DeleteIdentity",
+        "Action",
+        "ListActions",
+        "UserInfo"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/oobeadmin-2016-10-26.min.json",
+      "path": "ifttt/apis/oobeadmin-2016-10-26.min.json",
+      "sha256": "977b970101b3ff6df15114319fae945387c60ad609fae754aa17394c81d5a1ee",
+      "bytes": 534,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobeadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetServiceToken"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/lps-2017-12-01.min.json",
+      "path": "ifttt/apis/lps-2017-12-01.min.json",
+      "sha256": "8aa15804fd4b2b1eee5f3d41dbd293702a51a492d798e2af09e01eff945e55d0",
+      "bytes": 1389,
+      "apiMetadata": {
+        "apiVersion": "2017-12-01",
+        "endpointPrefix": "lps",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Lps",
+        "signatureVersion": "v4",
+        "targetPrefix": "Lps_20171201",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewCredentials"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/log-2015-03-09.min.json",
+      "path": "ifttt/apis/log-2015-03-09.min.json",
+      "sha256": "866dc447ba23a92a8dfecf5970337e78407d946297fe2dfff52d7b8b7f7b30ff",
+      "bytes": 4450,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "log",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "PutEvents",
+        "PutEventsAsync",
+        "NewKinesisCredentials",
+        "PutBinary",
+        "PutBinaryAsync",
+        "PutAsrBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/updateadmin-2016-03-01.min.json",
+      "path": "ifttt/apis/updateadmin-2016-03-01.min.json",
+      "sha256": "b22cc6f7355efff0a987bd45394ba527202fca57cb5278e9df0cf5a980bb3bfb",
+      "bytes": 760,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "updateadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUniqueFilters",
+        "SetTarget",
+        "ListTargets"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/robot-2016-02-25.min.json",
+      "path": "ifttt/apis/robot-2016-02-25.min.json",
+      "sha256": "e533bd7fa29f5b4e4d70eef2d5015ded3bc99bcbbdc7c99d079746c8b8727cc4",
+      "bytes": 2873,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetFriendlyIds",
+        "RemoveRobot",
+        "UpdateRobot",
+        "GetRobot",
+        "GetRobotHistory",
+        "GetCalibrationData"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/backup-2017-02-22.min.json",
+      "path": "ifttt/apis/backup-2017-02-22.min.json",
+      "sha256": "78bb2368df9982c540a7e58fdeb986f7b9df408c24288e318f3a73924b987b89",
+      "bytes": 1484,
+      "apiMetadata": {
+        "apiVersion": "2017-02-22",
+        "endpointPrefix": "backup",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Backup",
+        "signatureVersion": "v4",
+        "targetPrefix": "Backup_20170222",
+        "protocol": "json"
+      },
+      "operations": [
+        "New",
+        "List"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/metadata.json",
+      "path": "ifttt/apis/metadata.json",
+      "sha256": "f6765daf7c29d1a5bae868608883ff00903f100bec6e13a4bf4c57a945d7e360",
+      "bytes": 1119
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/media-2016-07-25.min.json",
+      "path": "ifttt/apis/media-2016-07-25.min.json",
+      "sha256": "f23d78814608fdab4a0ec5b4cffb003a75515f883bff22defd29fb2cb07e55ac",
+      "bytes": 2832,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "media",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "List",
+        "Remove",
+        "Get"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/collision-2016-11-26.min.json",
+      "path": "ifttt/apis/collision-2016-11-26.min.json",
+      "sha256": "63631b2f1d65c7dd9c26efa7b5e06cb21affe897bf29e095d3dae1ae8c15683b",
+      "bytes": 960,
+      "apiMetadata": {
+        "apiVersion": "2016-11-26",
+        "endpointPrefix": "collision",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Collision",
+        "signatureVersion": "v4",
+        "targetPrefix": "Collision_20161126",
+        "protocol": "json"
+      },
+      "operations": [
+        "Match"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/accountadmin-2015-11-11.min.json",
+      "path": "ifttt/apis/accountadmin-2015-11-11.min.json",
+      "sha256": "bce0905e25a035107674fb8ebc6b18b477e5e71bcaf761f16bb3df811850975e",
+      "bytes": 1907,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "accountadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "ActivateById",
+        "ResetEmail"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/person-2016-08-01.min.json",
+      "path": "ifttt/apis/person-2016-08-01.min.json",
+      "sha256": "1f195e379e15a578599611cdf14da9c290c5dd33222d584ba26d6cfb1709ff7f",
+      "bytes": 4510,
+      "apiMetadata": {
+        "apiVersion": "2016-08-01",
+        "endpointPrefix": "person",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Person",
+        "signatureVersion": "v4",
+        "targetPrefix": "Person_20160801",
+        "protocol": "json"
+      },
+      "operations": [
+        "List",
+        "Answer",
+        "EnableHolidays",
+        "ListHolidays",
+        "DisableHolidays",
+        "SetLoopProperty",
+        "GetLoopProperties",
+        "SetAccountProperty",
+        "GetAccountProperties",
+        "ListAccountPropertyKeys"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/metadata-sdk.json",
+      "path": "ifttt/apis/metadata-sdk.json",
+      "sha256": "78bceb5adf6233f1a28007492e5b09ef8e0058fef6576112208b7c67f6640cea",
+      "bytes": 357
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/key-2016-02-01.min.json",
+      "path": "ifttt/apis/key-2016-02-01.min.json",
+      "sha256": "e5a0601fe986d6d3f0f1af59ec2a66dac41816e933837285df55ebd62d9528dc",
+      "bytes": 3717,
+      "apiMetadata": {
+        "apiVersion": "2016-02-01",
+        "endpointPrefix": "key",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Key",
+        "signatureVersion": "v4",
+        "targetPrefix": "Key_20160201",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetRequest",
+        "CreateRequest",
+        "Share",
+        "ListIncomingRequests",
+        "ShouldCreate",
+        "Backup",
+        "Restore",
+        "ListBinaryRequests",
+        "ShareBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/loop-2016-03-24.min.json",
+      "path": "ifttt/apis/loop-2016-03-24.min.json",
+      "sha256": "0abdc8481e512edeace21a90587177663bda69f4cbb1102dedfc1f8170648213",
+      "bytes": 10312,
+      "apiMetadata": {
+        "apiVersion": "2016-03-24",
+        "endpointPrefix": "Loop",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Loop",
+        "signatureVersion": "v4",
+        "targetPrefix": "Loop_20160324",
+        "protocol": "json"
+      },
+      "operations": [
+        "SuspendRobotLoop",
+        "InviteMember",
+        "AcceptInvitation",
+        "DeclineInvitation",
+        "ListMembers",
+        "UpdateMember",
+        "RemoveMember",
+        "ListOwnerRobots",
+        "ClearRobot",
+        "GetRobot",
+        "Create",
+        "Update",
+        "List",
+        "Remove",
+        "SetEnrollment",
+        "FindOwner",
+        "SetLegalGuardian",
+        "UpdateAgreementStatus",
+        "UpdateNickname",
+        "UpdatePhoneticName",
+        "SuspendLoop",
+        "UpdateMemberPhoto",
+        "RemoveMemberPhoto"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/oauthclientsadmin-2017-11-08.min.json",
+      "path": "ifttt/apis/oauthclientsadmin-2017-11-08.min.json",
+      "sha256": "090f18f40b77a96b266b99cec2debccba3ade0d11c4fcf4df32751d4de7b5691",
+      "bytes": 2791,
+      "apiMetadata": {
+        "apiVersion": "2017-11-08",
+        "endpointPrefix": "oauthclientsadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OAuth Clients",
+        "signatureVersion": "v4",
+        "targetPrefix": "OauthClients_20171108",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListClients",
+        "Create",
+        "Update",
+        "Remove"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/settings-2017-12-19.min.json",
+      "path": "ifttt/apis/settings-2017-12-19.min.json",
+      "sha256": "93f282f110c5d9e1a1f8c28f8f3836a2e37faffb88e660d08d4690148269d86a",
+      "bytes": 4818,
+      "apiMetadata": {
+        "apiVersion": "2017-12-19",
+        "endpointPrefix": "settings",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Settings",
+        "signatureVersion": "v4",
+        "targetPrefix": "Settings_20171219",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetSettings",
+        "GetDataForSettings",
+        "UpdateSettings",
+        "DeleteSettings"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/gqa-2016-09-30.min.json",
+      "path": "ifttt/apis/gqa-2016-09-30.min.json",
+      "sha256": "ee7a3eea90f84a3dd1f316cd24c625c8d1d1953812d1f63c7ce5ed86e60f9830",
+      "bytes": 3532,
+      "apiMetadata": {
+        "apiVersion": "2016-09-30",
+        "endpointPrefix": "gqa",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo GQA",
+        "signatureVersion": "v4",
+        "targetPrefix": "GQA_20160930",
+        "protocol": "json"
+      },
+      "operations": [
+        "Question",
+        "ListAttribution"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/nlp-2016-10-31.min.json",
+      "path": "ifttt/apis/nlp-2016-10-31.min.json",
+      "sha256": "01dd6b6de398acffedd96837159576d8e9a880eb2c7180f5ec4414bade5676c3",
+      "bytes": 1752,
+      "apiMetadata": {
+        "apiVersion": "2016-10-31",
+        "endpointPrefix": "nlp",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo NLP",
+        "signatureVersion": "v4",
+        "targetPrefix": "NLP_20161031",
+        "protocol": "json"
+      },
+      "operations": [
+        "PartOfSpeech",
+        "NamedEntityRecognition"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/oobe-2016-10-26.min.json",
+      "path": "ifttt/apis/oobe-2016-10-26.min.json",
+      "sha256": "29122e8a4ae495dc051400a733714c01eae2a1ee746f9404220a180e3a3e97ce",
+      "bytes": 1954,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobe",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "PrepareRobot",
+        "GetStatus",
+        "SetupRobot",
+        "ReconnectRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/robotadmin-2016-02-25.min.json",
+      "path": "ifttt/apis/robotadmin-2016-02-25.min.json",
+      "sha256": "1f12cf5d4f97a1261b91d2a1c500cce3fe0339c597285a5f8cd16894a6710f16",
+      "bytes": 1320,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robotadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateRobot",
+        "CreateRobotBatch",
+        "CalibrateRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/logadmin-2015-03-09.min.json",
+      "path": "ifttt/apis/logadmin-2015-03-09.min.json",
+      "sha256": "007a9aec43b5ad99a78dab4185aa7a4ce2b35aa55a81e35044df6e8a071a6549",
+      "bytes": 1058,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "logadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "SetLevel"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/ifttt/node_modules/@jibo/jibo-server-client/apis/push-2016-07-29.min.json",
+      "path": "ifttt/apis/push-2016-07-29.min.json",
+      "sha256": "2d027c32eddc5605eefefadbae70e05674cfaba7a434a930cd1988f2c9e655c8",
+      "bytes": 979,
+      "apiMetadata": {
+        "apiVersion": "2016-07-29",
+        "endpointPrefix": "push",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Push",
+        "signatureVersion": "v4",
+        "targetPrefix": "Push_20160729",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateDevice",
+        "RemoveDevice"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/mediaadmin-2016-07-25.min.json",
+      "path": "settings/apis/mediaadmin-2016-07-25.min.json",
+      "sha256": "3a51698e73a4ebe50faeaf5cf498316b48b5c5ef45f4c387faf6ae5ee86b3e3e",
+      "bytes": 1081,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "mediaadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "RemoveAllMediaFromLoop"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/account-2015-11-11.min.json",
+      "path": "settings/apis/account-2015-11-11.min.json",
+      "sha256": "05835c7bf9764d017ccc3edf137750af57d65c43c8130b2e21833e9cf222b7be",
+      "bytes": 8989,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "account",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "CheckEmail",
+        "Create",
+        "Login",
+        "Search",
+        "ResetKeys",
+        "Get",
+        "Update",
+        "Remove",
+        "ActivateByCode",
+        "ResendActivationCode",
+        "ChangePassword",
+        "ChangeEmail",
+        "ConfirmEmailReset",
+        "SendPasswordReset",
+        "PasswordResetByCode",
+        "UpdatePhoto",
+        "RemovePhoto",
+        "SendPhoneVerificationCode",
+        "VerifyPhoneByCode",
+        "CreateAccessToken",
+        "CreateHubToken",
+        "GetAccountByAccessToken",
+        "FacebookPrepareLogin",
+        "FacebookConnect",
+        "FacebookMobileConnect",
+        "AcceptTerms"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/notification-2015-05-05.min.json",
+      "path": "settings/apis/notification-2015-05-05.min.json",
+      "sha256": "bd7f14fe98bbab35a02f152741259d99947b1a4c1f4a481c4574efb88302e496",
+      "bytes": 1080,
+      "apiMetadata": {
+        "apiVersion": "2015-05-05",
+        "endpointPrefix": "notification",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Notification",
+        "signatureVersion": "v4",
+        "targetPrefix": "Notification_20150505",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewRobotToken",
+        "GetStatus"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/rom-2017-10-11.min.json",
+      "path": "settings/apis/rom-2017-10-11.min.json",
+      "sha256": "5fe4aa2a36463e6093e7ae94fb3e56f905184fb859aae98dc0c2a20d598cd144",
+      "bytes": 2191,
+      "apiMetadata": {
+        "apiVersion": "2017-10-11",
+        "endpointPrefix": "rom",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo ROM",
+        "signatureVersion": "v4",
+        "targetPrefix": "ROM_20171011",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "SetupClient",
+        "SetupServer"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/update-2016-03-01.min.json",
+      "path": "settings/apis/update-2016-03-01.min.json",
+      "sha256": "effb34109073d0319e853c96fac761b09033c6a8c6279f0d36fd4f1ec9001353",
+      "bytes": 3514,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "update",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUpdates",
+        "ListUpdatesFrom",
+        "GetUpdateFrom",
+        "CreateUpdate",
+        "RemoveUpdate"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/ifttt-2017-02-07.min.json",
+      "path": "settings/apis/ifttt-2017-02-07.min.json",
+      "sha256": "68c24dc56b5226b3e5d297816be4ac5b39897ac0ba8bbe02a7bcef8576f02a43",
+      "bytes": 3404,
+      "apiMetadata": {
+        "apiVersion": "2017-02-07",
+        "endpointPrefix": "ifttt",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo IFTTT",
+        "signatureVersion": "v4",
+        "targetPrefix": "IFTTT_20170207",
+        "protocol": "json"
+      },
+      "operations": [
+        "Trigger",
+        "ListTriggers",
+        "ListMedia",
+        "DeleteIdentity",
+        "Action",
+        "ListActions",
+        "UserInfo"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/oobeadmin-2016-10-26.min.json",
+      "path": "settings/apis/oobeadmin-2016-10-26.min.json",
+      "sha256": "977b970101b3ff6df15114319fae945387c60ad609fae754aa17394c81d5a1ee",
+      "bytes": 534,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobeadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetServiceToken"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/lps-2017-12-01.min.json",
+      "path": "settings/apis/lps-2017-12-01.min.json",
+      "sha256": "8aa15804fd4b2b1eee5f3d41dbd293702a51a492d798e2af09e01eff945e55d0",
+      "bytes": 1389,
+      "apiMetadata": {
+        "apiVersion": "2017-12-01",
+        "endpointPrefix": "lps",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Lps",
+        "signatureVersion": "v4",
+        "targetPrefix": "Lps_20171201",
+        "protocol": "json"
+      },
+      "operations": [
+        "NewCredentials"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/log-2015-03-09.min.json",
+      "path": "settings/apis/log-2015-03-09.min.json",
+      "sha256": "866dc447ba23a92a8dfecf5970337e78407d946297fe2dfff52d7b8b7f7b30ff",
+      "bytes": 4450,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "log",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "PutEvents",
+        "PutEventsAsync",
+        "NewKinesisCredentials",
+        "PutBinary",
+        "PutBinaryAsync",
+        "PutAsrBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/updateadmin-2016-03-01.min.json",
+      "path": "settings/apis/updateadmin-2016-03-01.min.json",
+      "sha256": "b22cc6f7355efff0a987bd45394ba527202fca57cb5278e9df0cf5a980bb3bfb",
+      "bytes": 760,
+      "apiMetadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "updateadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListUniqueFilters",
+        "SetTarget",
+        "ListTargets"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/robot-2016-02-25.min.json",
+      "path": "settings/apis/robot-2016-02-25.min.json",
+      "sha256": "e533bd7fa29f5b4e4d70eef2d5015ded3bc99bcbbdc7c99d079746c8b8727cc4",
+      "bytes": 2873,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetFriendlyIds",
+        "RemoveRobot",
+        "UpdateRobot",
+        "GetRobot",
+        "GetRobotHistory",
+        "GetCalibrationData"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/backup-2017-02-22.min.json",
+      "path": "settings/apis/backup-2017-02-22.min.json",
+      "sha256": "78bb2368df9982c540a7e58fdeb986f7b9df408c24288e318f3a73924b987b89",
+      "bytes": 1484,
+      "apiMetadata": {
+        "apiVersion": "2017-02-22",
+        "endpointPrefix": "backup",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Backup",
+        "signatureVersion": "v4",
+        "targetPrefix": "Backup_20170222",
+        "protocol": "json"
+      },
+      "operations": [
+        "New",
+        "List"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/metadata.json",
+      "path": "settings/apis/metadata.json",
+      "sha256": "f6765daf7c29d1a5bae868608883ff00903f100bec6e13a4bf4c57a945d7e360",
+      "bytes": 1119
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/media-2016-07-25.min.json",
+      "path": "settings/apis/media-2016-07-25.min.json",
+      "sha256": "f23d78814608fdab4a0ec5b4cffb003a75515f883bff22defd29fb2cb07e55ac",
+      "bytes": 2832,
+      "apiMetadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "media",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        "Create",
+        "List",
+        "Remove",
+        "Get"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/collision-2016-11-26.min.json",
+      "path": "settings/apis/collision-2016-11-26.min.json",
+      "sha256": "63631b2f1d65c7dd9c26efa7b5e06cb21affe897bf29e095d3dae1ae8c15683b",
+      "bytes": 960,
+      "apiMetadata": {
+        "apiVersion": "2016-11-26",
+        "endpointPrefix": "collision",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Collision",
+        "signatureVersion": "v4",
+        "targetPrefix": "Collision_20161126",
+        "protocol": "json"
+      },
+      "operations": [
+        "Match"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/accountadmin-2015-11-11.min.json",
+      "path": "settings/apis/accountadmin-2015-11-11.min.json",
+      "sha256": "bce0905e25a035107674fb8ebc6b18b477e5e71bcaf761f16bb3df811850975e",
+      "bytes": 1907,
+      "apiMetadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "accountadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        "ActivateById",
+        "ResetEmail"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/person-2016-08-01.min.json",
+      "path": "settings/apis/person-2016-08-01.min.json",
+      "sha256": "1f195e379e15a578599611cdf14da9c290c5dd33222d584ba26d6cfb1709ff7f",
+      "bytes": 4510,
+      "apiMetadata": {
+        "apiVersion": "2016-08-01",
+        "endpointPrefix": "person",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Person",
+        "signatureVersion": "v4",
+        "targetPrefix": "Person_20160801",
+        "protocol": "json"
+      },
+      "operations": [
+        "List",
+        "Answer",
+        "EnableHolidays",
+        "ListHolidays",
+        "DisableHolidays",
+        "SetLoopProperty",
+        "GetLoopProperties",
+        "SetAccountProperty",
+        "GetAccountProperties",
+        "ListAccountPropertyKeys"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/metadata-sdk.json",
+      "path": "settings/apis/metadata-sdk.json",
+      "sha256": "78bceb5adf6233f1a28007492e5b09ef8e0058fef6576112208b7c67f6640cea",
+      "bytes": 357
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/key-2016-02-01.min.json",
+      "path": "settings/apis/key-2016-02-01.min.json",
+      "sha256": "e5a0601fe986d6d3f0f1af59ec2a66dac41816e933837285df55ebd62d9528dc",
+      "bytes": 3717,
+      "apiMetadata": {
+        "apiVersion": "2016-02-01",
+        "endpointPrefix": "key",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Key",
+        "signatureVersion": "v4",
+        "targetPrefix": "Key_20160201",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetRequest",
+        "CreateRequest",
+        "Share",
+        "ListIncomingRequests",
+        "ShouldCreate",
+        "Backup",
+        "Restore",
+        "ListBinaryRequests",
+        "ShareBinary"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/loop-2016-03-24.min.json",
+      "path": "settings/apis/loop-2016-03-24.min.json",
+      "sha256": "0abdc8481e512edeace21a90587177663bda69f4cbb1102dedfc1f8170648213",
+      "bytes": 10312,
+      "apiMetadata": {
+        "apiVersion": "2016-03-24",
+        "endpointPrefix": "Loop",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Loop",
+        "signatureVersion": "v4",
+        "targetPrefix": "Loop_20160324",
+        "protocol": "json"
+      },
+      "operations": [
+        "SuspendRobotLoop",
+        "InviteMember",
+        "AcceptInvitation",
+        "DeclineInvitation",
+        "ListMembers",
+        "UpdateMember",
+        "RemoveMember",
+        "ListOwnerRobots",
+        "ClearRobot",
+        "GetRobot",
+        "Create",
+        "Update",
+        "List",
+        "Remove",
+        "SetEnrollment",
+        "FindOwner",
+        "SetLegalGuardian",
+        "UpdateAgreementStatus",
+        "UpdateNickname",
+        "UpdatePhoneticName",
+        "SuspendLoop",
+        "UpdateMemberPhoto",
+        "RemoveMemberPhoto"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/oauthclientsadmin-2017-11-08.min.json",
+      "path": "settings/apis/oauthclientsadmin-2017-11-08.min.json",
+      "sha256": "090f18f40b77a96b266b99cec2debccba3ade0d11c4fcf4df32751d4de7b5691",
+      "bytes": 2791,
+      "apiMetadata": {
+        "apiVersion": "2017-11-08",
+        "endpointPrefix": "oauthclientsadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OAuth Clients",
+        "signatureVersion": "v4",
+        "targetPrefix": "OauthClients_20171108",
+        "protocol": "json"
+      },
+      "operations": [
+        "ListClients",
+        "Create",
+        "Update",
+        "Remove"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/settings-2017-12-19.min.json",
+      "path": "settings/apis/settings-2017-12-19.min.json",
+      "sha256": "93f282f110c5d9e1a1f8c28f8f3836a2e37faffb88e660d08d4690148269d86a",
+      "bytes": 4818,
+      "apiMetadata": {
+        "apiVersion": "2017-12-19",
+        "endpointPrefix": "settings",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Settings",
+        "signatureVersion": "v4",
+        "targetPrefix": "Settings_20171219",
+        "protocol": "json"
+      },
+      "operations": [
+        "GetSettings",
+        "GetDataForSettings",
+        "UpdateSettings",
+        "DeleteSettings"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/gqa-2016-09-30.min.json",
+      "path": "settings/apis/gqa-2016-09-30.min.json",
+      "sha256": "ee7a3eea90f84a3dd1f316cd24c625c8d1d1953812d1f63c7ce5ed86e60f9830",
+      "bytes": 3532,
+      "apiMetadata": {
+        "apiVersion": "2016-09-30",
+        "endpointPrefix": "gqa",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo GQA",
+        "signatureVersion": "v4",
+        "targetPrefix": "GQA_20160930",
+        "protocol": "json"
+      },
+      "operations": [
+        "Question",
+        "ListAttribution"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/nlp-2016-10-31.min.json",
+      "path": "settings/apis/nlp-2016-10-31.min.json",
+      "sha256": "01dd6b6de398acffedd96837159576d8e9a880eb2c7180f5ec4414bade5676c3",
+      "bytes": 1752,
+      "apiMetadata": {
+        "apiVersion": "2016-10-31",
+        "endpointPrefix": "nlp",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo NLP",
+        "signatureVersion": "v4",
+        "targetPrefix": "NLP_20161031",
+        "protocol": "json"
+      },
+      "operations": [
+        "PartOfSpeech",
+        "NamedEntityRecognition"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/oobe-2016-10-26.min.json",
+      "path": "settings/apis/oobe-2016-10-26.min.json",
+      "sha256": "29122e8a4ae495dc051400a733714c01eae2a1ee746f9404220a180e3a3e97ce",
+      "bytes": 1954,
+      "apiMetadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobe",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        "PrepareRobot",
+        "GetStatus",
+        "SetupRobot",
+        "ReconnectRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/robotadmin-2016-02-25.min.json",
+      "path": "settings/apis/robotadmin-2016-02-25.min.json",
+      "sha256": "1f12cf5d4f97a1261b91d2a1c500cce3fe0339c597285a5f8cd16894a6710f16",
+      "bytes": 1320,
+      "apiMetadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robotadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateRobot",
+        "CreateRobotBatch",
+        "CalibrateRobot"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/logadmin-2015-03-09.min.json",
+      "path": "settings/apis/logadmin-2015-03-09.min.json",
+      "sha256": "007a9aec43b5ad99a78dab4185aa7a4ce2b35aa55a81e35044df6e8a071a6549",
+      "bytes": 1058,
+      "apiMetadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "logadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        "SetLevel"
+      ]
+    },
+    {
+      "archiveMember": "node_modules/@be/settings/node_modules/@jibo/jibo-server-client/apis/push-2016-07-29.min.json",
+      "path": "settings/apis/push-2016-07-29.min.json",
+      "sha256": "2d027c32eddc5605eefefadbae70e05674cfaba7a434a930cd1988f2c9e655c8",
+      "bytes": 979,
+      "apiMetadata": {
+        "apiVersion": "2016-07-29",
+        "endpointPrefix": "push",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Push",
+        "signatureVersion": "v4",
+        "targetPrefix": "Push_20160729",
+        "protocol": "json"
+      },
+      "operations": [
+        "CreateDevice",
+        "RemoveDevice"
+      ]
+    }
+  ]
+}

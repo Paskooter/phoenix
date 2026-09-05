@@ -1,0 +1,38 @@
+TopRule = $* $PLAY $* {intent=PLAY._intent}{priority='HIGH'};
+
+#Wanna play again?
+
+PLAY =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+
+YES_OTHER =
+(
+    guess | gas |
+    (this|that ?game ?(is|was) ?$V_VERY $V_AMAZING) |
+    (?(play|(do it|that)) again) |
+    (redo|encore|another|(one|once more))
+);
+
+NO_OTHER =
+(
+    know | snow | now |
+    (this|that ?game ?(is|was) ?$V_VERY $V_TERRIBLE) |
+    (i\'m|(i ?am) ?$V_VERY bored|tired|done|finished ?($w03 this)) |
+    (that\'s|(that ?(is|was)) enough) |
+    (not $w03 again)|(never)
+);
+
+
+### USEFUL VOCAB ###
+V_AMAZING = awesome|amazing|fantastic|incredible|fascinating|wonderful|
+    unbelievable|excellent|fabulous|astounding|cool|marvelous|phenomenal|
+    superb|impressive|great|outstanding|extraordinary;
+V_TERRIBLE = terrible|worthless|garbage|pointless|shitty|sub-par|crummy|bad|
+    [crap?(py)]|lame|awful|unacceptable|dreadful|atrocious|horrendous|
+    horrible|(?way too simple|easy|hard|difficult)|[suck(s|(ed))];
+V_VERY = very|really|actually|pretty|[absolute?(ly)]|[incredibl(e|y)]|
+    extremely|so|such|most|kinda|sorta|any|(kind|sort of);

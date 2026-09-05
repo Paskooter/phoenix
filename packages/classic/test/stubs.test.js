@@ -45,8 +45,7 @@ test('person: account properties round-trip in-memory', async () => {
   assert.equal((await amz('Person_20160801.EnableHolidays', {})).body.result, 'Command accepted');
 });
 
-test('backup / ifttt / nlp / collision return their shapes', async () => {
-  assert.equal((await amz('Backup_20170222.New', {})).body.uploadUrl, '');
+test('ifttt / nlp / collision return their shapes', async () => {
   assert.equal((await amz('IFTTT_20170207.Trigger', {})).body.result, 'Command accepted');
   assert.deepEqual((await amz('NLP_20161031.PartOfSpeech', { text: 'hi' })).body.partsOfSpeech, []);
   const col = await amz('Collision_20161126.Match', { username: 'jane' });

@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: production goldens retain reviewed source hashes and agree across two original runtime captures
+ok 1 - production goldens retain reviewed source hashes and agree across two original runtime captures
+  ---
+  duration_ms: 72.16499
+  type: 'test'
+  ...
+# Subtest: complete fixture generation retains all corpus occurrences and conditional variants
+ok 2 - complete fixture generation retains all corpus occurrences and conditional variants
+  ---
+  duration_ms: 236.529483
+  type: 'test'
+  ...
+# Subtest: production grade rejects changed entities, winning rules and null-versus-empty no-match results
+ok 3 - production grade rejects changed entities, winning rules and null-versus-empty no-match results
+  ---
+  duration_ms: 214.503461
+  type: 'test'
+  ...
+# Subtest: production grade rejects incomplete parser requests and changed routing memo types
+ok 4 - production grade rejects incomplete parser requests and changed routing memo types
+  ---
+  duration_ms: 96.757146
+  type: 'test'
+  ...
+# Subtest: production requests use the real builder and retain dialog-reference injection as a compared output
+ok 5 - production requests use the real builder and retain dialog-reference injection as a compared output
+  ---
+  duration_ms: 98.923072
+  type: 'test'
+  ...
+# Subtest: production grade retains action ESML, display IDs, analytics and complete continuation state
+ok 6 - production grade retains action ESML, display IDs, analytics and complete continuation state
+  ---
+  duration_ms: 200.680615
+  type: 'test'
+  ...
+# Subtest: production grade independently rejects incomplete captures, bad bytes, timestamps and generated IDs
+ok 7 - production grade independently rejects incomplete captures, bad bytes, timestamps and generated IDs
+  ---
+  duration_ms: 337.546523
+  type: 'test'
+  ...
+# Subtest: production compare CLI exits zero for the original control and nonzero for a behavioral mismatch
+ok 8 - production compare CLI exits zero for the original control and nonzero for a behavioral mismatch
+  ---
+  duration_ms: 260.999466
+  type: 'test'
+  ...
+# Subtest: fixture RNG controls separate MIM VM contexts without replacing Math or consuming the service stream
+ok 9 - fixture RNG controls separate MIM VM contexts without replacing Math or consuming the service stream
+  ---
+  duration_ms: 34.616142
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1616.147128

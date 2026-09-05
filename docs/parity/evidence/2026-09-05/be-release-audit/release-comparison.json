@@ -1,0 +1,255 @@
+{
+  "audit_date": "2026-09-05",
+  "archive_index": "https://pvindex.org/repository/skills/jibo-be/",
+  "supplement": "docs/parity/evidence/2026-09-05/be-release-audit/supplement-11.0.3.md",
+  "available_production_archives_descending": [
+    "12.0.0",
+    "11.0.3",
+    "11.0.2",
+    "11.0.1",
+    "10.0.18",
+    "10.0.17",
+    "10.0.16",
+    "10.0.15",
+    "10.0.14",
+    "10.0.13",
+    "10.0.12",
+    "10.0.11",
+    "10.0.9",
+    "10.0.8",
+    "10.0.6",
+    "10.0.5",
+    "10.0.4",
+    "10.0.3",
+    "10.0.2",
+    "10.0.1",
+    "9.1.11",
+    "9.1.10",
+    "9.0.4",
+    "8.11.3",
+    "2.0.2"
+  ],
+  "verified_archives": {
+    "12.0.0": {
+      "path": ".parity/consumers/downloads/jibo-be-12.0.0.tar.gz",
+      "bytes": 192233932,
+      "sha256": "e29f476c75e35e9bbd07c0211c75e2385772e4dfb3dd079a1d832e3832450657"
+    },
+    "11.0.3": {
+      "path": ".parity/consumers/be-release-audit/downloads/jibo-be-11.0.3.tar.gz",
+      "bytes": 200018128,
+      "sha256": "64690ab4f99b717cf49768993f7a750e8df4746a2a96179cd0a54f575190dc41"
+    },
+    "11.0.2": {
+      "path": ".parity/consumers/be-release-audit/downloads/jibo-be-11.0.2.tar.gz",
+      "bytes": 385351420,
+      "sha256": "f52cd40f078a8d357e515127276b724dd2ee132deaa5e89b62b09b49f26c60ec"
+    },
+    "11.0.1": {
+      "path": ".parity/consumers/be-release-audit/downloads/jibo-be-11.0.1.tar.gz",
+      "bytes": 188708417,
+      "sha256": "1f85e593cf7e868b969d74bed3eef78b447e72207fa4b3892de013aeb3e97d8d"
+    }
+  },
+  "recovered_source_maps": {
+    "11.0.3": {
+      "root": ".parity/consumers/be-release-audit/sources/11.0.3/jibo-embodied-dialog",
+      "package_version": "9.0.3",
+      "map_sha256": "ebe5ddf7ec9461b7f35df9f556b225b74eb0d677b0fad078674725a869404689",
+      "compiled_sha256": "eb5d207f09b8c5f10d383906732ebad5c97e632650be21c939d63e1c6b5d2433",
+      "embodied_listen_sha256": "46f35e53cc4b7ff75164aaca5bb12a9afdc9048239fb86b5f3295deb9f5a6b83",
+      "api_sha256": "bf2cfdd070f0ce8f462ccaa6a79dd7ca733f1b637d24af1f6b670a3462b96a2f",
+      "assets_sha256": "4b413b456abacf46911acf1d7eed2c2c694c89a64033b65e767e2877adb03f6d",
+      "source_count": 67,
+      "recovered_source_count": 65,
+      "recovery_manifest_sha256": "25a61cb8ad3e4dd7a4cde90aa98e26336cd5466cfa130f96646be1545fa335d3",
+      "hj_visual_state": "disabled"
+    },
+    "12.0.0": {
+      "root": ".parity/consumers/be-release-audit/sources/12.0.0/jibo-embodied-dialog",
+      "package_version": "9.0.4",
+      "map_sha256": "ebe5ddf7ec9461b7f35df9f556b225b74eb0d677b0fad078674725a869404689",
+      "embodied_listen_sha256": "46f35e53cc4b7ff75164aaca5bb12a9afdc9048239fb86b5f3295deb9f5a6b83",
+      "api_sha256": "bf2cfdd070f0ce8f462ccaa6a79dd7ca733f1b637d24af1f6b670a3462b96a2f",
+      "assets_sha256": "4b413b456abacf46911acf1d7eed2c2c694c89a64033b65e767e2877adb03f6d",
+      "hj_visual_state": "disabled"
+    },
+    "11.0.2": {
+      "root": ".parity/consumers/be-release-audit/sources/11.0.2/jibo-embodied-dialog",
+      "package_version": "9.0.2",
+      "map_sha256": "ebe5ddf7ec9461b7f35df9f556b225b74eb0d677b0fad078674725a869404689",
+      "embodied_listen_sha256": "46f35e53cc4b7ff75164aaca5bb12a9afdc9048239fb86b5f3295deb9f5a6b83",
+      "api_sha256": "bf2cfdd070f0ce8f462ccaa6a79dd7ca733f1b637d24af1f6b670a3462b96a2f",
+      "assets_sha256": "4b413b456abacf46911acf1d7eed2c2c694c89a64033b65e767e2877adb03f6d",
+      "hj_visual_state": "disabled"
+    },
+    "11.0.1": {
+      "root": ".parity/consumers/be-release-audit/sources/11.0.1/jibo-embodied-dialog",
+      "package_version": "9.0.1",
+      "map_sha256": "906973cb42364f617de918598e69afa7ec60298edea77b4e2c82aab3fe54b22f",
+      "embodied_listen_sha256": "4b6e2a51686949d2555da7b8740f7b15b54cf1d61a6b0f3b7685dba821968cbb",
+      "api_sha256": "bf2cfdd070f0ce8f462ccaa6a79dd7ca733f1b637d24af1f6b670a3462b96a2f",
+      "assets_sha256": "4b413b456abacf46911acf1d7eed2c2c694c89a64033b65e767e2877adb03f6d",
+      "hj_visual_state": "retained"
+    }
+  },
+  "compiled_boundary_artifacts": {
+    "jibo_embodied_dialog": {
+      "11.0.1": {
+        "compiled_bytes": 262942,
+        "compiled_sha256": "691bd39629413cac8c814d887b19ea28c2dcbb6a5a2b254668cb1f0c7fbbff06",
+        "map_bytes": 1183767,
+        "map_sha256": "906973cb42364f617de918598e69afa7ec60298edea77b4e2c82aab3fe54b22f",
+        "active_code": "Led.LISTENING plus startListeningEye(true)"
+      },
+      "11.0.2": {
+        "compiled_bytes": 260350,
+        "compiled_sha256": "eb5d207f09b8c5f10d383906732ebad5c97e632650be21c939d63e1c6b5d2433",
+        "map_bytes": 1178846,
+        "map_sha256": "ebe5ddf7ec9461b7f35df9f556b225b74eb0d677b0fad078674725a869404689",
+        "active_code": "Led.OFF; startListeningEye absent from compiled active code"
+      },
+      "11.0.3": {
+        "compiled_bytes": 260350,
+        "compiled_sha256": "eb5d207f09b8c5f10d383906732ebad5c97e632650be21c939d63e1c6b5d2433",
+        "map_bytes": 1178846,
+        "map_sha256": "ebe5ddf7ec9461b7f35df9f556b225b74eb0d677b0fad078674725a869404689",
+        "active_code": "Led.OFF; startListeningEye absent from compiled active code"
+      },
+      "12.0.0": {
+        "compiled_bytes": 260350,
+        "compiled_sha256": "eb5d207f09b8c5f10d383906732ebad5c97e632650be21c939d63e1c6b5d2433",
+        "map_bytes": 1178846,
+        "map_sha256": "ebe5ddf7ec9461b7f35df9f556b225b74eb0d677b0fad078674725a869404689",
+        "active_code": "Led.OFF; startListeningEye absent from compiled active code"
+      }
+    },
+    "jibo_action_system": {
+      "compiled_bytes": 213317,
+      "compiled_sha256": "593bb5ac5d9575d7b611ac763b0263ca5094becc7ec18b74b348ad5e07b3fb54",
+      "map_bytes": 993017,
+      "map_sha256": "61aad74b938a3b94938d64c178d6851807087ec76bc740deeb24fcf610f89a47",
+      "identical_releases": ["11.0.1", "11.0.2", "11.0.3", "12.0.0"]
+    }
+  },
+  "package_streams_from_selected_release_maps": {
+    "12.0.0": {
+      "jibo": "15.0.4",
+      "nimbus": "3.0.4",
+      "be_framework": "13.0.0",
+      "jetstream_client": "3.0.4",
+      "jibo_embodied_dialog": "9.0.4"
+    },
+    "11.0.3": {
+      "jibo": "15.0.3",
+      "nimbus": "3.0.3",
+      "be_framework": "12.0.3",
+      "jetstream_client": "3.0.3",
+      "jibo_embodied_dialog": "9.0.3"
+    },
+    "11.0.2": {
+      "jibo": "15.0.2",
+      "nimbus": "3.0.2",
+      "be_framework": "12.0.2",
+      "jetstream_client": "3.0.2",
+      "jibo_embodied_dialog": "9.0.2"
+    },
+    "11.0.1": {
+      "jibo": "15.0.1",
+      "nimbus": "3.0.1",
+      "be_framework": "12.0.1",
+      "jetstream_client": "3.0.1",
+      "jibo_embodied_dialog": "9.0.1"
+    },
+    "10.0.18": {
+      "jibo": "14.2.9",
+      "nimbus": "2.2.9",
+      "be_framework": "11.0.18",
+      "jetstream_client": "2.2.2",
+      "jibo_embodied_dialog": "8.0.18"
+    },
+    "10.0.16": {
+      "jibo": "14.2.7",
+      "nimbus": "2.2.7",
+      "be_framework": "11.0.16",
+      "jetstream_client": "2.2.0",
+      "jibo_embodied_dialog": "8.0.16"
+    }
+  },
+  "regression": {
+    "boundary": "11.0.1 -> 11.0.2",
+    "component": "jibo-embodied-dialog",
+    "high_confidence_hypothesis": "9.0.2 comments out the listening eye implementation and changes active HJ/non-HJ listening LED calls from Led.LISTENING to Led.OFF.",
+    "retained_event_path": "src/api.ts continues to forward hjHeard and cloudFinished; its source hash is unchanged.",
+    "source_references": [
+      {
+        "release": "11.0.1",
+        "file": ".parity/consumers/be-release-audit/sources/11.0.1/jibo-embodied-dialog/src/listen/EmbodiedListen.ts",
+        "lines": [281, 293, 299, 313, 323, 324, 439, 441, 442, 547, 574, 610]
+      },
+      {
+        "release": "11.0.2",
+        "file": ".parity/consumers/be-release-audit/sources/11.0.2/jibo-embodied-dialog/src/listen/EmbodiedListen.ts",
+        "lines": [281, 293, 299, 313, 323, 324, 439, 441, 442, 547, 567, 574, 590, 612, 633]
+      },
+      {
+        "release": "12.0.0",
+        "file": ".parity/consumers/be-release-audit/sources/12.0.0/jibo-embodied-dialog/src/listen/EmbodiedListen.ts",
+        "lines": [281, 293, 299, 313, 323, 324, 439, 441, 442, 547, 567, 574, 590, 612, 633]
+      }
+    ]
+  },
+  "separate_findings": {
+    "joke_screen": "RA_JBO_TellAJoke_AN_41 is plain TTS with es_auto_tagging true and no explicit screen graphic.",
+    "action_system": "The jibo-action-system compiled source is byte-identical across BE 11.0.1-11.0.3 and BE 12, but package options change pegasusProactiveTrigger from true in 11.0.1 to false from 11.0.2 onward. This leaves runtime.proactive null while api.ts unconditionally dereferences it; see action_system_configuration.",
+    "nimbus_followup": "Nimbus cleanup added at 10.0.13 and remains in BE12; no removal found in the inspected follow-up path.",
+    "package_identity": "SSM requires a skill package name beginning with @be/. The corrected @be/phoenix-parity identity reaches Nimbus and TTS; exact @be/be checks concern finished relaunch handling and are not evidence that BE12 removed the HJ visual path."
+  },
+  "action_system_configuration": {
+    "source_files": {
+      "action_runtime": {
+        "path": ".parity/consumers/be-release-audit/sources/11.0.3/jibo-action-system/src/common/ActionRuntime.ts",
+        "sha256": "d759fbca32661417b1ef17a90edcd739dde48584624dfbdbcdf4e4dd5803d2fb",
+        "option_read_lines": [43, 57],
+        "proactive_init_lines": [142, 155]
+      },
+      "api": {
+        "path": ".parity/consumers/be-release-audit/sources/11.0.3/jibo-action-system/src/api.ts",
+        "sha256": "cdc643ba27599af29827ecabad178854d9e2bbed110564ce9be39f1a6aea8aa4",
+        "null_dereference_lines": [232, 234]
+      }
+    },
+    "package_options": {
+      "11.0.1": {
+        "version": "8.0.1",
+        "manifest_sha256": "02746fc7784aba5614502a2b824672a1c742a87b423d655e394f676333c2690f",
+        "pegasusProactiveTrigger": true,
+        "disableProactiveTrigger": false
+      },
+      "11.0.2": {
+        "version": "8.0.2",
+        "manifest_sha256": "6c97215a49a338cf84791e0f51a9a94c1c4d1419efdfada35091f598ab6dba78",
+        "pegasusProactiveTrigger": false,
+        "disableProactiveTrigger": false
+      },
+      "11.0.3": {
+        "version": "8.0.3",
+        "manifest_sha256": "df01ee7b1523aa7fa86d5a38bca4e8655c65e6d20dbf5df8dec18edfd32857e7",
+        "pegasusProactiveTrigger": false,
+        "disableProactiveTrigger": false
+      },
+      "12.0.0": {
+        "version": "8.0.4",
+        "manifest_sha256": "350a1d47301d4acc1d92d756b5298db223eccd2db5055ab71561afe50c62f45b",
+        "pegasusProactiveTrigger": false,
+        "disableProactiveTrigger": false
+      }
+    },
+    "interpretation": "Configuration/source-contract mismatch at 11.0.1 -> 11.0.2 can explain checkEnvironmentInhibitors-of-null. Do not patch the robot as part of this static audit."
+  },
+  "root_test_candidate": {
+    "release": "11.0.1",
+    "archive": ".parity/consumers/be-release-audit/downloads/jibo-be-11.0.1.tar.gz",
+    "sha256": "1f85e593cf7e868b969d74bed3eef78b447e72207fa4b3892de013aeb3e97d8d"
+  }
+}

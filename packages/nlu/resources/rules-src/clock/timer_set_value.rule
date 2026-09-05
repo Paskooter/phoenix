@@ -1,0 +1,69 @@
+TopRule =
+        $*
+            (
+
+                $D_TIMER_SET_VALUE
+                            {intent  = D_TIMER_SET_VALUE._intent}
+                            {hours   = D_TIMER_SET_VALUE._hours}
+                            {minutes = D_TIMER_SET_VALUE._minutes}
+                            {seconds = D_TIMER_SET_VALUE._seconds}
+                            {domain  = 'timer'}
+                            {priority='HIGH'}
+            )
+            |
+            (
+                $D_TIMER_CANCEL
+                            {intent  = D_TIMER_CANCEL._intent}
+                            {hours   = 'null'}
+                            {minutes = 'null'}
+                            {seconds = 'null'}
+                            {domain  = 'timer'}
+                            {priority='HIGH'}
+            )
+
+        $*
+;
+
+
+### TIMER DOMAIN: ###
+D_TIMER_SET_VALUE =
+(
+        ( ?(?$D_TIMER_V_SET $* $D_TIMER_V_TIMER) $D_TIMER_TIMER_VALUE) |
+        ( $D_TIMER_TIMER_VALUE ?($* $D_TIMER_V_TIMER) ) |
+        ( give me $D_TIMER_TIMER_VALUE ) |
+        ( $D_TIMER_V_TELL_USER when $D_TIMER_TIMER_VALUE (has|have passed|(gone by))|(is|are up))
+)
+{_intent='timerValue'}
+{_hours   = D_TIMER_TIMER_VALUE._hours}
+{_minutes = D_TIMER_TIMER_VALUE._minutes}
+{_seconds = D_TIMER_TIMER_VALUE._seconds}
+;
+
+D_TIMER_TIMER_VALUE = (
+    (
+            $factory:timer ?(from now)
+    ) {_hours=timer._hours}{_minutes=timer._minutes}{_seconds=timer._seconds}
+    |
+    (
+        $* ?$factory:timer $* $D_TIMER_V_INVALID_TIMESCALE $* ?$factory:timer $* ~0.1
+    ){_hours='25'}{_minutes='null'}{_seconds='null'}
+    |
+    (one|1 [day?s]){_hours='24'}{_minutes='null'}{_seconds='null'}
+    |
+    (a|an [hour?s]){_hours='1'}{_minutes='null'}{_seconds='null'}
+    |
+    (a|an [minute?s]){_hours='null'}{_minutes='1'}{_seconds='null'}
+    |
+    (a|an [second?s]){_hours='null'}{_minutes='null'}{_seconds='1'}
+);
+
+D_TIMER_CANCEL =
+(
+    cancel|exit|escape|quit|(go back)|nevermind|(never mind)|(that\'s|(that is) enough)|(forget ?about it)
+) {_intent='cancel'};
+
+### USEFUL VOCABULARY ###
+D_TIMER_V_SET = start|set|begin;
+D_TIMER_V_TIMER = [timer?s];
+D_TIMER_V_TELL_USER = (tell me|us)|(let me|us know);
+D_TIMER_V_INVALID_TIMESCALE = ([day?s]|[week?s]|[weekend?s]|[fortnight?s]|[month?s]|[season?s]|[semester?s]|[year?s]|[olympiad?s]|[lustrum?s]|[decade?s]);

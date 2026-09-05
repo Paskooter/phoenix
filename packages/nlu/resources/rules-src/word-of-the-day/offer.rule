@@ -1,0 +1,49 @@
+TopRule = $* $LIKE_OFFER {intent=LIKE_OFFER._intent}{priority='HIGH'} $*;
+### Do you want to play? ###
+### Can we play it now? ###
+### Do you want to play the same word? ###
+### Shall we play now? ###
+### Say, would you like to play word of the day with me? ###
+### Hey, do you want to play the word of the day game? ###
+
+LIKE_OFFER =
+(
+    ($factory:yes_no {_intent = yes_no._nl}) |
+    ($YES_OTHER {_intent=YES_OTHER._intent}) |
+    ($NO_OTHER {_intent=NO_OTHER._intent})
+)
+;
+YES_OTHER =
+(
+    guess | gas |
+    ( why not ) |
+    certainly |
+    definitely |
+    (alright | (all right)) |
+    ( i ( think | suppose | guess ) so ) |
+    ( go for it ) |
+    ( ?yes please ) |
+    ( if you want ) |
+	( sounds good ) |
+    ( we ( can | may | should | shall ) ) |
+    ( ?let\'s ( play | ( do it ) | party ) ) |
+    ( i ( would | do | will ) )
+)
+{_intent='yes'}
+;
+NO_OTHER =
+(
+    know | snow | now |
+    ( not ?right now ?( robot | jibo ) ) |
+    ( not ?yet ) |
+    ( certainly not ) |
+    ( definitely not ) |
+    don\'t |
+    ( not the same word ) |
+    ( ?maybe later ?perhaps ) |
+    ( ?( this is ) ( ( a bad time ) | ( not a good time ) ) ) |
+    ( ?we ( cannot | can\'t | ( ( may | should | shall ) not ) ) ) |
+    ( i ( would | do | will ) not )
+)
+{_intent='no'}
+;

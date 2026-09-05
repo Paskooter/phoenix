@@ -1,0 +1,40 @@
+{
+  "task": "V-03",
+  "scope": "Capture-writer implementation review; full coverage acceptance remains open",
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "0ba431ca2b9c6c6d7bebfce7819621b12084c95f",
+  "result": "pass",
+  "rootCorrection": "Pinned Node8 asynchronous silent Writable destruction still hung after the candidate synchronous checks. A bounded-interval lifecycle state observer now settles and clears the pending drain/lifecycle listeners.",
+  "verification": {
+    "node22Focused": "9 passed, 0 failed",
+    "node8Regression": {
+      "before": "pending after500ms, destroyed true",
+      "after": "ERR_STREAM_PREMATURE_CLOSE; zero drain listeners"
+    },
+    "node8LargeOutputBytes": 283121920,
+    "smokeOriginalControl": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "reportOriginalControl": {
+      "cases": 73,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 2
+    }
+  },
+  "files": {
+    "scripts/parity-production/capture-writer.cjs": "84cfe7c54e76e3381c495d482e336f090af5db9a74ebc9be0887ddaebf830629",
+    "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "scripts/parity-production/run.py": "af498fc9f8f82af8863f92634b3584bb5b4a1495130e6835ba7cfa56eaa2749e",
+    "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
+  },
+  "limits": [
+    "Whole full-corpus comparison/export still pending.",
+    "Writer unit and original controls do not close product parity.",
+    "Native reference startup failures under concurrent runners are preserved; accepted controls run serially."
+  ]
+}

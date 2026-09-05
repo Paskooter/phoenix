@@ -7,7 +7,6 @@
 //   rom        (ROM_20171011)    Commander / Remote-Operation-Mode cert exchange
 //   media      (Media_20160725)  cloud photo/recording store (Snap/Jot) — no S3
 //   person     (Person_20160801) per-loop/per-account properties + holidays (real in-memory props)
-//   backup     (Backup_20170222) robot backup-to-cloud — no S3
 //   ifttt      (IFTTT_20170207)  IFTTT integration
 //   nlp        (NLP_20161031)    cloud NLP (Phoenix has its own parser)
 //   collision  (Collision_20161126) username-collision check
@@ -61,10 +60,6 @@ function defineStubs() {
         getaccountproperties: (b, { accountId }) => accountProps.get(accountId) || {},
         listaccountpropertykeys: (b, { accountId }) => ({ keys: Object.keys(accountProps.get(accountId) || {}) }),
       },
-    },
-    backup: {
-      prefix: /^backup/i,
-      ops: { new: () => ({ uploadUrl: '' }), list: () => [] },
     },
     ifttt: {
       prefix: /^ifttt/i,

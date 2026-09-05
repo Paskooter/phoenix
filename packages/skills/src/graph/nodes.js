@@ -2,7 +2,7 @@
 // SetLooperIDNode}.ts. These are the building blocks skills and the MIM factories assemble
 // graphs from.
 
-import { newMsgId } from '@phoenix/contracts';
+import { newJcpId } from '../jcpId.js';
 import { Node } from './node.js';
 
 /** Generate a JCP Action wrapping a single behavior (graph/Utils.generateJCPAction). */
@@ -11,8 +11,8 @@ export function generateJCPAction(behavior) {
 }
 
 /** SEQUENCE / PARALLEL protocol builders (jibo-command-requester structural.*). */
-export const sequenceProtocol = (children) => ({ id: newMsgId(), type: 'SEQUENCE', children });
-export const parallelProtocol = (children) => ({ id: newMsgId(), type: 'PARALLEL', children });
+export const sequenceProtocol = (children) => ({ id: newJcpId(), type: 'SEQUENCE', children });
+export const parallelProtocol = (children) => ({ id: newJcpId(), type: 'PARALLEL', children, succeedOnFirst: false });
 
 /** A node that takes no action in the world — only routes via exit(). */
 export class NoOpNode extends Node {
@@ -71,7 +71,7 @@ export class SetLooperIDNode extends NoOpNode {
           this.skill.overrideSpeaker(data, looper);
           // requester.perception.SetPresentPerson.generateProtocol(id, 'USER_OVERRIDE', 100)
           this.skill.addSequenceBehavior(data, {
-            id: newMsgId(),
+            id: newJcpId(),
             type: 'SET_PRESENT_PERSON',
             looperId: looper,
             source: 'USER_OVERRIDE',

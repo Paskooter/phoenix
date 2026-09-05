@@ -1,0 +1,10 @@
+TopRule = ($* $ALARMTIMEROKAY $*) {intent = ALARMTIMEROKAY._intent}{priority='HIGH'};
+
+#Okay. Setting an alarm for 4pm.
+
+ALARMTIMEROKAY =
+		(
+            ((no ?no) | wait | stop | cancel | wrong | (not right) | (don\'t ?(do it|that)))
+            {_intent='wrong'}
+        )
+        ;

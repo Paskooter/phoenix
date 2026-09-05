@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "driverSha256": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+  "originalCaptureTools": {
+    "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "scripts/parity-production/capture-writer.cjs": "84cfe7c54e76e3381c495d482e336f090af5db9a74ebc9be0887ddaebf830629",
+    "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
+    "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
+  },
+  "files": {
+    "suite.json": "8e5d1b63851a5b1cc63d2f020a920b921667e24b2c1f7c3d086144c0621ed6c2",
+    "reference.json.gz": "b34f79f37d1f1fb54c5883c207b8dba9ddd2dfa52f622d57fd753d8c7d4816ac"
+  },
+  "referenceIntegrity": {
+    "originalGitFiles": 6144,
+    "intentionalBootstrapRelocations": 2,
+    "emittedFiles": 391,
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "binarySha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54",
+    "fixtureSourcesSha256": "83cfdbcc2dfc645916beaa5629b862a71859fba3dff092fff3fc548915017da8"
+  },
+  "images": {
+    "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+  },
+  "originalControlArtifact": "docs/parity/evidence/2026-09-05/production/stream-writer-control/run.json",
+  "originalControlArtifactSha256": "27777a8c912a654d906d05850c01ebfc4248b58a05fdc4ad9ce09669a590ebc5",
+  "review": {
+    "date": "2026-09-05",
+    "reviewer": "Codex root",
+    "result": "pass",
+    "scope": "43 actual original cases repeat with zero field differences and invariant failures. No coverage gaps. Includes source-executed timer local cancel. Approves golden provenance and measured repeatability only; no Phoenix product parity."
+  },
+  "limitations": [
+    "Original production ParserService/RobustParserClient and native 2.8.3 FSTs; Dialogflow is explicitly disabled. Native process clock is not faked.",
+    "Native RPC uses the supported maxConcurrentRequests=1 setting and a localhost performance sink. This component profile does not verify concurrent parser load or native telemetry parity.",
+    "Production IntentRouter uses each implementation's actual skills-local registry. Cloud actions are hosted only for original chitchat/report in this profile; unhosted targets are reported as coverage gaps.",
+    "Production skill request builders execute dialog-reference injection and launch/update/proactive envelope construction. The shared driver supplies transport; full HubService orchestration is outside this component profile.",
+    "Node Math.random and VM intrinsic Math.random use separate case-seeded streams. MIM conditions and prompt selection are unmodified; native parser and VM Date clocks remain host clocks.",
+    "Original test-runtime context is synthetic; uid0001 is assigned to its default mock speaker. Dates use noon UTC. Historical conditional person details were not recovered.",
+    "Provider replies are frozen test weather and synthetic settings/news/calendar/maps; no current-provider availability or hardware rendering is claimed.",
+    "Every selected occurrence is executed separately. Scores retain corpus/conditional denominators, duplicates and absent manifest expectations.",
+    "Run original capture containers sequentially: simultaneous startup reproduced native No thread available errors; failed captures are retained in .parity/runs/stream-writer-{control,report-control}. This profile does not certify concurrent load."
+  ],
+  "supersedes": "docs/parity/evidence/2026-09-05/production/stream-writer-control/superseded-golden-source.json"
+}

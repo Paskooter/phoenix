@@ -1,0 +1,25 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "result": "measured agreement; full gate remains failing on coverage gaps",
+  "cases": 20534,
+  "differences": 0,
+  "invariants": 0,
+  "coverageGapInstances": 16,
+  "uniqueUnhostedCases": 8,
+  "captures": [
+    {
+      "path": "../stream-writer-full-control/reference.json.gz",
+      "sha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+      "writerSha256": "84cfe7c54e76e3381c495d482e336f090af5db9a74ebc9be0887ddaebf830629"
+    },
+    {
+      "path": "../buffered-writer-full-control/reference.json.gz",
+      "sha256": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53",
+      "writerSha256": "9074c4a7302832b41892978d6c276a9bee6d7fa7a2f3e6f2db5944bb382e133d"
+    }
+  ],
+  "method": "Strict full comparison of independently completed original captures before and after byte-preserving writer batching. Both source and tool manifests remain attached to their own captures; no capture is relabeled.",
+  "failedRunRetained": "The second execution within buffered-writer-full-control failed native grammar setup with No thread available at zero cases. That run remains result=error and is not promoted to pass.",
+  "scope": "Original repeatability and capture-writer regression evidence, not Phoenix feature acceptance."
+}

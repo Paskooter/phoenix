@@ -1,0 +1,12 @@
+
+> phoenix@0.0.0 parity:check
+> node scripts/parity-status.mjs --check
+
+management: 2/3 verified; 0 in progress; 0 blocked
+verification: 0/3 verified; 0 in progress; 0 blocked
+pegasus: 0/46 verified; 0 in progress; 0 blocked
+classic: 0/18 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Next: PM-03 — Freeze the original compatibility target and divergence policy
+Tracker structure, dependencies, evidence links and generated checklist are valid.

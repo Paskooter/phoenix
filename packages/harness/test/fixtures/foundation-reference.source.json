@@ -1,0 +1,12 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "command": "npm run harness -- --candidate original --out .parity/runs/compare-control-final",
+  "referenceIntegrity": {
+    "sourceFiles": 376,
+    "emittedFiles": 391,
+    "manifestSha256": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884"
+  },
+  "sha256": "c02fe16daacf5613465ee5f7bf7b4a457bd7e9100fbb281573fe041dc552c686",
+  "note": "Actual original HTTP/hub execution with synthetic peer responses. Full parser, skill rendering and real clients are outside this fixture."
+}

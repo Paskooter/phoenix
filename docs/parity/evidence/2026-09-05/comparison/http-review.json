@@ -1,0 +1,14 @@
+{
+  "reviewedBy": "Codex root",
+  "candidateRevision": "3f2ca91988af951c2054b51bca2ac0428a5ebb30",
+  "cases": 317,
+  "differences": [],
+  "prototypePolluted": false,
+  "inputs": {
+    "cases.json": "88463b9fee1b8b6208b1d7c4dc29a068ff083fe2cb0c21abd63bde3d83919463",
+    "original.cjs": "05453b016e3aa95a6322d56aa6ceedc3464ab57828531de08f76f5cb49d3248c",
+    "original.json": "946195a847dfb8830e2f9825148b72c9bc4cc58eb5599371f5ca3c75699c0c45",
+    "review-final.mjs": "29603765431bc6d1245d53ee15c387a435663cf8da7c40c833831a30a0fdb187"
+  },
+  "scope": "Bounded shared HTTP implementation accepted; broader C-01 acceptance remains open."
+}

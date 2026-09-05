@@ -1,0 +1,17 @@
+!use_equivalent_words = true;
+TopRule =
+    $w03
+        (
+            $REPEAT {intent=REPEAT._intent}
+        ){domain='mim_global'}{priority='HIGH'}
+    $w03
+;
+
+### GLOBAL MIM COMMANDS ###
+REPEAT = (
+    (repeat ?that) |
+    (come again) |
+    (say $* again) |
+    (once more) |
+    (one more time)
+) {_intent='repeat'}~1;

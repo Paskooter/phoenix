@@ -1,0 +1,18 @@
+TopRule = ($* $CONTROL $*) {intent = CONTROL._intent}{priority='HIGH'};
+
+### Used by many Optional Response Mims
+### Some with prompts, some without, some with just SSA or UIFX
+
+CONTROL =
+                $OKAYTHANKS {_intent=OKAYTHANKS._intent}
+;
+OKAYTHANKS =
+        (
+                okay |
+                thanks |
+                ( thank you ) |
+                ( got it )
+        )
+{_intent='okayThanks'}
+;
+### Design question: Should we put "Jibo" at the end of these commands?

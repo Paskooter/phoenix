@@ -11,7 +11,14 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "node --test",
+    "test": "npm run test:unit && npm run parity:check && npm run parity:gate",
+    "test:unit": "node --test",
+    "parity:status": "node scripts/parity-status.mjs",
+    "parity:check": "node scripts/parity-status.mjs --check",
+    "parity:reference": "python3 scripts/parity-reference/run.py",
+    "parity:coverage": "python3 scripts/parity-coverage/inventory.py",
+    "parity:production": "python3 scripts/parity-production/run.py",
+    "parity:gate": "node scripts/parity-production/gate.mjs",
     "start:gateway": "node packages/gateway/src/index.js",
     "start:nlu": "node packages/nlu/src/index.js",
     "start:data": "node packages/data/src/index.js",
@@ -25,6 +32,7 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
-    "jsqr": "^1.4.0"
+    "jsqr": "^1.4.0",
+    "typescript": "2.5.3"
   }
 }

@@ -1,40 +1,11 @@
-// Diff two normalized message streams at the levels defined in
-// docs/atlas/verification-strategy.md:
-//   D1  message-type sequence
-//   D2+ structural deep-equal of the normalized payloads (positional)
-//
-// Returns a list of human-readable differences; empty array == streams agree at the requested
-// level. The full reference-vs-new runner (M0) feeds captured "expected" streams and live
-// "actual" streams through this.
+import { diffValues } from './parityCompare.js';
 
-import { normalizeStream } from './normalize.js';
-
-/**
- * @param {unknown[]} expected reference stream
- * @param {unknown[]} actual new-impl stream
- * @param {{ level?: 'D1'|'D2', prenormalized?: boolean }} [opts]
- * @returns {string[]} differences (empty = match)
- */
-export function diffStreams(expected, actual, opts = {}) {
-  const level = opts.level || 'D2';
-  const exp = opts.prenormalized ? expected : normalizeStream(expected);
-  const act = opts.prenormalized ? actual : normalizeStream(actual);
-  const diffs = [];
-
-  // D1: message-type sequence
-  const expTypes = exp.map((m) => m?.type);
-  const actTypes = act.map((m) => m?.type);
-  if (expTypes.join(',') !== actTypes.join(',')) {
-    diffs.push(`D1 type-sequence: expected [${expTypes.join(', ')}] got [${actTypes.join(', ')}]`);
-    if (level === 'D1' || expTypes.length !== actTypes.length) return diffs;
+// D1 is diagnostic only. Default D2 compares every field and value.
+export function diffStreams(expected, actual, { level = 'D2' } = {}) {
+  if (!['D1', 'D2'].includes(level)) throw new Error(`Unknown comparison level: ${level}`);
+  if (level === 'D1') {
+    const a = expected.map(m => m?.type), b = actual.map(m => m?.type);
+    return JSON.stringify(a) === JSON.stringify(b) ? [] : [`D1 type-sequence: expected [${a.join(', ')}] got [${b.join(', ')}]`];
   }
-  if (level === 'D1') return diffs;
-
-  // D2: positional deep-equal of normalized payloads
-  for (let i = 0; i < Math.max(exp.length, act.length); i++) {
-    const a = JSON.stringify(exp[i]);
-    const b = JSON.stringify(act[i]);
-    if (a !== b) diffs.push(`D2 message[${i}] (${exp[i]?.type ?? '∅'}): \n  expected ${a}\n  actual   ${b}`);
-  }
-  return diffs;
+  return diffValues(expected, actual).map(d => `D2 ${d.path}: ${d.kind} — expected ${JSON.stringify(d.expected)}; got ${JSON.stringify(d.actual)}`);
 }

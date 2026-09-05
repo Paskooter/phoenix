@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "pass": false,
+  "measuredAgreement": true,
+  "cases": 73,
+  "groups": {
+    "report:base": {
+      "selected": 73,
+      "agreement": 73,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 1,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    }
+  },
+  "denominators": [
+    {
+      "corpus": "chitchat",
+      "entries": 4705,
+      "baseOccurrences": 10035,
+      "conditionalOccurrences": 1397,
+      "sha256": "ea70a399299e0d5cc3c654268b407a5bdc61cfa0602ce3f8d8db34dc8a177ccd"
+    },
+    {
+      "corpus": "hub-client",
+      "entries": 2573,
+      "baseOccurrences": 7029,
+      "conditionalOccurrences": 1973,
+      "sha256": "0d7dde285b90cdbc3c9e49d0ae90afe443be78b6086c0a05521dd155ff110f80"
+    },
+    {
+      "corpus": "report",
+      "entries": 6,
+      "baseOccurrences": 73,
+      "conditionalOccurrences": 0,
+      "sha256": "3a64d8de41f751e7dab02843db76487533b12e8d59598f7342e480bafeb9bf73"
+    }
+  ],
+  "selection": {
+    "name": "corpus",
+    "corpus": "report",
+    "offset": 0,
+    "limit": 0
+  },
+  "dimensions": {
+    "parserHttp": {
+      "compared": 73,
+      "agreement": 73,
+      "differences": 0,
+      "invalid": 0
+    },
+    "intent": {
+      "compared": 73,
+      "agreement": 73,
+      "differences": 0,
+      "invalid": 0
+    },
+    "entities": {
+      "compared": 73,
+      "agreement": 73,
+      "differences": 0,
+      "invalid": 0
+    },
+    "rules": {
+      "compared": 73,
+      "agreement": 73,
+      "differences": 0,
+      "invalid": 0
+    },
+    "selectedSkill": {
+      "compared": 73,
+      "agreement": 73,
+      "differences": 0,
+      "invalid": 0
+    },
+    "memo": {
+      "compared": 73,
+      "agreement": 73,
+      "differences": 0,
+      "invalid": 0
+    },
+    "skillRequest": {
+      "compared": 72,
+      "agreement": 72,
+      "differences": 0,
+      "invalid": 0
+    },
+    "action": {
+      "compared": 72,
+      "agreement": 72,
+      "differences": 0,
+      "invalid": 0
+    },
+    "session": {
+      "compared": 72,
+      "agreement": 72,
+      "differences": 0,
+      "invalid": 0
+    },
+    "analytics": {
+      "compared": 72,
+      "agreement": 72,
+      "differences": 0,
+      "invalid": 0
+    },
+    "providerRequests": {
+      "compared": 72,
+      "agreement": 72,
+      "differences": 0,
+      "invalid": 0
+    }
+  },
+  "invariants": [],
+  "differences": [],
+  "coverageGaps": [
+    {
+      "side": "reference",
+      "id": "report:5:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "report:5:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    }
+  ],
+  "policy": {
+    "fields": "All status/headers, JSON field presence/types/order, parser inputs/results, winning rules, decisions/memos, production request-builder inputs and emitted requests, JCP/ESML/analytics and complete session contents.",
+    "generatedIDs": "Bijective v4 envelope/session IDs and 32-hex JCP command IDs at command-container paths only; view/domain IDs stay literal.",
+    "derivedBytes": "Raw JSON, Content-Length and ETag are independently validated. Only validated duplicate raw bytes and ETag digest values are removed.",
+    "timing": "Per-request and per-case measured times are bounded; message timestamps and application timing fields remain compared.",
+    "endpoints": "Only the fixture peer authority in outbound Host headers is rebound.",
+    "gaps": "Unhosted cloud action targets are explicit coverage gaps and prevent a full gate pass."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "originalRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "originalImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "candidateRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
+  "cases": 61,
+  "completeViewJsonMatches": 61,
+  "method": "Unmodified compiled original view helpers and original JSON templates executed under Node 8.9.4. The same synthetic inputs are passed to Phoenix, comparing full returned view JSON without normalization.",
+  "limits": "Isolated view-builder calls; controlled DateTime getLocalTime/toString arguments do not verify DateTime or whole report interactions.",
+  "files": {
+    "review.json": "e845e1b00233bdef5914bbe8c0efeb4a56b89be6106e3706ae27382b7b96cc87",
+    "cases.cjs": "4238b74adc1244650fd47515191b8dc30827aa610ab173ad8dab9fcc4414b1e0",
+    "original.cjs": "40d6cd90caf344fa8969a18ec49fffad4defeb5d301957e2e727e4a9ea51b02a",
+    "candidate.mjs": "9c63fadcd1ad15ab90d484261056ccd2871b3e8a57d7d44fca28969f8bdbf450",
+    "original.json": "9b95c14465f3beed183aa9792ff1bd78c05a33e9ad8dd0a7f135f1a44aa3c4c3"
+  }
+}

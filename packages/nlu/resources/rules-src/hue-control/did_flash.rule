@@ -1,0 +1,38 @@
+TopRule = $* $DIDFLASH $* {intent=DIDFLASH._intent}{priority='HIGH'};
+
+### Do you see the lights going on and off? ###
+### So, do you see the lights going on and off? ###
+### Was that a yes or a no? Did you see the lights go on and off? ###
+
+DIDFLASH =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( $IWE ?$SURE did ) |
+    ( $SURE did ) |
+    ( $IWE saw ( it | $THEM ) ) |
+    ( ?they $* $FLASHED ) |
+    ( $IWE $* do ) |
+    ( flashing ) |
+    ( that was a yes ) |
+    ( now $IWE do ) |
+    indeed |
+    affirmative
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( $IWE ( didn\'t | ( did not ) ) ) |
+    ( that was a no ) |
+    ( not yet )
+);
+### USEFUL VOCAB ###
+IWE = i | we;
+SURE = sure | certainly;
+THEM = them | em | \'em;
+FLASHED = flashed | strobed | ( on and off ) | ( off and on );

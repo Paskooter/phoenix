@@ -1,51 +1,56 @@
-# @phoenix/harness — old-vs-new comparison harness
+# @phoenix/harness — original/Phoenix behavioral comparison
 
-The reimplementation is verified by **behavioral parity** against the Pegasus reference, not by
-reading the original. This package is how you measure that. Full design lives in
-[`../../../pegasus/docs/atlas/verification-strategy.md`](the atlas) and the rebuild plan's
-section (c); summary below.
+From the repository root:
 
-## Idea
-
-Run the **reference** (the Pegasus compose stack) and **Phoenix** side by side. Feed both the
-same input, capture both message streams, normalize away the non-deterministic bits, and diff.
-
-```
-input ──┬─▶ reference stack ──▶ stream_ref ──┐
-        └─▶ phoenix stack    ──▶ stream_new ──┴─▶ normalize ─▶ diff ─▶ report
+```bash
+npm run harness -- --out .parity/runs/compare
+npm run harness -- --candidate original --out .parity/runs/control
+npm run harness -- compare --reference reference.json --candidate candidate.json --out comparison.json
+node --test packages/harness/test/diff.test.js packages/harness/test/parityCompare.test.js
 ```
 
-## Injection levels (cheap → full)
+The first command runs the same 28 HTTP and WebSocket fixtures against the frozen original
+Pegasus modules and current Phoenix services in separate containers. The second calibrates
+the gate using two independent original runs. Exit codes are **0** for agreement, **1** for
+observed differences or invariant failures, and **2** for setup or capture errors. A failing
+Phoenix comparison is expected while the [parity backlog](../../docs/parity/TASKS.md) is open.
 
-| Level | Entry | Skips | Use |
-|---|---|---|---|
-| L-NLU | `CLIENT_NLU` message | ASR + parser | route/skill logic only |
-| L-ASR | `CLIENT_ASR` message | ASR | **>95% of comparisons** (text in, no audio/TTS) |
-| L-AUDIO | binary PCM frames | nothing | the 52 recorded `.raw` audio goldens |
+See [runner instructions](../../scripts/parity-compare/README.md) for prerequisites, pinned
+images, retained artifacts and the adapter boundary. The [reference setup](../../docs/parity/REFERENCE.md)
+records how the original modules and dependencies are recovered and verified.
 
-## Diff levels
+## Coverage and comparison policy
 
-| Level | Compares |
-|---|---|
-| D1 | message-type sequence |
-| D2 | `nlu.{intent,entities,rules}` (three-way vs the manifest) |
-| D3 | routing `match.{skillID,launch}` + SKILL_ACTION skill id |
-| D4 | `prompt_id` / `meta.mim_id` sets |
-| D5 | fuzzy ESML text (Levenshtein) |
+The initial suite covers shared HTTP responses/errors/routing/authentication, robot skill-list
+URLs, hub launch/relaunch/continuation, no-match/provider failures, WebSocket authentication,
+malformed frames and the first 2.1 seconds after a terminal frame. Local fixture peers supply
+NLU, skill actions and history acknowledgements. Action tests verify that the hub preserves
+complete synthetic JCP/ESML/analytics payloads. They do not verify real skill rendering,
+live providers, audio, persistence, clients, deployment or hardware. Those retain separate tasks.
 
-`diffStreams()` here implements D1 and a positional D2 over normalized payloads; D3–D5 are
-field-scoped variants to add as the milestones need them.
+`compareTraces()` compares all JSON fields, types, presence and array ordering, plus HTTP
+status/headers and captured side effects. Its limited equivalence rules are in
+[parityCompare.js](src/parityCompare.js):
 
-## What `normalizeStream` strips
+- Generated envelope UUIDs may differ at listed paths only, with a bijection preserving
+  identity relationships. Input and fixture-peer IDs remain literal.
+- Fixture addresses may differ at listed URL/error/Host paths only. Other URL ports remain significant.
+- Measured wall durations must satisfy per-fixture bounds and ordering. Frozen timestamps,
+  message timing keys and sentinel values remain exact.
+- Raw bytes must agree with decoded values and declared lengths. ETags must match their
+  entity bytes; the derived digest may differ while header presence and weak/strong form stay exact.
+- Full session contents remain compared. Independent checks require the issued session to be
+  returned, forwarded unchanged and accepted/advanced by the fixture skill.
 
-`msgID`, `ts`, `timings`, port numbers in URLs, and the **contents** of `skill.session`
-(round-trip presence is asserted; node-ID assignment is Phoenix's own business). Pin context to
-the frozen mock clock (`2017-12-11T16:05:52.585-05:00`) so greetings/"tonight" logic is stable;
-flush Redis between data cases; reset the store between history cases.
+The comparison report lists the rules, invariant failures and JSON-pointer differences.
+Intentionally corrupted captures exercise the gate in unit tests, including its CLI exit code.
 
-## Status
+## Other package utilities
 
-Shipping now: `normalizeStream`, `normalizeMessage`, `diffStreams` (+ tests). The corpus runner
-that drives the 2,573-utterance manifest into both stacks lands with **M6** (needs a runnable
-gateway). Captured reference goldens go under `goldens/` (committed) and `captures/` (gitignored,
-regenerated).
+`normalizeMessage()` and `normalizeStream()` now clone and sort object keys without dropping
+fields. `diffStreams()` defaults to D2, comparing the entire payload; D1 is an explicitly selected
+message-type diagnostic. Neither silently permits timestamp, ID, port or session differences.
+
+`SkillConversation`, mock runtime data and the existing chitchat `corpusRunner.js` remain available.
+The corpus runner's intent/MIM score is narrower than the strict trace gate and does not certify
+entities, named rules, actions or the complete original test denominator. V-03 tracks that work.

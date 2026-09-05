@@ -1,0 +1,38 @@
+TopRule = ($* $TAKEANOTHER $*) {intent = TAKEANOTHER._intent}{priority='HIGH'};
+
+### Want to take another one?
+
+TAKEANOTHER =
+	(
+		$factory:yes_no {_intent = yes_no._nl} |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent}
+	)
+;
+YES =
+	(
+		guess | gas |
+		definitely |
+		( i (think | suppose | guess) ?so) |
+		( if you ( must | want | desire | ( feel like it ) ) ) |
+		( why not ) |
+		( if it please you )
+	)
+{_intent='yes'}
+;
+
+NO =
+	(
+		know | snow | now |
+		( not ?now ) |
+		don\'t |
+		( do not ) |
+		( ?probably shouldn\'t ) |
+		( ( we\'re | i\'m ) done ) |
+		( ?that\'s enough ) |
+		( ( that\'ll | ( that will ) ) do ) |
+		finish |
+		finished
+	)
+{_intent='no'}
+;

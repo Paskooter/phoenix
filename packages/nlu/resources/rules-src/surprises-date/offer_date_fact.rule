@@ -1,0 +1,63 @@
+!use_equivalent_words = true;
+TopRule = $* $HEARSOMETHING $* {intent=HEARSOMETHING._intent}{priority='HIGH'};
+
+#Hey do you want to hear something fun?
+#Hey do you want to hear something?
+#Oh hey, I've got something to share. Wanna hear it?
+#Hey can I tell you something?
+#Hey can I tell you something kind of fun?
+#Hey can I share something fun with you?
+
+HEARSOMETHING =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+
+YES_OTHER =
+(
+    guess | gas |
+    speak |
+	naturally |
+	great |
+	word |
+	( share ?it ) |
+	( go for it ) |
+	( you ( can | may ) ) |
+	( that would be ?$V_VERY $V_AMAZING ) |
+	( what\'s that ?jibo ) |
+	( what is it ?jibo ) |
+	( tell ?( me | us ) ?it ) |
+	( say ?it ) |
+	( entertain me ) |
+	( i ( guess | suppose ) ?so ) |
+	( sounds good )
+);
+
+NO_OTHER =
+(
+    know | snow | now |
+    later |
+	silence |
+	quiet |
+	chill |
+	hush |
+	shush |
+	( ( jibo | dude | robot ) please ) |
+	( cool it ) |
+	( not ?right now ?( pig | robot | jibo ) ) |
+	( stop ?( talking | interrupting | it ) ) |
+	( you\'re ( interrupting | bothering ) ?( us | me | now ) ) |
+	( ( we\'re | i\'m ) talking ?here ) |
+	( ( i\'m | we\'re ) ( busy | (doing $*) | (in the middle of $*) ) ) |
+	( ?( this is ) ( ( a bad time ) | ( not a good time ) ) ) |
+	( shut $w03 ( up | it | your $* ) )
+);
+
+### USEFUL VOCAB ###
+V_AMAZING = awesome|amazing|fantastic|incredible|fascinating|wonderful|
+    unbelievable|excellent|fabulous|astounding|cool|marvelous|phenomenal|
+    superb|impressive|great|outstanding|extraordinary;
+V_VERY = very|really|actually|pretty|[absolute?(ly)]|[incredibl(e|y)]|
+    extremely|so|such|most|kinda|sorta|any|(kind|sort of);

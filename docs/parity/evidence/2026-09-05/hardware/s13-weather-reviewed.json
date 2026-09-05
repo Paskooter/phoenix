@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "candidateRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
+  "sourceTreeSha256": "7d36a094028c50b281e9e413cf5960e6360b0f308fa809a154399ee4d2886ace",
+  "input": "check the weather via original Jetstream SDK CLIENT_ASR",
+  "microphoneAcceptance": false,
+  "observed": "Report skill ran through Phoenix and original Nimbus. weatherTempView visibly displayed high 85 F, low 71 F, the cloudy texture and high/low labels. Speech ran with the view, which closed before returning to idle.",
+  "viewFirstObservedMs": 10826,
+  "viewClosedMs": 15288,
+  "idleObservedMs": 16693,
+  "screenshot": "s13-weather-reviewed.png",
+  "screenshotSha256": "b22a3a09ababf43c9f5b410a5d5614f55f1c5975f02d12ec1daeba2185f10a3f",
+  "privateNativeReportSha256": "3b3298e772b930063372b030dddf4817cfde2d5dc1192018779d447e3985b4d5",
+  "observersRestored": true,
+  "limits": [
+    "Authentication disabled in this diagnostic profile.",
+    "This verifies weather rendering, not provider parity or the news/calendar/commute robot displays.",
+    "Raw native events, household audio and credentials remain private."
+  ]
+}

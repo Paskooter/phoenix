@@ -1,0 +1,34 @@
+TopRule = $* $WANTSETUP $* {intent=WANTSETUP._intent}{priority='HIGH'};
+
+### Do you want to set your lights up now? ###
+### So, do you want to set your lights up now? ###
+
+WANTSETUP =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+	naturally |
+    ( $IWE do ) |
+    ( yes now ) |
+    ( now yes ) |
+    ( ( now\'s | ( now is ) ) good ) |
+    ( $IWE think so ) |
+    ( let\'s do it ) |
+    ( you bet )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( $IWE don\'t ) |
+    ( not ( yet | now ) ) |
+    later |
+    ( $IWE think not ) |
+    ( let\'s not )
+);
+### USEFUL VOCAB ###
+IWE = i | we;

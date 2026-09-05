@@ -1,0 +1,97 @@
+TopRule =
+			 $* $D_SETTINGS {intent=D_SETTINGS._intent}
+					{volumeLevel=D_SETTINGS._volumeLevel}
+					{domain='gui_command'}# listening MIM will send command to GUI without ending MIM
+					{priority='HIGH'}
+			 $*
+;
+
+
+### VOLUME CONTROL ###
+D_SETTINGS =
+(
+	$D_SETTINGS_INTENT_VOLUMEQUERY {_intent=D_SETTINGS_INTENT_VOLUMEQUERY._intent} {_volumeLevel='null'}
+)|
+(
+	$D_SETTINGS_INTENT_VOLUMEMAX {_intent=D_SETTINGS_INTENT_VOLUMEMAX._intent}
+							{_volumeLevel=D_SETTINGS_INTENT_VOLUMEMAX._volumeLevel}
+)|
+(
+	$D_SETTINGS_INTENT_VOLUMEMIN {_intent=D_SETTINGS_INTENT_VOLUMEMIN._intent}
+							{_volumeLevel=D_SETTINGS_INTENT_VOLUMEMIN._volumeLevel}
+)|
+(
+	$D_SETTINGS_INTENT_VOLUMEUP {_intent=D_SETTINGS_INTENT_VOLUMEUP._intent} {_volumeLevel='null'}
+)|
+(
+	$D_SETTINGS_INTENT_VOLUMEDOWN {_intent=D_SETTINGS_INTENT_VOLUMEDOWN._intent} {_volumeLevel='null'}
+)|
+(
+	$D_SETTINGS_INTENT_VOLUMETOVALUE {_intent=D_SETTINGS_INTENT_VOLUMETOVALUE._intent}
+							{_volumeLevel=D_SETTINGS_INTENT_VOLUMETOVALUE._volumeLevel}
+)
+;
+
+
+
+### INTENTS ###
+D_SETTINGS_INTENT_VOLUMEQUERY =
+	?((what\'s | (what ?value is)) ?your) volume {_intent='volumeQuery'}
+;
+
+D_SETTINGS_INTENT_VOLUMEMAX =
+	(((turn | crank) $D_SETTINGS_V_THEVOLUME ?(all the) way up)|
+	((turn | crank) up $D_SETTINGS_V_THEVOLUME all the way)|
+	((max | maximum) ?volume)) {_intent='volumeToValue'} {_volumeLevel='10'}
+;
+
+
+D_SETTINGS_INTENT_VOLUMEMIN =
+	((turn $D_SETTINGS_V_THEVOLUME ?(all the) way down ) |
+	(turn down $D_SETTINGS_V_THEVOLUME all the way)|
+	((min | minimum) ?volume)) {_intent='volumeToValue'} {_volumeLevel='01'}
+;
+
+D_SETTINGS_INTENT_VOLUMEUP =
+	(( ?(turn | crank) $D_SETTINGS_V_THEVOLUME up ?(?some more))|
+	( increase $D_SETTINGS_V_THEVOLUME ?(?some more)) |
+	((turn | crank) up $D_SETTINGS_V_THEVOLUME ) |
+    ((make | turn) $D_SETTINGS_V_THEVOLUME ?up (louder | higher)) |
+    ((speak | be) louder) )  {_intent='volumeUp'}
+;
+
+D_SETTINGS_INTENT_VOLUMEDOWN =
+	((?turn $D_SETTINGS_V_THEVOLUME down ?(?some more) ) |
+	(decrease $D_SETTINGS_V_THEVOLUME ?(?some more) ) |
+	(turn down $D_SETTINGS_V_THEVOLUME)|
+    ((make | turn) $D_SETTINGS_V_THEVOLUME (quieter | softer | lower)) |
+    ((speak | be) quieter)) {_intent='volumeDown'}
+;
+
+D_SETTINGS_INTENT_VOLUMETOVALUE =
+	((turn|crank|increase|decrease $D_SETTINGS_V_THEVOLUME ?(up | down) ?$D_SETTINGS_V_TO ?(volume | level | (volume level)) $D_SETTINGS_V_VALUE)|
+	(turn|crank|lower ?(up | down) $D_SETTINGS_V_THEVOLUME ?$D_SETTINGS_V_TO ?(volume | level | (volume level)) $D_SETTINGS_V_VALUE)|
+	(?set ?$D_SETTINGS_V_THEVOLUME ?(at|$D_SETTINGS_V_TO) ?(volume | level | (volume level)) $D_SETTINGS_V_VALUE ) |
+	(change ?$D_SETTINGS_V_THEVOLUME ?$D_SETTINGS_V_TO ?(volume | level | (volume level)) $D_SETTINGS_V_VALUE) |
+	( ?make (it | the | your) (volume | level | (volume level)) $D_SETTINGS_V_VALUE )) {_intent='volumeToValue'} {_volumeLevel=D_SETTINGS_V_VALUE._value}
+;
+
+
+### USEFUL VOCABULARY ###
+D_SETTINGS_V_GOTO = (go ?back to) | (return to) | (bring up) | (bring (me | us) to) | load | access | ( show ?(me | us)) | display;
+D_SETTINGS_V_THEVOLUME = it | (?(the | your) volume);
+D_SETTINGS_V_TO = (to|two|too|2);
+D_SETTINGS_V_VALUE =
+	(
+		( (zero|0|20|(2 0)) {_value='0'} ) |
+		( (one|1|21|(2 1)) {_value='01'} ) |
+		( (two|2|22|(2 2)|tutu) {_value='02'} ) |
+		( (three|3|23|(2 3)) {_value='03'} ) |
+		( (four|4|24|(2 4)) {_value='04'} ) |
+		( (five|5|25|(2 5)) {_value='05'} ) |
+		( (six|6|26|(2 6)) {_value='06'} ) |
+		( (seven|7|27|(2 7)) {_value='07'} ) |
+		( (eight|8|28|(2 8)) {_value='08'} ) |
+		( (nine|9|29|(2 9)) {_value='09'} ) |
+		( (ten|10|210|(2 10)) {_value='10'})
+    );

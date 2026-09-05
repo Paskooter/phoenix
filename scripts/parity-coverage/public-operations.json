@@ -1,0 +1,1980 @@
+{
+  "schemaVersion": 1,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sources": {
+    "packages/baseskill/src/BaseSkill.ts": "7619a8821db989be0d88d7c7b5f44b62cec6341f",
+    "packages/baseskill/src/SkillService.ts": "d7664d194f3218c60c42de05ffcbaf7a8faf2735",
+    "packages/chitchat-skill/scripts/run-service.js": "ed1e9a1ccb5877415a44c8c9392b743ebf5d9ca6",
+    "packages/example-skill/scripts/run-service.js": "babb9840b027e0100dc1cb58be439146268f1ddd",
+    "packages/history/src/HistoryService.ts": "5ac3f1296b21f5725c4892f6e1bd79fb9d6eb9fc",
+    "packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts": "bae634ae88d847b88d06f1a720a5c2aa57cd6829",
+    "packages/history/src/speech/SpeechHistoryRequestsHandler.ts": "85a07c61117f59ef49add51f24b25100b7fbfe47",
+    "packages/hub/src/HubService.ts": "2e95af35c48ef7acae35b6938017b8d1e236b7c9",
+    "packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts": "5b9e053e213696ebe1335d21d6050f48f837f4f8",
+    "packages/lasso/src/LassoService.ts": "fbefa9eebfb0b085aaf4b73cb3f2a3f087761364",
+    "packages/lasso/src/credential/CredentialRequestsHandler.ts": "4738f5db226ef46b2d1b9ddbe6a16be75b40e464",
+    "packages/lasso/src/relay/AbstractRelayRequestHandler.ts": "4d99d374b13be653409b10f01f8b5af1524ff55b",
+    "packages/parser/src/ParserService.ts": "195c672c668f397cfaf2f2ef3f005a09525be042",
+    "packages/parser/src/handlers/ParseRequestHandler.ts": "e943d1e6d497b57d1623b0d612de5840b7cf8fe4",
+    "packages/parser/src/handlers/StateRequestHandler.ts": "633a4ff32aaa095f0c3797fda063e9e2241c1581",
+    "packages/report-skill/scripts/run-service.js": "37b8104493716a1325df27ab29118e3c6f009a52",
+    "packages/template-skill/scripts/run-service.js": "de4089a295ae7a4cd9894d0c00b9987cadf242d4",
+    "packages/utils/src/service/BaseService.ts": "836dee31e4c2ff5d883a670c51b6a395478dc0b3",
+    "packages/utils/src/service/handlers/BaseHttpHandler.ts": "60f335d17215a450c8846f13ec34d5a42a074607"
+  },
+  "operations": [
+    {
+      "id": "operation:hub:GET:/healthcheck",
+      "service": "hub",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:parser:GET:/healthcheck",
+      "service": "parser",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:history:GET:/healthcheck",
+      "service": "history",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "I-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "History overrides the health body/status with database state."
+    },
+    {
+      "id": "operation:lasso:GET:/healthcheck",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:chitchat-skill:GET:/healthcheck",
+      "service": "chitchat-skill",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:report-skill:GET:/healthcheck",
+      "service": "report-skill",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:example-skill:GET:/healthcheck",
+      "service": "example-skill",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:template-skill:GET:/healthcheck",
+      "service": "template-skill",
+      "method": "GET",
+      "path": "/healthcheck",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response."
+    },
+    {
+      "id": "operation:hub:WS:/listen",
+      "service": "hub",
+      "method": "WS",
+      "path": "/listen",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-02",
+        "H-07",
+        "H-10"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:60:13"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "listen-no-match",
+            "listen-provider-error",
+            "listen-auth-required",
+            "listen-auth-invalid",
+            "listen-malformed-frame",
+            "listen-final-lifetime"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Shared isolated fixture peers and two configured skills. Only the named requests, captured fields/effects and observation windows are covered.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:hub:WS:/proactive",
+      "service": "hub",
+      "method": "WS",
+      "path": "/proactive",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-05",
+        "H-06",
+        "H-10"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:70:13"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:GET:/skills/:robotId",
+      "service": "hub",
+      "method": "GET",
+      "path": "/skills/:robotId",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:24:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "skills-legacy"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Shared isolated fixture peers and two configured skills. Only the named requests, captured fields/effects and observation windows are covered.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:hub:GET:/skills/settings/:robotId",
+      "service": "hub",
+      "method": "GET",
+      "path": "/skills/settings/:robotId",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:27:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "settings-legacy"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Shared isolated fixture peers and two configured skills. Only the named requests, captured fields/effects and observation windows are covered.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:hub:WS:/v1/listen",
+      "service": "hub",
+      "method": "WS",
+      "path": "/v1/listen",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-02",
+        "H-07",
+        "H-10"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:60:13"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "listen-launch",
+            "listen-relaunch",
+            "listen-update"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Shared isolated fixture peers and two configured skills. Only the named requests, captured fields/effects and observation windows are covered.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:hub:WS:/v1/proactive",
+      "service": "hub",
+      "method": "WS",
+      "path": "/v1/proactive",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-05",
+        "H-06",
+        "H-10"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:70:13"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:GET:/v1/skills/:robotId",
+      "service": "hub",
+      "method": "GET",
+      "path": "/v1/skills/:robotId",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:24:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "skills-v1"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Shared isolated fixture peers and two configured skills. Only the named requests, captured fields/effects and observation windows are covered.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:hub:GET:/v1/skills/settings/:robotId",
+      "service": "hub",
+      "method": "GET",
+      "path": "/v1/skills/settings/:robotId",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:27:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "settings-v1"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Shared isolated fixture peers and two configured skills. Only the named requests, captured fields/effects and observation windows are covered.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:parser:POST:/v1/parse",
+      "service": "parser",
+      "method": "POST",
+      "path": "/v1/parse",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "N-01",
+        "N-08"
+      ],
+      "registrations": [
+        "registration:packages/parser/src/ParserService.ts:53:9",
+        "registration:packages/parser/src/handlers/ParseRequestHandler.ts:22:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "production-v2",
+          "suiteFile": "packages/harness/resources/goldens/production-smoke/suite.json",
+          "cases": [
+            "boundary:launch",
+            "boundary:case-trim",
+            "boundary:unknown-rule",
+            "boundary:known-and-unknown-rule",
+            "boundary:empty-rules",
+            "boundary:missing-rules",
+            "boundary:timer-local",
+            "boundary:timer-and-launch",
+            "boundary:duplicate-rule",
+            "boundary:global-yes",
+            "boundary:empty-text",
+            "boundary:whitespace",
+            "boundary:no-match",
+            "boundary:loop-full-name",
+            "boundary:external-disabled",
+            "boundary:rules-null",
+            "boundary:rules-string",
+            "boundary:body-null",
+            "boundary:missing-data",
+            "boundary:text-number",
+            "chitchat:0:0:base",
+            "chitchat:1:0:base",
+            "chitchat:2:0:base",
+            "chitchat:18:0:condition:0",
+            "hub-client:0:0:base",
+            "hub-client:1:0:base",
+            "hub-client:2:0:base",
+            "hub-client:6:0:condition:0",
+            "report:0:0:base",
+            "report:0:1:base",
+            "report:1:0:base",
+            "report:1:1:base",
+            "report:2:0:base",
+            "report:2:1:base"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/production/baseline/comparison.json",
+          "scope": "Original native 2.8.3 plus real HTTP handler: full selected requests/results, including errors and local rules. Dialogflow is disabled; this is a smoke selection, not all grammar branches.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:parser:GET:/state",
+      "service": "parser",
+      "method": "GET",
+      "path": "/state",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "N-01"
+      ],
+      "registrations": [
+        "registration:packages/parser/src/ParserService.ts:56:9",
+        "registration:packages/parser/src/handlers/StateRequestHandler.ts:9:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:POST:/v1/skill/launch",
+      "service": "history",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:20:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:PUT:/v1/skill/launch/payload",
+      "service": "history",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:21:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:GET:/v1/skill/launch/latest",
+      "service": "history",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:24:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:POST:/v1/skill/launch/latest",
+      "service": "history",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:25:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:GET:/v1/skill/launch/count",
+      "service": "history",
+      "method": "GET",
+      "path": "/v1/skill/launch/count",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:28:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:POST:/v1/skill/launch/count",
+      "service": "history",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:29:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:POST:/v1/speech",
+      "service": "history",
+      "method": "POST",
+      "path": "/v1/speech",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-08",
+        "I-01",
+        "I-03"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:29:13",
+        "registration:packages/history/src/speech/SpeechHistoryRequestsHandler.ts:19:9"
+      ],
+      "coverage": "missing",
+      "condition": "config.speechHistory.enabled"
+    },
+    {
+      "id": "operation:history:PUT:/v1/speech/:id",
+      "service": "history",
+      "method": "PUT",
+      "path": "/v1/speech/:id",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-08",
+        "I-01",
+        "I-03"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:29:13",
+        "registration:packages/history/src/speech/SpeechHistoryRequestsHandler.ts:20:9"
+      ],
+      "coverage": "missing",
+      "condition": "config.speechHistory.enabled"
+    },
+    {
+      "id": "operation:lasso:HEAD:/v1/dark_sky",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/v1/dark_sky",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-05"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:57:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9"
+      ],
+      "coverage": "missing",
+      "notes": "Explicit HEAD acknowledges validation then performs asynchronous cache/provider work."
+    },
+    {
+      "id": "operation:lasso:GET:/v1/dark_sky",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/v1/dark_sky",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-05"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:57:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:HEAD:/v1/google_maps",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/v1/google_maps",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-07"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:61:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9"
+      ],
+      "coverage": "missing",
+      "notes": "Explicit HEAD acknowledges validation then performs asynchronous cache/provider work."
+    },
+    {
+      "id": "operation:lasso:GET:/v1/google_maps",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/v1/google_maps",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-07"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:61:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:HEAD:/v1/ap_news",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/v1/ap_news",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-06"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:65:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9"
+      ],
+      "coverage": "missing",
+      "notes": "Explicit HEAD acknowledges validation then performs asynchronous cache/provider work."
+    },
+    {
+      "id": "operation:lasso:GET:/v1/ap_news",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/v1/ap_news",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-06"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:65:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:HEAD:/v1/google_calendar",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/v1/google_calendar",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-04"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:77:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9"
+      ],
+      "coverage": "missing",
+      "notes": "Explicit HEAD acknowledges validation then performs asynchronous cache/provider work."
+    },
+    {
+      "id": "operation:lasso:GET:/v1/google_calendar",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/v1/google_calendar",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-04"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:77:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:HEAD:/v1/outlook_calendar",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/v1/outlook_calendar",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-04"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:82:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9"
+      ],
+      "coverage": "missing",
+      "notes": "Explicit HEAD acknowledges validation then performs asynchronous cache/provider work."
+    },
+    {
+      "id": "operation:lasso:GET:/v1/outlook_calendar",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/v1/outlook_calendar",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-01",
+        "D-04"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:82:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:POST:/v1/credential",
+      "service": "lasso",
+      "method": "POST",
+      "path": "/v1/credential",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-02",
+        "D-03"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:71:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:23:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:GET:/v1/credential",
+      "service": "lasso",
+      "method": "GET",
+      "path": "/v1/credential",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-02",
+        "D-03"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:71:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:46:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:DELETE:/v1/credential",
+      "service": "lasso",
+      "method": "DELETE",
+      "path": "/v1/credential",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "D-02",
+        "D-03"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:71:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:55:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:chitchat-skill:POST:/v1/main",
+      "service": "chitchat-skill",
+      "method": "POST",
+      "path": "/v1/main",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-09",
+        "S-07"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/SkillService.ts:14:9",
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "production-v2",
+          "suiteFile": "packages/harness/resources/goldens/production-smoke/suite.json",
+          "cases": [
+            "boundary:launch",
+            "boundary:case-trim",
+            "boundary:known-and-unknown-rule",
+            "boundary:loop-full-name",
+            "skill:chitchat-joke",
+            "skill:chitchat-missing-memo",
+            "chitchat:0:0:base",
+            "chitchat:1:0:base",
+            "chitchat:2:0:base",
+            "chitchat:18:0:condition:0",
+            "hub-client:0:0:base",
+            "hub-client:1:0:base",
+            "hub-client:2:0:base",
+            "hub-client:6:0:condition:0"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/production/baseline/comparison.json",
+          "scope": "Real skill HTTP actions, full JCP/ESML/display/analytics/session output and captured peer requests for the named fixtures. Remaining MIM conditions, provider scenarios and source cases need their own gates.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:report-skill:POST:/v1/main",
+      "service": "report-skill",
+      "method": "POST",
+      "path": "/v1/main",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-09",
+        "S-08"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/SkillService.ts:14:9",
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9"
+      ],
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "production-v2",
+          "suiteFile": "packages/harness/resources/goldens/production-smoke/suite.json",
+          "cases": [
+            "skill:report-known",
+            "skill:report-unknown",
+            "skill:report-provider-failure",
+            "skill:report-identification-continuation",
+            "report:0:0:base",
+            "report:0:1:base",
+            "report:1:0:base",
+            "report:1:1:base",
+            "report:2:0:base",
+            "report:2:1:base"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/production/baseline/comparison.json",
+          "scope": "Real skill HTTP actions, full JCP/ESML/display/analytics/session output and captured peer requests for the named fixtures. Remaining MIM conditions, provider scenarios and source cases need their own gates.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "id": "operation:example-skill:POST:/v1/main",
+      "service": "example-skill",
+      "method": "POST",
+      "path": "/v1/main",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-09",
+        "S-14"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/SkillService.ts:14:9",
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:template-skill:POST:/v1/main",
+      "service": "template-skill",
+      "method": "POST",
+      "path": "/v1/main",
+      "origin": "explicit-or-inherited-registration",
+      "tasks": [
+        "H-09",
+        "S-14"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/SkillService.ts:14:9",
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:HEAD:/healthcheck",
+      "service": "hub",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:hub:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:parser:HEAD:/healthcheck",
+      "service": "parser",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:parser:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:history:HEAD:/healthcheck",
+      "service": "history",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "I-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "History overrides the health body/status with database state.",
+      "derivedFrom": [
+        "operation:history:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:lasso:HEAD:/healthcheck",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:lasso:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:chitchat-skill:HEAD:/healthcheck",
+      "service": "chitchat-skill",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:chitchat-skill:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:report-skill:HEAD:/healthcheck",
+      "service": "report-skill",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:report-skill:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:example-skill:HEAD:/healthcheck",
+      "service": "example-skill",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:example-skill:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:template-skill:HEAD:/healthcheck",
+      "service": "template-skill",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "R-03"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing",
+      "notes": "Inherited shared health response.",
+      "derivedFrom": [
+        "operation:template-skill:GET:/healthcheck"
+      ]
+    },
+    {
+      "id": "operation:hub:HEAD:/skills/:robotId",
+      "service": "hub",
+      "method": "HEAD",
+      "path": "/skills/:robotId",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:24:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:hub:GET:/skills/:robotId"
+      ]
+    },
+    {
+      "id": "operation:hub:HEAD:/skills/settings/:robotId",
+      "service": "hub",
+      "method": "HEAD",
+      "path": "/skills/settings/:robotId",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:27:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:hub:GET:/skills/settings/:robotId"
+      ]
+    },
+    {
+      "id": "operation:hub:HEAD:/v1/skills/:robotId",
+      "service": "hub",
+      "method": "HEAD",
+      "path": "/v1/skills/:robotId",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:24:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:hub:GET:/v1/skills/:robotId"
+      ]
+    },
+    {
+      "id": "operation:hub:HEAD:/v1/skills/settings/:robotId",
+      "service": "hub",
+      "method": "HEAD",
+      "path": "/v1/skills/settings/:robotId",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "H-01",
+        "C-03"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:27:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:hub:GET:/v1/skills/settings/:robotId"
+      ]
+    },
+    {
+      "id": "operation:parser:HEAD:/state",
+      "service": "parser",
+      "method": "HEAD",
+      "path": "/state",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "N-01"
+      ],
+      "registrations": [
+        "registration:packages/parser/src/ParserService.ts:56:9",
+        "registration:packages/parser/src/handlers/StateRequestHandler.ts:9:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:parser:GET:/state"
+      ]
+    },
+    {
+      "id": "operation:history:HEAD:/v1/skill/launch/latest",
+      "service": "history",
+      "method": "HEAD",
+      "path": "/v1/skill/launch/latest",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:24:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:history:GET:/v1/skill/launch/latest"
+      ]
+    },
+    {
+      "id": "operation:history:HEAD:/v1/skill/launch/count",
+      "service": "history",
+      "method": "HEAD",
+      "path": "/v1/skill/launch/count",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "I-01",
+        "I-02"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:28:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:history:GET:/v1/skill/launch/count"
+      ]
+    },
+    {
+      "id": "operation:lasso:HEAD:/v1/credential",
+      "service": "lasso",
+      "method": "HEAD",
+      "path": "/v1/credential",
+      "origin": "express-implicit-head",
+      "tasks": [
+        "C-01",
+        "D-02",
+        "D-03"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:71:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:46:9"
+      ],
+      "coverage": "missing",
+      "derivedFrom": [
+        "operation:lasso:GET:/v1/credential"
+      ]
+    },
+    {
+      "id": "operation:chitchat-skill:OPTIONS:/healthcheck",
+      "service": "chitchat-skill",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:chitchat-skill:GET:/healthcheck",
+        "operation:chitchat-skill:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:chitchat-skill:OPTIONS:/v1/main",
+      "service": "chitchat-skill",
+      "method": "OPTIONS",
+      "path": "/v1/main",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:chitchat-skill:POST:/v1/main"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9",
+        "registration:packages/baseskill/src/SkillService.ts:14:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:example-skill:OPTIONS:/healthcheck",
+      "service": "example-skill",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:example-skill:GET:/healthcheck",
+        "operation:example-skill:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:example-skill:OPTIONS:/v1/main",
+      "service": "example-skill",
+      "method": "OPTIONS",
+      "path": "/v1/main",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:example-skill:POST:/v1/main"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9",
+        "registration:packages/baseskill/src/SkillService.ts:14:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:OPTIONS:/healthcheck",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:GET:/healthcheck",
+        "operation:history:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:OPTIONS:/v1/skill/launch",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/v1/skill/launch",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:POST:/v1/skill/launch"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:20:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:OPTIONS:/v1/skill/launch/count",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/v1/skill/launch/count",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:GET:/v1/skill/launch/count",
+        "operation:history:POST:/v1/skill/launch/count",
+        "operation:history:HEAD:/v1/skill/launch/count"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:28:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:29:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:OPTIONS:/v1/skill/launch/latest",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/v1/skill/launch/latest",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:GET:/v1/skill/launch/latest",
+        "operation:history:POST:/v1/skill/launch/latest",
+        "operation:history:HEAD:/v1/skill/launch/latest"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:25:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:OPTIONS:/v1/skill/launch/payload",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/v1/skill/launch/payload",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:PUT:/v1/skill/launch/payload"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:24:9",
+        "registration:packages/history/src/skilllaunch/SkillLaunchRequestsHandler.ts:21:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:history:OPTIONS:/v1/speech",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/v1/speech",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:POST:/v1/speech"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:29:13",
+        "registration:packages/history/src/speech/SpeechHistoryRequestsHandler.ts:19:9"
+      ],
+      "coverage": "missing",
+      "condition": "config.speechHistory.enabled"
+    },
+    {
+      "id": "operation:history:OPTIONS:/v1/speech/:id",
+      "service": "history",
+      "method": "OPTIONS",
+      "path": "/v1/speech/:id",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:history:PUT:/v1/speech/:id"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/history/src/HistoryService.ts:29:13",
+        "registration:packages/history/src/speech/SpeechHistoryRequestsHandler.ts:20:9"
+      ],
+      "coverage": "missing",
+      "condition": "config.speechHistory.enabled"
+    },
+    {
+      "id": "operation:hub:OPTIONS:/healthcheck",
+      "service": "hub",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:hub:GET:/healthcheck",
+        "operation:hub:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:OPTIONS:/skills/:robotId",
+      "service": "hub",
+      "method": "OPTIONS",
+      "path": "/skills/:robotId",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:hub:GET:/skills/:robotId",
+        "operation:hub:HEAD:/skills/:robotId"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:24:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:OPTIONS:/skills/settings/:robotId",
+      "service": "hub",
+      "method": "OPTIONS",
+      "path": "/skills/settings/:robotId",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:hub:GET:/skills/settings/:robotId",
+        "operation:hub:HEAD:/skills/settings/:robotId"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:27:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:OPTIONS:/v1/skills/:robotId",
+      "service": "hub",
+      "method": "OPTIONS",
+      "path": "/v1/skills/:robotId",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:hub:GET:/v1/skills/:robotId",
+        "operation:hub:HEAD:/v1/skills/:robotId"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:24:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:hub:OPTIONS:/v1/skills/settings/:robotId",
+      "service": "hub",
+      "method": "OPTIONS",
+      "path": "/v1/skills/settings/:robotId",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:hub:GET:/v1/skills/settings/:robotId",
+        "operation:hub:HEAD:/v1/skills/settings/:robotId"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/hub/src/HubService.ts:77:13",
+        "registration:packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts:27:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/healthcheck",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:GET:/healthcheck",
+        "operation:lasso:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/v1/ap_news",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/v1/ap_news",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:HEAD:/v1/ap_news",
+        "operation:lasso:GET:/v1/ap_news"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:65:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/v1/credential",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/v1/credential",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:POST:/v1/credential",
+        "operation:lasso:GET:/v1/credential",
+        "operation:lasso:DELETE:/v1/credential",
+        "operation:lasso:HEAD:/v1/credential"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:71:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:23:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:46:9",
+        "registration:packages/lasso/src/credential/CredentialRequestsHandler.ts:55:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/v1/dark_sky",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/v1/dark_sky",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:HEAD:/v1/dark_sky",
+        "operation:lasso:GET:/v1/dark_sky"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:57:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/v1/google_calendar",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/v1/google_calendar",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:HEAD:/v1/google_calendar",
+        "operation:lasso:GET:/v1/google_calendar"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:77:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/v1/google_maps",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/v1/google_maps",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:HEAD:/v1/google_maps",
+        "operation:lasso:GET:/v1/google_maps"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:61:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:lasso:OPTIONS:/v1/outlook_calendar",
+      "service": "lasso",
+      "method": "OPTIONS",
+      "path": "/v1/outlook_calendar",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:lasso:HEAD:/v1/outlook_calendar",
+        "operation:lasso:GET:/v1/outlook_calendar"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/lasso/src/LassoService.ts:82:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:30:9",
+        "registration:packages/lasso/src/relay/AbstractRelayRequestHandler.ts:31:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:parser:OPTIONS:/healthcheck",
+      "service": "parser",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:parser:GET:/healthcheck",
+        "operation:parser:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:parser:OPTIONS:/state",
+      "service": "parser",
+      "method": "OPTIONS",
+      "path": "/state",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:parser:GET:/state",
+        "operation:parser:HEAD:/state"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/parser/src/ParserService.ts:56:9",
+        "registration:packages/parser/src/handlers/StateRequestHandler.ts:9:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:parser:OPTIONS:/v1/parse",
+      "service": "parser",
+      "method": "OPTIONS",
+      "path": "/v1/parse",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:parser:POST:/v1/parse"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/parser/src/ParserService.ts:53:9",
+        "registration:packages/parser/src/handlers/ParseRequestHandler.ts:22:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:report-skill:OPTIONS:/healthcheck",
+      "service": "report-skill",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:report-skill:GET:/healthcheck",
+        "operation:report-skill:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:report-skill:OPTIONS:/v1/main",
+      "service": "report-skill",
+      "method": "OPTIONS",
+      "path": "/v1/main",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:report-skill:POST:/v1/main"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9",
+        "registration:packages/baseskill/src/SkillService.ts:14:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:template-skill:OPTIONS:/healthcheck",
+      "service": "template-skill",
+      "method": "OPTIONS",
+      "path": "/healthcheck",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:template-skill:GET:/healthcheck",
+        "operation:template-skill:HEAD:/healthcheck"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/utils/src/service/BaseService.ts:123:9"
+      ],
+      "coverage": "missing"
+    },
+    {
+      "id": "operation:template-skill:OPTIONS:/v1/main",
+      "service": "template-skill",
+      "method": "OPTIONS",
+      "path": "/v1/main",
+      "origin": "express-implicit-options",
+      "derivedFrom": [
+        "operation:template-skill:POST:/v1/main"
+      ],
+      "tasks": [
+        "C-01"
+      ],
+      "registrations": [
+        "registration:packages/baseskill/src/BaseSkill.ts:12:9",
+        "registration:packages/baseskill/src/SkillService.ts:14:9"
+      ],
+      "coverage": "missing"
+    }
+  ],
+  "sharedBoundaries": [
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:121:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-form"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Repeated form fields through BaseService middleware.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:128:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-empty-body",
+            "http-json",
+            "http-malformed-json"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Empty, valid and malformed JSON through shared middleware.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:145:13",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-auth-required",
+            "http-auth-valid"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Absent and valid JWT at a shared protected HTTP route; configuration/token/error branches remain.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:149:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "missing"
+    },
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:158:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-json",
+            "http-null",
+            "http-trailing-slash"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Mounted generic handlers at fixture routes; complete service route mounts are separate.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:315:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-not-found"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "One unknown GET path through the shared error boundary.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/BaseService.ts:319:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-typed-error",
+            "http-malformed-json"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Typed handler failure and malformed JSON; other failure branches remain.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/handlers/BaseHttpHandler.ts:49:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-null",
+            "http-undefined",
+            "http-array",
+            "http-head",
+            "http-trailing-slash"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "Selected GET return values, implicit HEAD and trailing slash through a generic handler.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/handlers/BaseHttpHandler.ts:62:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "partial",
+      "gates": [
+        {
+          "suite": "foundation-v1",
+          "suiteFile": "scripts/parity-compare/suite.json",
+          "cases": [
+            "http-empty-body",
+            "http-json",
+            "http-form",
+            "http-options"
+          ],
+          "evidence": "docs/parity/evidence/2026-09-05/comparison/baseline/comparison.json",
+          "scope": "POST body values and implicit OPTIONS through a generic handler.",
+          "result": "differences-observed"
+        }
+      ]
+    },
+    {
+      "registration": "registration:packages/utils/src/service/handlers/BaseHttpHandler.ts:75:9",
+      "tasks": [
+        "C-01",
+        "H-10"
+      ],
+      "kind": "shared-middleware-or-generic-handler",
+      "coverage": "missing"
+    }
+  ],
+  "notes": [
+    "Each of eight server instances retains its own inherited health route; History overrides the health body/status.",
+    "Explicit registrations and inherited HEAD/OPTIONS operations are distinguished. OPTIONS is evaluated per known HTTP path.",
+    "Unknown paths, method mismatches, trailing-slash/case/query/body/error/auth behavior are shared boundaries under C-01/H-10, not an infinite enumeration of paths.",
+    "Native NLU binary RPC, external GQA/Classic/provider and physical-client surfaces have separate inventories/tasks.",
+    "This is a source-derived operation inventory, not a claim of successful Phoenix execution."
+  ]
+}

@@ -139,3 +139,39 @@ test('Update_* targets proxy through to the OTA service untouched', async () => 
   assert.deepEqual(r.body, [{ subsystem: 'os', toVersion: '13.0.0' }]);
   assert.deepEqual(otaHits, [{ target: 'Update_20160301.ListUpdatesFrom' }]);
 });
+
+test('Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.js reads)', async () => {
+  const store = getStore();
+  const owner = createOwnerAccount(store, { email: 'george@jetson.test', password: 'spacely-sprockets', firstName: 'George' });
+  const token = mintSetupToken(store, owner._id);
+  await amz('OOBE_20170101.SetupRobot', { token: token._id, id: 'rocket-maple-pixel-comet' });
+  const robot = store.accountByFriendlyId('rocket-maple-pixel-comet');
+  const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=feedface`;
+
+  // the robot's client sends the wire op name "ListLoops" (loop-2016-03-24: List -> name ListLoops)
+  const r = await amz('Loop_20160324.ListLoops', {}, { authorization: sig(robot.accessKeyId) });
+  assert.equal(r.status, 200);
+  const mine = r.body.filter((l) => l.robot === robot._id);
+  assert.equal(mine.length, 1, 'exactly one loop for the robot (backup script requires length === 1)');
+  assert.ok(mine[0].id, 'loop has `id` (mapped from _id)');
+  assert.equal(mine[0].robotFriendlyId, 'rocket-maple-pixel-comet');
+  assert.equal(mine[0].owner, owner._id);
+
+  // owner credentials see the same loop; the bare "List" alias also works
+  const asOwner = await amz('Loop_20160324.List', {}, { authorization: sig(owner.accessKeyId) });
+  assert.ok(asOwner.body.some((l) => l.id === mine[0].id));
+
+  // SuspendLoop — the robot's WipeUtil gate. Must succeed (CommandResponse) and mark the loop.
+  const susp = await amz('Loop_20160324.SuspendLoop', { loopId: mine[0].id }, { authorization: sig(robot.accessKeyId) });
+  assert.equal(susp.status, 200);
+  assert.equal(susp.body.result, 'Command accepted');
+  assert.equal(getStore().loops.get(mine[0].id).isSuspended, true);
+  // SuspendRobotLoop by friendlyId also works
+  const suspR = await amz('Loop_20160324.SuspendRobotLoop', { friendlyId: 'rocket-maple-pixel-comet' }, { authorization: sig(robot.accessKeyId) });
+  assert.equal(suspR.body.result, 'Command accepted');
+
+  // a still-unimplemented loop op is a clean UnknownOperationException, not a 500
+  const rm = await amz('Loop_20160324.Remove', { loopId: mine[0].id }, { authorization: sig(robot.accessKeyId) });
+  assert.equal(rm.status, 400);
+  assert.equal(rm.body.__type, 'UnknownOperationException');
+});

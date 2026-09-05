@@ -10,25 +10,29 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   its `docs/atlas/` (full system documentation + the rebuild plan this repo follows).
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
-- **Status: the conversational rebuild is complete** (atlas milestones M1–M9, phases A–F). See
-  **[M9-REPORT.md](M9-REPORT.md)** for the parity report — headline numbers: **98.2 %** intent
-  parity and **96.8 %** MIM-routing parity against the reference test corpus (10,035 utterances),
-  full wire-protocol conformance against the robot's own `hub-client` framing. Two further phases
-  extend it to a full robot-revival cloud: **phase G** — per-robot authentication + the OOBE web
-  portal (`packages/account`); **phase H** — the remaining **Classic Services** behind one
-  entrypoint (`packages/classic`). 228 tests green across all packages.
+- **Status: implemented in part; 1:1 compatibility is not yet verified.** The
+  [2026-09-05 source audit](docs/parity/AUDIT.md) found missing named grammars, API/configuration
+  mismatches, incomplete calendar/OAuth and persistence, and Classic stubs. **280 unit tests
+  pass**, while `npm test` correctly fails the strict production v2 comparison: **1,659 field
+  differences across 42 smoke fixtures**. The separate 73-occurrence report baseline has
+  **6,751 differences**; [full corpus grading](docs/parity/PRODUCTION.md) remains in progress.
+  The audit's limited chitchat diagnostic scored **98.2%
+  intent / 96.8% MIM routing**, with 329 mismatching utterances; it omitted full parser and
+  action parity. These are separate measurements, not whole-server completion percentages.
+  Follow the [execution plan](docs/parity/PLAN.md) and [verified task checklist](docs/parity/TASKS.md).
+  Run `npm run parity:status` for progress and the next ready task. [M9-REPORT.md](M9-REPORT.md)
+  is a historical report superseded by this audit.
 
 ## What works
 
-A robot (or the browser sim) connects over WebSocket, speaks — literally, over the microphone —
-and the full pipeline runs: server-side ASR (energy VAD → Parakeet REST), the pure-JS
-launch-rule grammar engine with FST weight semantics, intent routing, and the real skills:
-the **personal report** (weather / news / commute / calendar with the original MIM condition
-tables), **chitchat** (the full 4,424-MIM content library), **answer** (LLM-backed), plus the
-proactive channel with the opt-in flow, multi-turn GraphSkill sessions, redirects and global
-commands. Dead 2018 data vendors are shimmed live (Open-Meteo, RSS, OpenRouteService) behind
-the original relay envelopes; every intentional deviation is logged in
-[DIVERGENCES.md](DIVERGENCES.md).
+Phoenix implements a WebSocket conversation pipeline, server-side Parakeet ASR, a JavaScript
+grammar engine, intent routing, graph-based skills, redirects and proactive selection.
+The complete **4,424 chitchat MIMs** and **82 report MIMs** are preserved. Weather/news/maps
+adapters, an LLM answer path, account/pairing tools and Classic/OTA services also exist.
+Calendar/OAuth, follow-up grammars, report displays, proactive settings and several Classic
+operations still need work. See the [audit](docs/parity/AUDIT.md) for measured coverage and
+specific defects; [DIVERGENCES.md](DIVERGENCES.md) records earlier implementation decisions
+that the new parity plan must reconcile.
 
 ## Layout
 
@@ -97,9 +101,9 @@ This launcher auto-detects the optional LAN services and degrades gracefully wit
 
 ## Running it — with Docker
 
-`docker-compose.yml` mirrors the reference deployment exactly — same service names, host
-ports and `NET_*`/`ETCO_*` wiring, so each Phoenix service is a drop-in substitute for its
-pegasus counterpart:
+`docker-compose.yml` uses the reference service names and host ports. Individual service
+substitution is still being verified: the audit found differences in default skill URLs and
+environment-variable handling. The following starts the current Phoenix stack:
 
 ```bash
 docker compose up
@@ -319,17 +323,29 @@ Then:
 
 ## Verification
 
-The rebuild was driven by measurement, not vibes:
+Current regression checks and progress tracking:
 
 ```bash
-npm test                                      # unit + integration (all packages)
-node packages/harness/src/corpusRunner.js     # D3/D4 parity over the 10,035-utterance corpus (~15 min)
-node scripts/verify-compose-contract.mjs      # runtime/wire contract
-../jibo-web-sim/test/phoenix-be-skill.mjs     # full WS protocol harness (turns, audio, proactive)
-../jibo-web-sim/test/phoenix-voice-browser.mjs # real-browser mic -> server ASR e2e
+npm test                                      # unit tests, tracker validation, strict production parity gate
+npm run test:unit                            # regression tests without the parity comparison
+npm run parity:gate                          # 40 production parser/router/skill cases; fails on differences
+npm run harness -- --out .parity/runs/compare   # original/Phoenix wire comparison; fails on differences
+npm run harness -- --candidate original --out .parity/runs/control  # calibrate with two original runs
+npm run parity:status                         # tracked tasks and next ready task
+npm run parity:check                          # tracker/evidence consistency
+node packages/harness/src/corpusRunner.js      # legacy chitchat intent/MIM diagnostic; fails on mismatches
+node packages/nlu/tools/legacyOracleDiagnostic.mjs  # legacy alternate-engine diagnostic; not production parity
+node scripts/parity-probes.mjs --out /tmp/phoenix-probes.json
+node scripts/verify-compose-contract.mjs       # smoke checks against a running stack
 ```
 
-Plus a dev-only oracle harness that grades the grammar engine against the surviving `jibo-nlu`
-binary (the binary is never shipped). History: [WORKLOG.md](WORKLOG.md); plan + status:
-[PARITY.md](PARITY.md) / [ROADMAP.md](ROADMAP.md); deviations: [DIVERGENCES.md](DIVERGENCES.md);
-final report: [M9-REPORT.md](M9-REPORT.md).
+The [production gate](docs/parity/PRODUCTION.md) compares full HTTP parser requests, entities,
+winning rules, routing/memos and real skill actions/sessions with hash-pinned original captures.
+`npm test` fails when that comparison differs, even if unit tests pass. The two older diagnostics
+now also exit nonzero on mismatches; the alternate-engine oracle moved out of unit-test discovery
+and its saved values retain incomplete provenance. The [harness](packages/harness/README.md)
+separately compares 28 HTTP/hub fixtures. [COVERAGE.md](docs/parity/COVERAGE.md) inventories 960
+original test cases and 20,507 corpus fixture occurrences; complete corpus grading remains V-03.
+An original/original calibration pass verifies the comparison machinery, not Phoenix behavior.
+Historical simulator/browser checks require a separate `jibo-web-sim` checkout and were not
+rerun in this audit. See [WORKLOG.md](WORKLOG.md) and [M9-REPORT.md](M9-REPORT.md) for history.

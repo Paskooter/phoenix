@@ -1,0 +1,30 @@
+TopRule = $* $HAVEAPP $* {intent=HAVEAPP._intent}{priority='HIGH'};
+
+### And do you have the philips hue app set up on your phone? ###
+### So, is the philips hue app set up on your phone? ###
+
+HAVEAPP =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( $IWE ?$SURE do ?yes ) |
+    ( it ?$SURE is )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( $IWE ( don\'t | ( do not ) ) ) |
+    ( $ITS not ) |
+    ( it $ISNT )
+);
+### USEFUL VOCAB ###
+IWE = i | we;
+SURE = sure | certainly;
+THEM = them | em | \'em;
+ITS = ( it is ) | (it\'s);
+ISNT = ( is not ) | isn\'t;

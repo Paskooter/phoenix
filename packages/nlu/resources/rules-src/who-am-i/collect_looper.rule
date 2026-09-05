@@ -1,0 +1,19 @@
+TopRule =
+($*
+        $LOOPMEMBER_INTENT |
+        $NON_LOOPMEMBER_INTENT {intent = NON_LOOPMEMBER_INTENT._intent}
+$*){priority='HIGH'};
+
+LOOPMEMBER_INTENT = (
+    (?$PREFIX $GIVEN_NAME ?$LAST_NAME) |
+    (?$PREFIX <1.0>+$w<0.0>){% GivenName='' %}
+){% intent='loopmember' %};
+
+NON_LOOPMEMBER_INTENT = ((?(i\'m|we\'re|(i|we am|are)) not)|(?we aren\'t) $* $V_LOOPMEMBERS){_intent='notInLoop'};
+
+GIVEN_NAME @= $factory:first_name {% GivenName = this._parsed%};
+LAST_NAME @= $factory:last_name {% LastName = this._parsed %};
+
+### USEFUL VOCAB ###
+V_LOOPMEMBERS = [loopmember?s]|[looper?s]|(?(in|(?(a|an) part|[member?s] ?of)) ?(the|your|a|an) loop);
+PREFIX = ((?my ?[name?(?(\')s)] ?is)|(?[i?(?(\')m)] ?am));

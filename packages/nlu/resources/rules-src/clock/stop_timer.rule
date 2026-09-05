@@ -1,0 +1,9 @@
+TopRule = ($* $CONTROL $*) {intent = CONTROL._intent}{priority='HIGH'};
+
+CONTROL =
+    $STOP {_intent=STOP._intent}
+;
+
+STOP = (stop|kill|end|quit|cancel|terminate)
+{_intent='stop'}
+;

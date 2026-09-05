@@ -21,7 +21,7 @@ test('weightedSample is deterministic with an injected rng', () => {
 test('condition filtering: named prompt excluded when no speaker, included with one', () => {
   const noSpeaker = generateSlim(QN_MIM, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.Q }, buildPromptData({}), { rng: () => 0 });
   assert.equal(noSpeaker.play.esml, 'Plain question?');
-  assert.ok(noSpeaker.listen && noSpeaker.listen.rule === 'global', 'question MIM emits a listen');
+  assert.deepEqual(noSpeaker.listen && noSpeaker.listen.contexts, ['global'], 'question MIM emits LISTEN contexts');
 
   const withSpeaker = generateSlim(QN_MIM, { category: PromptCategory.ENTRY, subCategory: PromptSubCategory.Q },
     buildPromptData({ loop: { users: [{ id: 'u1', firstName: 'Pat' }] }, perception: { speaker: 'u1' } }), { rng: () => 0.99 });

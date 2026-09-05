@@ -1,0 +1,119 @@
+{
+  "date": "2026-09-05T06:19:44.484394+00:00",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidate": "original",
+  "images": {
+    "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+  },
+  "commands": [
+    {
+      "name": "image-original",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "image",
+        "inspect",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "--format",
+        "{{.Id}}"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock image inspect node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c --format '{{.Id}}'",
+      "exitCode": 0
+    },
+    {
+      "name": "reference",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-9845b4733439",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-compare,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/compare-control-final,target=/evidence",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/harness/original.cjs",
+        "/reference",
+        "/evidence/reference.json",
+        "/reference/packages/hub/pegasus-skills/report_skill_manifest.json"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-9845b4733439 --network none --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-compare,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/compare-control-final,target=/evidence --mount type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /harness/original.cjs /reference /evidence/reference.json /reference/packages/hub/pegasus-skills/report_skill_manifest.json",
+      "exitCode": 0
+    },
+    {
+      "name": "candidate",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-8c6ae22f0724",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-compare,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/compare-control-final,target=/evidence",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/harness/original.cjs",
+        "/reference",
+        "/evidence/candidate.json",
+        "/reference/packages/hub/pegasus-skills/report_skill_manifest.json"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-8c6ae22f0724 --network none --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-compare,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/compare-control-final,target=/evidence --mount type=bind,source=/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/reference,readonly node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /harness/original.cjs /reference /evidence/candidate.json /reference/packages/hub/pegasus-skills/report_skill_manifest.json",
+      "exitCode": 0
+    },
+    {
+      "name": "compare",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/packages/harness/src/index.js",
+        "compare",
+        "--reference",
+        "/home/shell/work/phoenix/.parity/runs/compare-control-final/reference.json",
+        "--candidate",
+        "/home/shell/work/phoenix/.parity/runs/compare-control-final/candidate.json",
+        "--out",
+        "/home/shell/work/phoenix/.parity/runs/compare-control-final/comparison.json"
+      ],
+      "shellDisplay": "node /home/shell/work/phoenix/packages/harness/src/index.js compare --reference /home/shell/work/phoenix/.parity/runs/compare-control-final/reference.json --candidate /home/shell/work/phoenix/.parity/runs/compare-control-final/candidate.json --out /home/shell/work/phoenix/.parity/runs/compare-control-final/comparison.json",
+      "exitCode": 0
+    }
+  ],
+  "result": "match",
+  "referenceIntegrity": {
+    "sourceFiles": 376,
+    "emittedFiles": 391,
+    "manifestSha256": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884"
+  },
+  "cases": 28,
+  "differences": 0,
+  "invariantFailures": 0,
+  "phoenixSourceTreeSha256": "2a6418d34ca4b06bbe9090d330d2e3eb25572a9d79d8bfef969626d987eba9f0",
+  "artifacts": {
+    "candidate.json": "bc96f1fde73a1e1116abace46908b676df26dd8cb1f7a5c253366af1bdde3124",
+    "candidate.log": "33fff59ae0bcb867a3f4aee6c0748f9351890fcec41265222a17b26761323c2f",
+    "compare.log": "fd70cecefa03e4f23410ccc9db7f800010984856c422c3c7f2cc466360e4df6e",
+    "comparison.json": "6b255ca3a97095a74dbf5063ff7f379b045af7df26bf57fe1ff0d080ce46710f",
+    "image-original.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
+    "phoenix-source.json": "c2915b1375ca249a38aab996710618e4cfd1683717ef7e322a41d50f60c29eb2",
+    "reference.json": "c02fe16daacf5613465ee5f7bf7b4a457bd7e9100fbb281573fe041dc552c686",
+    "reference.log": "b281425c0ed5182d4dfb76a6015cacbce71b608a4f9f0796a2027bb2cfb98942"
+  }
+}

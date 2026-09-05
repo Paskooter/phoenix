@@ -1,0 +1,41 @@
+TopRule = $* $ARELIGHTS $* {intent=ARELIGHTS._intent}{priority='HIGH'};
+
+### Are there philips hue lights here? ###
+### Was that a yes or no? Are there philips hue lights here? ###
+
+ARELIGHTS =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+	naturally |
+    ( there are ) |
+	( i ( guess | suppose | think ) ?so ) |
+    ( ( got | have ) ( them | em | $LIGHT ) ) |
+    (?$IWE do now ) |
+    ( now $IWE do ) |
+    ( ?$IWE just $* set $* up ) |
+    ( sure are ) |
+    ( looks like it )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( there ( aren\'t | ( are not ) ) ) |
+    ( i ( guess | suppose | think ) not ) |
+    ( ( don\'t| (do not ) ) ( got | have ) ( them | em $LIGHT ) ) |
+    ( $IWE don\'t ) |
+    ( not yet ) |
+    ( $IWE wish ) |
+    ( doesn\'t look like it )
+);
+### USEFUL VOCAB ###
+IWE = i | we;
+LIGHT = ( ?( $PHILIPS | $HUE | ($PHILIPS $HUE ) )
+            ( [light?(?(\')s)]) | [lamp?(?(\')s)]) | [lightbulb?(?(\')s)];
+PHILIPS = philips | phillips | philip\'s | phillip\'s;
+HUE = hue | hugh | hew;

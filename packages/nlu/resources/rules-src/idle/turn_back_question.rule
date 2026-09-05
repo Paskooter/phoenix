@@ -1,0 +1,63 @@
+TopRule = $* $TURNBACK $* {intent=TURNBACK._intent}{priority='HIGH'};
+
+### Um, hi can I turn around and look again?
+### Hi, can I look back over there now?
+### So um, is it okay if I turn back around now?
+
+TURNBACK =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+)
+;
+YES_OTHER =
+(
+    guess | gas |
+	naturally |
+	great |
+	word |
+	( go for it ) |
+	( that would be ?$V_VERY $V_AMAZING ) |
+	( i ( guess | suppose ) ?so ) |
+	( sounds good ) |
+    ( why not ) |
+    ( of course ) |
+    ( you $V_CAN ) |
+    ( ?it is ?okay ) |
+    ( turn ?around ) |
+    ( go ahead ) |
+    ( now is okay ) |
+    fine
+)
+;
+NO_OTHER =
+(
+    know | snow | now |
+    later |
+	silence |
+	quiet |
+	chill |
+	hush |
+	shush |
+	( not ?right now ?( pig | robot | jibo ) ) |
+	( stop ?( talking | interrupting | it ) ) |
+	( you\'re ( interrupting | bothering ) ?( us | me | now ) ) |
+	( ( we\'re | i\'m ) talking ?here ) |
+	( ( i\'m | we\'re ) ( busy | (doing $*) | (in the middle of $*) ) ) |
+	( ?( this is ) ( ( a bad time ) | ( not a good time ) ) ) |
+	( shut $w03 ( up | it | your $* ) ) |
+    ( not okay ) |
+    ( you $V_CANNOT ) |
+    ( not now ) |
+    ( stay ?there )
+)
+;
+### USEFUL VOCAB ###
+V_AMAZING = awesome|amazing|fantastic|incredible|fascinating|wonderful|
+    unbelievable|excellent|fabulous|astounding|cool|marvelous|phenomenal|
+    superb|impressive|great|outstanding|extraordinary;
+V_VERY = very|really|actually|pretty|[absolute?(ly)]|[incredibl(e|y)]|
+    extremely|so|such|most|kinda|sorta|any|(kind|sort of);
+V_CAN = can | may | should;
+V_CANNOT = ( can not ) | ( may not ) | ( should not ) | shouldn\'t | can\'t;

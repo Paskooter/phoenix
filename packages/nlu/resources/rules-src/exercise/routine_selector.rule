@@ -1,0 +1,30 @@
+!use_equivalent_words = true;
+TopRule = $* $ROUTINE $* {intent=ROUTINE._intent}{priority='HIGH'};
+
+### Here are all the routines I've got. ###
+
+ROUTINE =
+(
+    (?($LETSDO|$OPEN $*) $SUNSALUTATION ?$EXERCISE) {_intent = 'SunSalutation'}|
+    (?($LETSDO|$OPEN $*) $BASICWARRIOR ?$EXERCISE) {_intent = 'BasicWarrior'}
+    #(?($LETSDO|$OPEN $*) $FULLBODY ?$EXERCISE) {_intent = 'FullBody'}
+);
+SUNSALUTATION =
+(
+    ( ?( sun | son ) salutation ) |
+    ( ?the ( sun | son ) )
+);
+BASICWARRIOR =
+(
+    ( ?the ?basic ( warrior | worrier ) )
+);
+FULLBODY =
+(
+    ( ?the full body )
+);
+
+### USEFUL VOCAB ###
+IWE = i | we;
+EXERCISE = yoga | exercise | routine | workout | thing | one;
+LETSDO = ( ( ( let\'s | ( let us ) ) | ( i\'ll | ( i will ) | ( let me ) ) ) );
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select | load);

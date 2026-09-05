@@ -1,0 +1,65 @@
+TopRule = ($* $DAYQUALITY $*) {intent = DAYQUALITY._intent}{priority='HIGH'};
+
+### Did you have a better day today?
+### Another good day?
+### Did you have a good day?
+### Was your day nice?
+
+DAYQUALITY =
+	(
+		$factory:yes_no {_intent = yes_no._nl} |
+		$YES {_intent=YES._intent} |
+		$NO {_intent=NO._intent}
+	)
+;
+YES =
+	(
+		guess | gas |
+		definitely |
+		( i ( think | suppose | guess ) ?so) |
+        ( i $* did ) |
+        ( sure did ) |
+        ( another $GREAT ?day) |
+        ( you know it ) |
+        ( you bet ) |
+        thankfully |
+        ( ?( it was ) $GREAT ) |
+        ( ( (it ?sure) | sure ) was ) |
+        ( ?it rocked ) |
+		(not|wasn\'t|didn\'t $w03 $TERRIBLE|worst) |
+		(could ?(be|(have been)) worse)
+	)
+{_intent='yes'}
+;
+NO =
+	(
+		know | snow | now |
+		( not ?now ) |
+		don\'t |
+		( do not ) |
+        unfortunately |
+        regrettably |
+        ( did not ) |
+        didn\'t |
+        ( like $CRAP ) |
+        ( i wish ) |
+        ( ( ( it ?sure ) | sure ) ( wasn\'t | ( was not ) ) ) |
+        ( ?( it was ) $TERRIBLE ) |
+        ( ?it $SUCKED ) |
+        ( ?( i ( got | was ) ) $FIRED ) |
+        $FIGHT |
+        (?it ?was $CRAP) |
+		( another $TERRIBLE ?day) |
+        ( not today ) |
+		(not|wasn\'t|didn\'t $w03 $GREAT|nice|better|best) |
+		(could ?(be|(have been)) better)
+	)
+{_intent='no'}
+;
+#USEFUL VOCABULARY
+GREAT = great | wonderful | wonderfully | awesome | good | super;
+TERRIBLE = terrible | terribly | awful | awfully | horrible | horribly | bad;
+CRAP = crap | shit | hell;
+SUCKED = sucked | bit;
+FIRED = fired | terminated | (let go) | (laid off);
+FIGHT = fight | argument | disagreement;

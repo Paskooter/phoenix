@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "driverSha256": "155af9f0d84863645579950eae3d46b672bd845c5b31a422ffced76981727700",
+  "files": {
+    "suite.json": "1784aa53b7657b87c927c2503f60706c508b0270cfe90a0480176e424d4c9bb3",
+    "reference.json.gz": "2e3f1c5f4c6d20070f6c438e83fe17bc9eef06d86fdc323761da032dd4eab718"
+  },
+  "referenceIntegrity": {
+    "originalGitFiles": 6144,
+    "intentionalBootstrapRelocations": 2,
+    "emittedFiles": 391,
+    "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "binarySha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54",
+    "fixtureSourcesSha256": "83cfdbcc2dfc645916beaa5629b862a71859fba3dff092fff3fc548915017da8"
+  },
+  "images": {
+    "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+  },
+  "originalControlArtifact": "docs/parity/evidence/2026-09-05/production/control/run.json",
+  "originalControlArtifactSha256": "4d8771b1bfbe637d951e54dba64d4b49c85ca10d79b3004f65e55e31ff753fe8",
+  "review": {
+    "date": "2026-09-05",
+    "reviewer": "Codex",
+    "result": "pass",
+    "scope": "40 original production parser/router/skill cases agree in two separate Node 8.9.4 containers, with all 98 native FST loads and no trace invariant failures. This approves golden provenance and repeatability, not Phoenix parity or the full corpus."
+  },
+  "limitations": [
+    "Original production ParserService/RobustParserClient and native 2.8.3 FSTs; Dialogflow is explicitly disabled. Native process clock is not faked.",
+    "Production IntentRouter uses each implementation's actual skills-local registry. Cloud actions are hosted only for original chitchat/report in this profile; unhosted targets are reported as coverage gaps.",
+    "Original test-runtime context is synthetic; uid0001 is assigned to its default mock speaker. Dates use noon UTC. Historical conditional person details were not recovered.",
+    "Provider replies are frozen test weather and synthetic settings/news/calendar/maps; no current-provider availability or hardware rendering is claimed.",
+    "Every selected occurrence is executed separately. Scores retain corpus/conditional denominators, duplicates and absent manifest expectations."
+  ]
+}

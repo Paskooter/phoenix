@@ -1,0 +1,1751 @@
+{
+  "retrievedAt": "2026-09-05",
+  "repository": "jiborobot/srv-jibo-server-client",
+  "ref": "master",
+  "inventory": [
+    {
+      "path": "apis/account-2015-11-11.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/account-2015-11-11.normal.json",
+      "metadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "account",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "CheckEmail",
+          "wireName": "CheckEmail",
+          "input": "EmailRequest",
+          "requiredInput": [
+            "email"
+          ],
+          "output": "CheckEmailResponse",
+          "errors": []
+        },
+        {
+          "key": "Create",
+          "wireName": "Create",
+          "input": "CreateRequest",
+          "requiredInput": [
+            "email",
+            "password"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "Login",
+          "wireName": "Login",
+          "input": "LoginRequest",
+          "requiredInput": [
+            "email",
+            "password"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "Search",
+          "wireName": "Search",
+          "input": "SearchRequest",
+          "requiredInput": [
+            "query"
+          ],
+          "output": "AccountList",
+          "errors": []
+        },
+        {
+          "key": "ResetKeys",
+          "wireName": "ResetKeys",
+          "input": null,
+          "requiredInput": [],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "Get",
+          "wireName": "Get",
+          "input": "IdsRequestOptional",
+          "requiredInput": [],
+          "output": "AccountList",
+          "errors": []
+        },
+        {
+          "key": "Update",
+          "wireName": "Update",
+          "input": "UpdateRequest",
+          "requiredInput": [],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "Remove",
+          "wireName": "Remove",
+          "input": null,
+          "requiredInput": [],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "ActivateByCode",
+          "wireName": "ActivateByCode",
+          "input": "ActivationRequest",
+          "requiredInput": [
+            "code"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "ResendActivationCode",
+          "wireName": "ResendActivationCode",
+          "input": "EmailRequest",
+          "requiredInput": [
+            "email"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "ChangePassword",
+          "wireName": "ChangePassword",
+          "input": "ChangePasswordRequest",
+          "requiredInput": [
+            "oldPassword",
+            "newPassword"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "ChangeEmail",
+          "wireName": "ChangeEmail",
+          "input": "ChangeEmailRequest",
+          "requiredInput": [
+            "password",
+            "email"
+          ],
+          "output": "IdStruct",
+          "errors": []
+        },
+        {
+          "key": "ConfirmEmailReset",
+          "wireName": "ConfirmEmailReset",
+          "input": "ConfirmEmailResetRequest",
+          "requiredInput": [
+            "code"
+          ],
+          "output": null,
+          "errors": []
+        },
+        {
+          "key": "SendPasswordReset",
+          "wireName": "SendPasswordReset",
+          "input": "EmailRequest",
+          "requiredInput": [
+            "email"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "PasswordResetByCode",
+          "wireName": "PasswordResetByCode",
+          "input": "PasswordResetRequest",
+          "requiredInput": [
+            "code",
+            "password"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "UpdatePhoto",
+          "wireName": "UpdatePhoto",
+          "input": "UpdatePhotoRequest",
+          "requiredInput": [],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "RemovePhoto",
+          "wireName": "RemovePhoto",
+          "input": null,
+          "requiredInput": [],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "SendPhoneVerificationCode",
+          "wireName": "SendPhoneVerificationCode",
+          "input": "PhoneNumberRequest",
+          "requiredInput": [
+            "phoneNumber"
+          ],
+          "output": "IdStruct",
+          "errors": []
+        },
+        {
+          "key": "VerifyPhoneByCode",
+          "wireName": "VerifyPhoneByCode",
+          "input": "PhoneVerificationRequest",
+          "requiredInput": [
+            "code"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "CreateAccessToken",
+          "wireName": "CreateAccessToken",
+          "input": "TokenRequest",
+          "requiredInput": [],
+          "output": "TokenContainer",
+          "errors": []
+        },
+        {
+          "key": "CreateHubToken",
+          "wireName": "CreateHubToken",
+          "input": "TokenRequest",
+          "requiredInput": [],
+          "output": "TokenContainer",
+          "errors": []
+        },
+        {
+          "key": "GetAccountByAccessToken",
+          "wireName": "GetAccountByAccessToken",
+          "input": "TokenContainer",
+          "requiredInput": [
+            "token"
+          ],
+          "output": "TokenResponse",
+          "errors": []
+        },
+        {
+          "key": "FacebookPrepareLogin",
+          "wireName": "FacebookPrepareLogin",
+          "input": null,
+          "requiredInput": [],
+          "output": "FacebookPrepareLoginResponse",
+          "errors": []
+        },
+        {
+          "key": "FacebookConnect",
+          "wireName": "FacebookConnect",
+          "input": "FacebookConnectRequest",
+          "requiredInput": [
+            "state",
+            "token"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "FacebookMobileConnect",
+          "wireName": "FacebookMobileConnect",
+          "input": "FacebookMobileConnectRequest",
+          "requiredInput": [
+            "token"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "AcceptTerms",
+          "wireName": "AcceptTerms",
+          "input": null,
+          "requiredInput": [],
+          "output": "Account",
+          "errors": []
+        }
+      ],
+      "shapeCount": 40
+    },
+    {
+      "path": "apis/accountadmin-2015-11-11.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/accountadmin-2015-11-11.normal.json",
+      "metadata": {
+        "apiVersion": "2015-11-11",
+        "endpointPrefix": "accountadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Account",
+        "signatureVersion": "v4",
+        "targetPrefix": "Account_20151111",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "ActivateById",
+          "wireName": "ActivateById",
+          "input": "IdRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "Account",
+          "errors": []
+        },
+        {
+          "key": "ResetEmail",
+          "wireName": "ResetEmail",
+          "input": "ResetEmailRequest",
+          "requiredInput": [
+            "id",
+            "email"
+          ],
+          "output": "IdRequest",
+          "errors": []
+        }
+      ],
+      "shapeCount": 9
+    },
+    {
+      "path": "apis/backup-2017-02-22.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/backup-2017-02-22.normal.json",
+      "metadata": {
+        "apiVersion": "2017-02-22",
+        "endpointPrefix": "backup",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Backup",
+        "signatureVersion": "v4",
+        "targetPrefix": "Backup_20170222",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "New",
+          "wireName": "New",
+          "input": "NewBackupRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "NewBackupResponse",
+          "errors": []
+        },
+        {
+          "key": "List",
+          "wireName": "List",
+          "input": "ListRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "ListResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 7
+    },
+    {
+      "path": "apis/collision-2016-11-26.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/collision-2016-11-26.normal.json",
+      "metadata": {
+        "apiVersion": "2016-11-26",
+        "endpointPrefix": "collision",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Collision",
+        "signatureVersion": "v4",
+        "targetPrefix": "Collision_20161126",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "Match",
+          "wireName": "Match",
+          "input": "MatchInput",
+          "requiredInput": [
+            "name",
+            "existingNames"
+          ],
+          "output": "MatchOutput",
+          "errors": []
+        }
+      ],
+      "shapeCount": 4
+    },
+    {
+      "path": "apis/gqa-2016-09-30.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/gqa-2016-09-30.normal.json",
+      "metadata": {
+        "apiVersion": "2016-09-30",
+        "endpointPrefix": "gqa",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo GQA",
+        "signatureVersion": "v4",
+        "targetPrefix": "GQA_20160930",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "Question",
+          "wireName": "Question",
+          "input": "QuestionRequest",
+          "requiredInput": [
+            "Input"
+          ],
+          "output": "QuestionResponse",
+          "errors": []
+        },
+        {
+          "key": "ListAttribution",
+          "wireName": "ListAttribution",
+          "input": "ListAttributionRequest",
+          "requiredInput": [
+            "ID"
+          ],
+          "output": "ListAttributionResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 8
+    },
+    {
+      "path": "apis/ifttt-2017-02-07.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/ifttt-2017-02-07.normal.json",
+      "metadata": {
+        "apiVersion": "2017-02-07",
+        "endpointPrefix": "ifttt",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo IFTTT",
+        "signatureVersion": "v4",
+        "targetPrefix": "IFTTT_20170207",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "Trigger",
+          "wireName": "Trigger",
+          "input": "TriggerRequest",
+          "requiredInput": [
+            "text"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "ListTriggers",
+          "wireName": "ListTriggers",
+          "input": "ListTriggersRequest",
+          "requiredInput": [],
+          "output": "Triggers",
+          "errors": []
+        },
+        {
+          "key": "ListMedia",
+          "wireName": "ListMedia",
+          "input": "ListMediaRequest",
+          "requiredInput": [],
+          "output": "MediaTriggers",
+          "errors": []
+        },
+        {
+          "key": "DeleteIdentity",
+          "wireName": "DeleteIdentity",
+          "input": "DeleteIdentityRequest",
+          "requiredInput": [
+            "identity"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "Action",
+          "wireName": "Action",
+          "input": "ActionRequest",
+          "requiredInput": [],
+          "output": "Actions",
+          "errors": []
+        },
+        {
+          "key": "ListActions",
+          "wireName": "ListActions",
+          "input": "ListActionsRequest",
+          "requiredInput": [],
+          "output": "Actions",
+          "errors": []
+        },
+        {
+          "key": "UserInfo",
+          "wireName": "UserInfo",
+          "input": null,
+          "requiredInput": [],
+          "output": "UserInfoResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 24
+    },
+    {
+      "path": "apis/key-2016-02-01.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/key-2016-02-01.normal.json",
+      "metadata": {
+        "apiVersion": "2016-02-01",
+        "endpointPrefix": "key",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Key",
+        "signatureVersion": "v4",
+        "targetPrefix": "Key_20160201",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "GetRequest",
+          "wireName": "GetRequest",
+          "input": "GetRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "Request",
+          "errors": []
+        },
+        {
+          "key": "CreateRequest",
+          "wireName": "CreateRequest",
+          "input": "CreateRequest",
+          "requiredInput": [
+            "loopId",
+            "publicKey"
+          ],
+          "output": "Request",
+          "errors": []
+        },
+        {
+          "key": "Share",
+          "wireName": "Share",
+          "input": "ShareRequest",
+          "requiredInput": [
+            "id",
+            "encryptedKey"
+          ],
+          "output": "Request",
+          "errors": []
+        },
+        {
+          "key": "ListIncomingRequests",
+          "wireName": "ListIncomingRequests",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Requests",
+          "errors": []
+        },
+        {
+          "key": "ShouldCreate",
+          "wireName": "ShouldCreate",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "ShouldCreateResponse",
+          "errors": []
+        },
+        {
+          "key": "Backup",
+          "wireName": "Backup",
+          "input": "BackupRequest",
+          "requiredInput": [
+            "loopId",
+            "encryptedKey"
+          ],
+          "output": "Backup",
+          "errors": []
+        },
+        {
+          "key": "Restore",
+          "wireName": "Restore",
+          "input": "RestoreRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Backup",
+          "errors": []
+        },
+        {
+          "key": "ListBinaryRequests",
+          "wireName": "ListBinaryRequests",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "BinaryRequests",
+          "errors": []
+        },
+        {
+          "key": "ShareBinary",
+          "wireName": "ShareBinary",
+          "input": "ShareBinaryRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "BinaryRequest",
+          "errors": []
+        }
+      ],
+      "shapeCount": 22
+    },
+    {
+      "path": "apis/log-2015-03-09.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/log-2015-03-09.normal.json",
+      "metadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "log",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "PutEvents",
+          "wireName": "PutEvents",
+          "input": "PutEventsRequest",
+          "requiredInput": [
+            "events"
+          ],
+          "output": "Response",
+          "errors": []
+        },
+        {
+          "key": "PutEventsAsync",
+          "wireName": "PutEventsAsync",
+          "input": "PutEventsAsyncRequest",
+          "requiredInput": [
+            "kind",
+            "serial"
+          ],
+          "output": "PutEventsAsyncResponse",
+          "errors": []
+        },
+        {
+          "key": "NewKinesisCredentials",
+          "wireName": "NewKinesisCredentials",
+          "input": "NewKinesisCredentialsRequest",
+          "requiredInput": [],
+          "output": "NewKinesisCredentialsResponse",
+          "errors": []
+        },
+        {
+          "key": "PutBinary",
+          "wireName": "PutBinary",
+          "input": "PutBinaryRequest",
+          "requiredInput": [],
+          "output": "PutBinaryResponse",
+          "errors": []
+        },
+        {
+          "key": "PutBinaryAsync",
+          "wireName": "PutBinaryAsync",
+          "input": "PutBinaryAsyncRequest",
+          "requiredInput": [],
+          "output": "PutBinaryAsyncResponse",
+          "errors": []
+        },
+        {
+          "key": "PutAsrBinary",
+          "wireName": "PutAsrBinary",
+          "input": "PutAsrBinaryRequest",
+          "requiredInput": [
+            "trackingId"
+          ],
+          "output": "PutAsrBinaryResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 26
+    },
+    {
+      "path": "apis/logadmin-2015-03-09.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/logadmin-2015-03-09.normal.json",
+      "metadata": {
+        "apiVersion": "2015-03-09",
+        "endpointPrefix": "logadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Log",
+        "signatureVersion": "v4",
+        "targetPrefix": "Log_20150309",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "SetLevel",
+          "wireName": "SetLevel",
+          "input": "SetLevelRequest",
+          "requiredInput": [
+            "friendlyIds",
+            "namespaces"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 7
+    },
+    {
+      "path": "apis/loop-2016-03-24.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/loop-2016-03-24.normal.json",
+      "metadata": {
+        "apiVersion": "2016-03-24",
+        "endpointPrefix": "Loop",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Loop",
+        "signatureVersion": "v4",
+        "targetPrefix": "Loop_20160324",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "SuspendRobotLoop",
+          "wireName": "SuspendRobotLoop",
+          "input": "SuspendRobotLoopRequest",
+          "requiredInput": [
+            "friendlyId"
+          ],
+          "output": null,
+          "errors": []
+        },
+        {
+          "key": "InviteMember",
+          "wireName": "InviteLoopMember",
+          "input": "InviteRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "AcceptInvitation",
+          "wireName": "AcceptLoopInvitation",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "DeclineInvitation",
+          "wireName": "DeclineLoopInvitation",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "ListMembers",
+          "wireName": "ListLoopMembers",
+          "input": "ListMembersRequest",
+          "requiredInput": [],
+          "output": "MemberList",
+          "errors": []
+        },
+        {
+          "key": "UpdateMember",
+          "wireName": "UpdateLoopMember",
+          "input": "UpdateMemberRequest",
+          "requiredInput": [
+            "loopId",
+            "id"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "RemoveMember",
+          "wireName": "RemoveLoopMember",
+          "input": "RemoveMemberRequest",
+          "requiredInput": [
+            "loopId",
+            "id"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "ListOwnerRobots",
+          "wireName": "ListOwnerRobots",
+          "input": "AccountIdRequest",
+          "requiredInput": [],
+          "output": "RobotIdList",
+          "errors": []
+        },
+        {
+          "key": "ClearRobot",
+          "wireName": "ClearRobot",
+          "input": "RobotIdRequest",
+          "requiredInput": [
+            "robotId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "GetRobot",
+          "wireName": "GetRobot",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "RobotAccount",
+          "errors": []
+        },
+        {
+          "key": "Create",
+          "wireName": "CreateLoop",
+          "input": "CreateLoopRequest",
+          "requiredInput": [
+            "name",
+            "robotId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "Update",
+          "wireName": "UpdateLoop",
+          "input": "UpdateLoopRequest",
+          "requiredInput": [
+            "name",
+            "loopId"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "List",
+          "wireName": "ListLoops",
+          "input": "LoopIdRequestOptional",
+          "requiredInput": [],
+          "output": "LoopList",
+          "errors": []
+        },
+        {
+          "key": "Remove",
+          "wireName": "RemoveLoop",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "SetEnrollment",
+          "wireName": "SetEnrollment",
+          "input": "SetEnrollmentRequest",
+          "requiredInput": [
+            "loopId",
+            "id"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "FindOwner",
+          "wireName": "FindOwner",
+          "input": "AccountIdRequest",
+          "requiredInput": [],
+          "output": "AccountId",
+          "errors": []
+        },
+        {
+          "key": "SetLegalGuardian",
+          "wireName": "SetLegalGuardian",
+          "input": "LegalGuardian",
+          "requiredInput": [
+            "loopId",
+            "childId",
+            "parentId"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "UpdateAgreementStatus",
+          "wireName": "UpdateAgreementStatus",
+          "input": "AgreementRequest",
+          "requiredInput": [
+            "agreementId"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "UpdateNickname",
+          "wireName": "UpdateNickname",
+          "input": "NicknameRequest",
+          "requiredInput": [
+            "loopId",
+            "id"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "UpdatePhoneticName",
+          "wireName": "UpdatePhoneticName",
+          "input": "PhoneticNameRequest",
+          "requiredInput": [
+            "loopId",
+            "id"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "SuspendLoop",
+          "wireName": "SuspendLoop",
+          "input": "LoopIdRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "UpdateMemberPhoto",
+          "wireName": "UpdateMemberPhoto",
+          "input": "UpdateMemberPhotoRequest",
+          "requiredInput": [
+            "id",
+            "loopId"
+          ],
+          "output": "Loop",
+          "errors": []
+        },
+        {
+          "key": "RemoveMemberPhoto",
+          "wireName": "RemoveMemberPhoto",
+          "input": "RemoveMemberPhotoRequest",
+          "requiredInput": [
+            "id",
+            "loopId"
+          ],
+          "output": "Loop",
+          "errors": []
+        }
+      ],
+      "shapeCount": 43
+    },
+    {
+      "path": "apis/lps-2017-12-01.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/lps-2017-12-01.normal.json",
+      "metadata": {
+        "apiVersion": "2017-12-01",
+        "endpointPrefix": "lps",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Lps",
+        "signatureVersion": "v4",
+        "targetPrefix": "Lps_20171201",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "NewCredentials",
+          "wireName": "NewCredentials",
+          "input": "NewCredentialsRequest",
+          "requiredInput": [],
+          "output": "NewCredentialsResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 3
+    },
+    {
+      "path": "apis/media-2016-07-25.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/media-2016-07-25.normal.json",
+      "metadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "media",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "Create",
+          "wireName": "Create",
+          "input": "CreateRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Media",
+          "errors": []
+        },
+        {
+          "key": "List",
+          "wireName": "List",
+          "input": "ListRequest",
+          "requiredInput": [
+            "loopIds"
+          ],
+          "output": "MediaList",
+          "errors": []
+        },
+        {
+          "key": "Remove",
+          "wireName": "Remove",
+          "input": "PathsRequest",
+          "requiredInput": [
+            "paths"
+          ],
+          "output": "MediaList",
+          "errors": []
+        },
+        {
+          "key": "Get",
+          "wireName": "Get",
+          "input": "PathsRequest",
+          "requiredInput": [
+            "paths"
+          ],
+          "output": "MediaList",
+          "errors": []
+        }
+      ],
+      "shapeCount": 19
+    },
+    {
+      "path": "apis/mediaadmin-2016-07-25.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/mediaadmin-2016-07-25.normal.json",
+      "metadata": {
+        "apiVersion": "2016-07-25",
+        "endpointPrefix": "mediaadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Media",
+        "signatureVersion": "v4",
+        "targetPrefix": "Media_20160725",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "RemoveAllMediaFromLoop",
+          "wireName": "RemoveAllMediaFromLoop",
+          "input": "RemoveAllLoopMediaRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "MediaList",
+          "errors": []
+        }
+      ],
+      "shapeCount": 12
+    },
+    {
+      "path": "apis/nlp-2016-10-31.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/nlp-2016-10-31.normal.json",
+      "metadata": {
+        "apiVersion": "2016-10-31",
+        "endpointPrefix": "nlp",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo NLP",
+        "signatureVersion": "v4",
+        "targetPrefix": "NLP_20161031",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "PartOfSpeech",
+          "wireName": "PartOfSpeech",
+          "input": "QuestionRequest",
+          "requiredInput": [
+            "Input"
+          ],
+          "output": "PartOfSpeechResponse",
+          "errors": []
+        },
+        {
+          "key": "NamedEntityRecognition",
+          "wireName": "NamedEntityRecognition",
+          "input": "QuestionRequest",
+          "requiredInput": [
+            "Input"
+          ],
+          "output": "NamedEntitiesResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 7
+    },
+    {
+      "path": "apis/notification-2015-05-05.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/notification-2015-05-05.normal.json",
+      "metadata": {
+        "apiVersion": "2015-05-05",
+        "endpointPrefix": "notification",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Notification",
+        "signatureVersion": "v4",
+        "targetPrefix": "Notification_20150505",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "NewRobotToken",
+          "wireName": "NewRobotToken",
+          "input": "RobotTokenRequest",
+          "requiredInput": [],
+          "output": "Token",
+          "errors": []
+        },
+        {
+          "key": "GetStatus",
+          "wireName": "GetStatus",
+          "input": "GetStatusRequest",
+          "requiredInput": [
+            "accountId"
+          ],
+          "output": "GetStatusResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 6
+    },
+    {
+      "path": "apis/oauthclientsadmin-2017-11-08.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/oauthclientsadmin-2017-11-08.normal.json",
+      "metadata": {
+        "apiVersion": "2017-11-08",
+        "endpointPrefix": "oauthclientsadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OAuth Clients",
+        "signatureVersion": "v4",
+        "targetPrefix": "OauthClients_20171108",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "ListClients",
+          "wireName": "ListClients",
+          "input": null,
+          "requiredInput": [],
+          "output": "ClientsList",
+          "errors": []
+        },
+        {
+          "key": "Create",
+          "wireName": "Create",
+          "input": "CreateRequest",
+          "requiredInput": [
+            "clientId",
+            "redirectUri",
+            "updatedBy"
+          ],
+          "output": "Client",
+          "errors": []
+        },
+        {
+          "key": "Update",
+          "wireName": "Update",
+          "input": "UpdateRequest",
+          "requiredInput": [
+            "id",
+            "updatedBy"
+          ],
+          "output": "Client",
+          "errors": []
+        },
+        {
+          "key": "Remove",
+          "wireName": "Remove",
+          "input": "RemoveRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "Client",
+          "errors": []
+        }
+      ],
+      "shapeCount": 23
+    },
+    {
+      "path": "apis/oobe-2016-10-26.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/oobe-2016-10-26.normal.json",
+      "metadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobe",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "PrepareRobot",
+          "wireName": "PrepareRobot",
+          "input": "PrepareRobotRequest",
+          "requiredInput": [],
+          "output": "TokenContainer",
+          "errors": []
+        },
+        {
+          "key": "GetStatus",
+          "wireName": "GetStatus",
+          "input": "TokenContainer",
+          "requiredInput": [
+            "token"
+          ],
+          "output": "StatusContainer",
+          "errors": []
+        },
+        {
+          "key": "SetupRobot",
+          "wireName": "SetupRobot",
+          "input": "SetupRobotRequest",
+          "requiredInput": [
+            "token",
+            "id"
+          ],
+          "output": "RobotCredentials",
+          "errors": []
+        },
+        {
+          "key": "ReconnectRobot",
+          "wireName": "ReconnectRobot",
+          "input": "ReconnectRobotRequest",
+          "requiredInput": [
+            "token"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 12
+    },
+    {
+      "path": "apis/oobeadmin-2016-10-26.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/oobeadmin-2016-10-26.normal.json",
+      "metadata": {
+        "apiVersion": "2016-10-26",
+        "endpointPrefix": "oobeadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo OOBE",
+        "signatureVersion": "v4",
+        "targetPrefix": "OOBE_20161026",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "GetServiceToken",
+          "wireName": "GetServiceToken",
+          "input": null,
+          "requiredInput": [],
+          "output": "TokenContainer",
+          "errors": []
+        }
+      ],
+      "shapeCount": 3
+    },
+    {
+      "path": "apis/person-2016-08-01.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/person-2016-08-01.normal.json",
+      "metadata": {
+        "apiVersion": "2016-08-01",
+        "endpointPrefix": "person",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Person",
+        "signatureVersion": "v4",
+        "targetPrefix": "Person_20160801",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "List",
+          "wireName": "List",
+          "input": "ListRequest",
+          "requiredInput": [
+            "category"
+          ],
+          "output": "ListResponse",
+          "errors": []
+        },
+        {
+          "key": "Answer",
+          "wireName": "Answer",
+          "input": "AnswerObject",
+          "requiredInput": [
+            "key",
+            "answer"
+          ],
+          "output": "AnswerObject",
+          "errors": []
+        },
+        {
+          "key": "EnableHolidays",
+          "wireName": "EnableHolidays",
+          "input": "HolidayIdsRequest",
+          "requiredInput": [
+            "ids",
+            "loopId"
+          ],
+          "output": "EnableDisableResult",
+          "errors": []
+        },
+        {
+          "key": "ListHolidays",
+          "wireName": "ListHolidays",
+          "input": "ListHolidaysRequest",
+          "requiredInput": [
+            "loopId"
+          ],
+          "output": "Holidays",
+          "errors": []
+        },
+        {
+          "key": "DisableHolidays",
+          "wireName": "DisableHolidays",
+          "input": "HolidayIdsRequest",
+          "requiredInput": [
+            "ids",
+            "loopId"
+          ],
+          "output": "EnableDisableResult",
+          "errors": []
+        },
+        {
+          "key": "SetLoopProperty",
+          "wireName": "SetLoopProperty",
+          "input": "SetLoopPropertyRequest",
+          "requiredInput": [
+            "key",
+            "value",
+            "loopId"
+          ],
+          "output": null,
+          "errors": []
+        },
+        {
+          "key": "GetLoopProperties",
+          "wireName": "GetLoopProperties",
+          "input": "GetLoopPropertiesRequest",
+          "requiredInput": [
+            "keys",
+            "loopId"
+          ],
+          "output": "PropertyMap",
+          "errors": []
+        },
+        {
+          "key": "SetAccountProperty",
+          "wireName": "SetAccountProperty",
+          "input": "SetAccountPropertyRequest",
+          "requiredInput": [
+            "key",
+            "value"
+          ],
+          "output": null,
+          "errors": []
+        },
+        {
+          "key": "GetAccountProperties",
+          "wireName": "GetAccountProperties",
+          "input": "GetAccountPropertiesRequest",
+          "requiredInput": [
+            "keys"
+          ],
+          "output": "PropertyMap",
+          "errors": []
+        },
+        {
+          "key": "ListAccountPropertyKeys",
+          "wireName": "ListAccountPropertyKeys",
+          "input": null,
+          "requiredInput": [],
+          "output": "ListAccountPropertyKeysResult",
+          "errors": []
+        }
+      ],
+      "shapeCount": 36
+    },
+    {
+      "path": "apis/push-2016-07-29.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/push-2016-07-29.normal.json",
+      "metadata": {
+        "apiVersion": "2016-07-29",
+        "endpointPrefix": "push",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Push",
+        "signatureVersion": "v4",
+        "targetPrefix": "Push_20160729",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "CreateDevice",
+          "wireName": "CreateDevice",
+          "input": "Device",
+          "requiredInput": [
+            "name",
+            "pushToken",
+            "type"
+          ],
+          "output": "Devices",
+          "errors": []
+        },
+        {
+          "key": "RemoveDevice",
+          "wireName": "RemoveDevice",
+          "input": "RemoveDeviceRequest",
+          "requiredInput": [
+            "name"
+          ],
+          "output": "Devices",
+          "errors": []
+        }
+      ],
+      "shapeCount": 6
+    },
+    {
+      "path": "apis/robot-2016-02-25.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/robot-2016-02-25.normal.json",
+      "metadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "GetFriendlyIds",
+          "wireName": "GetFriendlyIds",
+          "input": "FriendlyIdsRequest",
+          "requiredInput": [
+            "count"
+          ],
+          "output": "IdPairs",
+          "errors": []
+        },
+        {
+          "key": "RemoveRobot",
+          "wireName": "RemoveRobot",
+          "input": "IdRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "UpdateRobot",
+          "wireName": "UpdateRobot",
+          "input": "UpdateRequest",
+          "requiredInput": [
+            "id",
+            "payload"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "GetRobot",
+          "wireName": "GetRobot",
+          "input": "IdRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "Robot",
+          "errors": []
+        },
+        {
+          "key": "GetRobotHistory",
+          "wireName": "GetRobotHistory",
+          "input": "IdRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "Events",
+          "errors": []
+        },
+        {
+          "key": "GetCalibrationData",
+          "wireName": "GetCalibrationData",
+          "input": "IdRequest",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "CalibrationResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 17
+    },
+    {
+      "path": "apis/robotadmin-2016-02-25.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/robotadmin-2016-02-25.normal.json",
+      "metadata": {
+        "apiVersion": "2016-02-25",
+        "endpointPrefix": "robotadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Robot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Robot_20160225",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "CreateRobot",
+          "wireName": "CreateRobot",
+          "input": "CreateRequest",
+          "requiredInput": [
+            "id",
+            "payload"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "CreateRobotBatch",
+          "wireName": "CreateRobotBatch",
+          "input": "CreateRequests",
+          "requiredInput": [],
+          "output": "CommandResponse",
+          "errors": []
+        },
+        {
+          "key": "CalibrateRobot",
+          "wireName": "CalibrateRobot",
+          "input": "CalibrateRequest",
+          "requiredInput": [
+            "id",
+            "calibrationPayload"
+          ],
+          "output": "CommandResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 9
+    },
+    {
+      "path": "apis/rom-2017-10-11.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/rom-2017-10-11.normal.json",
+      "metadata": {
+        "apiVersion": "2017-10-11",
+        "endpointPrefix": "rom",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo ROM",
+        "signatureVersion": "v4",
+        "targetPrefix": "ROM_20171011",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "Create",
+          "wireName": "Create",
+          "input": "CreateRequest",
+          "requiredInput": [
+            "friendlyId"
+          ],
+          "output": "CreateResponse",
+          "errors": []
+        },
+        {
+          "key": "SetupClient",
+          "wireName": "SetupClient",
+          "input": "ClientRequest",
+          "requiredInput": [
+            "friendlyId"
+          ],
+          "output": "ClientResponse",
+          "errors": []
+        },
+        {
+          "key": "SetupServer",
+          "wireName": "SetupServer",
+          "input": "Payload",
+          "requiredInput": [
+            "ipAddress"
+          ],
+          "output": "ServerResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 18
+    },
+    {
+      "path": "apis/settings-2017-12-19.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/settings-2017-12-19.normal.json",
+      "metadata": {
+        "apiVersion": "2017-12-19",
+        "endpointPrefix": "settings",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Settings",
+        "signatureVersion": "v4",
+        "targetPrefix": "Settings_20171219",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "GetSettings",
+          "wireName": "GetSettings",
+          "input": "GetSettingsRequest",
+          "requiredInput": [
+            "loopId",
+            "transId"
+          ],
+          "output": "GetSettingsResponse",
+          "errors": []
+        },
+        {
+          "key": "GetDataForSettings",
+          "wireName": "GetDataForSettings",
+          "input": "GetDataForSettingsRequest",
+          "requiredInput": [
+            "loopId",
+            "transId",
+            "settings"
+          ],
+          "output": "GetSettingsResponse",
+          "errors": []
+        },
+        {
+          "key": "UpdateSettings",
+          "wireName": "UpdateSettings",
+          "input": "UpdateSettingsRequest",
+          "requiredInput": [
+            "loopId",
+            "data",
+            "transId"
+          ],
+          "output": "UpdateSettingsResponse",
+          "errors": []
+        },
+        {
+          "key": "DeleteSettings",
+          "wireName": "DeleteSettings",
+          "input": "DeleteSettingsRequest",
+          "requiredInput": [
+            "loopId",
+            "transId",
+            "data"
+          ],
+          "output": "DeleteSettingsResponse",
+          "errors": []
+        }
+      ],
+      "shapeCount": 21
+    },
+    {
+      "path": "apis/update-2016-03-01.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/update-2016-03-01.normal.json",
+      "metadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "update",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "ListUpdates",
+          "wireName": "ListUpdates",
+          "input": "ListRequest",
+          "requiredInput": [],
+          "output": "UpdateList",
+          "errors": []
+        },
+        {
+          "key": "ListUpdatesFrom",
+          "wireName": "ListUpdatesFrom",
+          "input": "FromRequest",
+          "requiredInput": [
+            "fromVersion"
+          ],
+          "output": "UpdateList",
+          "errors": []
+        },
+        {
+          "key": "GetUpdateFrom",
+          "wireName": "GetUpdateFrom",
+          "input": "FromRequest",
+          "requiredInput": [
+            "fromVersion"
+          ],
+          "output": "Update",
+          "errors": []
+        },
+        {
+          "key": "CreateUpdate",
+          "wireName": "CreateUpdate",
+          "input": "UpdateRequest",
+          "requiredInput": [
+            "fromVersion",
+            "toVersion",
+            "changes"
+          ],
+          "output": "Update",
+          "errors": []
+        },
+        {
+          "key": "RemoveUpdate",
+          "wireName": "RemoveUpdate",
+          "input": "Id",
+          "requiredInput": [
+            "id"
+          ],
+          "output": "Update",
+          "errors": []
+        }
+      ],
+      "shapeCount": 13
+    },
+    {
+      "path": "apis/updateadmin-2016-03-01.normal.json",
+      "source": "https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/branch/master/apis/updateadmin-2016-03-01.normal.json",
+      "metadata": {
+        "apiVersion": "2016-03-01",
+        "endpointPrefix": "updateadmin",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Update",
+        "signatureVersion": "v4",
+        "targetPrefix": "Update_20160301",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "key": "ListUniqueFilters",
+          "wireName": "ListUniqueFilters",
+          "input": null,
+          "requiredInput": [],
+          "output": "UniqueFilterList",
+          "errors": []
+        },
+        {
+          "key": "SetTarget",
+          "wireName": "SetTarget",
+          "input": "SerialTarget",
+          "requiredInput": [
+            "serial"
+          ],
+          "output": null,
+          "errors": []
+        },
+        {
+          "key": "ListTargets",
+          "wireName": "ListTargets",
+          "input": null,
+          "requiredInput": [],
+          "output": "SerialTargetList",
+          "errors": []
+        }
+      ],
+      "shapeCount": 6
+    }
+  ],
+  "errors": [],
+  "resolvedCommit": "155d20a8102960b2aeb89c197bdf04dc1f1fc344",
+  "uniqueWireTargets": 134
+}

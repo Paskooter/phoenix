@@ -1,0 +1,167 @@
+TopRule =
+( $*
+	(
+        $SELECT_ITEM_ISOLATED
+        	{intent='selectItem'}
+            {itemType=SELECT_ITEM_ISOLATED._type}
+    ) | (
+        $SELECT_LOCATION
+        	{intent='selectItem'}
+            {itemPosition=SELECT_LOCATION._pos}
+    ) | (
+        $SELECT_ITEM_BY_LOCATION
+        	{intent='selectItem'}
+            {itemType=SELECT_ITEM_BY_LOCATION._type}
+            {itemPosition=SELECT_ITEM_BY_LOCATION._pos}
+    # ) | (
+    #     $FILTER
+    #     	{intent='filter'}
+    #         {itemType=FILTER._type}
+    ) | (
+		$CLOSE {intent='close'}
+	)
+$*){domain='gui_command'}{priority='HIGH'}
+;
+
+
+SELECT_ITEM_ISOLATED =
+(
+    ( ?($VIDEO_ACTION) ?($THE) $VIDEO {_type='video'}) |
+    ( ?($PHOTO_ACTION) ?($THE) $PHOTO {_type='photo'}) |
+    ( ?($AUDIO_ACTION) ?($THE) $AUDIO {_type='audio'}) |
+    ( ?($PHOTOBOOTH_ACTION) ?($THE) $PHOTOBOOTH {_type='photobooth'})
+)
+;
+
+SELECT_LOCATION =
+(
+    (
+        ?($POSITION_ACTION) ?($THE) $ORDINAL $ITEM
+            {_pos=ORDINAL._ordinal}
+    ) |
+    (
+        ?($POSITION_ACTION) ?($THE) $POSITION $ITEM
+            {_pos=POSITION._position}
+    ) |
+    (
+        ?($POSITION_ACTION) ?($THE) $ITEM ?(on|in|to) the $POSITION
+            {_pos=POSITION._position}
+    )
+)
+;
+
+SELECT_ITEM_BY_LOCATION =
+(
+    (
+        ?($VIDEO_ACTION) ?($THE) $ORDINAL $VIDEO
+            {_type='video'}{_pos=ORDINAL._ordinal}
+    ) |
+    (
+        ?($VIDEO_ACTION) ?($THE) $POSITION $VIDEO
+            {_type='video'}{_pos=POSITION._position}
+    ) |
+    (
+        ?($VIDEO_ACTION) ?($THE) $VIDEO ?(on|in|to) the $POSITION
+            {_type='video'}{_pos=POSITION._position}
+    ) |
+    (
+        ?($PHOTO_ACTION) ?($THE) $ORDINAL $PHOTO
+            {_type='photo'}{_pos=ORDINAL._ordinal}
+    ) |
+    (
+        ?($PHOTO_ACTION) ?($THE)$POSITION $PHOTO
+            {_type='photo'}{_pos=POSITION._position}
+    ) |
+    (
+    	?($PHOTO_ACTION) ?($THE) $PHOTO ?(on|in|to) the $POSITION
+            {_type='photo'}{_pos=POSITION._position}
+    ) |
+    (
+        ?($AUDIO_ACTION) ?($THE) $ORDINAL $AUDIO
+            {_type='audio'}{_pos=ORDINAL._ordinal}
+    ) |
+    (
+        ?($AUDIO_ACTION) ?($THE)$POSITION $AUDIO
+            {_type='audio'}{_pos=POSITION._position}
+    ) |
+    (
+        ?($AUDIO_ACTION) ?($THE) $AUDIO ?(on|in|to) the $POSITION
+            {_type='audio'}{_pos=POSITION._position}
+    ) |
+    (
+        ?($PHOTOBOOTH_ACTION) ?($THE) $ORDINAL $PHOTOBOOTH
+            {_type='photobooth'}{_pos=ORDINAL._ordinal}
+    ) |
+    (
+        ?($PHOTOBOOTH_ACTION) ?($THE) $POSITION $PHOTOBOOTH
+            {_type='photobooth'}{_pos=POSITION._position}
+    ) |
+    (
+        ?($PHOTOBOOTH_ACTION) ?($THE) $PHOTOBOOTH ?(on|in|to) the $POSITION
+            {_type='photobooth'}{_pos=POSITION._position}
+    )
+)
+;
+
+
+
+FILTER =
+(
+    ( (?$FILTER_ACTION $ALL)|($ALL $* $FILTER_ACTION) $* $VIDEOS {_type='video'}) |
+    ( (?$FILTER_ACTION $ALL)|($ALL $* $FILTER_ACTION) $* $PHOTOS {_type='photo'}) |
+    ( (?$FILTER_ACTION $ALL)|($ALL $* $FILTER_ACTION) $* $AUDIOS {_type='audio'}) |
+    ( (?$FILTER_ACTION $ALL)|($ALL $* $FILTER_ACTION) $* $PHOTOBOOTHS {_type='photobooth'}) |
+    ( ?$FILTER_ACTION $* $EVERYTHING {_type='all'})
+)
+;
+
+CLOSE = (close|exit|escape|done|shut|(clothes gallary)|(clothes picture)|(clothes pictures)) {_intent='close'};
+
+POSITION =
+    (($POSITION_LEFT {_position='left'}) |
+	($POSITION_MIDDLE {_position ='middle'}) |
+	($POSITION_RIGHT {_position ='right'}) )
+;
+
+ORDINAL =
+    ($ORDINAL_FIRST {_ordinal='first'} |
+	$ORDINAL_SECOND {_ordinal='second'} |
+	$ORDINAL_THIRD {_ordinal='third'})
+;
+
+
+### USEFUL VOCABULARY ###
+FILTER_ACTION = ($SHOW | $SEE | $BROWSE);
+POSITION_ACTION = ($PLAY | $OPEN | $SHOW | $SEE | $DO | $LISTEN);
+VIDEO_ACTION = ($PLAY | $OPEN | $SHOW | $SEE | $DO);
+PHOTO_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+AUDIO_ACTION = ($PLAY | $OPEN | $LISTEN | $DO);
+PHOTOBOOTH_ACTION = ($PLAY | $OPEN | $SHOW | $SEE | $DO);
+PLAY = (play ?(me | us));
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select);
+SEE = (?(let/’s | (let me) | (let us)) (see|watch));
+DO = (?(let/’s | (let me) | (let us)) (do | try | have) );
+LISTEN = (listen ?to)|hear;
+SHOW = ((show ?(me|us))|(bring|pull|put|throw ?up)|display|open|view|present|load);
+BROWSE = (browse|(scroll through)|find|filter);
+POSITION_LEFT = (left | leftmost);
+POSITION_MIDDLE = (center | middle);
+POSITION_RIGHT = (right | rightmost);
+ORDINAL_FIRST = ?the first;
+ORDINAL_SECOND = ?the second;
+ORDINAL_THIRD = ?the third;
+THE = (the | that);
+VIDEO = (video | movie | film | flick);
+PHOTO = (photo | pic | picture | photograph);
+AUDIO = (voice | audio | message | note |sound);
+PHOTOBOOTH = (photobooth | (photo booth|shoot|set|collage|group));
+AUDIOS = [voice?s]|[audio?s]|[message?s]|[note?s]|[sound?s];
+PHOTOS = [picture?s] | [photo?s] | [pic?s] | [photograph?s] | [selfie?s];
+VIDEOS = [video?s] | [movie?s] | [film?s] | [flick?s];
+PHOTOBOOTHS = [photobooth?s] | [photoshoot?s] | (photo ([shoot?s]|[booth?s]|[collage?s]|[set?s]|[group?s]));
+EVERYTHING = (everything | (all of it) | (it all) | (all|every ?media [kind?s]|[type?s]));
+ITEM = (one | thing | item | icon);
+LOCATION = (spot | slot | position);
+PAGE = ( page | set | group | screen );
+NAVIGATE = (go | move | jump | slide | scroll | flip);
+ALL = ((all ?of)|just|only) ?the;

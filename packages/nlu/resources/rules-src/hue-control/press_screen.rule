@@ -1,0 +1,17 @@
+TopRule = $* $GETREADY $* {intent=GETREADY._intent}{priority='HIGH'};
+
+### When you're pushed the button on the bridge, say I'm ready. ###
+
+GETREADY =
+(
+    $IMREADY {_intent = 'imReady'}
+);
+IMREADY =
+(
+    ( ?$IAMWEARE ready ) |
+    ( okay $IAMWEARE ready ) |
+    ( let\'s ( go | ( do it ) ) )
+);
+
+### USEFUL VOCAB ###
+IAMWEARE = ( i am ) | i\'m | ( we are ) | we\'re;

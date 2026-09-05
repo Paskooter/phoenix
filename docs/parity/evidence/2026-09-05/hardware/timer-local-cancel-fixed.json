@@ -1,0 +1,57 @@
+{
+  "task": "N-01",
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "result": "pass for this scenario; full task open",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "phoenixRevision": "16d91169bdd4e1153cb5021eb493afe7b37f381d",
+  "sourceTreeSha256": "a38d4986b2ec6b05b74a43ed2db0854a24e547507de47ade1b8731cef7821dcf",
+  "profile": "Original BE and native client; Phoenix port19000, auth disabled, LINEAR16",
+  "scenario": "set a timer -> clock duration prompt -> LocalTurnRequest.update(cancel)",
+  "input": "CLIENT_ASR text injection through original SDK; no microphone recognition claim",
+  "requestedRules": [
+    "clock/timer_set_value",
+    "globals/gui_nav",
+    "globals/mim_repeat"
+  ],
+  "originalCase": "boundary:timer-local-cancel",
+  "originalReferenceSha256": "b34f79f37d1f1fb54c5883c207b8dba9ddd2dfa52f622d57fd753d8c7d4816ac",
+  "expectedNLU": {
+    "entities": {
+      "hours": "null",
+      "minutes": "null",
+      "seconds": "null",
+      "domain": "timer"
+    },
+    "intent": "cancel",
+    "rules": [
+      "clock/timer_set_value"
+    ]
+  },
+  "actualNLU": {
+    "entities": {
+      "domain": "timer",
+      "hours": "null",
+      "minutes": "null",
+      "seconds": "null"
+    },
+    "intent": "cancel",
+    "rules": [
+      "clock/timer_set_value"
+    ]
+  },
+  "nativeStatus": "SUCCEEDED",
+  "localTurnResults": 1,
+  "clockClosedWithoutRetry": true,
+  "observation": "Timer view changed to eye view after cancel; idle skill resumed. No second local turn or retry prompt was observed in the16-second window.",
+  "followupRestored": true,
+  "visualObserverRestored": true,
+  "privateCapture": ".parity/robots/moth/20260905/integration-16d9116/timer-local-cancel.json",
+  "captureSha256": "11b3b0af5c184b8185bd35423ed2c796769aba0ddde2cffb03ee88cf7fa4ed6e",
+  "limitations": [
+    "Only this original clock cancellation scenario is accepted.",
+    "Factory/time grammar coverage and full N-01 remain open.",
+    "Physical wake phrase and authentication remain unverified."
+  ]
+}

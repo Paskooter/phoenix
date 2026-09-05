@@ -1,0 +1,32 @@
+TopRule =
+		$* $SELECT_PERSONAL_REPORT_ITEM
+				{intent='loadMenu'}
+				{destination=SELECT_PERSONAL_REPORT_ITEM._destination}
+				{priority='HIGH'}
+		$*
+;
+
+
+SELECT_PERSONAL_REPORT_ITEM = ( ?($GENERIC_ACTION) ?($THE|$*) $SKILLS ?($SKILLSUFFIX) ) {_destination=SKILLS._destination} ;
+
+
+SKILLS =
+(
+	( (full report) {_destination='full-report'}) |
+	( (weather) {_destination='weather'} ) |
+	( (calendar) {_destination='calendar'}) |
+	( (commute) {_destination='commute'}) |
+	( (news) {_destination='news'})
+)
+;
+
+### USEFUL VOCABULARY ###
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+SKILLSUFFIX = (skill | app | application | thing | one);
+THE = (the | that | your);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select | load);
+SHOW = (show ?(me | us));
+SEE = ((let\'s | (let me) | (let us)) see);
+DO = (?(let\'s | (let me) | (let us)) (do | try) );
+ITEM = (one | thing | item | icon);
+LOCATION = (spot | slot | position);

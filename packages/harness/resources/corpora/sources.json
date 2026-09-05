@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "manifests": [
+    {
+      "id": "chitchat",
+      "source": "packages/chitchat-skill/resources/test-manifest.json",
+      "blob": "b275fb161da90e5e839ea3939fb242394d5f8b03",
+      "path": "packages/harness/resources/test-manifest.json",
+      "sha256": "ea70a399299e0d5cc3c654268b407a5bdc61cfa0602ce3f8d8db34dc8a177ccd"
+    },
+    {
+      "id": "hub-client",
+      "source": "packages/hub-client-cli/resources/test-manifest.json",
+      "blob": "424524b20284e9ef00a0a63b85269e2be052c70a",
+      "path": "packages/harness/resources/corpora/hub-client.json",
+      "sha256": "0d7dde285b90cdbc3c9e49d0ae90afe443be78b6086c0a05521dd155ff110f80"
+    },
+    {
+      "id": "report",
+      "source": "packages/report-skill/resources/test-manifest.json",
+      "blob": "cf734964375e3b4c855ea3cb400c6ce7934dccf9",
+      "path": "packages/harness/resources/corpora/report.json",
+      "sha256": "3a64d8de41f751e7dab02843db76487533b12e8d59598f7342e480bafeb9bf73"
+    }
+  ],
+  "notes": [
+    "Unmodified original data, including absent fields and conditional expectations.",
+    "No deduplication or intent inference was applied."
+  ]
+}

@@ -1,0 +1,61 @@
+TopRule = ($* $YESNO $*) {domain = 'whoAmI'}{intent = YESNO._intent}{priority='HIGH'};
+
+### You're Peter. Did I get the right person?
+### You're Peter. Right?
+### So you're Peter. Did I get the right person?
+### So I think you're Peter, did I get the right person?
+### I think you're Peter. Am I right?
+### You're Peter. Did I get it right?
+### My results suggest either Peter, or Abraham Lincoln? Is one of those right?
+### So would I be close if I guessed Peter?
+
+YESNO = $factory:yes_no{_intent = yes_no._nl} |
+        $V_YES_CLOSE {_intent = 'yes'} |
+        $V_NO_CLOSE {_intent = 'no'} |
+        $YES {_intent= 'yes'} |
+        $NO {_intent= 'no'}
+;
+V_YES_CLOSE = ((close enough)|(sort|kind of)|kinda|sure)
+;
+V_NO_CLOSE = ((not quite)|(?close ?but no cigar))
+;
+YES =
+	(
+        guess | gas |
+        ( you ?sure did ) |
+        ( that\'s me ) |
+        ( ?that\'s right ) |
+        ( you are ) |
+        ( you would ?be ) |
+        ( ( that\'s | it\'s ) me ) |
+        ( you bet ) |
+        correct |
+        affirmative |
+        indeed |
+        ( that\'s my name ) |
+        ( in person ) |
+        definitely |
+        ( in the flesh ) |
+        ( you\'ve got ( him | her ) ) |
+        ( standing ?right here ) |
+        ( i\'m here ) |
+        ( you ( think | guessed ) ( correctly | correct ) ) |
+        ( you would ?be ) |
+        ( you\'d be close )
+	)
+;
+NO =
+	(
+        know | snow | now |
+        nope |
+        ( you didn\'t ) |
+        ( not this time ) |
+        ( wrong ?again ) |
+        ( it\'s not ) |
+        ( this is ) |
+        ( ?still wrong ) |
+        ( not me ) |
+        ( you think ?that ( i\'m | ( i am ) ) ) |
+        ( not even )
+	)
+;

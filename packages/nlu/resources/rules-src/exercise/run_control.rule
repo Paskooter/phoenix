@@ -1,0 +1,24 @@
+TopRule = $* ($COMMANDS){intent=COMMANDS._intent}{priority='HIGH'} $*;
+
+COMMANDS =(
+    ($D_INTENT_PAUSE_EXERCISE){_intent='pause_exercise'}
+);
+### INTENTS ###
+
+D_INTENT_PAUSE_EXERCISE =
+(
+    ( $V_PAUSE_HOMOPHONES $* ?$V_EXERCISE ) |
+    ( wait ?( a | any | some ) ?$V_TIME ) |
+    ( just ?( a | any | some ) ?$V_TIME ) ) |
+    ( ( hang | hold ) on ) |
+    ( $V_NEED $* ( break | $V_TIME )
+);
+#D_INTENT_STOP_EXERCISE =
+#    ((stop $V_EXERCISE))
+#;
+
+### USEFUL VOCABULARY ###
+V_TIME = ( [second?(s)] | [minute?(s)] | moment | sec | sick );
+V_EXERCISE = ( exercise | routine | session | yoga );
+V_NEED = need | want;
+V_PAUSE_HOMOPHONES = (pause|paws|buzz|fuzz|cuz|cause|crosby|false|hatha);

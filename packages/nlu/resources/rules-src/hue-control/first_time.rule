@@ -1,0 +1,35 @@
+TopRule = $* $FIRSTTIME $* {intent=FIRSTTIME._intent}{priority='HIGH'};
+
+### ...Before we continue, I have a question. Has it been at least a day since you set them up? ###
+### So, has it been at least a day since you set up your hue lights? ###
+
+FIRSTTIME =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( ?yes it $* has ?yes ) |
+    yesterday |
+    ( last night ) |
+    ( last week ) |
+    ( last month ) |
+    ( last year ) |
+    ( long time ) |
+    forever
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( not yet ) |
+    almost |
+    ( ?no it ( hasn\'t | ( has not ) ) ) |
+    ( just did ) |
+    today |
+    ( this ( morning | afternoon | evening ) ) |
+    tonight |
+    ( it hasn\'t )
+);

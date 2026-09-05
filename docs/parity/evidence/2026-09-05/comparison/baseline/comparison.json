@@ -1,0 +1,3938 @@
+{
+  "pass": false,
+  "cases": 28,
+  "invariants": [],
+  "differences": [
+    {
+      "path": "/cases/0/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "2"
+    },
+    {
+      "path": "/cases/0/response/headers/content-type",
+      "kind": "value",
+      "expected": "text/html; charset=utf-8",
+      "actual": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "/cases/0/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/0/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/0/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/1/response/body/value",
+      "kind": "value",
+      "expected": null,
+      "actual": {}
+    },
+    {
+      "path": "/cases/1/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "4"
+    },
+    {
+      "path": "/cases/1/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/1/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/1/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/10/response/body/value",
+      "kind": "value",
+      "expected": null,
+      "actual": {
+        "type": "ERROR",
+        "msgID": "77569070-0a19-43a1-a756-2be5f5879303",
+        "ts": 1527681600000,
+        "data": {
+          "message": "no route GET /fixture/null/",
+          "code": "NOT_FOUND"
+        },
+        "final": true
+      }
+    },
+    {
+      "path": "/cases/10/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "4"
+    },
+    {
+      "path": "/cases/10/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/10/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/10/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/10/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/11/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "4"
+    },
+    {
+      "path": "/cases/11/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/11/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/11/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/12/response/body/kind",
+      "kind": "value",
+      "expected": "text",
+      "actual": "json"
+    },
+    {
+      "path": "/cases/12/response/body/value",
+      "kind": "value",
+      "expected": "POST",
+      "actual": {
+        "type": "ERROR",
+        "msgID": "d306b48e-43ef-47c6-939e-4b9c1e32d62d",
+        "ts": 1527681600000,
+        "data": {
+          "message": "no route OPTIONS /fixture/echo",
+          "code": "NOT_FOUND"
+        },
+        "final": true
+      }
+    },
+    {
+      "path": "/cases/12/response/headers/allow",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "POST"
+    },
+    {
+      "path": "/cases/12/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "4"
+    },
+    {
+      "path": "/cases/12/response/headers/content-type",
+      "kind": "value",
+      "expected": "text/html; charset=utf-8",
+      "actual": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/cases/12/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/12/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/12/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/12/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/13/response/body/value/data",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": {
+        "message": "Authorization is required"
+      }
+    },
+    {
+      "path": "/cases/13/response/body/value/final",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": true
+    },
+    {
+      "path": "/cases/13/response/body/value/msgID",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "9bef0081-5909-4663-bddc-53f7c7cba9a9"
+    },
+    {
+      "path": "/cases/13/response/body/value/ts",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": 1527681600000
+    },
+    {
+      "path": "/cases/13/response/body/value/type",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "ERROR"
+    },
+    {
+      "path": "/cases/13/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "142"
+    },
+    {
+      "path": "/cases/13/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/13/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/13/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/13/response/status",
+      "kind": "value",
+      "expected": 401,
+      "actual": 200
+    },
+    {
+      "path": "/cases/14/response/body/value",
+      "kind": "value",
+      "expected": null,
+      "actual": {}
+    },
+    {
+      "path": "/cases/14/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "4"
+    },
+    {
+      "path": "/cases/14/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/14/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/14/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/15/response/body/value/data",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": {
+        "message": "no route GET /skills/fixture-robot",
+        "code": "NOT_FOUND"
+      }
+    },
+    {
+      "path": "/cases/15/response/body/value/final",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": true
+    },
+    {
+      "path": "/cases/15/response/body/value/msgID",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "6a251d49-e074-4329-a171-a147c2eaf78b"
+    },
+    {
+      "path": "/cases/15/response/body/value/skills",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": [
+        {
+          "id": "skill1",
+          "URL": "http://127.0.0.1:33035/skill",
+          "intents": [
+            {
+              "name": "matchingIntent",
+              "memo": {
+                "route": "fixture",
+                "enabled": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "report-skill",
+          "intents": [
+            {
+              "name": "launchPersonalReport",
+              "entities": [],
+              "memo": "Reactive"
+            },
+            {
+              "name": "requestWeatherPR",
+              "entities": [],
+              "memo": "Reactive Weather"
+            },
+            {
+              "name": "requestCommute",
+              "entities": [],
+              "memo": "Reactive Commute"
+            },
+            {
+              "name": "requestCalendar",
+              "entities": [],
+              "memo": "Reactive Calendar"
+            },
+            {
+              "name": "requestNews",
+              "entities": [],
+              "memo": "Reactive News"
+            }
+          ],
+          "proactives": [
+            {
+              "memo": "Proactive",
+              "topics": [],
+              "contextRules": [
+                {
+                  "field": "PART_OF_DAY",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    {
+                      "basic": "MORNING",
+                      "detail": "EARLY"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "MID"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "LATE"
+                    }
+                  ]
+                },
+                {
+                  "field": "DAY_OF_WEEK",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                  ]
+                },
+                {
+                  "field": "TRIGGER_SOURCE",
+                  "value": "SURPRISE",
+                  "matchRule": "EXACT"
+                },
+                {
+                  "field": "FOCUSED_PERSON",
+                  "matchRule": "NOT",
+                  "value": "UNKNOWN"
+                }
+              ],
+              "IHRules": [
+                {
+                  "query": "PersonalReportLaunchCount7LastHours",
+                  "matchRule": "LESS_THAN",
+                  "value": 1
+                }
+              ],
+              "settingsRules": [
+                {
+                  "skill": "report-skill",
+                  "key": "offerProactively",
+                  "matchRule": "EXACT",
+                  "value": {
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ],
+          "IHQueries": {
+            "PersonalReportLaunchCount7LastHours": {
+              "type": "Count",
+              "queryRules": [
+                {
+                  "field": "skillID",
+                  "match": "EXACT",
+                  "value": "report-skill"
+                }
+              ],
+              "startTimeOffset": [
+                -7,
+                "hours"
+              ],
+              "endTimeOffset": [
+                0,
+                "hours"
+              ]
+            }
+          },
+          "settings": {
+            "view": {
+              "type": "skill",
+              "index": 0,
+              "title": "Personal report",
+              "subtitle": "Add your commute, calendar and news",
+              "icon": "personal_report_icon",
+              "childViews": [
+                {
+                  "type": "switch",
+                  "index": 0,
+                  "title": "Offer report proactively",
+                  "subtitle": "Jibo offers your Personal Report when he sees you",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "offerProactively",
+                    "default": true
+                  }
+                },
+                {
+                  "type": "subheader",
+                  "index": 1,
+                  "title": "WHAT SHOULD JIBO TELL YOU?"
+                },
+                {
+                  "type": "switch",
+                  "index": 2,
+                  "title": "Weather",
+                  "subtitle": "Change temperature units",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "weatherEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHICH UNITS SHOULD JIBO USE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weather"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Fahrenheit"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Celsius"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 2,
+                      "owner": true,
+                      "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                      "links": [
+                        {
+                          "placeholder": "JIBO_SETTINGS",
+                          "text": "Jibo settings",
+                          "url": "JIBO_SETTINGS_LINK"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 3,
+                  "title": "Commute",
+                  "subtitle": "Set where, when, and how you commute",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "commuteEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHERE DOES YOUR COMMUTE START?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "homeLocation"
+                      },
+                      "childViews": [
+                        {
+                          "type": "location",
+                          "index": 0,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 2,
+                      "title": "WHERE DOES YOUR COMMUTE END?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 3,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "workLocation"
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 4,
+                      "title": "HOW DO YOU COMMUTE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 5,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteType"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Drive",
+                          "icon": "ic_drive"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Public transport",
+                          "icon": "ic_transport"
+                        },
+                        {
+                          "id": 2,
+                          "value": "Bike",
+                          "icon": "ic_bike"
+                        },
+                        {
+                          "id": 3,
+                          "value": "Walk",
+                          "icon": "ic_walk"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 6,
+                      "title": "WHEN DO YOU USUALLY ARRIVE?"
+                    },
+                    {
+                      "type": "time",
+                      "index": 7,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteTime",
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 4,
+                  "title": "Calendars",
+                  "subtitle": "Connect work and personal calendars",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "calendarEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "connectable",
+                      "index": 0,
+                      "title": "Personal calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "personalCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:personalCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:personalCalendar:readonly"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "connectable",
+                      "index": 1,
+                      "title": "Work calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "workCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR WORK CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:workCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:workCalendar:readonly"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 5,
+                  "title": "News",
+                  "subtitle": "Customize your topics of interest",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "newsEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "toggle",
+                      "index": 0,
+                      "title": "International",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsInternational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 1,
+                      "title": "National",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsNational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 2,
+                      "title": "Business",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsBusiness"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 3,
+                      "title": "Entertainment",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEntertainment"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 4,
+                      "title": "Sports",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsSports"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 5,
+                      "title": "Health",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsHealth"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 6,
+                      "title": "Politics",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsPolitics"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 7,
+                      "title": "Science",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsScience"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 8,
+                      "title": "Technology",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsTechnology"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 9,
+                      "title": "Strange",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsStrange"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "footer",
+                  "index": 6,
+                  "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                }
+              ]
+            }
+          },
+          "URL": "http://127.0.0.1:33035/skill"
+        }
+      ]
+    },
+    {
+      "path": "/cases/15/response/body/value/ts",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": 1527681600000
+    },
+    {
+      "path": "/cases/15/response/body/value/type",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "ERROR"
+    },
+    {
+      "path": "/cases/15/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "7856"
+    },
+    {
+      "path": "/cases/15/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/15/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/15/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/15/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/16/response/body/value/data",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": {
+        "message": "no route GET /v1/skills/fixture-robot",
+        "code": "NOT_FOUND"
+      }
+    },
+    {
+      "path": "/cases/16/response/body/value/final",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": true
+    },
+    {
+      "path": "/cases/16/response/body/value/msgID",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "52442fa1-f813-4a7e-809c-9f918998812e"
+    },
+    {
+      "path": "/cases/16/response/body/value/skills",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": [
+        {
+          "id": "skill1",
+          "URL": "http://127.0.0.1:33035/skill",
+          "intents": [
+            {
+              "name": "matchingIntent",
+              "memo": {
+                "route": "fixture",
+                "enabled": false
+              }
+            }
+          ]
+        },
+        {
+          "id": "report-skill",
+          "intents": [
+            {
+              "name": "launchPersonalReport",
+              "entities": [],
+              "memo": "Reactive"
+            },
+            {
+              "name": "requestWeatherPR",
+              "entities": [],
+              "memo": "Reactive Weather"
+            },
+            {
+              "name": "requestCommute",
+              "entities": [],
+              "memo": "Reactive Commute"
+            },
+            {
+              "name": "requestCalendar",
+              "entities": [],
+              "memo": "Reactive Calendar"
+            },
+            {
+              "name": "requestNews",
+              "entities": [],
+              "memo": "Reactive News"
+            }
+          ],
+          "proactives": [
+            {
+              "memo": "Proactive",
+              "topics": [],
+              "contextRules": [
+                {
+                  "field": "PART_OF_DAY",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    {
+                      "basic": "MORNING",
+                      "detail": "EARLY"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "MID"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "LATE"
+                    }
+                  ]
+                },
+                {
+                  "field": "DAY_OF_WEEK",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                  ]
+                },
+                {
+                  "field": "TRIGGER_SOURCE",
+                  "value": "SURPRISE",
+                  "matchRule": "EXACT"
+                },
+                {
+                  "field": "FOCUSED_PERSON",
+                  "matchRule": "NOT",
+                  "value": "UNKNOWN"
+                }
+              ],
+              "IHRules": [
+                {
+                  "query": "PersonalReportLaunchCount7LastHours",
+                  "matchRule": "LESS_THAN",
+                  "value": 1
+                }
+              ],
+              "settingsRules": [
+                {
+                  "skill": "report-skill",
+                  "key": "offerProactively",
+                  "matchRule": "EXACT",
+                  "value": {
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ],
+          "IHQueries": {
+            "PersonalReportLaunchCount7LastHours": {
+              "type": "Count",
+              "queryRules": [
+                {
+                  "field": "skillID",
+                  "match": "EXACT",
+                  "value": "report-skill"
+                }
+              ],
+              "startTimeOffset": [
+                -7,
+                "hours"
+              ],
+              "endTimeOffset": [
+                0,
+                "hours"
+              ]
+            }
+          },
+          "settings": {
+            "view": {
+              "type": "skill",
+              "index": 0,
+              "title": "Personal report",
+              "subtitle": "Add your commute, calendar and news",
+              "icon": "personal_report_icon",
+              "childViews": [
+                {
+                  "type": "switch",
+                  "index": 0,
+                  "title": "Offer report proactively",
+                  "subtitle": "Jibo offers your Personal Report when he sees you",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "offerProactively",
+                    "default": true
+                  }
+                },
+                {
+                  "type": "subheader",
+                  "index": 1,
+                  "title": "WHAT SHOULD JIBO TELL YOU?"
+                },
+                {
+                  "type": "switch",
+                  "index": 2,
+                  "title": "Weather",
+                  "subtitle": "Change temperature units",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "weatherEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHICH UNITS SHOULD JIBO USE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weather"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Fahrenheit"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Celsius"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 2,
+                      "owner": true,
+                      "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                      "links": [
+                        {
+                          "placeholder": "JIBO_SETTINGS",
+                          "text": "Jibo settings",
+                          "url": "JIBO_SETTINGS_LINK"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 3,
+                  "title": "Commute",
+                  "subtitle": "Set where, when, and how you commute",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "commuteEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHERE DOES YOUR COMMUTE START?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "homeLocation"
+                      },
+                      "childViews": [
+                        {
+                          "type": "location",
+                          "index": 0,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 2,
+                      "title": "WHERE DOES YOUR COMMUTE END?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 3,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "workLocation"
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 4,
+                      "title": "HOW DO YOU COMMUTE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 5,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteType"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Drive",
+                          "icon": "ic_drive"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Public transport",
+                          "icon": "ic_transport"
+                        },
+                        {
+                          "id": 2,
+                          "value": "Bike",
+                          "icon": "ic_bike"
+                        },
+                        {
+                          "id": 3,
+                          "value": "Walk",
+                          "icon": "ic_walk"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 6,
+                      "title": "WHEN DO YOU USUALLY ARRIVE?"
+                    },
+                    {
+                      "type": "time",
+                      "index": 7,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteTime",
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 4,
+                  "title": "Calendars",
+                  "subtitle": "Connect work and personal calendars",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "calendarEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "connectable",
+                      "index": 0,
+                      "title": "Personal calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "personalCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:personalCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:personalCalendar:readonly"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "connectable",
+                      "index": 1,
+                      "title": "Work calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "workCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR WORK CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:workCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:workCalendar:readonly"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 5,
+                  "title": "News",
+                  "subtitle": "Customize your topics of interest",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "newsEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "toggle",
+                      "index": 0,
+                      "title": "International",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsInternational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 1,
+                      "title": "National",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsNational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 2,
+                      "title": "Business",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsBusiness"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 3,
+                      "title": "Entertainment",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEntertainment"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 4,
+                      "title": "Sports",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsSports"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 5,
+                      "title": "Health",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsHealth"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 6,
+                      "title": "Politics",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsPolitics"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 7,
+                      "title": "Science",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsScience"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 8,
+                      "title": "Technology",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsTechnology"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 9,
+                      "title": "Strange",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsStrange"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "footer",
+                  "index": 6,
+                  "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                }
+              ]
+            }
+          },
+          "URL": "http://127.0.0.1:33035/skill"
+        }
+      ]
+    },
+    {
+      "path": "/cases/16/response/body/value/ts",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": 1527681600000
+    },
+    {
+      "path": "/cases/16/response/body/value/type",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "ERROR"
+    },
+    {
+      "path": "/cases/16/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "7856"
+    },
+    {
+      "path": "/cases/16/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/16/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/16/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/16/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/17/response/body/value/data",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": {
+        "message": "no route GET /skills/settings/fixture-robot",
+        "code": "NOT_FOUND"
+      }
+    },
+    {
+      "path": "/cases/17/response/body/value/final",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": true
+    },
+    {
+      "path": "/cases/17/response/body/value/msgID",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "0dc79ac5-1fde-414c-b58a-7bfed9586375"
+    },
+    {
+      "path": "/cases/17/response/body/value/skills",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": [
+        {
+          "id": "report-skill",
+          "intents": [
+            {
+              "name": "launchPersonalReport",
+              "entities": [],
+              "memo": "Reactive"
+            },
+            {
+              "name": "requestWeatherPR",
+              "entities": [],
+              "memo": "Reactive Weather"
+            },
+            {
+              "name": "requestCommute",
+              "entities": [],
+              "memo": "Reactive Commute"
+            },
+            {
+              "name": "requestCalendar",
+              "entities": [],
+              "memo": "Reactive Calendar"
+            },
+            {
+              "name": "requestNews",
+              "entities": [],
+              "memo": "Reactive News"
+            }
+          ],
+          "proactives": [
+            {
+              "memo": "Proactive",
+              "topics": [],
+              "contextRules": [
+                {
+                  "field": "PART_OF_DAY",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    {
+                      "basic": "MORNING",
+                      "detail": "EARLY"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "MID"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "LATE"
+                    }
+                  ]
+                },
+                {
+                  "field": "DAY_OF_WEEK",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                  ]
+                },
+                {
+                  "field": "TRIGGER_SOURCE",
+                  "value": "SURPRISE",
+                  "matchRule": "EXACT"
+                },
+                {
+                  "field": "FOCUSED_PERSON",
+                  "matchRule": "NOT",
+                  "value": "UNKNOWN"
+                }
+              ],
+              "IHRules": [
+                {
+                  "query": "PersonalReportLaunchCount7LastHours",
+                  "matchRule": "LESS_THAN",
+                  "value": 1
+                }
+              ],
+              "settingsRules": [
+                {
+                  "skill": "report-skill",
+                  "key": "offerProactively",
+                  "matchRule": "EXACT",
+                  "value": {
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ],
+          "IHQueries": {
+            "PersonalReportLaunchCount7LastHours": {
+              "type": "Count",
+              "queryRules": [
+                {
+                  "field": "skillID",
+                  "match": "EXACT",
+                  "value": "report-skill"
+                }
+              ],
+              "startTimeOffset": [
+                -7,
+                "hours"
+              ],
+              "endTimeOffset": [
+                0,
+                "hours"
+              ]
+            }
+          },
+          "settings": {
+            "view": {
+              "type": "skill",
+              "index": 0,
+              "title": "Personal report",
+              "subtitle": "Add your commute, calendar and news",
+              "icon": "personal_report_icon",
+              "childViews": [
+                {
+                  "type": "switch",
+                  "index": 0,
+                  "title": "Offer report proactively",
+                  "subtitle": "Jibo offers your Personal Report when he sees you",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "offerProactively",
+                    "default": true
+                  }
+                },
+                {
+                  "type": "subheader",
+                  "index": 1,
+                  "title": "WHAT SHOULD JIBO TELL YOU?"
+                },
+                {
+                  "type": "switch",
+                  "index": 2,
+                  "title": "Weather",
+                  "subtitle": "Change temperature units",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "weatherEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHICH UNITS SHOULD JIBO USE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weather"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Fahrenheit"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Celsius"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 2,
+                      "owner": true,
+                      "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                      "links": [
+                        {
+                          "placeholder": "JIBO_SETTINGS",
+                          "text": "Jibo settings",
+                          "url": "JIBO_SETTINGS_LINK"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 3,
+                  "title": "Commute",
+                  "subtitle": "Set where, when, and how you commute",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "commuteEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHERE DOES YOUR COMMUTE START?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "homeLocation"
+                      },
+                      "childViews": [
+                        {
+                          "type": "location",
+                          "index": 0,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 2,
+                      "title": "WHERE DOES YOUR COMMUTE END?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 3,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "workLocation"
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 4,
+                      "title": "HOW DO YOU COMMUTE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 5,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteType"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Drive",
+                          "icon": "ic_drive"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Public transport",
+                          "icon": "ic_transport"
+                        },
+                        {
+                          "id": 2,
+                          "value": "Bike",
+                          "icon": "ic_bike"
+                        },
+                        {
+                          "id": 3,
+                          "value": "Walk",
+                          "icon": "ic_walk"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 6,
+                      "title": "WHEN DO YOU USUALLY ARRIVE?"
+                    },
+                    {
+                      "type": "time",
+                      "index": 7,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteTime",
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 4,
+                  "title": "Calendars",
+                  "subtitle": "Connect work and personal calendars",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "calendarEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "connectable",
+                      "index": 0,
+                      "title": "Personal calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "personalCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:personalCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:personalCalendar:readonly"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "connectable",
+                      "index": 1,
+                      "title": "Work calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "workCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR WORK CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:workCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:workCalendar:readonly"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 5,
+                  "title": "News",
+                  "subtitle": "Customize your topics of interest",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "newsEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "toggle",
+                      "index": 0,
+                      "title": "International",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsInternational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 1,
+                      "title": "National",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsNational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 2,
+                      "title": "Business",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsBusiness"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 3,
+                      "title": "Entertainment",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEntertainment"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 4,
+                      "title": "Sports",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsSports"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 5,
+                      "title": "Health",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsHealth"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 6,
+                      "title": "Politics",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsPolitics"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 7,
+                      "title": "Science",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsScience"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 8,
+                      "title": "Technology",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsTechnology"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 9,
+                      "title": "Strange",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsStrange"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "footer",
+                  "index": 6,
+                  "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                }
+              ]
+            }
+          },
+          "URL": "http://127.0.0.1:33035/skill"
+        }
+      ]
+    },
+    {
+      "path": "/cases/17/response/body/value/ts",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": 1527681600000
+    },
+    {
+      "path": "/cases/17/response/body/value/type",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "ERROR"
+    },
+    {
+      "path": "/cases/17/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "7722"
+    },
+    {
+      "path": "/cases/17/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/17/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/17/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/17/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/18/response/body/value/data",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": {
+        "message": "no route GET /v1/skills/settings/fixture-robot",
+        "code": "NOT_FOUND"
+      }
+    },
+    {
+      "path": "/cases/18/response/body/value/final",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": true
+    },
+    {
+      "path": "/cases/18/response/body/value/msgID",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "8c585e1a-b676-4cb3-8f45-42ba2cc69c32"
+    },
+    {
+      "path": "/cases/18/response/body/value/skills",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": [
+        {
+          "id": "report-skill",
+          "intents": [
+            {
+              "name": "launchPersonalReport",
+              "entities": [],
+              "memo": "Reactive"
+            },
+            {
+              "name": "requestWeatherPR",
+              "entities": [],
+              "memo": "Reactive Weather"
+            },
+            {
+              "name": "requestCommute",
+              "entities": [],
+              "memo": "Reactive Commute"
+            },
+            {
+              "name": "requestCalendar",
+              "entities": [],
+              "memo": "Reactive Calendar"
+            },
+            {
+              "name": "requestNews",
+              "entities": [],
+              "memo": "Reactive News"
+            }
+          ],
+          "proactives": [
+            {
+              "memo": "Proactive",
+              "topics": [],
+              "contextRules": [
+                {
+                  "field": "PART_OF_DAY",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    {
+                      "basic": "MORNING",
+                      "detail": "EARLY"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "MID"
+                    },
+                    {
+                      "basic": "MORNING",
+                      "detail": "LATE"
+                    }
+                  ]
+                },
+                {
+                  "field": "DAY_OF_WEEK",
+                  "matchRule": "CONTAINED_IN",
+                  "value": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                  ]
+                },
+                {
+                  "field": "TRIGGER_SOURCE",
+                  "value": "SURPRISE",
+                  "matchRule": "EXACT"
+                },
+                {
+                  "field": "FOCUSED_PERSON",
+                  "matchRule": "NOT",
+                  "value": "UNKNOWN"
+                }
+              ],
+              "IHRules": [
+                {
+                  "query": "PersonalReportLaunchCount7LastHours",
+                  "matchRule": "LESS_THAN",
+                  "value": 1
+                }
+              ],
+              "settingsRules": [
+                {
+                  "skill": "report-skill",
+                  "key": "offerProactively",
+                  "matchRule": "EXACT",
+                  "value": {
+                    "value": true
+                  }
+                }
+              ]
+            }
+          ],
+          "IHQueries": {
+            "PersonalReportLaunchCount7LastHours": {
+              "type": "Count",
+              "queryRules": [
+                {
+                  "field": "skillID",
+                  "match": "EXACT",
+                  "value": "report-skill"
+                }
+              ],
+              "startTimeOffset": [
+                -7,
+                "hours"
+              ],
+              "endTimeOffset": [
+                0,
+                "hours"
+              ]
+            }
+          },
+          "settings": {
+            "view": {
+              "type": "skill",
+              "index": 0,
+              "title": "Personal report",
+              "subtitle": "Add your commute, calendar and news",
+              "icon": "personal_report_icon",
+              "childViews": [
+                {
+                  "type": "switch",
+                  "index": 0,
+                  "title": "Offer report proactively",
+                  "subtitle": "Jibo offers your Personal Report when he sees you",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "offerProactively",
+                    "default": true
+                  }
+                },
+                {
+                  "type": "subheader",
+                  "index": 1,
+                  "title": "WHAT SHOULD JIBO TELL YOU?"
+                },
+                {
+                  "type": "switch",
+                  "index": 2,
+                  "title": "Weather",
+                  "subtitle": "Change temperature units",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "weatherEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHICH UNITS SHOULD JIBO USE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "weather"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Fahrenheit"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Celsius"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "footer",
+                      "index": 2,
+                      "owner": true,
+                      "title": "Your weather report is based on your Jibo’s location. To update your Jibo’s location go to your JIBO_SETTINGS in the Loop tab. ",
+                      "links": [
+                        {
+                          "placeholder": "JIBO_SETTINGS",
+                          "text": "Jibo settings",
+                          "url": "JIBO_SETTINGS_LINK"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 3,
+                  "title": "Commute",
+                  "subtitle": "Set where, when, and how you commute",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "commuteEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "subheader",
+                      "index": 0,
+                      "title": "WHERE DOES YOUR COMMUTE START?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 1,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "homeLocation"
+                      },
+                      "childViews": [
+                        {
+                          "type": "location",
+                          "index": 0,
+                          "valueDefinition": {
+                            "target": "person",
+                            "key": "homeLocation"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 2,
+                      "title": "WHERE DOES YOUR COMMUTE END?"
+                    },
+                    {
+                      "type": "locationTextField",
+                      "index": 3,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "workLocation"
+                      }
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 4,
+                      "title": "HOW DO YOU COMMUTE?"
+                    },
+                    {
+                      "type": "choice",
+                      "index": 5,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteType"
+                      },
+                      "choices": [
+                        {
+                          "id": 0,
+                          "value": "Drive",
+                          "icon": "ic_drive"
+                        },
+                        {
+                          "id": 1,
+                          "value": "Public transport",
+                          "icon": "ic_transport"
+                        },
+                        {
+                          "id": 2,
+                          "value": "Bike",
+                          "icon": "ic_bike"
+                        },
+                        {
+                          "id": 3,
+                          "value": "Walk",
+                          "icon": "ic_walk"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "subheader",
+                      "index": 6,
+                      "title": "WHEN DO YOU USUALLY ARRIVE?"
+                    },
+                    {
+                      "type": "time",
+                      "index": 7,
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "commuteTime",
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 4,
+                  "title": "Calendars",
+                  "subtitle": "Connect work and personal calendars",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "calendarEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "connectable",
+                      "index": 0,
+                      "title": "Personal calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "personalCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR PERSONAL CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:personalCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:personalCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "personalCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:personalCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:personalCalendar:readonly"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "connectable",
+                      "index": 1,
+                      "title": "Work calendar",
+                      "subtitle": "",
+                      "valueDefinition": {
+                        "target": "lasso",
+                        "key": "workCalendarConnected"
+                      },
+                      "childViews": [
+                        {
+                          "type": "subheader",
+                          "index": 0,
+                          "title": "CHOOSE YOUR WORK CALENDAR"
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 1,
+                          "title": "Google Calendar",
+                          "icon": "googleCalendarIcon",
+                          "serviceName": "google",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth",
+                          "iosCallbackUri": "com.jibo.link.app:/callback?key=google:workCalendar:readonly",
+                          "iosClientId": "830717411721-cve42qbj1n333d85g94cunacq04b578v.apps.googleusercontent.com",
+                          "serverClientId": "830717411721-5nqkekk2bkvail90qkr8kuhe8v1lu58t.apps.googleusercontent.com",
+                          "scopes": [
+                            "https://www.googleapis.com/auth/calendar.readonly"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "google:workCalendar:readonly"
+                          }
+                        },
+                        {
+                          "type": "oauth",
+                          "index": 2,
+                          "title": "Outlook Calendar",
+                          "icon": "outlookCalendarIcon",
+                          "serviceName": "outlook",
+                          "serviceAccountName": "workCalendar",
+                          "authorizationUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                          "iosCallbackUri": "com.jibo.link.app://callback/outlook:workCalendar:readonly",
+                          "iosClientId": "398130f2-af6f-42df-8935-18b351383656",
+                          "scopes": [
+                            "offline_access",
+                            "Calendars.Read"
+                          ],
+                          "valueDefinition": {
+                            "target": "lasso",
+                            "key": "outlook:workCalendar:readonly"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "switch",
+                  "index": 5,
+                  "title": "News",
+                  "subtitle": "Customize your topics of interest",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "newsEnabled"
+                  },
+                  "childViews": [
+                    {
+                      "type": "toggle",
+                      "index": 0,
+                      "title": "International",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsInternational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 1,
+                      "title": "National",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsNational"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 2,
+                      "title": "Business",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsBusiness"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 3,
+                      "title": "Entertainment",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsEntertainment"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 4,
+                      "title": "Sports",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsSports"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 5,
+                      "title": "Health",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsHealth"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 6,
+                      "title": "Politics",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsPolitics"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 7,
+                      "title": "Science",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsScience"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 8,
+                      "title": "Technology",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsTechnology"
+                      }
+                    },
+                    {
+                      "type": "toggle",
+                      "index": 9,
+                      "title": "Strange",
+                      "valueDefinition": {
+                        "target": "person",
+                        "key": "newsStrange"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "footer",
+                  "index": 6,
+                  "title": "Just say “Hey Jibo, tell me my <b>personal report</b>” and Jibo will tell you about the weather, your commute, upcoming calendar events, and news headlines."
+                }
+              ]
+            }
+          },
+          "URL": "http://127.0.0.1:33035/skill"
+        }
+      ]
+    },
+    {
+      "path": "/cases/18/response/body/value/ts",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": 1527681600000
+    },
+    {
+      "path": "/cases/18/response/body/value/type",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "ERROR"
+    },
+    {
+      "path": "/cases/18/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "7722"
+    },
+    {
+      "path": "/cases/18/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/18/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/18/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/18/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 404
+    },
+    {
+      "path": "/cases/19/effects/0/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/19/effects/0/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/19/effects/1/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/19/effects/2/body/value/personIDs/length",
+      "kind": "length",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "path": "/cases/19/effects/2/body/value/personIDs/0",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "UNKNOWN"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/content-length",
+      "kind": "value",
+      "expected": "126",
+      "actual": "117"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/19/effects/2/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/2/response/body/kind",
+      "kind": "value",
+      "expected": "empty",
+      "actual": "json"
+    },
+    {
+      "path": "/cases/2/response/body/value",
+      "kind": "value",
+      "expected": "",
+      "actual": {}
+    },
+    {
+      "path": "/cases/2/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "0"
+    },
+    {
+      "path": "/cases/2/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/2/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/20/effects/0/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/20/effects/1/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/20/effects/2/body/value/personIDs/length",
+      "kind": "length",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "path": "/cases/20/effects/2/body/value/personIDs/0",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "UNKNOWN"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/content-length",
+      "kind": "value",
+      "expected": "126",
+      "actual": "117"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/20/effects/2/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/21/effects/0/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/21/effects/1/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/21/effects/2/body/value/personIDs/length",
+      "kind": "length",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "path": "/cases/21/effects/2/body/value/personIDs/0",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "UNKNOWN"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/content-length",
+      "kind": "value",
+      "expected": "123",
+      "actual": "114"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/21/effects/2/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/22/effects/0/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/23/effects/0/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/23/frames/2/message/data/code",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "PARSER"
+    },
+    {
+      "path": "/cases/23/frames/2/message/data/message",
+      "kind": "equivalence",
+      "expected": "Request failed with status code 503",
+      "actual": "parser 503"
+    },
+    {
+      "path": "/cases/25/upgrade/body/value",
+      "kind": "value",
+      "expected": "JsonWebTokenError: invalid signature",
+      "actual": "invalid signature"
+    },
+    {
+      "path": "/cases/25/upgrade/headers/content-length",
+      "kind": "value",
+      "expected": "36",
+      "actual": "17"
+    },
+    {
+      "path": "/cases/27/close/code",
+      "kind": "value",
+      "expected": 1000,
+      "actual": 1005
+    },
+    {
+      "path": "/cases/27/close/reason",
+      "kind": "value",
+      "expected": "fixture complete",
+      "actual": ""
+    },
+    {
+      "path": "/cases/27/closeOrigin",
+      "kind": "value",
+      "expected": "client",
+      "actual": "server"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/27/effects/0/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/27/effects/1/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/27/effects/2/body/value/personIDs/length",
+      "kind": "length",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "path": "/cases/27/effects/2/body/value/personIDs/0",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "UNKNOWN"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/accept",
+      "kind": "value",
+      "expected": "application/json, text/plain, */*",
+      "actual": "*/*"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/accept-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "gzip, deflate"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/accept-language",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "*"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/connection",
+      "kind": "value",
+      "expected": "close",
+      "actual": "keep-alive"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/content-length",
+      "kind": "value",
+      "expected": "126",
+      "actual": "117"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/content-type",
+      "kind": "value",
+      "expected": "application/json;charset=utf-8",
+      "actual": "application/json"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/sec-fetch-mode",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "cors"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/user-agent",
+      "kind": "value",
+      "expected": "axios/0.17.1",
+      "actual": "node"
+    },
+    {
+      "path": "/cases/27/effects/2/headers/x-jibo-logging-config",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "{}"
+    },
+    {
+      "path": "/cases/27/openAfterFinal",
+      "kind": "value",
+      "expected": true,
+      "actual": false
+    },
+    {
+      "path": "/cases/3/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "17"
+    },
+    {
+      "path": "/cases/3/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/3/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/3/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/4/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "2"
+    },
+    {
+      "path": "/cases/4/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/4/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/4/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/5/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "37"
+    },
+    {
+      "path": "/cases/5/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/5/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/5/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/6/response/body/value/data/code",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "INTERNAL"
+    },
+    {
+      "path": "/cases/6/response/body/value/data/message",
+      "kind": "value",
+      "expected": "Unexpected end of JSON input",
+      "actual": "invalid JSON body: Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+    },
+    {
+      "path": "/cases/6/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "145"
+    },
+    {
+      "path": "/cases/6/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/6/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/6/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/6/response/status",
+      "kind": "value",
+      "expected": 400,
+      "actual": 500
+    },
+    {
+      "path": "/cases/7/response/body/value/a",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": [
+        "one",
+        "two"
+      ]
+    },
+    {
+      "path": "/cases/7/response/body/value/data",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": {
+        "message": "invalid JSON body: Unexpected token 'a', \"a=one&a=two\" is not valid JSON",
+        "code": "INTERNAL"
+      }
+    },
+    {
+      "path": "/cases/7/response/body/value/final",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": true
+    },
+    {
+      "path": "/cases/7/response/body/value/msgID",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "62958b13-f1ca-45ae-be65-9e41ae79c0b1"
+    },
+    {
+      "path": "/cases/7/response/body/value/ts",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": 1527681600000
+    },
+    {
+      "path": "/cases/7/response/body/value/type",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "ERROR"
+    },
+    {
+      "path": "/cases/7/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "19"
+    },
+    {
+      "path": "/cases/7/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/7/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/7/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/7/response/status",
+      "kind": "value",
+      "expected": 200,
+      "actual": 500
+    },
+    {
+      "path": "/cases/8/response/body/value/data/code",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "NOT_FOUND"
+    },
+    {
+      "path": "/cases/8/response/body/value/data/message",
+      "kind": "value",
+      "expected": "URL not found: /missing",
+      "actual": "no route GET /missing"
+    },
+    {
+      "path": "/cases/8/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "140"
+    },
+    {
+      "path": "/cases/8/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/8/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/8/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/9/response/body/value/data/code",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "INTERNAL"
+    },
+    {
+      "path": "/cases/9/response/headers/content-length",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "131"
+    },
+    {
+      "path": "/cases/9/response/headers/etag",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "W/<validated-entity-sha1>"
+    },
+    {
+      "path": "/cases/9/response/headers/transfer-encoding",
+      "kind": "presence",
+      "expectedPresent": false,
+      "actualPresent": true,
+      "actual": "chunked"
+    },
+    {
+      "path": "/cases/9/response/headers/x-powered-by",
+      "kind": "presence",
+      "expectedPresent": true,
+      "actualPresent": false,
+      "expected": "Express"
+    },
+    {
+      "path": "/cases/9/response/status",
+      "kind": "value",
+      "expected": 418,
+      "actual": 500
+    }
+  ],
+  "policy": {
+    "generatedIDs": [
+      "/cases/*/response/body/value/msgID",
+      "/cases/*/frames/*/message/msgID",
+      "/cases/*/effects/*/body/value/msgID"
+    ],
+    "endpointPaths": [
+      "/cases/*/response/body/value/skills/*/URL",
+      "/cases/*/frames/*/message/data/message",
+      "/cases/*/effects/*/headers/host"
+    ],
+    "measuredDurations": "Finite ordered wall times with per-fixture bounds; message timestamps/timing keys/sentinels remain compared",
+    "etag": "Exact SHA-1/length relation to raw entity; presence and weak/strong form remain compared",
+    "sessions": "Full contents compared, plus issued/supplied/forwarded/advanced continuation checks"
+  }
+}

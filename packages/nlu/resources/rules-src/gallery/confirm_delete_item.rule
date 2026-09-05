@@ -1,0 +1,42 @@
+TopRule = ($* $CONFIRMDELETE $*) {intent = CONFIRMDELETE._intent}{priority='HIGH'};
+
+#You really want to delete it?
+
+CONFIRMDELETE =
+    (
+        ($factory:yes_no {_intent = yes_no._nl}) |
+        ($YES_OTHER {_intent=YES_OTHER._intent}) |
+        ($NO_OTHER {_intent=NO_OTHER._intent})
+    )
+;
+
+YES_OTHER =
+    (
+        guess | gas |
+        (?why yes | yeah | yep) |
+        (?yes go ahead) |
+        ((go for)|do it ?now) |
+        (why not) |
+        (delete|do ?it ?(?right now)) |
+        ( i do ) |
+        ( i ( think | guess | suppose ) ?so )
+    )
+{_intent='yes'}
+;
+
+NO_OTHER =
+    (
+        know | snow | now |
+        (no thanks|(thank you)) |
+        (wait|(hold on) ?(a sec|minute|second|moment))|
+        (cancel)|
+        (forget it)|
+        (go back)|
+        (exit)|
+        (escape)|
+        ((don\'t|(do not)) (delete|do) ?it ?(?right now)) |
+        ( i ( ( do not ) | don\'t ) ) |
+        ( keep ?it )
+    )
+{_intent='no'}
+;

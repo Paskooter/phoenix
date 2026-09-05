@@ -1,0 +1,33 @@
+TopRule = $* $NEEDMORETIME $* {intent=NEEDMORETIME._intent}{priority='HIGH'};
+
+### Do you need more time? ###
+### So, do you need more time? ###
+
+NEEDMORETIME =
+(
+    $factory:yes_no {_intent = yes_no._nl} |
+    $YES_OTHER {_intent = 'yes'} |
+    $NO_OTHER {_intent = 'no'}
+);
+YES_OTHER =
+(
+    guess | gas |
+    ( $IWE ?$SURE do ?yes ) |
+    ( $GIVEME $* $MINUTE )
+);
+NO_OTHER =
+(
+    know | snow | now |
+    ( $IWE ( don\'t | ( do not ) ) ) |
+    ( $IAMWEARE $READY )
+);
+### USEFUL VOCAB ###
+IWE = i | we;
+IAMWEARE = ( i am ) | i\'m | ( we are ) | we\'re;
+SURE = sure | certainly;
+THEM = them | em | \'em;
+ITS = ( it is ) | (it\'s);
+ISNT = ( is not ) | isn\'t;
+GIVEME = ( give me ) | gimme | ( give us ) | ( just ( a | one ) );
+MINUTE = minute | second | moment | sec;
+READY = good | fine | ready;

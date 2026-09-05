@@ -1,0 +1,171 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "result": "pass for bounded compressed decoding and quiet native microphone scenarios",
+  "candidateRevision": "ed77ead2fd24d475e78c7d9526d6b1b9d7dd2aaf",
+  "loadedIntegrationRevision": "f33048098500dd04e09f86baa59667e3909f47d4",
+  "sourceTreeSha256": "b6dbf05fc454202c1c91ec6cc4b43da61e84ce90e1951002f4498d72aa13885b",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "stackProfile": {
+    "authentication": "disabled: transport-only trial",
+    "nluLlm": false,
+    "answerLlm": false,
+    "asr": "parakeet",
+    "asrUrl": "http://192.168.1.252:6972"
+  },
+  "tests": [
+    {
+      "encoding": "OGG_OPUS",
+      "nativeEvents": [
+        "TURN_STARTED",
+        "TURN_RESULT"
+      ],
+      "annotation": "SOS_TIMEOUT",
+      "firstPcmMs": 428.4921059999906,
+      "deliveredPcmBytes": 149088,
+      "maxDeliveredChunkRms": 98.79116230716187,
+      "chunksAbove400": 0,
+      "cyanListeningCommand": [
+        0.05,
+        0.73,
+        0.94
+      ],
+      "returnedToIdle": true,
+      "probeSha256": "62fdf9ef557fe457d2742188a32d6a4dc910e5ca1b96777f5585dc7449e18637"
+    },
+    {
+      "encoding": "FLAC",
+      "nativeEvents": [
+        "TURN_STARTED",
+        "TURN_RESULT"
+      ],
+      "annotation": "SOS_TIMEOUT",
+      "firstPcmMs": 460.6719359999988,
+      "deliveredPcmBytes": 147456,
+      "maxDeliveredChunkRms": 143.60357862173473,
+      "chunksAbove400": 0,
+      "cyanListeningCommand": [
+        0.05,
+        0.73,
+        0.94
+      ],
+      "returnedToIdle": true,
+      "probeSha256": "2fac8c8a3645591a9eb9f00090c6cfe2813e0f64c454975840a2200b9b3be19a"
+    },
+    {
+      "encoding": "LINEAR16",
+      "nativeEvents": [
+        "TURN_STARTED",
+        "TURN_RESULT"
+      ],
+      "annotation": "SOS_TIMEOUT",
+      "firstPcmMs": 4.474415999982739,
+      "deliveredPcmBytes": 160000,
+      "maxDeliveredChunkRms": 97.13847718592258,
+      "chunksAbove400": 0,
+      "cyanListeningCommand": [
+        0.05,
+        0.73,
+        0.94
+      ],
+      "returnedToIdle": true,
+      "probeSha256": "fb061d487f83d67d245254bd91d54a74d75a6b9370cb701e5a0df972053c945b"
+    }
+  ],
+  "independentChunkBoundaryCheck": [
+    {
+      "chunkBytes": 41600,
+      "state": "DONE",
+      "totalBytes": 32000,
+      "events": [
+        "SOS",
+        "EOS",
+        {
+          "type": "recognizer-request",
+          "bytes": 32000,
+          "sha256": "5ff805bba94d356a80824eda8c33fdeadab810d5e1179bb44d1955cb264d0aab"
+        }
+      ]
+    },
+    {
+      "chunkBytes": 1600,
+      "state": "DONE",
+      "totalBytes": 32000,
+      "events": [
+        "SOS",
+        "EOS",
+        {
+          "type": "recognizer-request",
+          "bytes": 32000,
+          "sha256": "5ff805bba94d356a80824eda8c33fdeadab810d5e1179bb44d1955cb264d0aab"
+        }
+      ]
+    },
+    {
+      "chunkBytes": 640,
+      "state": "DONE",
+      "totalBytes": 32000,
+      "events": [
+        "SOS",
+        "EOS",
+        {
+          "type": "recognizer-request",
+          "bytes": 32000,
+          "sha256": "5ff805bba94d356a80824eda8c33fdeadab810d5e1179bb44d1955cb264d0aab"
+        }
+      ]
+    },
+    {
+      "chunkBytes": 319,
+      "state": "DONE",
+      "totalBytes": 32000,
+      "events": [
+        "SOS",
+        "EOS",
+        {
+          "type": "recognizer-request",
+          "bytes": 32000,
+          "sha256": "5ff805bba94d356a80824eda8c33fdeadab810d5e1179bb44d1955cb264d0aab"
+        }
+      ]
+    },
+    {
+      "chunkBytes": 1,
+      "state": "DONE",
+      "totalBytes": 32000,
+      "events": [
+        "SOS",
+        "EOS",
+        {
+          "type": "recognizer-request",
+          "bytes": 32000,
+          "sha256": "5ff805bba94d356a80824eda8c33fdeadab810d5e1179bb44d1955cb264d0aab"
+        }
+      ]
+    }
+  ],
+  "unitSuite": {
+    "tests": 329,
+    "passed": 329,
+    "failed": 0,
+    "artifact": ".parity/reviews/lead-unit-final-audio.log"
+  },
+  "restoration": {
+    "encoding": "LINEAR16",
+    "sha256": "0c9685794e6a7d093955957c8cc7c45d5d13f99fdac92b53b1752b17f3ea7485",
+    "mount": [
+      "/dev/mmcblk0p4 /usr/local ext4 ro,relatime,data=ordered 0 0"
+    ],
+    "restartStatus": 204
+  },
+  "privateWire": ".parity/robots/moth/20260905/integration-audio-final/wire-native-encoding-reviewed.jsonl",
+  "privateWireSha256": "4492f12a13eeea438b7e3b10cbdabd2587e59dedbc426b4dcff3cd7e5984919b",
+  "limitations": [
+    "No intentional acoustic speech or physical Hey Jibo acceptance supplied in these trials.",
+    "Recorded LED commands are not a human observation of the physical ring.",
+    "Raw household audio remains private and ignored.",
+    "Only compressed decoding/chunk-independent VAD candidate accepted; complete H-07 provider behavior, timeout/error matrix and recognition quality remain open.",
+    "OGG needs ffmpeg; decoder startup under sustained load remains an explicit performance check."
+  ]
+}

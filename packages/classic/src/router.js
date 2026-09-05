@@ -22,6 +22,9 @@ export function createClassicRouter(registrations) {
     'POST /': async ({ req, res, body, log }) => {
       const { target, prefix, op } = parseTarget(req);
       const reg = regs.find((r) => r.re.test(prefix));
+      // Log every inbound classic call (handlers are otherwise silent on success) so a robot's
+      // wipe/backup traffic is visible: what target it sent and whether we route it.
+      log.info('classic request', { target: target || '(none)', op, matched: reg ? (reg.handler ? 'in-process' : 'proxy') : 'NONE' });
       if (!reg) {
         log.warn('classic: no service for target', { target: target || '(none)' });
         return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);

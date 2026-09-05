@@ -1,0 +1,31 @@
+TopRule =
+		$* $SELECT_CLOCK_MENU_ITEM
+				{domain=SELECT_CLOCK_MENU_ITEM._domain}
+				{intent=SELECT_CLOCK_MENU_ITEM._intent}
+				{priority='HIGH'}
+		$*
+;
+
+
+SELECT_CLOCK_MENU_ITEM = ( ?($GENERIC_ACTION) ?($THE|$*) $SUBSKILLS ?($SKILLSUFFIX) ) {_intent=SUBSKILLS._intent} {_domain=SUBSKILLS._domain} ;
+
+
+SUBSKILLS =
+(
+	( [time?s] {_intent='askForTime'} {_domain='clock'} ) |
+	( [date?s] {_intent='askForDate'} {_domain='clock'} ) |
+	( [timer?s] {_intent='start'} {_domain='timer'} ) |
+	( [alarm?s] {_intent='set'} {_domain='alarm'} )
+)
+;
+
+### USEFUL VOCABULARY ###
+GENERIC_ACTION = ($OPEN | $SHOW | $SEE | $DO);
+SKILLSUFFIX = (skill | app | application | thing | one);
+THE = (the | that | your);
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select | load);
+SHOW = (show ?(me | us));
+SEE = ((let\'s | (let me) | (let us)) see);
+DO = (?(let\'s | (let me) | (let us)) (do | try) );
+ITEM = (one | thing | item | icon);
+LOCATION = (spot | slot | position);

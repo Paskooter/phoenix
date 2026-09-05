@@ -1,0 +1,11 @@
+TopRule =
+($*
+    (who am i) |
+    (?(do you know) $w03 who $w03 i $w03 am) |
+    (do you know $w03 my name) |
+    ([what?(\')s]|(what ?is) my name) |
+	(say|(tell me)|speak my name) |
+	(what ?do you think my name is) |
+    (do|can you recognize|identify me|(my voice)) |
+    (do you know me)
+$*){skill='\@be/who-am-i'}{intent='launchWhoAmI'}{priority='HIGH'};

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "packages/integration-tests-ext/tests/chitchat.ts": "d0e037bd5cf6575750b7324ed575bcd5723732db",
+    "packages/integration-tests-int/src/listen-with-client-nlu.test.ts": "501a888b78fac34b052c8d32e448857f08b3f759",
+    "packages/integration-tests-int/src/listen-with-simulated-asr.test.ts": "16ca220a169dbd2c0266480083668cd8f5982f43",
+    "packages/utils/src/test/index.ts": "60b691f0fce42c76284a8b3888e19fd1adb0d32b"
+  },
+  "expansions": [
+    {
+      "path": "packages/integration-tests-ext/tests/chitchat.ts",
+      "line": 22,
+      "basis": "All eleven literal rows in testCases, each destructured into asrText and promptID by forEach.",
+      "instances": [
+        { "title": "do you like penguins", "parameters": { "asrText": "do you like penguins", "promptID": "RI_JBO_LikesPenguins_AN" } },
+        { "title": "do you like cheddar", "parameters": { "asrText": "do you like cheddar", "promptID": "RI_JBO_Likes_SS_Cheese" } },
+        { "title": "do you like crab", "parameters": { "asrText": "do you like crab", "promptID": "ri_jbo_likes_ss_seafood" } },
+        { "title": "when was your last update", "parameters": { "asrText": "when was your last update", "promptID": "SUP_UPDATE_WhenWasLastUpdate" } },
+        { "title": "what are the three laws of robotics", "parameters": { "asrText": "what are the three laws of robotics", "promptID": "JF_ThreeLawsOfRobotics" } },
+        { "title": "can you fly", "parameters": { "asrText": "can you fly", "promptID": "RI_JBO_CanFly" } },
+        { "title": "can you learn ballet", "parameters": { "asrText": "can you learn ballet", "promptID": "KU_AreYouAbleTo" } },
+        { "title": "what's your favorite song", "parameters": { "asrText": "what's your favorite song", "promptID": "RI_JBO_HasFavoriteSong" } },
+        { "title": "what's your favorite astronaut", "parameters": { "asrText": "what's your favorite astronaut", "promptID": "KU_WhatIsYourFavorite" } },
+        { "title": "are you friends with george", "parameters": { "asrText": "are you friends with george", "promptID": "RI_JBO_IsFriendsWithLM" } },
+        { "title": "are you friends with susan", "parameters": { "asrText": "are you friends with susan", "promptID": "RI_JBO_IsFriendsWithNonLM" } }
+      ]
+    },
+    {
+      "path": "packages/integration-tests-int/src/listen-with-client-nlu.test.ts",
+      "line": 32,
+      "basis": "One declaration; interpolate TestIntents.LIVE_AND_PROSPER from the pinned @jibo/utils enum.",
+      "instances": [
+        { "title": "ClientNLU: Intent router intent 'referenceLiveLongProsper' shold pass memo PROSPER to a skill" }
+      ]
+    },
+    {
+      "path": "packages/integration-tests-int/src/listen-with-simulated-asr.test.ts",
+      "line": 27,
+      "basis": "One declaration; concatenate the template literals and interpolate TestIntents.LIVE_AND_PROSPER.",
+      "instances": [
+        { "title": "'live long and prosper' shold match intent referenceLiveLongProsper and pass memo PROSPER to a skill" }
+      ]
+    },
+    {
+      "path": "packages/integration-tests-int/src/listen-with-simulated-asr.test.ts",
+      "line": 45,
+      "basis": "One declaration; interpolate TestIntents.DOES_LIKE from the pinned @jibo/utils enum.",
+      "instances": [
+        { "title": "'do you like being Jibo' should match intent doesJiboLikeThing" }
+      ]
+    }
+  ]
+}

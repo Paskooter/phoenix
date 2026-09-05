@@ -1,0 +1,39 @@
+TopRule = $* $MORE_INTROS {intent=MORE_INTROS._intent}{priority='HIGH'} $*;
+
+
+MORE_INTROS =
+    (
+    ($factory:yes_no {_intent = yes_no._nl}) |
+    ($YES_OTHER {_intent=YES_OTHER._intent}) |
+    ($NO_OTHER {_intent=NO_OTHER._intent})
+    )
+;
+
+YES_OTHER =
+        (
+                guess | gas |
+                (?(?why yes|yeah|yep) (there are|is)) |
+                (i\'m ?right here) |
+                (me)|
+                (you can|should meet $* now)|
+                ( $* is|are here)|
+                (there\'s|there\'re more) |
+                (they are ?ready)|
+                (?($* can|should go) next)|
+                (here)
+        )
+{_intent='yes'}
+;
+
+NO_OTHER =
+        (
+            know | snow | now |
+            (?(no|nope) there (are not)|(aren\'t) ?any)|
+            (nobody|(no one) else) |
+            (not (right now)|yet)|
+            (there is|are not) |
+            (isn\'t|(is not) home|here)|
+            (not|no|never|nobody $* here)
+        )
+{_intent='no'}
+;

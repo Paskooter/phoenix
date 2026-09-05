@@ -30,6 +30,36 @@ const IntentType = Object.freeze({
 
 const IntentSplitTransition = Object.freeze({ Reactive: 'Reactive' });
 
+const QueryType = Object.freeze({
+  EMOTION_QUERY: 'emotion_query',
+  SCRIPTED_RESPONSE: 'scripted_response',
+  LOOP_MEMBER_QUESTION: 'loop_member_question',
+  KNOWN_UNKNOWN: 'known_unknown',
+});
+const EmotionQueryType = Object.freeze({
+  EMOTION_QUERY: 'emotion_query',
+  SPECIFIC_EMOTION_QUERY: 'specific_emotion_query',
+  EMOTION_COMMAND: 'emotion_command',
+});
+
+function buildScriptedAnalytics(intent, referent, knownUnknown, success) {
+  let type;
+  if (referent) type = QueryType.LOOP_MEMBER_QUESTION;
+  else if (knownUnknown) type = QueryType.KNOWN_UNKNOWN;
+  else if (intent === IntentType.SpecificEmotionQuery || intent === IntentType.EmotionQuery || intent === IntentType.EmotionCommand) type = QueryType.EMOTION_QUERY;
+  else if (intent === IntentType.ScriptedResponse) type = QueryType.SCRIPTED_RESPONSE;
+  return type ? { success, type } : null;
+}
+
+function buildEmotionAnalytics(intent, emotion) {
+  const type = intent === IntentType.SpecificEmotionQuery
+    ? EmotionQueryType.SPECIFIC_EMOTION_QUERY
+    : intent === IntentType.EmotionQuery
+      ? EmotionQueryType.EMOTION_QUERY
+      : intent === IntentType.EmotionCommand ? EmotionQueryType.EMOTION_COMMAND : null;
+  return type ? { emotion_query_type: type, emotional_state: emotion } : null;
+}
+
 /** Chitchat requires a memo — it is only ever launched from manifest matches. */
 class IntentSplitNode extends NoOpNode {
   constructor(name) { super(name, Object.values(IntentSplitTransition)); }
@@ -79,11 +109,17 @@ class ProcessQueryNode extends NoOpNode {
       (type === IntentType.ScriptedResponse && (inScripted || inEmotion)) || // "Be Happy" commands are labelled Scripted but live in emotion
       (type === IntentType.SemiSpecificResponse && inScripted);
 
+    let intentType = type;
     let transition = ProcessQueryTransition[type] || ProcessQueryTransition.ScriptedResponse;
     if (!validIntent) {
       baseDir = MIM_DIRS.FALLBACK;
       mimID = 'CC_Fallback';
       transition = ProcessQueryTransition.ErrorResponse;
+    } else if (type === IntentType.ScriptedResponse && !inScripted && inEmotion) {
+      // The reference reclassifies an emotion MIM selected through a
+      // ScriptedResponse memo as an EmotionCommand before tracking analytics.
+      intentType = IntentType.EmotionCommand;
+      transition = ProcessQueryTransition.EmotionCommand;
     }
 
     // The Do-MIM ANFactory renders data.local.path against data.local.promptData.
@@ -92,7 +128,12 @@ class ProcessQueryNode extends NoOpNode {
     data.local.path = join(baseDir, `${mimID}.mim`);
     data.local.promptData = { dice, coin, entities, intent };
 
-    this.facade.track(data, 'Skill Entry', { initial_intent: intent || 'chitchat', mim_id: mimID });
+    const referent = data.runtime && data.runtime.dialog && data.runtime.dialog.referent;
+    const emotion = data.runtime && data.runtime.character && data.runtime.character.emotion && data.runtime.character.emotion.name;
+    const scripted = buildScriptedAnalytics(intentType, referent, mimID.startsWith('KU_'), transition !== ProcessQueryTransition.ErrorResponse);
+    const emotional = buildEmotionAnalytics(intentType, emotion);
+    if (scripted) this.facade.track(data, 'Chitchat Query', scripted);
+    if (emotional) this.facade.track(data, 'Chitchat Emotion', emotional);
 
     return { transition, result: data.result };
   }

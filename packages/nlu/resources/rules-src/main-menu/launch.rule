@@ -1,0 +1,25 @@
+TopRule =
+(
+    ($* ?$GO_TO $* [main?e?s]|[mane?s] [menu?s] $*) |
+    ($* ?$GO_TO $* home page|screen $*) |
+    ($* $GO_TO $w03 [menu?s] $*) |
+    ( ?$HJ [menu?s] )
+ ){skill='\@be/main-menu'}{intent='launchMainMenu'}{priority='HIGH'};
+
+
+GO_TO = (open | (go ?back ?to) | (return ?to) | (bring ?up) |
+    (bring|take (me | us) ?to) | load | access | view | display|
+    ( show ?(me | us)) | (let me|us see) | (let\'s see));
+
+HJ = (
+    (
+		((hey jibo) jibo)|
+		(haji baba) |
+		(achieva) |
+		(mickey mouse) |
+		(pajiba) |
+		(hey diva) |
+		(ag bell)
+	)
+)
+;

@@ -1,0 +1,147 @@
+{
+  "date": "2026-09-05T10:44:19.878385+00:00",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidate": "phoenix",
+  "images": {
+    "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+  },
+  "commands": [
+    {
+      "name": "image-phoenix",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "image",
+        "inspect",
+        "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94",
+        "--format",
+        "{{.Id}}"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock image inspect node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94 --format '{{.Id}}'",
+      "exitCode": 0,
+      "durationMs": 64.607
+    },
+    {
+      "name": "candidate",
+      "argv": [
+        "docker",
+        "-H",
+        "unix:///var/run/docker.sock",
+        "run",
+        "--rm",
+        "--name",
+        "phoenix-parity-production-393fc26ce40a",
+        "--network",
+        "none",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/scripts/parity-production,target=/harness,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/.parity/runs/production-report-baseline,target=/evidence",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/packages,target=/phoenix/packages,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/node_modules,target=/phoenix/node_modules,readonly",
+        "--mount",
+        "type=bind,source=/home/shell/work/phoenix/package.json,target=/phoenix/package.json,readonly",
+        "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94",
+        "node",
+        "/harness/phoenix.mjs",
+        "/phoenix",
+        "/evidence/suite.json",
+        "/evidence/candidate.json.gz"
+      ],
+      "shellDisplay": "docker -H unix:///var/run/docker.sock run --rm --name phoenix-parity-production-393fc26ce40a --network none --mount type=bind,source=/home/shell/work/phoenix/scripts/parity-production,target=/harness,readonly --mount type=bind,source=/home/shell/work/phoenix/.parity/runs/production-report-baseline,target=/evidence --mount type=bind,source=/home/shell/work/phoenix/packages,target=/phoenix/packages,readonly --mount type=bind,source=/home/shell/work/phoenix/node_modules,target=/phoenix/node_modules,readonly --mount type=bind,source=/home/shell/work/phoenix/package.json,target=/phoenix/package.json,readonly node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94 node /harness/phoenix.mjs /phoenix /evidence/suite.json /evidence/candidate.json.gz",
+      "exitCode": 0,
+      "durationMs": 57851.606
+    },
+    {
+      "name": "compare",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/scripts/parity-production/compare.mjs",
+        "--reference",
+        "/home/shell/work/phoenix/.parity/runs/production-report-baseline/reference.json.gz",
+        "--candidate",
+        "/home/shell/work/phoenix/.parity/runs/production-report-baseline/candidate.json.gz",
+        "--suite",
+        "/home/shell/work/phoenix/.parity/runs/production-report-baseline/suite.json",
+        "--out",
+        "/home/shell/work/phoenix/.parity/runs/production-report-baseline/comparison.json"
+      ],
+      "shellDisplay": "node /home/shell/work/phoenix/scripts/parity-production/compare.mjs --reference /home/shell/work/phoenix/.parity/runs/production-report-baseline/reference.json.gz --candidate /home/shell/work/phoenix/.parity/runs/production-report-baseline/candidate.json.gz --suite /home/shell/work/phoenix/.parity/runs/production-report-baseline/suite.json --out /home/shell/work/phoenix/.parity/runs/production-report-baseline/comparison.json",
+      "exitCode": 1,
+      "durationMs": 365.542
+    }
+  ],
+  "result": "mismatch",
+  "goldenSource": {
+    "schemaVersion": 1,
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "driverSha256": "155af9f0d84863645579950eae3d46b672bd845c5b31a422ffced76981727700",
+    "files": {
+      "suite.json": "b9add73a71bacb8e2bc153590f90b6a4af6f040bd75cf67321682afe869db532",
+      "reference.json.gz": "13b0e7e46df3c82cd50b2cca16a497f8a20627d5a0cf3d174c0fe5a55c56dc66"
+    },
+    "referenceIntegrity": {
+      "originalGitFiles": 6144,
+      "intentionalBootstrapRelocations": 2,
+      "emittedFiles": 391,
+      "emissionRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+      "binarySha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54",
+      "fixtureSourcesSha256": "83cfdbcc2dfc645916beaa5629b862a71859fba3dff092fff3fc548915017da8"
+    },
+    "images": {
+      "original": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+      "phoenix": "node@sha256:dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+    },
+    "originalControlArtifact": "docs/parity/evidence/2026-09-05/production/report-control/run.json",
+    "originalControlArtifactSha256": "af33591d4776f940634d486c549986feb109fde044c49ef75761fadf541d4281",
+    "review": {
+      "date": "2026-09-05",
+      "reviewer": "Codex",
+      "result": "pass",
+      "scope": "Provenance/repeatability review only: all 73 full parser/routing results and 72 rendered action/session/analytics results agree between two original captures, with zero invariant failures. One external answer action is unhosted; the complete gate correctly fails for that explicit gap."
+    },
+    "knownCoverageGaps": [
+      {
+        "id": "report:5:0:base",
+        "text": "check the weather tomorrow",
+        "skillID": "answer",
+        "tasks": [
+          "Q-01",
+          "N-08"
+        ]
+      }
+    ],
+    "limitations": [
+      "Original production ParserService/RobustParserClient and native 2.8.3 FSTs; Dialogflow is explicitly disabled. Native process clock is not faked.",
+      "Production IntentRouter uses each implementation's actual skills-local registry. Cloud actions are hosted only for original chitchat/report in this profile; unhosted targets are reported as coverage gaps.",
+      "Original test-runtime context is synthetic; uid0001 is assigned to its default mock speaker. Dates use noon UTC. Historical conditional person details were not recovered.",
+      "Provider replies are frozen test weather and synthetic settings/news/calendar/maps; no current-provider availability or hardware rendering is claimed.",
+      "Every selected occurrence is executed separately. Scores retain corpus/conditional denominators, duplicates and absent manifest expectations."
+    ]
+  },
+  "selection": {
+    "name": "corpus",
+    "corpus": "report",
+    "offset": 0,
+    "limit": 0
+  },
+  "cases": 73,
+  "differences": 6484,
+  "invariants": 0,
+  "coverageGaps": 1,
+  "phoenixSourceTreeSha256": "3c5cabe5c0c7b9de8c46499dda659c2e1b97a03d1b4d2e63ea94d8068b96716e",
+  "artifacts": {
+    "suite.json": "b9add73a71bacb8e2bc153590f90b6a4af6f040bd75cf67321682afe869db532",
+    "comparison.json": "b274909d2a9fca42491d137e12897397e324f9d6f821cb3b14f4e27e83d774ef",
+    "image-phoenix.log": "702dc249dc15bfd8509bb8cc2956bd9432e93068922c95f323b8cae363028167",
+    "candidate.log": "67d6b88da31e6d4db8961ac5c49fe2caf8a5f02cd31eb0a6841de8f29486114f",
+    "compare.log": "74afcd8e055d6be3e089ab2b7449e2700953957e5dad16e354ce46920bcfc80f",
+    "phoenix-source.json": "b9edccc56fe43eac222fc007bfaf1e17eb266f7fb833ee1cf243e7bfcdd0a300",
+    "reference.json.gz": "13b0e7e46df3c82cd50b2cca16a497f8a20627d5a0cf3d174c0fe5a55c56dc66",
+    "candidate.json.gz": "7ff102e9b014f4d380309b0c6618f231aaa41ae681a612d71da4921091c813fb"
+  }
+}

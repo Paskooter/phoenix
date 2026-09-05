@@ -1,0 +1,7 @@
+{
+  "reference": "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c",
+  "revision": "5c0a7390539663ba749d360de348a428c088505c",
+  "yarn": "/home/shell/work/phoenix/.parity/tools/yarn-1.5.1/bin/yarn.js",
+  "typescript": "/home/shell/work/phoenix/.parity/tools/typescript-2.5.3",
+  "nluSha256": "388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b"
+}

@@ -1,0 +1,22 @@
+TopRule = ($* $ALARMTIMERINFO $*) {intent = ALARMTIMERINFO._intent}{priority='HIGH'};
+
+#It will go off at/in ${promptTime}.
+
+ALARMTIMERINFO =
+        $CHANGE {_intent=CHANGE._intent} |
+        $CANCEL {_intent=CANCEL._intent}
+        ;
+
+CHANGE =
+    (
+        (change|edit ?(it | that | (the|that alarm|timer|time|duration) ))
+    )
+    {_intent='change'}
+;
+
+CANCEL =
+    (
+        (cancel ?(it | that | (the|that alarm|timer) ))
+    )
+    {_intent='cancel'}
+    ;

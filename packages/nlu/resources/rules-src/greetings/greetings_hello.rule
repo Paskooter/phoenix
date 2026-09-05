@@ -1,0 +1,103 @@
+TopRule =
+(
+    ($* $D_GREETINGS
+        {intent=D_GREETINGS._intent} $*)
+){domain='greetings'}{skill='\@be/greetings'}{priority='HIGH'}
+;
+
+### GREETINGS DOMAIN ###
+D_GREETINGS =
+    (
+      $D_GREETINGS_INTENT_HELLO |
+      $D_GREETINGS_INTENT_FLAVOREDGREETINGS |
+      $D_GREETINGS_INTENT_WHATSUP  |
+      $D_GREETINGS_INTENT_HOWAREYOU  |
+      $D_GREETINGS_INTENT_GOODMORNING  |
+      $D_GREETINGS_INTENT_GOODAFTERNOON  |
+      $D_GREETINGS_INTENT_GOODEVENING  |
+      $D_GREETINGS_INTENT_GOODNIGHT
+    ){_intent='hello'}
+;
+
+
+### INTENTS ###
+D_GREETINGS_INTENT_HELLO =
+    (
+      $D_GREETINGS_V_HELLO ?$D_GREETINGS_V_THERE ?$D_GREETINGS_V_BUD
+    )
+;
+D_GREETINGS_INTENT_FLAVOREDGREETINGS =
+    (greetings | (howdy ?do) | [salutation?s] | (ciao|chow) | aloha | (hola|ola))
+;
+
+D_GREETINGS_INTENT_WHATSUP =
+    (
+      $D_GREETINGS_V_WHATS $D_GREETINGS_V_UP
+    )
+;
+
+D_GREETINGS_INTENT_HOWAREYOU =
+  (
+    (
+      $D_GREETINGS_V_HOWIS $* $D_GREETINGS_V_DOING
+    )
+    |
+    (
+      $D_GREETINGS_V_HOWARE you ?$D_GREETINGS_V_DOING
+    )
+    |
+    (
+      $D_GREETINGS_V_HOWIS it $D_GREETINGS_V_GOING
+    )
+    |
+    (
+      $D_GREETINGS_V_HOWIS $D_GREETINGS_V_YOURDAY (going | been)
+    )
+  )
+;
+
+D_GREETINGS_INTENT_GOODMORNING =
+    (
+      (?good $D_GREETINGS_V_MORNING) |
+      (good day)
+    )
+;
+
+D_GREETINGS_INTENT_GOODAFTERNOON =
+    (
+      ?good $D_GREETINGS_V_AFTERNOON
+    )
+;
+
+D_GREETINGS_INTENT_GOODEVENING =
+    (
+      ?good $D_GREETINGS_V_EVENING
+    )
+;
+
+D_GREETINGS_INTENT_GOODNIGHT =
+  (
+    ( ?good $D_GREETINGS_V_NIGHT ) |
+    ( goodnite )|
+    ( $D_GREETINGS_V_CHILDNIGHT )
+  )
+;
+
+
+# GREETINGS VOCABULARY#
+D_GREETINGS_V_HELLO = hello|hi|hiya|hey|howdy;
+D_GREETINGS_V_BUD = bud|buddy|(little guy);
+D_GREETINGS_V_WHATS = ((whats) | (what\'s) | (what is));
+D_GREETINGS_V_UP = up|(going on)|happening|new;
+D_GREETINGS_V_HOWIS = ((how is) | (hows) | (how\'s) | (how has));
+D_GREETINGS_V_HOWARE = ((how are) | (how\'re));
+D_GREETINGS_V_YOURDAY = your (day|morning|afternoon|evening|night|week|weekend);
+D_GREETINGS_V_GOING = going|hanging;
+D_GREETINGS_V_DOING = doing;
+D_GREETINGS_V_GOOD = good|great|nice|wonderful|([super?(b)])|happy|merry;
+D_GREETINGS_V_MORNING = morning;
+D_GREETINGS_V_AFTERNOON = afternoon;
+D_GREETINGS_V_EVENING = evening;
+D_GREETINGS_V_NIGHT = night;
+D_GREETINGS_V_CHILDNIGHT = (night night)|(nighty night);
+D_GREETINGS_V_THERE = there;

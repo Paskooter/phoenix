@@ -1,0 +1,13 @@
+yarn install v1.5.1
+(node:59046) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+warning Pattern ["jibo-log@latest"] is trying to unpack in the same destination "/home/shell/work/phoenix/.parity/yarn-cache/v1/npm-jibo-log-5.0.7-92f795a5de1273430ac23c2ce01a33caa202025d" as pattern ["jibo-log@^5.0.7"]. This could result in non-deterministic behavior, skipping.
+(node:59046) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+info fsevents@1.1.3: The platform "linux" is incompatible with this module.
+info "fsevents@1.1.3" is an optional dependency and failed compatibility check. Excluding it from installation.
+[3/4] Linking dependencies...
+error An unexpected error occurred: "ENOSPC: no space left on device, copyfile '/home/shell/work/phoenix/.parity/yarn-cache/v1/npm-ffprobe-static-2.0.0-0036f7a3afc7f02557c7dfe437aa386991ede972/bin/linux/x64/ffprobe' -> '/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c/node_modules/ffprobe-static/bin/linux/x64/ffprobe'".
+info If you think this is a bug, please open a bug report with the information provided in "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c/yarn-error.log".
+info Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.

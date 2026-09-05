@@ -1,0 +1,139 @@
+!use_equivalent_words = true;
+TopRule = (
+    ($w03 ?$KU_PREFIXES $PR_INTENTS $w03) |
+    (?hey ?jibo $PR_STRICT_INTENTS)
+){% priority='high' %};
+
+PR_INTENTS = (
+    $PR_CALENDAR {% intent='requestCalendar' %} |
+    $PR_COMMUTE {% intent='requestCommute' %} |
+    $PR_NEWS {% intent='requestNews' %} |
+    $PR_FULL_REPORT {% intent='launchPersonalReport' %}
+);
+
+PR_STRICT_INTENTS = (
+    (?my $V_CALENDAR) {% intent='requestCalendar' %} |
+    ($V_ARE_THERE|($V_CHECK $w03) ?$V_FILLER $V_EVENTS ?(?for today|$V_TOMORROW)) {% intent='requestCalendar' %} |
+    (?my commute ?time) {% intent='requestCommute' %} |
+    ([new?s] ?[report?s]) {% intent='requestNews' %} |
+    (?please ?($V_PREPEND|$KU_PREFIXES) ?please $PR_WEATHER_STRICT ?$V_APPEND) {% intent='requestWeatherPR' %}
+);
+
+
+### Non-Strict Intents ###
+
+PR_CALENDAR = (
+    ($V_LAUNCH $w03 $V_CALENDAR ?(app|skill)) |
+    ($V_CHECK $w03 $V_CALENDAR ?($w03 today|$V_TOMORROW)) |
+    ([what?(?(\')s|(ll))]|[how?(\'s)] ?(is|(will be)) $w03 $V_CALENDAR ?($w03 today|$V_TOMORROW)) |
+    ([what?(?(\')s|(ll))] ?(is|(will be)) ?on $w03 [today?(\'s)]|$V_TOMORROW $V_CALENDAR) |
+    ([what?(?(\')s|(re))]|$V_CHECK $w03 my $w03 $V_EVENTS ?($w03 today|$V_TOMORROW)) |
+    ($V_CHECK $w03 $V_EVENTS $w03 $V_CALENDAR ?($w03 today|$V_TOMORROW)) |
+    ($V_ARE_THERE $w03 $V_EVENTS $w03 planned|[schedule?d]|$V_CALENDAR ?($w03 today|$V_TOMORROW))
+);
+
+PR_COMMUTE = (
+    ($V_LAUNCH $w03 $V_COMMUTE ?(app|skill)) |
+    ($V_CHECK $w03 $V_COMMUTE ?($w03 today|$V_TOMORROW)) |
+    (?$V_CHECK how long|(much time) $w03 will|would $w03 take|need $w03 $V_COMMUTE) |
+    ([what?(?(\')s|(ll))]|[how?(?(\')s|(ll))] ?(is|does|will) $w03 $V_COMMUTE ?[look?(s|(ing))] ?like) |
+    (?(does|will $w03) $V_COMMUTE $w03 [look?(s|(ing))]|[seem?(s|(ing))] $w03 $V_GOOD|$V_BAD|short|long) |
+    (does|will|is $w03 traffic [look?(s|(ing))]|[seem?(s|(ing))]|be $w03 $V_GOOD|$V_BAD $w03 $w03 work)
+);
+
+PR_NEWS = (
+    ($V_LAUNCH $w03 news ?(app|skill)) |
+    ([new?s] [headline?s])|(news [report?(s|(ing))]) |
+    ($V_CHECK|[read?(ing)]|[play?(ing)] ?(me|us) $w03 $V_NEWS ?($w03 $V_RECENT_PAST)) |
+    ([what?(?(\')s)] ?($w03 is) $w03 $V_NEWS ?($w03 $V_RECENT_PAST)) |
+    ([what?(?(\')s)] ?is going ?on ?(?in ?the world|news) $w03 $V_RECENT_PAST)
+);
+
+
+PR_WEATHER_STRICT = (
+    ($V_LAUNCH $w03 weather|forecast ?(app|skill)) |
+    (weather|(?weather forecast) ?$V_SPECIFY_TIME ?$V_IN_NEAR_LOCATION ?$V_SPECIFY_TIME) |
+    ($V_CHECK $w03 ?([today?(\'s)]|$V_TOMORROW) weather|(?weather forecast) ?$V_IN_NEAR_LOCATION) |
+    ([what?(?(\')s|(ll))]|[how?(?(\')s|(ll))] ?(is|will) $w03 weather|(?weather forecast) ?(be|[look?(ing)] ?like) ?$V_SPECIFY_TIME ?$V_IN_NEAR_LOCATION ?$V_SPECIFY_TIME) |
+    ([what?(?(\')s|(ll))] ?(is|will) [today?(\'s)]|$V_TOMORROW weather|(?weather forecast) ?(be|[look?(ing)] like) ?$V_IN_NEAR_LOCATION)
+);
+
+PR_FULL_REPORT = (
+    (?($V_LAUNCH|$V_CHECK|[what?(\'s)] $w03) ?my ?(full|complete|entire|comprehensive) $V_PERSONAL_REPORT) |
+    ([how?(?(\')s|(ll))]|[what?(?(\')s|(ll))] ?(is|does|will) $w03 ?(?the rest ?of) ?(my|the) morning|day|today|$V_TOMORROW $w03 [look?(ing)]|[seem?(ing)]|[be?(ing)] ?like ?$V_TOMORROW) |
+    ((?(($V_LAUNCH|$V_CHECK|[what?(\'s)] $w03) ~3) ?my $w03 [report?s])~5)
+);
+
+
+
+### Vocab ###
+KU_PREFIXES = (
+    (i (was ?$V_ACTUALLY saying|(trying to say))|(meant to say) $*) |
+    ($V_CANYOU ?$V_ACTUALLY access $*) |
+    ($V_CANYOU ?$V_ACTUALLY get ?(me|us) [info?(rmation)] $*) |
+    ($V_CANYOU ?$V_ACTUALLY give ?(me|us) [info?(rmation)] $*) |
+    (do you ?$V_ACTUALLY have [info?(rmation)] $*) |
+    ((i ?$V_ACTUALLY want)|(i\'d|(i would) ?$V_ACTUALLY like) ?to know|(hear about) $*) |
+    (i ?$V_ACTUALLY wish ?to know|(hear about) $*) |
+    (i ?$V_ACTUALLY wish you $* tell $*)
+~0.1);
+V_PREPEND = (
+    (would|could|will|might you ?mind) |
+    (are|would you ?be willing ?to) |
+    (do you know ?about ?the) |
+    ($V_CANYOU)
+);
+V_APPEND = (please|(?(please ?and) [thank?s] ?you)|(if you don\'t|wouldn\'t mind ?please));
+V_ACTUALLY = <1.0>(actually|already|really|reasonably|still|generally|literally|recently)<0.0>;
+V_ARE_THERE = ((do|did i|we have|plan)|(is|are there)|(have we got));
+V_BAD = (
+    bad|terrible|abominable|atrocious|awful|dreadful|lousy|horrendous|horrible|
+    unacceptable|unsatisfactory
+);
+V_CALENDAR = [calendar?s]|[schedule?s]|agenda|[datebook?s]|(date [book?s]);
+V_CANYOU = (
+    (can you)|(is ?it possible ?for you ?to)|(do you know how to)|
+    (are you able|capable|allowed|permitted ?(to|of))
+);
+V_CHECK = (
+    [check?(ing)]|([report?(ing)] ?(on|about))|([look?(ing)] up)|
+    ([giv(e|(ing))]|[tell?(ing)]|gimme ?(me|us) ?($w03 report) ?(on|about))
+);
+V_COMMUTE = ((commute ?time)|(time $w03 commute)|(route|traffic|$V_TRAVEL $w03 work));
+V_EVENTS = ([meeting?s]|[event?s]|[appointment?s]);
+V_FILLER = (a|an|any|some|the|that|this|those|these|many|(?a few)|(?a [lot?s] ?of));
+V_GOOD = (okay|alright|acceptable|good|great|excellent|incredible|fatanstic|wonderful);
+V_IN_NEAR_LOCATION = (
+    nearby|closeby|(near|close ?by)|outside|
+    (
+        ?(in|of|for|on|around|near|(?just outside)) ?(my|our|the|this)
+            here|house|home|[?((back)|front)yard?s]|street|village|town|city|
+            county|area|neighborhood
+    )
+);
+V_LAUNCH = (
+    [launch?(ing)]|[load?(ing)]|[access?(ing)]|([open?(ing)] ?up) |
+    ([bring?(ing)] up)|([bring?(ing)]|[tak(e|(ing))] me|us ?to) |
+    [show?(ing)]|[display?(ing)]|([let?((\'s)|(ting))] ?(me|us) see)
+);
+V_NEWS = (
+    news|(the new)|([new?s] [headline?s]|[report?(s|(ing))])|
+    ([new?s] ?(in|about) ?the world)|([event?s] $w03 ?(has|have) happened) |
+    ([happen(ing)|(ed)]|(going on) ?in ?the world|news)
+);
+V_PERSONAL_REPORT = (([person?(a|(al)|(nel))]|morning|daily [report?s]|rapport|park));
+V_RECENT_PAST = (
+    recently|today|tonight|yesterday|
+    (this|last|yesterday|(?the previous)|my|our night|morning|afternoon|evening|day)
+);
+V_SPECIFY_TIME = (
+    (?(right|just|exactly) now)|(currently) |
+    (?for ?(all|(?the rest|entire) ?of) ?(my|our|the|that|this) day|today) |
+    (?for ?(all|(?the rest|entire) ?of) [tomorrow?(?(\')s)]) {% date='tomorrow' %}
+);
+V_TOMORROW = ([tomorrow?(?(\')s)]) {% date='tomorrow' %};
+V_TRAVEL = (
+    [travel?((ing)|(ed))]|[go?((ing)|(ne))]|[visit?((ing)|(ed))]|[get?(ting)]|
+    gotten|[driv(e|(en)|(ing))]|[navigat(e|(ing)|(ed))]|[arriv(e|(ing)|(ed))]|
+    [journey?(ing)]
+);

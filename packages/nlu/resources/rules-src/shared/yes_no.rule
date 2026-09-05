@@ -1,0 +1,2 @@
+!use_equivalent_words = true;
+TopRule = ($w03 $factory:yes_no{intent = yes_no._nl}{priority = 'HIGH'} $w03);

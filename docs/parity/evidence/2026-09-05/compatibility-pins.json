@@ -1,0 +1,444 @@
+{
+  "recordedAt": "2026-09-05",
+  "originalCommit": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceFiles": {
+    "package.json": "7d79139f1a78d76d0295fad4f98d9590eb66610c00fba5aa904bf36124342aa7",
+    "yarn.lock": "a712460d4d4653e6ff349917906fc9293b53c3ab77f2e30fed8b8db408edfbde",
+    "Dockerfile": "33259f707d863532733f33a30ccb1525fd5728b6492988b76f293f1c52a7370f",
+    "packages/parser/scripts/download-jibo-nlu.sh": "a2f49d37e234d26e91e89aadc5421c0d2f382b836618897306dd60e58ad40158"
+  },
+  "workspaces": {
+    "packages/baseskill/package.json": {
+      "name": "@jibo/baseskill",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-command-requester": "4.0.6-home",
+        "jibo-data-utils": "^3.0.0",
+        "jibo-typed-events": "^6.0.0",
+        "moment-timezone": "^0.5.16",
+        "uuid": "^3.1.0"
+      }
+    },
+    "packages/chitchat-skill/package.json": {
+      "name": "@jibo/chitchat-skill",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/baseskill": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "csv-parse": "^2.0.0",
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "minimist": "^1.2.0"
+      }
+    },
+    "packages/example-skill/package.json": {
+      "name": "@jibo/example-skill",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/baseskill": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "minimist": "^1.2.0"
+      }
+    },
+    "packages/history-client/package.json": {
+      "name": "@jibo/history-client",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "axios": "mividtim/axios#jibo"
+      }
+    },
+    "packages/history/package.json": {
+      "name": "@jibo/history",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/history-client": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "joi": "^13.0.2",
+        "minimist": "^1.2.0",
+        "mongoose": "^4.13.6"
+      }
+    },
+    "packages/hub-client-cli/package.json": {
+      "name": "@jibo/hub-client-cli",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/hub-client": "^1.0.23",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/test-utils": "^1.0.0",
+        "@jibo/utils": "^1.0.13",
+        "axios": "mividtim/axios#jibo",
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "minimist": "^1.2.0",
+        "node-lame": "^1.0.6",
+        "query-string": "^5.0.1",
+        "sanitize-filename": "^1.6.1"
+      }
+    },
+    "packages/hub-client/package.json": {
+      "name": "@jibo/hub-client",
+      "version": "1.0.23",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils-common": "^1.0.5",
+        "axios": "mividtim/axios#jibo",
+        "jsonwebtoken": "^8.1.1",
+        "ws": "^3.2.0"
+      }
+    },
+    "packages/hub/package.json": {
+      "name": "@jibo/hub",
+      "version": "1.0.0",
+      "dependencies": {
+        "@google-cloud/speech": "^1.0.0",
+        "@jibo/history-client": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/test-utils": "^1.0.0",
+        "@jibo/utils": "^1.0.13",
+        "apiai": "^4.0.3",
+        "axios": "mividtim/axios#jibo",
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-data-utils": "^3.0.0",
+        "jibo-typed-events": "^6.0.0",
+        "lodash.every": "^4.6.0",
+        "lodash.isequal": "^4.5.0",
+        "lodash.sample": "^4.2.1",
+        "lodash.some": "^4.6.0",
+        "minimist": "^1.2.0",
+        "semver": "^5.5.0",
+        "ws": "^3.2.0"
+      }
+    },
+    "packages/integration-tests-ext/package.json": {
+      "name": "@jibo/integration-tests-ext",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/hub-client": "^1.0.23",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/jibo-server-client": "^3.0.110",
+        "@jibo/server": "^4.0.15",
+        "@jibo/test-utils": "^1.0.0",
+        "@jibo/utils": "^1.0.13",
+        "@types/chai": "^4.0.1",
+        "@types/mocha": "^2.2.41",
+        "@types/node": "6.0.94",
+        "@types/sinon": "^4.0.0",
+        "chai": "^4.0.2",
+        "mocha": "^4.1.0",
+        "nock": "^9.1.0",
+        "sinon": "^4.1.2",
+        "ts-node": "^4.1.0"
+      }
+    },
+    "packages/integration-tests-int/package.json": {
+      "name": "@jibo/integration-tests-int",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/baseskill": "^1.0.0",
+        "@jibo/example-skill": "^1.0.0",
+        "@jibo/hub": "^1.0.0",
+        "@jibo/hub-client": "^1.0.23",
+        "@jibo/hub-client-cli": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/lasso": "^1.0.0",
+        "@jibo/parser": "^1.0.0",
+        "@jibo/report-skill": "^1.0.0",
+        "@jibo/test-utils": "^1.0.0",
+        "@jibo/utils": "^1.0.13",
+        "axios": "mividtim/axios#jibo",
+        "chai": "^4.0.2",
+        "fakeredis": "2.0.0",
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-data-utils": "^3.0.0",
+        "mockgoose": "^7.3.3",
+        "moment-timezone": "^0.5.16",
+        "mongoose": "^4.13.6",
+        "multi-part": "^2.0.0",
+        "nock": "^9.1.0",
+        "redis": "2.8.0",
+        "simple-statistics": "^4.1.0",
+        "sinon": "^4.1.2"
+      }
+    },
+    "packages/interfaces/package.json": {
+      "name": "@jibo/interfaces",
+      "version": "1.0.30",
+      "dependencies": {}
+    },
+    "packages/lasso/package.json": {
+      "name": "@jibo/lasso",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "@microsoft/microsoft-graph-client": "^1.0.0",
+        "@types/simple-oauth2": "^1.1.1",
+        "axios": "mividtim/axios#jibo",
+        "find-root": "^1.1.0",
+        "google-auth-library": "^1.3.1",
+        "googleapis": "^28.0.1",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-typed-events": "^6.0.0",
+        "minimist": "^1.2.0",
+        "moment-timezone": "^0.5.16",
+        "mongoose": "^4.13.6",
+        "redis": "2.8.0",
+        "simple-oauth2": "^1.5.2",
+        "urlsafe-base64": "^1.0.0"
+      }
+    },
+    "packages/parser/package.json": {
+      "name": "@jibo/parser",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/test-utils": "^1.0.0",
+        "@jibo/utils": "^1.0.13",
+        "apiai": "^4.0.3",
+        "async-parallel": "^1.2.3",
+        "axios": "mividtim/axios#jibo",
+        "body-parser": "^1.18.2",
+        "express": "^4.16.2",
+        "find-root": "^1.1.0",
+        "glob": "^7.1.2",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-typed-events": "^6.0.0",
+        "make-dir": "^1.1.0",
+        "minimist": "^1.2.0",
+        "ws": "^3.2.0"
+      }
+    },
+    "packages/report-skill/package.json": {
+      "name": "@jibo/report-skill",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/baseskill": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "axios": "mividtim/axios#jibo",
+        "find-root": "^1.1.0",
+        "googleapis": "^28.0.1",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-data-utils": "^3.0.0",
+        "minimist": "^1.2.0",
+        "moment-timezone": "^0.5.16",
+        "xml2js": "^0.4.19"
+      }
+    },
+    "packages/template-skill/package.json": {
+      "name": "@jibo/template-skill",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/baseskill": "^1.0.0",
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "minimist": "^1.2.0"
+      }
+    },
+    "packages/test-utils/package.json": {
+      "name": "@jibo/test-utils",
+      "version": "1.0.0",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils": "^1.0.13",
+        "get-port": "^3.2.0",
+        "jibo-command-requester": "4.0.6-home"
+      }
+    },
+    "packages/utils-common/package.json": {
+      "name": "@jibo/utils-common",
+      "version": "1.0.5",
+      "dependencies": {
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "uuid": "^3.1.0"
+      }
+    },
+    "packages/utils/package.json": {
+      "name": "@jibo/utils",
+      "version": "1.0.13",
+      "dependencies": {
+        "@jibo/interfaces": "^1.0.30",
+        "@jibo/utils-common": "^1.0.5",
+        "@types/body-parser": "^1.16.5",
+        "aws-sdk": "^2.203.0",
+        "axios": "mividtim/axios#jibo",
+        "body-parser": "^1.18.2",
+        "express": "^4.16.2",
+        "find-root": "^1.1.0",
+        "jibo-cai-utils": "^6.0.1",
+        "jibo-log": "^5.0.7",
+        "jibo-typed-events": "^6.0.0",
+        "jsonwebtoken": "^8.1.1",
+        "lodash.isequal": "^4.5.0",
+        "newrelic": "^3.0.0",
+        "uuid": "^3.1.0",
+        "ws": "^3.2.0"
+      }
+    }
+  },
+  "selectedLockedDependencies": [
+    {
+      "selectors": "axios@^0.18.0",
+      "version": "0.18.0",
+      "resolved": "http://10.0.0.106:8080/a/axios/_attachments/axios-0.18.0.tgz#32d53e4851efdc0a11993b6cd000789d70c05102"
+    },
+    {
+      "selectors": "axios@mividtim/axios#jibo",
+      "version": "0.17.1",
+      "resolved": "https://codeload.github.com/mividtim/axios/tar.gz/9ffcb402fec0fa6041658b8f99ffe6619c65b6a0"
+    },
+    {
+      "selectors": "body-parser@1.18.2, body-parser@^1.18.2",
+      "version": "1.18.2",
+      "resolved": "http://10.0.0.106:8080/b/body-parser/_attachments/body-parser-1.18.2.tgz#87678a19d84b47d859b83199bd59bce222b10454"
+    },
+    {
+      "selectors": "express@^4.16.2",
+      "version": "4.16.2",
+      "resolved": "http://10.0.0.106:8080/e/express/_attachments/express-4.16.2.tgz#e35c6dfe2d64b7dca0a5cd4f21781be3299e076c"
+    },
+    {
+      "selectors": "jibo-cai-utils@^6.0.1",
+      "version": "6.0.1",
+      "resolved": "http://10.0.0.106:8080/j/jibo-cai-utils/_attachments/jibo-cai-utils-6.0.1.tgz#080404dc220060415ed55b95f8c82f3c1fa237d7"
+    },
+    {
+      "selectors": "jibo-data-utils@^3.0.0",
+      "version": "3.0.1",
+      "resolved": "http://10.0.0.106:8080/j/jibo-data-utils/_attachments/jibo-data-utils-3.0.1.tgz#bc667d2f8973250c5d1c2b9de932c1d9deb7280f"
+    },
+    {
+      "selectors": "jibo-gulp@^8.0.0",
+      "version": "8.0.1",
+      "resolved": "http://10.0.0.106:8080/j/jibo-gulp/_attachments/jibo-gulp-8.0.1.tgz#83b7985c742d3f977d2b6f1091099b2ac518d842"
+    },
+    {
+      "selectors": "jibo-log@^5.0.7, jibo-log@latest",
+      "version": "5.0.7",
+      "resolved": "http://10.0.0.106:8080/j/jibo-log/_attachments/jibo-log-5.0.7.tgz#92f795a5de1273430ac23c2ce01a33caa202025d"
+    },
+    {
+      "selectors": "jibo-typed-events@^6.0.0",
+      "version": "6.0.1",
+      "resolved": "http://10.0.0.106:8080/j/jibo-typed-events/_attachments/jibo-typed-events-6.0.1.tgz#2862c58ccac36f022ed48480be3ca9c4a3d3fd02"
+    },
+    {
+      "selectors": "joi@10.x.x, joi@^10.5.2",
+      "version": "10.6.0",
+      "resolved": "http://10.0.0.106:8080/j/joi/_attachments/joi-10.6.0.tgz#52587f02d52b8b75cdb0c74f0b164a191a0e1fc2"
+    },
+    {
+      "selectors": "joi@^11.1.0",
+      "version": "11.4.0",
+      "resolved": "http://10.0.0.106:8080/j/joi/_attachments/joi-11.4.0.tgz#f674897537b625e9ac3d0b7e1604c828ad913ccb"
+    },
+    {
+      "selectors": "joi@^12.0.0",
+      "version": "12.0.0",
+      "resolved": "http://10.0.0.106:8080/j/joi/_attachments/joi-12.0.0.tgz#46f55e68f4d9628f01bbb695902c8b307ad8d33a"
+    },
+    {
+      "selectors": "joi@^13.0.2",
+      "version": "13.1.2",
+      "resolved": "http://10.0.0.106:8080/j/joi/_attachments/joi-13.1.2.tgz#b2db260323cc7f919fafa51e09e2275bd089a97e"
+    },
+    {
+      "selectors": "joi@^5.0.2",
+      "version": "5.1.0",
+      "resolved": "http://10.0.0.106:8080/j/joi/_attachments/joi-5.1.0.tgz#152ad07db8ee9c6401997ff5fd2c12896070bf58"
+    },
+    {
+      "selectors": "jsonwebtoken@^8.1.1",
+      "version": "8.1.1",
+      "resolved": "http://10.0.0.106:8080/j/jsonwebtoken/_attachments/jsonwebtoken-8.1.1.tgz#b04d8bb2ad847bc93238c3c92170ffdbdd1cb2ea"
+    },
+    {
+      "selectors": "moment-timezone@^0.5.16",
+      "version": "0.5.16",
+      "resolved": "http://10.0.0.106:8080/m/moment-timezone/_attachments/moment-timezone-0.5.16.tgz#661717d5f55b4d2c2e002262d726c83785192a5a"
+    },
+    {
+      "selectors": "mongoose@4.9.8",
+      "version": "4.9.8",
+      "resolved": "http://10.0.0.106:8080/m/mongoose/_attachments/mongoose-4.9.8.tgz#ef64304231dc2455ab15a0c0cb6c149ce8c787bb"
+    },
+    {
+      "selectors": "mongoose@^4.13.6",
+      "version": "4.13.10",
+      "resolved": "http://10.0.0.106:8080/m/mongoose/_attachments/mongoose-4.13.10.tgz#3fdf86fd04af5772d4f7183a68a096bfb886db88"
+    },
+    {
+      "selectors": "redis@2.6.0-0",
+      "version": "2.6.0-0",
+      "resolved": "http://10.0.0.106:8080/r/redis/_attachments/redis-2.6.0-0.tgz#73f674dd3e54a3a76703d1ed2606b4e600be076d"
+    },
+    {
+      "selectors": "redis@2.8.0, redis@^2.8.0",
+      "version": "2.8.0",
+      "resolved": "http://10.0.0.106:8080/r/redis/_attachments/redis-2.8.0.tgz#202288e3f58c49f6079d97af7a10e1303ae14b02"
+    },
+    {
+      "selectors": "typescript@2.5.3",
+      "version": "2.5.3",
+      "resolved": "http://10.0.0.106:8080/t/typescript/_attachments/typescript-2.5.3.tgz#df3dcdc38f3beb800d4bc322646b04a3f6ca7f0d"
+    },
+    {
+      "selectors": "typescript@2.7.1",
+      "version": "2.7.1",
+      "resolved": "http://10.0.0.106:8080/t/typescript/_attachments/typescript-2.7.1.tgz#bb3682c2c791ac90e7c6210b26478a8da085c359"
+    },
+    {
+      "selectors": "ws@^3.0.0, ws@^3.2.0",
+      "version": "3.3.3",
+      "resolved": "http://10.0.0.106:8080/w/ws/_attachments/ws-3.3.3.tgz#f1cf84fe2d5e901ebce94efaece785f187a228f2"
+    }
+  ],
+  "nlu": {
+    "requestedVersion": "2.8.3",
+    "requestedArtifact": "https://pvindex.org/repository/nlu/jibo-nlu/jibo-nlu-v2.8.3-linux-x64.zip",
+    "bundledVersion": "2.8.2",
+    "bundledSha256": "a84aef41fe6ff79026b627c683260862f7971280c3bf21ab45fa8c10f35c4975",
+    "requestedSha256": "388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b",
+    "requestedBytes": 30545646
+  },
+  "nodeDockerImage": {
+    "original": "node:8.9.4-slim",
+    "resolved": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c"
+  },
+  "consumerPackages": [
+    {
+      "name": "jibo",
+      "version": "14.2.7",
+      "dist": {
+        "tarball": "https://pvindex.org/npm/jibo/-/jibo-14.2.7.tgz",
+        "shasum": "3fc96075ba225bbf97991fb0919876ca812e0b9a",
+        "integrity": "sha512-YKI439ALfcBebs4TwSheAlOxnNziZLdcgJC0J2mQYUM0Q1u04qlccAE5tRSPPpOb5bO93b4kJhy3YIksdSCw8Q=="
+      },
+      "source": "https://pvindex.org/npm/jibo/14.2.7",
+      "runtimeVerified": false
+    },
+    {
+      "name": "jibo-command-protocol",
+      "version": "4.2.7",
+      "dist": {
+        "tarball": "https://pvindex.org/npm/jibo-command-protocol/-/jibo-command-protocol-4.2.7.tgz",
+        "shasum": "c7354b1645825cf1ec7b23e943cede8703c5d668",
+        "integrity": "sha512-StgfkQVj0ZS2sVQU6KPtux02B+3hmCs3gdDjpW6qh0LkjHYdkoPveRpdFoGOYhuR9M8sffo7QRLDYuqKlbScyw=="
+      },
+      "source": "https://pvindex.org/npm/jibo-command-protocol/4.2.7",
+      "runtimeVerified": false
+    }
+  ]
+}

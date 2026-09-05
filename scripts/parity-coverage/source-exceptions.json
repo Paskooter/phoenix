@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "syntaxDiagnostics": [
+    {
+      "path": "packages/parser/scripts/test.js",
+      "blob": "143f6d473ad005f08a4c16d85ea0e9b9d45a1c10",
+      "codes": [1135, 1128, 1128],
+      "reason": "The frozen ad-hoc parser smoke script has an extra closing brace after axios.then. It is not runnable as committed. Retain its seven request inputs and the diagnostics; do not credit a test execution.",
+      "tasks": ["N-01", "R-02"]
+    }
+  ]
+}

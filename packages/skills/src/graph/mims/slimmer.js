@@ -5,7 +5,7 @@
 // sandbox against PromptData (the reference uses `vm`).
 
 import vm from 'node:vm';
-import { newMsgId } from '@phoenix/contracts';
+import { newJcpId } from '../../jcpId.js';
 import { loadMims, isFunc } from './utils.js';
 import { buildPromptData } from './promptData.js';
 
@@ -42,7 +42,7 @@ function generatePlay(mim, config, promptData, { rng = Math.random, mimState, lo
   const categorizedPrompts = prompts.filter((p) => p.prompt_category === config.category && p.prompt_sub_category === config.subCategory);
   if (categorizedPrompts.length) {
     // index only matters for the Errors category (NoMatch/NoInput escalation)
-    const indexedPrompts = categorizedPrompts.filter((p) => (p.prompt_category === PromptCategory.ERROR ? p.index === (config.index || 0) : true));
+    const indexedPrompts = categorizedPrompts.filter((p) => (p.prompt_category === PromptCategory.ERROR ? p.index === config.index : true));
     if (indexedPrompts.length) {
       const validPrompts = indexedPrompts.filter((p) => {
         try { return !p.condition || !!vm.runInContext(p.condition, ctx); }
@@ -53,9 +53,12 @@ function generatePlay(mim, config, promptData, { rng = Math.random, mimState, lo
         let resolvedPrompt = '';
         try { resolvedPrompt = vm.runInContext('`' + choice.prompt + '`', ctx); }
         catch (e) { log?.warn?.('prompt template error', { prompt_id: choice.prompt_id, error: e.message }); }
-        const autoRuleConfig = (choice.auto_rule_override != null) ? choice.auto_rule_override : autoRules;
+        // The reference distinguishes an omitted override from an explicit null:
+        // only null falls back to the MIM's es_auto_tagging value.  An omitted
+        // property therefore remains undefined and is omitted by JSON.stringify.
+        const autoRuleConfig = (choice.auto_rule_override !== null) ? choice.auto_rule_override : autoRules;
         return {
-          id: newMsgId(),
+          id: newJcpId(),
           type: 'PLAY',
           autoRuleConfig,
           esml: resolvedPrompt,
@@ -76,7 +79,7 @@ function generatePlay(mim, config, promptData, { rng = Math.random, mimState, lo
 /** Generate a Listen behavior from a MIM (question/optional-response only). */
 function generateListen(mim) {
   if (mim.mim_type === MimTypes.QUESTION || mim.mim_type === MimTypes.OPTIONAL_RESPONSE) {
-    return { id: newMsgId(), type: 'LISTEN', rule: mim.rule_name };
+    return { id: newJcpId(), type: 'LISTEN', contexts: Array.isArray(mim.rule_name) ? mim.rule_name : [mim.rule_name] };
   }
   return undefined;
 }
@@ -92,7 +95,7 @@ export function generateDisplay(mim, config, viewData, log) {
       const skillDisplay = { type: 'SKILL', name: 'MIM_VIEW', context: view };
       const cancelAction = { type: 'HIDE_DISPLAY', name: 'HIDE_MIM_VIEW' }; // temporary onCancel to satisfy RCP
       return {
-        id: newMsgId(), type: 'DISPLAY', name: 'PEGASUS_VIEW',
+        id: newJcpId(), type: 'DISPLAY', name: 'PEGASUS_VIEW',
         view: skillDisplay, layer: 0, overlay: undefined, visible: true, keepDisplay: false, onCancel: [cancelAction],
       };
     }
@@ -154,7 +157,7 @@ export async function generateSlim(config, providers, data, opts = {}) {
     listen: generateListen(mim),
     display: generateDisplay(mim, config, viewData, log),
   };
-  return slimConfig.play ? { id: newMsgId(), type: 'SLIM', config: slimConfig } : null;
+  return slimConfig.play ? { id: newJcpId(), type: 'SLIM', config: slimConfig } : null;
 }
 
 /**
@@ -170,7 +173,7 @@ export async function generateSlimSequence(config, providers, data, opts = {}) {
   const mimState = data.skill.session.data._mim;
   const slims = mims
     .map((mim) => ({
-      id: newMsgId(), type: 'SLIM',
+      id: newJcpId(), type: 'SLIM',
       config: {
         play: generatePlay(mim, config, promptData, { rng: opts.rng, mimState, log }),
         display: generateDisplay(mim, config, viewData, log),
@@ -178,7 +181,7 @@ export async function generateSlimSequence(config, providers, data, opts = {}) {
     }))
     .filter((slim) => slim.config.play); // SLIMs that yielded no prompt are dropped (per reference)
   if (!slims.length) return null;
-  return { id: newMsgId(), type: 'SEQUENCE', children: slims };
+  return { id: newJcpId(), type: 'SEQUENCE', children: slims };
 }
 
 /**
@@ -187,7 +190,7 @@ export async function generateSlimSequence(config, providers, data, opts = {}) {
  */
 export function generateSlimFromMim(mim, config, promptData, opts = {}) {
   const { rng = Math.random, mimState, log } = opts;
-  const play = generatePlay(mim, { ...config, index: config.index || 0 }, promptData, { rng, mimState, log });
+  const play = generatePlay(mim, config, promptData, { rng, mimState, log });
   if (!play) return null;
   const slim = { play };
   const listen = generateListen(mim);

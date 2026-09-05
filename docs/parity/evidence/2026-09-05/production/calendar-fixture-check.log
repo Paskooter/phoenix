@@ -1,0 +1,60 @@
+TAP version 13
+# (node:380208) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)
+ok 1 - commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)
+  ---
+  duration_ms: 39.511328
+  type: 'test'
+  ...
+# Subtest: commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft
+ok 2 - commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft
+  ---
+  duration_ms: 18.555
+  type: 'test'
+  ...
+# Subtest: commute: no traffic -> DriveNormal + DepartTimeNormal
+ok 3 - commute: no traffic -> DriveNormal + DepartTimeNormal
+  ---
+  duration_ms: 9.741463
+  type: 'test'
+  ...
+# Subtest: commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now
+ok 4 - commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now
+  ---
+  duration_ms: 19.810769
+  type: 'test'
+  ...
+# Subtest: calendar: two concurrent events today -> Count + SummaryAndTime + ParallelEvent + Outro
+ok 5 - calendar: two concurrent events today -> Count + SummaryAndTime + ParallelEvent + Outro
+  ---
+  duration_ms: 6.45225
+  type: 'test'
+  ...
+# Subtest: calendar: events only tomorrow -> TomorrowOnly + Count + walk
+ok 6 - calendar: events only tomorrow -> TomorrowOnly + Count + walk
+  ---
+  duration_ms: 6.732682
+  type: 'test'
+  ...
+# Subtest: calendar: asked for tomorrow with nothing scheduled -> Nothing
+ok 7 - calendar: asked for tomorrow with nothing scheduled -> Nothing
+  ---
+  duration_ms: 5.720273
+  type: 'test'
+  ...
+# Subtest: calendar: all-day event today reads the fullDay phrasing
+ok 8 - calendar: all-day event today reads the fullDay phrasing
+  ---
+  duration_ms: 7.37649
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 208.34624

@@ -1,0 +1,37 @@
+TopRule =
+($*
+	(
+		$MENU_INTENTS {intent=MENU_INTENTS._intent}
+	)
+$*){domain='gui_command'}{priority='HIGH'} |
+($*
+	(
+		$ITEM_INTENTS {intent=ITEM_INTENTS._intent}
+	)
+$*){domain='gallery'}{priority='HIGH'}
+;
+
+ITEM_INTENTS =
+(
+	$DELETE {_intent=DELETE._intent} |
+	$CLOSE {_intent=CLOSE._intent}
+)
+;
+
+MENU_INTENTS =
+(
+	$RESUME {_intent=RESUME._intent}
+)
+;
+
+
+RESUME = $V_RESUME {_intent='resume'};
+DELETE = $V_DELETE {_intent='delete'};
+CLOSE = $V_CLOSE {_intent='close'};
+
+
+
+### USEFUL VOCABULARY ###
+V_RESUME = (resume | play | (start ?again) | (keep going) | (go on) | continue | more);
+V_DELETE = (discard | delete | erase | (get $* rid) | trash | toss | (throw ($* (out | away))));
+V_CLOSE = (close|exit|escape|done|cancel|(back ?($* gallery))|save|keep);

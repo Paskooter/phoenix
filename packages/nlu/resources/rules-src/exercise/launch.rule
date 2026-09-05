@@ -1,0 +1,81 @@
+TopRule = $* $EXERCISE_LAUNCH $*
+{domain='exercise'}{skill='\@be/exercise'}
+{intent=EXERCISE_LAUNCH._intent}
+{routine=EXERCISE_LAUNCH._routine}
+{priority='HIGH'};
+
+EXERCISE_LAUNCH = (
+    $EXERCISE_DO {_intent='exerciseDoYoga'} |
+    $EXERCISE_DO_YOGA {_intent='exerciseDoYoga'} |
+    $EXERCISE_DO_YOGA_SUN {_intent='exerciseDoYoga'}{_routine = 'SunSalutation'} |
+    #$EXERCISE_DO_YOGA_FULLBODY {_intent='exerciseDoYoga'}{_routine='FullBody'} |
+    $EXERCISE_DO_YOGA_BASICWARRIOR {_intent='exerciseDoYoga'}{_routine='BasicWarrior'} |
+    $EXERCISE_YOGA_TUTORIAL {_intent='exerciseYogaTutorial'} |
+    $EXERCISE_WANTTO {_intent='exerciseWantTo'} |
+    $EXERCISE_LIKE {_intent='exerciseLike'}
+);
+
+EXERCISE_DO =
+(
+    ( $DOPREFIX $EXERCISE_VERB ) |
+    ( $OPEN $w03 $EXERCISE_NOUN_STRICT )
+);
+EXERCISE_DO_YOGA =
+(
+    ( ?$DOPREFIX ?do ?$w03 yoga ) |
+    ( $OPEN ?$w03 yoga )
+);
+EXERCISE_DO_YOGA_SUN =
+(
+    ?($DOPREFIX|$OPEN) ( ( sun | son ) ( $EXERCISE_NOUN | [salutation?s] ) )
+);
+EXERCISE_DO_YOGA_FULLBODY =
+(
+    ( ?( $DOPREFIX|$OPEN ) ( full body ?($EXERCISE_NOUN | pose) ) )
+);
+EXERCISE_DO_YOGA_BASICWARRIOR =
+(
+    ( ?( $DOPREFIX|$OPEN ) ( basic ( [warrior?s] | [worrier?s] ) ?($EXERCISE_NOUN | pose) ) )
+);
+EXERCISE_YOGA_TUTORIAL =
+(
+    ( $LESSON $w03 $SKILL_DESC )  |
+    ( tell me|us about|(how $w03 $DO) $SKILL_DESC )  |
+    ( how [do?(es)]|would i|we|[?(some)one] $DO yoga ) |
+    ( explain|describe|teach $w03 ?$DO $SKILL_DESC ) |
+    ( ?give instructions $* $SKILL_DESC ) |
+    ( give $* (yoga|exercise) tutorial ) |
+    ( how ( (do ( $IWE | you ) ) | ( does one ) ) do $w03 (yoga|exercise) (skill|thing) )
+);
+EXERCISE_WANTTO =
+(
+    (?(do you) (want to)|wanna)|(would you like ?to)
+        $EXERCISE_VERB|(do $w03 $EXERCISE_NOUN_STRICT)
+);
+EXERCISE_LIKE =
+(
+    ( do you $LIKE ?(the|that|our) yoga ?[session?s] ) |
+    ( do you $LIKE ?(the|that|our) ($EXERCISE_NOUN_STRICT [session?s])|($EXERCISE_VERB $w03 me|us)) |
+    ( do you $LIKE $w03 $DO $w03 yoga )
+);
+
+### VOCABULARY ###
+SKILL_DESC = (?(the|that|your) (yoga ?skill)|(exercise|workout|(work out) skill));
+DO = [do?(ing)];
+DOPREFIX =
+(
+    ( let\'s | ( let us ) ) |
+    ( $IWE ( ( would like) | ( want to ) | wanna ) ) |
+    ( ( i\'d|we\'d ) like to ) |
+    ( $IWE $w03 should ) |
+    ( ( can| may | should |could ) $IWE) |
+    ( would you mind ?( letting me | us ) )
+);
+LIKE = like | enjoy | dig | (care for) | love;
+LESSON = lesson | tutorial | instructional;
+IWE = i | we;
+EXERCISE_NOUN = yoga | exercise | routine | workout | ( work out ) | thing | one;
+EXERCISE_NOUN_STRICT = yoga | exercise | workout | ( work out );
+EXERCISE_VERB = [exercis(e|(ing))] | workout | ( [work?(ing)] out ) | ( [get?(ing)] sweaty );
+LETSDO = ( ( ( let\'s | ( let us ) ) | ( i\'ll | ( i will ) | ( let me ) ) ) );
+OPEN = ( (open ?up) | start | launch | (go to) | do | (bring up) | select | load);

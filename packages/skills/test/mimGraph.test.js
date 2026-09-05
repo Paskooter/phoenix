@@ -55,7 +55,7 @@ test('QNFactory: question -> success carries the NLU result', async () => {
   assert.equal(r1.data.final, false);
   assert.equal(playOf(r1).esml, 'what color?');
   const slim = r1.data.action.config.jcp;
-  assert.equal(slim.config.listen.rule, 'test/rule', 'question MIM emits a LISTEN from rule_name');
+  assert.deepEqual(slim.config.listen.contexts, ['test/rule'], 'question MIM emits LISTEN contexts from rule_name');
 
   const r2 = await skill(update('qn-skill', r1.data.skill.session, { nlu: { intent: 'color', entities: { color: 'blue' } }, asr: { text: 'blue' } }));
   assert.equal(r2.data.final, true, 'Success exit is terminal at the top level');
@@ -170,7 +170,7 @@ test('OptIn: VERIFY_ID proposal uses unified skill prompt + base listen rule', a
   const r1 = await skill(launch('optin-skill', { type: undefined }));
   assert.equal(playOf(r1).esml, 'want your report, Alice?', 'skill prompt over base MIM, template resolved');
   const slim = r1.data.action.config.jcp;
-  assert.equal(slim.config.listen.rule, 'shared/verify_id', 'base ProposalVerifyID rule kept');
+  assert.deepEqual(slim.config.listen.contexts, ['shared/verify_id'], 'base ProposalVerifyID rule kept');
 });
 
 test('OptIn: yes -> Accepted -> content action; SKILL_OFFER analytics tracked', async () => {
@@ -196,7 +196,7 @@ test('OptIn: wrongID -> WrongID MIM -> loopmember recovers identity; SetPresentP
   const r1 = await skill(launch('optin-skill'));
   const r2 = await skill(update('optin-skill', r1.data.skill.session, { nlu: { intent: 'wrongID', entities: {} }, asr: { text: "that's not me" } }));
   const slim2 = r2.data.action.config.jcp;
-  assert.equal(slim2.config.listen.rule, 'shared/wrong_id', 'WrongID MIM listens for identity');
+  assert.deepEqual(slim2.config.listen.contexts, ['shared/wrong_id'], 'WrongID MIM listens for identity');
 
   const r3 = await skill(update('optin-skill', r2.data.skill.session, { nlu: { intent: 'loopmember', entities: { loopMemberReferent: 'bob' } }, asr: { text: 'i am bob' } }));
   const jcp = r3.data.action.config.jcp;
