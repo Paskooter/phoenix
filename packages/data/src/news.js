@@ -1,7 +1,8 @@
 // News relay — Phoenix port of lasso/relay/APNewsHandler.ts (the 2026 RSS shim).
 // AP's paid feed is gone; fetch free RSS (BBC/NPR) by category and re-emit XML in the AP-feed
-// shape report-skill's NewsParse expects after xml2js: {feed:{entry:[{summary,'apcm:ContentMetadata':
-// [{'apcm:ExtendedHeadLine'}]}]}}. relayData is the XML string. Cache TTL 65m.
+// shape report-skill's NewsParse expects after xml2js. Provider image metadata is retained when
+// the feed supplies a URL and both dimensions; no dimensions or image URL are inferred.
+// relayData is the XML string. Cache TTL 65m.
 
 // AP sourceID -> category (interfaces/src/personalreport/apnews.ts).
 export const CATEGORIES = {
@@ -49,22 +50,41 @@ export async function fetchNews(input, { get = defaultRssGet } = {}) {
   const feedUrl = RSS_FEEDS[category] || RSS_FEEDS_DEFAULT;
   const xml = await get(feedUrl);
   if (!xml) throw new Error(`Empty RSS reply for ${category}`);
-  return buildApFeedXml(parseRssItems(String(xml), 10));
+  const feed = parseRssFeed(String(xml), 10);
+  return buildApFeedXml(feed.items, feed.title);
 }
 
 // --- minimal RSS/Atom parsing + AP XML building (ported) -------------------
 
 export function parseRssItems(xml, limit) {
+  return parseRssFeed(xml, limit).items;
+}
+
+function parseRssFeed(xml, limit) {
+  const source = String(xml);
+  const maxItems = limit == null ? Infinity : Math.max(0, Number(limit));
+  const feedTitle = extractFeedTitle(source);
   const itemRegex = /<(?:item|entry)\b[^>]*>([\s\S]*?)<\/(?:item|entry)>/gi;
   const items = [];
   let m;
-  while ((m = itemRegex.exec(xml)) !== null && items.length < limit) {
+  while ((m = itemRegex.exec(source)) !== null && items.length < maxItems) {
     const block = m[1];
     const title = decodeXmlText(extractTag(block, 'title'));
     const desc = decodeXmlText(extractTag(block, 'description') || extractTag(block, 'summary') || extractTag(block, 'content:encoded') || '');
-    if (title) items.push({ title, description: stripTags(desc) });
+    if (!title) continue;
+    const item = { title, description: stripTags(desc) };
+    const image = extractImage(block);
+    if (image) item.image = image;
+    items.push(item);
   }
-  return items;
+  return { title: feedTitle, items };
+}
+
+function extractFeedTitle(xml) {
+  const container = /<(?:channel|feed)\b[^>]*>([\s\S]*?)<\/(?:channel|feed)>/i.exec(xml);
+  if (!container) return '';
+  const withoutItems = container[1].replace(/<(?:item|entry)\b[^>]*>[\s\S]*?<\/(?:item|entry)>/gi, '');
+  return decodeXmlText(extractTag(withoutItems, 'title'));
 }
 
 function extractTag(block, tag) {
@@ -83,15 +103,95 @@ function decodeXmlText(s) {
 
 function stripTags(s) { return s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
 
+function parseAttributes(text) {
+  const attrs = {};
+  const attrPattern = /([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  let match;
+  while ((match = attrPattern.exec(text)) !== null) {
+    attrs[match[1].toLowerCase()] = decodeXmlText(match[2] == null ? match[3] : match[2]);
+  }
+  return attrs;
+}
+
+function extractImage(block) {
+  const tagPattern = /<([\w:.-]+)\b([^>]*?)(?:\/?>)/gi;
+  const candidates = [];
+  let match;
+  while ((match = tagPattern.exec(block)) !== null) {
+    const name = match[1].toLowerCase();
+    const attrs = parseAttributes(match[2]);
+    if (name === 'media:content' || name === 'media:thumbnail') {
+      const candidate = imageCandidate(attrs, attrs.url || attrs.href || attrs.src);
+      if (candidate) candidates.push(candidate);
+    } else if (name === 'enclosure') {
+      const candidate = imageCandidate(attrs, attrs.url || attrs.href);
+      if (candidate) candidates.push(candidate);
+    } else if (name === 'link' && attrs.rel && attrs.rel.toLowerCase() === 'enclosure') {
+      const candidate = imageCandidate(attrs, attrs.href || attrs.url);
+      if (candidate) candidates.push(candidate);
+    }
+  }
+  return candidates.find((candidate) => candidate.source && candidate.width && candidate.height);
+}
+
+function imageCandidate(attrs, source) {
+  const medium = (attrs.medium || '').toLowerCase();
+  const type = (attrs.type || '').toLowerCase();
+  if ((medium && medium !== 'image') || (type && type.indexOf('image/') !== 0)) return null;
+  return {
+    source,
+    width: attrs.width || attrs['media:width'],
+    height: attrs.height || attrs['media:height'],
+  };
+}
+
 function escapeXml(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-export function buildApFeedXml(items) {
-  const entries = items.map((it) => {
-    const headline = escapeXml(it.title);
-    const summary = escapeXml(it.description || it.title);
-    return `\n  <entry>\n    <summary>${summary}</summary>\n    <apcm:ContentMetadata>\n      <apcm:ExtendedHeadLine>${headline}</apcm:ExtendedHeadLine>\n    </apcm:ContentMetadata>\n  </entry>`;
-  }).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<feed xmlns:apcm="http://ap.org/schemas/03/2010/contentmetadata">${entries}\n</feed>\n`;
+function imageContent(image) {
+  const source = escapeXml(image.source);
+  const width = escapeXml(image.width);
+  const height = escapeXml(image.height);
+  // NewsParse reads the AP Preview image at media-reference index 1. The
+  // replacement feed has one provider image, so preserve its values there and
+  // leave the other role slots without invented URL or dimensions.
+  return `
+    <content type="text/xml">
+      <nitf><body><body.content><media>
+        <media-reference />
+        <media-reference source="${source}" width="${width}" height="${height}" />
+        <media-reference />
+      </media></body.content></body></nitf>
+    </content>`;
+}
+
+function apEntry(item) {
+  const headline = escapeXml(item.title);
+  const summary = item.description ? `\n    <summary>${escapeXml(item.description)}</summary>` : '';
+  return `
+  <entry>
+    <title>${headline}</title>
+    ${summary}
+    <apcm:ContentMetadata>
+      <apcm:ExtendedHeadLine>${headline}</apcm:ExtendedHeadLine>
+    </apcm:ContentMetadata>${item.image ? imageContent(item.image) : ''}
+  </entry>`;
+}
+
+function apHeader(feedTitle) {
+  if (!feedTitle) return '';
+  const title = escapeXml(feedTitle);
+  return `
+  <entry>
+    <title>${title}</title>
+    <apcm:ContentMetadata>
+      <apcm:ExtendedHeadLine>${title}</apcm:ExtendedHeadLine>
+    </apcm:ContentMetadata>
+  </entry>`;
+}
+
+export function buildApFeedXml(items, feedTitle = '') {
+  const entries = items.map(apEntry).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom" xmlns:apcm="http://ap.org/schemas/03/2005/apcm">${apHeader(feedTitle)}${entries}\n</feed>\n`;
 }

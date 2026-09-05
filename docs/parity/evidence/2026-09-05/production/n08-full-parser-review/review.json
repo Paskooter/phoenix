@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "130ec3784274d25dbba9ae5f5cf51353a71f8308",
+  "loadedIntegrationRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
+  "referenceCaptureSha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+  "scope": "HTTP status and complete decoded response.data only; outer envelopes, headers, timings, routing and actions require production grading.",
+  "cases": 20528,
+  "matchesBefore": 20127,
+  "matchesAfter": 20216,
+  "fixedPriorFailures": 89,
+  "newFailures": 0,
+  "remainingFailures": 312,
+  "groups": {
+    "boundary": {
+      "cases": 21,
+      "matches": 20
+    },
+    "chitchat": {
+      "cases": 11432,
+      "matches": 11256
+    },
+    "hub-client": {
+      "cases": 9002,
+      "matches": 8867
+    },
+    "report": {
+      "cases": 73,
+      "matches": 73
+    }
+  },
+  "decision": "Accept the bounded source grammar metadata corrections, keeping N-08 as a whole unverified.",
+  "referenceRepeatability": "The complete original control was separately reviewed; eight symmetric unhosted external-action cases remain full production coverage gaps."
+}

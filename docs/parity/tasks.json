@@ -269,7 +269,7 @@
         "packages/harness/resources/goldens/production-smoke/source.json",
         "scripts/parity-production/gate.mjs"
       ],
-      "finding": "The complete 20,534-case original control agrees with zero differences/invariants and eight symmetric external-action gaps. An independently completed buffered-writer capture also agrees with it. A separate second native startup failed at zero cases and remains invalid. Root integrated bounded C-01/N-01/S-04/H-07; 329 unit tests pass, but strict smoke still has 736 differences and one gap. Full Phoenix corpus baseline remains open.",
+      "finding": "Complete original controls have zero differences/invariants across20,534 cases and eight symmetric external-action gaps. A source-pinned full golden is ready for the complete Phoenix baseline. Reviewed main has360 passing unit tests and a strict smoke result of700 differences, zero invariants, one gap and25/26 complete action agreement. Product gates remain failing.",
       "acceptance": [
         "Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.",
         "Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.",
@@ -985,7 +985,7 @@
         "packages/nlu/src/fullGrammar.js",
         "packages/harness/src/corpusRunner.js"
       ],
-      "finding": "Full original HTTP parser replay has 401 mismatches across 20,528 requests; 20,127 exact responses match. Luna is implementing source-backed grammar/scoring repairs in an isolated worktree; no corpus hardcodes or relaxed equality allowed.",
+      "finding": "Reviewed source grammar metadata repairs are integrated. Full replay matches HTTP status and complete decoded response.data for20,216/20,528 requests:89 prior failures fixed, no newly failing IDs,312 remaining. All73 report cases match. Full outer HTTP/routing/action parity remains separate and open.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -994,16 +994,34 @@
       "verification": [],
       "implementationReview": {
         "state": "awaiting_review",
-        "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Source grammar priority, token metadata and semantic-literal normalization repair89/401 previous failures. Root full replay is running to check all prior passes for regressions.",
-        "worktree": ".parity/worktrees/nlu-corpus",
+        "assignee": "Luna Max / http_contract_repair",
+        "scope": "Next source optional-character grammar correction reports14/312 prior failures fixed; root regression review pending. Previously accepted130ec37 remains integrated.",
+        "worktree": ".parity/worktrees/nlu-next",
         "baseRevision": "54459ca561c9e217e380384f43abf8283c54476c",
         "evidence": [
           "docs/parity/evidence/2026-09-05/production/full-parser-replay-review.json"
         ],
-        "candidateRevision": "130ec3784274d25dbba9ae5f5cf51353a71f8308",
-        "artifact": "docs/parity/candidates/N-08.md"
-      }
+        "candidateRevision": "7e0abbc83f0da8fb9a3f94752555b6074989f0e6",
+        "artifact": "docs/parity/candidates/N-08-followup.md",
+        "branch": "codex/candidate-nlu-next-20260905"
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair",
+          "scope": "Source grammar priority, token metadata and semantic-literal normalization repair89/401 previous failures. Root full replay is running to check all prior passes for regressions.",
+          "worktree": ".parity/worktrees/nlu-corpus",
+          "baseRevision": "54459ca561c9e217e380384f43abf8283c54476c",
+          "evidence": [
+            "docs/parity/evidence/2026-09-05/production/full-parser-replay-review.json"
+          ],
+          "candidateRevision": "130ec3784274d25dbba9ae5f5cf51353a71f8308",
+          "artifact": "docs/parity/candidates/N-08.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-05/production/n08-full-parser-review/review.json",
+          "reviewFinding": "89 prior failures repaired and zero newly failing cases in the full20,528-request status/data replay; full N-08 remains open."
+        }
+      ]
     },
     {
       "id": "I-01",
@@ -1249,13 +1267,25 @@
         "packages/data/src/news.js",
         "packages/data/src/index.js"
       ],
-      "finding": "RSS transformation exists; the original hourly category poller is absent and report image/header assumptions changed.",
+      "finding": "Bounded RSS\u2192AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.",
       "acceptance": [
         "Match all category IDs, XML structure, image/attribution/header handling and upstream/cache errors with original AP fixtures.",
         "Reproduce configurable polling/prefetch behavior, category-specific cache updates and shutdown cleanup.",
         "Verify RSS translation as an adapter without treating omitted reference fields as parity."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Preserve provider image metadata in the existing RSS replacement and emit source-compatible AP preview XML. CompleteD-06 remains open.",
+        "worktree": ".parity/worktrees/news-provider",
+        "branch": "codex/candidate-news-provider-20260905",
+        "candidateRevision": "cbf92ebaeb7fdd7fe50876d1c527cf9f994c2544",
+        "artifact": "docs/parity/candidates/D-06.md",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json",
+        "reviewFinding": "Root reviewed source/31 data tests and observed three live BBC images on Moth; broader provider and cache parity remains open."
+      }
     },
     {
       "id": "D-07",
@@ -1313,7 +1343,15 @@
         "Continue captured sessions through all follow-up actions, including retries and global interruptions; detect corrupted/replayed sessions.",
         "Specify whether in-flight reference sessions must survive a cutover and verify the migration/reset policy before release."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "working",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Source BaseSkill response timing and bounded envelope/error behavior; complete graph/session lifecycle remains separate.",
+        "worktree": ".parity/worktrees/skill-response",
+        "branch": "codex/candidate-skill-response-20260905",
+        "baseRevision": "7d87cae491ccaa99dc1ddc8141bcb816f4a15dc8"
+      }
     },
     {
       "id": "S-02",
@@ -1439,21 +1477,24 @@
         "packages/skills/src/graph/mims/promptData.js",
         "packages/skills/src/report/dateTime.js"
       ],
-      "finding": "Loop names/location text are lean substitutes; prompt time uses host-local Date accessors and report DateTime uses fixed offsets.",
+      "finding": "Source-backed runtime prompt helpers integrated after independent root correction.433 additional contexts plus a direct DateTime case match the original checked surface, and UTC/Tokyo host results agree. Broader DateTime NLU parsing/mutation APIs and complete task acceptance remain open.",
       "acceptance": [
         "Match pronounceable names/lists, owner/speaker/referent, age/birthdays, emotion and location values for reference contexts.",
         "Verify date phrasing, timezone offsets, DST, midnight, leap days and seasonal windows independently of the server timezone."
       ],
       "verification": [],
       "implementationReview": {
-        "state": "changes_requested",
+        "state": "accepted",
         "assignee": "Luna Max / http_contract_repair",
         "scope": "Fixture-dependent fallbacks removed; independent review is repairing source guarded partial failures, duplicate speaker selection and DateTime edge methods.",
         "worktree": ".parity/worktrees/prompt-data-review",
         "branch": "codex/review-prompt-data-20260905",
         "baseRevision": "9be63b17ff298b77f91ee0071778dae05de3dd46",
         "artifact": "docs/parity/candidates/S-05.md",
-        "candidateRevision": "9be63b17ff298b77f91ee0071778dae05de3dd46"
+        "candidateRevision": "f2e0ac6c5e7a27901ef2e104d91f322c2c986118",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/reviews/s05-root/review.json",
+        "reviewFinding": "Root corrected four failures found in the larger matrix;434/434 source summaries match and67 skill tests pass. Bounded runtime prompt implementation accepted."
       }
     },
     {
@@ -1685,24 +1726,28 @@
         "packages/skills/src/report/commute.js",
         "packages/skills/src/report/calendar.js"
       ],
-      "finding": "Isolated candidate now generates all six original view configs. Root full-view JSON comparison matches61/61 and Moth visibly renders the weather view. News/calendar/commute robot behavior and provider error paths remain open; candidate is not yet integrated into main.",
+      "finding": "Six source-backed report view configs and builders are integrated.61/61 full view JSON comparisons match; weather and three live news images visibly render through original Nimbus on Moth. Calendar/commute hardware and full view matrix acceptance remain open.",
       "acceptance": [
         "Generate every original view config, dynamic field, image path, geometry, unit label and display threshold.",
         "Compare payloads with source fixtures and render them on a compatible robot/client; lack of simulator rendering is not a completion exemption."
       ],
       "verification": [],
       "implementationReview": {
-        "state": "awaiting_review",
+        "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
         "scope": "Six original report view resources and four dynamic builders; root source/runtime/hardware review.",
         "worktree": ".parity/worktrees/report-views",
         "branch": "codex/candidate-report-views-20260905",
-        "candidateRevision": "bfd4ac532febe1a7d93c0d81419d54d4a956fc38",
+        "candidateRevision": "7e4f20347857c69e522ea9b8d82217ffd9b90bfb",
         "evidence": [
           "docs/parity/evidence/2026-09-05/production/report-view-builders/source.json",
-          "docs/parity/evidence/2026-09-05/hardware/s13-weather-reviewed.json"
+          "docs/parity/evidence/2026-09-05/hardware/s13-weather-reviewed.json",
+          "docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json"
         ],
-        "artifact": "docs/parity/candidates/S-13.md"
+        "artifact": "docs/parity/candidates/S-13.md",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-05/production/report-view-builders/source.json",
+        "reviewFinding": "Exact61-case source view comparison plus source error-path correction reviewed. Weather/news render on real Moth; missing original calendar tree assets are documented. CompleteS-13 remains open."
       }
     },
     {
@@ -1864,13 +1909,13 @@
       "implementationReview": {
         "state": "awaiting_review",
         "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Signed CreateHubToken source-claim and422 validation correction. Root found that original AccountController reloads the account and signs its own secret; previous forwarded-envelope redaction claim was wrong and superseded. Original controller/SDK evidence review remains active.",
+        "scope": "Signed CreateHubToken claims plus exact Hapi validation messages, headers and scoped primitive/missing-body parsing. Root review and native auth trial pending.",
         "worktree": ".parity/worktrees/auth-token-review",
         "branch": "codex/review-auth-token-20260905",
         "baseRevision": "3f2ca91988af951c2054b51bca2ac0428a5ebb30",
         "artifact": "docs/parity/candidates/A-02.md",
         "referenceRevision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
-        "candidateRevision": "c29c23ef164d962a2ce193110d81b90b047ef70c"
+        "candidateRevision": "5100ad5"
       }
     },
     {

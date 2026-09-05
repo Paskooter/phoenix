@@ -1,0 +1,10 @@
+{
+  "revision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
+  "files": {
+    "packages/nlu/src/index.js": "8fd5ae5837d1a22da69691cdc8f165eb2528f821a17801ab83da8702e93287a4",
+    "packages/nlu/src/grammar/matcher.js": "41655d40c4a81461858b475e59807aeaafdda013e37889a373228ce76d4f7f35",
+    "packages/nlu/src/grammar/parser.js": "c3c2dc7594fd1d046f933e6d4cab6e86a57f8fb27c8a0bc5cae8ad5ed14b7230",
+    "packages/nlu/src/requestParser.js": "48c424a12708176aa3d129fef7fb829077285551f972ea5c9caec1831618ddda",
+    "packages/common/src/service.js": "54f253727a5c17db4e4c60480858f6e0e7539f8a60933e6141c2bcdb629de643"
+  }
+}

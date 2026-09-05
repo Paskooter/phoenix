@@ -1,0 +1,77 @@
+{
+    "viewConfig": {
+        "type": "View",
+        "id": "headlineView",
+        "category": "gui"
+    },
+    "open": {
+        "transitionOpen": "trans_in",
+        "removeAll": true
+    },
+    "defaultSelect": {
+        "transitionClose": "trans_out",
+        "remove": true,
+        "leaveEmpty": true
+    },
+    "componentConfigs": [
+        {
+            "id": "headlineClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "headlinePng",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "transform": {
+                "scaleX": 1,
+                "scaleY": 1
+            }
+        },
+        {
+            "id": "categoryClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "categoryPng",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 0,
+                "y": 353
+            },
+            "transform": {
+                "scaleX": 1280,
+                "scaleY": 1
+            }
+        },
+        {
+            "id": "categoryText",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "letterSpacing": 2,
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 640,
+                "y": 640
+            },
+            "targetAnchor": {
+                "x": 0.5,
+                "y": 1
+            }
+        }
+    ]  
+}

@@ -30,7 +30,21 @@ const AN_MIM = (id, text) => ({
   prompts: [{ prompt_category: 'Entry-Core', prompt_sub_category: 'AN', index: 1, condition: '', prompt: text, media: 'TTS', prompt_id: `${id}-an`, weight: 1, auto_rule_override: null }],
 });
 
-const ctx = (skillID) => ({ general: { accountID: 'a', robotID: 'r', lang: 'en-US' }, runtime: { dialog: {}, perception: { speaker: 'alice' } }, skill: { id: skillID } });
+const SOURCE_RUNTIME = {
+  location: { iso: '2020-01-15T12:00:00.000Z' },
+  perception: { speaker: 'alice' },
+  loop: {
+    owner: 'alice',
+    jibo: { id: 'jibo', birthdate: Date.parse('2017-05-19T15:27:05.000Z'), color: 'WHITE' },
+    users: [{
+      id: 'alice', firstName: 'Alice', lastName: 'Smith', gender: 'female', phoneticName: 'Alice',
+      birthdate: Date.parse('1990-01-01T00:00:00.000Z'),
+    }],
+  },
+  character: { emotion: { name: 'NEUTRAL', valence: 0, confidence: 0 } },
+  dialog: { referent: null },
+};
+const ctx = (skillID) => ({ general: { accountID: 'a', robotID: 'r', lang: 'en-US' }, runtime: SOURCE_RUNTIME, skill: { id: skillID } });
 const launch = (skillID, extra = {}) => ({ type: SkillRequestType.LISTEN_LAUNCH, msgID: 'm', ts: 1, data: { ...ctx(skillID), ...extra } });
 const update = (skillID, session, result) => ({ type: SkillRequestType.LISTEN_UPDATE, msgID: 'm', ts: 2, data: { ...ctx(skillID), skill: { id: skillID, session }, result } });
 
@@ -139,8 +153,7 @@ function optInSkill() {
       const g = new Graph(gm, 'main', ['Done']);
       const optIn = new OptInFactory('OptIn', facade, {
         optInType: OptInType.VERIFY_ID,
-        proposalMimProvider: { prompts: [{ prompt_category: 'Entry-Core', prompt_sub_category: 'Q', index: 1, condition: '', prompt: 'want your report, ${speaker.name}?', media: 'TTS', prompt_id: 'prop1', weight: 1, auto_rule_override: null }] },
-        promptDataProvider: { speaker: { name: 'Alice' } },
+        proposalMimProvider: { prompts: [{ prompt_category: 'Entry-Core', prompt_sub_category: 'Q', index: 1, condition: '', prompt: 'want your report, ${speaker.firstName}?', media: 'TTS', prompt_id: 'prop1', weight: 1, auto_rule_override: null }] },
       }).createGraph(gm);
       const content = new FnNode('Content', {
         transitions: ['Done'],

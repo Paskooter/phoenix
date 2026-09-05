@@ -27,21 +27,29 @@ The [smoke golden](../../packages/harness/resources/goldens/production-smoke/sou
 
 ## Reviewed integration checkpoint
 
-Main includes bounded C-01 HTTP, N-01 named-rule parser, S-04 JCP/MIM and H-07
-audio decoder/VAD repairs. All **329 unit tests pass** in the
-[recorded run](evidence/2026-09-05/production/root-integrated-unit-reviewed-goldens.txt).
-The [fresh strict smoke run](evidence/2026-09-05/production/root-integrated-buffered-smoke/run.json)
-still fails with **736 field differences**, zero trace invariants and one
-unhosted action gap; **21/26 complete actions** agree. A complete parser-only
-HTTP replay matches **20,127/20,528** responses. It does not certify complete
-wire transactions or actions. The next N-08 candidate is under a full replay
-to check both repairs and regressions; its result is not included in main's
-accepted count.
+Main includes bounded C-01 HTTP, N-01/N-08 parser, S-04 JCP/MIM, H-07 audio,
+S-05 prompt data, S-13 report views and D-06 provider-image repairs. All
+**360 unit tests pass** in the
+[recorded run](evidence/2026-09-05/production/root-second-checkpoint-unit.txt).
+The [latest strict smoke run](evidence/2026-09-05/production/root-n08-s05-s13-smoke/run.json)
+still fails with **700 field differences**, zero trace invariants and one
+unhosted action gap; **25/26 complete actions** agree. That smoke capture
+predates the D-06 provider adapter; its synthetic provider profile does not
+execute that adapter, which has separate source-consumer and hardware evidence.
+
+The [full parser replay](evidence/2026-09-05/production/n08-full-parser-review/review.json)
+matches HTTP status and complete decoded `response.data` for **20,216/20,528**
+requests, including all **73 report cases**. It repairs 89 earlier failures
+without a newly failing case. Its 312 remaining failures stay open. This
+replay does not compare outer envelopes, headers, timing fields, routing or
+actions; those are retained in the strict production grader.
 
 The report view candidate separately matches **61/61 complete view JSONs**
-against actual original Node 8 helpers. Root also visually confirmed the
-weather display on Moth. Those isolated candidate results remain distinct
-from main integration and complete report skill acceptance.
+against actual original Node 8 helpers. Root visually confirmed the weather
+display and three live news images on Moth. These bounded implementations are
+now integrated; calendar/commute hardware checks and complete report skill
+acceptance remain open. The full [production golden](../../packages/harness/resources/goldens/production-full/source.json)
+retains all 20,534 cases for the next complete Phoenix baseline.
 
 ## Earlier Phoenix baseline
 

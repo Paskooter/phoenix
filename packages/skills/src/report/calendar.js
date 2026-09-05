@@ -10,6 +10,7 @@ import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { Names, addMimPathsToLocalData, askedForTomorrow, getJSON } from './utils.js';
 import { LassoClient } from './lassoClient.js';
 import { DateTime } from './dateTime.js';
+import { calEventViews } from './calendarViews.js';
 
 export const MimPath = Object.freeze({
   ServiceDown: 'ServiceDown', Nothing: 'Nothing', NothingToday: 'NothingToday',
@@ -105,6 +106,7 @@ export function calendarParse(rawEvents, data) {
 export class CalendarMimLogic extends DefaultNode {
   async exit(data) {
     const log = data.log;
+    const events = data.local.calendar && data.local.calendar.events;
     let mimPaths;
     try {
       mimPaths = await this.getMimPaths(data, log);
@@ -114,7 +116,7 @@ export class CalendarMimLogic extends DefaultNode {
     }
 
     data.local.mimPaths = addMimPathsToLocalData(Names.calendar, mimPaths, data.local);
-    data.local.views.calendarEvents = {}; // GUI views not rendered in Phoenix sim
+    data.local.views.calendarEvents = await calEventViews(events, data);
 
     return { transition: DefaultTransition.Done };
   }

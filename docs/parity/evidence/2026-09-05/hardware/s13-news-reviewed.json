@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "robot": "Moth",
+  "be": "11.0.1",
+  "candidateRevision": "7d87cae491ccaa99dc1ddc8141bcb816f4a15dc8",
+  "input": "tell me the news via original Jetstream SDK CLIENT_ASR",
+  "microphoneAcceptance": false,
+  "observed": "Original Nimbus rendered three remote BBC images and Technology, Sports and Business category overlays while speaking the corresponding headlines. Root inspected the captured images. Views closed and the robot returned to idle.",
+  "views": [
+    "headlineView_0",
+    "headlineView_1",
+    "headlineView_2"
+  ],
+  "firstHeadlineViewObservedMs": 5904,
+  "idleObservedMs": 26334,
+  "screenshots": [
+    {
+      "file": "s13-news-reviewed-1.png",
+      "sha256": "ecfe51faa79f0b9a8df365120bb35db232aac76b66479d9e395d3cd536abf6ca"
+    },
+    {
+      "file": "s13-news-reviewed-2.png",
+      "sha256": "9bc32886a0f8b63e7b75d43fc045e9e1db24a1e27bfd1c134342011cbd19e5f4"
+    },
+    {
+      "file": "s13-news-reviewed-3.png",
+      "sha256": "5bd43a7196bd498c638a39051f50f6fe5565a000b93e671245fde6143829ae90"
+    }
+  ],
+  "privateNativeReportSha256": "59e62e2c9c3831737d36dbb7335ec83d803b136a1e98b77e1c44450465196d27",
+  "observersRestored": true,
+  "limits": [
+    "Live provider content is mutable and is not a corpus oracle.",
+    "Current NPR feed has no complete image metadata; that source yields no playable items.",
+    "Original AP attribution text remains unchanged although this is a replacement RSS provider; configurable provider attribution remains open.",
+    "Authentication disabled in this diagnostic profile; whole S-13 and D-06 acceptance remain open."
+  ]
+}

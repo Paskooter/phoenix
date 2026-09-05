@@ -1,4 +1,5 @@
 # Archived grammar files and recorded logs retain their original bytes,
 # including source CRLF/indentation and diagnostic whitespace.
 packages/nlu/resources/rules-src/** -text -whitespace
+packages/skills/resources/views/** -text -whitespace
 docs/parity/evidence/**/*.log -text -whitespace

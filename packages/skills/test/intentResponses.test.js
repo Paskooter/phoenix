@@ -5,8 +5,22 @@ import { reportSkill } from '../src/reportSkill.js';
 import { createChitchatSkill } from '../src/chitchatSkill.js';
 import { buildSkillAction } from '../src/jcp.js';
 
+// Chitchat MIMs receive the normal robot runtime. In particular, the emotion
+// query reads Jibo's source-shaped emotion data; an empty object must leave it
+// absent rather than inventing a default.
+const CHITCHAT_RUNTIME = {
+  location: { iso: '2020-01-15T12:00:00.000Z' },
+  perception: {},
+  loop: {
+    users: [],
+    jibo: { id: 'jibo', birthdate: Date.parse('2017-05-19T15:27:05.000Z'), color: 'WHITE' },
+  },
+  character: { emotion: { name: 'PLEASED', valence: 0.6, confidence: 0.3 } },
+  dialog: { referent: null },
+};
+
 function reqWithIntent(intent) {
-  return { data: { result: { nlu: { intent, entities: {} }, asr: { text: '' } }, runtime: {}, skill: null } };
+  return { data: { result: { nlu: { intent, entities: {} }, asr: { text: '' } }, runtime: CHITCHAT_RUNTIME, skill: null } };
 }
 const firstSlim = (action) => {
   const jcp = action.data.action.config.jcp;

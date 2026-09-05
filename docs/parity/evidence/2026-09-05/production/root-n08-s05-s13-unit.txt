@@ -1,0 +1,2305 @@
+
+> phoenix@0.0.0 test:unit
+> node --test
+
+TAP version 13
+# {"t":"2026-09-05T23:40:51.754Z","level":"info","ns":"account","msg":"listening","port":0}
+# Subtest: POST /api/token: valid AWS keys -> signed 3h hub token with the right claims, no secret
+ok 1 - POST /api/token: valid AWS keys -> signed 3h hub token with the right claims, no secret
+  ---
+  duration_ms: 41.676975
+  type: 'test'
+  ...
+# Subtest: POST /api/token: wrong secret 401, unknown key 401
+ok 2 - POST /api/token: wrong secret 401, unknown key 401
+  ---
+  duration_ms: 14.663869
+  type: 'test'
+  ...
+# Subtest: GET /api/verify: valid key -> identity (no secret); unknown -> {valid:false}
+ok 3 - GET /api/verify: valid key -> identity (no secret); unknown -> {valid:false}
+  ---
+  duration_ms: 8.887603
+  type: 'test'
+  ...
+# Subtest: the issued hub token is rejected by jwt.verify once expired
+ok 4 - the issued hub token is rejected by jwt.verify once expired
+  ---
+  duration_ms: 1.100825
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:51.701Z","level":"info","ns":"account","msg":"listening","port":0}
+# Subtest: fillAccessKeys: 20/40 alnum (reference account.ts shape)
+ok 5 - fillAccessKeys: 20/40 alnum (reference account.ts shape)
+  ---
+  duration_ms: 3.917095
+  type: 'test'
+  ...
+# Subtest: scrypt password hashing round-trips and rejects wrong passwords
+ok 6 - scrypt password hashing round-trips and rejects wrong passwords
+  ---
+  duration_ms: 124.344404
+  type: 'test'
+  ...
+# Subtest: signup -> me -> logout -> me (session lifecycle over the wire)
+ok 7 - signup -> me -> logout -> me (session lifecycle over the wire)
+  ---
+  duration_ms: 209.173777
+  type: 'test'
+  ...
+# Subtest: login: wrong password 401, right password 200; duplicate signup 409
+ok 8 - login: wrong password 401, right password 200; duplicate signup 409
+  ---
+  duration_ms: 89.642414
+  type: 'test'
+  ...
+# Subtest: admin: login with .env password, list all robots, manual adopt returns credentials.json
+ok 9 - admin: login with .env password, list all robots, manual adopt returns credentials.json
+  ---
+  duration_ms: 106.701577
+  type: 'test'
+  ...
+# Subtest: owner /api/robots: 401 anonymous; owner sees only their loops
+ok 10 - owner /api/robots: 401 anonymous; owner sees only their loops
+  ---
+  duration_ms: 7.747647
+  type: 'test'
+  ...
+# Subtest: store persists across instances (robot creds survive restart)
+ok 11 - store persists across instances (robot creds survive restart)
+  ---
+  duration_ms: 35.602676
+  type: 'test'
+  ...
+# Subtest: setup tokens: 15-minute TTL; expiry rejects without deleting (reference findById)
+ok 12 - setup tokens: 15-minute TTL; expiry rejects without deleting (reference findById)
+  ---
+  duration_ms: 177.135949
+  type: 'test'
+  ...
+# Subtest: QR encodes+decodes (15 bytes)
+ok 13 - QR encodes+decodes (15 bytes)
+  ---
+  duration_ms: 27.215418
+  type: 'test'
+  ...
+# Subtest: QR encodes+decodes (30 bytes)
+ok 14 - QR encodes+decodes (30 bytes)
+  ---
+  duration_ms: 21.429236
+  type: 'test'
+  ...
+# Subtest: QR encodes+decodes (70 bytes)
+ok 15 - QR encodes+decodes (70 bytes)
+  ---
+  duration_ms: 16.013644
+  type: 'test'
+  ...
+# Subtest: QR encodes+decodes (28 bytes)
+ok 16 - QR encodes+decodes (28 bytes)
+  ---
+  duration_ms: 4.847656
+  type: 'test'
+  ...
+# Subtest: QR encodes+decodes (88 bytes)
+ok 17 - QR encodes+decodes (88 bytes)
+  ---
+  duration_ms: 17.496841
+  type: 'test'
+  ...
+# Subtest: qrSvg produces a valid square SVG with a quiet zone
+ok 18 - qrSvg produces a valid square SVG with a quiet zone
+  ---
+  duration_ms: 0.833789
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:51.710Z","level":"info","ns":"account","msg":"listening","port":0}
+# Subtest: QR payload: DHCP 3-line round-trip through the robot decoder
+ok 19 - QR payload: DHCP 3-line round-trip through the robot decoder
+  ---
+  duration_ms: 2.885313
+  type: 'test'
+  ...
+# Subtest: QR payload: static-IP 8-line round-trip
+ok 20 - QR payload: static-IP 8-line round-trip
+  ---
+  duration_ms: 0.711417
+  type: 'test'
+  ...
+# Subtest: QR payload: long token splits into multiple ordered frames; out-of-order reassembles
+ok 21 - QR payload: long token splits into multiple ordered frames; out-of-order reassembles
+  ---
+  duration_ms: 0.226829
+  type: 'test'
+  ...
+# Subtest: XOR is symmetric with the exact config.bt key
+ok 22 - XOR is symmetric with the exact config.bt key
+  ---
+  duration_ms: 0.181314
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:51.834Z","level":"info","ns":"account","msg":"setupRobot complete","friendlyId":"castle-cylinder-fig-quilt","loop":"b46c3a25f1d1047c4534b227"}
+# Subtest: end-to-end: signup -> setup QR -> robot redeems -> status flips -> robot listed
+ok 23 - end-to-end: signup -> setup QR -> robot redeems -> status flips -> robot listed
+  ---
+  duration_ms: 128.335419
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:51.735Z","level":"info","ns":"account","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:51.900Z","level":"info","ns":"account","msg":"setupRobot complete","friendlyId":"castle-cylinder-fig-quilt","loop":"874b33830be3174f5b50c431"}
+# {"t":"2026-09-05T23:40:51.920Z","level":"info","ns":"account","msg":"setupRobot complete","friendlyId":"castle-cylinder-fig-quilt","loop":"874b33830be3174f5b50c431"}
+# Subtest: setupRobot: portal-minted token -> credentials, one-time, robot adopted into a loop
+ok 24 - setupRobot: portal-minted token -> credentials, one-time, robot adopted into a loop
+  ---
+  duration_ms: 196.228461
+  type: 'test'
+  ...
+# Subtest: setupRobot errors: expired token 401 TOKEN_EXPIRED (not deleted), unknown 404
+ok 25 - setupRobot errors: expired token 401 TOKEN_EXPIRED (not deleted), unknown 404
+  ---
+  duration_ms: 115.187131
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.046Z","level":"info","ns":"account","msg":"classic target with unexpected prefix (serving anyway)","prefix":"Whatever_20990101","op":"GetStatus"}
+# {"t":"2026-09-05T23:40:52.048Z","level":"warn","ns":"account","msg":"unknown classic target","target":"OOBE_20170101.LaunchTheMissiles"}
+# Subtest: prefix tolerance: any prefix routes by operation name; unknown op is 400
+ok 26 - prefix tolerance: any prefix routes by operation name; unknown op is 400
+  ---
+  duration_ms: 7.891598
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.108Z","level":"info","ns":"account","msg":"setupRobot complete","friendlyId":"status-test-robot-abc","loop":"7f7c0bb8ec96258cb5e89fa5"}
+# Subtest: getStatus flips to complete once the token is consumed (or invalid)
+ok 27 - getStatus flips to complete once the token is consumed (or invalid)
+  ---
+  duration_ms: 66.316569
+  type: 'test'
+  ...
+# Subtest: prepareRobot: authed by SigV4 Credential accessKeyId; reuses the live token
+ok 28 - prepareRobot: authed by SigV4 Credential accessKeyId; reuses the live token
+  ---
+  duration_ms: 50.741243
+  type: 'test'
+  ...
+# Subtest: Update_* targets proxy through to the OTA service untouched
+ok 29 - Update_* targets proxy through to the OTA service untouched
+  ---
+  duration_ms: 11.966834
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.239Z","level":"info","ns":"account","msg":"setupRobot complete","friendlyId":"rocket-maple-pixel-comet","loop":"3e8b9615cb011f2d5db69200"}
+# {"t":"2026-09-05T23:40:52.241Z","level":"info","ns":"account","msg":"loop request","op":"ListLoops"}
+# {"t":"2026-09-05T23:40:52.241Z","level":"info","ns":"account","msg":"Loop.List","accessKeyId":"iQFnGVemKgezeeDo9zXa","accountFound":true,"returned":1}
+# {"t":"2026-09-05T23:40:52.243Z","level":"info","ns":"account","msg":"loop request","op":"List"}
+# {"t":"2026-09-05T23:40:52.243Z","level":"info","ns":"account","msg":"Loop.List","accessKeyId":"qFfVj5W2BmxFIpZodKxh","accountFound":true,"returned":1}
+# {"t":"2026-09-05T23:40:52.249Z","level":"info","ns":"account","msg":"loop request","op":"SuspendLoop"}
+# {"t":"2026-09-05T23:40:52.250Z","level":"info","ns":"account","msg":"Loop.Suspend","op":"SuspendLoop","loopId":"3e8b9615cb011f2d5db69200","found":true}
+# {"t":"2026-09-05T23:40:52.252Z","level":"info","ns":"account","msg":"loop request","op":"SuspendRobotLoop"}
+# {"t":"2026-09-05T23:40:52.253Z","level":"info","ns":"account","msg":"Loop.Suspend","op":"SuspendRobotLoop","friendlyId":"rocket-maple-pixel-comet","found":true}
+# {"t":"2026-09-05T23:40:52.258Z","level":"info","ns":"account","msg":"loop request","op":"Remove"}
+# {"t":"2026-09-05T23:40:52.258Z","level":"warn","ns":"account","msg":"unimplemented Loop op","op":"Remove"}
+# Subtest: Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.js reads)
+ok 30 - Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.js reads)
+  ---
+  duration_ms: 79.901575
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:51.918Z","level":"info","ns":"account","msg":"listening","port":0}
+# Subtest: AWS-JSON GetSettings: default report-skill data shape the report-skill expects
+ok 31 - AWS-JSON GetSettings: default report-skill data shape the report-skill expects
+  ---
+  duration_ms: 37.931915
+  type: 'test'
+  ...
+# Subtest: portal settings editor: GET defaults, PUT toggles, GET reflects
+ok 32 - portal settings editor: GET defaults, PUT toggles, GET reflects
+  ---
+  duration_ms: 68.139929
+  type: 'test'
+  ...
+# Subtest: END-TO-END: report-skill reads real prefs from the live settings service (no SettingsFailed)
+ok 33 - END-TO-END: report-skill reads real prefs from the live settings service (no SettingsFailed)
+  ---
+  duration_ms: 77.750332
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.026Z","level":"info","ns":"classic","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:52.074Z","level":"info","ns":"classic","msg":"classic request","target":"Backup_20170222.New","op":"New","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.088Z","level":"info","ns":"classic","msg":"backup blob stored","loopId":"loop-1","key":"8211348347925-c4976a54","size":32,"etag":"\\"60dcfcb7e9a6c89522a5b8286dacc3aa\\""}
+# {"t":"2026-09-05T23:40:52.091Z","level":"info","ns":"classic","msg":"classic request","target":"Backup_20170222.List","op":"List","matched":"in-process"}
+# Subtest: backup new -> PUT blob -> list (etag matches) -> GET restores the bytes
+ok 34 - backup new -> PUT blob -> list (etag matches) -> GET restores the bytes
+  ---
+  duration_ms: 90.793282
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.119Z","level":"info","ns":"classic","msg":"classic request","target":"Backup_20170222.New","op":"New","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.125Z","level":"info","ns":"classic","msg":"classic request","target":"Backup_20170222.List","op":"List","matched":"in-process"}
+# Subtest: backup new requires a loopId; list of an unknown loop is empty (not an error)
+ok 35 - backup new requires a loopId; list of an unknown loop is empty (not an error)
+  ---
+  duration_ms: 8.724917
+  type: 'test'
+  ...
+# Subtest: backup blob endpoints reject path-traversal in loopId/key
+ok 36 - backup blob endpoints reject path-traversal in loopId/key
+  ---
+  duration_ms: 3.321999
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.079Z","level":"info","ns":"classic","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:52.112Z","level":"info","ns":"classic","msg":"classic request","target":"Log_20150309.PutEvents","op":"PutEvents","matched":"in-process"}
+# Subtest: log PutEvents: 200 no-op, robot never gets a 500
+ok 37 - log PutEvents: 200 no-op, robot never gets a 500
+  ---
+  duration_ms: 46.897529
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.127Z","level":"info","ns":"classic","msg":"classic request","target":"Log_20150309.PutEventsAsync","op":"PutEventsAsync","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.131Z","level":"info","ns":"classic","msg":"classic request","target":"Log_20150309.PutAsrBinary","op":"PutAsrBinary","matched":"in-process"}
+# Subtest: log PutEventsAsync + PutAsrBinary return the upload-handshake shapes
+ok 38 - log PutEventsAsync + PutAsrBinary return the upload-handshake shapes
+  ---
+  duration_ms: 10.517801
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.135Z","level":"info","ns":"classic","msg":"classic request","target":"Robot_20160225.GetRobot","op":"GetRobot","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.139Z","level":"info","ns":"classic","msg":"classic request","target":"Robot_20160225.GetCalibrationData","op":"GetCalibrationData","matched":"in-process"}
+# Subtest: robot GetRobot / GetCalibrationData return valid empty records
+ok 39 - robot GetRobot / GetCalibrationData return valid empty records
+  ---
+  duration_ms: 8.10321
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.144Z","level":"info","ns":"classic","msg":"classic request","target":"Robot_20160225.GetFriendlyIds","op":"GetFriendlyIds","matched":"in-process"}
+# Subtest: robot GetFriendlyIds returns the requested count of 4-word names
+ok 40 - robot GetFriendlyIds returns the requested count of 4-word names
+  ---
+  duration_ms: 5.16096
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.148Z","level":"info","ns":"classic","msg":"classic request","target":"OOBE_20161026.SetupRobot","op":"SetupRobot","matched":"proxy"}
+# {"t":"2026-09-05T23:40:52.155Z","level":"info","ns":"classic","msg":"classic request","target":"Update_20160301.ListUpdatesFrom","op":"ListUpdatesFrom","matched":"proxy"}
+# Subtest: OOBE_* and Update_* proxy to their upstream services verbatim
+ok 41 - OOBE_* and Update_* proxy to their upstream services verbatim
+  ---
+  duration_ms: 13.827926
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.163Z","level":"info","ns":"classic","msg":"classic request","target":"log_20150309.putevents","op":"putevents","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.165Z","level":"info","ns":"classic","msg":"classic request","target":"Frobnicate_20990101.DoThing","op":"DoThing","matched":"NONE"}
+# {"t":"2026-09-05T23:40:52.165Z","level":"warn","ns":"classic","msg":"classic: no service for target","target":"Frobnicate_20990101.DoThing"}
+# Subtest: prefix tolerance: case-insensitive; unknown prefix -> UnknownOperationException
+ok 42 - prefix tolerance: case-insensitive; unknown prefix -> UnknownOperationException
+  ---
+  duration_ms: 6.992817
+  type: 'test'
+  ...
+# Subtest: OOBE prefix from the wire contract is OOBE_20161026 (G.2 matcher already covers it)
+ok 43 - OOBE prefix from the wire contract is OOBE_20161026 (G.2 matcher already covers it)
+  ---
+  duration_ms: 0.272978
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.298Z","level":"info","ns":"classic","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:52.335Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.ShouldCreate","op":"ShouldCreate","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.347Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.CreateRequest","op":"CreateRequest","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.350Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.ListIncomingRequests","op":"ListIncomingRequests","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.353Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.Share","op":"Share","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.360Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.GetRequest","op":"GetRequest","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.363Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.ShouldCreate","op":"ShouldCreate","matched":"in-process"}
+# Subtest: key: ShouldCreate -> CreateRequest -> Share -> GetRequest round-trip
+ok 44 - key: ShouldCreate -> CreateRequest -> Share -> GetRequest round-trip
+  ---
+  duration_ms: 66.693682
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.368Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.Backup","op":"Backup","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.371Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.Restore","op":"Restore","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.376Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.Restore","op":"Restore","matched":"in-process"}
+# Subtest: key: Backup -> Restore by loop+passwordHash; missing -> 404
+ok 45 - key: Backup -> Restore by loop+passwordHash; missing -> 404
+  ---
+  duration_ms: 13.635973
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.381Z","level":"info","ns":"classic","msg":"classic request","target":"Key_20160201.GetRequest","op":"GetRequest","matched":"in-process"}
+# Subtest: key: GetRequest unknown id -> 404
+ok 46 - key: GetRequest unknown id -> 404
+  ---
+  duration_ms: 4.563789
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.386Z","level":"info","ns":"classic","msg":"classic request","target":"Push_20160729.CreateDevice","op":"CreateDevice","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.386Z","level":"info","ns":"classic","msg":"push device registered (delivery is a no-op — no APNs/FCM)","name":"phone-1","type":"ios"}
+# {"t":"2026-09-05T23:40:52.389Z","level":"info","ns":"classic","msg":"classic request","target":"Push_20160729.RemoveDevice","op":"RemoveDevice","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.394Z","level":"info","ns":"classic","msg":"classic request","target":"Push_20160729.CreateDevice","op":"CreateDevice","matched":"in-process"}
+# Subtest: push: CreateDevice / RemoveDevice return success (no-op delivery)
+ok 47 - push: CreateDevice / RemoveDevice return success (no-op delivery)
+  ---
+  duration_ms: 15.169495
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.347Z","level":"info","ns":"classic","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:52.394Z","level":"info","ns":"classic","msg":"classic request","target":"Notification_20150505.NewRobotToken","op":"NewRobotToken","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.406Z","level":"info","ns":"classic","msg":"classic request","target":"Notification_20150505.GetStatus","op":"GetStatus","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.414Z","level":"info","ns":"classic","msg":"classic request","target":"Notification_20150505.GetStatus","op":"GetStatus","matched":"in-process"}
+# Subtest: NewRobotToken issues a token; GetStatus is false until a socket connects
+ok 48 - NewRobotToken issues a token; GetStatus is false until a socket connects
+  ---
+  duration_ms: 69.145683
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.420Z","level":"info","ns":"classic","msg":"classic request","target":"Notification_20150505.NewRobotToken","op":"NewRobotToken","matched":"in-process"}
+# Subtest: live delivery: enqueue after connect -> the socket receives the notification
+ok 49 - live delivery: enqueue after connect -> the socket receives the notification
+  ---
+  duration_ms: 13.817577
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.433Z","level":"info","ns":"classic","msg":"classic request","target":"Notification_20150505.NewRobotToken","op":"NewRobotToken","matched":"in-process"}
+# Subtest: pending delivery: enqueue BEFORE connect -> delivered on connect
+ok 50 - pending delivery: enqueue BEFORE connect -> delivered on connect
+  ---
+  duration_ms: 13.397902
+  type: 'test'
+  ...
+# Subtest: socket rejects an unknown token
+ok 51 - socket rejects an unknown token
+  ---
+  duration_ms: 4.306122
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.369Z","level":"info","ns":"classic","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:52.403Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.SetupClient","op":"SetupClient","matched":"in-process"}
+# Subtest: rom: SetupClient returns the cert-bundle shape
+ok 52 - rom: SetupClient returns the cert-bundle shape
+  ---
+  duration_ms: 42.982187
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.417Z","level":"info","ns":"classic","msg":"classic request","target":"Media_20160725.Create","op":"Create","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.421Z","level":"info","ns":"classic","msg":"classic request","target":"Media_20160725.List","op":"List","matched":"in-process"}
+# Subtest: media: Create returns a record; List/Get empty
+ok 53 - media: Create returns a record; List/Get empty
+  ---
+  duration_ms: 10.069612
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.426Z","level":"info","ns":"classic","msg":"classic request","target":"Person_20160801.SetAccountProperty","op":"SetAccountProperty","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.432Z","level":"info","ns":"classic","msg":"classic request","target":"Person_20160801.GetAccountProperties","op":"GetAccountProperties","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.435Z","level":"info","ns":"classic","msg":"classic request","target":"Person_20160801.ListAccountPropertyKeys","op":"ListAccountPropertyKeys","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.439Z","level":"info","ns":"classic","msg":"classic request","target":"Person_20160801.EnableHolidays","op":"EnableHolidays","matched":"in-process"}
+# Subtest: person: account properties round-trip in-memory
+ok 54 - person: account properties round-trip in-memory
+  ---
+  duration_ms: 17.777463
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.443Z","level":"info","ns":"classic","msg":"classic request","target":"IFTTT_20170207.Trigger","op":"Trigger","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.447Z","level":"info","ns":"classic","msg":"classic request","target":"NLP_20161031.PartOfSpeech","op":"PartOfSpeech","matched":"in-process"}
+# {"t":"2026-09-05T23:40:52.451Z","level":"info","ns":"classic","msg":"classic request","target":"Collision_20161126.Match","op":"Match","matched":"in-process"}
+# Subtest: ifttt / nlp / collision return their shapes
+ok 55 - ifttt / nlp / collision return their shapes
+  ---
+  duration_ms: 11.837289
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.455Z","level":"info","ns":"classic","msg":"classic request","target":"NLP_20161031.Frobnicate","op":"Frobnicate","matched":"in-process"}
+# Subtest: unknown op on a stub service -> ValidationException
+ok 56 - unknown op on a stub service -> ValidationException
+  ---
+  duration_ms: 5.431402
+  type: 'test'
+  ...
+# Subtest: net() prefixes http:// and reads NET_<name>
+ok 57 - net() prefixes http:// and reads NET_<name>
+  ---
+  duration_ms: 0.849408
+  type: 'test'
+  ...
+# Subtest: net() required-throws when unset and no default
+ok 58 - net() required-throws when unset and no default
+  ---
+  duration_ms: 0.43869
+  type: 'test'
+  ...
+# Subtest: etco() reads ETCO_<scope>_<key> and required-throws
+ok 59 - etco() reads ETCO_<scope>_<key> and required-throws
+  ---
+  duration_ms: 0.214356
+  type: 'test'
+  ...
+# Subtest: boolEnv coerces flag strings
+ok 60 - boolEnv coerces flag strings
+  ---
+  duration_ms: 0.173367
+  type: 'test'
+  ...
+# Subtest: sign/verify round-trips the payload and adds iat
+ok 61 - sign/verify round-trips the payload and adds iat
+  ---
+  duration_ms: 1.768458
+  type: 'test'
+  ...
+# Subtest: verify rejects a wrong secret
+ok 62 - verify rejects a wrong secret
+  ---
+  duration_ms: 0.723109
+  type: 'test'
+  ...
+# Subtest: verify rejects a tampered payload
+ok 63 - verify rejects a tampered payload
+  ---
+  duration_ms: 0.309616
+  type: 'test'
+  ...
+# Subtest: verify rejects a non-HS256 alg
+ok 64 - verify rejects a non-HS256 alg
+  ---
+  duration_ms: 0.190941
+  type: 'test'
+  ...
+# Subtest: verify rejects malformed tokens
+ok 65 - verify rejects malformed tokens
+  ---
+  duration_ms: 0.202183
+  type: 'test'
+  ...
+# Subtest: verify honors exp: future ok, past rejected, absent stays valid
+ok 66 - verify honors exp: future ok, past rejected, absent stays valid
+  ---
+  duration_ms: 0.640974
+  type: 'test'
+  ...
+# Subtest: verify allows small clock skew on exp
+ok 67 - verify allows small clock skew on exp
+  ---
+  duration_ms: 0.28489
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.572Z","level":"info","ns":"common-contract-test","msg":"listening","port":0}
+# {"t":"2026-09-05T23:40:52.605Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"unsupported content encoding \\"br\\""}
+# {"t":"2026-09-05T23:40:52.607Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"unsupported charset \\"LATIN1\\""}
+# {"t":"2026-09-05T23:40:52.609Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"too many parameters"}
+# {"t":"2026-09-05T23:40:52.613Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"request entity too large"}
+# {"t":"2026-09-05T23:40:52.616Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token '1', \\"\#\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.619Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token '1', \\" \\n\#\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.621Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token '}', \\"{\\"a\\":}\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.622Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected non-whitespace character after JSON at position 2 (line 1 column 3)"}
+# {"t":"2026-09-05T23:40:52.624Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token 'x', \\"\#\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.625Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected ':' after property name in JSON at position 5 (line 1 column 6)"}
+# {"t":"2026-09-05T23:40:52.626Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected ',' or '}' after property value in JSON at position 7 (line 1 column 8)"}
+# {"t":"2026-09-05T23:40:52.627Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected ',' or ']' after array element in JSON at position 3 (line 1 column 4)"}
+# {"t":"2026-09-05T23:40:52.629Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token '}', \\"{\\"x\\":tru}\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.632Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token '}', \\"{\\"x\\":\\"}\\",\\"y\\":tru}\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.633Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected double-quoted property name in JSON at position 7 (line 1 column 8)"}
+# {"t":"2026-09-05T23:40:52.634Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token 't', \\"{\\"a\\":true,\\"b\\":ttrue}\\" is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.636Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Bad Unicode escape in JSON at position 8 (line 1 column 9)"}
+# {"t":"2026-09-05T23:40:52.637Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Exponent part is missing a number in JSON at position 8 (line 1 column 9)"}
+# {"t":"2026-09-05T23:40:52.638Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Bad control character in string literal in JSON at position 10 (line 1 column 11)"}
+# {"t":"2026-09-05T23:40:52.639Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Bad control character in string literal in JSON at position 9 (line 1 column 10)"}
+# {"t":"2026-09-05T23:40:52.641Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected property name or '}' in JSON at position 3 (line 2 column 2)"}
+# {"t":"2026-09-05T23:40:52.642Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unterminated string in JSON at position 19 (line 1 column 20)"}
+# {"t":"2026-09-05T23:40:52.643Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected end of JSON input"}
+# {"t":"2026-09-05T23:40:52.644Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Bad escaped character in JSON at position 10 (line 1 column 11)"}
+# {"t":"2026-09-05T23:40:52.645Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected number in JSON at position 6 (line 1 column 7)"}
+# {"t":"2026-09-05T23:40:52.646Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unterminated fractional number in JSON at position 7 (line 1 column 8)"}
+# {"t":"2026-09-05T23:40:52.647Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected non-whitespace character after JSON at position 5 (line 2 column 2)"}
+# {"t":"2026-09-05T23:40:52.648Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected non-whitespace character after JSON at position 3 (line 1 column 4)"}
+# {"t":"2026-09-05T23:40:52.649Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected ',' or ']' after array element in JSON at position 10 (line 1 column 11)"}
+# {"t":"2026-09-05T23:40:52.650Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"No number after minus sign in JSON at position 12 (line 1 column 13)"}
+# {"t":"2026-09-05T23:40:52.651Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"No number after minus sign in JSON at position 12 (line 1 column 13)"}
+# {"t":"2026-09-05T23:40:52.651Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"No number after minus sign in JSON at position 12 (line 1 column 13)"}
+# {"t":"2026-09-05T23:40:52.653Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"No number after minus sign in JSON at position 6 (line 1 column 7)"}
+# {"t":"2026-09-05T23:40:52.654Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Unexpected token 'x', ...\\"[[[[[[[[[[x]]]]]]]]]\\"... is not valid JSON"}
+# {"t":"2026-09-05T23:40:52.655Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"unsupported charset \\"LATIN1\\""}
+# {"t":"2026-09-05T23:40:52.659Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected property name or '}' in JSON at position 1 (line 1 column 2)"}
+# {"t":"2026-09-05T23:40:52.660Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"fixture teapot"}
+# {"t":"2026-09-05T23:40:52.662Z","level":"warn","ns":"common-contract-test","msg":"no route","method":"GET","path":"/missing"}
+# {"t":"2026-09-05T23:40:52.662Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"URL not found: /missing"}
+# {"t":"2026-09-05T23:40:52.663Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"Expected property name or '}' in JSON at position 1 (line 1 column 2)"}
+# {"t":"2026-09-05T23:40:52.671Z","level":"warn","ns":"common-contract-test","msg":"no route","method":"PUT","path":"/null"}
+# {"t":"2026-09-05T23:40:52.672Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"URL not found: /null"}
+# {"t":"2026-09-05T23:40:52.676Z","level":"warn","ns":"common-contract-test","msg":"no route","method":"OPTIONS","path":"/healthcheck"}
+# {"t":"2026-09-05T23:40:52.676Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"URL not found: /healthcheck"}
+# {"t":"2026-09-05T23:40:52.677Z","level":"warn","ns":"common-contract-test","msg":"no route","method":"POST","path":"/healthcheck"}
+# {"t":"2026-09-05T23:40:52.677Z","level":"error","ns":"common-contract-test","msg":"handler threw","error":"URL not found: /healthcheck"}
+# Subtest: common HTTP service preserves the reference JSON and error boundary contract
+ok 68 - common HTTP service preserves the reference JSON and error boundary contract
+  ---
+  duration_ms: 110.975178
+  type: 'test'
+  ...
+# Subtest: LISTEN request from the atlas validates
+ok 69 - LISTEN request from the atlas validates
+  ---
+  duration_ms: 1.188581
+  type: 'test'
+  ...
+# Subtest: CONTEXT requires general.accountID/robotID/lang
+ok 70 - CONTEXT requires general.accountID/robotID/lang
+  ---
+  duration_ms: 0.31181
+  type: 'test'
+  ...
+# Subtest: NLU response from the parser validates (intent may be null)
+ok 71 - NLU response from the parser validates (intent may be null)
+  ---
+  duration_ms: 0.175371
+  type: 'test'
+  ...
+# Subtest: SKILL_ACTION skill response validates
+ok 72 - SKILL_ACTION skill response validates
+  ---
+  duration_ms: 0.17468
+  type: 'test'
+  ...
+# Subtest: wrong discriminator is rejected
+ok 73 - wrong discriminator is rejected
+  ---
+  duration_ms: 0.146226
+  type: 'test'
+  ...
+# Subtest: envelope builders produce well-formed messages
+ok 74 - envelope builders produce well-formed messages
+  ---
+  duration_ms: 0.489256
+  type: 'test'
+  ...
+# Subtest: assertValid throws with readable errors
+ok 75 - assertValid throws with readable errors
+  ---
+  duration_ms: 0.47516
+  type: 'test'
+  ...
+# Subtest: timeouts match the reference state machine
+ok 76 - timeouts match the reference state machine
+  ---
+  duration_ms: 0.874224
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.630Z","level":"info","ns":"data","msg":"listening","port":7796}
+# Subtest: save requires fields + authCode/tokens
+ok 77 - save requires fields + authCode/tokens
+  ---
+  duration_ms: 2.842441
+  type: 'test'
+  ...
+# Subtest: testAuthCode bypass stores fake tokens; dup authCode -> DUPLICATE_KEY
+ok 78 - testAuthCode bypass stores fake tokens; dup authCode -> DUPLICATE_KEY
+  ---
+  duration_ms: 0.928037
+  type: 'test'
+  ...
+# Subtest: direct tokens path saves without OAuth exchange
+ok 79 - direct tokens path saves without OAuth exchange
+  ---
+  duration_ms: 0.153942
+  type: 'test'
+  ...
+# Subtest: deleteOther: a new report-skill calendar cred for the other service is removed (B3 fix)
+ok 80 - deleteOther: a new report-skill calendar cred for the other service is removed (B3 fix)
+  ---
+  duration_ms: 0.24871
+  type: 'test'
+  ...
+# Subtest: delete with wildcards removes matching creds
+ok 81 - delete with wildcards removes matching creds
+  ---
+  duration_ms: 0.30653
+  type: 'test'
+  ...
+# Subtest: normalizeEvent: timed + all-day CalendarEvent shape
+ok 82 - normalizeEvent: timed + all-day CalendarEvent shape
+  ---
+  duration_ms: 0.366294
+  type: 'test'
+  ...
+# Subtest: POST/GET/DELETE /v1/credential
+ok 83 - POST/GET/DELETE /v1/credential
+  ---
+  duration_ms: 54.096746
+  type: 'test'
+  ...
+# Subtest: GET /v1/google_calendar -> {events:[CalendarEvent]} via stub provider
+ok 84 - GET /v1/google_calendar -> {events:[CalendarEvent]} via stub provider
+  ---
+  duration_ms: 7.219656
+  type: 'test'
+  ...
+# Subtest: calendar missing skillId -> 400
+ok 85 - calendar missing skillId -> 400
+  ---
+  duration_ms: 6.496928
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.626Z","level":"info","ns":"data","msg":"listening","port":7799}
+# Subtest: TTLCache: get/set + expiry
+ok 86 - TTLCache: get/set + expiry
+  ---
+  duration_ms: 2.921591
+  type: 'test'
+  ...
+# Subtest: validateWeather requires numeric lat/lon
+ok 87 - validateWeather requires numeric lat/lon
+  ---
+  duration_ms: 0.601449
+  type: 'test'
+  ...
+# Subtest: openMeteoToDarkSky maps to the Dark Sky shape; "today" = index 1 (past_days=1)
+ok 88 - openMeteoToDarkSky maps to the Dark Sky shape; "today" = index 1 (past_days=1)
+  ---
+  duration_ms: 0.422299
+  type: 'test'
+  ...
+# Subtest: weatherCodeToIcon mapping
+ok 89 - weatherCodeToIcon mapping
+  ---
+  duration_ms: 0.182185
+  type: 'test'
+  ...
+# Subtest: GET miss -> lassoDataFromRedis:false; second GET -> cache hit (no refetch)
+ok 90 - GET miss -> lassoDataFromRedis:false; second GET -> cache hit (no refetch)
+  ---
+  duration_ms: 33.754578
+  type: 'test'
+  ...
+# Subtest: HEAD prefetch warms the cache (empty 200), next GET is a hit
+ok 91 - HEAD prefetch warms the cache (empty 200), next GET is a hit
+  ---
+  duration_ms: 66.154992
+  type: 'test'
+  ...
+# Subtest: missing lat/lon -> 400
+ok 92 - missing lat/lon -> 400
+  ---
+  duration_ms: 3.372785
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.629Z","level":"info","ns":"data","msg":"listening","port":7797}
+# Subtest: validateMaps parses origin/destination JSON + validates mode
+ok 93 - validateMaps parses origin/destination JSON + validates mode
+  ---
+  duration_ms: 3.4708
+  type: 'test'
+  ...
+# Subtest: openRouteServiceToGoogleMaps maps duration/distance into the Maps shape
+ok 94 - openRouteServiceToGoogleMaps maps duration/distance into the Maps shape
+  ---
+  duration_ms: 0.239042
+  type: 'test'
+  ...
+# Subtest: no routes -> ZERO_RESULTS
+ok 95 - no routes -> ZERO_RESULTS
+  ---
+  duration_ms: 0.162788
+  type: 'test'
+  ...
+# Subtest: GET /v1/google_maps: envelope + cache
+ok 96 - GET /v1/google_maps: envelope + cache
+  ---
+  duration_ms: 31.160347
+  type: 'test'
+  ...
+# Subtest: bad mode -> 400
+ok 97 - bad mode -> 400
+  ---
+  duration_ms: 5.36671
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:52.664Z","level":"info","ns":"data","msg":"listening","port":7798}
+# Subtest: validateNews requires a known sourceID
+ok 98 - validateNews requires a known sourceID
+  ---
+  duration_ms: 3.870888
+  type: 'test'
+  ...
+# Subtest: parseRssItems extracts titles + CDATA descriptions, stripping tags
+ok 99 - parseRssItems extracts titles + CDATA descriptions, stripping tags
+  ---
+  duration_ms: 1.752207
+  type: 'test'
+  ...
+# Subtest: buildApFeedXml emits the AP feed shape (apcm:ExtendedHeadLine + summary)
+ok 100 - buildApFeedXml emits the AP feed shape (apcm:ExtendedHeadLine + summary)
+  ---
+  duration_ms: 0.504695
+  type: 'test'
+  ...
+# Subtest: GET /v1/ap_news: envelope (miss->false, hit->true) with AP XML relayData
+ok 101 - GET /v1/ap_news: envelope (miss->false, hit->true) with AP XML relayData
+  ---
+  duration_ms: 49.26516
+  type: 'test'
+  ...
+# Subtest: bad sourceID -> 400
+ok 102 - bad sourceID -> 400
+  ---
+  duration_ms: 8.081279
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+ok 103 - VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+  ---
+  duration_ms: 45.860765
+  type: 'test'
+  ...
+# Subtest: VAD: stop() before SOS resolves start() with undefined
+ok 104 - VAD: stop() before SOS resolves start() with undefined
+  ---
+  duration_ms: 0.607329
+  type: 'test'
+  ...
+# Subtest: WAV header: 44-byte RIFF, 16kHz mono 16-bit
+ok 105 - WAV header: 44-byte RIFF, 16kHz mono 16-bit
+  ---
+  duration_ms: 0.287284
+  type: 'test'
+  ...
+# Parakeet finalize on stop failed: ASR PCM ended on an odd byte boundary
+# Subtest: LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+ok 106 - LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+  ---
+  duration_ms: 8.196386
+  type: 'test'
+  ...
+# Subtest: LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+ok 107 - LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+  ---
+  duration_ms: 1.536839
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: LINEAR16 stop preserves an even final partial VAD window
+ok 108 - LINEAR16 stop preserves an even final partial VAD window
+  ---
+  duration_ms: 5.418988
+  type: 'test'
+  ...
+# Subtest: VAD and EOS are invariant across PCM chunk boundaries
+ok 109 - VAD and EOS are invariant across PCM chunk boundaries
+  ---
+  duration_ms: 12.109263
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (max-buffer), finalizing with 3000 chunks
+# Subtest: encoded fixtures preserve VAD events and PCM cut across decoder chunking
+ok 110 - encoded fixtures preserve VAD events and PCM cut across decoder chunking
+  ---
+  duration_ms: 224.519388
+  type: 'test'
+  ...
+# Subtest: max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+ok 111 - max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+  ---
+  duration_ms: 20.055906
+  type: 'test'
+  ...
+# Subtest: declared audio formats are validated before a provider session starts
+ok 112 - declared audio formats are validated before a provider session starts
+  ---
+  duration_ms: 0.843657
+  type: 'test'
+  ...
+# Subtest: bounded decoder queue rejects input without buffering a whole turn
+ok 113 - bounded decoder queue rejects input without buffering a whole turn
+  ---
+  duration_ms: 0.533811
+  type: 'test'
+  ...
+# Subtest: missing ffmpeg is an explicit runtime decoder error
+ok 114 - missing ffmpeg is an explicit runtime decoder error
+  ---
+  duration_ms: 13.150574
+  type: 'test'
+  ...
+# Subtest: decoder rejects empty or truncated FLAC streams at end-of-input
+ok 115 - decoder rejects empty or truncated FLAC streams at end-of-input
+  ---
+  duration_ms: 7.760833
+  type: 'test'
+  ...
+# Subtest: decoder finish followed by abort settles without a dangling OGG promise
+ok 116 - decoder finish followed by abort settles without a dangling OGG promise
+  ---
+  duration_ms: 10.804554
+  type: 'test'
+  ...
+# Subtest: OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+ok 117 - OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+  ---
+  duration_ms: 5.802875
+  type: 'test'
+  ...
+# Subtest: explicit OGG end-of-input accepts decoded audio before a missing EOS page
+ok 118 - explicit OGG end-of-input accepts decoded audio before a missing EOS page
+  ---
+  duration_ms: 93.098186
+  type: 'test'
+  ...
+# Subtest: decoder bounds include an active FLAC frame and clean up on overflow
+ok 119 - decoder bounds include an active FLAC frame and clean up on overflow
+  ---
+  duration_ms: 0.975126
+  type: 'test'
+  ...
+# Subtest: decoder reports a missing process and clears its child without a pending finish
+ok 120 - decoder reports a missing process and clears its child without a pending finish
+  ---
+  duration_ms: 3.831642
+  type: 'test'
+  ...
+# Subtest: OGG decoder emits PCM before the paced source reaches EOF
+ok 121 - OGG decoder emits PCM before the paced source reaches EOF
+  ---
+  duration_ms: 342.992278
+  type: 'test'
+  ...
+# Subtest: FLAC decoder emits PCM before the paced source reaches EOF
+ok 122 - FLAC decoder emits PCM before the paced source reaches EOF
+  ---
+  duration_ms: 175.558876
+  type: 'test'
+  ...
+# Subtest: paced OGG input can reach SOS before the source reaches EOF
+ok 123 - paced OGG input can reach SOS before the source reaches EOF
+  ---
+  duration_ms: 371.969354
+  type: 'test'
+  ...
+# Subtest: paced FLAC input can reach SOS before the source reaches EOF
+ok 124 - paced FLAC input can reach SOS before the source reaches EOF
+  ---
+  duration_ms: 421.905304
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+ok 125 - OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+  ---
+  duration_ms: 67.84396
+  type: 'test'
+  ...
+# FLAC stream is missing the fLaC marker
+# Subtest: FLAC frames are decoded incrementally before VAD despite fragmented input
+ok 126 - FLAC frames are decoded incrementally before VAD despite fragmented input
+  ---
+  duration_ms: 55.431483
+  type: 'test'
+  ...
+# Subtest: FLAC decoded waveform matches the immutable lossless fixture
+ok 127 - FLAC decoded waveform matches the immutable lossless fixture
+  ---
+  duration_ms: 32.035063
+  type: 'test'
+  ...
+# Subtest: FLAC surfaces a native decoder error even when it decoded no PCM
+ok 128 - FLAC surfaces a native decoder error even when it decoded no PCM
+  ---
+  duration_ms: 7.597494
+  type: 'test'
+  ...
+# Subtest: FLAC rejects an oversized native chunk before allocating PCM
+ok 129 - FLAC rejects an oversized native chunk before allocating PCM
+  ---
+  duration_ms: 0.355243
+  type: 'test'
+  ...
+# Subtest: FLAC accepts every single-byte split across metadata and frame headers
+ok 130 - FLAC accepts every single-byte split across metadata and frame headers
+  ---
+  duration_ms: 53.592532
+  type: 'test'
+  ...
+# Subtest: malformed declared audio rejects the session with a decoder error
+ok 131 - malformed declared audio rejects the session with a decoder error
+  ---
+  duration_ms: 6.229622
+  type: 'test'
+  ...
+# Subtest: encoded session cancellation aborts decoder resources before SOS
+ok 132 - encoded session cancellation aborts decoder resources before SOS
+  ---
+  duration_ms: 26.24396
+  type: 'test'
+  ...
+# Subtest: encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+ok 133 - encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+  ---
+  duration_ms: 45.173583
+  type: 'test'
+  ...
+# Subtest: hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+ok 134 - hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+  ---
+  duration_ms: 0.435214
+  type: 'test'
+  ...
+# Subtest: factory: non-English languages throw (reference gate)
+ok 135 - factory: non-English languages throw (reference gate)
+  ---
+  duration_ms: 0.211601
+  type: 'test'
+  ...
+# Subtest: normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+ok 136 - normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+  ---
+  duration_ms: 0.847805
+  type: 'test'
+  ...
+# Subtest: packages/gateway/test/fixtures/asrEncoded.js
+ok 21 - packages/gateway/test/fixtures/asrEncoded.js
+  ---
+  duration_ms: 28.082
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: live account accepts
+ok 138 - verifyAgainstAccount: live account accepts
+  ---
+  duration_ms: 39.848685
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: revoked/unknown account rejects
+ok 139 - verifyAgainstAccount: revoked/unknown account rejects
+  ---
+  duration_ms: 7.798483
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.041Z","level":"info","ns":"gateway","msg":"listening","port":7531}
+# Subtest: verifyAgainstAccount: friendlyId mismatch rejects
+ok 140 - verifyAgainstAccount: friendlyId mismatch rejects
+  ---
+  duration_ms: 4.45292
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: token without an accessKeyId claim is allowed (sim creds)
+ok 141 - verifyAgainstAccount: token without an accessKeyId claim is allowed (sim creds)
+  ---
+  duration_ms: 0.527739
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: unreachable account fails closed
+ok 142 - verifyAgainstAccount: unreachable account fails closed
+  ---
+  duration_ms: 1.080235
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.084Z","level":"info","ns":"gateway","msg":"listening","port":7532}
+# Subtest: verifyClient: disableAuth bypasses auth entirely
+ok 143 - verifyClient: disableAuth bypasses auth entirely
+  ---
+  duration_ms: 53.802039
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.098Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"jwt malformed"}
+# {"t":"2026-09-05T23:40:53.114Z","level":"info","ns":"gateway","msg":"listening","port":7533}
+# Subtest: verifyClient: shared-secret-only accepts any validly-signed token (no accountUrl)
+ok 144 - verifyClient: shared-secret-only accepts any validly-signed token (no accountUrl)
+  ---
+  duration_ms: 31.807211
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.128Z","level":"warn","ns":"gateway","msg":"ws account check failed","error":"account not found or inactive"}
+# Subtest: verifyClient: with accountUrl, live account accepts and revoked rejects
+ok 145 - verifyClient: with accountUrl, live account accepts and revoked rejects
+  ---
+  duration_ms: 30.737686
+  type: 'test'
+  ...
+# Subtest: routes a launch intent to its skill and carries memo
+ok 146 - routes a launch intent to its skill and carries memo
+  ---
+  duration_ms: 2.189665
+  type: 'test'
+  ...
+# Subtest: does NOT route without the launch rule (gotcha \#6)
+ok 147 - does NOT route without the launch rule (gotcha \#6)
+  ---
+  duration_ms: 0.298095
+  type: 'test'
+  ...
+# Subtest: does NOT route a null intent
+ok 148 - does NOT route a null intent
+  ---
+  duration_ms: 0.193887
+  type: 'test'
+  ...
+# Subtest: entity-constrained registration outweighs the bare one (weight 1 > 0)
+ok 149 - entity-constrained registration outweighs the bare one (weight 1 > 0)
+  ---
+  duration_ms: 0.33259
+  type: 'test'
+  ...
+# Subtest: falls back to the bare registration when entity does not match
+ok 150 - falls back to the bare registration when entity does not match
+  ---
+  duration_ms: 0.179339
+  type: 'test'
+  ...
+# Subtest: unknown intent returns null
+ok 151 - unknown intent returns null
+  ---
+  duration_ms: 0.150545
+  type: 'test'
+  ...
+# Subtest: launch-by-skill-entity: routes when grammar emits skill but no manifest intent
+ok 152 - launch-by-skill-entity: routes when grammar emits skill but no manifest intent
+  ---
+  duration_ms: 0.172236
+  type: 'test'
+  ...
+# Subtest: launch-by-skill-entity ignores an unknown skill id
+ok 153 - launch-by-skill-entity ignores an unknown skill id
+  ---
+  duration_ms: 0.135637
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.073Z","level":"info","ns":"nlu","msg":"listening","port":7511}
+# {"t":"2026-09-05T23:40:53.075Z","level":"info","ns":"skills","msg":"listening","port":7514}
+# {"t":"2026-09-05T23:40:53.092Z","level":"info","ns":"gateway","msg":"listening","port":7510}
+# Subtest: CLIENT_ASR: full pipeline robot -> gateway -> nlu -> answer-skill
+ok 154 - CLIENT_ASR: full pipeline robot -> gateway -> nlu -> answer-skill
+  ---
+  duration_ms: 657.731224
+  type: 'test'
+  ...
+# Subtest: CLIENT_NLU: skips ASR + parser, routes directly
+ok 155 - CLIENT_NLU: skips ASR + parser, routes directly
+  ---
+  duration_ms: 29.876908
+  type: 'test'
+  ...
+# Subtest: no NLU match -> final LISTEN with match:null, no skill call
+ok 156 - no NLU match -> final LISTEN with match:null, no skill call
+  ---
+  duration_ms: 71.620228
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.721Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"jwt malformed"}
+# Subtest: bad JWT is rejected at the upgrade (HTTP 401, no socket)
+ok 157 - bad JWT is rejected at the upgrade (HTTP 401, no socket)
+  ---
+  duration_ms: 3.474858
+  type: 'test'
+  ...
+# Subtest: all three frozen corpora retain their original occurrence and conditional denominators
+ok 158 - all three frozen corpora retain their original occurrence and conditional denominators
+  ---
+  duration_ms: 319.102835
+  type: 'test'
+  ...
+# Subtest: missing intent is an absent expectation, including the archived hub-client MIM cases
+ok 159 - missing intent is an absent expectation, including the archived hub-client MIM cases
+  ---
+  duration_ms: 104.673488
+  type: 'test'
+  ...
+# Subtest: duplicate commands and conditional values remain independent fixture instances
+ok 160 - duplicate commands and conditional values remain independent fixture instances
+  ---
+  duration_ms: 0.430165
+  type: 'test'
+  ...
+# Subtest: changed corpus bytes and invalid input shapes cannot enter a grade silently
+ok 161 - changed corpus bytes and invalid input shapes cannot enter a grade silently
+  ---
+  duration_ms: 0.707869
+  type: 'test'
+  ...
+# Subtest: normalization preserves complete sessions, identifiers and timing fields
+ok 162 - normalization preserves complete sessions, identifiers and timing fields
+  ---
+  duration_ms: 2.549797
+  type: 'test'
+  ...
+# Subtest: stream comparison does not silently erase identifiers and timestamps
+ok 163 - stream comparison does not silently erase identifiers and timestamps
+  ---
+  duration_ms: 0.604154
+  type: 'test'
+  ...
+# Subtest: D1 catches a wrong message-type sequence
+ok 164 - D1 catches a wrong message-type sequence
+  ---
+  duration_ms: 0.345134
+  type: 'test'
+  ...
+# Subtest: D2 catches a payload divergence (different intent)
+ok 165 - D2 catches a payload divergence (different intent)
+  ---
+  duration_ms: 0.195831
+  type: 'test'
+  ...
+# Subtest: stream comparison preserves port numbers unless a trace policy explicitly binds an endpoint
+ok 166 - stream comparison preserves port numbers unless a trace policy explicitly binds an endpoint
+  ---
+  duration_ms: 0.243693
+  type: 'test'
+  ...
+# Subtest: JSON object key order is insignificant; missing fields are significant
+ok 167 - JSON object key order is insignificant; missing fields are significant
+  ---
+  duration_ms: 0.276704
+  type: 'test'
+  ...
+# Subtest: original execution fixture is intact and satisfies independent invariants
+ok 168 - original execution fixture is intact and satisfies independent invariants
+  ---
+  duration_ms: 41.848539
+  type: 'test'
+  ...
+# Subtest: gate rejects HTTP status
+ok 169 - gate rejects HTTP status
+  ---
+  duration_ms: 47.353571
+  type: 'test'
+  ...
+# Subtest: gate rejects content type
+ok 170 - gate rejects content type
+  ---
+  duration_ms: 28.501303
+  type: 'test'
+  ...
+# Subtest: gate rejects HTTP clock
+ok 171 - gate rejects HTTP clock
+  ---
+  duration_ms: 32.274727
+  type: 'test'
+  ...
+# Subtest: gate rejects null versus empty object
+ok 172 - gate rejects null versus empty object
+  ---
+  duration_ms: 23.917476
+  type: 'test'
+  ...
+# Subtest: gate rejects field absence
+ok 173 - gate rejects field absence
+  ---
+  duration_ms: 28.41588
+  type: 'test'
+  ...
+# Subtest: gate rejects intent
+ok 174 - gate rejects intent
+  ---
+  duration_ms: 20.149203
+  type: 'test'
+  ...
+# Subtest: gate rejects entities
+ok 175 - gate rejects entities
+  ---
+  duration_ms: 29.853443
+  type: 'test'
+  ...
+# Subtest: gate rejects winning rules
+ok 176 - gate rejects winning rules
+  ---
+  duration_ms: 22.243107
+  type: 'test'
+  ...
+# Subtest: gate rejects memo
+ok 177 - gate rejects memo
+  ---
+  duration_ms: 40.747936
+  type: 'test'
+  ...
+# Subtest: gate rejects ESML
+ok 178 - gate rejects ESML
+  ---
+  duration_ms: 19.038951
+  type: 'test'
+  ...
+# Subtest: gate rejects JCP
+ok 179 - gate rejects JCP
+  ---
+  duration_ms: 18.903515
+  type: 'test'
+  ...
+# Subtest: gate rejects analytics
+ok 180 - gate rejects analytics
+  ---
+  duration_ms: 23.036087
+  type: 'test'
+  ...
+# Subtest: gate rejects opaque session contents
+ok 181 - gate rejects opaque session contents
+  ---
+  duration_ms: 21.512724
+  type: 'test'
+  ...
+# Subtest: gate rejects continuation forwarding
+ok 182 - gate rejects continuation forwarding
+  ---
+  duration_ms: 18.968577
+  type: 'test'
+  ...
+# Subtest: gate rejects timing sentinel
+ok 183 - gate rejects timing sentinel
+  ---
+  duration_ms: 24.949169
+  type: 'test'
+  ...
+# Subtest: gate rejects missing timing
+ok 184 - gate rejects missing timing
+  ---
+  duration_ms: 16.923706
+  type: 'test'
+  ...
+# Subtest: gate rejects frame order
+ok 185 - gate rejects frame order
+  ---
+  duration_ms: 23.855789
+  type: 'test'
+  ...
+# Subtest: gate rejects duplicate terminal
+ok 186 - gate rejects duplicate terminal
+  ---
+  duration_ms: 22.853811
+  type: 'test'
+  ...
+# Subtest: gate rejects wall-time bound
+ok 187 - gate rejects wall-time bound
+  ---
+  duration_ms: 20.338482
+  type: 'test'
+  ...
+# Subtest: gate rejects close behavior
+ok 188 - gate rejects close behavior
+  ---
+  duration_ms: 31.596232
+  type: 'test'
+  ...
+# Subtest: gate rejects dropped side effect
+ok 189 - gate rejects dropped side effect
+  ---
+  duration_ms: 19.443546
+  type: 'test'
+  ...
+# Subtest: gate rejects fixture substitution
+ok 190 - gate rejects fixture substitution
+  ---
+  duration_ms: 18.926078
+  type: 'test'
+  ...
+# Subtest: gate rejects case omission
+ok 191 - gate rejects case omission
+  ---
+  duration_ms: 18.923763
+  type: 'test'
+  ...
+# Subtest: generated identifier bindings are bijective even if a reused ID equals the reference literal
+ok 192 - generated identifier bindings are bijective even if a reused ID equals the reference literal
+  ---
+  duration_ms: 26.915752
+  type: 'test'
+  ...
+# Subtest: fresh generated identifiers may differ while relationships remain intact
+ok 193 - fresh generated identifiers may differ while relationships remain intact
+  ---
+  duration_ms: 24.996198
+  type: 'test'
+  ...
+# Subtest: only declared fixture endpoint paths may change ports
+ok 194 - only declared fixture endpoint paths may change ports
+  ---
+  duration_ms: 28.339606
+  type: 'test'
+  ...
+# Subtest: raw bytes and derived ETags are independently checked
+ok 195 - raw bytes and derived ETags are independently checked
+  ---
+  duration_ms: 24.424927
+  type: 'test'
+  ...
+# Subtest: CLI exits nonzero for a corrupted session and retains a diff report
+ok 196 - CLI exits nonzero for a corrupted session and retains a diff report
+  ---
+  duration_ms: 107.900877
+  type: 'test'
+  ...
+# Subtest: clock fixture freezes automatic HTTP dates while preserving explicit headers and suppression
+ok 197 - clock fixture freezes automatic HTTP dates while preserving explicit headers and suppression
+  ---
+  duration_ms: 107.067249
+  type: 'test'
+  ...
+# Subtest: production goldens retain reviewed source hashes and agree across two original runtime captures
+ok 198 - production goldens retain reviewed source hashes and agree across two original runtime captures
+  ---
+  duration_ms: 131.219901
+  type: 'test'
+  ...
+# Subtest: complete report corpus control retains its uncovered external action and cannot become a passing gate
+ok 199 - complete report corpus control retains its uncovered external action and cannot become a passing gate
+  ---
+  duration_ms: 344.665718
+  type: 'test'
+  ...
+# Subtest: complete fixture generation retains all corpus occurrences and conditional variants
+ok 200 - complete fixture generation retains all corpus occurrences and conditional variants
+  ---
+  duration_ms: 346.102116
+  type: 'test'
+  ...
+# Subtest: production grade rejects changed entities, winning rules and null-versus-empty no-match results
+ok 201 - production grade rejects changed entities, winning rules and null-versus-empty no-match results
+  ---
+  duration_ms: 276.30512
+  type: 'test'
+  ...
+# Subtest: production grade rejects incomplete parser requests and changed routing memo types
+ok 202 - production grade rejects incomplete parser requests and changed routing memo types
+  ---
+  duration_ms: 125.963662
+  type: 'test'
+  ...
+# Subtest: production requests use the real builder and retain dialog-reference injection as a compared output
+ok 203 - production requests use the real builder and retain dialog-reference injection as a compared output
+  ---
+  duration_ms: 139.986417
+  type: 'test'
+  ...
+# Subtest: production grade retains action ESML, display IDs, analytics and complete continuation state
+ok 204 - production grade retains action ESML, display IDs, analytics and complete continuation state
+  ---
+  duration_ms: 287.220224
+  type: 'test'
+  ...
+# Subtest: production grade independently rejects incomplete captures, bad bytes, timestamps and generated IDs
+ok 205 - production grade independently rejects incomplete captures, bad bytes, timestamps and generated IDs
+  ---
+  duration_ms: 540.526198
+  type: 'test'
+  ...
+# Subtest: production compare CLI exits zero for the original control and nonzero for a behavioral mismatch
+ok 206 - production compare CLI exits zero for the original control and nonzero for a behavioral mismatch
+  ---
+  duration_ms: 423.936101
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.470Z","level":"info","ns":"skills","msg":"listening","port":0}
+# Subtest: example-skill: full conversation walk over the wire
+ok 207 - example-skill: full conversation walk over the wire
+  ---
+  duration_ms: 68.58868
+  type: 'test'
+  ...
+# Subtest: report-skill: Jetsons speaker -> full report degradation MAN; no speaker -> WhoIsThis
+ok 208 - report-skill: Jetsons speaker -> full report degradation MAN; no speaker -> WhoIsThis
+  ---
+  duration_ms: 48.327826
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.608Z","level":"error","ns":"skills","msg":"skill handler threw","transId":"tid:1234","error":"Chitchat launched without required memo!"}
+# Subtest: chitchat-skill: memo-driven MIM over the wire; missing memo is an ERROR envelope
+ok 209 - chitchat-skill: memo-driven MIM over the wire; missing memo is an ERROR envelope
+  ---
+  duration_ms: 24.489498
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:53.619Z","level":"error","ns":"skills","msg":"skill handler threw","transId":"tid:1234","error":"Template Skill launched with unknown memo: 'Wrong'"}
+# Subtest: template-skill: memo gate over the wire
+ok 210 - template-skill: memo gate over the wire
+  ---
+  duration_ms: 10.352838
+  type: 'test'
+  ...
+# Subtest: speaker override fixture: explicit speaker id flows into perception
+ok 211 - speaker override fixture: explicit speaker id flows into perception
+  ---
+  duration_ms: 7.08406
+  type: 'test'
+  ...
+# Subtest: write returns an id and getLatest finds it
+ok 212 - write returns an id and getLatest finds it
+  ---
+  duration_ms: 1.698114
+  type: 'test'
+  ...
+# Subtest: no match returns null (not an error)
+ok 213 - no match returns null (not an error)
+  ---
+  duration_ms: 0.181884
+  type: 'test'
+  ...
+# Subtest: getLatest breaks timestamp ties by insertion order (newest wins)
+ok 214 - getLatest breaks timestamp ties by insertion order (newest wins)
+  ---
+  duration_ms: 0.310708
+  type: 'test'
+  ...
+# Subtest: robotID is required
+ok 215 - robotID is required
+  ---
+  duration_ms: 0.458167
+  type: 'test'
+  ...
+# Subtest: count + personID ($in personIDs) + intent filtering
+ok 216 - count + personID ($in personIDs) + intent filtering
+  ---
+  duration_ms: 0.352578
+  type: 'test'
+  ...
+# Subtest: payload EXACT requires all keys AND exact key count (payloadSize)
+ok 217 - payload EXACT requires all keys AND exact key count (payloadSize)
+  ---
+  duration_ms: 0.355393
+  type: 'test'
+  ...
+# Subtest: payload CONTAINS_ALL matches a subset; NOT_CONTAIN excludes
+ok 218 - payload CONTAINS_ALL matches a subset; NOT_CONTAIN excludes
+  ---
+  duration_ms: 0.298836
+  type: 'test'
+  ...
+# Subtest: field rule NOT + time window
+ok 219 - field rule NOT + time window
+  ---
+  duration_ms: 0.257608
+  type: 'test'
+  ...
+# Subtest: notSessionID excludes the in-progress session
+ok 220 - notSessionID excludes the in-progress session
+  ---
+  duration_ms: 0.350433
+  type: 'test'
+  ...
+# Subtest: saveSkillPayload attaches payload to the matching launch
+ok 221 - saveSkillPayload attaches payload to the matching launch
+  ---
+  duration_ms: 0.430024
+  type: 'test'
+  ...
+# Subtest: speech updates are partial (non-erasing)
+ok 222 - speech updates are partial (non-erasing)
+  ---
+  duration_ms: 0.25375
+  type: 'test'
+  ...
+# Subtest: eqEquals: members of a set are equal, non-members are not
+ok 223 - eqEquals: members of a set are equal, non-members are not
+  ---
+  duration_ms: 19.252325
+  type: 'test'
+  ...
+# Subtest: fullParse: ASR homophone confusion still parses ("set a timer for too minutes")
+ok 224 - fullParse: ASR homophone confusion still parses ("set a timer for too minutes")
+  ---
+  duration_ms: 742.607538
+  type: 'test'
+  ...
+# Subtest: fullParse: chitchat personality/command intents that used to no-match
+ok 225 - fullParse: chitchat personality/command intents that used to no-match
+  ---
+  duration_ms: 645.914808
+  type: 'test'
+  ...
+# Subtest: fullParse: smart-home routes to @be/hue-control
+ok 226 - fullParse: smart-home routes to @be/hue-control
+  ---
+  duration_ms: 96.086654
+  type: 'test'
+  ...
+# Subtest: fullParse: priority arbitration drops LOW catch-alls for HIGH intents
+ok 227 - fullParse: priority arbitration drops LOW catch-alls for HIGH intents
+  ---
+  duration_ms: 81.977053
+  type: 'test'
+  ...
+# Subtest: full pipeline: new long-tail intents now resolve
+ok 228 - full pipeline: new long-tail intents now resolve
+  ---
+  duration_ms: 167.569502
+  type: 'test'
+  ...
+# Subtest: full pipeline: existing question routing is unchanged (fallback only adds)
+ok 229 - full pipeline: existing question routing is unchanged (fallback only adds)
+  ---
+  duration_ms: 112.837122
+  type: 'test'
+  ...
+# Subtest: fullParse: pure garbage still returns null
+ok 230 - fullParse: pure garbage still returns null
+  ---
+  duration_ms: 103.212453
+  type: 'test'
+  ...
+# Subtest: who-question -> generalWhoQuestions with person entity, launch rule
+ok 231 - who-question -> generalWhoQuestions with person entity, launch rule
+  ---
+  duration_ms: 1.83803
+  type: 'test'
+  ...
+# Subtest: tell me about -> requestTellAboutThing
+ok 232 - tell me about -> requestTellAboutThing
+  ---
+  duration_ms: 0.520364
+  type: 'test'
+  ...
+# Subtest: no match -> reference no-match shape (gotcha \#7)
+ok 233 - no match -> reference no-match shape (gotcha \#7)
+  ---
+  duration_ms: 0.418042
+  type: 'test'
+  ...
+# Subtest: empty input -> no match
+ok 234 - empty input -> no match
+  ---
+  duration_ms: 0.965837
+  type: 'test'
+  ...
+# Subtest: be-skill: "what time is it" -> askForTime + skill=@be/clock
+ok 235 - be-skill: "what time is it" -> askForTime + skill=@be/clock
+  ---
+  duration_ms: 487.232219
+  type: 'test'
+  ...
+# Subtest: be-skill: "open the clock" -> menu + skill=@be/clock
+ok 236 - be-skill: "open the clock" -> menu + skill=@be/clock
+  ---
+  duration_ms: 128.353365
+  type: 'test'
+  ...
+# Subtest: question still routes to answer-skill intents (no be-skill false match)
+ok 237 - question still routes to answer-skill intents (no be-skill false match)
+  ---
+  duration_ms: 186.264281
+  type: 'test'
+  ...
+# Subtest: garbage -> no match
+ok 238 - garbage -> no match
+  ---
+  duration_ms: 137.010875
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:54.711Z","level":"info","ns":"nlu","msg":"listening","port":0}
+# Subtest: loads the complete source inventory and the timer named rule
+ok 239 - loads the complete source inventory and the timer named rule
+  ---
+  duration_ms: 479.516574
+  type: 'test'
+  ...
+# Subtest: evaluates only requested rules and keeps local turns out of launch
+ok 240 - evaluates only requested rules and keeps local turns out of launch
+  ---
+  duration_ms: 274.670528
+  type: 'test'
+  ...
+# Subtest: selects a named result across multiple requests and de-duplicates it
+ok 241 - selects a named result across multiple requests and de-duplicates it
+  ---
+  duration_ms: 69.117892
+  type: 'test'
+  ...
+# Subtest: applies loop member detection after the named parse
+ok 242 - applies loop member detection after the named parse
+  ---
+  duration_ms: 319.198289
+  type: 'test'
+  ...
+# Subtest: keeps source priority and punctuation metadata semantic
+ok 243 - keeps source priority and punctuation metadata semantic
+  ---
+  duration_ms: 826.250174
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:56.724Z","level":"error","ns":"nlu","msg":"handler threw","error":"Cannot read property 'external' of null"}
+# {"t":"2026-09-05T23:40:56.732Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+# Subtest: HTTP parser accepts the complete request data and preserves empty shape
+ok 244 - HTTP parser accepts the complete request data and preserves empty shape
+  ---
+  duration_ms: 54.081197
+  type: 'test'
+  ...
+# Subtest: HTTP parser still rejects malformed text before rule loading
+ok 245 - HTTP parser still rejects malformed text before rule loading
+  ---
+  duration_ms: 3.345613
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:56.736Z","level":"error","ns":"nlu","msg":"handler threw","error":"Bad request: {\\"type\\":\\"NLU\\",\\"data\\":{\\"text\\":42,\\"rules\\":[\\"launch\\"]}}"}
+# {"t":"2026-09-05T23:40:55.344Z","level":"info","ns":"ota","msg":"listening","port":0}
+# Subtest: cmpVersion orders dotted numeric versions
+ok 246 - cmpVersion orders dotted numeric versions
+  ---
+  duration_ms: 20.258059
+  type: 'test'
+  ...
+# Subtest: load skips entries whose package file is missing
+ok 247 - load skips entries whose package file is missing
+  ---
+  duration_ms: 0.318202
+  type: 'test'
+  ...
+# Subtest: load computes real length + sha1 from the file
+ok 248 - load computes real length + sha1 from the file
+  ---
+  duration_ms: 0.207352
+  type: 'test'
+  ...
+# Subtest: listUpdatesFrom: wildcard applies to any lower version
+ok 249 - listUpdatesFrom: wildcard applies to any lower version
+  ---
+  duration_ms: 0.34371
+  type: 'test'
+  ...
+# Subtest: listUpdatesFrom: loop-guard — nothing offered once already at/above target
+ok 250 - listUpdatesFrom: loop-guard — nothing offered once already at/above target
+  ---
+  duration_ms: 0.150084
+  type: 'test'
+  ...
+# Subtest: getUpdateFrom picks the highest toVersion
+ok 251 - getUpdateFrom picks the highest toVersion
+  ---
+  duration_ms: 0.204517
+  type: 'test'
+  ...
+# Subtest: exact fromVersion matches only that version
+ok 252 - exact fromVersion matches only that version
+  ---
+  duration_ms: 0.199458
+  type: 'test'
+  ...
+# Subtest: filter is a prefix of the entry filter; empty request matches all
+ok 253 - filter is a prefix of the entry filter; empty request matches all
+  ---
+  duration_ms: 0.284168
+  type: 'test'
+  ...
+# Subtest: toUpdate echoes the requested fromVersion for "*" entries and builds a download url
+ok 254 - toUpdate echoes the requested fromVersion for "*" entries and builds a download url
+  ---
+  duration_ms: 0.473747
+  type: 'test'
+  ...
+# Subtest: GET /healthcheck
+ok 255 - GET /healthcheck
+  ---
+  duration_ms: 36.669796
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:55.406Z","level":"info","ns":"ota","msg":"update query","op":"ListUpdatesFrom","subsystem":"os","fromVersion":"3.3.4","returned":2,"available":5}
+# Subtest: ListUpdatesFrom returns the wire array with self-pointing urls
+ok 256 - ListUpdatesFrom returns the wire array with self-pointing urls
+  ---
+  duration_ms: 23.280951
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:55.413Z","level":"info","ns":"ota","msg":"update query","op":"GetUpdateFrom","subsystem":"os","fromVersion":"3.3.4","returned":1,"available":5}
+# Subtest: GetUpdateFrom returns the optimal Update object
+ok 257 - GetUpdateFrom returns the optimal Update object
+  ---
+  duration_ms: 14.452479
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:55.426Z","level":"info","ns":"ota","msg":"update query","op":"GetUpdateFrom","subsystem":"os","fromVersion":"12.10.0","returned":0,"available":5}
+# Subtest: GetUpdateFrom with no applicable update -> 404 UPDATE_NOT_FOUND
+ok 258 - GetUpdateFrom with no applicable update -> 404 UPDATE_NOT_FOUND
+  ---
+  duration_ms: 4.580551
+  type: 'test'
+  ...
+# {"t":"2026-09-05T23:40:55.436Z","level":"warn","ns":"ota","msg":"unknown update target","target":"Update_20160301.Frobnicate"}
+# Subtest: unknown X-Amz-Target -> 400
+ok 259 - unknown X-Amz-Target -> 400
+  ---
+  duration_ms: 18.186216
+  type: 'test'
+  ...
+# Subtest: GET /ota/package streams the exact bytes with Content-Length
+ok 260 - GET /ota/package streams the exact bytes with Content-Length
+  ---
+  duration_ms: 6.137228
+  type: 'test'
+  ...
+# Subtest: GET /ota/package for unknown id -> 404
+ok 261 - GET /ota/package for unknown id -> 404
+  ---
+  duration_ms: 5.605501
+  type: 'test'
+  ...
+# Subtest: answer-skill returns a wire-valid SKILL_ACTION
+ok 262 - answer-skill returns a wire-valid SKILL_ACTION
+  ---
+  duration_ms: 2.078856
+  type: 'test'
+  ...
+# Subtest: SKILL_ACTION carries a JCP SEQUENCE -> SLIM -> PLAY with esml + mim meta
+ok 263 - SKILL_ACTION carries a JCP SEQUENCE -> SLIM -> PLAY with esml + mim meta
+  ---
+  duration_ms: 0.408203
+  type: 'test'
+  ...
+# Subtest: the session round-trips the question (stateless skill contract)
+ok 264 - the session round-trips the question (stateless skill contract)
+  ---
+  duration_ms: 0.383045
+  type: 'test'
+  ...
+# Subtest: esml escaping escapes entities then strips leftover braces (answer-skill/server.js:188-200)
+ok 265 - esml escaping escapes entities then strips leftover braces (answer-skill/server.js:188-200)
+  ---
+  duration_ms: 1.481756
+  type: 'test'
+  ...
+# Subtest: example-skill: intent walk Node1 -> Node2 -> Node3 -> Done across LISTEN_UPDATEs
+ok 266 - example-skill: intent walk Node1 -> Node2 -> Node3 -> Done across LISTEN_UPDATEs
+  ---
+  duration_ms: 2.388522
+  type: 'test'
+  ...
+# Subtest: example-skill: memo beats intent; proactive memo takes the proactive arm
+ok 267 - example-skill: memo beats intent; proactive memo takes the proactive arm
+  ---
+  duration_ms: 0.526376
+  type: 'test'
+  ...
+# Subtest: example-skill: intent2 goes straight to Node2; unknown intent throws
+ok 268 - example-skill: intent2 goes straight to Node2; unknown intent throws
+  ---
+  duration_ms: 0.87634
+  type: 'test'
+  ...
+# Subtest: template-skill: valid memo plays the template MIM and finishes
+ok 269 - template-skill: valid memo plays the template MIM and finishes
+  ---
+  duration_ms: 2.586527
+  type: 'test'
+  ...
+# Subtest: template-skill: unknown memo throws
+ok 270 - template-skill: unknown memo throws
+  ---
+  duration_ms: 0.375501
+  type: 'test'
+  ...
+# Subtest: GraphManager assigns sequential node IDs
+ok 271 - GraphManager assigns sequential node IDs
+  ---
+  duration_ms: 1.140489
+  type: 'test'
+  ...
+# Subtest: color-skill multi-turn: launch asks (non-final), update replies (final) using the answer
+ok 272 - color-skill multi-turn: launch asks (non-final), update replies (final) using the answer
+  ---
+  duration_ms: 3.838887
+  type: 'test'
+  ...
+# Subtest: createGraphSkill: a no-action node ends the transaction (final, fireAndForget)
+ok 273 - createGraphSkill: a no-action node ends the transaction (final, fireAndForget)
+  ---
+  duration_ms: 0.297732
+  type: 'test'
+  ...
+# Subtest: report: requestNews -> news subskill only; ServiceDown when lasso is unreachable
+ok 274 - report: requestNews -> news subskill only; ServiceDown when lasso is unreachable
+  ---
+  duration_ms: 7.994142
+  type: 'test'
+  ...
+# Subtest: report: requestWeatherPR -> weather subskill only
+ok 275 - report: requestWeatherPR -> weather subskill only
+  ---
+  duration_ms: 2.829576
+  type: 'test'
+  ...
+# Subtest: report: launchPersonalReport without an ID asks WhoIsThis (QN, non-final)
+ok 276 - report: launchPersonalReport without an ID asks WhoIsThis (QN, non-final)
+  ---
+  duration_ms: 2.201798
+  type: 'test'
+  ...
+# Subtest: report: full report for an IDed adult -> SettingsFailed + per-service degradation + outro MAN
+ok 277 - report: full report for an IDed adult -> SettingsFailed + per-service degradation + outro MAN
+  ---
+  duration_ms: 6.832254
+  type: 'test'
+  ...
+# Subtest: report: requestCommute without an ID -> WhoIsThis, then notInLoop -> MustBeLooper
+ok 278 - report: requestCommute without an ID -> WhoIsThis, then notInLoop -> MustBeLooper
+  ---
+  duration_ms: 2.555999
+  type: 'test'
+  ...
+# Subtest: report: requestCalendar from a child -> MustBeAdult
+ok 279 - report: requestCalendar from a child -> MustBeAdult
+  ---
+  duration_ms: 1.259524
+  type: 'test'
+  ...
+# Subtest: report: proactive launch -> opt-in proposal question (VERIFY_ID base MIM)
+ok 280 - report: proactive launch -> opt-in proposal question (VERIFY_ID base MIM)
+  ---
+  duration_ms: 2.633375
+  type: 'test'
+  ...
+# Subtest: chitchat: dance memo plays the real RA_JBO_SpecificDance MIM (raw <anim> ESML)
+ok 281 - chitchat: dance memo plays the real RA_JBO_SpecificDance MIM (raw <anim> ESML)
+  ---
+  duration_ms: 16.280489
+  type: 'test'
+  ...
+# Subtest: chitchat: twerk memo plays the real RA_JBO_Twerk MIM
+ok 282 - chitchat: twerk memo plays the real RA_JBO_Twerk MIM
+  ---
+  duration_ms: 1.920135
+  type: 'test'
+  ...
+# Subtest: chitchat: aprilFools memo plays the real JF_AprilFools MIM
+ok 283 - chitchat: aprilFools memo plays the real JF_AprilFools MIM
+  ---
+  duration_ms: 1.430428
+  type: 'test'
+  ...
+# Subtest: chitchat: emotion-query memo resolves in emotion-responses
+ok 284 - chitchat: emotion-query memo resolves in emotion-responses
+  ---
+  duration_ms: 1.511942
+  type: 'test'
+  ...
+# Subtest: chitchat: semi-specific stem resolves via entity value + category CSV
+ok 285 - chitchat: semi-specific stem resolves via entity value + category CSV
+  ---
+  duration_ms: 1.260375
+  type: 'test'
+  ...
+# Subtest: chitchat: unknown memo MIM falls back to CC_Fallback; missing memo throws (reference)
+ok 286 - chitchat: unknown memo MIM falls back to CC_Fallback; missing memo throws (reference)
+  ---
+  duration_ms: 1.581664
+  type: 'test'
+  ...
+# Subtest: jcp: esmlRaw passes markup through, default escapes it
+ok 287 - jcp: esmlRaw passes markup through, default escapes it
+  ---
+  duration_ms: 0.463719
+  type: 'test'
+  ...
+# Subtest: QNFactory: question -> success carries the NLU result
+ok 288 - QNFactory: question -> success carries the NLU result
+  ---
+  duration_ms: 7.784968
+  type: 'test'
+  ...
+# Subtest: QNFactory: NoMatch escalates by index then exits FinalNoMatch when exhausted
+ok 289 - QNFactory: NoMatch escalates by index then exits FinalNoMatch when exhausted
+  ---
+  duration_ms: 4.686332
+  type: 'test'
+  ...
+# Subtest: QNFactory: NoInput plays the NI prompt
+ok 290 - QNFactory: NoInput plays the NI prompt
+  ---
+  duration_ms: 1.807832
+  type: 'test'
+  ...
+# Subtest: MANFactory: multiple announcement MIMs become one SEQUENCE of SLIMs (final)
+ok 291 - MANFactory: multiple announcement MIMs become one SEQUENCE of SLIMs (final)
+  ---
+  duration_ms: 2.333798
+  type: 'test'
+  ...
+# Subtest: MIMFactory router: announcement MIM takes the AN arm
+ok 292 - MIMFactory router: announcement MIM takes the AN arm
+  ---
+  duration_ms: 1.833622
+  type: 'test'
+  ...
+# Subtest: unifyMims: skill prompts replace base prompts; transform wins when provided
+ok 293 - unifyMims: skill prompts replace base prompts; transform wins when provided
+  ---
+  duration_ms: 0.678755
+  type: 'test'
+  ...
+# Subtest: OptIn: VERIFY_ID proposal uses unified skill prompt + base listen rule
+ok 294 - OptIn: VERIFY_ID proposal uses unified skill prompt + base listen rule
+  ---
+  duration_ms: 3.088517
+  type: 'test'
+  ...
+# Subtest: OptIn: yes -> Accepted -> content action; SKILL_OFFER analytics tracked
+ok 295 - OptIn: yes -> Accepted -> content action; SKILL_OFFER analytics tracked
+  ---
+  duration_ms: 4.669128
+  type: 'test'
+  ...
+# Subtest: OptIn: no -> decline announcement (final) from the base Decline MIM
+ok 296 - OptIn: no -> decline announcement (final) from the base Decline MIM
+  ---
+  duration_ms: 2.304372
+  type: 'test'
+  ...
+# Subtest: OptIn: wrongID -> WrongID MIM -> loopmember recovers identity; SetPresentPerson rides the next JCP
+ok 297 - OptIn: wrongID -> WrongID MIM -> loopmember recovers identity; SetPresentPerson rides the next JCP
+  ---
+  duration_ms: 2.283863
+  type: 'test'
+  ...
+# Subtest: full report: weather change tables + news headlines assemble the mega-MAN
+ok 298 - full report: weather change tables + news headlines assemble the mega-MAN
+  ---
+  duration_ms: 60.751865
+  type: 'test'
+  ...
+# Subtest: single-skill weather request speaks real conditions (Intro + change + temp MIMs)
+ok 299 - single-skill weather request speaks real conditions (Intro + change + temp MIMs)
+  ---
+  duration_ms: 12.855324
+  type: 'test'
+  ...
+# Subtest: S-13 source news parser filters incomplete images and removes the feed header
+ok 300 - S-13 source news parser filters incomplete images and removes the feed header
+  ---
+  duration_ms: 2.493821
+  type: 'test'
+  ...
+# Subtest: S-13 source news view rejects the whole map when one headline is incomplete
+ok 301 - S-13 source news view rejects the whole map when one headline is incomplete
+  ---
+  duration_ms: 0.91368
+  type: 'test'
+  ...
+# Subtest: S-13 source NewsMimLogic propagates an incomplete view failure
+ok 302 - S-13 source NewsMimLogic propagates an incomplete view failure
+  ---
+  duration_ms: 0.61819
+  type: 'test'
+  ...
+# (node:757067) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)
+ok 303 - commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)
+  ---
+  duration_ms: 45.526713
+  type: 'test'
+  ...
+# Subtest: commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft
+ok 304 - commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft
+  ---
+  duration_ms: 13.37032
+  type: 'test'
+  ...
+# Subtest: commute: no traffic -> DriveNormal + DepartTimeNormal
+ok 305 - commute: no traffic -> DriveNormal + DepartTimeNormal
+  ---
+  duration_ms: 12.411024
+  type: 'test'
+  ...
+# Subtest: commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now
+ok 306 - commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now
+  ---
+  duration_ms: 26.382552
+  type: 'test'
+  ...
+# Subtest: calendar: two concurrent events today -> Count + SummaryAndTime + ParallelEvent + Outro
+ok 307 - calendar: two concurrent events today -> Count + SummaryAndTime + ParallelEvent + Outro
+  ---
+  duration_ms: 16.207682
+  type: 'test'
+  ...
+# Subtest: calendar: events only tomorrow -> TomorrowOnly + Count + walk
+ok 308 - calendar: events only tomorrow -> TomorrowOnly + Count + walk
+  ---
+  duration_ms: 18.995099
+  type: 'test'
+  ...
+# Subtest: calendar: asked for tomorrow with nothing scheduled -> Nothing
+ok 309 - calendar: asked for tomorrow with nothing scheduled -> Nothing
+  ---
+  duration_ms: 12.787316
+  type: 'test'
+  ...
+# Subtest: calendar: all-day event today reads the fullDay phrasing
+ok 310 - calendar: all-day event today reads the fullDay phrasing
+  ---
+  duration_ms: 10.457978
+  type: 'test'
+  ...
+# Subtest: S-13 source weather vector preserves the Nimbus view contract
+ok 311 - S-13 source weather vector preserves the Nimbus view contract
+  ---
+  duration_ms: 1.64252
+  type: 'test'
+  ...
+# Subtest: S-13 source news vector preserves image geometry and final close behavior
+ok 312 - S-13 source news vector preserves image geometry and final close behavior
+  ---
+  duration_ms: 0.489095
+  type: 'test'
+  ...
+# Subtest: S-13 source commute vectors preserve traffic and departure labels
+ok 313 - S-13 source commute vectors preserve traffic and departure labels
+  ---
+  duration_ms: 1.157682
+  type: 'test'
+  ...
+# Subtest: S-13 source calendar vector preserves icon, labels, and text placement
+ok 314 - S-13 source calendar vector preserves icon, labels, and text placement
+  ---
+  duration_ms: 1.459985
+  type: 'test'
+  ...
+# Subtest: S-13 weather view uses source temperature bands, assets, units, and offsets
+ok 315 - S-13 weather view uses source temperature bands, assets, units, and offsets
+  ---
+  duration_ms: 1.582645
+  type: 'test'
+  ...
+# Subtest: S-13 weather view keeps exact hot/cold threshold boundaries
+ok 316 - S-13 weather view keeps exact hot/cold threshold boundaries
+  ---
+  duration_ms: 0.828809
+  type: 'test'
+  ...
+# Subtest: S-13 news view scales images, labels strange news, and closes the last view
+ok 317 - S-13 news view scales images, labels strange news, and closes the last view
+  ---
+  duration_ms: 0.545342
+  type: 'test'
+  ...
+# Subtest: S-13 news view preserves source errors for empty or incomplete items
+ok 318 - S-13 news view preserves source errors for empty or incomplete items
+  ---
+  duration_ms: 0.820564
+  type: 'test'
+  ...
+# Subtest: S-13 commute view uses source traffic bands and departure labels
+ok 319 - S-13 commute view uses source traffic bands and departure labels
+  ---
+  duration_ms: 1.150568
+  type: 'test'
+  ...
+# Subtest: S-13 calendar view selects source card/icon/time fields and single-skill leaveEmpty
+ok 320 - S-13 calendar view selects source card/icon/time fields and single-skill leaveEmpty
+  ---
+  duration_ms: 1.816788
+  type: 'test'
+  ...
+# Subtest: S-13 calendar view handles full-day, night, default icon, and summary truncation
+ok 321 - S-13 calendar view handles full-day, night, default icon, and summary truncation
+  ---
+  duration_ms: 3.097114
+  type: 'test'
+  ...
+# Subtest: JCP builders keep command IDs distinct from response/session UUIDs
+ok 322 - JCP builders keep command IDs distinct from response/session UUIDs
+  ---
+  duration_ms: 2.286027
+  type: 'test'
+  ...
+# Subtest: supplemental Parallel uses the requester default succeedOnFirst field
+ok 323 - supplemental Parallel uses the requester default succeedOnFirst field
+  ---
+  duration_ms: 0.295509
+  type: 'test'
+  ...
+# Subtest: Slimmer preserves null versus omitted auto-rule overrides
+ok 324 - Slimmer preserves null versus omitted auto-rule overrides
+  ---
+  duration_ms: 2.908126
+  type: 'test'
+  ...
+# Subtest: GraphSkill records the framework Skill Entry analytics event on launch
+ok 325 - GraphSkill records the framework Skill Entry analytics event on launch
+  ---
+  duration_ms: 1.484149
+  type: 'test'
+  ...
+# Subtest: JCP command IDs do not change the UUID contract of the response envelope
+ok 326 - JCP command IDs do not change the UUID contract of the response envelope
+  ---
+  duration_ms: 0.723068
+  type: 'test'
+  ...
+# Subtest: S-05 source timezone vectors keep the original local day
+ok 327 - S-05 source timezone vectors keep the original local day
+  ---
+  duration_ms: 2.826872
+  type: 'test'
+  ...
+# Subtest: S-05 source birthday and age vector keeps Node8 values
+ok 328 - S-05 source birthday and age vector keeps Node8 values
+  ---
+  duration_ms: 1.787674
+  type: 'test'
+  ...
+# Subtest: S-05 PromptData uses the runtime offset for date fields and DateTime
+ok 329 - S-05 PromptData uses the runtime offset for date fields and DateTime
+  ---
+  duration_ms: 2.784602
+  type: 'test'
+  ...
+# Subtest: S-05 handles UTC day/month/year boundaries and seasonal windows
+ok 330 - S-05 handles UTC day/month/year boundaries and seasonal windows
+  ---
+  duration_ms: 0.747064
+  type: 'test'
+  ...
+# Subtest: S-05 preserves source loop selection, pronounceable names, typed data and location methods
+ok 331 - S-05 preserves source loop selection, pronounceable names, typed data and location methods
+  ---
+  duration_ms: 0.394296
+  type: 'test'
+  ...
+# Subtest: S-05 keeps the source date/location and loop guards independent
+ok 332 - S-05 keeps the source date/location and loop guards independent
+  ---
+  duration_ms: 1.037664
+  type: 'test'
+  ...
+# Subtest: S-05 rejects invalid runtime DateTime inputs while retaining the source loop offset
+ok 333 - S-05 rejects invalid runtime DateTime inputs while retaining the source loop offset
+  ---
+  duration_ms: 0.777803
+  type: 'test'
+  ...
+# Subtest: S-05 preserves source partial loop state and last duplicate match
+ok 334 - S-05 preserves source partial loop state and last duplicate match
+  ---
+  duration_ms: 0.394677
+  type: 'test'
+  ...
+# Subtest: S-05 exposes source long periods and permissive range parsing
+ok 335 - S-05 exposes source long periods and permissive range parsing
+  ---
+  duration_ms: 0.611286
+  type: 'test'
+  ...
+# Subtest: S-05 leaves standard data empty when location is absent
+ok 336 - S-05 leaves standard data empty when location is absent
+  ---
+  duration_ms: 0.145386
+  type: 'test'
+  ...
+# Subtest: S-05 leaves empty and incomplete runtimes at source defaults
+ok 337 - S-05 leaves empty and incomplete runtimes at source defaults
+  ---
+  duration_ms: 0.44411
+  type: 'test'
+  ...
+# Subtest: weightedSample is deterministic with an injected rng
+ok 338 - weightedSample is deterministic with an injected rng
+  ---
+  duration_ms: 1.017736
+  type: 'test'
+  ...
+# Subtest: condition filtering: named prompt excluded when no speaker, included with one
+ok 339 - condition filtering: named prompt excluded when no speaker, included with one
+  ---
+  duration_ms: 4.318154
+  type: 'test'
+  ...
+# Subtest: Errors index selects the matching NoMatch prompt
+ok 340 - Errors index selects the matching NoMatch prompt
+  ---
+  duration_ms: 1.773617
+  type: 'test'
+  ...
+# Subtest: exhausted NoMatch index returns null and sets noMatchMax
+ok 341 - exhausted NoMatch index returns null and sets noMatchMax
+  ---
+  duration_ms: 0.760752
+  type: 'test'
+  ...
+# Subtest: play.meta carries prompt_id + mim_id
+ok 342 - play.meta carries prompt_id + mim_id
+  ---
+  duration_ms: 1.242733
+  type: 'test'
+  ...
+# Subtest: coverage discovery ignores comments and strings while retaining nested suites, skips and pending tests
+ok 343 - coverage discovery ignores comments and strings while retaining nested suites, skips and pending tests
+  ---
+  duration_ms: 137.92773
+  type: 'test'
+  ...
+# Subtest: coverage discovery distinguishes loop/factory declarations from fixed registrations
+ok 344 - coverage discovery distinguishes loop/factory declarations from fixed registrations
+  ---
+  duration_ms: 129.979775
+  type: 'test'
+  ...
+# Subtest: source registrations and wire contracts retain their source locations without counting production calls as tests
+ok 345 - source registrations and wire contracts retain their source locations without counting production calls as tests
+  ---
+  duration_ms: 123.800708
+  type: 'test'
+  ...
+# Subtest: unparseable source returns diagnostics and fails instead of silently disappearing from the denominator
+ok 346 - unparseable source returns diagnostics and fails instead of silently disappearing from the denominator
+  ---
+  duration_ms: 126.838589
+  type: 'test'
+  ...
+# Subtest: incremental JSON is byte-equivalent for bounded values and preserves omission/null semantics
+ok 347 - incremental JSON is byte-equivalent for bounded values and preserves omission/null semantics
+  ---
+  duration_ms: 9.008784
+  type: 'test'
+  ...
+# Subtest: plain and gzip capture round trips preserve the same JSON bytes
+ok 348 - plain and gzip capture round trips preserve the same JSON bytes
+  ---
+  duration_ms: 8.854462
+  type: 'test'
+  ...
+# Subtest: backpressure is awaited and sink failures reject the capture
+ok 349 - backpressure is awaited and sink failures reject the capture
+  ---
+  duration_ms: 71.929765
+  type: 'test'
+  ...
+# Subtest: close before finish rejects promptly and removes the pending drain listener
+ok 350 - close before finish rejects promptly and removes the pending drain listener
+  ---
+  duration_ms: 0.810344
+  type: 'test'
+  ...
+# Subtest: an already-destroyed stream rejects without waiting for an event
+ok 351 - an already-destroyed stream rejects without waiting for an event
+  ---
+  duration_ms: 0.319344
+  type: 'test'
+  ...
+# Subtest: asynchronous silent destruction settles a backpressured capture
+ok 352 - asynchronous silent destruction settles a backpressured capture
+  ---
+  duration_ms: 26.572833
+  type: 'test'
+  ...
+# Subtest: Unicode at chunk boundaries remains byte-equivalent to JSON.stringify
+ok 353 - Unicode at chunk boundaries remains byte-equivalent to JSON.stringify
+  ---
+  duration_ms: 6.778301
+  type: 'test'
+  ...
+# {"complete":true,"cases":1,"failures":0}
+# Subtest: driver run awaits the capture writer before resolving
+ok 354 - driver run awaits the capture writer before resolving
+  ---
+  duration_ms: 15.247013
+  type: 'test'
+  ...
+# Subtest: fixture RNG controls separate MIM VM contexts without replacing Math or consuming the service stream
+ok 355 - fixture RNG controls separate MIM VM contexts without replacing Math or consuming the service stream
+  ---
+  duration_ms: 68.32427
+  type: 'test'
+  ...
+1..355
+# tests 355
+# suites 0
+# pass 355
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5579.26105

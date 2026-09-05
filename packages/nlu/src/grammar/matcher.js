@@ -51,7 +51,14 @@ export function tokenize(text) {
     .filter(Boolean);
 }
 // Same strip applied to rule lits so they compare equal to tokenized input.
-function _norm(s) { return String(s).toLowerCase().replace(/['’]/g, ''); }
+function _norm(s) {
+  // The source grammar spells abbreviations inside character classes as
+  // `u?.s?.`/`b?.e?.t?.`; the reference token matcher treats those optional
+  // punctuation marks as part of the same word. Normalize them on rule arcs
+  // just as tokenize() normalizes apostrophes, so source-backed event and
+  // entity vocabularies remain usable for ordinary ASR text ("us", "bet").
+  return String(s).toLowerCase().replace(/['’]/g, '').replace(/[.,!?;:]+/g, '');
+}
 
 // Apply tag specs (from a node's .tags) against a sub-match's subFields,
 // producing entity updates for the parent. `lit` tags drop their value as-is;
@@ -328,7 +335,14 @@ function expandCharClass(body) {
 // (specificity = count of literal/factory tokens matched, so a rule full of real
 // words beats a `$* x $*` wildcard wrapper). LOW is the deflector/catch-all tier
 // (`{% intent='idle' %}`, generic GQA) — it only wins when nothing better matches.
-export function priorityRank(p) { return p === 'HIGH' ? 2 : (p === 'LOW' ? 0 : 1); }
+export function priorityRank(p) {
+  // Source rule files contain both the legacy upper-case spelling and the
+  // lower-case spelling used by newer skill grammars. The reference treats
+  // these as the same arbitration tier; preserving case here silently demotes
+  // report-skill HIGH results below chitchat's catch-all arms.
+  const priority = typeof p === 'string' ? p.trim().toUpperCase() : '';
+  return priority === 'HIGH' ? 2 : (priority === 'LOW' ? 0 : 1);
+}
 // heuristic = specificity - accumulated FST cost: mirrors the reference binary's
 // heuristic_score (e.g. "who is ada lovelace" -> 14.7 = ~15 literals - 0.3 cost).
 export function parseScore(entities, specificity, cost = 0) {

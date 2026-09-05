@@ -10,6 +10,7 @@ import { Names, addMimPathsToLocalData, secondsToMinutes } from './utils.js';
 import { LassoClient } from './lassoClient.js';
 import { DateTime } from './dateTime.js';
 import { getWorkArrivalDT } from './calendar.js';
+import { trafficView, departView } from './commuteViews.js';
 
 const msToMinutes = (ms) => ms / 60000;
 
@@ -113,8 +114,8 @@ export class CommuteMimLogic extends DefaultNode {
       }
       mimPaths.push((minsLeft < 30) ? MimPath.MinutesLeft : null);
 
-      data.local.views.commuteTraffic = {}; // GUI views not rendered in Phoenix sim
-      data.local.views.commuteDepart = {};
+      data.local.views.commuteTraffic = await trafficView(commute.extraMins) || {};
+      data.local.views.commuteDepart = await departView(commute) || {};
     } else {
       // Within 10 minutes late: Hurry; 10-30 minutes late: Late.
       mimPaths.push((minsLeft > -10) ? MimPath.Hurry : MimPath.Late);

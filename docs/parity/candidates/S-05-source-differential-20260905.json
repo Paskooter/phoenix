@@ -1,0 +1,121 @@
+{
+  "candidateStatus": "unverified",
+  "candidateBase": "9be63b1",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "node:8.9.4-slim",
+  "candidateRuntime": "node:22.22.0-slim",
+  "sourceFiles": {
+    "packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts": "8e2b8d7a677bc2c5c14ddc432ace4c18ae4311b47eeb23042693ade3173e0e5e",
+    "packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts": "d60596a5a06ec7bfa48f16df100aa7499114d6ed8c6daae1b086f9eb4572a5b9",
+    "packages/baseskill/src/graph/mims/utils/slimmer/NLData.ts": "0503bed4d0e530df7167a2f9b32e4e32ef7647f8f8caca1c44683e7810c0f939",
+    "packages/baseskill/src/graph/mims/utils/slimmer/Utils.ts": "b5d2e5a5779e73345123989dc7b58d8c6f01f22f9c42a89574863e50d4776812",
+    "packages/baseskill/lib/graph/mims/utils/slimmer/PromptData.js": "3dc0e721d2dbb95f937845548ba3d8b931899507882a5c55634c23bacbde7972",
+    "node_modules/jibo-data-utils/lib/jibo-data-utils.js": "ddf52f7bcdacb919b5b15be89562a9bee2f42d798395950a64f59561221a7aba"
+  },
+  "probe": {
+    "fixture": "packages/skills/test/fixtures/s05-promptdata-cases.json",
+    "birthdateFixture": "packages/skills/test/fixtures/s05-promptdata-birthdate-cases.json",
+    "sourceScript": "packages/skills/tools/s05-promptdata-source-probe.cjs",
+    "candidateScript": "packages/skills/tools/s05-promptdata-candidate-probe.mjs",
+    "rangeSourceScript": "packages/skills/tools/s05-datetime-range-source.cjs",
+    "rangeCandidateScript": "packages/skills/tools/s05-datetime-range-candidate.mjs",
+    "sourceCommand": "docker run --rm -v $PWD:/phoenix:ro -v $TMP:/out -v $REFERENCE:/ref:ro -e NODE_PATH=/ref/node_modules:/ref/packages/baseskill/node_modules node:8.9.4-slim node /phoenix/packages/skills/tools/s05-promptdata-source-probe.cjs /phoenix/packages/skills/test/fixtures/s05-promptdata-cases.json /out/original.json",
+    "candidateCommand": "docker run --rm -v $PWD:/phoenix:ro -v $TMP:/out node:22.22.0-slim node /phoenix/packages/skills/tools/s05-promptdata-candidate-probe.mjs /phoenix/packages/skills/test/fixtures/s05-promptdata-cases.json /out/candidate.json"
+  },
+  "beforeFixMismatches": [
+    {
+      "case": "valid-baseline",
+      "path": "location.prefix",
+      "original": "",
+      "candidate": "In boston Massachusetts",
+      "cause": "JIBO_HOME equality was missing"
+    },
+    {
+      "case": "invalid-location-iso-full-loop",
+      "path": "speaker,jibo,loop",
+      "original": "speaker and jibo populated; loop owner/list/count populated",
+      "candidate": "speaker=null, jibo=null, loop={}",
+      "cause": "candidate returned before the independent loop guard"
+    },
+    {
+      "case": "missing-location-iso-full-loop",
+      "path": "dt,location,speaker,jibo,loop",
+      "original": "dt.now/location.home and loop populated with UTC-now offset",
+      "candidate": "dt={}, location={}, speaker=null, jibo=null, loop={}",
+      "cause": "missing ISO was rejected and loop construction was skipped"
+    },
+    {
+      "case": "null-user-after-speaker",
+      "path": "result",
+      "original": "speaker retained, jibo retained, loop={}",
+      "candidate": "thrown: Cannot read properties of null (reading 'id')",
+      "cause": "candidate preselected users with Array.find before source ordered loop processing"
+    },
+    {
+      "case": "null-user-before-speaker",
+      "path": "result",
+      "original": "jibo retained, speaker=null, loop={}",
+      "candidate": "thrown: Cannot read properties of null (reading 'id')",
+      "cause": "same malformed-user ordering difference"
+    },
+    {
+      "case": "duplicate-ids-last-wins",
+      "path": "speaker.firstName,loop.owner.firstName",
+      "original": "Second, Second",
+      "candidate": "First, First",
+      "cause": "candidate used first-match selection"
+    },
+    {
+      "case": "users-not-array",
+      "path": "jibo",
+      "original": "jibo retained before forEach throws",
+      "candidate": "null",
+      "cause": "candidate skipped non-array users instead of preserving source partial state"
+    },
+    {
+      "case": "jibo-without-emotion",
+      "path": "jibo,loop",
+      "original": "null, {}",
+      "candidate": "jibo object, loop count/list populated",
+      "cause": "candidate defaulted a missing emotion object instead of reproducing EmotionData's direct field access"
+    },
+    {
+      "case": "direct-datetime",
+      "path": "longPeriods.year,month,week,weekend",
+      "original": "2020, february, this week, this weekend",
+      "candidate": "empty strings",
+      "cause": "long-period DateTime.toString branches were absent"
+    },
+    {
+      "case": "direct-datetime",
+      "path": "isInRange",
+      "original": "false for 2/29-2/0, 2/29-2/1, 2/29-2/28, 2/30-2/29",
+      "candidate": "true for all four",
+      "cause": "candidate used numeric range ordering rather than source branch logic"
+    }
+  ],
+  "freshControls": {
+    "promptDataCases": {
+      "fixtureCases": 9,
+      "includingDirectDateTime": 10,
+      "differenceCount": 0,
+      "originalCaptureSha256": "07a25e4208c2fedb31f811391ef7689382716e4c9c27f98890a6c602542cba0e",
+      "candidateCaptureSha256": "07a25e4208c2fedb31f811391ef7689382716e4c9c27f98890a6c602542cba0e"
+    },
+    "birthdateCases": {
+      "fixtureCases": 14,
+      "includingDirectDateTime": 15,
+      "differenceCount": 0,
+      "originalCaptureSha256": "472ad3bbf716818c830f4ada59ba97dcfa260e78ac58689f8b37933f3aefe782",
+      "candidateCaptureSha256": "472ad3bbf716818c830f4ada59ba97dcfa260e78ac58689f8b37933f3aefe782"
+    },
+    "isInRangePairs": {
+      "pairs": 676,
+      "differenceCount": 0,
+      "originalCaptureSha256": "d951d0681c3b326dbe795abfb9efa13b823ccc8a2e31036a3677c8430ceb5cba",
+      "candidateCaptureSha256": "d951d0681c3b326dbe795abfb9efa13b823ccc8a2e31036a3677c8430ceb5cba",
+      "inputs": "0/0,0/1,1/0,1/1,1/2,1/31,1/32,2/0,2/1,2/28,2/29,2/30,3/0,3/1,3/31,3/32,4/1,6/1,12/31,13/1,13/32,bad,1,01-01,1-1, 1/1"
+    },
+    "nlData": "The 14 birthdate vectors cover omitted, null, empty, boolean, numeric, date-only, offset, invalid, leap-day, and string-zero values; source and candidate summaries were identical."
+  }
+}

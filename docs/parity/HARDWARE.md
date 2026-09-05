@@ -63,15 +63,21 @@ Jetstream override points to `192.168.1.182:19000`, with an empty entrypoint for
 this explicitly unauthenticated transport trial. LINEAR16 audio reaches Parakeet
 at `192.168.1.252:6972`. Classic/account endpoints remain outside this trial.
 
-The latest owned stack loaded candidate `4b45dae17bdf186de108b903ec7ca50b15d0944d`;
-its private receipt is `integration-views-n08/stack.json`. It includes the next
-parser and report-view candidates. The earlier `f330480` audio profile remains
+The latest owned stack loaded candidate `7d87cae491ccaa99dc1ddc8141bcb816f4a15dc8`;
+its private receipt is `integration-report-reviewed/stack.json`. It includes the
+reviewed parser, prompt-data, report-view and news-image changes. The earlier `f330480` audio profile remains
 pinned to its own observations. On this new stack, the original Jetstream SDK's
 `check the weather` request launches Nimbus, speaks, and visibly displays the
 high/low temperatures and cloud icon before returning to idle. Root inspected
 the [screen capture](evidence/2026-09-05/hardware/s13-weather-reviewed.png) and
 recorded [timing and scope](evidence/2026-09-05/hardware/s13-weather-reviewed.json).
-News, calendar and commute displays still need real-client checks.
+The new RSS adapter also preserves source image metadata: `tell me the news`
+rendered three actual BBC images with Technology, Sports and Business overlays
+while Nimbus spoke, then returned to idle. Root inspected all three images and
+[recorded the result](evidence/2026-09-05/hardware/s13-news-reviewed.json).
+Calendar and commute displays still need real-client checks. Current NPR image
+gaps and the original AP attribution text under a replacement provider remain
+explicit D-06 limitations.
 
 The H-07 decoder/VAD repair has passed new quiet-microphone runs in native OGG,
 FLAC and LINEAR16: each returns `SOS_TIMEOUT` without a false speech-start event.

@@ -7,6 +7,7 @@ import { Graph } from '../graph/graph.js';
 import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { Names, fToCelsius, onlyActiveSubskill, randFromArray, getJSON, addMimPathsToLocalData, tempThresholds, askedForTomorrow } from './utils.js';
 import { LassoClient } from './lassoClient.js';
+import { hiLoTempView } from './weatherViews.js';
 
 const hoursToMs = (h) => h * 3600 * 1000;
 
@@ -148,7 +149,7 @@ export class WeatherMimLogic extends DefaultNode {
       // HighLow MIM only when no Temperature Change MIM played.
       mimPaths.push(tempChangePath || (useToday ? MimPath.TodayHighLow : MimPath.TomorrowHighLow));
 
-      data.local.views.weatherHiLo = {}; // GUI view config (display layer) — not rendered in Phoenix sim
+      data.local.views.weatherHiLo = await hiLoTempView(dayData, weatherData.useCelsius) || {};
     } else if (dayData && dayData.icon) {
       mimPaths.push(useToday ? MimPath.Intro : MimPath.IntroTomorrow);
       mimPaths.push(MimPath.Basic + getMimFromIcon(dayData.icon));

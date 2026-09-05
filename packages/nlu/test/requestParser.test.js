@@ -167,6 +167,63 @@ test('applies loop member detection after the named parse', () => {
   });
 });
 
+test('keeps source priority and punctuation metadata semantic', () => {
+  // Report rules use the lower-case spelling of the source priority tag. It
+  // must still outrank the launch catch-all rules.
+  assert.deepEqual(parseRequest({ text: 'check the weather', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'requestWeatherPR',
+    entities: { union_original_fst_name: 'handle:personal-report/launch' },
+  });
+
+  // Character classes in the source grammar encode optional punctuation in
+  // abbreviations (`u?.s?.`, `b?.e?.t?.`). Typed/ASR text without periods
+  // must reach the same source-backed entities.
+  assert.deepEqual(parseRequest({ text: 'do you like the us open for golf', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'doesJiboLikeThing',
+    entities: {
+      Event: 'USOpenGolf',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+  assert.deepEqual(parseRequest({ text: 'i like the bet awards', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'userLikesThing',
+    entities: {
+      Event: 'BETAwards',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+  assert.deepEqual(parseRequest({ text: 'what do you think of ai', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'doesJiboHaveOpinionAboutThing',
+    entities: {
+      GeneralLikes: 'AI',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+
+  // Source action literals are trimmed by the native parser. These rules
+  // contain incidental whitespace inside their quoted action values.
+  assert.deepEqual(parseRequest({ text: 'when were you born', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'whenWasEvent',
+    entities: {
+      Event: 'JiboBirth',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+  assert.deepEqual(parseRequest({ text: 'why did you ask about our day', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'whyDidJiboAction',
+    entities: {
+      Action: 'AskAboutUserDay',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+});
+
 test('HTTP parser accepts the complete request data and preserves empty shape', async () => {
   const response = await fetch(`${base}/v1/parse`, {
     method: 'POST',

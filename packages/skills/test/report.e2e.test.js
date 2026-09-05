@@ -22,16 +22,30 @@ const TODAY = {
 const NEWS_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns:apcm="http://ap.org/schemas/03/2010/contentmetadata">
   <entry>
+    <summary>Provider feed header.</summary>
+    <apcm:ContentMetadata>
+      <apcm:ExtendedHeadLine>Top stories</apcm:ExtendedHeadLine>
+    </apcm:ContentMetadata>
+    <content>
+      <nitf><body><body.content><media>
+        <media-reference source="header-full" width="4000" height="3000" />
+        <media-reference source="header-preview" width="512" height="300" />
+        <media-reference source="header-thumbnail" width="128" height="80" />
+      </media></body.content></body></nitf>
+    </content>
+  </entry>
+  <entry>
     <summary>A friendly robot returns to shelves this year.</summary>
     <apcm:ContentMetadata>
       <apcm:ExtendedHeadLine>Jibo robot makes a comeback</apcm:ExtendedHeadLine>
     </apcm:ContentMetadata>
-  </entry>
-  <entry>
-    <summary>Local weather stations report record rainfall.</summary>
-    <apcm:ContentMetadata>
-      <apcm:ExtendedHeadLine>Record rainfall in New England</apcm:ExtendedHeadLine>
-    </apcm:ContentMetadata>
+    <content>
+      <nitf><body><body.content><media>
+        <media-reference source="story-full" width="4000" height="3000" />
+        <media-reference source="story-preview" width="512" height="300" />
+        <media-reference source="story-thumbnail" width="128" height="80" />
+      </media></body.content></body></nitf>
+    </content>
   </entry>
 </feed>`;
 

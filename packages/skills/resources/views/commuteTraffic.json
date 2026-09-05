@@ -1,0 +1,29 @@
+{
+    "viewConfig": {
+        "type": "View",
+        "id": "trafficView",
+        "category": "gui"
+    },
+    "open": {
+        "transitionOpen": "trans_in",
+        "removeAll": true
+    },
+    "defaultSelect": "remain",
+    "componentConfigs": [
+        {
+            "id": "trafficClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "trafficPng",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 377,
+                "y": 97
+            }
+        }
+    ]
+}

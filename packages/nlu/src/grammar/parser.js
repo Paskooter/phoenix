@@ -175,7 +175,11 @@ export function parse(source) {
       const key = m[1];
       let rhs = m[2].trim();
       if (/^'.*'$/.test(rhs) || /^".*"$/.test(rhs)) {
-        tags.push({ key, op: 'set', kind: 'lit', value: rhs.slice(1, -1) });
+        // The native action parser trims semantic-action literals. A few
+        // source rules carry an incidental space before the closing quote
+        // (for example `whyDidJiboAction ` and `JiboBirth `); preserving that
+        // source formatting changes the public intent/entity value.
+        tags.push({ key, op: 'set', kind: 'lit', value: rhs.slice(1, -1).trim() });
       } else if (rhs === 'this._parsed' || rhs === 'this.parsed') {
         tags.push({ key, op: 'set', kind: 'parsed' });
       } else {

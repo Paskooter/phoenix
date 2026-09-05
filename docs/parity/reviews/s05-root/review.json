@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-05",
+  "reviewedBy": "Codex root",
+  "candidateBase": "a9c02e8f2d968d6513fdd814c237c5e0d1e27570",
+  "originalRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "runtimeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "contextCases": 433,
+  "directDateTimeCases": 1,
+  "matches": 434,
+  "differences": 0,
+  "candidateHostTimezones": [
+    "UTC",
+    "Asia/Tokyo"
+  ],
+  "hostTimezoneIndependent": true,
+  "rootCorrections": [
+    "Reject unsupported truthy runtime date inputs instead of silently assigning now.",
+    "Retain the successfully computed offset for loop birthdays when later DateTime construction fails."
+  ],
+  "scope": "ISO runtime PromptData, loop fields, dates and guarded partial failures. Other jibo-data-utils NLU date parsing/mutation APIs and whole report behavior remain open.",
+  "fixture": "cases.json",
+  "originalOutput": "original.json",
+  "files": {
+    "skills.txt": "083e956ca34da2164625f47df3e865889844dc0eb747e925b91e78b8b8e8ba43",
+    "cases.json": "252c23add61b862edaea504cde4a42dd56c599fe11b2451eded5e3e7b0b86410",
+    "original.json": "db45c47dde4c97e25708e0cb8703a6af6e95de5b146285598628cf48220e0d88"
+  },
+  "candidateOutputSha256": "db45c47dde4c97e25708e0cb8703a6af6e95de5b146285598628cf48220e0d88"
+}

@@ -127,7 +127,7 @@ Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/pa
 
 Owner: Codex. Dependencies: PM-03.
 
-The complete 20,534-case original control agrees with zero differences/invariants and eight symmetric external-action gaps. An independently completed buffered-writer capture also agrees with it. A separate second native startup failed at zero cases and remains invalid. Root integrated bounded C-01/N-01/S-04/H-07; 329 unit tests pass, but strict smoke still has 736 differences and one gap. Full Phoenix corpus baseline remains open.
+Complete original controls have zero differences/invariants across20,534 cases and eight symmetric external-action gaps. A source-pinned full golden is ready for the complete Phoenix baseline. Reviewed main has360 passing unit tests and a strict smoke result of700 differences, zero invariants, one gap and25/26 complete action agreement. Product gates remain failing.
 
 Done when:
 
@@ -652,7 +652,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-Full original HTTP parser replay has 401 mismatches across 20,528 requests; 20,127 exact responses match. Luna is implementing source-backed grammar/scoring repairs in an isolated worktree; no corpus hardcodes or relaxed equality allowed.
+Reviewed source grammar metadata repairs are integrated. Full replay matches HTTP status and complete decoded response.data for20,216/20,528 requests:89 prior failures fixed, no newly failing IDs,312 remaining. All73 report cases match. Full outer HTTP/routing/action parity remains separate and open.
 
 Done when:
 
@@ -666,11 +666,11 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair.
+- [x] Candidate implementation — **awaiting_review**; Luna Max / http_contract_repair.
 
-Candidate scope: Source grammar priority, token metadata and semantic-literal normalization repair89/401 previous failures. Root full replay is running to check all prior passes for regressions.
+Candidate scope: Next source optional-character grammar correction reports14/312 prior failures fixed; root regression review pending. Previously accepted130ec37 remains integrated.
 
-Candidate report: [docs/parity/candidates/N-08.md](../../docs/parity/candidates/N-08.md).
+Candidate report: [docs/parity/candidates/N-08-followup.md](../../docs/parity/candidates/N-08-followup.md).
 
 Lead verification: pending. This candidate does not certify task parity.
 
@@ -797,7 +797,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: D-01.
 
-RSS transformation exists; the original hourly category poller is absent and report image/header assumptions changed.
+Bounded RSS→AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.
 
 Done when:
 
@@ -810,6 +810,14 @@ Source: [Original Pegasus packages/lasso/src/relay/APNewsHandler.ts](https://pvi
 Phoenix: [packages/data/src/news.js](../../packages/data/src/news.js); [packages/data/src/index.js](../../packages/data/src/index.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+
+Candidate scope: Preserve provider image metadata in the existing RSS replacement and emit source-compatible AP preview XML. CompleteD-06 remains open.
+
+Candidate report: [docs/parity/candidates/D-06.md](../../docs/parity/candidates/D-06.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json](../../docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### D-07 — Match maps routes, modes and commute payloads
 
@@ -853,7 +861,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair.
 
-Candidate scope: Signed CreateHubToken source-claim and422 validation correction. Root found that original AccountController reloads the account and signs its own secret; previous forwarded-envelope redaction claim was wrong and superseded. Original controller/SDK evidence review remains active.
+Candidate scope: Signed CreateHubToken claims plus exact Hapi validation messages, headers and scoped primitive/missing-body parsing. Root review and native auth trial pending.
 
 Candidate report: [docs/parity/candidates/A-02.md](../../docs/parity/candidates/A-02.md).
 
@@ -900,6 +908,14 @@ Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.
 Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/graph.js](../../packages/skills/src/graph/graph.js); [packages/skills/src/graph/graphManager.js](../../packages/skills/src/graph/graphManager.js).
 
 Evidence: pending.
+
+- [ ] Candidate implementation — **working**; Luna Max / capture_writer_repair.
+
+Candidate scope: Source BaseSkill response timing and bounded envelope/error behavior; complete graph/session lifecycle remains separate.
+
+Candidate report: pending.
+
+Lead verification: pending. This candidate does not certify task parity.
 
 ### S-02 — Verify global results, speaker overrides and supplemental behaviors
 
@@ -973,7 +989,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration
 
 Owner: Codex. Dependencies: S-04.
 
-Loop names/location text are lean substitutes; prompt time uses host-local Date accessors and report DateTime uses fixed offsets.
+Source-backed runtime prompt helpers integrated after independent root correction.433 additional contexts plus a direct DateTime case match the original checked surface, and UTC/Tokyo host results agree. Broader DateTime NLU parsing/mutation APIs and complete task acceptance remain open.
 
 Done when:
 
@@ -986,13 +1002,13 @@ Phoenix: [packages/skills/src/graph/mims/promptData.js](../../packages/skills/sr
 
 Evidence: pending.
 
-- [x] Candidate implementation — **changes_requested**; Luna Max / http_contract_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair.
 
 Candidate scope: Fixture-dependent fallbacks removed; independent review is repairing source guarded partial failures, duplicate speaker selection and DateTime edge methods.
 
 Candidate report: [docs/parity/candidates/S-05.md](../../docs/parity/candidates/S-05.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/reviews/s05-root/review.json](../../docs/parity/reviews/s05-root/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-06 — Verify all MIM, manifest and grammar asset provenance
 
@@ -1135,7 +1151,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-09, S-10, S-11, S-12.
 
-Isolated candidate now generates all six original view configs. Root full-view JSON comparison matches61/61 and Moth visibly renders the weather view. News/calendar/commute robot behavior and provider error paths remain open; candidate is not yet integrated into main.
+Six source-backed report view configs and builders are integrated.61/61 full view JSON comparisons match; weather and three live news images visibly render through original Nimbus on Moth. Calendar/commute hardware and full view matrix acceptance remain open.
 
 Done when:
 
@@ -1148,13 +1164,13 @@ Phoenix: [packages/skills/src/report/weather.js](../../packages/skills/src/repor
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
 Candidate scope: Six original report view resources and four dynamic builders; root source/runtime/hardware review.
 
 Candidate report: [docs/parity/candidates/S-13.md](../../docs/parity/candidates/S-13.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/report-view-builders/source.json](../../docs/parity/evidence/2026-09-05/production/report-view-builders/source.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-14 — Verify example/template skills and skill-host compatibility
 

@@ -1,0 +1,108 @@
+[
+  {
+    "id": "valid-baseline",
+    "now": "2018-05-22T23:21:00.159Z",
+    "context": {
+      "loop": {
+        "owner": "owner",
+        "jibo": {"id":"jibo","birthdate":1495216025271,"color":"WHITE"},
+        "users": [
+          {"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George","firstName":"George","lastName":"Jetson"},
+          {"id":"speaker","birthdate":444528000000,"gender":"female","phoneticName":"Jane","firstName":"Jane","lastName":"Jetson"},
+          {"id":"referent","birthdate":1000000000000,"gender":"female","phoneticName":"Judy","firstName":"Judy","lastName":"Jetson"}
+        ]
+      },
+      "location": {"iso":"2018-05-22T19:21:00.159-04:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42.313352,"lng":-71.1273681},
+      "perception": {"peoplePresent":[],"speaker":"speaker"},
+      "character": {"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog": {"referent":"referent"}
+    }
+  },
+  {
+    "id": "invalid-location-iso-full-loop",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[{"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George"},{"id":"speaker","birthdate":444528000000,"gender":"female","phoneticName":"Jane"}]},
+      "location": {"iso":"not-an-iso","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"speaker"},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "missing-location-iso-full-loop",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[{"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George"},{"id":"speaker","birthdate":444528000000,"gender":"female","phoneticName":"Jane"}]},
+      "location": {"city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"speaker"},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "missing-perception-loop-present",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[{"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George"}]},
+      "location": {"iso":"2020-02-29T23:30:00.000-05:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "null-user-after-speaker",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[{"id":"speaker","birthdate":444528000000,"gender":"female","phoneticName":"Jane"},null,{"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George"}]},
+      "location": {"iso":"2020-02-29T23:30:00.000-05:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"speaker"},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "null-user-before-speaker",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[null,{"id":"speaker","birthdate":444528000000,"gender":"female","phoneticName":"Jane"},{"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George"}]},
+      "location": {"iso":"2020-02-29T23:30:00.000-05:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"speaker"},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "duplicate-ids-last-wins",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"dup","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[{"id":"dup","birthdate":220924800000,"gender":"male","phoneticName":"First","firstName":"First"},{"id":"speaker","birthdate":444528000000,"gender":"female","phoneticName":"Speak One","firstName":"One"},{"id":"dup","birthdate":1000000000000,"gender":"female","phoneticName":"Second","firstName":"Second"},{"id":"speaker","birthdate":1100000000000,"gender":"male","phoneticName":"Speak Two","firstName":"Two"}]},
+      "location": {"iso":"2020-02-29T23:30:00.000-05:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"speaker"},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "users-not-array",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":null},
+      "location": {"iso":"2020-02-29T23:30:00.000-05:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"speaker"},
+      "character":{"emotion":{"confidence":0.2,"valence":0.45,"name":"NEUTRAL"}},
+      "dialog":{"referent":null}
+    }
+  },
+  {
+    "id": "jibo-without-emotion",
+    "now": "2020-03-01T04:30:00.000Z",
+    "context": {
+      "loop": {"owner":"owner","jibo":{"id":"jibo","birthdate":1495216025271,"color":"WHITE"},"users":[{"id":"owner","birthdate":220924800000,"gender":"male","phoneticName":"George"}]},
+      "location": {"iso":"2020-02-29T23:30:00.000-05:00","city":"boston","state":"Massachusetts","stateAbbr":"ma","country":"usa","countryCode":"US","lat":42,"lng":-71},
+      "perception":{"peoplePresent":[],"speaker":"owner"},
+      "character":{},
+      "dialog":{"referent":null}
+    }
+  }
+]

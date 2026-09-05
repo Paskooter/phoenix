@@ -3,14 +3,15 @@
 // category trimming (max 5), items-per-category table (1 cat -> 3 stories, 2 -> 2, else 1),
 // Intro + one Headline MIM per story + Outro (single-skill only).
 //
-// DIVERGENCE (recorded): the reference required every item to carry an AP image and cut the
-// feed header item; the Phoenix data service's RSS->AP shim has no images, so image is optional
-// here and only the headline is required.
+// Source behavior: every item must carry AP image metadata and the first feed item is a
+// provider header, so it is removed before the report selects headlines. The Phoenix RSS->AP
+// shim currently emits no image metadata; those entries therefore produce no playable item.
 
 import { Graph } from '../graph/graph.js';
 import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { Names, areIntersecting, addMimPathsToLocalData, speakerIsAdult } from './utils.js';
 import { LassoClient } from './lassoClient.js';
+import { newsViews } from './newsViews.js';
 
 const ADULT_KEYWORDS = new Set([
   'attack', 'attacks', 'attacked', 'attacking', 'arrest', 'arrested', 'assault', 'assaulted',
@@ -80,9 +81,9 @@ export function newsParse(newsData) {
         }
         return { category: rawCat.category.name, adult: areIntersecting(summaryWords, ADULT_KEYWORDS), headline, image };
       })
-      // Reference: headline AND image required, header item cut. Shim has no images/header.
-      .filter((item) => item && !!item.headline)
-      .slice(0, 10);
+      // Keep only complete AP items, then cut the provider header and return the first 10.
+      .filter((item) => item && !!item.headline && !!item.image)
+      .slice(1, 11);
 
     parsed[rawCat.category.name] = items;
   });
@@ -122,7 +123,7 @@ export class NewsMimLogic extends DefaultNode {
     if (newsItems.length) {
       // headlines feeds ${skill.news.headlines.shift()} in NewsHeadline.mim — one per SLIM.
       newsData.headlines = newsItems.map((item) => item.headline);
-      data.local.views.newsImages = {};
+      data.local.views.newsImages = await newsViews(newsItems) || {};
 
       const mimPaths = [MimPath.Intro].concat(newsItems.map(() => MimPath.Headline));
       if (data.skill.session.data._personalReport.singleSkill === Names.news) {

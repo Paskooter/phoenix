@@ -127,43 +127,33 @@ valid AP URL follows the remote loader/network path and may additionally
 need provider reachability and the runtime's image-fetch policy. It must not
 be replaced with a local placeholder.
 
-## News fallback and helper differences
+## News source behavior and edge trace
 
 Normal AP-backed news remains source-compatible: when `image.source`,
 `image.width`, and `image.height` are present, `newsViews` emits the local
 category gradient plus the provider URL and uses the source portrait/wide
 scaling and view ids. The AP URL is a provider dependency, not an archived
-Nimbus asset. A later HTTP/CORS/image-load failure is a transport failure;
-`newsImagesUnavailable` does not detect or repair it.
+Nimbus asset. A later HTTP/CORS/image-load failure is a transport failure and
+is not converted into a local placeholder.
 
-The candidate has two bounded but material differences from the frozen
-source that should remain visible to lead review:
+The candidate now matches the frozen error and filtering paths. `NewsParse.ts`
+filters entries without a usable image and applies `.slice(1, 11)` after the
+filter. `NewsMimLogic.ts` awaits `newsViews` without a catch and uses the
+source `|| {}` assignment only if the helper resolves falsy. `newsViews` keeps
+the source assumptions: empty input reaches the final-view mutation and
+rejects, a missing image object rejects while reading `source`, malformed
+numeric dimensions produce `NaN` geometry, and one bad item rejects the whole
+map. The candidate does not set `newsImagesUnavailable` or insert `{}` slots.
 
-1. The frozen `NewsParse.ts:154-157` filters out entries without an image and
-   drops the AP feed header with `.slice(1, 11)`. Candidate
-   `packages/skills/src/report/news.js:84-86` filters only on headline and
-   uses `.slice(0, 10)`, so an image-less RSS/AP-shim item reaches the view
-   helper. This is why the candidate's `newsImagesUnavailable` path is
-   exercised; it is a data-layer divergence, not a Nimbus asset match.
-2. The frozen `NewsMimLogic.ts:46-47` awaits `newsViews` without a catch.
-   Candidate `packages/skills/src/report/news.js:127-138` catches every
-   error from the helper, inserts one `{}` slot per headline, and sets
-   `newsImagesUnavailable`. This keeps `views.newsImages.shift()` defined
-   for the Phoenix speech path, but it is not original behavior and the
-   broad catch can also mask a template or helper defect. Phoenix Slimmer's
-   `graph/mims/slimmer.js:119-125` rejects `{}` because it has no
-   `viewConfig`, so the placeholder is not emitted as a valid JCP view; the
-   original BE `Mim.openGUI` path would dereference `config.viewConfig.id`
-   (`jibo/src/bt/behaviors/Mim.ts:614`) if it received a direct empty object.
-
-The helper-level guards are similarly bounded: candidate news view creation
-returns an empty list for an empty input and explicitly rejects missing or
-non-positive AP dimensions, while the source assumes a valid AP item;
-candidate calendar view creation guards missing session data before applying
-`leaveEmpty`, while the source directly reads the report session. These
-produce the same result for source-shaped inputs and differ only on malformed
-or incomplete runtime data. They should not be presented as full source
-error-path parity.
+A pinned Node 8.9.4 JS-only fixture against the frozen compiled modules
+confirmed those outcomes, including rejection propagation from a patched
+template dependency and through `NewsMimLogic`. The source-shaped boundary
+inputs and candidate assertions are retained in
+`packages/skills/test/reportNews.source-errors.test.js`. Phoenix's current
+RSS/AP shim emits headline-only entries, so source parsing filters them out;
+that provider limitation remains visible instead of being hidden by a view
+fallback. Candidate calendar helper guards remain separately documented in
+the S-13 implementation review and are outside this news correction.
 
 The missing `tree` archive asset, external AP image transport, and the
 provider fallback remain open render/integration points. No hardware or

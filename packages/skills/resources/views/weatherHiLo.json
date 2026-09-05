@@ -1,0 +1,166 @@
+{
+    "viewConfig": {
+        "type": "View",
+        "id": "weatherTempView",
+        "category": "gui"
+    },
+    "open": {
+        "transitionOpen": "trans_in",
+        "removeAll": true
+    },
+    "defaultSelect": {
+        "transitionClose": "trans_out",
+        "removeAll": true,
+        "leaveEmpty": false
+    },
+    "componentConfigs": [
+        {
+            "id": "tempBGClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "tempBG",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 36,
+                "y": 0
+            }
+        },
+        {
+            "id": "iconClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "icon",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 475,
+                "y": 195
+            }
+        },
+        {
+            "id": "hiNumLabel",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "160",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 370,
+                "y": 430
+            },
+            "targetAnchor": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "id": "hiUnitLabel",
+            "type": "Label",
+            "text": "F",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 360,
+                "y": 418
+            },
+            "targetAnchor": {
+                "x": 0,
+                "y": 1
+            }
+        },
+        {
+            "id": "loNumLabel",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "160",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 1110,
+                "y": 430
+            },
+            "targetAnchor": {
+                "x": 1,
+                "y": 1
+            }
+        },      
+        {
+            "id": "loUnitLabel",
+            "type": "Label",
+            "text": "F",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 1100,
+                "y": 418
+            },
+            "targetAnchor": {
+                "x": 0,
+                "y": 1
+            }
+        },      
+        {
+            "id": "hiTextLabel",
+            "type": "Label",
+            "text": "Hi",
+            "style": {
+                "fontSize": "60",
+                "fontFamily": "Proxima Nova Light",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 280,
+                "y": 496
+            },
+            "targetAnchor": {
+                "x": 0.5,
+                "y": 1
+            }
+        },
+        {
+            "id": "loTextLabel",
+            "type": "Label",
+            "text": "Lo",
+            "style": {
+                "fontSize": "60",
+                "fontFamily": "Proxima Nova Light",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 990,
+                "y": 496
+            },
+            "targetAnchor": {
+                "x": 0.5,
+                "y": 1
+            }
+        }                
+    ]
+}

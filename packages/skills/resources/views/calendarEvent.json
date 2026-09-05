@@ -1,0 +1,110 @@
+{
+    "viewConfig": {
+        "type": "View",
+        "id": "eventView",
+        "category": "gui"
+    },
+    "open": {
+        "transitionOpen": "trans_in",
+        "removeAll": true
+    },
+    "defaultSelect": {
+        "transitionClose": "trans_out",
+        "removeAll": true,
+        "leaveEmpty": false
+    },
+    "componentConfigs": [
+        {
+            "id": "cardClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "eventCard",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 140,
+                "y": 110
+            }
+        },
+        {
+            "id": "iconClip",
+            "type": "Clip",
+            "assets": [
+                {
+                    "id": "eventIcon",
+                    "src": "",
+                    "type": "texture"
+                }
+            ],
+            "position": {
+                "x": 534,
+                "y": 0
+            }
+        },
+        {
+            "id": "timeLabel",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "160",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "fill": "#FFFFFF"
+            },
+            "position": {
+                "x": 618,
+                "y": 684
+            },
+            "targetAnchor": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "id": "ampmLabel",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "fill": "#FFFFFF"
+            },
+            "position": {
+                "x": 620,
+                "y": 670
+            },
+            "targetAnchor": {
+                "x": 0,
+                "y": 1
+            }
+        },
+        {
+            "id": "eventSummary",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Light",
+                "fill": "#FFFFFF",
+                "align": "center",
+                "leading": -10,
+                "letterSpacing": 0,
+                "wordWrap": true,
+                "breakWords": true,
+                "wordWrapWidth": 800
+            },
+            "position": {
+                "x": 640,
+                "y": 330
+            },
+            "targetAnchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    ]
+}

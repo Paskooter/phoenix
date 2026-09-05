@@ -2,6 +2,21 @@
 
 Newest first. One line per verified increment (autonomous loop appends here).
 
+- 2026-09-05 — **Publish reviewed parser, prompt and report progress to both remotes.**
+  The user authorized regular GitHub/Gitty pushes and supplied refreshed Gitty
+  authentication. Private home breadcrumbs document the remotes/helper and key
+  location without putting secrets in Git. Both remotes were verified at a337215
+  before this checkpoint. Main now has 360 passing unit tests and 25/26 exact
+  complete smoke actions; the strict gate still fails with700 differences and
+  one gap. The full status/decoded-data parser replay fixes89 prior failures
+  with zero regressions, reaching20,216/20,528 and73/73 report requests. Root
+  corrected four additional prompt-data failures; all434 checked summaries now
+  match across UTC/Tokyo hosts. Original61-case view comparison passes; Moth
+  visibly renders weather and three live BBC news images. Full product tasks
+  remain open, with authentication and further parser/framework candidates
+  isolated for review. The complete20,534-case golden is prepared for the next
+  strict Phoenix baseline.
+
 - 2026-09-05 — **Checkpoint reviewed parity repairs and preserve exact progress.**
   Integrated bounded HTTP middleware, named-rule NLU, JCP/MIM and audio decoder/VAD
   repairs after root review. All 329 unit tests pass; strict smoke still fails

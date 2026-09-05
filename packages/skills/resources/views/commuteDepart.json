@@ -1,0 +1,75 @@
+{
+    "viewConfig": {
+        "type": "View",
+        "id": "departTimeView",
+        "category": "gui"
+    },
+    "open": {
+        "transitionOpen": "trans_in"
+    },
+    "defaultSelect": {
+        "transitionClose": "trans_out",
+        "removeAll": true
+    },
+    "componentConfigs": [
+        {
+            "id": "departLabel",
+            "type": "Label",
+            "text": "Depart",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Light",
+                "fill": "#FFFFFF",
+                "align": "center"
+            },
+            "position": {
+                "x": 640,
+                "y": 225
+            },
+            "targetAnchor": {
+                "x": 0.5,
+                "y": 1
+            }
+        },
+        {
+            "id": "departTimeLabel",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "160",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "letterSpacing": -5,
+                "fill": "#FFFFFF"
+            },
+            "position": {
+                "x": 715,
+                "y": 458
+            },
+            "targetAnchor": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "id": "departAmPmLabel",
+            "type": "Label",
+            "text": "",
+            "style": {
+                "fontSize": "90",
+                "fontFamily": "Proxima Nova Soft",
+                "fontWeight": "bold",
+                "letterSpacing": -5,
+                "fill": "#FFFFFF"
+            },
+            "position": {
+                "x": 720,
+                "y": 446
+            },
+            "targetAnchor": {
+                "x": 0,
+                "y": 1
+            }
+        }
+    ]
+}
