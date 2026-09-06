@@ -1,0 +1,74 @@
+{
+  "fixture": "A-02 corrected source-path and original-client review evidence",
+  "candidateCommit": "c29c23ef164d962a2ce193110d81b90b047ef70c",
+  "syntheticOnly": true,
+  "fixedDateNowMs": 1700000000000,
+  "sourcePins": {
+    "securityGateway": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+    "account": "jiborobot/srv-account-ws@b525601390108b8635a31794dfa5cc3fda8a37d0",
+    "nativeJetstream": "jiboV2/jetstream@01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+    "serverRuntime": "@jibo/server@4.0.15 (reference lock tarball)",
+    "originalClient": "@jibo/jibo-server-client@3.0.110"
+  },
+  "sourceFiles": [
+    { "path": "account-ws/src/controllers/account.ctrl.ts", "sha256": "e62c69fc3ca9925fbf8afc2de44b1dd69a19b5b83e82165b813db1b3b2846717" },
+    { "path": "account-ws/src/controllers/token.ctrl.ts", "sha256": "d0339370118a3f45e0910218049ebd408123e51e1492cbfc8cf55244b06a2538" },
+    { "path": "account-ws/src/handlers/account.handler.ts", "sha256": "e5b21a960e72c9534df1623d4a017bed15479fd3ee18e04563184c1628a14447" },
+    { "path": "account-ws/src/schemes/account.ts", "sha256": "3ddfa0ec29858667a4ec4e7b4c368e40631dfbe8883401387d21754e047b3746" },
+    { "path": "server/src/webtoken.ts", "sha256": "25e7cf77463c04cd0f9109539f23b83f1561467d88dc8a25406b2dd9fd3de4bd" },
+    { "path": "server/src/validate.ts", "sha256": "a8cedbd0765509577fed5d9b0df14e1074a1cc56a32b85a41f1827f87c99ba8a" },
+    { "path": "server/src/joi.ts", "sha256": "4e4903dd06c6e9b382a11d6ac5f2bc3ade90e25d37592b2fc3dbda1e1ac2ab44" },
+    { "path": "original-client/package.json", "sha256": "3ad05cb8b2d532e6daa0beec6b967fcbf9a82ee86ac5a92c488746b390831c4d" },
+    { "path": "original-client/lib/signers/v4.js", "sha256": "ebc5dde15aeb011ae128e3bb8988615bd1631e827becb822e0444d55e044ef1d" },
+    { "path": "original-client/lib/util.js", "sha256": "a51d342dc440584267a553d7117c7c80181fcf1ee98b23f920bc880c6c3dd516" },
+    { "path": "security-gw/src/v4.js", "sha256": "4be13f7176f7dcde06cbdee3e22db3016aaf712ccd238ecdaaad96e66f2ad276" },
+    { "path": "security-gw/src/controllers/auth.ctrl.ts", "sha256": "776c0908cbb5e842fe7866e7d1e6640578c390d604536c76652707b50785881d" },
+    { "path": "security-gw/src/auth.scheme.ts", "sha256": "fa968f0bef778b8553096c6ddbf8c9148fa4014f1ee34b0c28dcf44050ca5932" },
+    { "path": "native/jibohub-client/src/Authentication.cpp", "sha256": "6ab97185ea7caad3bdad0d4586a16f4dbd09543de3a499a2abb1b67349c6394a" },
+    { "path": "server/package.json (source snapshot)", "sha256": "3c1cd1318f03440d63af9826454c64c63ac90c38c167ec1b3be72a5f2549f818" },
+    { "path": "worktree/node_modules/typescript/package.json", "sha256": "8e8d6f978a36c6252b4be973046acacf74b7685ccdcb64ec4ae9b01cfcabcbe5" },
+    { "path": "reference/node_modules/jsonwebtoken/package.json", "sha256": "e08ff80b465e5ddcc632d04ea927fed8eb3239bbd4c8b58d627f48654b1dc20f" }
+  ],
+  "runtimeDependencies": [
+    {
+      "name": "node:8.9.4-slim",
+      "imageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+      "verifiedCommand": "docker run --rm node:8.9.4-slim node --version",
+      "verifiedOutput": "v8.9.4"
+    },
+    {
+      "name": "@jibo/server@4.0.15",
+      "referenceTarballSha256": "ea515dda2be25efd0a529c493c870f75d67ad1acf4dbb812aa6391fbbdaafa13",
+      "referenceTarballShasum": "ebaa4439cf9a37feb070752f685085f53047e06e"
+    },
+    {
+      "name": "hapi@16.6.3",
+      "tarballSha256": "da8c9fe2927c1455b4450d83766faa27967b8ebf312b33af76090915895af115",
+      "tarballShasum": "ca9ae1d028afb64d98ac07a1219a1b5eff14d01a",
+      "integrity": "sha512-Fe1EtSlRWdez9c1sLDrHZYxpsp3IddwtUWp7y65TCBW5CMcBP98X4WnoBJZTGsDZnk/FDkRyEMhUVsC9qysDPg=="
+    },
+    {
+      "name": "joi@10.6.0",
+      "tarballSha256": "bee524fdf86ea204a10c71ad03f69f4b7a5fbefaaceba9a301357ec52ca28236",
+      "tarballShasum": "52587f02d52b8b75cdb0c74f0b164a191a0e1fc2",
+      "integrity": "sha512-hBF3LcqyAid+9X/pwg+eXjD2QBZI5eXnBFJYaAkH4SK3mp9QSRiiQnDYlmlz5pccMvnLcJRS4whhDOTCkmsAdQ=="
+    },
+    {
+      "name": "boom@5.2.0",
+      "tarballSha256": "b45c0d14c84c11e8c0d7ea399fb6c2b757c9293a2d379fc488f32f4db7c03331",
+      "tarballShasum": "5dd9da6ee3a5f302077436290cb717d3f4a54e02",
+      "integrity": "sha512-Z5BTk6ZRe4tXXQlkqftmsAUANpXmuwlsF5Oov8ThoMbQRzdGTA1ngYRW160GexgOgjsFOKJz0LYhoNi+2AMBUw=="
+    },
+    { "name": "hoek@4.2.0", "tarballSha256": "0c0050035286713f42b5a42b083efa93ffe8c31697d313f9361259ff977259be", "tarballShasum": "72d9d0754f7fe25ca2d01ad8f8f9a9449a89526d" },
+    { "name": "topo@2.0.2", "tarballSha256": "7b9673eb22c5c237fa9d42fd665e0c52fc75167baaa1ed22838c41bf149f201c", "tarballShasum": "cd5615752539057c0dc0491a621c3bc6fbe1d182" },
+    { "name": "items@2.1.0", "tarballSha256": "e5c95b79544e5d6883c669cbc0c832068c558366241b487537a7e3aa1e38913b", "tarballShasum": "2fd01d489e7ec5861bf10ebdb5ddca33843c850f" },
+    { "name": "isemail@2.2.1", "tarballSha256": "e8a4a5c5555bfe938aa4f726cecd6dcc4d95380493df6d4ae5cd33581d9af149", "tarballShasum": "0353d3d9a62951080c262c2aa0a42b8ea8e9e2a6" }
+  ],
+  "commands": [
+    "docker run --rm -e PHX_REPO_ROOT=/workspace -e PHX_A02_CONSUMERS_ROOT=/consumers -e PHX_A02_TYPESCRIPT=/workspace/node_modules/typescript -e PHX_A02_JSONWEBTOKEN=/reference/node_modules/jsonwebtoken -v <worktree>:/workspace:ro -v <consumers>:/consumers:ro -v <reference-node_modules>:/reference/node_modules:ro node:8.9.4-slim node /workspace/docs/parity/reviews/a02-source-correction/source-path.cjs",
+    "docker run --rm -e PHX_A02_HAPI_NODE_MODULES=/deps/node_modules -v <worktree>:/workspace:ro -v <hapi-node_modules>:/deps/node_modules:ro node:8.9.4-slim node /workspace/docs/parity/reviews/a02-source-correction/hapi-validation.cjs",
+    "PHX_A02_CORRECTED_OUT=/tmp/a02-corrected-sdk.json node --test packages/account/test/originalClientCompat.corrected.evidence.js",
+    "node docs/parity/reviews/a02-source-correction/compare.mjs"
+  ],
+  "cachePolicy": "All source/dependency inputs under .parity/consumers, .parity/reference, and .parity/yarn-cache were read-only; generated package extraction was under /tmp only."
+}

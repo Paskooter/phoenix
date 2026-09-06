@@ -1,0 +1,274 @@
+{
+  "cases": 19,
+  "pass": true,
+  "normalization": [
+    "msgID",
+    "ts",
+    "measured numeric timings.total"
+  ],
+  "actual": {
+    "success": {
+      "status": 200,
+      "body": {
+        "type": "SKILL_ACTION",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        },
+        "timings": {
+          "total": "<timing-number>"
+        }
+      }
+    },
+    "async": {
+      "status": 200,
+      "body": {
+        "type": "SKILL_ACTION",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        },
+        "timings": {
+          "total": "<timing-number>"
+        }
+      }
+    },
+    "throw-error": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "fixture failure",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "throw-string": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "fixture string failure",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "throw-object": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Error: {\"code\":\"FIXTURE\"}",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "throw-null": {
+      "status": 500,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "final": true,
+        "data": {
+          "message": "Cannot read property 'message' of null"
+        }
+      }
+    },
+    "throw-undefined": {
+      "status": 500,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "final": true,
+        "data": {
+          "message": "Cannot read property 'message' of undefined"
+        }
+      }
+    },
+    "return-undefined": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot set property 'timings' of undefined",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "callback": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot set property 'timings' of undefined",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-null": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot set property 'timings' of null",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-number": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot create property 'timings' on number '7'",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-boolean": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot create property 'timings' on boolean 'false'",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-string": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot create property 'timings' on string 'fixture'",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-frozen": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot add property timings, object is not extensible",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-readonly": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot assign to read only property 'timings' of object '#<Object>'",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-getter": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "Cannot set property timings of #<Object> which has only a getter",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-setter-error": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "message": "custom setter failure",
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        }
+      }
+    },
+    "return-inherited-setter": {
+      "status": 200,
+      "body": {}
+    },
+    "return-proxy": {
+      "status": 200,
+      "body": {
+        "type": "SKILL_ACTION",
+        "msgID": "<msgID>",
+        "ts": "<ts>",
+        "data": {
+          "skill": {
+            "id": "s01-fixture-skill"
+          }
+        },
+        "timings": {
+          "total": "<timing-number>"
+        }
+      }
+    }
+  },
+  "assignmentWitnesses": {
+    "inheritedSetterCalled": true,
+    "proxyAssigned": true,
+    "proxyInspectedBeforeAssignment": false
+  }
+}

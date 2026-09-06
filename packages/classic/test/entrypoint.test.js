@@ -74,6 +74,60 @@ test('OOBE_* and Update_* proxy to their upstream services verbatim', async () =
   assert.deepEqual(upstreamHits, ['OOBE_20161026.SetupRobot', 'Update_20160301.ListUpdatesFrom']);
 });
 
+test('proxy bounds upstream hangs and surfaces aborted upstream responses', async () => {
+  const previousAccount = process.env.NET_account;
+  const previousTimeout = process.env.ETCO_classic_upstreamTimeoutMS;
+  const slow = http.createServer((req, _res) => {
+    req.resume();
+    const timer = setTimeout(() => {}, 1000);
+    req.on('close', () => clearTimeout(timer));
+  });
+  await new Promise((resolve) => slow.listen(0, resolve));
+  process.env.NET_account = `localhost:${slow.address().port}`;
+  process.env.ETCO_classic_upstreamTimeoutMS = '40';
+  const started = Date.now();
+  const timedOut = await amz('OOBE_20161026.SetupRobot', {}, base);
+  assert.equal(timedOut.status, 502);
+  assert.match(timedOut.body.error, /upstream request (timeout|deadline)/);
+  assert.ok(Date.now() - started < 1000);
+  await new Promise((resolve) => slow.close(resolve));
+
+  const trickle = http.createServer((req, res) => {
+    req.resume();
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.write('{"partial":');
+    const interval = setInterval(() => res.write(' '), 5);
+    req.on('close', () => clearInterval(interval));
+  });
+  await new Promise((resolve) => trickle.listen(0, resolve));
+  process.env.NET_account = `localhost:${trickle.address().port}`;
+  process.env.ETCO_classic_upstreamTimeoutMS = '80';
+  const trickleStarted = Date.now();
+  const trickled = await amz('OOBE_20161026.SetupRobot', {}, base);
+  assert.equal(trickled.status, 502);
+  assert.match(trickled.body.error, /upstream request deadline exceeded/);
+  assert.ok(Date.now() - trickleStarted < 1000);
+  await new Promise((resolve) => trickle.close(resolve));
+
+  const aborted = http.createServer((req, res) => {
+    req.resume();
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.write('{"partial":');
+    setImmediate(() => res.destroy());
+  });
+  await new Promise((resolve) => aborted.listen(0, resolve));
+  process.env.NET_account = `localhost:${aborted.address().port}`;
+  const abortedResponse = await amz('OOBE_20161026.SetupRobot', {}, base);
+  assert.equal(abortedResponse.status, 502);
+  assert.match(abortedResponse.body.error, /upstream response aborted/);
+  await new Promise((resolve) => aborted.close(resolve));
+
+  if (previousAccount === undefined) delete process.env.NET_account;
+  else process.env.NET_account = previousAccount;
+  if (previousTimeout === undefined) delete process.env.ETCO_classic_upstreamTimeoutMS;
+  else process.env.ETCO_classic_upstreamTimeoutMS = previousTimeout;
+});
+
 test('prefix tolerance: case-insensitive; unknown prefix -> UnknownOperationException', async () => {
   const lower = await amz('log_20150309.putevents', {}, base);
   assert.equal(lower.status, 200);

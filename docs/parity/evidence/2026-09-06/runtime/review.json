@@ -1,0 +1,40 @@
+{
+  "revision": "057f67c136358b0d0f2f7f3bf201b23f5664c734",
+  "image": "phoenix-runtime:057f67c",
+  "imageId": "sha256:62ff56575a064fa64d6757bbd3bb5ab2672bf04061ac34f30c4bc95420a9efe0",
+  "node": "v20.20.2",
+  "ffmpeg": "5.1.9-0+deb12u1",
+  "build": "completed",
+  "deployment": "not deployed",
+  "network": "none",
+  "privateArtifactExclusions": [
+    "/phoenix/.parity",
+    "/phoenix/.git",
+    "/phoenix/.env"
+  ],
+  "audioTests": {
+    "first": {
+      "tests": 34,
+      "passed": 33,
+      "failed": 1,
+      "reason": "encoded fixture VAD/chunking check exceeded 3000 ms",
+      "artifact": "asr-first.txt"
+    },
+    "isolatedFailureRepeat": {
+      "passed": 1,
+      "skipped": 33,
+      "artifact": "asr-isolated.txt"
+    },
+    "fullRepeat": {
+      "tests": 34,
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "asr-repeat.txt"
+    }
+  },
+  "limits": [
+    "The first timeout is retained. Passing repeats do not establish cold-start latency reliability; its exact cause is unresolved.",
+    "No image deployment, native voice quality or physical wake/ring acceptance is credited."
+  ]
+}

@@ -8,3 +8,13 @@ export { readTrace, writeTrace } from './headers.js';
 export { logger } from './log.js';
 export { createService, sendText, sendJson, readJson } from './service.js';
 export * as jwt from './jwt.js';
+export {
+  SIGV4_ALGORITHM,
+  SIGV4_CLOCK_SKEW_MS,
+  SIGV4_ERRORS,
+  SigV4Error,
+  canonicalRequest,
+  normalizeHeaders,
+  signSigV4,
+  verifySigV4,
+} from './sigv4.js';

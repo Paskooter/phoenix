@@ -1,6 +1,6 @@
 # Production parser, routing and skill comparison
 
-V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. V-03 remains open for the complete corpus baseline and final review.
+V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. V-03 remains open for final corpus-to-gate inventory reconciliation and review.
 
 The bounded writer now exports the full corpus under Node 8. The independently
 repeated [20,534-case original control](evidence/2026-09-05/production/stream-writer-full-control/review.json)
@@ -25,31 +25,56 @@ The [42-case original control](evidence/2026-09-05/production/request-builder-co
 
 The [smoke golden](../../packages/harness/resources/goldens/production-smoke/source.json) and [report golden](../../packages/harness/resources/goldens/production-report/source.json) pin the source revision, original adapter, shared driver, fixture generator, image digests and capture bytes. Unreviewed, changed or stale goldens are rejected.
 
-## Reviewed integration checkpoint
+## Complete baseline and reviewed integration
 
-Main includes bounded C-01 HTTP, N-01/N-08 parser, S-04 JCP/MIM, H-07 audio,
-S-05 prompt data, S-13 report views and D-06 provider-image repairs. All
-**360 unit tests pass** in the
-[recorded run](evidence/2026-09-05/production/root-second-checkpoint-unit.txt).
-The [latest strict smoke run](evidence/2026-09-05/production/root-n08-s05-s13-smoke/run.json)
-still fails with **700 field differences**, zero trace invariants and one
-unhosted action gap; **25/26 complete actions** agree. That smoke capture
-predates the D-06 provider adapter; its synthetic provider profile does not
-execute that adapter, which has separate source-consumer and hardware evidence.
+The [complete baseline](evidence/2026-09-06/production/main-057f67c-full-baseline/review.json)
+ran all **20,534 fixtures** against main `057f67c`. Its strict result is
+**49,155 field differences**, zero trace invariants and **97 coverage-gap
+instances**: eight on the original side and 89 on Phoenix, spanning 91 unique
+cases. The source and candidate captures, fingerprints and compressed full
+comparison are retained. The gate fails.
 
-The [full parser replay](evidence/2026-09-05/production/n08-full-parser-review/review.json)
-matches HTTP status and complete decoded `response.data` for **20,216/20,528**
-requests, including all **73 report cases**. It repairs 89 earlier failures
-without a newly failing case. Its 312 remaining failures stay open. This
-replay does not compare outer envelopes, headers, timing fields, routing or
-actions; those are retained in the strict production grader.
+| Dimension | Complete-baseline agreement |
+|---|---:|
+| Parser HTTP response | 20,216 / 20,528 |
+| Selected skill or no-route result | 20,366 / 20,528 |
+| Complete action object | 20,170 / 20,434 |
+| Complete session state | 20,206 / 20,434 |
+| Analytics | 20,167 / 20,434 |
+| Provider request sequence | 0 / 83 |
 
-The report view candidate separately matches **61/61 complete view JSONs**
-against actual original Node 8 helpers. Root visually confirmed the weather
-display and three live news images on Moth. These bounded implementations are
-now integrated; calendar/commute hardware checks and complete report skill
-acceptance remain open. The full [production golden](../../packages/harness/resources/goldens/production-full/source.json)
-retains all 20,534 cases for the next complete Phoenix baseline.
+These are separate dimensions in a declared component profile, not a product
+completion percentage. Missing skill timing metadata accounts for 20,297
+field differences, with another 20,297 differences in the resulting response
+content lengths. The remaining differences retain their task ownership and
+coverage limits in the baseline review.
+
+Main now includes reviewed bounded A-02 native token/validation/framing and
+S-01 response-wrapper/request-gate repairs alongside the prior HTTP, parser,
+JCP/MIM, audio, prompt, report-view and provider-image changes. All **384 unit
+tests pass** in the [recorded integration run](evidence/2026-09-06/production/main-a02-s01-smoke/unit.txt).
+The [strict 43-case smoke](evidence/2026-09-06/production/main-a02-s01-smoke/run.json)
+still fails with **659 field differences**, zero invariants and one unhosted
+action gap. Full action agreement remains **25/26**. The complete baseline
+above predates this A-02/S-01 checkpoint; its counts have not been projected
+forward or relabeled as a passing result.
+
+The next N-08 candidate reports **20,230/20,528** status/decoded-data matches,
+14 fixes and no newly failing IDs in its [full replay](evidence/2026-09-06/nlu-n08-followup/full-replay-review.json).
+Root checked its hashes, denominators and original expected values; final
+integrated regression remains pending. That candidate is not yet in main.
+The earlier accepted parser repair had fixed 89 failures without regressions,
+and all 73 report parser cases match. JWT diagnostics and further GraphSkill
+session repairs are also separate unaccepted candidates.
+
+Moth completed native TLS token issuance, authenticated listen/proactive and
+a visible clock using the reviewed A-02 implementation. Weather, news images
+and a smiling-eye action have earlier bounded hardware evidence. Physical
+wake/ring confirmation, full voice quality, calendar/commute checks and
+complete product acceptance remain open. The built Node 20 runtime image has
+[retained audio test evidence](evidence/2026-09-06/runtime/review.json), including
+one initial timeout followed by passing isolated and full repeats; it has not
+been deployed.
 
 ## Earlier Phoenix baseline
 
@@ -86,7 +111,7 @@ The original `SkillRequestHelper` and Phoenix's existing `SkillClient` public me
 
 Runtime context comes from original `mockRuntimeData`. Conditional dates use noon UTC; historical `uid0001` is assigned to the helper's default Jane persona. That person's historical attributes have not been recovered, so this is explicitly synthetic test context. Provider replies use original weather test data and synthetic settings, news, calendar and maps replies. Real production clients construct requests; headers, paths, query strings and bodies remain compared. Unexpected requests fail the fixture.
 
-The smoke profile contains 20 parser boundaries, six direct skill scenarios and 16 corpus occurrences, including VM-random prompt conditions. Boundaries cover complete and malformed envelopes, rules/loop/external data, missing and unknown rules, local timer rules, duplicates, empty/whitespace/no-match text and loop-member names. Direct report scenarios cover an unknown speaker, provider failure and identification continuation. The complete selection runs every 17,137 base and 3,370 conditional occurrence, plus 26 boundary/direct scenarios: **20,533 cases**. Duplicate commands are retained. Historical manifest expectations remain preserved separately from original-runtime differential outputs; missing intent fields are never interpreted as no-match expectations.
+The smoke profile contains 20 parser boundaries, six direct skill scenarios and 16 corpus occurrences, including VM-random prompt conditions. Boundaries cover complete and malformed envelopes, rules/loop/external data, missing and unknown rules, local timer rules, duplicates, empty/whitespace/no-match text and loop-member names. Direct report scenarios cover an unknown speaker, provider failure and identification continuation. The complete selection runs every 17,137 base and 3,370 conditional occurrence, plus 27 boundary/direct scenarios: **20,534 cases**. Duplicate commands are retained. Historical manifest expectations remain preserved separately from original-runtime differential outputs; missing intent fields are never interpreted as no-match expectations.
 
 ## Comparison policy
 

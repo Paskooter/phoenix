@@ -13,18 +13,27 @@ import { logger } from './log.js';
 
 const JSON_CONTENT_TYPES = ['application/json', 'application/x-amz-json-1.1'];
 
+// body-parser gives verify the exact post-inflation bytes before decoding. Keep
+// them on the request so a signed AWS-JSON proxy can forward the original
+// entity instead of signing/forwarding a reserialized object.
+function captureRawBody(req, _res, buffer) {
+  req.rawBody = Buffer.from(buffer);
+}
+
 /**
  * @param {{
  *   name: string,
  *   routes?: Record<string, (ctx: any) => any>,
  *   onUpgrade?: (req: import('node:http').IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void,
+ *   jsonStrict?: boolean | ((req: import('node:http').IncomingMessage) => boolean),
  * }} opts
  */
-export function createService({ name, routes = {}, onUpgrade } = {}) {
+export function createService({ name, routes = {}, onUpgrade, jsonStrict = true } = {}) {
   const log = logger(name);
   const app = express();
-  const urlencoded = bodyParser.urlencoded({ extended: true });
-  const json = bodyParser.json({ type: JSON_CONTENT_TYPES });
+  const urlencoded = bodyParser.urlencoded({ extended: true, verify: captureRawBody });
+  const strictJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: true });
+  const looseJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: false });
 
   // The trace logger is available to body-parser errors and the final 404 in the
   // same request scope as it is to a handler.
@@ -51,7 +60,8 @@ export function createService({ name, routes = {}, onUpgrade } = {}) {
   // This is intentionally after healthcheck and before application handlers.
   app.use((req, res, next) => {
     if (findRoute(routes, req, { rawOnly: true })) return next();
-    return json(req, res, next);
+    const strict = typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict;
+    return (strict ? strictJson : looseJson)(req, res, next);
   });
 
   const routeRouter = express.Router();
@@ -109,7 +119,16 @@ function routeMiddleware(name, handler) {
     const trace = req._phoenixTrace || readTrace(req);
     const reqLog = req._phoenixLog || logger(name, trace);
     const url = new URL(req.originalUrl || req.url, 'http://localhost');
-    const body = handler.rawBody ? null : (req.body === undefined ? {} : req.body);
+    const bodyDefault = Object.prototype.hasOwnProperty.call(handler, 'bodyDefault')
+      ? (typeof handler.bodyDefault === 'function' ? handler.bodyDefault(req) : handler.bodyDefault)
+      : {};
+    // body-parser initializes req.body to {} even when a JSON request has no
+    // entity. Route-specific Hapi compatibility defaults therefore need the
+    // transport-level empty-body check as well as the normal undefined check.
+    const emptyEntity = Buffer.isBuffer(req.rawBody)
+      ? req.rawBody.length === 0
+      : req.rawBody === undefined && !requestHasEntity(req);
+    const body = handler.rawBody ? null : (emptyEntity || req.body === undefined ? bodyDefault : req.body);
     Promise.resolve()
       .then(() => handler({ req, res, url, body, trace, log: reqLog }))
       .then((result) => {
@@ -117,6 +136,12 @@ function routeMiddleware(name, handler) {
       })
       .catch(next);
   };
+}
+
+function requestHasEntity(req) {
+  const length = Number(req?.headers?.['content-length']);
+  if (Number.isFinite(length)) return length > 0;
+  return req?.headers?.['transfer-encoding'] !== undefined;
 }
 
 /**
@@ -486,8 +511,8 @@ function writeBody(res, status, contentType, body, extraHeaders = {}) {
  * instances above; this export applies the same parsers to a supplied request.
  */
 export function readJson(req) {
-  const urlencoded = bodyParser.urlencoded({ extended: true });
-  const json = bodyParser.json({ type: JSON_CONTENT_TYPES });
+  const urlencoded = bodyParser.urlencoded({ extended: true, verify: captureRawBody });
+  const json = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody });
   const res = {};
   return new Promise((resolve, reject) => {
     urlencoded(req, res, (firstError) => {

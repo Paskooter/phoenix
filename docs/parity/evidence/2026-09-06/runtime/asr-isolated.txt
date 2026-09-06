@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+ok 1 - VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock # SKIP test name does not match pattern
+  ---
+  duration_ms: 1.55894
+  ...
+# Subtest: VAD: stop() before SOS resolves start() with undefined
+ok 2 - VAD: stop() before SOS resolves start() with undefined # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.531877
+  ...
+# Subtest: WAV header: 44-byte RIFF, 16kHz mono 16-bit
+ok 3 - WAV header: 44-byte RIFF, 16kHz mono 16-bit # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.150275
+  ...
+# Subtest: LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+ok 4 - LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.17422
+  ...
+# Subtest: LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+ok 5 - LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.262898
+  ...
+# Subtest: LINEAR16 stop preserves an even final partial VAD window
+ok 6 - LINEAR16 stop preserves an even final partial VAD window # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.247788
+  ...
+# Subtest: VAD and EOS are invariant across PCM chunk boundaries
+ok 7 - VAD and EOS are invariant across PCM chunk boundaries # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.115929
+  ...
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: encoded fixtures preserve VAD events and PCM cut across decoder chunking
+ok 8 - encoded fixtures preserve VAD events and PCM cut across decoder chunking
+  ---
+  duration_ms: 367.451063
+  ...
+# Subtest: max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+ok 9 - max-buffer EOS cuts a large PCM chunk at the 30-second boundary # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.38597
+  ...
+# Subtest: declared audio formats are validated before a provider session starts
+ok 10 - declared audio formats are validated before a provider session starts # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.218023
+  ...
+# Subtest: bounded decoder queue rejects input without buffering a whole turn
+ok 11 - bounded decoder queue rejects input without buffering a whole turn # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.123214
+  ...
+# Subtest: missing ffmpeg is an explicit runtime decoder error
+ok 12 - missing ffmpeg is an explicit runtime decoder error # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.108185
+  ...
+# Subtest: decoder rejects empty or truncated FLAC streams at end-of-input
+ok 13 - decoder rejects empty or truncated FLAC streams at end-of-input # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.092324
+  ...
+# Subtest: decoder finish followed by abort settles without a dangling OGG promise
+ok 14 - decoder finish followed by abort settles without a dangling OGG promise # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.174019
+  ...
+# Subtest: OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+ok 15 - OGG finish rejects a prefix that ffmpeg decodes without an EOS page # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.100491
+  ...
+# Subtest: explicit OGG end-of-input accepts decoded audio before a missing EOS page
+ok 16 - explicit OGG end-of-input accepts decoded audio before a missing EOS page # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.171715
+  ...
+# Subtest: decoder bounds include an active FLAC frame and clean up on overflow
+ok 17 - decoder bounds include an active FLAC frame and clean up on overflow # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.12152
+  ...
+# Subtest: decoder reports a missing process and clears its child without a pending finish
+ok 18 - decoder reports a missing process and clears its child without a pending finish # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.213705
+  ...
+# Subtest: OGG decoder emits PCM before the paced source reaches EOF
+ok 19 - OGG decoder emits PCM before the paced source reaches EOF # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.157758
+  ...
+# Subtest: FLAC decoder emits PCM before the paced source reaches EOF
+ok 20 - FLAC decoder emits PCM before the paced source reaches EOF # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.149122
+  ...
+# Subtest: paced OGG input can reach SOS before the source reaches EOF
+ok 21 - paced OGG input can reach SOS before the source reaches EOF # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.202403
+  ...
+# Subtest: paced FLAC input can reach SOS before the source reaches EOF
+ok 22 - paced FLAC input can reach SOS before the source reaches EOF # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.137651
+  ...
+# Subtest: OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+ok 23 - OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.123263
+  ...
+# Subtest: FLAC frames are decoded incrementally before VAD despite fragmented input
+ok 24 - FLAC frames are decoded incrementally before VAD despite fragmented input # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.157358
+  ...
+# Subtest: FLAC decoded waveform matches the immutable lossless fixture
+ok 25 - FLAC decoded waveform matches the immutable lossless fixture # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.095942
+  ...
+# Subtest: FLAC surfaces a native decoder error even when it decoded no PCM
+ok 26 - FLAC surfaces a native decoder error even when it decoded no PCM # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.070273
+  ...
+# Subtest: FLAC rejects an oversized native chunk before allocating PCM
+ok 27 - FLAC rejects an oversized native chunk before allocating PCM # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.085691
+  ...
+# Subtest: FLAC accepts every single-byte split across metadata and frame headers
+ok 28 - FLAC accepts every single-byte split across metadata and frame headers # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.122943
+  ...
+# Subtest: malformed declared audio rejects the session with a decoder error
+ok 29 - malformed declared audio rejects the session with a decoder error # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.122261
+  ...
+# Subtest: encoded session cancellation aborts decoder resources before SOS
+ok 30 - encoded session cancellation aborts decoder resources before SOS # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.07916
+  ...
+# Subtest: encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+ok 31 - encoded session cancellation after SOS closes decoder without waiting for encoded EOS # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.074451
+  ...
+# Subtest: hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+ok 32 - hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.225797
+  ...
+# Subtest: factory: non-English languages throw (reference gate)
+ok 33 - factory: non-English languages throw (reference gate) # SKIP test name does not match pattern
+  ---
+  duration_ms: 0.181012
+  ...
+# Subtest: normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+ok 34 - normalizeString: smart quotes/dashes -> ascii; non-strings -> "" # SKIP test name does not match pattern
+  ---
+  duration_ms: 1.015332
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 33
+# todo 0
+# duration_ms 1711.453786

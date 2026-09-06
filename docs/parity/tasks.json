@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-05",
+  "updated": "2026-09-06",
   "objective": "A feature-complete, behavior-compatible reimplementation of original Pegasus, with companion-cloud and restored-branch work explicitly tracked.",
   "owner": "Codex (project management and task execution)",
   "baseline": {
@@ -267,9 +267,10 @@
         "packages/harness/src/productionCompare.js",
         "packages/nlu/tools/legacyOracleDiagnostic.mjs",
         "packages/harness/resources/goldens/production-smoke/source.json",
-        "scripts/parity-production/gate.mjs"
+        "scripts/parity-production/gate.mjs",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json"
       ],
-      "finding": "Complete original controls have zero differences/invariants across20,534 cases and eight symmetric external-action gaps. A source-pinned full golden is ready for the complete Phoenix baseline. Reviewed main has360 passing unit tests and a strict smoke result of700 differences, zero invariants, one gap and25/26 complete action agreement. Product gates remain failing.",
+      "finding": "The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01 integration passes 384 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.",
       "acceptance": [
         "Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.",
         "Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.",
@@ -622,7 +623,7 @@
         "packages/gateway/src/listenTransaction.js",
         "packages/gateway/test/asr.test.js"
       ],
-      "finding": "Decoded OGG/FLAC support and chunk-independent VAD are integrated after lead correction/review. All 329 integrated unit tests passed; Moth quiet OGG, FLAC and LINEAR16 each returned SOS_TIMEOUT without false SOS. LINEAR16 config restored exactly. Full provider/acoustic speech acceptance remains open.",
+      "finding": "Reviewed streaming OGG/FLAC and chunk-independent VAD remain integrated. Native quiet OGG/FLAC/LINEAR16 have no false SOS. The built Node 20 runtime image passes 34 audio checks on repeat; the retained first run had a 3-second OGG/VAD test timeout, with exact startup cause unresolved. Full acoustic speech, provider behavior, latency and physical wake/ring acceptance remain open.",
       "acceptance": [
         "Use recorded/fake recognizer streams to verify original config languages/encodings/rates, hints, earlyEOS, interim/final transcripts, annotations and timeout behavior.",
         "Verify chunk boundaries, silence/noise/partial speech, upstream failures and cancellation without live vendor dependence.",
@@ -734,14 +735,28 @@
         "packages/common/src/jwt.js",
         "packages/gateway/test/hubAuth.test.js"
       ],
-      "finding": "JWT and account-backed checks exist; exact original upgrade rejection and identity behavior has not been differentially verified. V-02 confirms invalid JWT signatures return different rejection text and content length; missing authorization agrees in this fixture, without closing the full auth/identity matrix. Original native Authentication.cpp calls signed Account_20151111.CreateHubToken and refetches once after an upgrade 401. Phoenix robotFace has no CreateHubToken operation; /api/token has a different body/path contract. A-02 owns the original entrypoint/signature repair.",
+      "finding": "Native signed CreateHubToken-to-Bearer listen/proactive is verified as a bounded A-02 path. JWT rejection and context identity candidates remain separate and unaccepted. Root expanded original Node 8 JWT probes: the 132-case candidate matches, but 105 diagnostic mismatches remain in a 1,965-case structural mutation matrix. Native cached-token 401 refetch/expiry and context identity checks remain open.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
         "Verify the optional account-backed extension with revocation, unavailable account service and bounded upgrade latency separately from original shared-secret behavior.",
         "Run the original signed CreateHubToken-to-Bearer-upgrade sequence, including expiry and the native single 401 refetch/retry; do not substitute portal token creation."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "changes_requested",
+        "assignee": "Luna Max / capture_writer_repair",
+        "worktree": ".parity/worktrees/hub-auth",
+        "candidateRevision": "32334295f67fda273afb353372679e6a9e9dd0d4",
+        "scope": "HMAC JWT and upgrade rejection behavior. Root requests correction of 105 additional malformed-payload diagnostic differences in 1,965 original Node 8 cases; no H-10 implementation has been accepted.",
+        "artifact": "docs/parity/candidates/H-10.md"
+      },
+      "nextImplementation": {
+        "assignee": "Luna Max / audio_encoding_repair",
+        "worktree": ".parity/worktrees/hub-identity",
+        "state": "working",
+        "scope": "Original CONTEXT preprocessing/defaults and authenticated identity checks, with synthetic identities."
+      }
     },
     {
       "id": "N-01",
@@ -995,11 +1010,11 @@
       "implementationReview": {
         "state": "awaiting_review",
         "assignee": "Luna Max / http_contract_repair",
-        "scope": "Next source optional-character grammar correction reports14/312 prior failures fixed; root regression review pending. Previously accepted130ec37 remains integrated.",
+        "scope": "Agent full replay reports 20,230/20,528 status/data matches, 14 fixes and no newly failing IDs. Root independently checked artifact hashes, denominators and expected values; integrated full repeat remains pending. Main still has the prior 20,216-match implementation.",
         "worktree": ".parity/worktrees/nlu-next",
-        "baseRevision": "54459ca561c9e217e380384f43abf8283c54476c",
+        "baseRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
         "evidence": [
-          "docs/parity/evidence/2026-09-05/production/full-parser-replay-review.json"
+          "docs/parity/evidence/2026-09-06/nlu-n08-followup/full-replay-review.json"
         ],
         "candidateRevision": "7e0abbc83f0da8fb9a3f94752555b6074989f0e6",
         "artifact": "docs/parity/candidates/N-08-followup.md",
@@ -1021,7 +1036,13 @@
           "reviewEvidence": "docs/parity/evidence/2026-09-05/production/n08-full-parser-review/review.json",
           "reviewFinding": "89 prior failures repaired and zero newly failing cases in the full20,528-request status/data replay; full N-08 remains open."
         }
-      ]
+      ],
+      "nextImplementation": {
+        "assignee": "Luna Max / http_contract_repair",
+        "worktree": ".parity/worktrees/nlu-ranking",
+        "state": "working",
+        "scope": "Source-backed arbitration/entity family among the remaining 298 status/data differences."
+      }
     },
     {
       "id": "I-01",
@@ -1337,7 +1358,7 @@
         "packages/skills/src/graph/graph.js",
         "packages/skills/src/graph/graphManager.js"
       ],
-      "finding": "The framework is substantial, but the diff normalizer hides session contents and there is no complete reference continuation comparison.",
+      "finding": "The full production grader retains complete session and trace data. Root accepted 19 source response-wrapper HTTP cases and removal of the incompatible global request gate (21/33 boundary cases match; 12 graph errors retained). Those bounded repairs are integrated. Graph dispatch/session preconditions have a separate unaccepted e98a933 candidate; full continuation and migration acceptance remain open.",
       "acceptance": [
         "Compare graph finalization, subgraph composition, transitions, trace/data updates, terminal states and invalid graph/session errors.",
         "Continue captured sessions through all follow-up actions, including retries and global interruptions; detect corrupted/replayed sessions.",
@@ -1345,13 +1366,38 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "working",
+        "state": "awaiting_review",
         "assignee": "Luna Max / capture_writer_repair",
-        "scope": "Source BaseSkill response timing and bounded envelope/error behavior; complete graph/session lifecycle remains separate.",
-        "worktree": ".parity/worktrees/skill-response",
-        "branch": "codex/candidate-skill-response-20260905",
-        "baseRevision": "7d87cae491ccaa99dc1ddc8141bcb816f4a15dc8"
-      }
+        "worktree": ".parity/worktrees/skill-graph",
+        "baseRevision": "0f4b856e3c86499ebee71cee8b54f09181676b6c",
+        "candidateRevision": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+        "scope": "GraphSkill context ordering and session guards, including rejection of launches with an existing truthy session; agent reports 87 HTTP and 12 launch witnesses matching source. Root review pending.",
+        "artifact": "docs/parity/candidates/S-01-graph.md"
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / capture_writer_repair",
+          "scope": "Root verified 19 complete source response-wrapper status/body cases and assignment witnesses; integrated in lead6389978, broad S-01 remains open.",
+          "worktree": ".parity/worktrees/skill-response",
+          "branch": "codex/candidate-skill-response-20260905",
+          "baseRevision": "7d87cae491ccaa99dc1ddc8141bcb816f4a15dc8",
+          "candidateRevision": "a803418a65b15225c398a66c1cf75d1c21dc05ba",
+          "artifact": "docs/parity/reviews/s01-root/review.json",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/reviews/s01-root/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / capture_writer_repair",
+          "scope": "Remove the global SkillRequest schema gate; root independently measured 21/33 exact real-handler boundaries with 12 graph data/general/session differences retained.",
+          "worktree": ".parity/worktrees/skill-request",
+          "candidateRevision": "0f4b856e3c86499ebee71cee8b54f09181676b6c",
+          "artifact": "docs/parity/candidates/S-01-request.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/reviews/s01-request-root/review.json"
+        }
+      ]
     },
     {
       "id": "S-02",
@@ -1898,7 +1944,7 @@
         "packages/classic/src/awsJson.js",
         "packages/account/src/robotFace.js"
       ],
-      "finding": "SigV4 is not verified; prefixes are broad/tolerant and the proxy forwards only selected headers. New per-account keys already exist in Phoenix. The user-supplied Jibo Server Client guide confirms the AWS-derived signing/retry transport. Actual packaged JSON code emits application/json with versioned X-Amz-Target. Native Jetstream requires Account_20151111.CreateHubToken, which the robot-face operation map lacks; preserve native and JS signing/canonicalization variants in fixtures.",
+      "finding": "Bounded signed Account_20151111.CreateHubToken is integrated after root source/native review: authenticated claims, SigV4 native/JS variants, Joi validation and Node 8 HTTP framing. Real Moth completed TLS issuance, authenticated listen/proactive and clock display, then byte-verified rollback. Other Classic operations, permission/LAN-trust paths and token expiry/refetch remain open.",
       "acceptance": [
         "Match target version/name aliases, body validation, status, x-amzn-errortype and signed-request parsing with original SDK requests.",
         "Verify signatures, caller identity, ownership/permissions, expiry/replay behavior and trusted internal credentials using issued test keys.",
@@ -1907,15 +1953,18 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Signed CreateHubToken claims plus exact Hapi validation messages, headers and scoped primitive/missing-body parsing. Root review and native auth trial pending.",
-        "worktree": ".parity/worktrees/auth-token-review",
-        "branch": "codex/review-auth-token-20260905",
+        "state": "accepted",
+        "assignee": "Root review of Luna Max candidate",
+        "scope": "Bounded signed CreateHubToken validation, claims and Node 8 framing integrated into main after root review; unrelated OTA edits excluded. Native TLS issuance/listen/proactive/clock verified at 5e626b8. Complete A-02 remains open.",
+        "worktree": ".parity/worktrees/lead-integration",
+        "branch": "codex/lead-integration-20260905",
         "baseRevision": "3f2ca91988af951c2054b51bca2ac0428a5ebb30",
-        "artifact": "docs/parity/candidates/A-02.md",
+        "artifact": "docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json",
         "referenceRevision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
-        "candidateRevision": "5100ad5"
+        "candidateRevision": "8ad9201db6a44b480d9b134ebe7426e4ce574693",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json",
+        "submittedRevision": "5100ad5b60b29529d9b59fb0511f4bf9f375a890"
       }
     },
     {

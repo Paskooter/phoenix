@@ -1,0 +1,1496 @@
+{
+  "generatedAt": "2026-09-06T00:12:41.659Z",
+  "runKind": "wire-corrected-original-sdk-compatibility",
+  "supersedes": "A-02-original-client-corrected-20260905.json",
+  "historicalArtifactsPreserved": [
+    "A-02-original-client-compat-20260905.json",
+    "A-02-original-client-corrected-20260905.json"
+  ],
+  "syntheticOnly": true,
+  "sourcePins": {
+    "originalClient": "@jibo/jibo-server-client@3.0.110",
+    "securityGateway": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+    "account": "jiborobot/srv-account-ws@b525601390108b8635a31794dfa5cc3fda8a37d0",
+    "native": "jiboV2/jetstream@01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb"
+  },
+  "sourceHashes": [
+    {
+      "path": "original-client/package.json",
+      "sha256": "3ad05cb8b2d532e6daa0beec6b967fcbf9a82ee86ac5a92c488746b390831c4d"
+    },
+    {
+      "path": "original-client/lib/signers/v4.js",
+      "sha256": "ebc5dde15aeb011ae128e3bb8988615bd1631e827becb822e0444d55e044ef1d"
+    },
+    {
+      "path": "original-client/lib/util.js",
+      "sha256": "a51d342dc440584267a553d7117c7c80181fcf1ee98b23f920bc880c6c3dd516"
+    },
+    {
+      "path": "security-gw/src/v4.js",
+      "sha256": "4be13f7176f7dcde06cbdee3e22db3016aaf712ccd238ecdaaad96e66f2ad276"
+    },
+    {
+      "path": "security-gw/src/controllers/auth.ctrl.ts",
+      "sha256": "776c0908cbb5e842fe7866e7d1e6640578c390d604536c76652707b50785881d"
+    },
+    {
+      "path": "security-gw/src/auth.scheme.ts",
+      "sha256": "fa968f0bef778b8553096c6ddbf8c9148fa4014f1ee34b0c28dcf44050ca5932"
+    },
+    {
+      "path": "account-ws/src/controllers/account.ctrl.ts",
+      "sha256": "e62c69fc3ca9925fbf8afc2de44b1dd69a19b5b83e82165b813db1b3b2846717"
+    },
+    {
+      "path": "account-ws/src/controllers/token.ctrl.ts",
+      "sha256": "d0339370118a3f45e0910218049ebd408123e51e1492cbfc8cf55244b06a2538"
+    },
+    {
+      "path": "review/hapi-validation.cjs",
+      "sha256": "2ea5de8e17c38fc01da9a9d654d9e73b232224d708be08a4a4204b56eaeb25a7"
+    },
+    {
+      "path": "native/jibohub-client/src/Authentication.cpp",
+      "sha256": "6ab97185ea7caad3bdad0d4586a16f4dbd09543de3a499a2abb1b67349c6394a"
+    }
+  ],
+  "syntheticCredential": {
+    "accessKeyId": "A02ORIGINALKEY00",
+    "secretSha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7"
+  },
+  "sourceExpectation": {
+    "fixture": "source-validatePayload-joi-boom-hapi",
+    "transport": "Hapi network response (server.inject omits automatic keep-alive framing)",
+    "errorStatus": 422,
+    "errorHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "messages": {
+      "object": "\"value\" must be an object",
+      "string": "child \"payload\" fails because [\"payload\" must be a string]",
+      "empty": "child \"payload\" fails because [\"payload\" is not allowed to be empty]"
+    }
+  },
+  "observations": {
+    "originalSdk": {
+      "request": {
+        "kind": "original-sdk-body",
+        "method": "POST",
+        "path": "/",
+        "headers": {
+          "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+          "host": "localhost:35299",
+          "Content-Type": "application/x-amz-json-1.1",
+          "X-Amz-Target": "Account_20151111.CreateHubToken",
+          "X-Amz-Date": "20260906T001241Z",
+          "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=3d2f1183c91984f9376395624b4cfd47200a5e4aa14c1e3d7fb2a3a236b3af58"
+        },
+        "bodyUtf8": "{\"payload\":\"original-sdk\"}",
+        "bodyHex": "7b227061796c6f6164223a226f726967696e616c2d73646b227d"
+      },
+      "response": {
+        "status": 200,
+        "errorType": null,
+        "bodyKeys": [
+          "expires",
+          "token"
+        ],
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "436",
+          "content-type": "application/x-amz-json-1.1",
+          "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+          "keep-alive": "timeout=5",
+          "x-powered-by": "Express"
+        },
+        "body": {
+          "tokenSha256": "e8933aabc72eced993318f6a7f3404260b36304d9d1739eeeb02b2f059dfc02e",
+          "tokenLength": 400
+        },
+        "claims": {
+          "id": "17b6504a504def865a184d38",
+          "accessKeyId": "A02ORIGINALKEY00",
+          "payload": "original-sdk",
+          "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+          "claimKeys": [
+            "accessKeyId",
+            "email",
+            "friendlyId",
+            "id",
+            "payload",
+            "secretAccessKey",
+            "iat",
+            "exp"
+          ],
+          "exp": 1788664361,
+          "iat": 1788653561,
+          "expMinusIat": 10800
+        }
+      }
+    },
+    "native": {
+      "request": {
+        "kind": "native-sign-before-body",
+        "method": "POST",
+        "path": "/",
+        "headers": {
+          "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+          "host": "localhost:35299",
+          "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "X-Amz-Date": "20260906T001241Z",
+          "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=41887c1cbd4911e1be3a6e68b0a00c2e3f9135ea7eb214f46c5a3dc1bd681f24",
+          "Content-Type": "application/json",
+          "Content-Length": "2",
+          "X-Amz-Target": "Account_20151111.CreateHubToken"
+        },
+        "bodyUtf8": "{}",
+        "bodyHex": "7b7d"
+      },
+      "response": {
+        "status": 200,
+        "errorType": null,
+        "bodyKeys": [
+          "expires",
+          "token"
+        ],
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "423",
+          "content-type": "application/x-amz-json-1.1",
+          "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+          "keep-alive": "timeout=5",
+          "x-powered-by": "Express"
+        },
+        "body": {
+          "tokenSha256": "2f67cc3ecc2f6fc0e4274bd2307ee1f3d3ff7c2bd21c7d8390073503bf3ab0a4",
+          "tokenLength": 387
+        },
+        "claims": {
+          "id": "17b6504a504def865a184d38",
+          "accessKeyId": "A02ORIGINALKEY00",
+          "payload": null,
+          "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+          "claimKeys": [
+            "accessKeyId",
+            "email",
+            "friendlyId",
+            "id",
+            "payload",
+            "secretAccessKey",
+            "iat",
+            "exp"
+          ],
+          "exp": 1788664361,
+          "iat": 1788653561,
+          "explicitHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "tamper": {
+        "body": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "448",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "da97a9999bc22acc72ae2d349ab35a14e82e51a186cfa076a1b42049029d31d5",
+            "tokenLength": 412
+          },
+          "claims": {}
+        },
+        "target": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "423",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "2f67cc3ecc2f6fc0e4274bd2307ee1f3d3ff7c2bd21c7d8390073503bf3ab0a4",
+            "tokenLength": 387
+          },
+          "claims": {}
+        },
+        "host": {
+          "status": 401,
+          "errorType": "SIGNATURE_MISMATCH",
+          "bodyKeys": [
+            "__type",
+            "message"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "68",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-amzn-errortype": "SIGNATURE_MISMATCH",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "__type": "SIGNATURE_MISMATCH",
+            "message": "Signature does not match"
+          },
+          "claims": {}
+        }
+      }
+    },
+    "validation": [
+      {
+        "endpoint": "account",
+        "name": "top-null",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=3121a13e81b751dfafe0bede4c61312165b353cb5bbccf2d0e7c62ae3281d707"
+          },
+          "bodyUtf8": "null",
+          "bodyHex": "6e756c6c"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "top-array",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=25426acab1fe840a205ea4c10e7d075c1252f519bab2a7aaecb3b1d4be0e77c9"
+          },
+          "bodyUtf8": "[]",
+          "bodyHex": "5b5d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "top-number",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=576170e233282e848714a7dd367e04a408f1e674dd6cc07c5824e29b554a7224"
+          },
+          "bodyUtf8": "1",
+          "bodyHex": "31"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "top-boolean",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=7aa46c2026412721500c106eb42a5f111922f16b958634fdbe4853ccc3051146"
+          },
+          "bodyUtf8": "true",
+          "bodyHex": "74727565"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "top-string",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=204c4da7d8c267ccd70c8c15afe683901fc006a6bed8cdb8363ab64ee9647d63"
+          },
+          "bodyUtf8": "\"source-string\"",
+          "bodyHex": "22736f757263652d737472696e6722"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "missing-body",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=0dd92fad0ad3b7339a3160bf1e718b7ac60042c4ece59e151c4987206ff3b1ac"
+          },
+          "bodyUtf8": "",
+          "bodyHex": ""
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "payload-null",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=20b43160f205092c44d22ec8e353399a8bad500f3fe91b1c69a3e29765b68b4b"
+          },
+          "bodyUtf8": "{\"payload\":null}",
+          "bodyHex": "7b227061796c6f6164223a6e756c6c7d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "124",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" must be a string]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "payload-empty",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=42064516fec377ad0266e4f5978ccb4b0be812624f76da1060cb0ddd9d16efaa"
+          },
+          "bodyUtf8": "{\"payload\":\"\"}",
+          "bodyHex": "7b227061796c6f6164223a22227d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "134",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" is not allowed to be empty]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "payload-number",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=faaa6781c46dadb0b989125a0376ea394279d7054263f6f1dd90e7154c8c46cf"
+          },
+          "bodyUtf8": "{\"payload\":4}",
+          "bodyHex": "7b227061796c6f6164223a347d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "124",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" must be a string]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "payload-object",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=52c266b8a0e9e789537d9fb7da9505c78a98dfccb02adda0304a77bacc63b0bc"
+          },
+          "bodyUtf8": "{\"payload\":{}}",
+          "bodyHex": "7b227061796c6f6164223a7b7d7d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "124",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" must be a string]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "top-null",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=a59dd4e95e6f7af073c766ee75889b75b502551b2bf9c4d2185b8accc6d49c32"
+          },
+          "bodyUtf8": "null",
+          "bodyHex": "6e756c6c"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "top-array",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=e70260eb27af87c4e2be945592dfa5d3dfb7fabdddc4b000e774e699f045babc"
+          },
+          "bodyUtf8": "[]",
+          "bodyHex": "5b5d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "top-number",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=09727e15da25e5265c431f8d8531a7a8cd84ff9cae2312a92b351c6682e0ddd0"
+          },
+          "bodyUtf8": "1",
+          "bodyHex": "31"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "top-boolean",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=c6e3b397117cec4480dd7df58c3aa71e6e426e9cefb41c8e1869d8c230d0c878"
+          },
+          "bodyUtf8": "true",
+          "bodyHex": "74727565"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "top-string",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=35b7c9db8db7ae1334cf7cdb836b41d03477ce6d17c469013489efd2d7e82d77"
+          },
+          "bodyUtf8": "\"source-string\"",
+          "bodyHex": "22736f757263652d737472696e6722"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "missing-body",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=0f34ddecebee2cc83b25e156b4bcdf4655804c7b38ee73da3447cb94408ed921"
+          },
+          "bodyUtf8": "",
+          "bodyHex": ""
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "89",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "\"value\" must be an object"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "payload-null",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=52d3c9e8e9ae1f2a3166f48863a799709a5c9781b71b3f082e32aa31a7bca588"
+          },
+          "bodyUtf8": "{\"payload\":null}",
+          "bodyHex": "7b227061796c6f6164223a6e756c6c7d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "124",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" must be a string]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "payload-empty",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=2e52ceb0d88128edb2c80d3d4b18ab646f2e1873e10edf23e73d9e2a0e650b26"
+          },
+          "bodyUtf8": "{\"payload\":\"\"}",
+          "bodyHex": "7b227061796c6f6164223a22227d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "134",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" is not allowed to be empty]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "payload-number",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=f2131a096c720fe026e13c35be1b2eb072292460822637e80f59e4171fb93760"
+          },
+          "bodyUtf8": "{\"payload\":4}",
+          "bodyHex": "7b227061796c6f6164223a347d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "124",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" must be a string]"
+          },
+          "claims": {}
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "payload-object",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=09f82f220e62b85a9840d9ec485678939a94cd42c13435b40ab0e40b1b2db586"
+          },
+          "bodyUtf8": "{\"payload\":{}}",
+          "bodyHex": "7b227061796c6f6164223a7b7d7d"
+        },
+        "response": {
+          "status": 422,
+          "errorType": null,
+          "bodyKeys": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "headers": {
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "content-length": "124",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "vary": "accept-encoding"
+          },
+          "body": {
+            "statusCode": 422,
+            "error": "Unprocessable Entity",
+            "message": "child \"payload\" fails because [\"payload\" must be a string]"
+          },
+          "claims": {}
+        }
+      }
+    ],
+    "valid": [
+      {
+        "endpoint": "account",
+        "name": "omitted-payload",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=3c96d699f69beaad7fc0ece0a34be1101bcd5389b10276c6e14db84f26cf028b"
+          },
+          "bodyUtf8": "{}",
+          "bodyHex": "7b7d"
+        },
+        "response": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "423",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "2f67cc3ecc2f6fc0e4274bd2307ee1f3d3ff7c2bd21c7d8390073503bf3ab0a4",
+            "tokenLength": 387
+          },
+          "claims": {
+            "payload": null,
+            "claimKeys": [
+              "accessKeyId",
+              "email",
+              "friendlyId",
+              "id",
+              "payload",
+              "secretAccessKey",
+              "iat",
+              "exp"
+            ],
+            "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+            "expMinusIat": 10800
+          }
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "unknown-key",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=014f9d74d30a308a69835c6812b469b433c16e49fc45c84f6ee9760c831713ff"
+          },
+          "bodyUtf8": "{\"extra\":true}",
+          "bodyHex": "7b226578747261223a747275657d"
+        },
+        "response": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "423",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "2f67cc3ecc2f6fc0e4274bd2307ee1f3d3ff7c2bd21c7d8390073503bf3ab0a4",
+            "tokenLength": 387
+          },
+          "claims": {
+            "payload": null,
+            "claimKeys": [
+              "accessKeyId",
+              "email",
+              "friendlyId",
+              "id",
+              "payload",
+              "secretAccessKey",
+              "iat",
+              "exp"
+            ],
+            "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+            "expMinusIat": 10800
+          }
+        }
+      },
+      {
+        "endpoint": "account",
+        "name": "string-payload",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:46315",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=94112ff96853c0326e50ec515426c2c7e870a4b6eb236e59376bf77cd8f3ea8e"
+          },
+          "bodyUtf8": "{\"payload\":\"accepted\"}",
+          "bodyHex": "7b227061796c6f6164223a226163636570746564227d"
+        },
+        "response": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "431",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "08c3ea48d2b98f690fb2b0ad4bf578b46aac515bc9e03866536e6fde02395bbb",
+            "tokenLength": 395
+          },
+          "claims": {
+            "payload": "accepted",
+            "claimKeys": [
+              "accessKeyId",
+              "email",
+              "friendlyId",
+              "id",
+              "payload",
+              "secretAccessKey",
+              "iat",
+              "exp"
+            ],
+            "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+            "expMinusIat": 10800
+          }
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "omitted-payload",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=82a5312ed159afd516c69284c3bf352b7b593ee08af2be2dbdfea3a3d79c90d8"
+          },
+          "bodyUtf8": "{}",
+          "bodyHex": "7b7d"
+        },
+        "response": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "423",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "2f67cc3ecc2f6fc0e4274bd2307ee1f3d3ff7c2bd21c7d8390073503bf3ab0a4",
+            "tokenLength": 387
+          },
+          "claims": {
+            "payload": null,
+            "claimKeys": [
+              "accessKeyId",
+              "email",
+              "friendlyId",
+              "id",
+              "payload",
+              "secretAccessKey",
+              "iat",
+              "exp"
+            ],
+            "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+            "expMinusIat": 10800
+          }
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "unknown-key",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=86ac68b82776e7478946c3e47b177a3685393a5bd33efe2fc77fd4a4d19ae462"
+          },
+          "bodyUtf8": "{\"extra\":true}",
+          "bodyHex": "7b226578747261223a747275657d"
+        },
+        "response": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "423",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "2f67cc3ecc2f6fc0e4274bd2307ee1f3d3ff7c2bd21c7d8390073503bf3ab0a4",
+            "tokenLength": 387
+          },
+          "claims": {
+            "payload": null,
+            "claimKeys": [
+              "accessKeyId",
+              "email",
+              "friendlyId",
+              "id",
+              "payload",
+              "secretAccessKey",
+              "iat",
+              "exp"
+            ],
+            "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+            "expMinusIat": 10800
+          }
+        }
+      },
+      {
+        "endpoint": "classic",
+        "name": "string-payload",
+        "request": {
+          "kind": "original-sdk-body",
+          "method": "POST",
+          "path": "/",
+          "headers": {
+            "User-Agent": "jibo-server-client-nodejs/3.0.110 linux/v22.22.0",
+            "host": "localhost:35299",
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "Account_20151111.CreateHubToken",
+            "X-Amz-Date": "20260906T001241Z",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=A02ORIGINALKEY00/20260906/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=0ec916955bfe71640dffadba5037cc91172731cb9f1468fb4375eabdcb11c1f3"
+          },
+          "bodyUtf8": "{\"payload\":\"accepted\"}",
+          "bodyHex": "7b227061796c6f6164223a226163636570746564227d"
+        },
+        "response": {
+          "status": 200,
+          "errorType": null,
+          "bodyKeys": [
+            "expires",
+            "token"
+          ],
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "431",
+            "content-type": "application/x-amz-json-1.1",
+            "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+            "keep-alive": "timeout=5",
+            "x-powered-by": "Express"
+          },
+          "body": {
+            "tokenSha256": "08c3ea48d2b98f690fb2b0ad4bf578b46aac515bc9e03866536e6fde02395bbb",
+            "tokenLength": 395
+          },
+          "claims": {
+            "payload": "accepted",
+            "claimKeys": [
+              "accessKeyId",
+              "email",
+              "friendlyId",
+              "id",
+              "payload",
+              "secretAccessKey",
+              "iat",
+              "exp"
+            ],
+            "secretAccessKeySha256": "2ec8da1e87e964167b5c60c97e07f2fade339251b794586110e972cf9e26bcf7",
+            "expMinusIat": 10800
+          }
+        }
+      }
+    ],
+    "mutations": {
+      "body": {
+        "status": 401,
+        "errorType": "SIGNATURE_MISMATCH",
+        "bodyKeys": [
+          "__type",
+          "message"
+        ],
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "68",
+          "content-type": "application/x-amz-json-1.1",
+          "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+          "keep-alive": "timeout=5",
+          "x-amzn-errortype": "SIGNATURE_MISMATCH",
+          "x-powered-by": "Express"
+        },
+        "body": {
+          "__type": "SIGNATURE_MISMATCH",
+          "message": "Signature does not match"
+        },
+        "claims": {}
+      },
+      "target": {
+        "status": 401,
+        "errorType": "SIGNATURE_MISMATCH",
+        "bodyKeys": [
+          "__type",
+          "message"
+        ],
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "68",
+          "content-type": "application/x-amz-json-1.1",
+          "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+          "keep-alive": "timeout=5",
+          "x-amzn-errortype": "SIGNATURE_MISMATCH",
+          "x-powered-by": "Express"
+        },
+        "body": {
+          "__type": "SIGNATURE_MISMATCH",
+          "message": "Signature does not match"
+        },
+        "claims": {}
+      },
+      "clock": {
+        "status": 401,
+        "errorType": "CLOCK_SKEW_TOO_LONG",
+        "bodyKeys": [
+          "__type",
+          "message"
+        ],
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "79",
+          "content-type": "application/x-amz-json-1.1",
+          "date": "Sun, 06 Sep 2026 00:12:41 GMT",
+          "keep-alive": "timeout=5",
+          "x-amzn-errortype": "CLOCK_SKEW_TOO_LONG",
+          "x-powered-by": "Express"
+        },
+        "body": {
+          "__type": "CLOCK_SKEW_TOO_LONG",
+          "message": "Clock skew is more than 15 minutes"
+        },
+        "claims": {}
+      }
+    }
+  }
+}

@@ -1,5 +1,38 @@
 # Phoenix worklog
 
+## 2026-09-06: full baseline, native authentication and skill-wrapper checkpoint
+
+The complete `057f67c` baseline captured all 20,534 cases with no trace
+invariants. Its strict result remains failing: 49,155 field differences and
+97 coverage-gap instances (8 original, 89 Phoenix). Complete action objects
+agree in 20,170/20,434 comparisons. The full captures, compressed comparison,
+source fingerprint, dimensions and initial task ownership are retained in
+[the baseline review](docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json).
+V-03 remains active for final corpus-to-gate inventory links.
+
+Root integrated bounded A-02 CreateHubToken/SigV4, exact claims, Joi validation
+and Node 8 HTTP framing, excluding unrelated OTA changes. Moth completed
+native TLS issuance, authenticated listen/proactive and a visible clock, then
+byte-verified rollback. Root also integrated the 19-case S-01 response wrapper
+and removed the incompatible shared request gate; its 12 remaining graph
+boundary differences stay recorded. All 384 unit tests pass. Strict 43-case
+smoke improves from 700 to 659 differences, with zero invariants, one gap and
+25/26 exact action objects. These changes do not rewrite the earlier full
+baseline's counts.
+
+The next N-08 candidate reports 14 more fixes and no regressions across all
+20,528 parser requests; root's integrated repeat remains pending after an
+initial replay was stopped to correct an insufficient outer time limit.
+GraphSkill session and H-10 JWT/context candidates remain isolated for root
+review. The expanded JWT matrix exposed 105 further diagnostics differences;
+none is accepted as parity. The Node 20 runtime image built successfully; its
+first audio suite had one timeout, followed by passing isolated and full
+repeats. The failure remains retained, and the image is not deployed.
+
+Home Git breadcrumbs describe both remotes and the private credential helper.
+This reviewed checkpoint is prepared for authorized pushes to GitHub and
+Gitty/Gitea; remote completion must be verified by matching hashes.
+
 Newest first. One line per verified increment (autonomous loop appends here).
 
 - 2026-09-05 — **Publish reviewed parser, prompt and report progress to both remotes.**

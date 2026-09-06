@@ -127,7 +127,7 @@ Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/pa
 
 Owner: Codex. Dependencies: PM-03.
 
-Complete original controls have zero differences/invariants across20,534 cases and eight symmetric external-action gaps. A source-pinned full golden is ready for the complete Phoenix baseline. Reviewed main has360 passing unit tests and a strict smoke result of700 differences, zero invariants, one gap and25/26 complete action agreement. Product gates remain failing.
+The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01 integration passes 384 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.
 
 Done when:
 
@@ -137,7 +137,7 @@ Done when:
 
 Source: [Original Pegasus packages/integration-tests-int](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-int); [Original Pegasus packages/integration-tests-ext](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-ext); [Original Pegasus packages/hub/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/tests); [Original Pegasus packages/parser/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/tests); [Original Pegasus packages/test-utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils).
 
-Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-05/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-05/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs).
+Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-05/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-05/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs); [docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json](../../docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json).
 
 Evidence: pending.
 
@@ -381,7 +381,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-JWT and account-backed checks exist; exact original upgrade rejection and identity behavior has not been differentially verified. V-02 confirms invalid JWT signatures return different rejection text and content length; missing authorization agrees in this fixture, without closing the full auth/identity matrix. Original native Authentication.cpp calls signed Account_20151111.CreateHubToken and refetches once after an upgrade 401. Phoenix robotFace has no CreateHubToken operation; /api/token has a different body/path contract. A-02 owns the original entrypoint/signature repair.
+Native signed CreateHubToken-to-Bearer listen/proactive is verified as a bounded A-02 path. JWT rejection and context identity candidates remain separate and unaccepted. Root expanded original Node 8 JWT probes: the 132-case candidate matches, but 105 diagnostic mismatches remain in a 1,965-case structural mutation matrix. Native cached-token 401 refetch/expiry and context identity checks remain open.
 
 Done when:
 
@@ -395,6 +395,14 @@ Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvi
 Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/preprocessor.js](../../packages/gateway/src/preprocessor.js); [packages/common/src/jwt.js](../../packages/common/src/jwt.js); [packages/gateway/test/hubAuth.test.js](../../packages/gateway/test/hubAuth.test.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **changes_requested**; Luna Max / capture_writer_repair.
+
+Candidate scope: HMAC JWT and upgrade rejection behavior. Root requests correction of 105 additional malformed-payload diagnostic differences in 1,965 original Node 8 cases; no H-10 implementation has been accepted.
+
+Candidate report: [docs/parity/candidates/H-10.md](../../docs/parity/candidates/H-10.md).
+
+Lead verification: pending. This candidate does not certify task parity.
 
 ### N-01 — Honor complete parser requests and load every named rule
 
@@ -489,7 +497,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: H-02.
 
-Decoded OGG/FLAC support and chunk-independent VAD are integrated after lead correction/review. All 329 integrated unit tests passed; Moth quiet OGG, FLAC and LINEAR16 each returned SOS_TIMEOUT without false SOS. LINEAR16 config restored exactly. Full provider/acoustic speech acceptance remains open.
+Reviewed streaming OGG/FLAC and chunk-independent VAD remain integrated. Native quiet OGG/FLAC/LINEAR16 have no false SOS. The built Node 20 runtime image passes 34 audio checks on repeat; the retained first run had a 3-second OGG/VAD test timeout, with exact startup cause unresolved. Full acoustic speech, provider behavior, latency and physical wake/ring acceptance remain open.
 
 Done when:
 
@@ -668,7 +676,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / http_contract_repair.
 
-Candidate scope: Next source optional-character grammar correction reports14/312 prior failures fixed; root regression review pending. Previously accepted130ec37 remains integrated.
+Candidate scope: Agent full replay reports 20,230/20,528 status/data matches, 14 fixes and no newly failing IDs. Root independently checked artifact hashes, denominators and expected values; integrated full repeat remains pending. Main still has the prior 20,216-match implementation.
 
 Candidate report: [docs/parity/candidates/N-08-followup.md](../../docs/parity/candidates/N-08-followup.md).
 
@@ -844,7 +852,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-01, C-01.
 
-SigV4 is not verified; prefixes are broad/tolerant and the proxy forwards only selected headers. New per-account keys already exist in Phoenix. The user-supplied Jibo Server Client guide confirms the AWS-derived signing/retry transport. Actual packaged JSON code emits application/json with versioned X-Amz-Target. Native Jetstream requires Account_20151111.CreateHubToken, which the robot-face operation map lacks; preserve native and JS signing/canonicalization variants in fixtures.
+Bounded signed Account_20151111.CreateHubToken is integrated after root source/native review: authenticated claims, SigV4 native/JS variants, Joi validation and Node 8 HTTP framing. Real Moth completed TLS issuance, authenticated listen/proactive and clock display, then byte-verified rollback. Other Classic operations, permission/LAN-trust paths and token expiry/refetch remain open.
 
 Done when:
 
@@ -859,13 +867,13 @@ Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js);
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair.
+- [x] Candidate implementation — **accepted**; Root review of Luna Max candidate.
 
-Candidate scope: Signed CreateHubToken claims plus exact Hapi validation messages, headers and scoped primitive/missing-body parsing. Root review and native auth trial pending.
+Candidate scope: Bounded signed CreateHubToken validation, claims and Node 8 framing integrated into main after root review; unrelated OTA edits excluded. Native TLS issuance/listen/proactive/clock verified at 5e626b8. Complete A-02 remains open.
 
-Candidate report: [docs/parity/candidates/A-02.md](../../docs/parity/candidates/A-02.md).
+Candidate report: [docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json](../../docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json](../../docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-06 — Complete Settings data/view/ownership compatibility
 
@@ -895,7 +903,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: H-04, V-02.
 
-The framework is substantial, but the diff normalizer hides session contents and there is no complete reference continuation comparison.
+The full production grader retains complete session and trace data. Root accepted 19 source response-wrapper HTTP cases and removal of the incompatible global request gate (21/33 boundary cases match; 12 graph errors retained). Those bounded repairs are integrated. Graph dispatch/session preconditions have a separate unaccepted e98a933 candidate; full continuation and migration acceptance remain open.
 
 Done when:
 
@@ -909,11 +917,11 @@ Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/gra
 
 Evidence: pending.
 
-- [ ] Candidate implementation — **working**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair.
 
-Candidate scope: Source BaseSkill response timing and bounded envelope/error behavior; complete graph/session lifecycle remains separate.
+Candidate scope: GraphSkill context ordering and session guards, including rejection of launches with an existing truthy session; agent reports 87 HTTP and 12 launch witnesses matching source. Root review pending.
 
-Candidate report: pending.
+Candidate report: [docs/parity/candidates/S-01-graph.md](../../docs/parity/candidates/S-01-graph.md).
 
 Lead verification: pending. This candidate does not certify task parity.
 

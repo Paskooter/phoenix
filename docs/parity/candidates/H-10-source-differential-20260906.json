@@ -1,0 +1,879 @@
+{
+  "status": "source differential review artifact",
+  "fixture": "packages/gateway/test/fixtures/h10-auth-differential.json",
+  "sourceCommand": "node:8.9.4-slim pinned digest 8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "candidateCommand": "Node host candidate probe",
+  "comparedSections": [
+    "direct",
+    "auth",
+    "upgrades"
+  ],
+  "normalization": [
+    "runtime metadata excluded from value comparison",
+    "upgrade header names lowercased"
+  ],
+  "caseCounts": {
+    "tokenCases": 34,
+    "authCases": 10,
+    "upgradeCases": 8
+  },
+  "diffCount": 0,
+  "diffs": [],
+  "source": {
+    "runtime": {
+      "node": "v8.9.4",
+      "source": "jsonwebtoken@8.1.1 + BaseService",
+      "ws": "3.3.3"
+    },
+    "direct": {
+      "valid-hs256": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "valid-hs384": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "valid-hs512": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "expired-boundary": {
+        "ok": false,
+        "error": {
+          "name": "TokenExpiredError",
+          "message": "jwt expired",
+          "constructor": "TokenExpiredError"
+        }
+      },
+      "future-not-before": {
+        "ok": false,
+        "error": {
+          "name": "NotBeforeError",
+          "message": "jwt not active",
+          "constructor": "NotBeforeError"
+        }
+      },
+      "invalid-exp-type": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid exp value",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "invalid-nbf-type": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid nbf value",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "wrong-signature": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid signature",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "bad-payload-wrong-signature": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token b in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-bad-algorithm": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token b in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-valid-signature": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token b in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-end": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected end of JSON input",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-token": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token } in JSON at position 5",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-trailing": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token x in JSON at position 14",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-number": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected number in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-property": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected number in JSON at position 5",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-array": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token ] in JSON at position 3",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-unicode": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token Z in JSON at position 8",
+          "constructor": "SyntaxError"
+        }
+      },
+      "null-wrong-signature": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid signature",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "null-valid": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'nbf' of null",
+          "constructor": "TypeError"
+        }
+      },
+      "noncanonical-signature": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid signature",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "unicode-header": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "array-header": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid algorithm",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "bad-header": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid token",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "none-valid": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt signature is required",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "none-signed": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid algorithm",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "non-jwt-object": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "non-jwt-string": {
+        "ok": true,
+        "value": "\"robot\""
+      },
+      "missing": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt must be provided",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "empty": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt must be provided",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "non-string-number": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt must be a string",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "malformed": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt malformed",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "four-segments": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt malformed",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "invalid-character": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid token",
+          "constructor": "JsonWebTokenError"
+        }
+      }
+    },
+    "auth": {
+      "missing": {
+        "ok": true,
+        "value": {
+          "error": "Authorization is required"
+        }
+      },
+      "basic": {
+        "ok": true,
+        "value": {
+          "error": "Only bearer scheme is supported"
+        }
+      },
+      "lowercase-bearer": {
+        "ok": true,
+        "value": {
+          "error": "Only bearer scheme is supported"
+        }
+      },
+      "extra-space": {
+        "ok": true,
+        "value": {
+          "error": "Only bearer scheme is supported"
+        }
+      },
+      "empty-token": {
+        "ok": true,
+        "value": {
+          "error": "JsonWebTokenError: jwt must be provided"
+        }
+      },
+      "no-secret": {
+        "ok": true,
+        "value": {
+          "error": "No JWT secret set"
+        }
+      },
+      "malformed": {
+        "ok": true,
+        "value": {
+          "error": "JsonWebTokenError: jwt malformed"
+        }
+      },
+      "bad-payload": {
+        "ok": true,
+        "value": {
+          "error": "SyntaxError: Unexpected token b in JSON at position 1"
+        }
+      },
+      "null-valid": {
+        "ok": true,
+        "value": {
+          "error": "TypeError: Cannot read property 'nbf' of null"
+        }
+      },
+      "valid": {
+        "ok": true,
+        "value": {
+          "auth": {
+            "id": "robot"
+          }
+        }
+      }
+    },
+    "upgrades": {
+      "missing": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "25"
+        },
+        "body": "Authorization is required"
+      },
+      "wrong-scheme": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "31"
+        },
+        "body": "Only bearer scheme is supported"
+      },
+      "malformed": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "32"
+        },
+        "body": "JsonWebTokenError: jwt malformed"
+      },
+      "bad-payload": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "53"
+        },
+        "body": "SyntaxError: Unexpected token b in JSON at position 1"
+      },
+      "null-valid": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "45"
+        },
+        "body": "TypeError: Cannot read property 'nbf' of null"
+      },
+      "valid-unknown": {
+        "status": 404,
+        "reason": "Not Found",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "39"
+        },
+        "body": "WebSocket url '/unknown' has no handler"
+      },
+      "bad-auth-unknown": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "32"
+        },
+        "body": "JsonWebTokenError: jwt malformed"
+      },
+      "valid-query-unknown": {
+        "status": 404,
+        "reason": "Not Found",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "46"
+        },
+        "body": "WebSocket url '/listen?query=1' has no handler"
+      }
+    }
+  },
+  "candidate": {
+    "runtime": {
+      "node": "v22.22.0",
+      "candidate": "phoenix"
+    },
+    "direct": {
+      "valid-hs256": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "valid-hs384": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "valid-hs512": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "expired-boundary": {
+        "ok": false,
+        "error": {
+          "name": "TokenExpiredError",
+          "message": "jwt expired",
+          "constructor": "TokenExpiredError"
+        }
+      },
+      "future-not-before": {
+        "ok": false,
+        "error": {
+          "name": "NotBeforeError",
+          "message": "jwt not active",
+          "constructor": "NotBeforeError"
+        }
+      },
+      "invalid-exp-type": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid exp value",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "invalid-nbf-type": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid nbf value",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "wrong-signature": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid signature",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "bad-payload-wrong-signature": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token b in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-bad-algorithm": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token b in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-valid-signature": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token b in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-end": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected end of JSON input",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-token": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token } in JSON at position 5",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-trailing": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token x in JSON at position 14",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-number": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected number in JSON at position 1",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-property": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected number in JSON at position 5",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-array": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token ] in JSON at position 3",
+          "constructor": "SyntaxError"
+        }
+      },
+      "bad-payload-unicode": {
+        "ok": false,
+        "error": {
+          "name": "SyntaxError",
+          "message": "Unexpected token Z in JSON at position 8",
+          "constructor": "SyntaxError"
+        }
+      },
+      "null-wrong-signature": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid signature",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "null-valid": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'nbf' of null",
+          "constructor": "TypeError"
+        }
+      },
+      "noncanonical-signature": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid signature",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "unicode-header": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "array-header": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid algorithm",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "bad-header": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid token",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "none-valid": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt signature is required",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "none-signed": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid algorithm",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "non-jwt-object": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "non-jwt-string": {
+        "ok": true,
+        "value": "\"robot\""
+      },
+      "missing": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt must be provided",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "empty": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt must be provided",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "non-string-number": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt must be a string",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "malformed": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt malformed",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "four-segments": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "jwt malformed",
+          "constructor": "JsonWebTokenError"
+        }
+      },
+      "invalid-character": {
+        "ok": false,
+        "error": {
+          "name": "JsonWebTokenError",
+          "message": "invalid token",
+          "constructor": "JsonWebTokenError"
+        }
+      }
+    },
+    "auth": {
+      "missing": {
+        "ok": true,
+        "value": {
+          "error": "Authorization is required"
+        }
+      },
+      "basic": {
+        "ok": true,
+        "value": {
+          "error": "Only bearer scheme is supported"
+        }
+      },
+      "lowercase-bearer": {
+        "ok": true,
+        "value": {
+          "error": "Only bearer scheme is supported"
+        }
+      },
+      "extra-space": {
+        "ok": true,
+        "value": {
+          "error": "Only bearer scheme is supported"
+        }
+      },
+      "empty-token": {
+        "ok": true,
+        "value": {
+          "error": "JsonWebTokenError: jwt must be provided"
+        }
+      },
+      "no-secret": {
+        "ok": true,
+        "value": {
+          "error": "No JWT secret set"
+        }
+      },
+      "malformed": {
+        "ok": true,
+        "value": {
+          "error": "JsonWebTokenError: jwt malformed"
+        }
+      },
+      "bad-payload": {
+        "ok": true,
+        "value": {
+          "error": "SyntaxError: Unexpected token b in JSON at position 1"
+        }
+      },
+      "null-valid": {
+        "ok": true,
+        "value": {
+          "error": "TypeError: Cannot read property 'nbf' of null"
+        }
+      },
+      "valid": {
+        "ok": true,
+        "value": {
+          "auth": {
+            "id": "robot"
+          }
+        }
+      }
+    },
+    "upgrades": {
+      "missing": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "25"
+        },
+        "body": "Authorization is required"
+      },
+      "wrong-scheme": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "31"
+        },
+        "body": "Only bearer scheme is supported"
+      },
+      "malformed": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "32"
+        },
+        "body": "JsonWebTokenError: jwt malformed"
+      },
+      "bad-payload": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "53"
+        },
+        "body": "SyntaxError: Unexpected token b in JSON at position 1"
+      },
+      "null-valid": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "45"
+        },
+        "body": "TypeError: Cannot read property 'nbf' of null"
+      },
+      "valid-unknown": {
+        "status": 404,
+        "reason": "Not Found",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "39"
+        },
+        "body": "WebSocket url '/unknown' has no handler"
+      },
+      "bad-auth-unknown": {
+        "status": 401,
+        "reason": "Unauthorized",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "32"
+        },
+        "body": "JsonWebTokenError: jwt malformed"
+      },
+      "valid-query-unknown": {
+        "status": 404,
+        "reason": "Not Found",
+        "headers": {
+          "connection": "close",
+          "content-type": "text/html",
+          "content-length": "46"
+        },
+        "body": "WebSocket url '/listen?query=1' has no handler"
+      }
+    }
+  },
+  "repairedDifferences": [
+    {
+      "case": "bad-payload-wrong-signature / bad-payload-bad-algorithm",
+      "source": "SyntaxError: Unexpected token b in JSON at position 1",
+      "candidateBefore": "JsonWebTokenError: invalid signature or JsonWebTokenError: invalid algorithm",
+      "repair": "parse JWT payload before algorithm/signature verification"
+    },
+    {
+      "case": "null-valid",
+      "source": "TypeError: Cannot read property 'nbf' of null",
+      "candidateBefore": "TypeError: Cannot read properties of null (reading 'nbf')",
+      "repair": "emit the pinned Node 8 null-claim wording"
+    },
+    {
+      "case": "unicode-header",
+      "sourceHeaderKey": "Ã©",
+      "candidateBeforeHeaderKey": "é",
+      "observableResult": "both returned the same payload; header decode was internal",
+      "repair": "decode JWS header bytes as binary/latin1"
+    },
+    {
+      "case": "noncanonical-signature",
+      "source": "JsonWebTokenError: invalid signature",
+      "candidateBefore": {
+        "ok": true,
+        "value": {
+          "id": "robot"
+        }
+      },
+      "repair": "compare canonical base64url signature text as jwa does"
+    }
+  ]
+}

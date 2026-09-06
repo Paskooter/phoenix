@@ -1,0 +1,19 @@
+{
+  "candidateRevision": "0f4b856e3c86499ebee71cee8b54f09181676b6c",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "reviewer": "Codex root",
+  "scope": "Removal of the source-incompatible global SkillRequest gate; broad S-01 graph/session parity stays open",
+  "sourceRuntime": "v8.9.4",
+  "candidateRuntime": "v22.22.0",
+  "cases": 33,
+  "matched": 21,
+  "differences": 12,
+  "completeMatch": false,
+  "implementationAccepted": true,
+  "limits": [
+    "The 12 remaining complete-body differences belong to shared graph data/general/session behavior and are explicitly retained.",
+    "Only msgID, ts and measured timings.total are normalized; generated IDs are not used to hide messages.",
+    "This bounded service repair has no physical microphone or robot acceptance claim."
+  ],
+  "sourceProbeSha256": "40e7f7d5dc13d80dc7dfe209538ae169766929b478d41c82f0b4dd40aaaf5220"
+}

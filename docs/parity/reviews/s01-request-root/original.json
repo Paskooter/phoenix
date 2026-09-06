@@ -1,0 +1,449 @@
+{
+  "runtime": "v8.9.4",
+  "results": {
+    "example-skill": {
+      "missing-body-fields": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "missing-type": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "missing-data": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "missing-general": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "missing-skill": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "missing-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "invalid-request-type": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "primitive-null": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token n in JSON at position 0"
+          }
+        }
+      },
+      "primitive-string": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token \" in JSON at position 0"
+          }
+        }
+      },
+      "primitive-number": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token 7 in JSON at position 0"
+          }
+        }
+      },
+      "invalid-json": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected end of JSON input"
+          }
+        }
+      }
+    },
+    "chitchat-skill": {
+      "missing-body-fields": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "missing-type": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "missing-data": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "missing-general": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "missing-skill": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "missing-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "invalid-request-type": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "primitive-null": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token n in JSON at position 0"
+          }
+        }
+      },
+      "primitive-string": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token \" in JSON at position 0"
+          }
+        }
+      },
+      "primitive-number": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token 7 in JSON at position 0"
+          }
+        }
+      },
+      "invalid-json": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected end of JSON input"
+          }
+        }
+      }
+    },
+    "report-skill": {
+      "missing-body-fields": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "missing-type": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "missing-data": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "missing-general": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "missing-skill": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "missing-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "invalid-request-type": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "primitive-null": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token n in JSON at position 0"
+          }
+        }
+      },
+      "primitive-string": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token \" in JSON at position 0"
+          }
+        }
+      },
+      "primitive-number": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected token 7 in JSON at position 0"
+          }
+        }
+      },
+      "invalid-json": {
+        "status": 400,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "final": true,
+          "data": {
+            "message": "Unexpected end of JSON input"
+          }
+        }
+      }
+    }
+  }
+}

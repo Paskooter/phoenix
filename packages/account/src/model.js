@@ -55,20 +55,43 @@ export function secretMatches(presented, stored) {
 }
 
 /**
- * Issue a short-lived hub token (token.ctrl.ts createHubToken): HS256 signed with the shared
- * HUB_TOKEN_SECRET, carrying the IAuthDetails-shaped identity the gateway expects — but NEVER
- * the secretAccessKey. 3h expiry via the jwt `exp` claim.
+ * Portal `/api/token` helper. Keep its original two-argument contract: the
+ * portal token carries only the gateway identity and its public expiry is
+ * aligned to the second containing the JWT `exp` claim.
  */
 export function createHubToken(account, secret) {
   const nowS = Math.floor(Date.now() / 1000);
-  const payload = {
+  const tokenPayload = {
     id: account._id,
     accessKeyId: account.accessKeyId,
     friendlyId: account.friendlyId || undefined,
     iat: nowS,
     exp: nowS + HUB_TOKEN_LIFETIME_S,
   };
-  return { token: jwt.sign(payload, secret), expires: (nowS + HUB_TOKEN_LIFETIME_S) * 1000 };
+  return { token: jwt.sign(tokenPayload, secret), expires: (nowS + HUB_TOKEN_LIFETIME_S) * 1000 };
+}
+
+/**
+ * Account_20151111.CreateHubToken / account.ctrl.ts createHubToken. The
+ * controller first loads the authenticated account by credentials.id and
+ * signs this object in this exact source order. Its Mongoose document exposes
+ * secretAccessKey here; the gateway's later credential-envelope redaction does
+ * not alter the already-issued JWT claim.
+ */
+export function createAuthenticatedHubToken(account, secret, payload = null) {
+  const issuedMS = Date.now();
+  const nowS = Math.floor(issuedMS / 1000);
+  const tokenPayload = {
+    accessKeyId: account.accessKeyId,
+    email: account.email,
+    friendlyId: account.friendlyId,
+    id: String(account._id),
+    payload,
+    secretAccessKey: account.secretAccessKey,
+    iat: nowS,
+    exp: nowS + HUB_TOKEN_LIFETIME_S,
+  };
+  return { token: jwt.sign(tokenPayload, secret), expires: issuedMS + HUB_TOKEN_LIFETIME_S * 1000 };
 }
 
 // -- accounts -----------------------------------------------------------------

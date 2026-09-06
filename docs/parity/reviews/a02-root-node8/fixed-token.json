@@ -1,0 +1,72 @@
+{
+  "source": {
+    "claimKeys": [
+      "accessKeyId",
+      "email",
+      "friendlyId",
+      "id",
+      "payload",
+      "secretAccessKey",
+      "iat",
+      "exp"
+    ],
+    "claims": {
+      "accessKeyId": "A02SOURCEKEY00",
+      "email": "source-fixture@example.invalid",
+      "friendlyId": "source-robot",
+      "id": "synthetic-account-id",
+      "payload": "source-path-payload",
+      "secretAccessKeySha256": "d0df49dae7e1e90ccc4f2373557abdcb3a46d01c85dbba4a77d6e88d5db33ec8",
+      "iat": 1700000000,
+      "exp": 1700010800
+    },
+    "expires": 1700010800000,
+    "expiresType": "number",
+    "tokenSha256": "47c6f41708ba461c072bf43a623a2824fc55ef83f7d385aeb375aa772ba0e69c",
+    "tokenLength": 405
+  },
+  "phoenix": {
+    "claimKeys": [
+      "accessKeyId",
+      "email",
+      "friendlyId",
+      "id",
+      "payload",
+      "secretAccessKey",
+      "iat",
+      "exp"
+    ],
+    "claims": {
+      "accessKeyId": "A02SOURCEKEY00",
+      "email": "source-fixture@example.invalid",
+      "friendlyId": "source-robot",
+      "id": "synthetic-account-id",
+      "payload": "source-path-payload",
+      "secretAccessKeySha256": "d0df49dae7e1e90ccc4f2373557abdcb3a46d01c85dbba4a77d6e88d5db33ec8",
+      "iat": 1700000000,
+      "exp": 1700010800
+    },
+    "expires": 1700010800000,
+    "expiresType": "number",
+    "tokenSha256": "47c6f41708ba461c072bf43a623a2824fc55ef83f7d385aeb375aa772ba0e69c",
+    "tokenLength": 405
+  },
+  "equal": {
+    "claimKeys": true,
+    "claims": true,
+    "claimFields": {
+      "accessKeyId": true,
+      "email": true,
+      "friendlyId": true,
+      "id": true,
+      "payload": true,
+      "secretAccessKeySha256": true,
+      "iat": true,
+      "exp": true
+    },
+    "expires": true,
+    "expiresType": true,
+    "tokenSha256": true,
+    "tokenLength": true
+  }
+}

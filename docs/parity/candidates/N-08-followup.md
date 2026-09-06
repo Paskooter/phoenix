@@ -30,14 +30,21 @@ parser cases: 20,216 status-and-decoded-data matches and 312 differences. All
 and their request payloads are retained in
 `.parity/reviews/full-original-parser.json`.
 
-I replayed each of the 312 baseline difference requests from the preserved
-original rows through this worktree's `parseRequest`. Fourteen rows now equal
-the original response, all in the shared-boundary `met` controls; 298 rows
-remain different. The selected replay is only a prior-difference check and
-does not establish that the 20,216 previously matching rows stayed unchanged.
-The two remaining `darth vader`/`darth vadar` rows reach a separate
-top-level arbitration/entity fallback gap after class expansion; this
-follow-up leaves that broader ranking behavior unchanged.
+I then ran the preserved full replay tool against this candidate's HTTP
+module, using all 20,528 original parser rows. The candidate produced 20,230
+status-and-decoded-data matches and 298 differences. The group results were
+boundary 20/21, chitchat 11,263/11,432, hub-client 8,874/9,002, and report
+73/73. Every difference had status `200` on both sides; the comparison scope
+was the HTTP status and decoded `response.data` only.
+
+Comparing the candidate difference IDs with the N-08 baseline proves that all
+20,216 previously matching rows remained matching, 14 baseline differences
+were fixed, and no previously matching row became a new failure. The exact
+fixed, newly failing, and remaining IDs are recorded in
+[`full-replay-review.json`](../evidence/2026-09-06/nlu-n08-followup/full-replay-review.json).
+The two remaining `darth vader`/`darth vadar` rows reach a separate top-level
+arbitration/entity fallback gap after class expansion; this follow-up leaves
+that broader ranking behavior unchanged.
 
 ## Validation
 
@@ -46,7 +53,8 @@ Under Node `v22.22.0`:
 - `node --test packages/nlu/test/requestParser.test.js` — 8 passed;
 - `node --test packages/nlu/test/*.test.js` — 24 passed;
 - `node --check packages/nlu/src/grammar/matcher.js` — passed;
-- selected replay of all 312 stored differences — 14 fixed, 298 remaining.
+- full replay of all 20,528 stored original rows — 20,230 matches, 298
+  differences, zero newly failing IDs.
 
 This remains an unverified N-08 candidate. Root should rerun the full
 20,528-case replay after integration and review the remaining arbitration,

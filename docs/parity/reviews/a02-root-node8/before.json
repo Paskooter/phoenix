@@ -1,0 +1,422 @@
+[
+  {
+    "id": "account/top-null",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/top-array",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/top-number",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/top-boolean",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/top-string",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/missing-body",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/payload-null",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "124",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "124",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/payload-empty",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "134",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "134",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/payload-number",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "124",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "124",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "account/payload-object",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "124",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "124",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/top-null",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/top-array",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/top-number",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/top-boolean",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/top-string",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/missing-body",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "89",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/payload-null",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "124",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "124",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/payload-empty",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "134",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "134",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/payload-number",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "124",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "124",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  },
+  {
+    "id": "classic/payload-object",
+    "statusEqual": true,
+    "bodyEqual": true,
+    "headersEqual": false,
+    "sourceHeaders": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "124",
+      "vary": "accept-encoding",
+      "connection": "keep-alive"
+    },
+    "candidateHeaders": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "124",
+      "content-type": "application/json; charset=utf-8",
+      "keep-alive": "timeout=5",
+      "vary": "accept-encoding"
+    }
+  }
+]

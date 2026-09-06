@@ -1,0 +1,14 @@
+{
+  "scope": "19 source BaseSkill response-wrapper HTTP status/body cases; full S-01 remains open",
+  "candidateRevision": "a803418a65b15225c398a66c1cf75d1c21dc05ba",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "referenceRuntime": "v8.9.4",
+  "pass": true,
+  "sourceProbeSha256": "3999244c433768506dc63c90dabd6e48074fa649340c16b4540124f84f7156d3",
+  "normalization": [
+    "msgID",
+    "ts",
+    "measured numeric timings.total"
+  ],
+  "remaining": "global request validation, graph/session lifecycle and handler-internal errors"
+}

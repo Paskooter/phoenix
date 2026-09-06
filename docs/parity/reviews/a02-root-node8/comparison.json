@@ -1,0 +1,136 @@
+{
+  "originalRuntime": "v8.9.4",
+  "sourcePackages": {
+    "hapi": "16.6.3",
+    "joi": "10.6.0",
+    "boom": "5.2.0"
+  },
+  "candidateBase": "e14eca1",
+  "candidateCorrection": "explicit Connection suppresses modern automatic Keep-Alive header",
+  "normalization": [
+    "HTTP date only"
+  ],
+  "rows": [
+    {
+      "id": "account/top-null",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/top-array",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/top-number",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/top-boolean",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/top-string",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/missing-body",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/payload-null",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/payload-empty",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/payload-number",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "account/payload-object",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/top-null",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/top-array",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/top-number",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/top-boolean",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/top-string",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/missing-body",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/payload-null",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/payload-empty",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/payload-number",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    },
+    {
+      "id": "classic/payload-object",
+      "statusEqual": true,
+      "bodyEqual": true,
+      "headersEqual": true
+    }
+  ],
+  "pass": true
+}

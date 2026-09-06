@@ -6,17 +6,20 @@
 //   X-Amz-Target: <Prefix>.<Operation>     (we dispatch on the OPERATION, prefix-tolerant —
 //                                           the OOBE prefix isn't in the archived API defs;
 //                                           unknown prefixes are logged for field diagnosis)
-//   Authorization: AWS4-HMAC-SHA256 Credential=<accessKeyId>/...   (SigV4 NOT verified — LAN
-//                                           trust like the hub's DISABLE_AUTH; for authed ops
-//                                           we parse the accessKeyId out and look the account up)
+//   Authorization: AWS4-HMAC-SHA256 Credential=<accessKeyId>/...   (the existing OOBE/Loop
+//                                           compatibility handlers retain LAN trust like the
+//                                           hub's DISABLE_AUTH; CreateHubToken verifies SigV4)
 //
-// Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus
+// Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus;
+// Account_20151111.CreateHubToken is handled by the bounded A-02 path below.
 // (reconnectRobot/getServiceToken deferred — v1 is the new-robot path per the handoff).
 // Error envelope: {__type:<code>, message} + x-amzn-errortype, statusCode from src/errors/*.
+// Account_20151111.CreateHubToken is the bounded A-02 sensitive operation and
+// never uses the public x-amz-credentials header as its identity.
 
-import { sendJson } from '@phoenix/common';
+import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
-  createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
+  createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 
@@ -56,7 +59,7 @@ export function parseTarget(req) {
   return { prefix: dot >= 0 ? t.slice(0, dot) : '', op: (dot >= 0 ? t.slice(dot + 1) : t) };
 }
 
-/** SigV4 "Credential=<accessKeyId>/<date>/..." -> accessKeyId (the only part we trust). */
+/** Legacy LAN-trust handlers extract an access key only for their compatibility lookup. */
 export function accessKeyIdFromAuth(req) {
   const auth = (req.headers && req.headers.authorization) || '';
   const m = /Credential=([^/,\s]+)\//.exec(auth);
@@ -75,40 +78,54 @@ export function robotFaceRoutes(store) {
     setuprobot: setupRobot,
     preparerobot: prepareRobot,
     getstatus: getStatus,
+    createhubtoken: issueHubToken,
   };
 
+  const dispatch = async ({ req, res, body, log }) => {
+    const { prefix, op } = parseTarget(req);
+
+    // Update_* (and any future classic prefix we host elsewhere) -> proxy to OTA, so the
+    // robot's region_config can point every service at this one endpoint.
+    if (/^update/i.test(prefix)) {
+      return proxyToOta(req, res, body, log);
+    }
+
+    // Settings_* — the report-skill's user-prefs source (NET_settings points here).
+    if (/^settings/i.test(prefix)) {
+      return void settingsAwsDispatch(store, { req, res, body: body || {}, op, log });
+    }
+
+    // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
+    // before Backup.new). v1 implements List; other loop ops are not needed for robot revival.
+    if (/^loop/i.test(prefix)) {
+      log.info('loop request', { op });
+      return void loopDispatch({ req, res, body: body || {}, op, log });
+    }
+
+    const handler = ops[op.toLowerCase()];
+    if (!handler) {
+      log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
+      return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unknown target ${prefix}.${op}`);
+    }
+    if (op.toLowerCase() === 'createhubtoken' && !/^account/i.test(prefix)) {
+      log.warn('CreateHubToken requires the Account service prefix', { target: `${prefix}.${op}` });
+      return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unknown target ${prefix}.${op}`);
+    }
+    if (prefix && !/^oobe/i.test(prefix) && !/^account/i.test(prefix)) {
+      log.info('classic target with unexpected prefix (serving anyway)', { prefix, op });
+    }
+    // AccountHandler's Joi payload decorator sees the original value for
+    // CreateHubToken: null, arrays, and primitive JSON values are validation
+    // errors, while the other legacy robot handlers use an object default.
+    const handlerBody = op.toLowerCase() === 'createhubtoken' ? body : (body || {});
+    return handler({ req, res, body: handlerBody, log });
+  };
+  // Hapi presents an omitted request payload to CreateHubToken as null. Other
+  // legacy robot handlers retain the service's historical object default.
+  dispatch.bodyDefault = (req) => parseTarget(req).op.toLowerCase() === 'createhubtoken' ? null : {};
+
   return {
-    'POST /': async ({ req, res, body, log }) => {
-      const { prefix, op } = parseTarget(req);
-
-      // Update_* (and any future classic prefix we host elsewhere) -> proxy to OTA, so the
-      // robot's region_config can point every service at this one endpoint.
-      if (/^update/i.test(prefix)) {
-        return proxyToOta(req, res, body, log);
-      }
-
-      // Settings_* — the report-skill's user-prefs source (NET_settings points here).
-      if (/^settings/i.test(prefix)) {
-        return void settingsAwsDispatch(store, { req, res, body: body || {}, op, log });
-      }
-
-      // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
-      // before Backup.new). v1 implements List; other loop ops are not needed for robot revival.
-      if (/^loop/i.test(prefix)) {
-        log.info('loop request', { op });
-        return void loopDispatch({ req, res, body: body || {}, op, log });
-      }
-
-      const handler = ops[op.toLowerCase()];
-      if (!handler) {
-        log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
-        return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unknown target ${prefix}.${op}`);
-      }
-      if (prefix && !/^oobe/i.test(prefix) && !/^account/i.test(prefix)) {
-        log.info('classic target with unexpected prefix (serving anyway)', { prefix, op });
-      }
-      return handler({ req, res, body: body || {}, log });
-    },
+    'POST /': dispatch,
   };
 
   // -- operations -------------------------------------------------------------
@@ -164,6 +181,89 @@ export function robotFaceRoutes(store) {
     if (!body || !body.token) return void sendAmzError(res, Errors.VALIDATION, 'token is required');
     const { token } = findToken(store, body.token);
     return void sendAmz(res, 200, { complete: !token });
+  }
+
+  /**
+   * Account_20151111.CreateHubToken is the first sensitive robot-face
+   * operation that requires a verified AWS V4 identity. Existing OOBE/Loop
+   * operations intentionally retain their LAN-trust behavior until their
+   * source gateway path is implemented; this operation never falls back to a
+   * Credential= substring or the public x-amz-credentials forwarding header.
+   */
+  function issueHubToken({ req, res, body }) {
+    let verification;
+    try {
+      verification = verifySigV4({
+        method: req.method,
+        path: req.originalUrl || req.url || '/',
+        headers: req.headers,
+        // body-parser's verify hook stores the post-inflation bytes. Reusing
+        // them is required for signatures over JSON whitespace/key order.
+        body: req.rawBody === undefined
+          ? (body === null || body === undefined ? '' : JSON.stringify(body))
+          : req.rawBody,
+        resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+      });
+    } catch (error) {
+      if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {
+        return void sendAmzError(res, SIGV4_ERRORS[error.code]);
+      }
+      throw error;
+    }
+
+    const secret = process.env.ETCO_server_hubTokenSecret || process.env.HUB_TOKEN_SECRET;
+    if (!secret) return void sendAmzError(res, SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+
+    const validationError = validateCreateHubTokenPayload(body);
+    if (validationError) return void sendValidationError(res, validationError);
+
+    // The source handler passes an omitted payload through AccountController's
+    // `payload = null` default. Explicit null is rejected by Joi.string().
+    const payload = Object.prototype.hasOwnProperty.call(body, 'payload') ? body.payload : null;
+    const issued = createAuthenticatedHubToken(verification.credentials, secret, payload);
+    return void sendAmz(res, 200, issued);
+  }
+
+  /**
+   * @jibo/server validatePayload({ payload: Joi.string() }) with
+   * `{allowUnknown: true}`. Boom.badData(JoiError) is Hapi's 422 JSON
+   * response, rather than the AWS 400 ValidationException used by the older
+   * local OOBE compatibility handlers.
+   */
+  function validateCreateHubTokenPayload(body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return '"value" must be an object';
+    }
+    if (!Object.prototype.hasOwnProperty.call(body, 'payload')) return null;
+    if (typeof body.payload !== 'string') {
+      return 'child "payload" fails because ["payload" must be a string]';
+    }
+    if (body.payload.length === 0) {
+      return 'child "payload" fails because ["payload" is not allowed to be empty]';
+    }
+    return null;
+  }
+
+  function sendValidationError(res, message) {
+    const body = JSON.stringify({
+      statusCode: 422,
+      error: 'Unprocessable Entity',
+      message,
+    });
+    // Match Hapi 16's Boom response used by the source Account route. The
+    // common Express service still supplies its normal headers elsewhere.
+    res.removeHeader('x-powered-by');
+    res.removeHeader('keep-alive');
+    res.writeHead(422, {
+      // Node 8 did not synthesize Node 22's Keep-Alive timeout header.
+      // Explicitly preserve the request's connection policy to avoid it.
+      connection: res.shouldKeepAlive ? 'keep-alive' : 'close',
+      'content-type': 'application/json; charset=utf-8',
+      'content-length': Buffer.byteLength(body),
+      'cache-control': 'no-cache',
+      vary: 'accept-encoding',
+    });
+    res.end(body);
   }
 
   // -- Loop_* ------------------------------------------------------------------

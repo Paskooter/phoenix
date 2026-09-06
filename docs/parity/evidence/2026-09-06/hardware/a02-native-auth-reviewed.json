@@ -1,0 +1,132 @@
+{
+  "scope": "bounded native signed-token issuance and authenticated listen/proactive plus clock rendering",
+  "date": "2026-09-06",
+  "status": "root-reviewed bounded pass; full A-02/H-10 remain open",
+  "robot": "Moth-Radius-Breazeal-Felt",
+  "firmware": "3.3.0 InDev",
+  "be": "11.0.1",
+  "backend": {
+    "revision": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+    "sourceTreeSha256": "74abead895880334d8e8baef1bc4a31a747187de8525959d9345e81d7a6708f6",
+    "authentication": "enabled",
+    "launcherSha256": "bd27f1c1c1d3497be326e8f729bf0b2246baaa996f12daf9d3e37ca0dffe8dd1",
+    "entrypointLauncherSha256": "6dab0ec56de360e9d2038ca4c8eae20b810a9ad78024ee75701acfa48b79dd8b"
+  },
+  "native": {
+    "jetstreamSha256": "c3c138ff1d3599d7fe50bf9afdc036dfd7165897cf4481fadd54cbc236046f30",
+    "bePackageSha256": "4467b81988bfedfb5063683e11c4543068e4a880a5df9ba984008b5cccdd09da"
+  },
+  "transport": {
+    "entrypoint": "native HTTPS localhost:443 via owned SSH reverse forward to TLS Classic",
+    "hub": "native localhost:19000 via owned SSH reverse forward",
+    "certificateVerification": "enabled, temporary task CA added to copied system trust directory; original restored afterward",
+    "credentialState": "unchanged native pair mapped to isolated fixture account; no shared account store touched"
+  },
+  "issued": {
+    "at": "2026-09-06T00:26:41.612Z",
+    "kind": "request",
+    "target": "Account_20151111.CreateHubToken",
+    "status": 200,
+    "method": "POST",
+    "path": "/",
+    "signed": true,
+    "signedHeaderNames": "host;x-amz-content-sha256;x-amz-date",
+    "explicitContentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rawBodySha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "tls": "TLSv1.2",
+    "cipher": "ECDHE-RSA-AES128-GCM-SHA256",
+    "token": {
+      "sha256": "6b6fdbd5ec84f4ce53323d04ee69380ea9875a8545570728775e4c7925396e33",
+      "keys": [
+        "accessKeyId",
+        "friendlyId",
+        "id",
+        "payload",
+        "secretAccessKey",
+        "iat",
+        "exp"
+      ],
+      "accountIDHash": "c4668439de7534d11eae45a5a938b70585f531047bc3e175598a10f979712afa",
+      "friendlyId": "Moth-Radius-Breazeal-Felt",
+      "lifetime": 10800,
+      "expiresType": "number"
+    }
+  },
+  "connections": [
+    {
+      "url": "/v1/listen",
+      "authentication": {
+        "present": true,
+        "tokenSha256": "6b6fdbd5ec84f4ce53323d04ee69380ea9875a8545570728775e4c7925396e33",
+        "verified": true,
+        "accountIDHash": "c4668439de7534d11eae45a5a938b70585f531047bc3e175598a10f979712afa",
+        "friendlyId": "Moth-Radius-Breazeal-Felt"
+      }
+    },
+    {
+      "url": "/v1/proactive",
+      "authentication": {
+        "present": true,
+        "tokenSha256": "6b6fdbd5ec84f4ce53323d04ee69380ea9875a8545570728775e4c7925396e33",
+        "verified": true,
+        "accountIDHash": "c4668439de7534d11eae45a5a938b70585f531047bc3e175598a10f979712afa",
+        "friendlyId": "Moth-Radius-Breazeal-Felt"
+      }
+    }
+  ],
+  "input": {
+    "method": "original SDK mimicGlobalTurn CLIENT_ASR",
+    "text": "what time is it",
+    "microphoneAcceptance": false
+  },
+  "clock": {
+    "firstViewMs": 3517,
+    "capturedMs": 4337,
+    "speechObserved": true,
+    "returnedIdleMs": 9687,
+    "screenshot": "a02-native-clock.png",
+    "sha256": "2f9294242028467f1256b7501f922d18aeec7efc71710bae809eaa9fb07071b2",
+    "rootViewedScreenshot": true
+  },
+  "listening": {
+    "cyanCommandObserved": [
+      0.05,
+      0.73,
+      0.94
+    ],
+    "physicalRingConfirmed": false,
+    "proactiveInitialized": true
+  },
+  "rollback": {
+    "complete": true,
+    "configRestoredSha256": "0c9685794e6a7d093955957c8cc7c45d5d13f99fdac92b53b1752b17f3ea7485",
+    "credentialsUnchangedSha256": "2c8fdf39bf084a3a11c20719864a3bbd5a6b06d18ca7a131c1828cd4732cb654",
+    "trustBundleRestoredSha256": "fc06fb23208faaecc9f3eaebc7d713b1497a3a737046fa3bf59d7a8c5931ed41",
+    "usrLocalReadOnly": true,
+    "temporaryTrustUnmounted": true
+  },
+  "earlierAttempt": {
+    "result": "capture setup failed before clock turn",
+    "causes": [
+      "observer treated Notification token as JWT",
+      "native event socket not ready after restart"
+    ],
+    "rollbackComplete": true,
+    "rawArtifactSha256": "731eed1e5969d1a40083905972f66bab9d73ad244db712fd82731b7ec14bbe26"
+  },
+  "limits": [
+    "No physical hotword or microphone recognition acceptance.",
+    "Clock and original SDK/native transport are real; fixture account data does not verify full Account lifecycle.",
+    "Token expiry/rotation and native 401 refetch/retry still require their own trial.",
+    "One unattributed startup TLS unknown-CA alert is retained in private trace; the tested native Account request completed with certificate validation enabled.",
+    "Notification requests observed during this trial retain the documented LAN-trust extension and are not authentication acceptance."
+  ],
+  "privateArtifactHashes": {
+    "trial.json": "c01c3152ca856dfabdb60956317369ac4633e03618712bdd48b46e7e890117c8",
+    "turn.json": "2d927b678fca24c8c68ccf10c6a5530e3c11045c35f38430aa275cfe2e7425c1",
+    "entrypoint.jsonl": "0998533d14ca972510e3fc06503effaa484dd0e177b1535cc0be70df6494ef8a",
+    "entrypoint.mjs": "6dab0ec56de360e9d2038ca4c8eae20b810a9ad78024ee75701acfa48b79dd8b",
+    "hub-stack.mjs": "bd27f1c1c1d3497be326e8f729bf0b2246baaa996f12daf9d3e37ca0dffe8dd1",
+    "trial.py": "f9763220fcc91126698d95962c21e7700a0acd8cbd458b4f78ee73ecba67b205"
+  }
+}

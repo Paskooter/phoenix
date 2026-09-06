@@ -1,0 +1,575 @@
+{
+  "fixture": "source-validatePayload-joi-boom-hapi",
+  "sourceBehavior": "@jibo/server validate.ts -> Joi.validate(..., {allowUnknown:true}) -> Boom.badData(error)",
+  "packages": {
+    "hapi": "16.6.3",
+    "joi": "10.6.0",
+    "boom": "5.2.0"
+  },
+  "networkProbe": {
+    "status": 422,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-cache",
+      "content-length": "89",
+      "vary": "accept-encoding",
+      "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+      "connection": "keep-alive"
+    },
+    "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+  },
+  "networkCases": [
+    {
+      "name": "missing-body",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "89",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+      }
+    },
+    {
+      "name": "top-null",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "null",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "89",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+      }
+    },
+    {
+      "name": "top-number",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "1",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "89",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+      }
+    },
+    {
+      "name": "top-boolean",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "true",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "89",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+      }
+    },
+    {
+      "name": "top-string",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "\"source-string\"",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "89",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+      }
+    },
+    {
+      "name": "payload-null",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "{\"payload\":null}",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "124",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" must be a string]\"}"
+      }
+    },
+    {
+      "name": "payload-empty",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "{\"payload\":\"\"}",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "134",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" is not allowed to be empty]\"}"
+      }
+    },
+    {
+      "name": "payload-number",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "{\"payload\":4}",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "124",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" must be a string]\"}"
+      }
+    },
+    {
+      "name": "payload-object",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "{\"payload\":{}}",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "124",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" must be a string]\"}"
+      }
+    },
+    {
+      "name": "omitted-payload",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "{}",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "32",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"accepted\":true,\"payload\":null}"
+      }
+    },
+    {
+      "name": "unknown-key",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "{\"payload\":\"accepted\",\"extra\":true}",
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "38",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"accepted\":true,\"payload\":\"accepted\"}"
+      }
+    },
+    {
+      "name": "top-array",
+      "requestHeaders": {
+        "content-type": "application/json",
+        "connection": "keep-alive"
+      },
+      "rawBody": "[]",
+      "response": {
+        "status": 422,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-cache",
+          "content-length": "89",
+          "vary": "accept-encoding",
+          "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+          "connection": "keep-alive"
+        },
+        "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "missing-body",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 89,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 89,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+    },
+    {
+      "name": "top-null",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 89,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 89,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+    },
+    {
+      "name": "top-number",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 89,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 89,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+    },
+    {
+      "name": "top-boolean",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 89,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 89,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+    },
+    {
+      "name": "top-string",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 89,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 89,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+    },
+    {
+      "name": "payload-null",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 124,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 124,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"payload\" fails because [\"payload\" must be a string]"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" must be a string]\"}"
+    },
+    {
+      "name": "payload-empty",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 134,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 134,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"payload\" fails because [\"payload\" is not allowed to be empty]"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" is not allowed to be empty]\"}"
+    },
+    {
+      "name": "payload-number",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 124,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 124,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"payload\" fails because [\"payload\" must be a string]"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" must be a string]\"}"
+    },
+    {
+      "name": "payload-object",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 124,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 124,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"payload\" fails because [\"payload\" must be a string]"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"payload\\\" fails because [\\\"payload\\\" must be a string]\"}"
+    },
+    {
+      "name": "omitted-payload",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 32,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 32,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "accepted": true,
+        "payload": null
+      },
+      "rawBody": "{\"accepted\":true,\"payload\":null}"
+    },
+    {
+      "name": "unknown-key",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 38,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 38,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "accepted": true,
+        "payload": "accepted"
+      },
+      "rawBody": "{\"accepted\":true,\"payload\":\"accepted\"}"
+    },
+    {
+      "name": "top-array",
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-cache",
+        "content-length": 89,
+        "vary": "accept-encoding",
+        "date": "Sun, 06 Sep 2026 00:09:46 GMT",
+        "connection": "keep-alive"
+      },
+      "normalizedHeaders": {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-length": 89,
+        "content-type": "application/json; charset=utf-8",
+        "date": "<runtime-date>",
+        "vary": "accept-encoding"
+      },
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      },
+      "rawBody": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"\\\"value\\\" must be an object\"}"
+    }
+  ]
+}

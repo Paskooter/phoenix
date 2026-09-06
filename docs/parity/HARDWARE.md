@@ -1,5 +1,9 @@
 # Moth hardware validation
 
+## Native authentication verified on 2026-09-06
+
+The root-reviewed A-02 candidate on lead `5e626b8` completed the actual native signed `Account_20151111.CreateHubToken` request over TLS 1.2, then authenticated listen and proactive sockets with the issued token. Moth displayed its clock and spoke the time. [Evidence](evidence/2026-09-06/hardware/a02-native-auth-reviewed.json) records token-hash continuity and the root-viewed screenshot. Configuration, credentials and certificate trust were restored byte exactly. The current transport stack is loaded from `5e626b8`; main remains frozen at `057f67c` for the full production baseline. This does not close expiry/retry, full auth, or physical microphone/ring acceptance.
+
 The user made Moth available on 2026-09-05 and authorized connecting it to
 Phoenix, testing on the robot, and iterating. This supersedes the earlier
 hardware reservation for Moth. The other robot remains outside this run.

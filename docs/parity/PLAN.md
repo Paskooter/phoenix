@@ -34,11 +34,18 @@ The ledger has **77 tasks**: 3 management, 4 verification, 46 Pegasus, 18 compan
 | 5. Verify the deployed product | R-01–R-04 | Unmodified clients, individual service swaps, clean install/migration, reliability and real-client journeys pass |
 | 6. Release closure | R-05 | Source inventory reconciled, zero unexplained required gaps, reproducible parity report and operational/rollback instructions |
 
-**V-01 and V-02 are verified as infrastructure.** [REFERENCE.md](REFERENCE.md) records the partial executable original reference; [COMPARISON.md](COMPARISON.md) records the strict two-runtime gate, its passing original control and failing Phoenix baseline. Current engineering work is **V-04**, the newly authorized Moth test loop. V-03 remains unfinished and its existing evidence is retained. [COVERAGE.md](COVERAGE.md) now records 960 concrete source cases, 89 public operation instances and all three preserved corpora. A strict production parser/router/skill grader is in development. A-01 remains the companion-cloud inventory task. A source-confirmed repair can be prepared during verification work, but it cannot be marked fully verified without satisfying its evidence gate.
+**V-01, V-02 and V-04 are verified as infrastructure.** Current lead work is
+**V-03**, whose complete original/Phoenix production baseline is now retained.
+[PRODUCTION.md](PRODUCTION.md) records the failing 20,534-case comparison and
+reviewed integration checkpoints. [COVERAGE.md](COVERAGE.md) records 960 source
+cases, 89 public operation instances and all three preserved corpora; final
+corpus-to-gate links remain to be reconciled before V-03 closes. A-01 retains
+the companion-cloud operation inventory. Bounded implementation acceptance
+does not close the parent product task.
 
 The first concrete defects to resolve once the comparison gate is available are null/error serialization (C-01), missing skill-list paths/config metadata (C-03/H-01), incorrect default skill endpoints (H-09), ignored NLU rule selection (N-01), history routes/payloads (I-01), and proactive settings (H-05). Calendar envelopes/providers and durable state follow their explicitly listed dependencies.
 
-Consumer inspection identifies explicit gates that hardware trials must measure and repair: original CreateHubToken/SigV4 behavior (A-02/H-10), declared audio encoding support (H-07), and the full transaction/session handoff into Nimbus (H-02/H-04). These remain in their existing tasks. V-03's full corpus trace export currently exceeds Node 8's single-string limit; fix that capture defect and repeat the required controls before closing V-03.
+Consumer inspection identifies explicit gates that hardware trials must measure and repair: original CreateHubToken/SigV4 behavior (A-02/H-10), declared audio encoding support (H-07), and the full transaction/session handoff into Nimbus (H-02/H-04). These remain in their existing tasks. The full trace writer is repaired and independently controlled. V-03 now owns final coverage-link review; failed historical captures remain retained.
 
 ## Parallel implementation and lead verification
 
@@ -82,7 +89,17 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-Current baseline: 280 unit tests pass, while `npm test` fails the strict production gate as intended: [1,659 field differences across 42 production v2 smoke fixtures](PRODUCTION.md). The complete 73-occurrence report selection has 6,751 differences. Both captures have zero trace failures and retain their unhosted action gaps. Production request builders and seeded MIM VM randomness replace two defects found in the superseded v1 fixture. The separate 28-case HTTP/hub suite reports differences in 26 cases. The initial audit's limited chitchat intent/MIM routing measured 98.2%/96.8%; those diagnostic percentages are not full parity scores. All 4,506 chitchat/report MIMs are preserved; 88 named grammars were absent from the full import. Full corpus grading remains in progress. No complete product workstream is certified.
+Current main passes **384 unit tests** and still fails its strict 43-case smoke
+with **659 field differences**, zero invariants and one unhosted action gap.
+The complete `057f67c` baseline has **49,155 field differences across 20,534
+cases**, zero invariants and 97 gap instances across both sides. Exact action
+objects agree in 20,170/20,434 comparisons. The complete baseline predates the
+latest A-02/S-01 integration; all dimensions and limitations are retained in
+[PRODUCTION.md](PRODUCTION.md). No complete product workstream is certified.
+
+Future long captures should use an isolated, fixed verification worktree so
+main can continue receiving reviewed commits and pushes while evidence stays
+pinned. Never modify that worktree's code or HEAD during a capture.
 
 ## Tracker commands
 

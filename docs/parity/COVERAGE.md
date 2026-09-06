@@ -1,8 +1,8 @@
 # Source coverage and corpus denominators
 
-The frozen target is Pegasus `5c0a7390539663ba749d360de348a428c088505c`. This inventory makes the remaining work enumerable. It does **not** certify Phoenix parity, and its overlapping counts must not be added into a feature percentage. V-03 remains in progress for the complete Phoenix baseline and final review. The strict grader now exports all 20,534 cases; complete original controls agree but retain eight unhosted external-action cases. See [the current evidence](PRODUCTION.md).
+The frozen target is Pegasus `5c0a7390539663ba749d360de348a428c088505c`. This inventory makes the remaining work enumerable. It does **not** certify Phoenix parity, and its overlapping counts must not be added into a feature percentage. The complete Phoenix baseline is recorded. V-03 remains in progress for final corpus-to-gate mapping reconciliation and review. The strict grader now exports all 20,534 cases; complete original controls agree but retain eight unhosted external-action cases. See [the current evidence](PRODUCTION.md).
 
-The machine-readable [source inventory](evidence/2026-09-05/coverage/source-inventory.json) assigns owning task IDs to every source file, test case, public operation, contract, grammar and asset set. [Syntax facts](evidence/2026-09-05/coverage/syntax-facts.json) retain source locations and declarations. [Corpus counts](evidence/2026-09-05/coverage/corpora.json) retain every duplicate occurrence and overlap.
+The machine-readable [source inventory](evidence/2026-09-06/coverage/source-inventory.json) assigns owning task IDs to every source file, test case, public operation, contract, grammar and asset set. [Syntax facts](evidence/2026-09-06/coverage/syntax-facts.json) retain source locations and declarations. [Corpus counts](evidence/2026-09-06/coverage/corpora.json) retain every duplicate occurrence and overlap.
 
 | Denominator | Count | Meaning |
 |---|---:|---|

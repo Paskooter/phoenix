@@ -3,6 +3,8 @@ node_modules/
 !docs/parity/evidence/**/*.log
 .DS_Store
 coverage/
+!docs/parity/evidence/*/coverage/
+!docs/parity/evidence/*/coverage/*.json
 __pycache__/
 dist/
 .env

@@ -32,6 +32,10 @@ const netUrl = (name, defPort) => {
   return /^https?:\/\//.test(v) ? v : `http://${v}`;
 };
 
+function isCreateHubTokenTarget(req) {
+  return /\.createhubtoken$/i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
 export function classicRoutes(hub, extra = []) {
   const router = createClassicRouter([
@@ -64,6 +68,9 @@ export function createClassicEntrypoint({ extra = [] } = {}) {
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `http://${(req.headers && req.headers.host) || 'localhost'}`;
   const service = createService({
     name: 'classic',
+    // The Hapi-backed Account boundary validates primitive JSON values after
+    // parsing. All other Classic routes retain Pegasus's strict parser.
+    jsonStrict: (req) => !isCreateHubTokenTarget(req),
     routes: {
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }]),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at

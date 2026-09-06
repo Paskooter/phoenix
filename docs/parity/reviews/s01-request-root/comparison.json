@@ -1,0 +1,422 @@
+{
+  "candidateRevision": "0f4b856e3c86499ebee71cee8b54f09181676b6c",
+  "sourceRuntime": "v8.9.4",
+  "candidateRuntime": "v22.22.0",
+  "cases": 33,
+  "matched": 21,
+  "completeMatch": false,
+  "normalization": [
+    "msgID",
+    "ts",
+    "measured timings.total"
+  ],
+  "matches": [
+    "example-skill:missing-type",
+    "example-skill:missing-skill",
+    "example-skill:invalid-request-type",
+    "example-skill:primitive-null",
+    "example-skill:primitive-string",
+    "example-skill:primitive-number",
+    "example-skill:invalid-json",
+    "chitchat-skill:missing-type",
+    "chitchat-skill:missing-skill",
+    "chitchat-skill:invalid-request-type",
+    "chitchat-skill:primitive-null",
+    "chitchat-skill:primitive-string",
+    "chitchat-skill:primitive-number",
+    "chitchat-skill:invalid-json",
+    "report-skill:missing-type",
+    "report-skill:missing-skill",
+    "report-skill:invalid-request-type",
+    "report-skill:primitive-null",
+    "report-skill:primitive-string",
+    "report-skill:primitive-number",
+    "report-skill:invalid-json"
+  ],
+  "differences": [
+    {
+      "skill": "example-skill",
+      "case": "missing-body-fields",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "example-skill",
+      "case": "missing-data",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read properties of undefined (reading 'nlu')",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "example-skill",
+      "case": "missing-general",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read properties of undefined (reading 'nlu')",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "example-skill",
+      "case": "missing-session",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "LISTEN_UPDATE without a session",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "chitchat-skill",
+      "case": "missing-body-fields",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "chitchat-skill",
+      "case": "missing-data",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Chitchat launched without required memo!",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "chitchat-skill",
+      "case": "missing-general",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Chitchat launched without required memo!",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "chitchat-skill",
+      "case": "missing-session",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "LISTEN_UPDATE without a session",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "report-skill",
+      "case": "missing-body-fields",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "report-skill",
+      "case": "missing-data",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of undefined",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown memo: 'undefined'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "report-skill",
+      "case": "missing-general",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown memo: 'undefined'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "skill": "report-skill",
+      "case": "missing-session",
+      "source": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "LISTEN_UPDATE without a session",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

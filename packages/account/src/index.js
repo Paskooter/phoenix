@@ -17,7 +17,7 @@ import { staticRoutes } from './static.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
-export { createHubToken, secretMatches } from './model.js';
+export { createHubToken, createAuthenticatedHubToken, secretMatches } from './model.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
 export { robotFaceRoutes } from './robotFace.js';
@@ -25,9 +25,16 @@ export { settingsAwsDispatch, settingsPortalRoutes } from './settingsFace.js';
 export * as settingsData from './settingsData.js';
 export { staticRoutes } from './static.js';
 
+function isCreateHubTokenTarget(req) {
+  return /\.createhubtoken$/i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
 export function createAccountService({ store = getStore() } = {}) {
   return createService({
     name: 'account',
+    // Hapi/Joi validates JSON primitives at the CreateHubToken handler. Keep
+    // the common service's strict Pegasus parser everywhere else.
+    jsonStrict: (req) => !isCreateHubTokenTarget(req),
     routes: {
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
       ...portalRoutes(store),     // REST /api/* (sessions)

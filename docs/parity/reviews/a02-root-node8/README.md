@@ -1,0 +1,9 @@
+# Root review: A-02 Node 8 HTTP framing
+
+Root reproduced the original account/token controller path and Hapi 16.6.3/Joi 10.6.0/Boom 5.2.0 validation on the pinned Node 8.9.4 image (`sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c`).
+
+The earlier candidate matched validation status and bodies but emitted Node 22's automatic `Keep-Alive: timeout=5` header. Original Node 8 emits no such header even when the request explicitly asks for a persistent connection. `before.json` preserves all 20 failures. The root correction explicitly preserves `res.shouldKeepAlive` as the response Connection header at the Account error and Classic forwarding boundaries, preventing automatic insertion. Explicit Connection close remains close.
+
+`comparison.json` covers all 20 invalid-body requests through direct Account and Classic with equal status, complete decoded body, and complete header sets after normalizing only Date. `hapi-network.cjs` is derived from the pinned source validation fixture and sends explicit Connection keep-alive requests on Node 8; `original-network.json` records them. `candidate-sdk.json` contains current synthetic original SDK observations. `fixed-token.json` independently compares byte-complete tokens by SHA-256 and millisecond expiry against the actual original controller/WebToken path.
+
+The first integrated `npm test` found four failures in old manual evidence generators accidentally discovered under `test/`: two superseded redacted JWT assertions, one superseded primitive-body assertion and one modern Keep-Alive assertion. Their generators were moved unchanged to `packages/account/tools`, outside automatic discovery, alongside the new current generator. Historical artifacts remain untouched. Actual regression tests cover the corrected behavior. This is a bounded review, not complete A-02 or native authentication acceptance.

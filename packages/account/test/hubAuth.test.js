@@ -44,6 +44,7 @@ test('POST /api/token: valid AWS keys -> signed 3h hub token with the right clai
   assert.equal(claims.friendlyId, 'castle-cylinder-fig-quilt');
   assert.ok(!('secretAccessKey' in claims), 'secret must never be in the token');
   assert.ok(claims.exp - claims.iat === 3 * 60 * 60, '3h lifetime');
+  assert.equal(r.body.expires, claims.exp * 1000, 'portal expiry retains second-boundary behavior');
 
   // lastSeen recorded
   assert.ok(getStore().accountByAccessKeyId(robot.accessKeyId).lastSeen > 0);
