@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics and graph allocation work reduces the current total to 218. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics and graph allocation work reduces the current total to 218. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.
 
 Done when:
 

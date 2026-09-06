@@ -1,0 +1,41 @@
+{
+  "status": "Main real-client trial failed; previous backend restored and clock retested",
+  "trialRevision": "c6f8f655a003bcf26ecba1cd354c6aa9e1d19f96",
+  "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+  "profile": {
+    "authentication": "disabled diagnostic profile",
+    "nlu": "compiled-fst all 98 pinned graphs",
+    "robotPackage": "Original BE11.0.1 parity slot"
+  },
+  "trial": {
+    "input": "Original BE/Jetstream clientASR text injection: what time is it",
+    "clockAccepted": false,
+    "failureStage": "CONTEXT authentication identity preprocessing",
+    "serverError": "Cannot read property 'id' of null",
+    "nativeResultSucceeded": false,
+    "finding": "Reviewed main preserves the original requirement for socket identity when processing CONTEXT. The older diagnostic profile disables authentication and leaves that identity unset. This trial does not establish authenticated deployment compatibility."
+  },
+  "rollback": {
+    "previousProfileRestored": true,
+    "clockNativeResultSucceeded": true,
+    "clockTtsObserved": true,
+    "clockDisplayScreenshotReviewed": true,
+    "backendHealthchecksPassed": 5,
+    "nativeProcessAndConfigurationUnchanged": true,
+    "temporaryVisualProbesRestored": true
+  },
+  "limits": [
+    "Reviewed main remains unaccepted for this real-robot deployment profile.",
+    "The next trial requires a source-backed authenticated token flow; do not weaken production identity validation to make this capture pass.",
+    "Microphone wake-up and physical light-ring illumination remain unverified.",
+    "No old capture, source expectation or comparator was relabeled."
+  ],
+  "evidenceHashes": {
+    "deployment.json": "5d9ad4dc355bc972e4ea3814a7f7aa8f7cda4bd53063ebe9d4d274bbea8c3bed",
+    "clock.json": "69cfb4cb843b5ea3ba7cda5bf6f31fea1dfb57bb938d057f88fbf863265e443d",
+    "rollback-result.json": "ef993ecdff98babbbd2dddc94d53a42e48fa1886a95088240fdfbebcae9c7fc9",
+    "rollback-clock.json": "8614182eb9511a0604decaa5058cc7840f1709dbb54302cdb42b6235169f12ab",
+    "rollback-clock-view-1.png": "3a6340923edd6fda53a098bceb1b83de57ce614170cd89531b38324ef4b666bb",
+    "rollback-postflight.json": "35da1c6da466c09dee1b5a05bd93e71a71c3365f3eaeb9f383b0cbcc26fb2ed8"
+  }
+}
