@@ -27,12 +27,14 @@ import { eqEquals } from './eqWords.js';
 
 const EMPTY = Object.freeze({});
 
-// The native compiler's result_fst score is input-string byte length minus the
-// accumulated arc heuristic. This bounded repair applies that source byte
-// heuristic to word wildcards: the compiler assigns <1.0> per non-space byte
-// and <0.0> to the wildcard's trailing separator. Literal specificity remains
-// the existing grammar-word unit in this slice because changing all literal
-// path widths also changes established holiday/entity arbitration.
+// This AST rank is a proxy, not the native numeric score. The native compiler
+// weights every consumed wildcard byte, including each appended separator;
+// <0.0> resets the weight after the complete wildcard. For ordinary unweighted
+// full parses, literal-token specificity minus non-space wildcard bytes equals
+// total input tokens minus (wildcard bytes + wildcard token count), preserving
+// native winner ordering up to an input-constant offset when costs differ.
+// Explicit weights, native graph tie order, factory FST weights and tokenizer
+// normalization still need their own compatibility work.
 function utf8Bytes(value) {
   return Buffer.byteLength(String(value), 'utf8');
 }
@@ -141,10 +143,10 @@ function* match(node, start, ctx, depth) {
       // specificity: 0 — star matches don't count, so longest-match across
       // skills picks the rule that's filled with literal content, not the one
       // that wraps a single literal in `$* X $*`.
-      // The compiler's wildcard factory assigns heuristic 1.0 per non-space
-      // character and 0.0 to its trailing separator. Every full parse consumes
-      // the same input string, so this is the source-compatible cost that demotes
-      // `$* x $*` catch-alls below structured arms.
+      // Account for wildcard byte lengths in the AST rank. The separator
+      // contribution is represented indirectly by lost literal specificity;
+      // see the restricted rank relation above. This does not model arbitrary
+      // explicit arc weights or the native graph's equal-cost path ordering.
       const maxN = (typeof node.max === 'number') ? node.max : (tokens.length - start);
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
@@ -355,9 +357,9 @@ export function priorityRank(p) {
   const priority = typeof p === 'string' ? p.trim().toUpperCase() : '';
   return priority === 'HIGH' ? 2 : (priority === 'LOW' ? 0 : 1);
 }
-// The bounded matcher score keeps its existing grammar-word specificity and
-// now uses the native wildcard arc heuristic for its accumulated cost. The
-// priority term remains the Phoenix cross-grammar arbitration layer.
+// The bounded matcher score keeps grammar-word specificity and the wildcard
+// byte proxy above. The priority term is the Phoenix cross-grammar arbitration
+// layer; this value must not be presented as the native numeric score.
 export function parseScore(entities, specificity, cost = 0) {
   return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0) - (cost || 0);
 }
