@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 /* Candidate-side counterpart to s01-graph-nodeid-source.cjs. */
-import '../src/index.js';
-import { sharedGraphManager } from '../src/graph/graphManager.js';
+import { createBuiltinSkills } from '../src/index.js';
+import { GraphManager } from '../src/graph/graphManager.js';
 
-const entries = Array.from(sharedGraphManager.idToNode.entries())
+const graphManager = new GraphManager();
+createBuiltinSkills({ graphManager });
+
+const entries = Array.from(graphManager.idToNode.entries())
   .sort((a, b) => a[0] - b[0])
   .map(([id, node]) => ({id, name: node.name}));
 
 process.stdout.write(JSON.stringify({
   runtime: process.version,
   order: ['chitchat-skill', 'report-skill'],
-  nodeIDCounter: sharedGraphManager.nodeIDCounter,
+  nodeIDCounter: graphManager.nodeIDCounter,
   nodes: entries,
   chitchat: {
     initial: entries.find(node => node.name === 'Intent Split')?.id,

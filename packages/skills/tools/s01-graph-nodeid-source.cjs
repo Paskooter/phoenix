@@ -21,6 +21,7 @@ GraphManager._resetInstance();
 const chitchat = new Chitchat();
 const afterChitchat = GraphManager.instance;
 const chitchatGraph = chitchat.graph;
+const chitchatNodeIDCounter = afterChitchat.nodeIDCounter;
 const report = new PersonalReport();
 const afterReport = GraphManager.instance;
 const reportGraph = report.graph;
@@ -39,6 +40,6 @@ if (afterChitchat !== afterReport) throw new Error('GraphManager singleton chang
 process.stdout.write(JSON.stringify({
   runtime: process.version,
   order: ['chitchat-skill', 'report-skill'],
-  afterChitchat: {nodeIDCounter: afterChitchat.nodeIDCounter, graph: graphWitness(chitchatGraph)},
+  afterChitchat: {nodeIDCounter: chitchatNodeIDCounter, graph: graphWitness(chitchatGraph)},
   afterReport: {nodeIDCounter: afterReport.nodeIDCounter, graph: graphWitness(reportGraph)},
 }, null, 2) + '\n');
