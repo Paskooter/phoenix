@@ -13,6 +13,7 @@ import { parse as parseRules } from './grammar/parser.js';
 import { matchRule, parseScore, tokenize } from './grammar/matcher.js';
 import { loadEqWords } from './grammar/eqWords.js';
 import { loadFactoryWords } from './grammar/factoryWords.js';
+import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
@@ -177,20 +178,51 @@ function matchNamedRule(name, text, state) {
   return { rule: name, entities, intent: match.entities.intent, score: parseScore(match.entities, match.specificity, match.cost) };
 }
 
-function chooseBest(requested, text, state) {
-  let best = null;
+function chooseBest(requested, text, state, compiledRuntime) {
+  if (!compiledRuntime) {
+    let best = null;
+    for (const requestedEntry of requested) {
+      for (const name of requestedEntry.names) {
+        const candidate = matchNamedRule(name, text, state);
+        if (!candidate) continue;
+        if (!best || candidate.score > best.score) best = candidate;
+        if (requestedEntry.name !== name && best && best.rule === name) best.requestedName = requestedEntry.name;
+      }
+    }
+    return best;
+  }
+  const candidates = [];
   for (const requestedEntry of requested) {
-    for (const name of requestedEntry.names) {
-      const candidate = matchNamedRule(name, text, state);
-      if (!candidate) continue;
-      // The native client chooses the highest rule result score. The matcher
-      // score is deliberately used here without adding a new launch/tie policy;
-      // N-02 owns full priority/arbitration parity.
-      if (!best || candidate.score > best.score) best = candidate;
-      if (requestedEntry.name !== name && best && best.rule === name) best.requestedName = requestedEntry.name;
+    // The explicit archived profile supplies one verified graph for every requested
+    // public rule. Never compare its native byte score with the AST matcher's priority
+    // score: those are different scales. A compiled no-match must not fall back to AST
+    // matching and hide a missing graph branch.
+    try {
+      const candidate = matchCompiledRule(requestedEntry.name, text, compiledRuntime);
+      if (candidate) candidates.push(candidate);
+    } catch (error) {
+      // RobustParserClient.getRuleResponse converts one failed native request
+      // to null, so other requested rules still participate in arbitration.
+      // Profile loading and artifact verification happen before this boundary.
+      console.error(`Request to rule ${requestedEntry.name} failed:`, error.message);
     }
   }
-  return best;
+  if (!candidates.length) return null;
+
+  // RobustParserClient.getBestResult compares native heuristic scores directly. On an
+  // equal score it keeps request order, then removes the designated losers only when a
+  // non-loser also tied. This is the source arbitration contract; no priority constants
+  // are mixed into the graph score.
+  const topScore = Math.max(...candidates.map(candidate => candidate.score));
+  let top = candidates.filter(candidate => candidate.score === topScore);
+  if (top.length > 1 && top.some(candidate => !isNativeTieLoser(candidate.rule))) {
+    top = top.filter(candidate => !isNativeTieLoser(candidate.rule));
+  }
+  return top[0] || null;
+}
+
+function isNativeTieLoser(rule) {
+  return rule === 'launch' || rule.startsWith('globals/');
 }
 
 function equalName(a, b) {
@@ -272,19 +304,27 @@ export function parseRequest(request) {
   const state = load();
   const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state);
   if (!requested.length) return applyExternalCompatibility(request, emptyResult());
-  for (const entry of requested) {
-    const unsupported = unsupportedDependencies(entry.name, state);
-    if (unsupported.length) {
-      // The source performs the external-agent attachment only after result
-      // selection. A truthy external request therefore retains that boundary
-      // error even when this bounded candidate cannot load a requested rule's
-      // factory dependency.
-      if (request.external) return applyExternalCompatibility(request, emptyResult());
-      throw new Error(`Unsupported NLU factory dependencies for public rule '${entry.name}': ${unsupported.join(', ')}`);
+  const compiledRuntime = getCompiledFstRuntime();
+  if (!compiledRuntime) {
+    for (const entry of requested) {
+      const unsupported = unsupportedDependencies(entry.name, state);
+      if (unsupported.length) {
+        // The source performs the external-agent attachment only after result
+        // selection. A truthy external request therefore retains that boundary
+        // error even when this bounded candidate cannot load a requested rule's
+        // factory dependency.
+        if (request.external) return applyExternalCompatibility(request, emptyResult());
+        throw new Error(`Unsupported NLU factory dependencies for public rule '${entry.name}': ${unsupported.join(', ')}`);
+      }
     }
   }
-  const winner = chooseBest(requested, text, state);
-  if (!winner) return applyExternalCompatibility(request, emptyResult());
+  const winner = chooseBest(requested, text, state, compiledRuntime);
+  // ParseRequestHandler validates only the selected result. A missing intent or SKIP
+  // priority therefore returns the empty NLU result and must not promote another final
+  // from the same rule or a lower-ranked rule.
+  if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
+    return applyExternalCompatibility(request, emptyResult());
+  }
   let entities = winner.entities;
   if (winner.requestedName === 'launch') {
     const launch = state.publicRules.get('launch');

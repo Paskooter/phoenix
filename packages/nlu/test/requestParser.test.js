@@ -5,14 +5,20 @@ import { start } from '../src/index.js';
 
 let server;
 let base;
+const selectedRuntime = process.env.PHOENIX_NLU_RUNTIME;
 
 before(async () => {
+  // These assertions preserve the default AST profile. The compiled profile
+  // has its own source-response fixtures in compiledFstRuntime.test.js; its
+  // native launch winner can differ from this older AST implementation.
+  delete process.env.PHOENIX_NLU_RUNTIME;
   server = await start(0);
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
 after(async () => {
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RUNTIME = selectedRuntime;
 });
 
 test('loads the complete source inventory and the timer named rule', () => {

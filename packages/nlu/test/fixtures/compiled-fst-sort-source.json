@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "comparator": "parser/result_fst.h result_fst::cmp: cast both heuristic operands to int, compare with <",
+  "control": "std::sort with host GCC11 libstdc++; archived native first-result FST probes are separate",
+  "controlSourceSha256": "85df3832dc670fc3e508f788b14d6b581981ce17e78cabbdea8219a736e2ffa3",
+  "cases": [
+    {
+      "name": "pipe-512",
+      "size": 512,
+      "bucketed": false,
+      "expectedOrderSha256": "eae29a6050acc3bcc004cca1a09d95f72a9d892ad1b0b77b9d213a12123764a0",
+      "fallbackCalls": 1
+    },
+    {
+      "name": "pipe-buckets-1024",
+      "size": 1024,
+      "bucketed": true,
+      "expectedOrderSha256": "1d4ee24c77dc48660bdd43f7810b545b310cf5f5ec3f0988c4a8e59672d0ba50",
+      "fallbackCalls": 1
+    }
+  ]
+}

@@ -15,6 +15,7 @@ import { launchParse } from './launchRules.js';
 import { fullParse } from './fullGrammar.js';
 import { llmFallback } from './llmFallback.js';
 import { parseRequest } from './requestParser.js';
+import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 
 /**
  * Parse an utterance into an NLUResult, mirroring the reference
@@ -109,6 +110,9 @@ function applyGqaContinuity(parser) {
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
+  // An explicitly selected compiled profile must be verified before this
+  // listener advertises readiness. The default AST profile loads no artifacts.
+  getCompiledFstRuntime();
   const svc = createService({
     name: 'nlu',
     routes: {

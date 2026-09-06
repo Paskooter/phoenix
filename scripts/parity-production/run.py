@@ -20,6 +20,52 @@ foundation = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(foundation)
 REVISION = foundation.REVISION
 sha = foundation.sha
+APPROVED_RULE_INVENTORY_SHA256 = '4377949617eb3169f1466ddb2844f2f5f9948f43e1942a2e35f38c3664dc4aa5'
+APPROVED_REFERENCE_REVISION = '5c0a7390539663ba749d360de348a428c088505c'
+APPROVED_PUBLIC_RULE_COUNT = 98
+
+
+def compiled_rule_snapshot(rules_dir):
+    """Verify every public graph selected by the pinned NLU inventory."""
+    inventory_path = ROOT / 'packages/nlu/resources/rule-inventory.json'
+    inventory_hash = sha(inventory_path)
+    if inventory_hash != APPROVED_RULE_INVENTORY_SHA256:
+        raise ValueError('Compiled rule inventory hash does not match the approved profile')
+    inventory = json.loads(inventory_path.read_text())
+    if inventory.get('referenceRevision') != APPROVED_REFERENCE_REVISION:
+        raise ValueError('Compiled rule inventory reference revision is not approved')
+    public_rules = inventory.get('publicRules', {})
+    if len(public_rules) != APPROVED_PUBLIC_RULE_COUNT:
+        raise ValueError('Compiled rule inventory public-rule count is not approved')
+    root = rules_dir.resolve()
+    files = {}
+    manifest = hashlib.sha256()
+    for name, entry in public_rules.items():
+        compiled_path = entry.get('compiledPath')
+        expected = entry.get('sha256')
+        if not isinstance(compiled_path, str) or not isinstance(expected, str):
+            raise ValueError('Compiled rule inventory entry is incomplete: ' + name)
+        path = (root / compiled_path).resolve()
+        try:
+            inside = os.path.commonpath([str(root), str(path)]) == str(root)
+        except ValueError:
+            inside = False
+        if not inside: raise ValueError('Compiled rule path escapes graph directory: ' + name)
+        if not path.is_file(): raise ValueError('Compiled rule is unavailable: ' + str(path))
+        actual = sha(path)
+        if actual != expected: raise ValueError('Compiled rule hash mismatch: ' + str(path))
+        files[name] = actual
+        manifest.update(name.encode())
+        manifest.update(b'\0')
+        manifest.update(compiled_path.encode())
+        manifest.update(b'\0')
+        manifest.update(actual.encode())
+    return {
+        'ruleFiles': files,
+        'ruleCount': len(files),
+        'ruleManifestSha256': manifest.hexdigest(),
+        'inventorySha256': inventory_hash,
+    }
 
 
 def reference_integrity(source, ref):
@@ -70,7 +116,27 @@ def main():
     parser.add_argument('--limit', type=int, default=0)
     parser.add_argument('--golden', type=Path, help='Use a reviewed, hash-pinned golden directory; no original installation required')
     parser.add_argument('--docker-host', default='unix:///var/run/docker.sock')
+    parser.add_argument('--compiled-fst', type=Path, help='Explicit Phoenix compiled launch graph; requires the verified graph and factory directories')
+    parser.add_argument('--compiled-factory-dir', type=Path)
+    parser.add_argument('--compiled-rules-dir', type=Path, help='Pinned parent directory containing the inventory compiledPath graph files')
+    parser.add_argument('--compiled-fst-sha256')
     args = parser.parse_args()
+    compiled_options = [args.compiled_fst, args.compiled_factory_dir, args.compiled_rules_dir, args.compiled_fst_sha256]
+    if any(compiled_options) and not all(compiled_options):
+        parser.error('The compiled profile requires --compiled-fst, --compiled-factory-dir, --compiled-rules-dir and --compiled-fst-sha256')
+    if any(compiled_options) and args.candidate != 'phoenix':
+        parser.error('The compiled profile selects a Phoenix implementation only')
+    compiled = None
+    if all(compiled_options):
+        fst = args.compiled_fst.resolve(); factories = args.compiled_factory_dir.resolve(); rules = args.compiled_rules_dir.resolve()
+        if not fst.is_file() or not factories.is_dir() or not rules.is_dir(): parser.error('Compiled artifacts are unavailable')
+        if sha(fst) != args.compiled_fst_sha256: parser.error('Compiled launch graph hash does not match --compiled-fst-sha256')
+        rule_snapshot = compiled_rule_snapshot(rules)
+        if rule_snapshot['ruleFiles'].get('launch') != args.compiled_fst_sha256:
+            parser.error('Compiled launch graph does not match the pinned public-rule inventory')
+        compiled = {'fst': str(fst), 'factoryDir': str(factories), 'rulesDir': str(rules),
+                    'fstSha256': args.compiled_fst_sha256,
+                    'factoryFiles': {p.name: sha(p) for p in sorted(factories.iterdir())}, **rule_snapshot}
     if args.golden and args.candidate != 'phoenix': parser.error('--golden is for Phoenix grading')
     if args.golden and (args.selection != 'smoke' or args.corpus or args.offset or args.limit): parser.error('A golden fixes its own complete selection; selection filters are not allowed')
     if not args.golden and args.selection != 'corpus' and (args.corpus or args.offset or args.limit): parser.error('Corpus/offset/limit options require --selection corpus')
@@ -82,6 +148,7 @@ def main():
     docker = ['docker', '-H', args.docker_host]
     record = {'date': datetime.now(timezone.utc).isoformat(), 'referenceRevision': REVISION, 'candidate': args.candidate,
               'images': {'original': foundation.ORIGINAL_IMAGE, 'phoenix': foundation.PHOENIX_IMAGE}, 'commands': [], 'result': 'error'}
+    record['candidateNluProfile'] = {'runtime': 'compiled-fst', **compiled} if compiled else {'runtime': 'default'}
     capture_tools = {name: sha(ROOT / name) for name in ['scripts/parity-production/driver.cjs', 'scripts/parity-production/capture-writer.cjs', 'scripts/parity-production/original.cjs', 'scripts/parity-production/fixtures.mjs']}
     record['originalCaptureTools'] = capture_tools
     containers = []
@@ -110,6 +177,15 @@ def main():
         else:
             for source, target in [(ROOT / 'packages', '/phoenix/packages'), (ROOT / 'node_modules', '/phoenix/node_modules'), (ROOT / 'package.json', '/phoenix/package.json')]:
                 argv += ['--mount', 'type=bind,source=' + str(source) + ',target=' + target + ',readonly']
+            if compiled:
+                argv += ['--mount', 'type=bind,source=' + compiled['fst'] + ',target=/nlu/launch.fst,readonly',
+                         '--mount', 'type=bind,source=' + compiled['factoryDir'] + ',target=/nlu/factories,readonly',
+                         '--mount', 'type=bind,source=' + compiled['rulesDir'] + ',target=/nlu/rules,readonly',
+                         '--env', 'PHOENIX_ENV_FILE=/dev/null', '--env', 'PHOENIX_NLU_RUNTIME=compiled-fst',
+                         '--env', 'PHOENIX_NLU_COMPILED_FST=/nlu/launch.fst',
+                         '--env', 'PHOENIX_NLU_COMPILED_FACTORY_DIR=/nlu/factories',
+                         '--env', 'PHOENIX_NLU_COMPILED_RULES_DIR=/nlu/rules',
+                         '--env', 'PHOENIX_NLU_COMPILED_FST_SHA256=' + compiled['fstSha256']]
             argv += [foundation.PHOENIX_IMAGE, 'node', '/harness/phoenix.mjs', '/phoenix', '/evidence/suite.json', '/evidence/' + name + '.json.gz']
         # Outer process bound includes container startup, every bounded case, and cleanup.
         step(name, argv, timeout=240 + count * 35, allowed=(0,) if implementation == 'original' else (0, 2))
@@ -148,6 +224,14 @@ def main():
         suite = json.loads((out / 'suite.json').read_text()); record['selection'] = suite['selection']; record['cases'] = len(suite['cases'])
         if not args.golden: capture('reference', 'original', record['cases'])
         capture('candidate', args.candidate, record['cases'])
+        if compiled:
+            if sha(Path(compiled['fst'])) != compiled['fstSha256'] or {
+                p.name: sha(p) for p in sorted(Path(compiled['factoryDir']).iterdir())
+            } != compiled['factoryFiles']:
+                raise RuntimeError('Compiled artifacts changed during capture; retain this run and repeat with stable inputs')
+            current_rules = compiled_rule_snapshot(Path(compiled['rulesDir']))
+            if current_rules['ruleFiles'] != compiled['ruleFiles'] or current_rules['ruleManifestSha256'] != compiled['ruleManifestSha256']:
+                raise RuntimeError('Compiled rule graph snapshot changed during capture; retain this run and repeat with stable inputs')
         if before != foundation.fingerprint(): raise RuntimeError('Source or tools changed during capture; retain this development run and rerun against one stable tree')
         code = step('compare', ['node', ROOT / 'scripts/parity-production/compare.mjs', '--reference', out / 'reference.json.gz', '--candidate', out / 'candidate.json.gz',
                                 '--suite', out / 'suite.json', '--out', out / 'comparison.json'], allowed=(0, 1), timeout=600)
