@@ -1,0 +1,592 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "decision": "accepted",
+  "task": "A-06",
+  "taskComplete": false,
+  "candidateRevision": "a8117d2b727a17b4d17344952f19c6bda8ec7357",
+  "baseRevision": "3d632e0b75205bcccd48df27f6ad7833c900e1ff",
+  "finalAgentRevision": "3d87eab406b1083374566aedf99032cb19ed536b",
+  "scope": [
+    "Settings-to-Lasso GET/POST/DELETE query/body/header and required-property behavior",
+    "Source payload decoding and operation-specific public error wrappers",
+    "Bounded redirect method/body/header replay including missing/malformed and cross-authority Locations",
+    "Raw environment timeout/redirect settings, final-header timer boundary and post-timeout redirects"
+  ],
+  "source": {
+    "repository": "jiborobot/srv-settings-ws",
+    "revision": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+    "runtime": "Node 8.9.4",
+    "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "network": "none; loopback scripted peers only",
+    "dependencies": {
+      "@jibo/server": "4.0.12",
+      "wreck": "12.6.2"
+    },
+    "files": {
+      "src/clients/lasso.ts": "a5e45ffea53d0c9660cdeb1a650adba1b56fe1f6886bffa898a135a6bf536145",
+      "dist/src/clients/lasso.js": "6aeae8b8c2a43f42be4d30f5182288fbc1c5737235003d910494c4c68094fd38"
+    },
+    "wreckSha256": "c6ef7d1a2ddea40c0672b9f804c64a1dc8f316f9904eb7897565ced09f048a17"
+  },
+  "candidateRuntime": "Node 22.22.0",
+  "verification": {
+    "originalControls": {
+      "expected": 48,
+      "observed": 48,
+      "exact": 48,
+      "harnessFailures": 0,
+      "coreCount": 40,
+      "additionalCount": 8,
+      "sourceAndCandidateFilesStable": true,
+      "timing": [
+        {
+          "suite": "info",
+          "kind": "source",
+          "elapsedMs": 31,
+          "configuredTimeoutMs": 25,
+          "finalHeadersDelayMs": 100,
+          "rejectedBeforeFinalHeaders": true
+        },
+        {
+          "suite": "info",
+          "kind": "candidate",
+          "elapsedMs": 30,
+          "configuredTimeoutMs": 25,
+          "finalHeadersDelayMs": 100,
+          "rejectedBeforeFinalHeaders": true
+        },
+        {
+          "suite": "late",
+          "kind": "source",
+          "observedAfterSettlementMs": 251,
+          "thirdRequestAfterSettlementMs": 83,
+          "threeRequests": true,
+          "postSettlementRedirectObserved": true
+        },
+        {
+          "suite": "late",
+          "kind": "candidate",
+          "observedAfterSettlementMs": 250,
+          "thirdRequestAfterSettlementMs": 84,
+          "threeRequests": true,
+          "postSettlementRedirectObserved": true
+        }
+      ]
+    },
+    "unit": {
+      "tests": 532,
+      "passed": 529,
+      "failed": 0,
+      "skipped": 3,
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 0
+    },
+    "defaultSmoke": {
+      "cases": 43,
+      "result": "match",
+      "nluProfile": {
+        "runtime": "default"
+      },
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "runSha256": "b7d94a8171d58407d81a829e1ba5cd23e7af15300a7ee47f155b4d21fee1f2a4",
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "parityTracker": {
+      "result": "pass",
+      "verifiedTasks": 7,
+      "totalTasks": 79
+    }
+  },
+  "comparisonRules": {
+    "wire": "Method, URL, serialized body, header maps and ordered raw headers are compared. Each Host is checked against the independently recorded listener authority before replacing its ephemeral port.",
+    "errors": "Captured public error fields, including own properties except stack, compare without message or name rewriting.",
+    "timing": "Elapsed/absolute timestamps are fixture metadata, with explicit deadline and post-settlement ordering checks retained separately. No product timeout was changed.",
+    "coverage": "Finite string-zero redirect control counts once; retained infinite-loop observation does not count as a pass."
+  },
+  "limitations": [
+    "This is srv-settings-ws Lasso, distinct from the already accepted Pegasus Report Lasso client.",
+    "Full A-06 remains open: OAuth/token exchange, real Mongo/provider integration, authentication and full consumer journeys require separate evidence.",
+    "Person and Hub network candidates remain unverified and were excluded from this integration.",
+    "Malformed missing-status peer behavior still differs in uncaught legacy-runtime assertions versus candidate rejection; it is excluded from the 48 exact rows and remains open.",
+    "General legacy URL edge cases, arbitrary socket lifetime, TLS peers and redirect cycles are outside these bounded controls.",
+    "No new Moth deployment or physical microphone/light-ring verification is claimed."
+  ],
+  "rootCommands": [
+    {
+      "group": "core",
+      "suite": "core",
+      "kind": "source",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-a06-final-root-lasso-core-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=../../out/core-source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/core:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "-e",
+        "CASES_FILE=cases-accepted.json",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/core/source-runner.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix",
+      "envOverrides": {},
+      "exitCode": 0,
+      "elapsedSeconds": 3.14,
+      "output": "core/core-source.json",
+      "outputSha256": "7be18d1d9eb80a6f5398ff127a256e5f1a176c9a553b299b3cb458b74d7d1310",
+      "runnerSha256": "de0dc195dc6b16c704c20af30ebe2c50d22d4c5f268b748933594c4b08c5abda",
+      "logSha256": "ba4b42eba3dbfe7887bf25b2d3c57447e4b39923dd00b871ef83c77abeef8477"
+    },
+    {
+      "group": "core",
+      "suite": "core",
+      "kind": "candidate",
+      "command": [
+        "node",
+        "candidate-runner.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/core",
+      "envOverrides": {
+        "CASES_FILE": "cases-accepted.json",
+        "OUTPUT_FILE": "core-candidate.json"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 0.115,
+      "output": "core/core-candidate.json",
+      "outputSha256": "e7756b8d9832da81e16d0d0675514d5e770eba3108dfcf312a85f71bb4c36bb0",
+      "runnerSha256": "4fc56c51b6594696bf371de6d0723111ea8734135d6c2f2538d28b767c6f1d8a",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "group": "core",
+      "suite": "redirect",
+      "kind": "source",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-a06-final-root-lasso-redirect-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=../../out/redirect-source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/redirect:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/redirect/redirect-source.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix",
+      "envOverrides": {},
+      "exitCode": 0,
+      "elapsedSeconds": 4.158,
+      "output": "redirect/redirect-source.json",
+      "outputSha256": "223921bb097a00cf75ed8d2e8858d1cf930eec1d2f4fe0fc4cacfb8ca35c1913",
+      "runnerSha256": "0ad6734008158536e2962394019831d5fa3b1808309f4a05918634bda71b6b0b",
+      "logSha256": "24663e846246803e4e3fd19f42c63c0ea45f7f3822179ade8902eb36d61ab049"
+    },
+    {
+      "group": "core",
+      "suite": "redirect",
+      "kind": "candidate",
+      "command": [
+        "node",
+        "redirect-candidate.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/redirect",
+      "envOverrides": {
+        "OUTPUT_FILE": "redirect-candidate.json"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 0.115,
+      "output": "redirect/redirect-candidate.json",
+      "outputSha256": "f56300bd5335f0a3b6828674ed0e1da55482f463b6a6a6de0982bb0d8c9f8882",
+      "runnerSha256": "e8a46b230b41e6ab49e39b0d820e42576575a8bf6a45525258f0cd680e6cd390",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "group": "core",
+      "suite": "followup",
+      "kind": "source",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-a06-final-root-lasso-followup-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=../../out/followup-source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/followup:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "-e",
+        "CASES_FILE=cases.json",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/followup/source-followup.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix",
+      "envOverrides": {},
+      "exitCode": 0,
+      "elapsedSeconds": 3.489,
+      "output": "followup/followup-source.json",
+      "outputSha256": "c7e3fb64dc09fdc0cdde4d4d58e43d07f25374e427c8000c9f980764e075647d",
+      "runnerSha256": "2051051a2f49170482ed730d2eab491cdb91d6291499447d8c01294b4b532d8a",
+      "logSha256": "2a218668e361991251b8e45e65ab6086783a0c4deae4f10586407ae6cffa23a6"
+    },
+    {
+      "group": "core",
+      "suite": "followup",
+      "kind": "candidate",
+      "command": [
+        "node",
+        "candidate-followup.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/followup",
+      "envOverrides": {
+        "CASES_FILE": "cases.json",
+        "OUTPUT_FILE": "followup-candidate.json"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 1.668,
+      "output": "followup/followup-candidate.json",
+      "outputSha256": "183c5b831bebd37adde039fb0f30cad013ccc1d6e7970f86ae5dedfacf4880de",
+      "runnerSha256": "72f1a0123d29ef224d8a32756a47c53ed397ec211e7eee591dd4ff3154a11b57",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "group": "core",
+      "suite": "finite",
+      "kind": "source",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-a06-final-root-lasso-finite-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=../../out/finite-source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/finite:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "-e",
+        "CASES_FILE=redirect-zero-cases.json",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/finite/source-followup.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix",
+      "envOverrides": {},
+      "exitCode": 0,
+      "elapsedSeconds": 3.439,
+      "output": "finite/finite-source.json",
+      "outputSha256": "eceb2e94529dd291bb4d0f0bb95058108fc964bc2e0cbb5716b7e134c220e804",
+      "runnerSha256": "2051051a2f49170482ed730d2eab491cdb91d6291499447d8c01294b4b532d8a",
+      "logSha256": "2a218668e361991251b8e45e65ab6086783a0c4deae4f10586407ae6cffa23a6"
+    },
+    {
+      "group": "core",
+      "suite": "finite",
+      "kind": "candidate",
+      "command": [
+        "node",
+        "candidate-followup.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/finite",
+      "envOverrides": {
+        "CASES_FILE": "redirect-zero-cases.json",
+        "OUTPUT_FILE": "finite-candidate.json"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 1.568,
+      "output": "finite/finite-candidate.json",
+      "outputSha256": "77e4941a96a828e12e4064acc6c53de02de044acb44404190aeffb4cfbfba45d",
+      "runnerSha256": "72f1a0123d29ef224d8a32756a47c53ed397ec211e7eee591dd4ff3154a11b57",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "group": "core",
+      "suite": "body-timing",
+      "kind": "source",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-a06-final-root-lasso-body-timing-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=/out/source-controls-final.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/body-timing:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "-e",
+        "SOURCE=1",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/body-timing/source-candidate-controls.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix",
+      "envOverrides": {},
+      "exitCode": 0,
+      "elapsedSeconds": 3.339,
+      "output": "body-timing/source-controls-final.json",
+      "outputSha256": "667487912d79f0e3a60ac39d0cfee70f7325a6e9e7ea051c29e3e1f359134388",
+      "runnerSha256": "64d5a8fad6ccdc02dbf54b62d75c1c31fe4986bcb7faaaed45c81b8a12eca017",
+      "logSha256": "faa1398e09269fe7972a7854c5c6ba71aedce3ba808e96c89ac2a6ae6524ec45"
+    },
+    {
+      "group": "core",
+      "suite": "body-timing",
+      "kind": "candidate",
+      "command": [
+        "node",
+        "candidate-controls.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/lasso/body-timing",
+      "envOverrides": {
+        "OUTPUT_FILE": "candidate-controls-final.json"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 1.268,
+      "output": "body-timing/candidate-controls-final.json",
+      "outputSha256": "9949e713bf901f3a57d72a921efda2b6d1741b573d633bcdb2b70716d8b2ca43",
+      "runnerSha256": "b133429041de00d3b625c6a0f66e6fb91753c7e5804bd74d4b49cc1f9c949ca5",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "group": "extra",
+      "suite": "edge",
+      "kind": "source",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-root-a06-extra-edge-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=../out/source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/edge:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/edge/out:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/source-runner.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+      "envOverrides": {},
+      "exitCode": 0,
+      "startedAt": 1788736422.5533278,
+      "finishedAt": 1788736425.039868,
+      "runnerSha256": "00c4221e846ac90443892c542781b0fcf2f030060f7c6c639f7bff7f463393ad",
+      "stdoutSha256": "4c611eac2d8440d20e29de392531989538e7569154e66f38e519d373902f8965",
+      "stderrSha256": "028070ecf07e3b30a9fe8b6e79b3e349e5df893ef82258fd291daa9ca587172e",
+      "outputSha256": "676610bd94ce92a5d1bdeb0677dc782a9cbca3265a52ed70f5e2c3f23ae0580c"
+    },
+    {
+      "group": "extra",
+      "suite": "edge",
+      "kind": "candidate",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/edge/candidate-runner.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+      "envOverrides": {
+        "CANDIDATE_ROOT": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+        "OUTPUT_FILE": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/edge/out/candidate.json"
+      },
+      "exitCode": 0,
+      "startedAt": 1788736425.0452554,
+      "finishedAt": 1788736425.260222,
+      "runnerSha256": "438f5c80d743addc0f2d2d09704d5820e4b3f958858b7fb1272aa1115b21a26f",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outputSha256": "15a6b35b82141ca7d60c5514489a993b69fcc69fed2e1badea412841e62a19aa"
+    },
+    {
+      "group": "extra",
+      "suite": "info",
+      "kind": "source",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-root-a06-extra-info-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=../out/source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/info:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/info/out:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/source-runner.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+      "envOverrides": {},
+      "exitCode": 0,
+      "startedAt": 1788736425.2657058,
+      "finishedAt": 1788736427.267503,
+      "runnerSha256": "45627f38efc87a3b9cb7e451825627ad15278c666d45f2386780128ab4bd1e71",
+      "stdoutSha256": "4c611eac2d8440d20e29de392531989538e7569154e66f38e519d373902f8965",
+      "stderrSha256": "7c1bf316a2aeed143c71499840db407c5274d005a717d41cb6cf2fa20fa22e6a",
+      "outputSha256": "6780ed808c6eb26e89e5e1216251102352665b4a60e95ff90520bc22be150ec5"
+    },
+    {
+      "group": "extra",
+      "suite": "info",
+      "kind": "candidate",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/info/candidate-runner.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+      "envOverrides": {
+        "CANDIDATE_ROOT": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+        "OUTPUT_FILE": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/info/out/candidate.json"
+      },
+      "exitCode": 0,
+      "startedAt": 1788736427.2734132,
+      "finishedAt": 1788736427.388411,
+      "runnerSha256": "15d2d56cbd765a9f6ebadb7e57da3c55ae81dc62efe5d19d98a74c56db7ef9d8",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outputSha256": "2d603f995af34c36df60d1bb09c31c74df0f4ff7f7d8f0e518bb297082aeb59e"
+    },
+    {
+      "group": "extra",
+      "suite": "late",
+      "kind": "source",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "codex-root-a06-extra-late-20260906",
+        "--network",
+        "none",
+        "-e",
+        "NODE_PATH=/runtime/node_modules",
+        "-e",
+        "OUTPUT_FILE=/out/source.json",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/late:/review:ro",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/late/out:/out:rw",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules:/runtime/node_modules:ro",
+        "-e",
+        "ETCO_server_http_timeout=25",
+        "-e",
+        "ETCO_server_http_maxredirects=3",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/source-runner.cjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+      "envOverrides": {},
+      "exitCode": 0,
+      "startedAt": 1788736427.3946407,
+      "finishedAt": 1788736431.1839356,
+      "runnerSha256": "124a49b3988ea63f40202ccd0ba5158a189afcd1196ee93b80a9f77ee5723cde",
+      "stdoutSha256": "4c611eac2d8440d20e29de392531989538e7569154e66f38e519d373902f8965",
+      "stderrSha256": "2c125997dda77f971001ac43da1e301b9ca337499c5c38776c0c56e7dc577440",
+      "outputSha256": "4636cc5bd540cfdd2839983239c6fb1f3d608c2f0b6add252d7381f13075c39d"
+    },
+    {
+      "group": "extra",
+      "suite": "late",
+      "kind": "candidate",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/late/candidate-runner.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+      "envOverrides": {
+        "CANDIDATE_ROOT": "/home/shell/work/phoenix/.parity/worktrees/a06-lasso-final-root",
+        "OUTPUT_FILE": "/home/shell/work/phoenix/.parity/reviews/a06-lasso-final-root-20260906/extra/late/out/candidate.json",
+        "ETCO_server_http_timeout": "25",
+        "ETCO_server_http_maxredirects": "3"
+      },
+      "exitCode": 0,
+      "startedAt": 1788736431.1898744,
+      "finishedAt": 1788736432.0061529,
+      "runnerSha256": "bfba90b4fee9868cc1c391036472e088c4c47d14ed0b4efdeb5cf5cb0694e4a5",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outputSha256": "ee5dba64d6ebc8750d022c85fa00c6cd1408a360c4aa077287fae8248512f4bf"
+    }
+  ],
+  "receipts": {
+    ".parity/reviews/a06-lasso-final-root-20260906/lasso/root-receipt.json": "fbe1eebf4ca2f24ad60a02059f878117428bd8351101215e8eafe733b0e63023",
+    ".parity/reviews/a06-lasso-final-root-20260906/extra/root-receipt.json": "dcb3b7aae8cc1f0d6b342e138c7137c5d6a021e836520937425d6a50c39cdd4d",
+    ".parity/reviews/a06-lasso-final-root-20260906/npm-test-receipt.json": "d1bec4939a77e0b1fcdf08ed2f1ea733b56932a59840415a7d5dcf642644983e",
+    ".parity/reviews/a06-lasso-final-root-20260906/lasso/strict-compare.py": "95cb2d6f4ca8e857e2d93ee7e8fbdff9064daebd4a76aba4f1b9b74bc8433fad",
+    ".parity/reviews/a06-lasso-final-root-20260906/extra/strict-extra.py": "9dba94c1acc812f2ad0345f611185ce431dcecab35768e704984f890686a94eb"
+  },
+  "artifacts": {
+    "core-comparison.json": "e678cc7bed8b5a084708e979604b02380c8f86844795404cc1d158c3c8eaf8d9",
+    "extra-comparison.json": "58dd22bb3aa5ab4edef8cdf106001545a6a196e7d093dc49c05d76c6f96e8c78"
+  }
+}

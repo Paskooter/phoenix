@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "expectedCount": 8,
+  "observedCount": 8,
+  "passed": true,
+  "rows": [
+    {
+      "suite": "edge",
+      "id": "missing-location",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "edge",
+      "id": "malformed-bracket-location",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "edge",
+      "id": "malformed-percent-location",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "edge",
+      "id": "cross-authority-get",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "edge",
+      "id": "information-redirect-final-delay",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "edge",
+      "id": "information-redirect-deadline",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "info",
+      "id": "information-final-headers-timeout-25",
+      "exact": true,
+      "differences": []
+    },
+    {
+      "suite": "late",
+      "id": "redirect-after-public-timeout",
+      "exact": true,
+      "differences": []
+    }
+  ],
+  "timingProof": [
+    {
+      "suite": "info",
+      "kind": "source",
+      "elapsedMs": 31,
+      "configuredTimeoutMs": 25,
+      "finalHeadersDelayMs": 100,
+      "rejectedBeforeFinalHeaders": true
+    },
+    {
+      "suite": "info",
+      "kind": "candidate",
+      "elapsedMs": 30,
+      "configuredTimeoutMs": 25,
+      "finalHeadersDelayMs": 100,
+      "rejectedBeforeFinalHeaders": true
+    },
+    {
+      "suite": "late",
+      "kind": "source",
+      "observedAfterSettlementMs": 251,
+      "thirdRequestAfterSettlementMs": 83,
+      "threeRequests": true,
+      "postSettlementRedirectObserved": true
+    },
+    {
+      "suite": "late",
+      "kind": "candidate",
+      "observedAfterSettlementMs": 250,
+      "thirdRequestAfterSettlementMs": 84,
+      "threeRequests": true,
+      "postSettlementRedirectObserved": true
+    }
+  ],
+  "normalization": [
+    "top-level runner runtime/source metadata",
+    "request Host and raw Host only after direct equality to independent listener authority",
+    "known listener/receivedAt fixture metadata on late requests",
+    "info elapsedMs and late absolute observation timestamps retained in timingProof"
+  ],
+  "errors": "all captured public error own properties except stack are compared verbatim"
+}

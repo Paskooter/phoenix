@@ -93,9 +93,13 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **516 unit tests** and both default
-and compiled-FST strict **43-case smoke profiles with zero differences,
-invariants or coverage gaps**. The default AST profile still has **149 corpus differences across 20,528 requests**, down from 295. The
+The latest accepted main checkpoint passes **529 unit tests** and the default
+strict **43-case smoke profile with zero differences, invariants or coverage
+gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
+adds 48 exact original Node 8 transport controls, including post-timeout
+redirect requests. Person and Hub network adapters remain under review.
+The prior compiled-FST strict 43-case smoke also passed. The default AST
+profile still has **149 corpus differences across 20,528 requests**, down from 295. The
 [accepted root review](evidence/2026-09-06/nlu-ast-ranking/root-review.json) records
 146 repaired cases, zero new failure IDs, and the remaining limits.
 The [new complete compiled-profile comparison](evidence/2026-09-06/production/main-ec02766-full-compiled/review.json)

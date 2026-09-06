@@ -1,0 +1,589 @@
+{
+  "schemaVersion": 1,
+  "normalization": {
+    "runnerMetadata": [
+      "top-level runtime",
+      "top-level source marker",
+      "body-timing result runtime",
+      "body-timing result elapsedMs"
+    ],
+    "transport": "replace only an exact peer Host header authority in headers or rawHeaders; no URL, body, error, or arbitrary port normalization",
+    "errors": "all captured error fields, including error.name, are compared verbatim"
+  },
+  "harnessFailurePolicy": {
+    "rejectedTypes": [
+      "outer-timeout",
+      "timeout",
+      "uncaughtException"
+    ],
+    "nonterminationObservation": "The separately retained string-zero infinite-loop observation is excluded from these 40 rows and is not counted as a pass."
+  },
+  "suites": [
+    {
+      "name": "core",
+      "passed": true,
+      "idChecks": {
+        "expectedCount": 24,
+        "sourceCount": 24,
+        "candidateCount": 24,
+        "expectedUnique": true,
+        "sourceUnique": true,
+        "candidateUnique": true,
+        "caseFixtureIds": [
+          "get-success-special-scopes",
+          "get-empty-scopes",
+          "get-text-json-is-buffer-error",
+          "get-malformed-json",
+          "get-missing-credential-shape",
+          "get-error-field-on-2xx",
+          "get-remote-404",
+          "get-empty-204",
+          "get-primitive-json",
+          "get-validation-missing-skill",
+          "get-validation-missing-scopes",
+          "post-success-whitelist-order",
+          "post-success-minimal-201",
+          "post-remote-400-text",
+          "post-malformed-json",
+          "post-empty-204",
+          "post-validation-missing-auth",
+          "delete-success-special-scopes",
+          "delete-remote-500-json",
+          "delete-malformed-content-type",
+          "delete-empty-204",
+          "delete-validation-missing-service",
+          "get-no-transaction-id",
+          "get-truncated-json-body"
+        ],
+        "sourceIds": [
+          "get-success-special-scopes",
+          "get-empty-scopes",
+          "get-text-json-is-buffer-error",
+          "get-malformed-json",
+          "get-missing-credential-shape",
+          "get-error-field-on-2xx",
+          "get-remote-404",
+          "get-empty-204",
+          "get-primitive-json",
+          "get-validation-missing-skill",
+          "get-validation-missing-scopes",
+          "post-success-whitelist-order",
+          "post-success-minimal-201",
+          "post-remote-400-text",
+          "post-malformed-json",
+          "post-empty-204",
+          "post-validation-missing-auth",
+          "delete-success-special-scopes",
+          "delete-remote-500-json",
+          "delete-malformed-content-type",
+          "delete-empty-204",
+          "delete-validation-missing-service",
+          "get-no-transaction-id",
+          "get-truncated-json-body"
+        ],
+        "candidateIds": [
+          "get-success-special-scopes",
+          "get-empty-scopes",
+          "get-text-json-is-buffer-error",
+          "get-malformed-json",
+          "get-missing-credential-shape",
+          "get-error-field-on-2xx",
+          "get-remote-404",
+          "get-empty-204",
+          "get-primitive-json",
+          "get-validation-missing-skill",
+          "get-validation-missing-scopes",
+          "post-success-whitelist-order",
+          "post-success-minimal-201",
+          "post-remote-400-text",
+          "post-malformed-json",
+          "post-empty-204",
+          "post-validation-missing-auth",
+          "delete-success-special-scopes",
+          "delete-remote-500-json",
+          "delete-malformed-content-type",
+          "delete-empty-204",
+          "delete-validation-missing-service",
+          "get-no-transaction-id",
+          "get-truncated-json-body"
+        ],
+        "sourceOrderExact": true,
+        "candidateOrderExact": true
+      },
+      "sourceRuntime": null,
+      "candidateRuntime": null,
+      "sourceHostAuthorities": [
+        "127.0.0.1:32947",
+        "127.0.0.1:32983",
+        "127.0.0.1:33051",
+        "127.0.0.1:33957",
+        "127.0.0.1:34527",
+        "127.0.0.1:34959",
+        "127.0.0.1:35451",
+        "127.0.0.1:37175",
+        "127.0.0.1:38147",
+        "127.0.0.1:38455",
+        "127.0.0.1:38639",
+        "127.0.0.1:39077",
+        "127.0.0.1:39363",
+        "127.0.0.1:39877",
+        "127.0.0.1:43889",
+        "127.0.0.1:44573",
+        "127.0.0.1:45245",
+        "127.0.0.1:46065",
+        "127.0.0.1:46381"
+      ],
+      "candidateHostAuthorities": [
+        "127.0.0.1:32961",
+        "127.0.0.1:33795",
+        "127.0.0.1:36835",
+        "127.0.0.1:37043",
+        "127.0.0.1:37757",
+        "127.0.0.1:38095",
+        "127.0.0.1:38253",
+        "127.0.0.1:39209",
+        "127.0.0.1:41077",
+        "127.0.0.1:41437",
+        "127.0.0.1:41897",
+        "127.0.0.1:42499",
+        "127.0.0.1:42507",
+        "127.0.0.1:44467",
+        "127.0.0.1:44729",
+        "127.0.0.1:45069",
+        "127.0.0.1:46165",
+        "127.0.0.1:46357",
+        "127.0.0.1:46651"
+      ],
+      "rejectedHarnessFailures": {
+        "source": [],
+        "candidate": []
+      },
+      "rowCount": 24,
+      "exactRows": 24,
+      "rows": [
+        {
+          "id": "get-success-special-scopes",
+          "exact": true
+        },
+        {
+          "id": "get-empty-scopes",
+          "exact": true
+        },
+        {
+          "id": "get-text-json-is-buffer-error",
+          "exact": true
+        },
+        {
+          "id": "get-malformed-json",
+          "exact": true
+        },
+        {
+          "id": "get-missing-credential-shape",
+          "exact": true
+        },
+        {
+          "id": "get-error-field-on-2xx",
+          "exact": true
+        },
+        {
+          "id": "get-remote-404",
+          "exact": true
+        },
+        {
+          "id": "get-empty-204",
+          "exact": true
+        },
+        {
+          "id": "get-primitive-json",
+          "exact": true
+        },
+        {
+          "id": "get-validation-missing-skill",
+          "exact": true
+        },
+        {
+          "id": "get-validation-missing-scopes",
+          "exact": true
+        },
+        {
+          "id": "post-success-whitelist-order",
+          "exact": true
+        },
+        {
+          "id": "post-success-minimal-201",
+          "exact": true
+        },
+        {
+          "id": "post-remote-400-text",
+          "exact": true
+        },
+        {
+          "id": "post-malformed-json",
+          "exact": true
+        },
+        {
+          "id": "post-empty-204",
+          "exact": true
+        },
+        {
+          "id": "post-validation-missing-auth",
+          "exact": true
+        },
+        {
+          "id": "delete-success-special-scopes",
+          "exact": true
+        },
+        {
+          "id": "delete-remote-500-json",
+          "exact": true
+        },
+        {
+          "id": "delete-malformed-content-type",
+          "exact": true
+        },
+        {
+          "id": "delete-empty-204",
+          "exact": true
+        },
+        {
+          "id": "delete-validation-missing-service",
+          "exact": true
+        },
+        {
+          "id": "get-no-transaction-id",
+          "exact": true
+        },
+        {
+          "id": "get-truncated-json-body",
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "redirect",
+      "passed": true,
+      "idChecks": {
+        "expectedCount": 4,
+        "sourceCount": 4,
+        "candidateCount": 4,
+        "expectedUnique": true,
+        "sourceUnique": true,
+        "candidateUnique": true,
+        "caseFixtureIds": [
+          "get-307-follow",
+          "post-302-follow",
+          "get-303-no-follow",
+          "get-307-loop-limit"
+        ],
+        "sourceIds": [
+          "get-307-follow",
+          "post-302-follow",
+          "get-303-no-follow",
+          "get-307-loop-limit"
+        ],
+        "candidateIds": [
+          "get-307-follow",
+          "post-302-follow",
+          "get-303-no-follow",
+          "get-307-loop-limit"
+        ],
+        "sourceOrderExact": true,
+        "candidateOrderExact": true
+      },
+      "sourceRuntime": null,
+      "candidateRuntime": null,
+      "sourceHostAuthorities": [
+        "127.0.0.1:41927",
+        "127.0.0.1:45239",
+        "127.0.0.1:45987",
+        "127.0.0.1:46853"
+      ],
+      "candidateHostAuthorities": [
+        "127.0.0.1:36497",
+        "127.0.0.1:37887",
+        "127.0.0.1:45343",
+        "127.0.0.1:45527"
+      ],
+      "rejectedHarnessFailures": {
+        "source": [],
+        "candidate": []
+      },
+      "rowCount": 4,
+      "exactRows": 4,
+      "rows": [
+        {
+          "id": "get-307-follow",
+          "exact": true
+        },
+        {
+          "id": "post-302-follow",
+          "exact": true
+        },
+        {
+          "id": "get-303-no-follow",
+          "exact": true
+        },
+        {
+          "id": "get-307-loop-limit",
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "followup",
+      "passed": true,
+      "idChecks": {
+        "expectedCount": 6,
+        "sourceCount": 6,
+        "candidateCount": 6,
+        "expectedUnique": true,
+        "sourceUnique": true,
+        "candidateUnique": true,
+        "caseFixtureIds": [
+          "timeout-string-success",
+          "delayed-body-after-headers",
+          "validation-missing-skill-name",
+          "validation-missing-auth-name",
+          "shadowing-hasOwnProperty",
+          "redirect-header-snapshot"
+        ],
+        "sourceIds": [
+          "timeout-string-success",
+          "delayed-body-after-headers",
+          "validation-missing-skill-name",
+          "validation-missing-auth-name",
+          "shadowing-hasOwnProperty",
+          "redirect-header-snapshot"
+        ],
+        "candidateIds": [
+          "timeout-string-success",
+          "delayed-body-after-headers",
+          "validation-missing-skill-name",
+          "validation-missing-auth-name",
+          "shadowing-hasOwnProperty",
+          "redirect-header-snapshot"
+        ],
+        "sourceOrderExact": true,
+        "candidateOrderExact": true
+      },
+      "sourceRuntime": null,
+      "candidateRuntime": null,
+      "sourceHostAuthorities": [
+        "127.0.0.1:33607",
+        "127.0.0.1:35895",
+        "127.0.0.1:36497",
+        "127.0.0.1:37203"
+      ],
+      "candidateHostAuthorities": [
+        "127.0.0.1:42791",
+        "127.0.0.1:42965",
+        "127.0.0.1:43199",
+        "127.0.0.1:46017"
+      ],
+      "rejectedHarnessFailures": {
+        "source": [],
+        "candidate": []
+      },
+      "rowCount": 6,
+      "exactRows": 6,
+      "rows": [
+        {
+          "id": "timeout-string-success",
+          "exact": true
+        },
+        {
+          "id": "delayed-body-after-headers",
+          "exact": true
+        },
+        {
+          "id": "validation-missing-skill-name",
+          "exact": true
+        },
+        {
+          "id": "validation-missing-auth-name",
+          "exact": true
+        },
+        {
+          "id": "shadowing-hasOwnProperty",
+          "exact": true
+        },
+        {
+          "id": "redirect-header-snapshot",
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "finite-string-zero",
+      "passed": true,
+      "idChecks": {
+        "expectedCount": 1,
+        "sourceCount": 1,
+        "candidateCount": 1,
+        "expectedUnique": true,
+        "sourceUnique": true,
+        "candidateUnique": true,
+        "caseFixtureIds": [
+          "string-zero-finite-302-chain"
+        ],
+        "sourceIds": [
+          "string-zero-finite-302-chain"
+        ],
+        "candidateIds": [
+          "string-zero-finite-302-chain"
+        ],
+        "sourceOrderExact": true,
+        "candidateOrderExact": true
+      },
+      "sourceRuntime": null,
+      "candidateRuntime": null,
+      "sourceHostAuthorities": [
+        "127.0.0.1:38973"
+      ],
+      "candidateHostAuthorities": [
+        "127.0.0.1:42457"
+      ],
+      "rejectedHarnessFailures": {
+        "source": [],
+        "candidate": []
+      },
+      "rowCount": 1,
+      "exactRows": 1,
+      "rows": [
+        {
+          "id": "string-zero-finite-302-chain",
+          "exact": true
+        }
+      ]
+    },
+    {
+      "name": "body-timing",
+      "passed": true,
+      "idChecks": {
+        "expectedCount": 5,
+        "sourceCount": 5,
+        "candidateCount": 5,
+        "expectedUnique": true,
+        "sourceUnique": true,
+        "candidateUnique": true,
+        "caseFixtureIds": [
+          "body-mutation",
+          "redirect-chain-budget",
+          "redirect-delay-headers",
+          "informational-delay-headers",
+          "final-delay-body"
+        ],
+        "sourceIds": [
+          "body-mutation",
+          "redirect-chain-budget",
+          "redirect-delay-headers",
+          "informational-delay-headers",
+          "final-delay-body"
+        ],
+        "candidateIds": [
+          "body-mutation",
+          "redirect-chain-budget",
+          "redirect-delay-headers",
+          "informational-delay-headers",
+          "final-delay-body"
+        ],
+        "sourceOrderExact": true,
+        "candidateOrderExact": true
+      },
+      "sourceRuntime": null,
+      "candidateRuntime": null,
+      "sourceHostAuthorities": [
+        "127.0.0.1:33543",
+        "127.0.0.1:35897",
+        "127.0.0.1:38793",
+        "127.0.0.1:43315",
+        "127.0.0.1:45067"
+      ],
+      "candidateHostAuthorities": [
+        "127.0.0.1:34105",
+        "127.0.0.1:34829",
+        "127.0.0.1:39265",
+        "127.0.0.1:43101",
+        "127.0.0.1:43331"
+      ],
+      "rejectedHarnessFailures": {
+        "source": [],
+        "candidate": []
+      },
+      "rowCount": 5,
+      "exactRows": 5,
+      "rows": [
+        {
+          "id": "body-mutation",
+          "exact": true
+        },
+        {
+          "id": "redirect-chain-budget",
+          "exact": true
+        },
+        {
+          "id": "redirect-delay-headers",
+          "exact": true
+        },
+        {
+          "id": "informational-delay-headers",
+          "exact": true
+        },
+        {
+          "id": "final-delay-body",
+          "exact": true
+        }
+      ]
+    }
+  ],
+  "aggregate": {
+    "expectedCount": 40,
+    "observedCount": 40,
+    "expectedUnique": true,
+    "observedUnique": true,
+    "orderedIdsExact": true,
+    "passed": true,
+    "orderedIds": [
+      "core/get-success-special-scopes",
+      "core/get-empty-scopes",
+      "core/get-text-json-is-buffer-error",
+      "core/get-malformed-json",
+      "core/get-missing-credential-shape",
+      "core/get-error-field-on-2xx",
+      "core/get-remote-404",
+      "core/get-empty-204",
+      "core/get-primitive-json",
+      "core/get-validation-missing-skill",
+      "core/get-validation-missing-scopes",
+      "core/post-success-whitelist-order",
+      "core/post-success-minimal-201",
+      "core/post-remote-400-text",
+      "core/post-malformed-json",
+      "core/post-empty-204",
+      "core/post-validation-missing-auth",
+      "core/delete-success-special-scopes",
+      "core/delete-remote-500-json",
+      "core/delete-malformed-content-type",
+      "core/delete-empty-204",
+      "core/delete-validation-missing-service",
+      "core/get-no-transaction-id",
+      "core/get-truncated-json-body",
+      "redirect/get-307-follow",
+      "redirect/post-302-follow",
+      "redirect/get-303-no-follow",
+      "redirect/get-307-loop-limit",
+      "followup/timeout-string-success",
+      "followup/delayed-body-after-headers",
+      "followup/validation-missing-skill-name",
+      "followup/validation-missing-auth-name",
+      "followup/shadowing-hasOwnProperty",
+      "followup/redirect-header-snapshot",
+      "finite-string-zero/string-zero-finite-302-chain",
+      "body-timing/body-mutation",
+      "body-timing/redirect-chain-budget",
+      "body-timing/redirect-delay-headers",
+      "body-timing/informational-delay-headers",
+      "body-timing/final-delay-body"
+    ]
+  }
+}

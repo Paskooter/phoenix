@@ -2139,7 +2139,14 @@
         "Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.",
         "Use replaceable live providers while preserving client-visible functionality and mark unresolved provider-specific features explicitly."
       ],
-      "verification": []
+      "verification": [],
+      "nextImplementation": {
+        "state": "working",
+        "assignee": "Luna Max / capture_writer_repair; root acceptance",
+        "candidateRevision": "3f0efc4488ecc9aa011cdcb79bbe8072fad4ea28",
+        "worktree": ".parity/worktrees/q01-gqa",
+        "scope": "Frozen explicit GQA response/MIM factory candidate awaits root review. Agent is establishing the complete original offline request boundary using recovered fake providers; full orchestration and deployment remain unverified."
+      }
     },
     {
       "id": "A-19",
@@ -2451,7 +2458,7 @@
         "packages/account/src/settingsProviders.js",
         "docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json"
       ],
-      "finding": "Root accepted bounded Settings getter/view/internal dispatch and mutation behavior: 78 original getter TCP and 52 original Update/Delete cases match status, raw bodies, header maps except Date, ordered provider calls and partial effects. Local loop sharing, account/skill credential isolation, delete/recreate, report calendar-service replacement and disk reopen pass 29 controls. Full OAuth/token exchange, real Mongo/network peers, public authentication and ambiguous legacy marker migration remain open.",
+      "finding": "Root accepted bounded Settings getter/view/internal dispatch and mutation behavior: 78 original getter TCP and 52 original Update/Delete cases match status, raw bodies, header maps except Date, ordered provider calls and partial effects. Local loop sharing, account/skill credential isolation, delete/recreate, report calendar-service replacement and disk reopen pass 29 controls. Full OAuth/token exchange, real Mongo/network peers, public authentication and ambiguous legacy marker migration remain open. Final isolated Settings Lasso transport is now root accepted: 48 original Node 8 controls match, including post-timeout redirect requests; 529 unit tests and default strict43 pass. Person and Hub adapters remain unverified.",
       "acceptance": [
         "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
@@ -2461,12 +2468,12 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidates",
-        "candidateRevision": "844e609f9c726144086b9152c74e5a7540de3350",
-        "reviewedCandidateRevision": "d73efff2e14121aa92434f27d0839652c18f2b3b",
+        "candidateRevision": "a8117d2b727a17b4d17344952f19c6bda8ec7357",
+        "reviewedCandidateRevision": "3d87eab406b1083374566aedf99032cb19ed536b",
         "reviewedBy": "Codex root",
-        "scope": "Bounded internal Update/Delete and local identity/persistence slice. Root matches 52 original mutation and 78 getter TCP cases; 29 local/reopen controls and 501 unit tests pass. Strict43 retains the identical 218 differences. Full A-06, OAuth/Mongo/network providers/public authentication remain open.",
-        "artifact": "docs/parity/candidates/A-06-main-identity-20260906.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json"
+        "scope": "Bounded Settings Lasso network transport. All 48 fresh original Node 8 controls match, including exact request headers/body/redirect order and public errors. Final isolated branch passes 529 units and default strict43 with zero differences/invariants/gaps. Full A-06 and Person/Hub/OAuth/Mongo/authentication remain open.",
+        "artifact": "docs/parity/candidates/A-06-settings-lasso-root-20260906.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/settings-lasso/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -2490,18 +2497,23 @@
           "artifact": "docs/parity/candidates/A-06-transport-review-20260906.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json",
           "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max candidates",
+          "candidateRevision": "844e609f9c726144086b9152c74e5a7540de3350",
+          "reviewedCandidateRevision": "d73efff2e14121aa92434f27d0839652c18f2b3b",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded internal Update/Delete and local identity/persistence slice. Root matches 52 original mutation and 78 getter TCP cases; 29 local/reopen controls and 501 unit tests pass. Strict43 retains the identical 218 differences. Full A-06, OAuth/Mongo/network providers/public authentication remain open.",
+          "artifact": "docs/parity/candidates/A-06-main-identity-20260906.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json"
         }
       ],
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max candidates; root acceptance",
-        "scope": "Root combined review remains frozen at 28b28b1. Source controls expose post-timeout Lasso redirect requests that candidate cancels, plus Person legacy URL/error representation gaps. Hub friendly-ID transport has a separate candidate. Historical 529-unit/40-Lasso checks predate final repairs; no final network adapter is accepted.",
+        "scope": "Settings Lasso is integrated after final root48 and 529-unit/default43 checks. Person full own-error and legacy URL behavior is under follow-up; Hub friendly-ID transport awaits root review. Neither network candidate is accepted.",
         "candidates": [
-          {
-            "revision": "754a7baf8c2e27cfd651de5787eaec8e1212b45a",
-            "worktree": ".parity/worktrees/a06-lasso-redirect-edge-followup",
-            "state": "awaiting_review"
-          },
           {
             "revision": "6798b426d1671b48e15ca3cf04f9780b35543c8b",
             "worktree": ".parity/worktrees/a06-person-redirect-error",
