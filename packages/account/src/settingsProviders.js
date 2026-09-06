@@ -202,8 +202,18 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
             finish(new Error(location ? 'Maximum redirections reached' : 'Received redirection without location'));
             return;
           }
-          const redirectUrl = new URL(location, url);
           response.resume();
+          let redirectUrl;
+          try {
+            redirectUrl = new URL(location, url);
+          } catch (error) {
+            // The source legacy URL resolver leaves malformed locations inside
+            // the normal Wreck failure path. Keep the async request settled so
+            // the operation wrapper can expose its source-generic error rather
+            // than leaking a Node 22 uncaught ERR_INVALID_URL.
+            finish(error);
+            return;
+          }
           lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1, headers, body, requestState)
             .then((value) => finish(null, value), (error) => finish(error));
           return;

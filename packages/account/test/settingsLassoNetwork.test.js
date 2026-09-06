@@ -420,6 +420,31 @@ test('network Lasso preserves Wreck string-zero redirect decrement for a finite 
   }
 });
 
+test('network Lasso keeps malformed redirect locations inside the source error wrapper', async () => {
+  for (const location of ['http://[::1', 'http://%zz']) {
+    const peer = await listenPeer(() => ({
+      status: 302,
+      headers: { location },
+    }));
+    try {
+      const lasso = providers(peer.address);
+      await assert.rejects(
+        () => lasso.getCredential(context, {
+          skillId: 'skill-malformed-redirect',
+          serviceName: 'google',
+          serviceAccountName: 'calendar',
+          scopes: ['read'],
+        }),
+        (error) => error.name === 'Error'
+          && error.message === 'Failed to get google calendar credentials',
+      );
+      assert.equal(peer.requests.length, 1);
+    } finally {
+      await closePeer(peer);
+    }
+  }
+});
+
 test('network Lasso follows Wreck-compatible redirects and rejects a truncated response', async () => {
   let requests = 0;
   const server = http.createServer((req, res) => {
