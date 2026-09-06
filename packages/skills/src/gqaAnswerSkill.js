@@ -58,6 +58,11 @@ const WH_PHRASES = [
 // shorter `what` member when the alternatives share a word boundary.
 const WH_REMOVAL_RE = new RegExp(`^.*?\\b(${WH_PHRASES.slice().sort((a, b) => b.length - a.length).map(escapeRegExp).join('|')})\\b`, 'i');
 const JIBO_REMOVAL_RE = /^((hey )?Jibo)+\s*/i;
+const PHONE_RE_1 = /(?:(?<![\d-])(?:\+?\d{1,3}[-.\s*]?)?(?:\(?\d{3}\)?[-.\s*]?)?\d{3}[-.\s*]?\d{4}(?![\d-]))/;
+const PHONE_RE_2 = /(?:(?<![\d-])(?:(?:\(\+?\d{2}\))|(?:\+?\d{2}))\s*\d{2}\s*\d{3}\s*\d{4}(?![\d-]))/;
+const EMAIL_RE = /([a-z0-9!#$%&'*+\/=?^_`{|.}~-]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)/i;
+const CREDIT_CARD_RE = /((?:(?:\d{4}[- ]?){3}\d{4}|\d{15,16}))(?![\d])/;
+const SSN_RE = /\d{3}-?\d{2}-?\d{4}/;
 
 const INTENT_TO_QUESTION_TYPE = Object.freeze({
   gqa: 'generic',
@@ -103,6 +108,15 @@ export function getGqaQuestionType(request) {
 export function cleanGqaInput(value) {
   const text = String(value).replace(/\?/g, '');
   return text.replace(WH_REMOVAL_RE, '$1').replace(JIBO_REMOVAL_RE, '').trim();
+}
+
+/** Source gqa.nlp.pii_filter for the request-level internal block. */
+export function gqaPiiFilter(text) {
+  return PHONE_RE_1.test(text)
+    || PHONE_RE_2.test(text)
+    || EMAIL_RE.test(text)
+    || CREDIT_CARD_RE.test(text)
+    || SSN_RE.test(text);
 }
 
 /** Source random.choices([questionType, generic], weights=[.25, .75]). */
@@ -335,6 +349,57 @@ function normalizeProviderOutput(value) {
   return value;
 }
 
+const SOURCE_PROVIDER_PLAN = Object.freeze([
+  Object.freeze([
+    ['Bing', 'Bing'],
+    ['Wikipedia', 'Wikipedia'],
+  ]),
+  Object.freeze([
+    ['Wolfram Alpha', 'Wolfram Alpha'],
+  ]),
+]);
+
+function hasGqaPayload(output) {
+  return Boolean(output && output.response && output.response.payload);
+}
+
+/**
+ * Build the source provider fallback boundary around named local adapters.
+ *
+ * The original starts Bing and Wikipedia together, gives Bing priority when
+ * both answer, then tries Wolfram Alpha only after that group has no usable
+ * result. Individual adapter failures are private failed results, matching
+ * GqaParallelQuery.make_async_call; they do not become the client-facing
+ * GQA_error response. The local fixture adapters used by the controls resolve
+ * immediately, so this helper intentionally leaves the original wall-clock
+ * timeout policy to the deployment adapter.
+ */
+export function createGqaProviderPipeline({ providers = {} } = {}) {
+  for (const group of SOURCE_PROVIDER_PLAN) {
+    for (const [name, key] of group) {
+      if (typeof (providers[name] || providers[key]) !== 'function') {
+        throw new TypeError(`Missing GQA provider adapter: ${name}`);
+      }
+    }
+  }
+  return async function gqaProviderPipeline(context) {
+    for (const group of SOURCE_PROVIDER_PLAN) {
+      const results = await Promise.all(group.map(async ([name, key]) => {
+        const adapter = providers[name] || providers[key];
+        try {
+          return normalizeProviderOutput(await adapter(context));
+        } catch (_error) {
+          return {};
+        }
+      }));
+      for (const result of results) {
+        if (hasGqaPayload(result)) return result;
+      }
+    }
+    return {};
+  };
+}
+
 /**
  * Create the source-shaped answer handler.
  *
@@ -342,11 +407,14 @@ function normalizeProviderOutput(value) {
  * local fake. It receives the original request and cleaned/provider fields,
  * and returns the source GqaParallelQuery output shape:
  * `{source, response:{payload, ...}, type?, url?, timings?}` for a useful
- * result, `{}` for no answer, or `{message}` for a provider failure. A thrown
- * provider error is converted to the same source GQA_error MIM path.
+ * result, `{}` for no answer, or `{message}` for an explicit service error.
+ * A thrown provider error is treated as a failed provider call; the source
+ * GqaParallelQuery records that failure privately and, when no provider
+ * succeeds, choose_slim emits the normal no-answer MIM instead of GQA_error.
  */
-export function createGqaAnswerSkill({ provider = async () => ({}), rng = Math.random, clock = Date.now, skillId = 'answer', idFactory = newJcpId, messageId = randomUUID } = {}) {
+export function createGqaAnswerSkill({ provider = async () => ({}), providers, rng = Math.random, clock = Date.now, skillId = 'answer', idFactory = newJcpId, messageId = randomUUID } = {}) {
   if (typeof provider !== 'function') throw new TypeError('GQA provider must be a function');
+  const invokeProvider = providers ? createGqaProviderPipeline({ providers }) : provider;
   return async function gqaAnswerSkill(request) {
     const start = clock();
     const rawText = sourceQuestionText(request);
@@ -354,33 +422,48 @@ export function createGqaAnswerSkill({ provider = async () => ({}), rng = Math.r
     const questionType = getGqaQuestionType(request);
     const context = requestContext(request, queryText, questionType);
 
-    let output;
-    try {
-      output = normalizeProviderOutput(await provider(context));
-    } catch (error) {
-      // GqaParallelQuery records service exceptions as output.message and
-      // choose_slim then emits GQA_error. The error is intentionally not sent
-      // to the client as provider data.
-      output = { message: error instanceof Error ? error.message : String(error) };
+    let output = {};
+    let slim;
+    // Match the source's request-level blocks before starting providers:
+    // missing robot IP is an internal GQA_error, while PII gets its own MIM.
+    // The source checks IP first, so preserve that ordering when both apply.
+    if (!context.ipAddress) {
+      output = { message: 'Robot IP address not supplied!' };
+      slim = buildGqaSlimFromMim('GQA_error', undefined, { rng, idFactory });
+    } else if (gqaPiiFilter(queryText)) {
+      slim = buildGqaSlimFromMim('GQA_pii_filter', undefined, { rng, idFactory });
+    } else {
+      try {
+        output = normalizeProviderOutput(await invokeProvider(context));
+      } catch (error) {
+        // GqaParallelQuery catches each provider exception, records it in its
+        // private service log, and continues to the next provider. If every
+        // provider fails, its returned output has no `message` field; source
+        // choose_slim therefore takes the ordinary no-answer MIM path. Keep
+        // the exception private. An explicit provider `{message}` remains
+        // the separate source error contract above.
+        output = {};
+      }
     }
 
-    let slim;
-    if (output.message) {
-      slim = buildGqaSlimFromMim('GQA_error', undefined, { rng, idFactory });
-    } else if (output.response && output.response.payload) {
-      if (typeof output.response.payload !== 'string') {
-        throw new TypeError('GQA provider payload must be a string');
+    if (!slim) {
+      if (output.message) {
+        slim = buildGqaSlimFromMim('GQA_error', undefined, { rng, idFactory });
+      } else if (output.response && output.response.payload) {
+        if (typeof output.response.payload !== 'string') {
+          throw new TypeError('GQA provider payload must be a string');
+        }
+        if (typeof output.source !== 'string') {
+          throw new Error('GQA provider success is missing source');
+        }
+        let answer = output.response.payload;
+        if (!answer.endsWith('.')) answer += '.';
+        slim = buildGqaSlimFromText(answer, output.source, idFactory);
+        output = { ...output, response: { ...output.response, payload: answer } };
+      } else {
+        const responseType = chooseGqaNoAnswerType(questionType, rng);
+        slim = buildGqaSlimFromMim(`GQA_no_answer_${responseType}`, queryText, { rng, idFactory });
       }
-      if (typeof output.source !== 'string') {
-        throw new Error('GQA provider success is missing source');
-      }
-      let answer = output.response.payload;
-      if (!answer.endsWith('.')) answer += '.';
-      slim = buildGqaSlimFromText(answer, output.source, idFactory);
-      output = { ...output, response: { ...output.response, payload: answer } };
-    } else {
-      const responseType = chooseGqaNoAnswerType(questionType, rng);
-      slim = buildGqaSlimFromMim(`GQA_no_answer_${responseType}`, queryText, { rng, idFactory });
     }
 
     const end = clock();

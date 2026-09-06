@@ -5,7 +5,9 @@ import {
   buildGqaSlimFromMim,
   buildGqaSlimFromText,
   cleanGqaInput,
+  createGqaProviderPipeline,
   createGqaAnswerSkill,
+  gqaPiiFilter,
   getGqaQuestionType,
   gqaMimPromptIds,
 } from '../src/gqaAnswerSkill.js';
@@ -125,7 +127,7 @@ test('Q-01 empty provider result selects a source no-answer MIM and display', as
   });
 });
 
-test('Q-01 provider failure uses GQA_error while keeping error details server-side', async () => {
+test('Q-01 thrown provider failure follows source no-answer fallback', async () => {
   const handler = createGqaAnswerSkill({
     idFactory: idFactory(),
     messageId: () => 'response-id',
@@ -136,14 +138,83 @@ test('Q-01 provider failure uses GQA_error while keeping error details server-si
 
   const response = await handler(sourceRequest({ text: 'who is a fixture person', intent: 'generalWhoQuestions' }));
   const slim = response.data.action.config.jcp;
-  assert.equal(slim.config.play.meta.prompt_id, 'GQA_error_01');
-  assert.match(slim.config.play.esml, /sources/);
-  assert.equal(slim.config.display, null);
+  assert.equal(slim.config.play.meta.prompt_id, 'GQA_no_answer_who_01');
+  assert.equal(slim.config.display.type, 'DISPLAY');
   assert.deepEqual(response.data.analytics.answer[1], {
     event: 'Answer Query',
     properties: { success: false },
   });
   assert.equal(JSON.stringify(response).includes('fixture provider unavailable'), false);
+});
+
+test('Q-01 explicit provider message remains the source GQA_error contract', async () => {
+  const handler = createGqaAnswerSkill({
+    idFactory: idFactory(),
+    messageId: () => 'response-id',
+    rng: () => 0,
+    provider: async () => ({ message: 'fixture provider unavailable' }),
+  });
+
+  const response = await handler(sourceRequest({ text: 'who is a fixture person', intent: 'generalWhoQuestions' }));
+  const slim = response.data.action.config.jcp;
+  assert.equal(slim.config.play.meta.prompt_id, 'GQA_error_01');
+  assert.match(slim.config.play.esml, /sources/);
+  assert.equal(slim.config.display, null);
+  assert.equal(JSON.stringify(response).includes('fixture provider unavailable'), false);
+});
+
+test('Q-01 provider pipeline preserves source fallback order and private failures', async () => {
+  const calls = [];
+  const pipeline = createGqaProviderPipeline({
+    providers: {
+      Bing: async () => {
+        calls.push('Bing');
+        throw new Error('Bing unavailable');
+      },
+      Wikipedia: async () => {
+        calls.push('Wikipedia');
+        return {};
+      },
+      'Wolfram Alpha': async () => {
+        calls.push('Wolfram Alpha');
+        return {
+          source: 'Wolfram Alpha',
+          response: { type: 'string', payload: 'A computed fixture answer.' },
+        };
+      },
+    },
+  });
+  const output = await pipeline({ queryText: 'fixture' });
+  assert.deepEqual(calls, ['Bing', 'Wikipedia', 'Wolfram Alpha']);
+  assert.equal(output.source, 'Wolfram Alpha');
+});
+
+test('Q-01 provider pipeline rejects an incomplete adapter inventory', () => {
+  assert.throws(
+    () => createGqaProviderPipeline({ providers: { Bing: async () => ({}) } }),
+    /Missing GQA provider adapter: Wikipedia/,
+  );
+});
+
+test('Q-01 request blocks match source IP and PII ordering before providers', async () => {
+  const calls = [];
+  const provider = async () => {
+    calls.push('provider');
+    return { source: 'Bing', response: { type: 'string', payload: 'unexpected' } };
+  };
+  const missingIp = sourceRequest();
+  missingIp.data.general.remoteAddress = '';
+  const ipHandler = createGqaAnswerSkill({ provider, rng: () => 0, idFactory: idFactory(), messageId: () => 'response-id' });
+  const ipResponse = await ipHandler(missingIp);
+  assert.equal(ipResponse.data.action.config.jcp.config.play.meta.prompt_id, 'GQA_error_01');
+
+  const pii = sourceRequest({ text: 'email fixture@example.com' });
+  const piiHandler = createGqaAnswerSkill({ provider, rng: () => 0, idFactory: idFactory(), messageId: () => 'response-id' });
+  const piiResponse = await piiHandler(pii);
+  assert.equal(piiResponse.data.action.config.jcp.config.play.meta.prompt_id, 'GQA_pii_filter_AN_01');
+  assert.equal(calls.length, 0);
+  assert.equal(gqaPiiFilter('fixture@example.com'), true);
+  assert.equal(gqaPiiFilter('ordinary fixture text'), false);
 });
 
 test('Q-01 exposes the source scripted question mapping and full MIM inventories', () => {
