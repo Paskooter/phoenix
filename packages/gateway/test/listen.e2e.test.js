@@ -10,20 +10,27 @@ import { jwt } from '@phoenix/common';
 import { validate, schemas } from '@phoenix/contracts';
 
 const SECRET = 'test-secret';
-const PORTS = { nlu: 7511, skills: 7514, gateway: 7510 };
+const PORTS = { nlu: 7511, skills: 7514, gateway: 7510, history: 7516 };
 
-let nluSrv, skillsSrv, gw;
+let nluSrv, skillsSrv, historySrv, gw;
 
 before(async () => {
   process.env.ETCO_server_hubTokenSecret = SECRET;
   process.env.NET_parser = `localhost:${PORTS.nlu}`;
   process.env.NET_skills = `localhost:${PORTS.skills}`;
+  // Original launch-history recording defaults to true. Keep that enabled
+  // and host its real dependency inside this test instead of contacting a
+  // workstation service through the default hostname/port.
+  process.env.NET_history = `localhost:${PORTS.history}`;
+  delete process.env.ETCO_hub_recordLaunchHistory;
   delete process.env.ETCO_hub_disableAuth;
   const { start: startNlu } = await import('@phoenix/nlu');
   const { start: startSkills } = await import('@phoenix/skills');
+  const { start: startHistory } = await import('@phoenix/history');
   const { start: startGateway } = await import('@phoenix/gateway');
   nluSrv = await startNlu(PORTS.nlu);
   skillsSrv = await startSkills(PORTS.skills);
+  historySrv = await startHistory(PORTS.history);
   gw = await startGateway(PORTS.gateway);
 });
 
@@ -32,6 +39,7 @@ after(async () => {
   gw?.service?.server?.close();
   nluSrv?.close?.();
   skillsSrv?.close?.();
+  historySrv?.close?.();
 });
 
 function token() {
