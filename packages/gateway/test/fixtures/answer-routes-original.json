@@ -1,0 +1,157 @@
+{
+  "runtime": "v8.9.4",
+  "profile": "Archived native CLI output passed to original entity extraction, result selection and IntentRouter; not ParserService HTTP execution",
+  "knownRules": [
+    "launch"
+  ],
+  "configIDs": [
+    "answer",
+    "news",
+    "report-skill",
+    "chitchat-skill",
+    "@be/circuit-saver",
+    "@be/clock",
+    "@be/create",
+    "@be/exercise",
+    "@be/friendly-tips",
+    "@be/gallery",
+    "@be/greetings",
+    "@be/hue-control",
+    "@be/ifttt",
+    "@be/introductions",
+    "@be/main-menu",
+    "@be/radio",
+    "@be/settings",
+    "@be/surprises-ota",
+    "@be/tutorial",
+    "@be/who-am-i",
+    "@be/word-of-the-day"
+  ],
+  "results": [
+    {
+      "text": "who is ada lovelace",
+      "nlu": {
+        "intent": "whoIsPerson",
+        "entities": {
+          "GivenName": "ada",
+          "LastName": "lovelace",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "answer",
+        "weight": 0,
+        "memo": {
+          "type": "who"
+        }
+      },
+      "onRobot": false
+    },
+    {
+      "text": "who is isaac newton",
+      "nlu": {
+        "intent": "whoIsPerson",
+        "entities": {
+          "GivenName": "isaac",
+          "LastName": "newton",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "answer",
+        "weight": 0,
+        "memo": {
+          "type": "who"
+        }
+      },
+      "onRobot": false
+    },
+    {
+      "text": "who is the owner of spacex",
+      "nlu": {
+        "intent": "generalWhoQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "answer",
+        "weight": 0,
+        "memo": {
+          "type": "who"
+        }
+      },
+      "onRobot": false
+    },
+    {
+      "text": "what is the capital of france",
+      "nlu": {
+        "intent": "requestTellAboutThing",
+        "entities": {
+          "GivenName": "france",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "answer",
+        "weight": 0,
+        "memo": {
+          "type": "generic"
+        }
+      },
+      "onRobot": false
+    },
+    {
+      "text": "what is quantum chromodynamics",
+      "nlu": {
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "answer",
+        "weight": 0,
+        "memo": {
+          "type": "what"
+        }
+      },
+      "onRobot": false
+    },
+    {
+      "text": "how does photosynthesis work",
+      "nlu": {
+        "intent": "generalQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "answer",
+        "weight": 0,
+        "memo": {
+          "type": "generic"
+        }
+      },
+      "onRobot": false
+    }
+  ]
+}

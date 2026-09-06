@@ -72,30 +72,42 @@ function runListen(outbound, { auth = token() } = {}) {
   });
 }
 
-test('CLIENT_ASR: full pipeline robot -> gateway -> nlu -> answer-skill', async () => {
-  const messages = await runListen([
-    { type: 'LISTEN', msgID: '1', ts: Date.now(), data: { lang: 'en-US', hotphrase: true, rules: ['launch', 'global'], mode: 'CLIENT_ASR', asr: 'FAKE' } },
-    context(),
-    { type: 'CLIENT_ASR', msgID: '3', ts: Date.now(), data: { text: 'who is ada lovelace' } },
-  ]);
+// Original native launch.fst selects whoIsPerson for Ada, and the original
+// IntentRouter routes it to the external answer service. Keep the generic
+// question path covered too; both reach Phoenix's answer deployment alias.
+for (const [text, intent] of [
+  ['who is ada lovelace', 'whoIsPerson'],
+  ['who is the owner of spacex', 'generalWhoQuestions'],
+]) {
+  test(`CLIENT_ASR: full answer pipeline for ${text}`, async () => {
+    const messages = await runListen([
+      { type: 'LISTEN', msgID: '1', ts: Date.now(), data: { lang: 'en-US', hotphrase: true, rules: ['launch', 'global'], mode: 'CLIENT_ASR', asr: 'FAKE' } },
+      context(),
+      { type: 'CLIENT_ASR', msgID: '3', ts: Date.now(), data: { text } },
+    ]);
 
-  assert.deepEqual(messages.map((m) => m.type), ['SOS', 'EOS', 'LISTEN', 'SKILL_ACTION']);
+    assert.deepEqual(messages.map((m) => m.type), ['SOS', 'EOS', 'LISTEN', 'SKILL_ACTION']);
 
-  const [sos, eos, listen, action] = messages;
-  assert.equal(sos.timings.total, -1, 'fake SOS carries timings.total -1');
-  assert.equal(eos.timings.total, -1, 'fake EOS carries timings.total -1');
+    const [sos, eos, listen, action] = messages;
+    assert.equal(sos.timings.total, -1, 'fake SOS carries timings.total -1');
+    assert.equal(eos.timings.total, -1, 'fake EOS carries timings.total -1');
 
-  assert.equal(listen.final, false, 'cloud-skill match -> non-final LISTEN');
-  assert.equal(listen.data.match.skillID, 'answer-skill');
-  assert.equal(listen.data.match.onRobot, false);
-  assert.equal(listen.data.nlu.intent, 'generalWhoQuestions');
-  assert.equal(listen.data.asr.text, 'who is ada lovelace');
+    assert.equal(listen.final, false, 'cloud-skill match -> non-final LISTEN');
+    assert.equal(listen.data.match.skillID, 'answer-skill');
+    assert.equal(listen.data.match.onRobot, false);
+    assert.equal(listen.data.nlu.intent, intent);
+    assert.equal(listen.data.asr.text, text);
+    if (intent === 'whoIsPerson') {
+      assert.equal(listen.data.nlu.entities.GivenName, 'ada');
+      assert.equal(listen.data.nlu.entities.LastName, 'lovelace');
+    }
 
-  assert.equal(action.final, true, 'SKILL_ACTION is final');
-  assert.ok(validate(schemas.skillResponse, action).valid);
-  assert.equal(action.data.action.config.jcp.type, 'SEQUENCE');
-  assert.ok(action.data.skill.session.id, 'session round-trips');
-});
+    assert.equal(action.final, true, 'SKILL_ACTION is final');
+    assert.ok(validate(schemas.skillResponse, action).valid);
+    assert.equal(action.data.action.config.jcp.type, 'SEQUENCE');
+    assert.ok(action.data.skill.session.id, 'session round-trips');
+  });
+}
 
 test('CLIENT_NLU: skips ASR + parser, routes directly', async () => {
   const messages = await runListen([

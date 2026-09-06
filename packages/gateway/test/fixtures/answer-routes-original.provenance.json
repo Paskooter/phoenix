@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "nativeBuildQualification": "Archived binary used by Pegasus; exact correspondence to the recovered native source revision remains unverified",
+  "captureSha256": "d778014027786f64149072d2bad839256d4c71b0739deffe7cd62d522d7c5bb5",
+  "sourceRuntime": "v8.9.4",
+  "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "network": "none",
+  "profile": "Archived native parse CLI using launch.fst and all 15 factory handles, then original getBestResult/getNLParseEntities and IntentRouter using skills-local.json",
+  "nativeBinarySha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+  "launchFstSha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
+  "sourceManifestSha256": "39d392236cdc9dbd48a2aeaaefb1ef1a03a17fffd9921c1321d93205cf549573",
+  "nativeInputSha256": "6c2549c1e8664e0620afe6261b372977a8baec87c446a914f1f7f3d18c099146",
+  "nativeOutputSha256": "69610ed6be7514119f4d07834043c29fe9a7e8ebc0974e2dd18da5ba0f8d56f7",
+  "nativeReceiptSha256": "da1c457bf5d8cf7ecda3700b718d6d2cd8032d9b8697e54f8de0d87f764f5a0e",
+  "routingReceiptSha256": "29936f92deac8469cbec46ea9307446392aaacc8164a945e161664e6c22bee1a",
+  "routingHarnessSha256": "823d91cb10121eea1917dfd482d6f2fe1c2b12c935b638252a07141b32bd1a91",
+  "expectedCases": 6,
+  "originalUnknownRulesFiltered": [
+    "global"
+  ],
+  "limitations": [
+    "This is native CLI plus original routing evidence, not an original ParserService HTTP capture.",
+    "A preceding host namespace HTTP attempt failed native startup. A pinned Docker HTTP attempt started native service but failed grammar loading with No thread available; both produced zero cases and are excluded.",
+    "Empty-loop inputs are used. Loop member enrichment, current providers, and hardware speech are outside this fixture.",
+    "Phoenix shared-host routing keeps the answer-skill deployment alias and one pre-existing answerQuestion extension."
+  ]
+}

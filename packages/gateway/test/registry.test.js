@@ -12,6 +12,7 @@ import { loadRegistry } from '../src/registry.js';
 import { loadConfig } from '../src/config.js';
 import { SkillConfigManager } from '../src/skillClient.js';
 import { createGateway } from '../src/index.js';
+import { IntentRouter } from '../src/intentRouter.js';
 
 test('registry, config and real HTTP boundary match pinned original Node 8 execution', async () => {
   const provenance = JSON.parse(readFileSync(new URL('./fixtures/registry-original.provenance.json', import.meta.url)));
@@ -66,6 +67,23 @@ test('shared skill host is an explicit deployment profile and supplied env is au
   const explicitPhoenix = await loadConfig({ ETCO_hub_skillsConfig: 'skills-phoenix.json', NET_skills: 'localhost:9014' });
   assert.equal(explicitPhoenix.skills[0].id, 'answer-skill');
   assert.equal(explicitPhoenix.skills[0].URL, 'http://answer-skill:8080/v1/main');
+});
+
+test('the shared answer host preserves original named-person and general-question routes', async () => {
+  const fixtureBytes = readFileSync(new URL('./fixtures/answer-routes-original.json', import.meta.url));
+  const provenance = JSON.parse(readFileSync(new URL('./fixtures/answer-routes-original.provenance.json', import.meta.url)));
+  assert.equal(createHash('sha256').update(fixtureBytes).digest('hex'), provenance.captureSha256);
+  const source = JSON.parse(fixtureBytes);
+  assert.equal(source.results.length, 6);
+  assert.equal(new Set(source.results.map(row => row.text)).size, 6);
+  const config = await loadConfig({ NET_skills: 'localhost:9014' });
+  const router = new IntentRouter(config.skills);
+  const manager = new SkillConfigManager(config.skills);
+  for (const row of source.results) {
+    const decision = router.getSkillIDFromNLU(row.nlu);
+    assert.deepEqual(decision, { ...row.decision, skillID: 'answer-skill' }, row.text);
+    assert.equal(manager.isOnRobotSkill(decision.skillID), row.onRobot, row.text);
+  }
 });
 
 test('startup rejects invalid configuration instead of silently dropping skills or substituting a fallback', async () => {
