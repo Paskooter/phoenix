@@ -4,12 +4,18 @@
 // POST against NET_settings (with the source default settings.jibo.aws). ETCO_report_prefsFromConfig
 // remains a Phoenix alias when prefsFromConfig is absent.
 
+import http from 'node:http';
+import https from 'node:https';
 import { getJSON, getAccountFromLooper, speakerIsAdult } from './utils.js';
 import { getReportEnv, reportPeerURL } from './env.js';
 
 const SETTINGS_API_VERSION = '20160801';
 const PREFS_CONFIG = 'report-prefsConfig';
 const NO_AUTH = 'no-auth-provided';
+// These are the defaults emitted by the pinned source Axios 0.17.1 Node
+// adapter. Keep them at this client boundary; they are not shared HTTP defaults.
+const SETTINGS_ACCEPT = 'application/json, text/plain, */*';
+const SETTINGS_USER_AGENT = 'axios/0.17.1';
 
 const CommuteModeNames = ['driving', 'walking', 'bicycling', 'transit'];
 
@@ -54,17 +60,10 @@ export class SettingsClient {
     if (!accountId || accountId === NO_AUTH || !loopId) {
       throw new Error(`Missing creds for Settings request. Got accountID: ${!!accountId} | loopID: ${!!loopId}`);
     }
-    const res = await fetch(reportPeerURL(getReportEnv().NET_settings), {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json;charset=utf-8',
-        'x-amz-credentials': JSON.stringify({ id: accountId }),
-        'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
-      },
-      body: JSON.stringify({ loopId, transId, getView: false, skills: 'report-skill' }),
-    });
-    if (!res.ok) throw new Error(`Settings service ${res.status}`);
-    return res.json();
+    const body = JSON.stringify({ loopId, transId, getView: false, skills: 'report-skill' });
+    const res = await requestSettings(reportPeerURL(getReportEnv().NET_settings), body, accountId);
+    if (res.statusCode < 200 || res.statusCode >= 300) throw new Error(`Settings service ${res.statusCode}`);
+    return JSON.parse(res.body);
   }
 
   static convertSettingsToPrefs(settings) {
@@ -142,4 +141,49 @@ export class SettingsClient {
       commutePrefs.workTime.hour, commutePrefs.workTime.min,
     ]);
   }
+}
+
+/**
+ * Send the legacy Settings request with the headers controlled by the source
+ * Axios/Node adapter. The global fetch implementation adds runtime defaults
+ * (Accept, User-Agent, Accept-Encoding, Sec-Fetch-Mode, and keep-alive) that
+ * are absent from or differ from the source request. This helper is private to
+ * SettingsClient so other Phoenix HTTP clients keep their existing behavior.
+ */
+function requestSettings(peer, body, accountId) {
+  const target = new URL(peer);
+  const transport = target.protocol === 'https:' ? https : http;
+  const headers = {
+    Accept: SETTINGS_ACCEPT,
+    'Content-Type': 'application/json;charset=utf-8',
+    'x-amz-credentials': JSON.stringify({ id: accountId }),
+    'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
+    'User-Agent': SETTINGS_USER_AGENT,
+    'Content-Length': Buffer.byteLength(body),
+    Host: target.host,
+    Connection: 'close',
+  };
+
+  return new Promise((resolve, reject) => {
+    const request = transport.request({
+      protocol: target.protocol,
+      hostname: target.hostname,
+      port: target.port || undefined,
+      path: `${target.pathname}${target.search}`,
+      method: 'POST',
+      headers,
+      agent: false,
+    }, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => resolve({
+        statusCode: response.statusCode,
+        headers: response.headers,
+        body: Buffer.concat(chunks).toString('utf8'),
+      }));
+      response.on('error', reject);
+    });
+    request.on('error', reject);
+    request.end(body);
+  });
 }

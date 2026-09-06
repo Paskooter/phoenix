@@ -1,0 +1,9 @@
+# C-03 Settings wire follow-up candidate
+
+This unverified candidate starts from `16d4db2ac7a3c4bba50ac14e654b21d362053d9c` and changes only the Report SettingsClient outbound transport. The previous global `fetch` call added Node 22 defaults that differed from the pinned Axios 0.17.1 / Node 8 source request. A private `node:http`/`node:https` helper now sends the source-controlled Accept, User-Agent, Content-Type, Connection, credentials, target, Host, and byte-length headers. Other Phoenix HTTP clients keep their existing transport behavior.
+
+The actual differential used `createSettingsInternalService` from frozen integration `16d4db2ac7a3c4bba50ac14e654b21d362053d9c`, with fixed local Account, Hub, Person, and Lasso provider seams. A loopback recording proxy captured complete raw request and response headers, bodies, status fields, and decoded results. The original client ran with the extracted Node 8.9.4 executable whose SHA-256 is `03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d`; the candidate ran on Node 22.22.0.
+
+The source and candidate requests were byte-identical, including header order and values. `Settings_20160801.GetSettings`, `{id:"account-1"}`, `loopId`, `transId`, `getView:false`, and `skills:"report-skill"` all matched. Both listener responses returned status 200 with byte-identical bodies and response headers; the decoded report-skill data shape was identical. Complete evidence is in `.parity/reviews/c03-settings-wire-16d4db2-20260906/settings-client-differential.json`.
+
+The focused report configuration tests pass 8/8 and the full unit suite passes 448/448. Provider deployment, redirect/error/retry behavior, and live services remain outside this bounded candidate. No main, robot, golden, comparator, shared lockfile, or unrelated client files were changed.

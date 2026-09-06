@@ -1,0 +1,99 @@
+{
+  "status": "bounded-settings-wire-followup-unverified",
+  "task": "C-03",
+  "base": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
+  "branch": "codex/candidate-c03-settings-wire-20260906",
+  "worktree": ".parity/worktrees/c03-settings-wire",
+  "scope": [
+    "packages/skills/src/report/settingsClient.js",
+    "packages/skills/test/reportConfig.test.js",
+    "docs/parity/candidates/C-03-settings-wire-followup.md",
+    "docs/parity/candidates/C-03-settings-wire-followup.json"
+  ],
+  "implementation": {
+    "change": "Replace the SettingsClient-only global fetch call with a private node:http/node:https POST helper.",
+    "sourceControlledHeaders": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json;charset=utf-8",
+      "User-Agent": "axios/0.17.1",
+      "Connection": "close",
+      "x-amz-credentials": "JSON object containing the account id",
+      "x-amz-target": "Settings_20160801.GetSettings",
+      "Content-Length": "UTF-8 byte length of the exact JSON body",
+      "Host": "target host"
+    },
+    "preserved": [
+      "NET_settings resolution and source URL construction",
+      "account/loop/transId validation",
+      "getView:false and skills:report-skill body fields",
+      "status rejection and decoded JSON return shape",
+      "all other Phoenix HTTP clients"
+    ]
+  },
+  "source": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "referencePath": ".parity/reference/5c0a7390539663ba749d360de348a428c088505c",
+    "settingsClientSha256": "bb2387cc3324347b9cce204279c20478271abc88295eb3a882b2ca867e8efbfb",
+    "axiosVersion": "0.17.1",
+    "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "nodeExecutableSha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d",
+    "execution": "Exact extracted Node 8.9.4 host executable; not Docker."
+  },
+  "listener": {
+    "integrationHead": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
+    "implementation": "createSettingsInternalService from the frozen integration worktree",
+    "providerSeams": [
+      "Account membership",
+      "Hub skill configs",
+      "Person account/loop properties",
+      "Lasso credentials"
+    ],
+    "scope": "Fixed local seams exercise the actual internal Settings route/controller; deployed provider services are not exercised."
+  },
+  "differential": {
+    "evidence": ".parity/reviews/c03-settings-wire-16d4db2-20260906/settings-client-differential.json",
+    "request": {
+      "methodUrlBodyEqual": true,
+      "rawHeadersEqual": true,
+      "normalizedHeaderDifferences": [],
+      "targetEqual": true,
+      "credentialsEqual": true,
+      "transIdEqual": true,
+      "getViewFalseEqual": true,
+      "skillSelectorEqual": true
+    },
+    "response": {
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "rawHeadersEqual": true,
+      "bodyBytesEqual": true,
+      "decodedReturnShapeEqual": true
+    }
+  },
+  "validation": {
+    "focusedReportConfig": {
+      "command": "node --test packages/skills/test/reportConfig.test.js",
+      "passed": 8,
+      "failed": 0,
+      "log": ".parity/reviews/c03-settings-wire-16d4db2-20260906/focused.log"
+    },
+    "repositoryUnit": {
+      "command": "npm run test:unit",
+      "passed": 448,
+      "failed": 0,
+      "log": ".parity/reviews/c03-settings-wire-16d4db2-20260906/repository-unit.log"
+    },
+    "syntax": [
+      "node --check packages/skills/src/report/settingsClient.js",
+      "git diff --check"
+    ],
+    "workspaceResolution": "Copied the independently installed frozen integration node_modules; @phoenix/common, @phoenix/skills, and @phoenix/contracts resolve inside this candidate worktree."
+  },
+  "limits": [
+    "Candidate remains unverified pending root review.",
+    "Source and candidate use different host runtimes (Node 8.9.4 versus Node 22.22.0); the successful local request had byte-identical headers, body, status, and response in this run.",
+    "Only the successful legacy GetSettings request was compared; redirect, DNS, TLS, non-2xx, malformed response, and retry behavior remain outside this bounded wire repair.",
+    "Provider seams are synthetic fixed functions behind the actual internal Settings listener; no deployed Account, Hub, Person, or Lasso service was started.",
+    "No main, robot, golden, comparator, shared lockfile, or unrelated client changes were made."
+  ]
+}

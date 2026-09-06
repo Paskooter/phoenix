@@ -168,6 +168,12 @@ test('source NET_lasso and NET_settings names drive local peer HTTP exchange', a
       const settingsRequest = requests.find((request) => request.method === 'POST');
       assert.equal(settingsRequest.headers['x-amz-target'], 'Settings_20160801.GetSettings');
       assert.deepEqual(JSON.parse(settingsRequest.headers['x-amz-credentials']), { id: 'account-1' });
+      assert.equal(settingsRequest.headers.accept, 'application/json, text/plain, */*');
+      assert.equal(settingsRequest.headers['user-agent'], 'axios/0.17.1');
+      assert.equal(settingsRequest.headers.connection, 'close');
+      assert.equal(settingsRequest.headers['accept-encoding'], undefined);
+      assert.equal(settingsRequest.headers['accept-language'], undefined);
+      assert.equal(settingsRequest.headers['sec-fetch-mode'], undefined);
       assert.deepEqual(JSON.parse(settingsRequest.body), {
         loopId: 'loop-1', transId: 'trans-1', getView: false, skills: 'report-skill',
       });
