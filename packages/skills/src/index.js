@@ -1,7 +1,9 @@
 // Skills service host (Pegasus baseskill + skills equivalent). Milestone M7.
 //
 // Hosts the cloud skills, each at POST /v1/<id>/main (the gateway registry points each cloud
-// skill's URL there); answer-skill is also at /v1/main for back-compat.
+// skill's URL there). A PHOENIX_SKILL_ID process may expose one selected skill at /v1/main,
+// which is the deployment shape used by the per-skill compose/native launchers. With no
+// selection, the shared host keeps the combined multi-skill service and answer-skill default.
 
 import { DefaultPort } from '@phoenix/contracts';
 import { createSkillsService, createSkillService } from './skillService.js';
@@ -41,7 +43,12 @@ export const SKILLS = [
   { id: 'template-skill', handler: templateSkill },
 ];
 
-export function start(port = Number(process.env.PORT) || DefaultPort.skills) {
+export function start(port = Number(process.env.PORT) || DefaultPort.skills, { skillId = process.env.PHOENIX_SKILL_ID } = {}) {
+  if (skillId) {
+    const selected = SKILLS.find((skill) => skill.id === skillId);
+    if (!selected) throw new Error(`Unknown PHOENIX_SKILL_ID '${skillId}'`);
+    return createSkillService({ name: selected.id, skillId: selected.id, handler: selected.handler }).listen(port);
+  }
   return createSkillsService({ name: 'skills', skills: SKILLS, defaultId: 'answer-skill' }).listen(port);
 }
 

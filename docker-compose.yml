@@ -12,8 +12,8 @@
 #
 # All services share the mounted packages on the node:20-slim-based runtime image.
 # Runtime dependencies and ffmpeg come from the rebuilt image. No redis/mongo: Phoenix stores are in-memory by design
-# (see DIVERGENCES.md). Skill containers all run the same skills service; each answers at
-# /v1/<id>/main, and the hub's skills-local.json routes by container name.
+# (see DIVERGENCES.md). Each skill container selects its own skill at /v1/main; the hub's
+# Phoenix registry routes answer/report/chitchat to those per-skill containers.
 #
 # Optional LAN services (Parakeet ASR + LM Studio), as in the user's reference override:
 #   PARAKEET_URL=http://192.168.1.252:6972 LLM_URL=http://192.168.1.252:1234/v1 docker compose up
@@ -41,7 +41,7 @@ services:
     command: node packages/gateway/src/index.js
     environment:
       - PORT=8080
-      - ETCO_hub_skillsConfig=skills-local.json
+      - ETCO_hub_skillsConfig=skills-phoenix.json
       - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
       - ETCO_hub_disableAuth=${DISABLE_AUTH:-true}
       # Per-robot auth (G.5): when DISABLE_AUTH=false, validate each token's accessKeyId
@@ -90,6 +90,7 @@ services:
     command: node packages/skills/src/index.js
     environment:
       - PORT=8080
+      - PHOENIX_SKILL_ID=answer-skill
       - NET_data=lasso:8080
       - ETCO_answer_llmUrl=${LLM_URL:-}
       - ETCO_answer_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
@@ -103,6 +104,7 @@ services:
     command: node packages/skills/src/index.js
     environment:
       - PORT=8080
+      - PHOENIX_SKILL_ID=report-skill
       - NET_data=lasso:8080
       - NET_settings=${NET_SETTINGS:-}
       - ETCO_report_prefsFromConfig=${PREFS_FROM_CONFIG:-}
@@ -116,6 +118,7 @@ services:
     command: node packages/skills/src/index.js
     environment:
       - PORT=8080
+      - PHOENIX_SKILL_ID=chitchat-skill
       - NET_data=lasso:8080
     ports:
       - 9004:8080

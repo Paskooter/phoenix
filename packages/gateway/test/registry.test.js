@@ -31,8 +31,11 @@ test('registry, config and real HTTP boundary match pinned original Node 8 execu
   // JSON is the retained original observation format (undefined fields omitted).
   const serial = JSON.parse(JSON.stringify(actual));
   for (const group of ['validations', 'registries', 'config']) {
-    assert.equal(serial[group].length, expected[group].length, group);
-    for (const row of expected[group]) assert.deepEqual(serial[group].find(item => item.id === row.id), row, `${group}/${row.id}`);
+    const actualIDs = serial[group].map(row => row.id);
+    const expectedIDs = expected[group].map(row => row.id);
+    assert.deepEqual(actualIDs, expectedIDs, `${group}/ordered ids`);
+    assert.equal(new Set(actualIDs).size, actualIDs.length, `${group}/unique ids`);
+    assert.deepEqual(serial[group], expected[group], group);
   }
   assert.deepEqual(serial.originalIndex, expected.originalIndex, 'bundled registry is unchanged source data');
   assert.deepEqual(serial.http.map(normalizeHttp), expected.http.map(normalizeHttp));
@@ -47,6 +50,12 @@ test('shared skill host is an explicit deployment profile and supplied env is au
   assert.equal(shared.skills[0].URL, 'http://localhost:9014/v1/answer-skill/main');
   assert.equal(shared.parserURL, 'http://parser:9999');
   assert.ok(shared.skills.find(skill => skill.id === 'report-skill').settings.view);
+  const explicitSource = await loadConfig({ ETCO_hub_skillsConfig: 'skills-local.json', NET_skills: 'localhost:9014' });
+  assert.equal(explicitSource.skills[0].id, 'answer');
+  assert.equal(explicitSource.skills[0].URL, 'http://docker.for.mac.localhost:9002/answer_skill/v1/main');
+  const explicitPhoenix = await loadConfig({ ETCO_hub_skillsConfig: 'skills-phoenix.json', NET_skills: 'localhost:9014' });
+  assert.equal(explicitPhoenix.skills[0].id, 'answer-skill');
+  assert.equal(explicitPhoenix.skills[0].URL, 'http://answer-skill:8080/v1/main');
 });
 
 test('startup rejects invalid configuration instead of silently dropping skills or substituting a fallback', async () => {

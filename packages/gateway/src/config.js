@@ -22,7 +22,8 @@ export async function loadConfig(env = process.env, registryOptions = {}) {
     : alias && env[alias] ? peer(name, env[alias]) : `http://${fallback}`;
   // A shared Phoenix skill host is an explicit deployment adapter. Without
   // that override, use the original index and each entry's complete URL.
-  const skillsBase = (env.NET_skills || env.ETCO_hub_skillsUrl)
+  const explicitSkillsConfig = Boolean(env.ETCO_hub_skillsConfig);
+  const skillsBase = !explicitSkillsConfig && (env.NET_skills || env.ETCO_hub_skillsUrl)
     ? peer('skills', env.ETCO_hub_skillsUrl)
     : '';
   const indexFile = env.ETCO_hub_skillsConfig || (skillsBase ? 'skills-phoenix.json' : 'skills-local.json');

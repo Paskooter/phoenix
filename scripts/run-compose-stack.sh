@@ -22,12 +22,13 @@ PORT=9005 ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
 PORT=9006 node packages/history/src/index.js  > /tmp/phx-compose-history.log 2>&1 &
 PORT=9007 node packages/data/src/index.js     > /tmp/phx-compose-lasso.log   2>&1 &
 
-# Skill services (each hosts every skill at /v1/<id>/main; the hub routes by port).
-PORT=9009 NET_data=localhost:9007 ETCO_answer_llmUrl="$LLM_URL" ETCO_answer_llmModel="$LLM_MODEL" \
+# Skill services select one skill at /v1/main. The shared NET_skills profile still uses the
+# combined host when no PHOENIX_SKILL_ID is supplied.
+PORT=9009 PHOENIX_SKILL_ID=answer-skill NET_data=localhost:9007 ETCO_answer_llmUrl="$LLM_URL" ETCO_answer_llmModel="$LLM_MODEL" \
   node packages/skills/src/index.js   > /tmp/phx-compose-answer.log  2>&1 &
-PORT=9003 NET_data=localhost:9007 ETCO_report_prefsFromConfig="${PREFS_FROM_CONFIG:-}" \
+PORT=9003 PHOENIX_SKILL_ID=report-skill NET_data=localhost:9007 ETCO_report_prefsFromConfig="${PREFS_FROM_CONFIG:-}" \
   node packages/skills/src/index.js   > /tmp/phx-compose-report.log  2>&1 &
-PORT=9004 NET_data=localhost:9007 \
+PORT=9004 PHOENIX_SKILL_ID=chitchat-skill NET_data=localhost:9007 \
   node packages/skills/src/index.js   > /tmp/phx-compose-chitchat.log 2>&1 &
 
 # Phoenix extension (not in the reference contract): the OTA update server. A robot points

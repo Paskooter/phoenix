@@ -4,7 +4,7 @@
 //   2. the hub lists skills at GET /v1/skills
 //   3. a full WS turn through hub:9000 (LISTEN/CONTEXT/CLIENT_NLU launchPersonalReport)
 //      routes to report-skill on :9003 and forwards its SKILL_ACTION
-//   4. a direct POST to report-skill:9003 /v1/report-skill/main answers SKILL_ACTION
+//   4. direct POSTs to each per-skill host's /v1/main answer with the selected skill identity
 // Run after: bash scripts/run-compose-stack.sh   (or docker compose up)
 
 import WebSocket from 'ws';
@@ -63,9 +63,10 @@ const action = frames.find((f) => f.type === 'SKILL_ACTION');
 check('hub WS turn: LISTEN match -> report-skill', listen && listen.data.match && listen.data.match.skillID === 'report-skill', listen && listen.data);
 check('hub WS turn: report-skill SKILL_ACTION forwarded', !!action && action.data.skill.id === 'report-skill', frames.map((f) => f.type));
 
-// 4. direct skill POST on the reference port
+// 4. direct skill POSTs on the per-skill reference ports. Each launcher selects one skill at
+// /v1/main; this catches a process that accidentally leaves the combined answer-skill default.
 try {
-  const r = await fetch(`http://${HOST}:${PORTS['report-skill']}/v1/report-skill/main`, {
+  const r = await fetch(`http://${HOST}:${PORTS['report-skill']}/v1/main`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -79,9 +80,49 @@ try {
     }),
   });
   const j = await r.json();
-  check('report-skill direct POST /v1/report-skill/main', j.type === 'SKILL_ACTION', j.type);
+  check('report-skill direct POST /v1/main', r.ok && j.type === 'SKILL_ACTION' && j.data?.skill?.id === 'report-skill', { status: r.status, type: j.type, skill: j.data?.skill?.id });
 } catch (e) {
   check('report-skill direct POST', false, e.message);
+}
+
+try {
+  const r = await fetch(`http://${HOST}:${PORTS['answer-skill']}/v1/main`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      type: 'LISTEN_LAUNCH', msgID: 'answer', ts: Date.now(),
+      data: {
+        general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
+        runtime: { dialog: {} },
+        skill: { id: 'answer-skill' },
+        result: { asr: { text: 'who is ada lovelace' }, nlu: { intent: 'generalWhoQuestions', rules: ['launch'], entities: {} }, memo: { type: 'who' } },
+      },
+    }),
+  });
+  const j = await r.json();
+  check('answer-skill direct POST /v1/main', r.ok && j.type === 'SKILL_ACTION' && j.data?.skill?.id === 'answer-skill', { status: r.status, type: j.type, skill: j.data?.skill?.id });
+} catch (e) {
+  check('answer-skill direct POST', false, e.message);
+}
+
+try {
+  const r = await fetch(`http://${HOST}:${PORTS['chitchat-skill']}/v1/main`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      type: 'LISTEN_LAUNCH', msgID: 'chitchat', ts: Date.now(),
+      data: {
+        general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
+        runtime: { dialog: {}, perception: {}, loop: { users: [] }, location: { iso: new Date().toISOString() }, character: { emotion: { name: 'NEUTRAL', valence: 0, confidence: 0 } } },
+        skill: { id: 'chitchat-skill' },
+        result: { nlu: { intent: 'requestDance', entities: {}, rules: [] }, asr: { text: '' }, memo: { mim: 'RA_JBO_SpecificDance', type: 'ScriptedResponse' } },
+      },
+    }),
+  });
+  const j = await r.json();
+  check('chitchat-skill direct POST /v1/main', r.ok && j.type === 'SKILL_ACTION' && j.data?.skill?.id === 'chitchat-skill', { status: r.status, type: j.type, skill: j.data?.skill?.id });
+} catch (e) {
+  check('chitchat-skill direct POST', false, e.message);
 }
 
 // 5. EXTENSION (non-fatal): the account service + web portal. Not part of the reference
