@@ -61,8 +61,8 @@ had 488 differences, including 63 report analytics differences. After this
 change the candidate had 423 total differences, zero report analytics
 differences, zero invariants, and zero coverage gaps. The complete 11
 source/candidate Report analytics records were byte/key-order equal; the
-remaining differences are session/provider/runtime fields outside this
-candidate.
+remaining differences are shared response/header framing, session, provider
+requests, skill-request, and other runtime fields outside this candidate.
 
 ## Validation and limits
 
