@@ -137,10 +137,16 @@ function lassoResponsePayload(response, chunks) {
   return JSON.parse(buffer.toString());
 }
 
-function lassoRequest(base, method, path, context, payload, redirectsLeft, headerSnapshot) {
+function lassoRequest(base, method, path, context, payload, redirectsLeft, headerSnapshot, bodySnapshot) {
   if (redirectsLeft === undefined) redirectsLeft = lassoRedirectLimit();
   const url = new URL(path, base);
-  const body = payload === undefined ? null : JSON.stringify(payload);
+  // BaseClient serializes requestPayload before entering Wreck. Wreck then
+  // carries that serialized options.payload through redirects; re-running
+  // JSON.stringify(payload) here would observe mutations between hops and
+  // diverge from the source POST wire body.
+  const body = bodySnapshot === undefined
+    ? payload === undefined ? null : JSON.stringify(payload)
+    : bodySnapshot;
   const headers = headerSnapshot || lassoHeaders(context);
   if (body !== null && headers['content-length'] === undefined) {
     headers['content-length'] = Buffer.byteLength(body);
@@ -181,7 +187,7 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
           }
           const redirectUrl = new URL(location, url);
           response.resume();
-          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1, headers)
+          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1, headers, body)
             .then((value) => finish(null, value), (error) => finish(error));
           return;
         }

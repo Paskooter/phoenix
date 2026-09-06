@@ -297,6 +297,61 @@ test('network Lasso snapshots transaction headers across redirects', async () =>
   }
 });
 
+test('network Lasso snapshots the serialized POST body across redirects', async () => {
+  const bodies = [];
+  let serializations = 0;
+  const target = ['first!'];
+  const scopes = new Proxy(target, {
+    get(object, property, receiver) {
+      if (property === 'toJSON') {
+        return () => {
+          serializations += 1;
+          const snapshot = object.slice();
+          // Equal-length values keep a stale Content-Length from masking a
+          // body-content mismatch by leaving the peer waiting for bytes.
+          if (serializations === 1) object[0] = 'after!';
+          return snapshot;
+        };
+      }
+      return Reflect.get(object, property, receiver);
+    },
+  });
+  const server = http.createServer((req, res) => {
+    let body = '';
+    req.setEncoding('utf8');
+    req.on('data', (chunk) => { body += chunk; });
+    req.once('end', () => {
+      bodies.push(body);
+      if (bodies.length === 1) {
+        res.writeHead(307, { location: '/v1/credential', connection: 'close' });
+        res.end();
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'application/json', connection: 'close' });
+      res.end(JSON.stringify({ created: true }));
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const lasso = providers(`127.0.0.1:${server.address().port}`);
+    assert.deepEqual(
+      await lasso.createUpdateCredential(context, {
+        skillId: 'skill-body', serviceName: 'google', serviceAccountName: 'calendar',
+        scopes, authCode: 'auth',
+      }),
+      { created: true },
+    );
+    const expected = JSON.stringify({
+      skillId: 'skill-body', accountId: context.userId, serviceName: 'google',
+      serviceAccountName: 'calendar', scopes: ['first!'], authCode: 'auth',
+    });
+    assert.deepEqual(bodies, [expected, expected]);
+    assert.equal(serializations, 1);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('network Lasso preserves Wreck string-zero redirect decrement for a finite chain', async () => {
   let requests = 0;
   const server = http.createServer((req, res) => {
