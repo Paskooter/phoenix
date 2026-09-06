@@ -1,0 +1,29 @@
+{
+	"prompts": [
+		{
+			"prompt": "I can't seem to find out where. I tried.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_where_01",
+			"weight": 1
+		},
+		{
+			"prompt": "I looked this up but couldn't find out where.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_where_02",
+			"weight": 1
+		},
+		{
+			"prompt": "Turns out I couldn't find out where, but I bet it's a place.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_where_03",
+			"weight": 0.5
+		},
+		{
+			"prompt": "Seems I can't find out where, but I'm pretty sure it's somewhere in this universe.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_where_04",
+			"weight": 0.1
+		}
+	]
+}
+

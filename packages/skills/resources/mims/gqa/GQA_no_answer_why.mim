@@ -1,0 +1,35 @@
+{
+	"prompts": [
+		{
+			"prompt": "Sorry, I can't seem to find why this is. I tried.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_why_01",
+			"weight": 1
+		},
+		{
+			"prompt": "I looked this up but couldn't find why.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_why_02",
+			"weight": 1
+		},
+		{
+			"prompt": "Turns out I can't find out why. Your guess is as good as mine.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_why_03",
+			"weight": 1
+		},
+		{
+			"prompt": "I couldn't find why. Sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_why_04",
+			"weight": 1
+		},
+		{
+			"prompt": "I checked for you, but came up empty on why.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_why_05",
+			"weight": 1
+		}
+	]
+}
+

@@ -31,6 +31,19 @@ export { GraphManager } from './graph/graphManager.js';
 export { generateSlim, generateSlimSequence, generateSlimFromMim, generateDisplay, weightedSample, newMimState, MimTypes, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
 export { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 export { answerSkill } from './answerSkill.js';
+export {
+  createGqaAnswerSkill,
+  gqaAnswerSkill,
+  buildGqaResponse,
+  buildGqaSlimFromMim,
+  buildGqaSlimFromText,
+  createGqaTextDisplay,
+  getGqaQuestionType,
+  cleanGqaInput,
+  gqaMimPromptIds,
+  GQA_SOURCE_REVISION,
+  GQA_VERSION,
+} from './gqaAnswerSkill.js';
 export { createReportSkill, getReportSkill, reportSkill } from './reportSkill.js';
 export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';

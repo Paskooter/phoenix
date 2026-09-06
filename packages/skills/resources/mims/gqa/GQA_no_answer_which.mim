@@ -1,0 +1,29 @@
+{
+	"prompts": [
+		{
+			"prompt": "I can't seem to find which. I tried.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_which_01",
+			"weight": 1
+		},
+		{
+			"prompt": "I looked this up but couldn't find which.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_which_02",
+			"weight": 1
+		},
+		{
+			"prompt": "Turns out I can't find out which. Your guess is as good as mine.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_which_03",
+			"weight": 1
+		},
+		{
+			"prompt": "I guess I can't find out which after all. Sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_which_04",
+			"weight": 1
+		}
+	]
+}
+

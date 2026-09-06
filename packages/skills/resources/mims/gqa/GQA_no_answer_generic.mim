@@ -1,0 +1,149 @@
+{
+	"prompts": [
+		{
+			"prompt": "I couldn't find anything about this. Sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_01",
+			"weight": 1
+		},
+		{
+			"prompt": "Sorry, I checked for you, but I’m coming up empty.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_02",
+			"weight": 1
+		},
+		{
+			"prompt": "Sorry, I looked this up, but I’m drawing a blank.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_03",
+			"weight": 1
+		},
+		{
+			"prompt": "I couldn’t find anything about this. I tried.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_04",
+			"weight": 1
+		},
+		{
+			"prompt": "I’m sorry, I’m not finding anything on this.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_05",
+			"weight": 1
+		},
+		{
+			"prompt": "I searched for this, but I came up empty.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_06",
+			"weight": 1
+		},
+		{
+			"prompt": "Sorry, I looked this up, but I’ve drawn a blank.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_07",
+			"weight": 1
+		},
+		{
+			"prompt": "I didn’t find anything on this in my searches.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_08",
+			"weight": 1
+		},
+		{
+			"prompt": "I looked this up, but didn't find anything.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_09",
+			"weight": 1
+		},
+		{
+			"prompt": "I checked for you, but didn't find anything.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_10",
+			"weight": 1
+		},
+		{
+			"prompt": "Well I checked for you, but I couldn't find this.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_11",
+			"weight": 1
+		},
+		{
+			"prompt": "Well I searched, but my search was fruitless.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_12",
+			"weight": 1
+		},
+		{
+			"prompt": "My searches didn't turn anything up.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_13",
+			"weight": 1
+		},
+		{
+			"prompt": "I turned over a few stones, but didn't find anything, sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_14",
+			"weight": 1
+		},
+		{
+			"prompt": "I did some looking, but couldn't find the answer for you.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_15",
+			"weight": 1
+		},
+		{
+			"prompt": "I searched around a bit, but couldn't seem to find an answer.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_16",
+			"weight": 1
+		},
+		{
+			"prompt": "Sorry, I’m coming up empty.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_17",
+			"weight": 1
+		},
+		{
+			"prompt": "Sorry, I’m drawing a blank.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_18",
+			"weight": 1
+		},
+		{
+			"prompt": "I can’t find anything.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_19",
+			"weight": 1
+		},
+		{
+			"prompt": "I've come up empty.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_20",
+			"weight": 1
+		},
+		{
+			"prompt": "I didn't find anything.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_21",
+			"weight": 1
+		},
+		{
+			"prompt": "Seems I can’t find that info for you.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_22",
+			"weight": 1
+		},
+		{
+			"prompt": "I've drawn a blank.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_23",
+			"weight": 1
+		},
+		{
+			"prompt": "I’m sorry, I couldn’t find anything in my searches.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_generic_24",
+			"weight": 1
+		}
+	]
+}
+

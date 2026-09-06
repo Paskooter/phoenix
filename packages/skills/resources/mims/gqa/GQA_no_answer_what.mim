@@ -1,0 +1,23 @@
+{
+	"prompts": [
+		{
+			"prompt": "I can't seem to find what this is. Sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_what_01",
+			"weight": 1
+		},
+		{
+			"prompt": "Turns out I can't find what this is.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_what_02",
+			"weight": 1
+		},
+		{
+			"prompt": "I searched my sources, but didn't find what you're looking for.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_what_03",
+			"weight": 1
+		}
+	]
+}
+

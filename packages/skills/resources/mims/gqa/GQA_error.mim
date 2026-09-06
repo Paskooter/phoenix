@@ -1,0 +1,59 @@
+{
+	"prompts": [
+		{
+			"prompt": "<ssa cat='oops'/>. Something's off with the connection to my sources. Maybe ask me again in a little while.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_01",
+			"weight": 1
+		},
+		{
+			"prompt": "<ssa cat='oops'/>. It seems I can't connect to my favorite info sources at the moment. Maybe you can try again a little later.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_02",
+			"weight": 1
+		},
+		{
+			"prompt": "<ssa cat='oops'/>. My info sources seem to be down at the moment. Maybe try again a little later.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_03",
+			"weight": 1
+		},
+		{
+			"prompt": "<ssa cat='oops'/>. The place where I get info like that, isn't responding to me. Maybe you can try again a little later.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_04",
+			"weight": 1
+		},
+		{
+			"prompt": "Huh, it seems like my info sources are down. Try asking me again a little later.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_05",
+			"weight": 1
+		},
+		{
+			"prompt": "It looks like my info sources aren't answering me. How bout you try again in a little while.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_06",
+			"weight": 1
+		},
+		{
+			"prompt": "My search source seems to be down. Try again soon?",
+			"media": "TTS",
+			"prompt_id": "GQA_error_07",
+			"weight": 1
+		},
+		{
+			"prompt": "My connection to the world's information seems to be off right now. Give it another try soon.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_08",
+			"weight": 1
+		},
+		{
+			"prompt": "I can't seem to connect right now to the big wide world of information online. Try again in a little bit.",
+			"media": "TTS",
+			"prompt_id": "GQA_error_09",
+			"weight": 1
+		}
+	]
+}
+

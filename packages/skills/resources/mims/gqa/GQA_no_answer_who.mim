@@ -1,0 +1,77 @@
+{
+	"prompts": [
+		{
+			"prompt": "I can't seem to find out who. Sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_01",
+			"weight": 1
+		},
+		{
+			"prompt": "Sorry I couldn't find out who, but I'm pretty sure it's either a person or an animal.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_02",
+			"weight": 0.2
+		},
+		{
+			"prompt": "Turns out I couldn't find out who after all. I tried.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_03",
+			"weight": 1
+		},
+		{
+			"prompt": "I looked this up, but I'm coming up empty on who.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_04",
+			"weight": 1
+		},
+		{
+			"prompt": "I looked this up, but didn't find anything about who.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_05",
+			"weight": 1
+		},
+		{
+			"prompt": "I checked for you, but didn't find who this is.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_06",
+			"weight": 1
+		},
+		{
+			"prompt": "Well I checked for you, but I couldn't find out who.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_07",
+			"weight": 1
+		},
+		{
+			"prompt": "I searched for who, but my search was fruitless.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_08",
+			"weight": 1
+		},
+		{
+			"prompt": "My searches didn't turn up who.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_09",
+			"weight": 1
+		},
+		{
+			"prompt": "I turned over a few stones, but didn't find anything on who, sorry.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_10",
+			"weight": 1
+		},
+		{
+			"prompt": "I searched around a bit, but couldn't seem to find an answer for who.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_11",
+			"weight": 1
+		},
+		{
+			"prompt": "I searched my sources, but couldn't find out who.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_who_12",
+			"weight": 1
+		}
+	]
+}
+

@@ -1,0 +1,25 @@
+{
+	"prompts": [
+		{
+			"prompt": "I looked this up, but didn't find anything about how.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_how_01"
+		},
+		{
+			"prompt": "I checked for you, but didn't find anything on how.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_how_02"
+		},
+		{
+			"prompt": "Well I searched for how, but my search was fruitless.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_how_03"
+		},
+		{
+			"prompt": "I searched around a bit, but couldn't seem to find an answer for how.",
+			"media": "TTS",
+			"prompt_id": "GQA_no_answer_how_04"
+		}
+	]
+}
+
