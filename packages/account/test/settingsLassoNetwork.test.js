@@ -265,6 +265,42 @@ test('network Lasso accepts string timeout configuration and does not time out t
   }
 });
 
+test('network Lasso keeps one request deadline across redirect hops', async () => {
+  let requests = 0;
+  const server = http.createServer((req, res) => {
+    requests += 1;
+    req.resume();
+    req.once('end', () => {
+      const index = requests;
+      setTimeout(() => {
+        if (res.destroyed) return;
+        if (index < 4) {
+          res.writeHead(302, { location: `/v1/credential?hop=${index + 1}`, connection: 'close' });
+          res.end();
+          return;
+        }
+        res.writeHead(200, { 'content-type': 'application/json', connection: 'close' });
+        res.end(JSON.stringify({ credentialExists: true }));
+      }, index === 1 ? 0 : 15);
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    await withProcessEnv('ETCO_server_http_timeout', '20', async () => {
+      const lasso = providers(`127.0.0.1:${server.address().port}`);
+      await assert.rejects(
+        () => lasso.getCredential(context, {
+          skillId: 'skill-deadline', serviceName: 'google', serviceAccountName: 'calendar', scopes: [],
+        }),
+        (error) => error.message === 'Failed to get google calendar credentials',
+      );
+    });
+    assert.ok(requests >= 1 && requests < 4);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('network Lasso snapshots transaction headers across redirects', async () => {
   const requests = [];
   const server = http.createServer((req, res) => {

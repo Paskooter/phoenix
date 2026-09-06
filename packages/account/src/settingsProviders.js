@@ -137,8 +137,20 @@ function lassoResponsePayload(response, chunks) {
   return JSON.parse(buffer.toString());
 }
 
-function lassoRequest(base, method, path, context, payload, redirectsLeft, headerSnapshot, bodySnapshot) {
+function clearLassoTimeout(timeoutState) {
+  if (!timeoutState || timeoutState.timer === null) return;
+  clearTimeout(timeoutState.timer);
+  timeoutState.timer = null;
+}
+
+function lassoRequest(base, method, path, context, payload, redirectsLeft, headerSnapshot, bodySnapshot, timeoutState) {
   if (redirectsLeft === undefined) redirectsLeft = lassoRedirectLimit();
+  const rootRequest = timeoutState === undefined;
+  const requestState = timeoutState || {
+    timeoutMs: lassoRequestTimeout(),
+    timer: null,
+    activeRequests: new Set(),
+  };
   const url = new URL(path, base);
   // BaseClient serializes requestPayload before entering Wreck. Wreck then
   // carries that serialized options.payload through redirects; re-running
@@ -158,8 +170,14 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
     const finish = (error, value) => {
       if (settled) return;
       settled = true;
+      if (error) clearLassoTimeout(requestState);
       if (error) reject(error);
       else resolve(value);
+    };
+    const timeout = () => {
+      const error = new Error('Client request timeout');
+      finish(error);
+      for (const activeRequest of requestState.activeRequests) activeRequest.destroy(error);
     };
     let request;
     try {
@@ -171,13 +189,12 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
         method,
         headers,
         agent,
-        timeout: lassoRequestTimeout(),
       }, (response) => {
         const redirect = [301, 302, 307, 308].includes(response.statusCode);
         // BaseClient/Wreck clears its request timer when final response
         // headers arrive; Wreck.read then has no body timeout. Disable the
-        // native request timer at the same boundary.
-        if (!redirect) request.setTimeout(0);
+        // shared wall-clock timer at the same boundary.
+        if (!redirect) clearLassoTimeout(requestState);
         if (redirect) {
           const location = response.headers.location;
           if (!location || redirectsLeft === 0) {
@@ -187,7 +204,7 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
           }
           const redirectUrl = new URL(location, url);
           response.resume();
-          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1, headers, body)
+          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1, headers, body, requestState)
             .then((value) => finish(null, value), (error) => finish(error));
           return;
         }
@@ -217,10 +234,14 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
           }
         });
       });
+      requestState.activeRequests.add(request);
+      request.once('close', () => requestState.activeRequests.delete(request));
       request.once('error', (error) => finish(error));
-      request.once('timeout', () => {
-        request.destroy(new Error('Client request timeout'));
-      });
+      // Node 8 exposed interim 1xx responses through the response boundary
+      // that clears Wreck's request timer. Node 22 exposes them as
+      // `information`; preserve the observable 100-Continue behavior.
+      request.once('information', () => clearLassoTimeout(requestState));
+      if (rootRequest) requestState.timer = setTimeout(timeout, requestState.timeoutMs);
       if (body !== null) request.write(body);
       request.end();
     } catch (error) {

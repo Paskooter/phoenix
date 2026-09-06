@@ -34,27 +34,31 @@ snapshot behavior is unchanged. The focused test uses equal-length `first!` and
 the source and repaired candidate both send the first value on both POST hops,
 with one serialization.
 
-The new source/candidate controls cover that POST case plus three timeout
-boundaries: delayed final headers after a redirect, a delayed final response
-after an informational response, and delayed body bytes after final headers.
-The full captured comparison is **4/4 exact** after normalizing only generated
-runtime, duration, source marker, and loopback Host port. The timeout controls
-show no source-proven candidate difference in this bounded set, so no broader
-timer rewrite is included.
+The new source/candidate controls cover that POST case plus four timeout
+boundaries: a three-hop redirect chain whose total time exceeds the single
+source deadline, delayed final headers after a redirect, a delayed final
+response after an informational response, and delayed body bytes after final
+headers. The old candidate's socket inactivity timers let the multi-hop chain
+complete; the source's Wreck timer is one wall-clock deadline started before
+the first request. `lassoRequest` now carries one timer state through redirect
+recursion, clears it at final headers, and clears it on Node 22's informational
+response event to match the pinned Node 8 behavior. The repaired full captured
+comparison is **5/5 exact** after normalizing only generated runtime, duration,
+source marker, and loopback Host port.
 
 Focused validation:
 
 ```text
 node --test packages/account/test/settingsLassoNetwork.test.js packages/account/test/settingsProviders.test.js
-11 passed, 0 failed
+12 passed, 0 failed
 ```
 
 Private receipts and commands are under
 `/home/shell/work/phoenix/.parity/reviews/a06-lasso-body-followup-20260906/`:
 
-- `outputs/source-controls-3.json` — pinned Node 8 source;
-- `candidate-controls-followup.json` — candidate Node 22;
-- `comparison-controls.json` — full-field 4/4 comparison;
+- `outputs/source-controls-4.json` — pinned Node 8 source;
+- `candidate-controls-repaired.json` — candidate Node 22;
+- `comparison-controls-repaired.json` — full-field 5/5 comparison;
 - `README.md` — source attribution, command, hashes, and limits.
 
 The candidate remains unverified pending root integration and rechecking.
