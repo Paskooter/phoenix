@@ -1,0 +1,490 @@
+{
+  "revision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "files": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "572d83a90667ddd7b669ac44d9925bf39872337aed6714b222a24ff29df2c29d"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4c707858d3433ac1bc3245d749e104e419f25dc7f2531241d86c950d66a26f52"
+    },
+    {
+      "path": "build.bash",
+      "sha256": "e9732a41eb389d3715371b351661dee2db8e0f57ae64e7352706018b7ebdf021"
+    },
+    {
+      "path": "compiler/CMakeLists.txt",
+      "sha256": "84f32888aca0886dd7627d20cd73ad57363b433e8eacf733e0ece3ca3508cd55"
+    },
+    {
+      "path": "compiler/compiler.cpp",
+      "sha256": "59d3273c8d63fd7e5311e63c6d4067604b4208dae39b7ee0befe14a57a79f5b2"
+    },
+    {
+      "path": "compiler/compiler.h",
+      "sha256": "15c753e186801292a6e324c8d64a78a80fde64c0ff5b13b198c6d64142a21522"
+    },
+    {
+      "path": "compiler/compiler.l",
+      "sha256": "8611de156863d13f557fc485bb2e91db398e8873608ebfd1496c8d1d3556676e"
+    },
+    {
+      "path": "compiler/compiler.ypp",
+      "sha256": "6732bf04ed15183663f7458180554aea82dfac5cc4ce2e4b64f8a031d5d95323"
+    },
+    {
+      "path": "compiler/fst_cmp.cpp",
+      "sha256": "e8a5ca564c885378efae73f91fe54f507583ee01c745b83b1602f3ccd05689fb"
+    },
+    {
+      "path": "compiler/fst_cmp.h",
+      "sha256": "e8976cf113de2a14d4b9d3f0fa20a0ba71af7cd226494155e77bb322024e5871"
+    },
+    {
+      "path": "compiler/list_manip.cpp",
+      "sha256": "6bbb39f85348e2ab16956489b33c997ddef2ddc502ea81944934de97ab73d0bb"
+    },
+    {
+      "path": "compiler/list_manip.h",
+      "sha256": "1cecece56345e9c3a9c48d134b57093b843c4b357b4a6e56eeb119c358af7614"
+    },
+    {
+      "path": "compiler/rule_cmp.cpp",
+      "sha256": "a247278c1e14b6feb8b2d80289253345fa342974f62bf3c25bf21080909d9866"
+    },
+    {
+      "path": "compiler/rule_cmp.h",
+      "sha256": "fdbef6860ec6adb32951b37ec738332f22e8b27175aa7af2973e657e330d77ef"
+    },
+    {
+      "path": "compiler/vocab.cpp",
+      "sha256": "b5fa25f17e8755cc96aef5b01538a40ce9a8cffaa4f2b67d8862c9bfcbc6af10"
+    },
+    {
+      "path": "compiler/vocab.h",
+      "sha256": "87ecf20ea0fd15102063301657e02e5309c6dd714ba4a32229b5f10be9fb6ffd"
+    },
+    {
+      "path": "darwin_libs.cmake",
+      "sha256": "1debb4f8ed9404cd2d66ab6ca368f6da6365a8e01533541f18049fda6c8b1f5c"
+    },
+    {
+      "path": "exec/CMakeLists.txt",
+      "sha256": "bfe8e577407e86d8c3a0205e5bbc9e4454a57e765ded9d8205f57f5bef8b4da8"
+    },
+    {
+      "path": "exec/generate.cpp",
+      "sha256": "6843e5091fddf46fda15413256b8b0ad630c75d61aac4f6c9cf97a438ad4ee37"
+    },
+    {
+      "path": "exec/generate.h",
+      "sha256": "fc4cc8f906a797b65f2047c0a1ad21665fc3125e638629c71f022102726fd835"
+    },
+    {
+      "path": "exec/grm2fst.cpp",
+      "sha256": "c04892224f24ff0bdbbf16943bcc6f7fbd07e44f40d15451644742f5248fd628"
+    },
+    {
+      "path": "exec/grm2fst.h",
+      "sha256": "32932fc3d630e2d243c5bc6ad9b018c5457fc1b07ab63330481826d40b967c24"
+    },
+    {
+      "path": "exec/parse.cpp",
+      "sha256": "52853ba411709f3c6841f5cbff9d528a6440a559eb3a102c71d6fbecb5d8aa42"
+    },
+    {
+      "path": "exec/parse.h",
+      "sha256": "bda765ea936891257a1f2cac5371110b8721d9263f2c0accf9804504003ed340"
+    },
+    {
+      "path": "fst_cache/CMakeLists.txt",
+      "sha256": "7a68d672a558e254e568ca6424f67d48fb2a3bbea6a05aed7d6c68f8c24c62cf"
+    },
+    {
+      "path": "fst_cache/fst_cache.cpp",
+      "sha256": "0d962bae76a4b0830a08acd7591162fb16feb4d2ef1e66e10c2ca21a06959590"
+    },
+    {
+      "path": "fst_cache/fst_cache.h",
+      "sha256": "a484914c079ae78852877f38ea06cd618af96a0f0624e89562e394a2fd0684b7"
+    },
+    {
+      "path": "fst_group/CMakeLists.txt",
+      "sha256": "ef20fdfda9946e4654c11c34975f46a14bb4e6508f4952d136c266be9878498d"
+    },
+    {
+      "path": "fst_group/connected_fst.cpp",
+      "sha256": "76450cd384175aa1de6776860f172cf3cbcaef2819437c3f2aa87e3700b0aada"
+    },
+    {
+      "path": "fst_group/connected_fst.h",
+      "sha256": "b8e76fac49c374b0b829ea78c72af15ac21a1a78f708f5d7e93bf7440bc45ade"
+    },
+    {
+      "path": "fst_group/fst_group.cpp",
+      "sha256": "27f1da0cce8ad99a428238a4afecb078eb7f9400a3ead8ef52767da358b62d52"
+    },
+    {
+      "path": "fst_group/fst_group.h",
+      "sha256": "27687f14c142f08d88d9aca76f6ad2b070ccab7ebb896d4d927bfd44e459995d"
+    },
+    {
+      "path": "fst_operations/CMakeLists.txt",
+      "sha256": "d9622c7e081b511245dc9d762e5a29e9617b8c440105301097c5999ef3746fc2"
+    },
+    {
+      "path": "fst_operations/arc_search.cpp",
+      "sha256": "2531d46c6ff85f1b6505ffad4cb78ba04e8f3e5db9cc913ef0f3ed101c093e2a"
+    },
+    {
+      "path": "fst_operations/arc_search.h",
+      "sha256": "ea3638abb0efa98815ec3f89b92729ab8077073d5d448476d7d3cf5f456d28c2"
+    },
+    {
+      "path": "fst_operations/dfs_algos.cpp",
+      "sha256": "34200ff6bc51a29cba743c57ffa7d34b597b88816d8e0469ee4e302a3f49d367"
+    },
+    {
+      "path": "fst_operations/dfs_algos.h",
+      "sha256": "440a51b90a6c418cd7033fc5ac420cce60d1adf4e6b30440471a896129a0bdc5"
+    },
+    {
+      "path": "fst_operations/fst_arc_ops.cpp",
+      "sha256": "31caa01dd2e6713ab2c68976135c39534330c4460c6a08aae5c8704645a83907"
+    },
+    {
+      "path": "fst_operations/fst_arc_ops.h",
+      "sha256": "660ff7d3c1570d0143209a42bfce3a576bd8dd55f5f3a4f74b46e59628408a0b"
+    },
+    {
+      "path": "fst_operations/fst_determ_ops.cpp",
+      "sha256": "71ae9c607b9c5a6b554c1654efd51801795afd48fec9cbb3c35ce4658e88bfad"
+    },
+    {
+      "path": "fst_operations/fst_determ_ops.h",
+      "sha256": "0d8889159f4bac717d59cd3db02c70e67f4a8d7c74e8ea08af2a38743b5a9b73"
+    },
+    {
+      "path": "fst_operations/fst_operations.cpp",
+      "sha256": "91545da46ef872be4ebee3acdc9f13776503aaa7ed13805e6ce3331da12da30e"
+    },
+    {
+      "path": "fst_operations/fst_operations.h",
+      "sha256": "b0a865d4b429389bd0b97cbd8e7ff78d577c964d4253864ef19eb4252cb72423"
+    },
+    {
+      "path": "fst_operations/fst_union_operations.cpp",
+      "sha256": "0e7da0d31cbc85d490552e713a3edf99c5f9ddde917571fa50e5f993da28587b"
+    },
+    {
+      "path": "fst_operations/fst_union_operations.h",
+      "sha256": "c8ba0373e69978c4334509f96eeeae474d687366c54ac7d84f7fc4fce3220ffe"
+    },
+    {
+      "path": "jibonluapi/CMakeLists.txt",
+      "sha256": "7d7d5129af833bc16abadef8cb2e30e9326fa9c068bae24139682c61deb29b79"
+    },
+    {
+      "path": "jibonluapi/error_handling.cpp",
+      "sha256": "be432fbe1f959ac8333d74b3dd22f7d3370c94dab36543d6fb05a85f1d057888"
+    },
+    {
+      "path": "jibonluapi/error_handling.h",
+      "sha256": "566ed580a4f658706afc6e6677802190d24f83a3187b3d87ed4eecd68fd479a9"
+    },
+    {
+      "path": "jibonluapi/exceptions.cpp",
+      "sha256": "6f7d4c281057c039a889d7449bd433a1f22749ca52014ecb759839a0646cbef8"
+    },
+    {
+      "path": "jibonluapi/exceptions.h",
+      "sha256": "fc8662103264f31c6fa3e0f04878c01c4980d4a5192aa239e8690d30e42118a9"
+    },
+    {
+      "path": "jibonluapi/jibonluapi.cpp",
+      "sha256": "923741887e42e6a46ade88c31391a19769d653dc17699980a4d8d0e63ad2a574"
+    },
+    {
+      "path": "jibonluapi/jibonluapi.h",
+      "sha256": "2dbd5163912aa43181f73512cd8ab0781d297ee2f706e3d2a6ce3223fbc58340"
+    },
+    {
+      "path": "jibonluapi/parameters.h",
+      "sha256": "98404a7ebd155aedd099e9ca05e0324be33ecd4b3a5ec4a770025b8f5bf6e42b"
+    },
+    {
+      "path": "jibonluapi/stats.h",
+      "sha256": "4c3d34fdce340cf14f363d76be2a8264839aa045f4ec5e1992683f57290548d8"
+    },
+    {
+      "path": "linux_libs.cmake",
+      "sha256": "278f69ffd59d810769e1d9a40fab6a25431ef01b84df8cd86ab1f22357b45817"
+    },
+    {
+      "path": "parser/CMakeLists.txt",
+      "sha256": "c9b7f7246c6c57373bbae497eadf8d9f62dbf70295dfb97b13bb36ab98b9b7ae"
+    },
+    {
+      "path": "parser/interpreter.cpp",
+      "sha256": "0e781f21f9e0d4e766f1778e124d8ebd429f32e7942dbd602039f605b733e2d2"
+    },
+    {
+      "path": "parser/interpreter.h",
+      "sha256": "1749ca7bdbdd2eb16b29e4bbe52e13ec6a3bc36546564afbf386c522c9bbb369"
+    },
+    {
+      "path": "parser/parser.cpp",
+      "sha256": "6b86849e390473c77979d48f47f830b3dde86f1e7c89ed37077319a149c19b1f"
+    },
+    {
+      "path": "parser/parser.h",
+      "sha256": "a31ba26ce602a0b71a266da73bcf9dc037478c1bc77896470679836ed3e51156"
+    },
+    {
+      "path": "parser/parsers_in_parallel.cpp",
+      "sha256": "b9a0c8251f324ea2e30634eb58f5424b505b81daafb02aa93815c0a155e90977"
+    },
+    {
+      "path": "parser/parsers_in_parallel.h",
+      "sha256": "0e948603348431e694667ab9f8101b47f3ed74db4ca971862bb5950bb1756430"
+    },
+    {
+      "path": "parser/random_generator.cpp",
+      "sha256": "ce9acf19166b46e1a4e8cbb48dc170972ea8f28d04653d366557094de467ef43"
+    },
+    {
+      "path": "parser/random_generator.h",
+      "sha256": "d555d58cb388377db61933e593013cde15851365d1b44db387e2148741a1bc44"
+    },
+    {
+      "path": "parser/result.cpp",
+      "sha256": "9f8fd3240e3319040f92601b9b4cffeeb8927352ff82bf8041d2666bacc83025"
+    },
+    {
+      "path": "parser/result.h",
+      "sha256": "81c33955979bfd1d36da0c5671f1c5442d07c0c18ab2bc329e29550b92ecd7ad"
+    },
+    {
+      "path": "parser/result_fst.cpp",
+      "sha256": "f44d933224081b24dd297ffc72465959450370fa9518c21f4cd35a5b53b6bb19"
+    },
+    {
+      "path": "parser/result_fst.h",
+      "sha256": "d0b3de40a4ff56fe60309363e0bf01f0e9f2247cecbe9746345f5e4ad486e0ff"
+    },
+    {
+      "path": "parser/thorough_generator.cpp",
+      "sha256": "6bf3270367bd3f173286eb7a7aaf08cded901a5cfec509940f9280715d9173ce"
+    },
+    {
+      "path": "parser/thorough_generator.h",
+      "sha256": "fb056da6b30e815cf77c41aa134fa74ad6cb745d62226a1b2801e795829aef5d"
+    },
+    {
+      "path": "scripts/compile_rule.bash",
+      "sha256": "d84d304fe12f09e277c0aa4d05a51c7ba6d57a6632dc0d4be4f376883cc4fbec"
+    },
+    {
+      "path": "scripts/compose_into_ltran.bash",
+      "sha256": "0785c4ca97caa6be167b70ce9fb9cef49e77194bf4a3dc1ea29709ec34fbe4ba"
+    },
+    {
+      "path": "types/CMakeLists.txt",
+      "sha256": "cb561c24c53a3275a1b5be13082ddb6881139cdc707c0e93a5ca48b9c3e0ec7e"
+    },
+    {
+      "path": "types/compile_types.h",
+      "sha256": "2ecbfb5cb99865e86e2e477009f9137fc455cf5f47bfb2c262c9daf56b224ac0"
+    },
+    {
+      "path": "types/fst_types.h",
+      "sha256": "cbab8d3f71f9b20f178020f70ec73aebaaade495c59d3bb2bafa537fbab2a129"
+    },
+    {
+      "path": "types/interpreter_types.h",
+      "sha256": "52978e292e80b3f62114c31ecbe304dd1d4468e378889d4712ab87ef481da488"
+    },
+    {
+      "path": "types/result_types.h",
+      "sha256": "3f1065f60580f0f7414ccafea55226e4c9c7e94247426a875074029e8dcd362f"
+    },
+    {
+      "path": "types/searchspace_types.h",
+      "sha256": "2a91ad19583dfb91473a7ee4b323214a4c068014478c5ae0d1f45053f9703c73"
+    },
+    {
+      "path": "types/symbol_types.cpp",
+      "sha256": "1a13a63c6381d3cae1483581efac6e1d4f54956d5203c1a217004e475d8bba04"
+    },
+    {
+      "path": "types/symbol_types.h",
+      "sha256": "495db2da548bb3a475bbcaf67ab05549d63234e5b6247ca4fd26313e8db95eee"
+    },
+    {
+      "path": "unit_tests/CMakeLists.txt",
+      "sha256": "e700352071feb816cfb56e62784cb5fda6cbcffaffd90672d1bd40ada467522b"
+    },
+    {
+      "path": "unit_tests/arc_search_test.cpp",
+      "sha256": "5a7409d03bc8fd5c24a4522c536481700f753629fffef178202f45764ec19272"
+    },
+    {
+      "path": "unit_tests/compiler_test.cpp",
+      "sha256": "476deca14021cb0faa17c13d28d2baf4768cba02e64e4a4cc2ec4922cc4733d0"
+    },
+    {
+      "path": "unit_tests/connected_fst_test.cpp",
+      "sha256": "13be453de68588c37d54c129c27ee0a34b8dd55512988077c940d815013e96da"
+    },
+    {
+      "path": "unit_tests/dictionary_test.cpp",
+      "sha256": "74ccb83773dde294431084237fa110b03cbd8948991baecdbcfbdf010dd37b1d"
+    },
+    {
+      "path": "unit_tests/equivalent_words_test.cpp",
+      "sha256": "064d1058b40be68cf5e8855b0334ec7effca499913f2382cd7297ba868c60600"
+    },
+    {
+      "path": "unit_tests/fst_cache_test.cpp",
+      "sha256": "4540fcf38a31bcc351d0596b217798e3e3556a376d27af70f025346957fcba3c"
+    },
+    {
+      "path": "unit_tests/fst_group_test.cpp",
+      "sha256": "8cc940cc4838463d56403d9cb9eca53661263526f6694396b28ab5f8cfc474b0"
+    },
+    {
+      "path": "unit_tests/include_file_test.cpp",
+      "sha256": "84b3d733345a5d8302d81912d7ed52be0d950355a72c7df57487683f4266f904"
+    },
+    {
+      "path": "unit_tests/parallel_parsing_test.cpp",
+      "sha256": "4d3762be4752fec9d7f874f9898507db4b4e51af0e5501044b6a9aced8c0ac3b"
+    },
+    {
+      "path": "unit_tests/parsing_test.cpp",
+      "sha256": "287b117ac85bb555564908326f7fc2fa9888ae371ba7541c4714f0a36af5bc71"
+    },
+    {
+      "path": "unit_tests/pruning_test.cpp",
+      "sha256": "6b77cab7a9a2186cbcb248a677cb010b095582e5dc7e6fea8964e599d6f6e030"
+    },
+    {
+      "path": "unit_tests/saving_fst_test.cpp",
+      "sha256": "d3395d85f04190462d82a801876b1f55aa333f153955bcc62bc7adf6e58fb70c"
+    },
+    {
+      "path": "unit_tests/sentence_generator_test.cpp",
+      "sha256": "7d2f1204b0ae5174a8db2fa09f9599b95d83782d67de3cfcfb6149a3d4089e26"
+    },
+    {
+      "path": "unit_tests/string_utils_test.cpp",
+      "sha256": "07cd53e882e960452ef24d53cb1453b4eda674d961a0473e8bd6a59611ad16aa"
+    },
+    {
+      "path": "unit_tests/syntax_error_test.cpp",
+      "sha256": "14d53b0474a6e217dcd3b8a442d5848c5283ad9b35c52c709427a6206a0c7b33"
+    },
+    {
+      "path": "unit_tests/union_parsing_test.cpp",
+      "sha256": "67d3509fbc56a5d8b1bda40bd051d6cb1c97b418ffb623494f70c3473b7dfd8a"
+    },
+    {
+      "path": "unit_tests/v8_engine_test.cpp",
+      "sha256": "e0bf6a7c7b533ba82203471400eb442f9f9d3c54327496eeaf61f7bdf6b2a7bc"
+    },
+    {
+      "path": "unit_tests/v8_interpreter_test.cpp",
+      "sha256": "62b5d6a4d627d1306fb576c7ee5262cb5fde121ce37599974043d3af8a84deba"
+    },
+    {
+      "path": "unit_tests/v8_parallel_parsing_test.cpp",
+      "sha256": "25b99d671096ac584b5853d60612ee95547177c35b3729dc3bdc941130da9480"
+    },
+    {
+      "path": "unit_tests/word_lists_test.cpp",
+      "sha256": "0bcb04f0709d98854fbee5c4f7177f720548cfa8ae4d8107e9ddff003287615e"
+    },
+    {
+      "path": "utils/CMakeLists.txt",
+      "sha256": "8ec760f89b18796563d15eb9c1d10890cdb65a8fc5d231f4de64418a87ad1eb5"
+    },
+    {
+      "path": "utils/string_utils.cpp",
+      "sha256": "0d746f15b63c4a63f0373aa7f6556160455c4abeef8be2901057730a79e2cb58"
+    },
+    {
+      "path": "utils/string_utils.h",
+      "sha256": "490418751b7937ace03f762675f92662019ef22300625d1a7714b45e8e24f921"
+    },
+    {
+      "path": "v8_engine/CMakeLists.txt",
+      "sha256": "5ae564e143610f6b14e1e3f8bb27a3fb5f2f191d8dd1c4a6af17e51434056299"
+    },
+    {
+      "path": "v8_engine/buffer_allocator.h",
+      "sha256": "64ccdc3487569200909ea5b1fe5e0298f1e9a4aab518061c88f8ddcf61351fb8"
+    },
+    {
+      "path": "v8_engine/v8_engine.cpp",
+      "sha256": "8bd93676acda7ba61e54c1d54fdc0acd6cd4397516b0fdfd595187dfdb1d983d"
+    },
+    {
+      "path": "v8_engine/v8_engine.h",
+      "sha256": "65cc841dc955eef6f6f57fd36e5be1ea84566771b123440ebf9279d1ab408b11"
+    },
+    {
+      "path": "v8_interpreter/CMakeLists.txt",
+      "sha256": "584072cf57acccbc4ae2fb7de4d44e93f0d8dcb6df112522454e2527b43ecff5"
+    },
+    {
+      "path": "v8_interpreter/object_tracker.cpp",
+      "sha256": "883b6ecfb30eedc618a55bc506ba30df6f76dc7329b1c3d8c408357ab95c75eb"
+    },
+    {
+      "path": "v8_interpreter/object_tracker.h",
+      "sha256": "afac8b9e2402984b0d4ba12e783602fd87e330302b10d56e331d1c3881266ebd"
+    },
+    {
+      "path": "v8_interpreter/v8_interpreter.cpp",
+      "sha256": "7346e2ea44708371063f393629f2142439474c866d79bcd46408188e7bec1b2a"
+    },
+    {
+      "path": "v8_interpreter/v8_interpreter.h",
+      "sha256": "5207b8aa2f4a99c2df9383def7f6d44a890f39a0c4fbf93420abc2da2f890292"
+    },
+    {
+      "path": "windows_libs.cmake",
+      "sha256": "c7fd9bbfca3ad8ec38b1f90dc5a0956de7859ad0b2c89c58f9dfe3f74e4dc511"
+    },
+    {
+      "path": "word_lists/CMakeLists.txt",
+      "sha256": "3e6b1b7084c2a18fafed8a6c9c63d71ce35e487c7dd26b845d4b2d111feefa8d"
+    },
+    {
+      "path": "word_lists/dictionary.cpp",
+      "sha256": "d8185a9c1187cd301754e39f7f26ca2ea5ffe1f4a9ba9a70ef467161d4ec52fd"
+    },
+    {
+      "path": "word_lists/dictionary.h",
+      "sha256": "7cdc00eabf5fe8d656724bd30f9c2dea8de1ca5088f4700bddb8cfca0773fe37"
+    },
+    {
+      "path": "word_lists/equivalent_words.cpp",
+      "sha256": "42a91f9733bb66e1e153176a279b8a6a67ffd5ab156e051a80df50c44162c6a6"
+    },
+    {
+      "path": "word_lists/equivalent_words.h",
+      "sha256": "2e6c43ef7f2ee7d5b43a6e6a635c5e279a09fca5ecd18cad612b1047ab7f195f"
+    },
+    {
+      "path": "word_lists/word_lists.cpp",
+      "sha256": "e3eba7837ceab92cde6dccbf6e7c853dc747106975e571deeabd5dec10610740"
+    },
+    {
+      "path": "word_lists/word_lists.h",
+      "sha256": "29d81b5472d1fca271b341a765affb6dd2bdacf22f9dee254deab625c12d69bf"
+    }
+  ],
+  "verified": 121
+}

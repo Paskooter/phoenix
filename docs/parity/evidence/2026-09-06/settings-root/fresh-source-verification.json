@@ -1,0 +1,144 @@
+{
+  "repository": "jiborobot/srv-settings-ws",
+  "revision": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+  "checks": [
+    {
+      "path": "src/logger.ts",
+      "sourceSha256": "264c86c6172c07ea507f1dd0827f5e19e5aa9815b3d6b63d5a5ffbbedba4bdf2",
+      "preparedSha256": "264c86c6172c07ea507f1dd0827f5e19e5aa9815b3d6b63d5a5ffbbedba4bdf2",
+      "matches": true
+    },
+    {
+      "path": "src/errors/settings.ts",
+      "sourceSha256": "bf0bcc894cdec01acbbe9d4fa28971fc2dc9684646a847aa4a74f049527ed7c3",
+      "preparedSha256": "bf0bcc894cdec01acbbe9d4fa28971fc2dc9684646a847aa4a74f049527ed7c3",
+      "matches": true
+    },
+    {
+      "path": "src/utils/index.ts",
+      "sourceSha256": "9307950d284ba1ff282ee6a9ee8a6280d24bcc76a4296de35801976c28453072",
+      "preparedSha256": "9307950d284ba1ff282ee6a9ee8a6280d24bcc76a4296de35801976c28453072",
+      "matches": true
+    },
+    {
+      "path": "src/utils/OAuthParamsFixer.ts",
+      "sourceSha256": "cc704a8f2bfe07b952332dd35a8310f3e472a1d81c90fba7fc08053d350af2e6",
+      "preparedSha256": "cc704a8f2bfe07b952332dd35a8310f3e472a1d81c90fba7fc08053d350af2e6",
+      "matches": true
+    },
+    {
+      "path": "src/utils/ConfigParser.ts",
+      "sourceSha256": "5a61c0afb595c1cee0c7feea9d1efacc62786e5afd4a6d86c86c4a905e43e762",
+      "preparedSha256": "5a61c0afb595c1cee0c7feea9d1efacc62786e5afd4a6d86c86c4a905e43e762",
+      "matches": true
+    },
+    {
+      "path": "src/utils/ObjectUtils.ts",
+      "sourceSha256": "fc0b98f7634989851789b585b4288f571960846a6a653a8c44780c6c3a2ec0a7",
+      "preparedSha256": "fc0b98f7634989851789b585b4288f571960846a6a653a8c44780c6c3a2ec0a7",
+      "matches": true
+    },
+    {
+      "path": "src/utils/DataValidator.ts",
+      "sourceSha256": "3e8681553694d5086604467da11d38374e777f492ee861c930c70817f112807a",
+      "preparedSha256": "3e8681553694d5086604467da11d38374e777f492ee861c930c70817f112807a",
+      "matches": true
+    },
+    {
+      "path": "src/handlers/settings.handler.ts",
+      "sourceSha256": "f363c55006b9c9de71e28ba7e503f5726afc042f8fc0d789bb6cb3b3d0ff4506",
+      "preparedSha256": "f363c55006b9c9de71e28ba7e503f5726afc042f8fc0d789bb6cb3b3d0ff4506",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/lasso.ts",
+      "sourceSha256": "1ced60ec804d1eb1c54529bd150794cd95cd7ce3edbfe7e0a4154b52a929c834",
+      "preparedSha256": "1ced60ec804d1eb1c54529bd150794cd95cd7ce3edbfe7e0a4154b52a929c834",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/index.ts",
+      "sourceSha256": "473afe8c6f1f722477f497b1f3b8fac0c5d680b94a0582723431a916936d7eb8",
+      "preparedSha256": "473afe8c6f1f722477f497b1f3b8fac0c5d680b94a0582723431a916936d7eb8",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/skillConfig.ts",
+      "sourceSha256": "198e8af459236f4157b73bb16ab32bf475f8d05bb5692a6bdc27ec05c77e5844",
+      "preparedSha256": "198e8af459236f4157b73bb16ab32bf475f8d05bb5692a6bdc27ec05c77e5844",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/IDataServices.ts",
+      "sourceSha256": "0e59b23c3a788b2546d0900d167ba73800738c8ed7df8abc4fe8c247961b9dee",
+      "preparedSha256": "0e59b23c3a788b2546d0900d167ba73800738c8ed7df8abc4fe8c247961b9dee",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/ISettingsRequest.ts",
+      "sourceSha256": "e2ac97029a5c20d883bd358e39a3538e709c79a8f48c4e9c275bc92039aaae3f",
+      "preparedSha256": "e2ac97029a5c20d883bd358e39a3538e709c79a8f48c4e9c275bc92039aaae3f",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/IListSettingsOptions.ts",
+      "sourceSha256": "d0bafeb3ff9663700b543f70129606f45e7ca92fb61f4e2f5898b082eaa5202c",
+      "preparedSha256": "d0bafeb3ff9663700b543f70129606f45e7ca92fb61f4e2f5898b082eaa5202c",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/IDeleteSettingsRequest.ts",
+      "sourceSha256": "af567f9e9a13c1e8a8396d95d8177f87bae360aa27e31f640324c2e12df88192",
+      "preparedSha256": "af567f9e9a13c1e8a8396d95d8177f87bae360aa27e31f640324c2e12df88192",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/IUpdateSettingsRequest.ts",
+      "sourceSha256": "65f7bb897e0e593cba5e61a45c7535af8b9c434e93788dda95bead191c7724ee",
+      "preparedSha256": "65f7bb897e0e593cba5e61a45c7535af8b9c434e93788dda95bead191c7724ee",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/IRequestContext.ts",
+      "sourceSha256": "59a3eec1e2ec3f835a065dfcf3676716a03d5ca2eefd8af1f00512516569288c",
+      "preparedSha256": "59a3eec1e2ec3f835a065dfcf3676716a03d5ca2eefd8af1f00512516569288c",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/PersonalReport.ts",
+      "sourceSha256": "45bb846340a306619aa4b9189575233edb70a47ff369c0fb6cf1f038f6e38065",
+      "preparedSha256": "45bb846340a306619aa4b9189575233edb70a47ff369c0fb6cf1f038f6e38065",
+      "matches": true
+    },
+    {
+      "path": "src/interfaces/IGetSettingsRequest.ts",
+      "sourceSha256": "348f437e2d8fb36ec16d1c4cb6e0a046978b73a887bc1bd8f08d3192c54d3a35",
+      "preparedSha256": "348f437e2d8fb36ec16d1c4cb6e0a046978b73a887bc1bd8f08d3192c54d3a35",
+      "matches": true
+    },
+    {
+      "path": "src/controllers/delete.ctrl.ts",
+      "sourceSha256": "5fef2a0b4b93223442d395365db46bccfacf22be811785fbd3034cc04d0f4b46",
+      "preparedSha256": "5fef2a0b4b93223442d395365db46bccfacf22be811785fbd3034cc04d0f4b46",
+      "matches": true
+    },
+    {
+      "path": "src/controllers/get.ctrl.ts",
+      "sourceSha256": "672dfb5123b15c79f37092aa6362bdf23c506cde27a1ce396cde7f0024ab7084",
+      "preparedSha256": "672dfb5123b15c79f37092aa6362bdf23c506cde27a1ce396cde7f0024ab7084",
+      "matches": true
+    },
+    {
+      "path": "src/controllers/settings.ctrl.ts",
+      "sourceSha256": "322bb8606b57954ffe981b68e5cd22fa536c15ca91e6f04d47eb9e13a5949d90",
+      "preparedSha256": "322bb8606b57954ffe981b68e5cd22fa536c15ca91e6f04d47eb9e13a5949d90",
+      "matches": true
+    },
+    {
+      "path": "src/controllers/update.ctrl.ts",
+      "sourceSha256": "2556901a2f2ee7430eb440873572631d17c74ebea00cb2df2c74df51ffd31632",
+      "preparedSha256": "2556901a2f2ee7430eb440873572631d17c74ebea00cb2df2c74df51ffd31632",
+      "matches": true
+    }
+  ]
+}

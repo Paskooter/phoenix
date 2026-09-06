@@ -481,10 +481,12 @@
         "reviewEvidence": "docs/parity/evidence/2026-09-06/gateway-registry/review.json"
       },
       "nextImplementation": {
-        "state": "working",
+        "state": "changes_requested",
         "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Original report-skill NET_lasso, prefsFromConfig, required variables/defaults/precedence and actual local peer HTTP exchange; isolated candidate, root acceptance pending.",
-        "baseRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c"
+        "scope": "Report source env/default candidate is frozen. Root requested original EnvVars cache/clearCache behavior and run-service CLI/parseInt port semantics before acceptance; agent reassigned temporarily to N08 interpreter fixes.",
+        "baseRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c",
+        "candidateRevision": "b4bdf09abc22c4fbc0cf2b4096bb1f5b9e987100",
+        "worktree": ".parity/worktrees/c03-report-config"
       }
     },
     {
@@ -1150,12 +1152,14 @@
         }
       ],
       "nextImplementation": {
-        "state": "working",
-        "assignee": "Luna Max / http_contract_repair",
-        "worktree": ".parity/worktrees/nlu-fst-regression",
-        "baseRevision": "9528f1a49ed487161af2f09cb54a26e860865cf7",
-        "candidateRevision": "9528f1a49ed487161af2f09cb54a26e860865cf7",
-        "scope": "Agent reports 20,486/20,528 full HTTP status/data matches using an explicit compiled-FST profile, including all four non-200 controls. Compared with main: 282 fixed, 29 newly differing, 13 remaining. Root has not accepted it; follow-up targets the 29 regressions. Native compiler/factory generation remains open."
+        "state": "changes_requested",
+        "assignee": "Codex root with Luna Max executor/interpreter agents",
+        "worktree": ".parity/worktrees/n08-fst-root",
+        "baseRevision": "3aff56d3fa4b69b851e0bdbcf40e9de7e9fe494a",
+        "candidateRevision": "fb5b2ae2fefd930261ddea42ef821a4a0149302a",
+        "scope": "Root independently matches all 20,528 HTTP status/data cases and reduces strict smoke to 648 differences (11 removed, zero new paths). Source review requires artifact pin/snapshot, native final ordering/pruning and interpreter-expression repairs before integration. Default main remains 20,233/20,528; no full-task credit.",
+        "artifact": "docs/parity/candidates/N-08-compiled-fst.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/initial-root-review.json"
       }
     },
     {
@@ -2196,6 +2200,13 @@
         "artifact": "docs/parity/candidates/A-03-review-20260906.md",
         "reviewedBy": "Codex root",
         "reviewFinding": "Independent source review identified boundary and validation blockers; see report. No integration accepted."
+      },
+      "nextImplementation": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / capture_writer_repair; independent review by http_contract_repair",
+        "candidateRevision": "44611265128b1c7c472ca79dda0211658f232240",
+        "worktree": ".parity/worktrees/a03-repair",
+        "scope": "Agent reports 98/98 source AccountUpdated events and 25/25 actual original Node8 TCP status/raw-body/header matches, with 56 unit tests. Independent source review is running; root acceptance and full SNS/bootstrap remain open."
       }
     },
     {
@@ -2278,7 +2289,7 @@
         "packages/account/src/settingsFace.js",
         "packages/account/src/settingsData.js"
       ],
-      "finding": "A Settings controller/provider candidate and Account peer prerequisites are awaiting root integration review. Agent reports 51/51 controller/server comparisons and 22/22 Account peer HTTP cases; their controlled provider seams do not establish the complete production graph, persistence or real-client behavior. Main still has the earlier report-oriented Settings path.",
+      "finding": "Root original Node8 TCP review matches all 51 earlier cases; 27 added edge cases expose 18 differences. Isolated credential repair 32f382f fixes 4 with zero new failures (64/78 exact status/raw-body/header/provider matches; 14 focused tests pass). Transport separation and Account peer prerequisites remain under review; main retains its earlier Settings implementation.",
       "acceptance": [
         "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
@@ -2286,13 +2297,15 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / audio_encoding_repair and capture_writer_repair",
-        "scope": "Settings route/controller/provider traversal and default HTTP peer clients (8a310f5), with Account membership/populated-loop prerequisite candidate eb69373. Root must review raw framing, configured real peer graph and full integrated tests before any bounded acceptance.",
-        "candidateRevision": "8a310f563c05146d7a93b5e24cdf4b47ad4a7fd2",
-        "prerequisiteRevision": "eb693730f51515646fbad16794854bc08c7bf26f",
-        "worktree": ".parity/worktrees/a06-settings-followup",
-        "artifact": "docs/parity/candidates/A-06-settings-followup.md"
+        "state": "changes_requested",
+        "assignee": "Codex root with Luna Max candidates",
+        "scope": "Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Candidate transport 77f994f and Account peer d36a1af require independent integration review; full Settings graph/persistence remains open.",
+        "candidateRevision": "32f382f066ef6eefa0adefb84a0f13dc59947b99",
+        "prerequisiteRevision": "d36a1af4fb09b3a61635f4bca15fde84944de5d7",
+        "worktree": ".parity/worktrees/a06-review-root",
+        "artifact": "docs/parity/candidates/A-06-root-review.md",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/settings-root/credential-repair-freeze.json"
       }
     },
     {

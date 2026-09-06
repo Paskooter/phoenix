@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "reviewedBy": "Codex root",
+  "status": "changes_requested; implementation remains isolated",
+  "candidateRevision": "fb5b2ae2fefd930261ddea42ef821a4a0149302a",
+  "agentRevision": "36ec7703df44c068b54386bddf9edf191633412d",
+  "scope": "Explicit archived launch FST profile; main AST preserved. Full NLU parity is open.",
+  "source": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "launchGitByteEquality": true,
+    "nativeAndFactoryArchiveByteEquality": true,
+    "sourceFilesVerified": 121,
+    "reproducibleNativeBuildVerified": false
+  },
+  "fullHttpReplay": {
+    "cases": 20528,
+    "matches": 20528,
+    "differences": 0,
+    "non200Cases": 4,
+    "non200Matches": 4,
+    "comparison": "HTTP status and complete decoded response.data, not full HTTP framing",
+    "inputSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+    "runnerSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e",
+    "candidateSourceTreeSha256": "5d65cb8c80f2d373c0abdb99a9d7c8163624ae2525bee8aec35250d6a0dbe492"
+  },
+  "unitTests": {
+    "passed": 431,
+    "failed": 0,
+    "profileDependentSkipped": 1,
+    "configuredTestSeparatelyPassed": 1
+  },
+  "strictProduction": {
+    "cases": 43,
+    "differences": 648,
+    "invariants": 0,
+    "coverageGaps": 0,
+    "baselineDifferences": 659,
+    "newDifferencePaths": 0,
+    "removedDifferencePaths": 11,
+    "comparisonSha256": "86f3fd20553b20afda471b07984d545bef51f8db74d91d1e65b81f0546d3a407",
+    "candidateCaptureSha256": "b3ea10c050513c266077498364b76a789cba059c137d95ea913cbe67029a3acd",
+    "referenceCaptureSha256": "a9f40ba6a2acb9765750b1c9e084a6ce924d21409ffe07f4bfcf46d23b2128a7",
+    "limitation": "Manual Docker invocation used the unchanged production adapter/driver. No contemporaneous run.json was created; root added explicit artifact options to the candidate runner for the required final rerun."
+  },
+  "requiredRepairs": [
+    "Bind approved launch bytes to the reported profile; reject correctly hashed unsupported graphs.",
+    "Execute the same factory bytes whose manifest was verified, including after on-disk changes.",
+    "Match native final integer ordering and its actual tie behavior.",
+    "Match the source pruning heap and 50-state cutoff, including fractional controls.",
+    "Match source interpreter RHS JavaScript and nested assignment scope."
+  ],
+  "pendingAcceptance": [
+    "Root review of all repairs and negative controls.",
+    "Full corpus and strict production reruns on a frozen combined candidate.",
+    "Reviewed integration and explicit real Moth trial.",
+    "Full compiler/factory generation, default configuration, complete HTTP/action/provider behavior and physical acceptance."
+  ],
+  "files": {
+    "initial-http-replay.json": "caf499c4303d83e763c5530079ce4087296549d9e4d668b22466e62df7cf5553",
+    "artifact-source-proof.json": "0e3f7dd42bb73bc5ba96af05aa1f0743d4e05355f32c96cdf4cd6132e5ae495f",
+    "cpp-source-verification.json": "3335048fc18409cdb2c9b71dd818ffb7563acacd9f4236bdc9db8959420d15a0",
+    "initial-source-review.json": "1f129b01599b7371bb9af14efa760ae841aa828ae3f4a01180b072460736f52c"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "launch": {
+    "path": "packages/parser/robust-parser/rules_fst/launch.fst",
+    "sha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
+    "bytes": 42460381,
+    "gitBytesEqualPrepared": true
+  },
+  "nativeArchive": {
+    "path": ".parity/downloads/jibo-nlu-v2.8.3-linux-x64.zip",
+    "sha256": "388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b",
+    "bytes": 30545646
+  },
+  "nativeParser": {
+    "path": "build/bin/parse",
+    "sha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "bytes": 14703000,
+    "archiveEqualPrepared": true
+  },
+  "factories": [
+    {
+      "path": "build/data/en-us/factory_rules/factory_list.txt",
+      "sha256": "95a7fb321148ff4e851354f8e564524a4c3f282aed38d60f5c7e9fe24614ab78",
+      "bytes": 269
+    },
+    {
+      "path": "build/data/en-us/factory_rules/country.fst",
+      "sha256": "0ee7a77ac8d64bedde7416954929ff9ae33bab9946e897f13841dcffda68791c",
+      "bytes": 35162
+    },
+    {
+      "path": "build/data/en-us/factory_rules/first_name.fst",
+      "sha256": "3fb01bdf8c39aa4bbf1d7eaa2e74da880faeb30b714db506fd62b4eb624b2056",
+      "bytes": 167859
+    },
+    {
+      "path": "build/data/en-us/factory_rules/city_state.fst",
+      "sha256": "e42af10ecb18f487b639290f60d83677f9c9b0294201add41983d3ba6f587d7e",
+      "bytes": 568922
+    },
+    {
+      "path": "build/data/en-us/factory_rules/year.fst",
+      "sha256": "a7306d576b909940f506d4151a800d900b95f943da2d5901bc0db987a61d3cbc",
+      "bytes": 17756
+    },
+    {
+      "path": "build/data/en-us/factory_rules/state.fst",
+      "sha256": "b9ed3ebb1cd8c13117642743cca71616e1774801ec9b85ebdeea79aced6fb862",
+      "bytes": 20011
+    },
+    {
+      "path": "build/data/en-us/factory_rules/music_genre.fst",
+      "sha256": "045a4171e0b74c18d75a05dca017ef5ed99c831970e43de78f5ceed780d4bb2c",
+      "bytes": 21787
+    },
+    {
+      "path": "build/data/en-us/factory_rules/digits.fst",
+      "sha256": "e32543cebaef266f65e03ff8458f8b5278c37573f245d0efbf427457a59c5831",
+      "bytes": 9849
+    },
+    {
+      "path": "build/data/en-us/factory_rules/yes_no.fst",
+      "sha256": "8e86171f2758430610f487640fdbc4c23b2e2f04c2b5cc5446e875972de67fa4",
+      "bytes": 17017
+    },
+    {
+      "path": "build/data/en-us/factory_rules/world_city_country.fst",
+      "sha256": "08738ae15c69785f593c0f2024d25e10292831c6e0fbe8961efadb2e3a2ea0f3",
+      "bytes": 113707
+    },
+    {
+      "path": "build/data/en-us/factory_rules/canada_city_province.fst",
+      "sha256": "3f51276ae65825ab22aa0ebba97766e5fdea055e6db7d89ce9e77e9195cf5076",
+      "bytes": 83593
+    },
+    {
+      "path": "build/data/en-us/factory_rules/date.fst",
+      "sha256": "fbcaa68a5c7c2b32ba6cb844e9696b1e6cb8a23e251f3fdacb0981110ff2d7c8",
+      "bytes": 207989
+    },
+    {
+      "path": "build/data/en-us/factory_rules/last_name.fst",
+      "sha256": "19862ddaa95bca44582eb811b7235370c5d291efcc21ce7c5f43027ca44ac66c",
+      "bytes": 558914
+    },
+    {
+      "path": "build/data/en-us/factory_rules/canada_province.fst",
+      "sha256": "d671f80c98845fdd9a29dc6cf381689a9d42119a82d376c4f05d278f7e07eaea",
+      "bytes": 4987
+    },
+    {
+      "path": "build/data/en-us/factory_rules/timer.fst",
+      "sha256": "b499a09296f1d5ca2429c191d81f80b0e2f73044da1801d09fd89010b6aefa3e",
+      "bytes": 143683
+    },
+    {
+      "path": "build/data/en-us/factory_rules/time.fst",
+      "sha256": "ccc50d3c0fb06e43e75433fa828d370c787429a443bfa407c6e91be73cd9d86b",
+      "bytes": 465697
+    }
+  ],
+  "factoryArchiveBytesEqualPrepared": true,
+  "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "sourceManifestSha256": "f0129696ae682d599b9679a80e53136a1e26199ac14e6bf384d676bd7e6af402",
+  "limits": [
+    "Native archive identity and C++ source revision are pinned independently; a reproducible native binary build from that source is not proven."
+  ]
+}

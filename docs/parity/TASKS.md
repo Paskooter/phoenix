@@ -897,7 +897,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-A Settings controller/provider candidate and Account peer prerequisites are awaiting root integration review. Agent reports 51/51 controller/server comparisons and 22/22 Account peer HTTP cases; their controlled provider seams do not establish the complete production graph, persistence or real-client behavior. Main still has the earlier report-oriented Settings path.
+Root original Node8 TCP review matches all 51 earlier cases; 27 added edge cases expose 18 differences. Isolated credential repair 32f382f fixes 4 with zero new failures (64/78 exact status/raw-body/header/provider matches; 14 focused tests pass). Transport separation and Account peer prerequisites remain under review; main retains its earlier Settings implementation.
 
 Done when:
 
@@ -911,11 +911,11 @@ Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/setti
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair and capture_writer_repair.
+- [x] Candidate implementation — **changes_requested**; Codex root with Luna Max candidates.
 
-Candidate scope: Settings route/controller/provider traversal and default HTTP peer clients (8a310f5), with Account membership/populated-loop prerequisite candidate eb69373. Root must review raw framing, configured real peer graph and full integrated tests before any bounded acceptance.
+Candidate scope: Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Candidate transport 77f994f and Account peer d36a1af require independent integration review; full Settings graph/persistence remains open.
 
-Candidate report: [docs/parity/candidates/A-06-settings-followup.md](../../docs/parity/candidates/A-06-settings-followup.md).
+Candidate report: [docs/parity/candidates/A-06-root-review.md](../../docs/parity/candidates/A-06-root-review.md).
 
 Lead verification: pending. This candidate does not certify task parity.
 

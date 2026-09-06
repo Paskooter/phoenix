@@ -1,0 +1,237 @@
+{
+  "review": {
+    "kind": "read-only independent review",
+    "date": "2026-09-06",
+    "candidateRevision": "36ec7703df44c068b54386bddf9edf191633412d",
+    "candidateBranch": "codex/candidate-nlu-fst-regression-20260906",
+    "candidateWorktree": "/home/shell/work/phoenix/.parity/worktrees/nlu-fst-regression",
+    "candidateStatusAtReview": "clean",
+    "scope": [
+      "packages/nlu/src/compiledFst.js",
+      "packages/nlu/src/compiledFstInterpreter.js",
+      "packages/nlu/src/compiledFstRuntime.js",
+      "packages/nlu/src/connectedFst.js"
+    ],
+    "noChangesMadeTo": [
+      "candidate worktree",
+      "main",
+      "robots",
+      "live services"
+    ]
+  },
+  "moduleSha256": {
+    "packages/nlu/src/compiledFst.js": "02ac029a5334d890bba7a6491f8336434a2dc72c740d0691baced30a2b00b583",
+    "packages/nlu/src/compiledFstInterpreter.js": "82df24bb7bf1a34a44dd6f1356461e843fecbe35c6b1eeba42a55d043e62ee13",
+    "packages/nlu/src/compiledFstRuntime.js": "58cad8fba744f78908cf36b996d1586ec12de40b95adca63fcdf8f645dfb69b9",
+    "packages/nlu/src/connectedFst.js": "ceade807c4684c5848e6a405320265c6ba7ee7e81eda755e7b9e119a19d6b266"
+  },
+  "source": {
+    "revision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "root": "/home/shell/work/phoenix/.parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "files": {
+      "parser/parser.cpp": "6b86849e390473c77979d48f47f830b3dde86f1e7c89ed37077319a149c19b1f",
+      "fst_group/connected_fst.cpp": "76450cd384175aa1de6776860f172cf3cbcaef2819437c3f2aa87e3700b0aada",
+      "fst_group/fst_group.cpp": "27f1da0cce8ad99a428238a4afecb078eb7f9400a3ead8ef52767da358b62d52",
+      "fst_cache/fst_cache.cpp": "0d962bae76a4b0830a08acd7591162fb16feb4d2ef1e66e10c2ca21a06959590",
+      "parser/result_fst.cpp": "f44d933224081b24dd297ffc72465959450370fa9518c21f4cd35a5b53b6bb19",
+      "parser/result_fst.h": "d0b3de40a4ff56fe60309363e0bf01f0e9f2247cecbe9746345f5e4ad486e0ff",
+      "v8_interpreter/v8_interpreter.cpp": "7346e2ea44708371063f393629f2142439474c866d79bcd46408188e7bec1b2a",
+      "v8_interpreter/object_tracker.cpp": "883b6ecfb30eedc618a55bc506ba30df6f76dc7329b1c3d8c408357ab95c75eb",
+      "v8_engine/v8_engine.cpp": "8bd93676acda7ba61e54c1d54fdc0acd6cd4397516b0fdfd595187dfdb1d983d",
+      "v8_engine/v8_engine.h": "65cc841dc955eef6f6f57fd36e5be1ea84566771b123440ebf9279d1ab408b11",
+      "types/searchspace_types.h": "2a91ad19583dfb91473a7ee4b323214a4c068014478c5ae0d1f45053f9703c73",
+      "jibonluapi/jibonluapi.cpp": "923741887e42e6a46ade88c31391a19769d653dc17699980a4d8d0e63ad2a574"
+    }
+  },
+  "profileArtifacts": {
+    "launchFst": {
+      "path": "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/rules_fst/launch.fst",
+      "sha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a"
+    },
+    "countryFactoryFst": {
+      "path": "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser/build/data/en-us/factory_rules/country.fst",
+      "sha256": "0ee7a77ac8d64bedde7416954929ff9ae33bab9946e897f13841dcffda68791c"
+    },
+    "factoryManifestSha256": "4ea19a27acbfaecdb60de0688cb5f3f75ef31c93c2865d2d6710989f98ffe97e",
+    "nativeParserSha256ClaimedByCandidate": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "factoryFileCount": 16
+  },
+  "reviewArtifacts": {
+    "README.md": "bc87c951f997ff2ad554f555b7e11a7635baa7a04eeeb914fb91161e45e82f7b",
+    "focused-probes.mjs": "b45b9636457234fcdbcf1bdf3753fdd79480f7bdad7df7f861f23356e9eb104c",
+    "focused-probes.json": "4c5ae05895075c60637373aeee032e1176b006a268188f2cf6cf856c3d819ddc",
+    "provenance-positive.json": "8aa8058ea9b8fea3ca2253aff49fa56d903b226662edb83e4cbeb8d834bd166b",
+    "provenance-spoof-country.json": "de7be379f1235d56fdca9d0cebc7233024d536bbcf190bdd04ae3a0e113b76ba",
+    "cache-probe.mjs": "92f0d557b3a54b5fe6b59ecea84f8f58feaaaea66577d0f992d26641aaaecaf7",
+    "cache-probe.json": "0348dfd24699add4c6956849abff8e8d63022c4bc1f499d6bed4025547b546f6",
+    "unit-tests.log": "782b55b40e5afa0ed794f4f3529d506dcddd537646ef90e0cde54cc3357390e8",
+    "configured-runtime-test.log": "75b2eb6acc2979604fcb5736ef60f029af43ad2cb4a63ec8d2b67378ede296db"
+  },
+  "findings": [
+    {
+      "id": "PROV-001",
+      "severity": "blocker-to-profile-acceptance",
+      "title": "Caller-supplied FST hash is not bound to the reported launch/source profile",
+      "candidateEvidence": [
+        "packages/nlu/src/compiledFstRuntime.js:17-23 hard-codes source/reference/native provenance",
+        "packages/nlu/src/compiledFstRuntime.js:43-48 accepts PHOENIX_NLU_COMPILED_FST_SHA256 from the caller",
+        "packages/nlu/src/compiledFstRuntime.js:67-90 checks only the supplied FST byte hash and the fixed factory-directory manifest",
+        "packages/nlu/src/compiledFstRuntime.js:122-139 reports the selected path as the runtime profile"
+      ],
+      "reproduction": {
+        "positive": "The pinned launch.fst with expected hash 2ba09176... loads and reports sourceRevision 91b1bb6...",
+        "negative": "The valid non-launch factory_rules/country.fst with its actual hash 0ee7a77a... also loads and reports the identical launch sourceRevision, sourceRuntime, nativeParserSha256 and factoryManifestSha256.",
+        "result": "compiledFstRuntimeConfig().fstPath is country.fst while runtime remains compiled-fst and matchCompiledLaunch is still the exported adapter"
+      },
+      "impact": "An unsupported graph can be labeled as the pinned native launch profile by changing the environment path and expected hash. The full replay proves the one archived launch artifact, not arbitrary graph/profile provenance.",
+      "recommendedBoundary": "Use a closed mapping from an approved launch FST hash/path to the source/reference/native/factory identities, or stop reporting fixed source/native identities for caller-selected graphs. Keep the factory manifest check, but do not treat it as launch-graph authentication."
+    },
+    {
+      "id": "TIE-001",
+      "severity": "high-negative-control-gap",
+      "title": "Native first-best ordering truncates heuristic weights to int; candidate orders full doubles",
+      "candidateEvidence": [
+        "packages/nlu/src/compiledFst.js:242-247 preserves strict-lower path replacement",
+        "packages/nlu/src/compiledFst.js:318-328 sorts final results by the full heuristic",
+        "packages/nlu/src/connectedFst.js:125-131 and 305-320 do the same for connected graphs"
+      ],
+      "sourceEvidence": [
+        "parser/parser.cpp:128-135 uses strict lower double replacement for one generic graph/state",
+        "parser/result_fst.h:23-35 converts each final heuristic to int before comparison",
+        "parser/result_fst.cpp:43-87 sorts final nodes with that comparator and processes only the first"
+      ],
+      "probe": {
+        "path": ".parity/reviews/n08-compiled-fst-review-36ec770-20260906/focused-probes.mjs",
+        "candidateFinalHeuristics": [1.2000000476837158, 1.899999976158142],
+        "nativeComparatorInputs": [1, 1],
+        "candidateWinner": "weight-1.2"
+      },
+      "impact": "The candidate's lowest-double winner is not necessarily the native first result when distinct final nodes fall in the same truncated integer bucket. Existing equal-cost tests cover exact equality only; the fractional-int tie control is absent."
+    },
+    {
+      "id": "PRUNE-001",
+      "severity": "high-scope-limit",
+      "title": "Native max-state pruning is absent from both candidate executors",
+      "candidateEvidence": [
+        "packages/nlu/src/compiledFst.js:299-329 consumes all active paths without a max-state parameter or prune step",
+        "packages/nlu/src/connectedFst.js:285-321 has the same unbounded active-path traversal"
+      ],
+      "sourceEvidence": [
+        "parser/parser.cpp:46-48 invokes prune_states after each SPACE input",
+        "parser/parser.cpp:170-202 applies _params.max_num_states",
+        "jibonluapi/parameters.h:4 and :54-64 set DEFAULT_MAX_NUM_STATES_AFTER_SPACE to 50"
+      ],
+      "impact": "On sufficiently ambiguous graphs/inputs, native removes paths above its threshold while this adapter retains them and can select a different result or consume materially more memory. The 20,528 archived replay rows do not establish parity when pruning is exercised.",
+      "recommendedTest": "Add a synthetic graph with more than 50 active/inactive states at a space and compare native parse output with the configured max-state value."
+    },
+    {
+      "id": "INTERP-001",
+      "severity": "high-negative-control-gap",
+      "title": "NL assignment RHS is a restricted resolver rather than the source JavaScript expression",
+      "candidateEvidence": [
+        "packages/nlu/src/compiledFstInterpreter.js:259-285 resolves only quoted literals or object references",
+        "The focused probe returns {} for N:{} count = 1 and N:{} ok = true, and {count:'undefined'} for count += 1"
+      ],
+      "sourceEvidence": [
+        "v8_interpreter/v8_interpreter.cpp:216-236 emits the parsed RHS and operator into JavaScript",
+        "v8_interpreter/v8_interpreter.cpp:249-267 only escapes quoted RHS text; it does not restrict numeric, boolean, null, expression, or function RHS values",
+        "v8_engine/v8_engine.cpp:90-108 compiles and executes the generated script in V8"
+      ],
+      "impact": "Any compiled rule using a numeric/boolean/null/expression RHS, or source JS semantics beyond a variable reference, can disappear or change type. The existing fixtures cover quoted strings, references, delete and a small conditional, but no primitive/expression matrix."
+    },
+    {
+      "id": "INTERP-002",
+      "severity": "medium-negative-control-gap",
+      "title": "Nested ordinary assignments are flattened into root tags",
+      "candidateEvidence": [
+        "packages/nlu/src/compiledFstInterpreter.js:269-283 copies every non-underscore final property into root[property] even when ruleStack is nested",
+        "focused-probes.mjs returns {public:'x'} for S:{} child / N:{} public = 'x' / E:{}"
+      ],
+      "sourceEvidence": [
+        "v8_interpreter/object_tracker.cpp:63-99 creates nested this.<rule> objects and :102-119 closes them",
+        "v8_interpreter/v8_interpreter.cpp:227-236 attaches nested assignments to this when rule_depth > 0",
+        "v8_engine/v8_engine.cpp:132-153 JSON.stringifies the entire global object after removing only interpreter helpers"
+      ],
+      "impact": "The source output for a nested rule is structurally nested, whereas this direct helper promotes the leaf field. Current launch corpus tags may not expose this shape; add a source-executed nested output control before claiming general interpreter equivalence."
+    },
+    {
+      "id": "CACHE-001",
+      "severity": "medium-deployment-limit",
+      "title": "Dynamic factory graphs are rebuilt and factory bytes reread on every request",
+      "candidateEvidence": [
+        "packages/nlu/src/connectedFst.js:80-95 reads VectorStandardFst.fromFile for each newly seen callsite",
+        "packages/nlu/src/connectedFst.js:276-283 resets graphs and graphByCallsite on every parse",
+        "Repeated launch probe observed graph counts 23, 31, 23 and callsite cache sizes 22, 30, 22 for three requests"
+      ],
+      "sourceEvidence": [
+        "fst_group/fst_group.cpp:12-20 constructs persistent connected_fst objects",
+        "fst_group/connected_fst.cpp:182-218 stores _dynlink_arcs and child return arcs on the persistent graph",
+        "fst_cache/fst_cache.cpp:13-47 caches factory FST bytes by URI and :97-110 clears only explicitly",
+        "jibonluapi/jibonluapi.cpp:54-63 builds a parser around that persistent fst_group"
+      ],
+      "impact": "Resetting internal request state can preserve current outputs, but it is not the source lifecycle and causes repeated disk reads/graph construction. It needs an explicit bounded performance decision or immutable factory-byte cache before production use."
+    },
+    {
+      "id": "INPUT-001",
+      "severity": "low-direct-api-limit",
+      "title": "The direct single-graph executor uses Unicode whitespace while source tokenization is byte/C-locale based",
+      "candidateEvidence": [
+        "packages/nlu/src/compiledFst.js:289-296 uses String.match(/\\S+/gu)",
+        "focused-probes.mjs gives direct bytes [97,32,98,32] for a NBSP b",
+        "packages/nlu/src/connectedFst.js:250-273 correctly scans UTF-8 bytes and gives [97,194,160,98,32]"
+      ],
+      "sourceEvidence": [
+        "parser/parser.cpp:151-168 uses std::stringstream >> token and then iterates raw token bytes"
+      ],
+      "impact": "The runtime's connected path uses the corrected byte-aware helper, so this is not shown as a launch-profile failure. The exported CompiledFstExecutor API remains inconsistent and unverified for non-ASCII whitespace."
+    }
+  ],
+  "positiveChecks": [
+    {
+      "command": "node --test packages/nlu/test/compiledFst.test.js packages/nlu/test/compiledFstTags.test.js",
+      "result": "11 passed, 0 failed"
+    },
+    {
+      "command": "PHOENIX_NLU_RUNTIME=compiled-fst ... node --test packages/nlu/test/compiledFstRuntime.test.js",
+      "result": "1 passed, 0 failed; real /v1/parse configured profile"
+    },
+    {
+      "command": "configured compiledFstRuntimeConfig and matchCompiledLaunch against pinned launch.fst",
+      "result": "accepted; who is jane jetson -> whoIsPerson; garbage bananas -> null; what time is it -> askForTime"
+    },
+    {
+      "command": "current candidate N-08-fst-regression-http-replay.json",
+      "artifactSha256": "6afd63f5c41745437c05b47a564d2181f65d4092d20f2dcbe1c31849c763f3f3",
+      "result": "recorded 20,528/20,528 status/data matches; review did not rerun the full replay"
+    }
+  ],
+  "negativeControls": [
+    "valid non-launch country.fst accepted as pinned launch profile",
+    "fractional final-weight integer-bucket tie",
+    "native max-state pruning threshold",
+    "numeric/boolean/null/expression RHS",
+    "nested ordinary interpreter assignment",
+    "factory cache persistence across requests"
+  ],
+  "evidenceNotes": [
+    "N-08-fst-regression-review.json records candidateRevision d73b776, while HEAD 36ec770 adds the replay/report artifacts; the four reviewed modules are unchanged between those revisions. The replay JSON itself does not record a candidate source hash.",
+    "The candidate remains unverified. The 20,528-row replay is strong evidence for the pinned launch artifact and current corpus, but does not close the source-level negative controls above.",
+    "The fixed factory manifest guard does reject a changed directory aggregate in the normal configuration path; that guard does not bind a caller-selected launch FST to the profile identity."
+  ],
+  "reproduction": {
+    "focusedProbe": "node /home/shell/work/phoenix/.parity/reviews/n08-compiled-fst-review-36ec770-20260906/focused-probes.mjs",
+    "positiveProfile": "PHOENIX_NLU_RUNTIME=compiled-fst PHOENIX_NLU_COMPILED_FST=<reference>/packages/parser/robust-parser/rules_fst/launch.fst PHOENIX_NLU_COMPILED_FACTORY_DIR=<reference>/packages/parser/robust-parser/build/data/en-us/factory_rules PHOENIX_NLU_COMPILED_FST_SHA256=2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a node --input-type=module -e \"import {compiledFstRuntimeConfig,matchCompiledLaunch} from './packages/nlu/src/compiledFstRuntime.js'; console.log(JSON.stringify({config:compiledFstRuntimeConfig(),matches:[matchCompiledLaunch('who is jane jetson'),matchCompiledLaunch('garbage bananas'),matchCompiledLaunch('what time is it')]},null,2));\"",
+    "provenanceSpoof": "PHOENIX_NLU_RUNTIME=compiled-fst PHOENIX_NLU_COMPILED_FST=<reference>/packages/parser/robust-parser/build/data/en-us/factory_rules/country.fst PHOENIX_NLU_COMPILED_FACTORY_DIR=<reference>/packages/parser/robust-parser/build/data/en-us/factory_rules PHOENIX_NLU_COMPILED_FST_SHA256=0ee7a77ac8d64bedde7416954929ff9ae33bab9946e897f13841dcffda68791c node --input-type=module -e \"import {compiledFstRuntimeConfig} from './packages/nlu/src/compiledFstRuntime.js'; console.log(JSON.stringify(compiledFstRuntimeConfig(),null,2));\""
+  },
+  "conclusion": {
+    "status": "candidate has strong pinned-corpus evidence but remains blocked for source-profile acceptance",
+    "primaryBlocker": "PROV-001",
+    "nextRepairsWithHighestPayoff": [
+      "bind the approved launch FST hash/path to its provenance tuple",
+      "replicate native integer-bucket final ordering and add the fractional-weight control",
+      "either implement/configure native max-state pruning or narrow the runtime claim",
+      "expand interpreter source differential for primitive RHS and nested output contexts",
+      "cache immutable factory bytes while preserving request-local path state if that lifecycle is intentional"
+    ]
+  }
+}
