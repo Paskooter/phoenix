@@ -1,0 +1,28 @@
+{
+  "referenceSha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+  "cases": 20528,
+  "matches": 20528,
+  "groups": {
+    "boundary": {
+      "cases": 21,
+      "matches": 21
+    },
+    "chitchat": {
+      "cases": 11432,
+      "matches": 11432
+    },
+    "hub-client": {
+      "cases": 9002,
+      "matches": 9002
+    },
+    "report": {
+      "cases": 73,
+      "matches": 73
+    }
+  },
+  "differences": [],
+  "scope": "HTTP status and complete decoded response.data; original outer envelope and server routing are separate comparisons",
+  "candidateRevision": "e58636066ddfeb4ddae0b6282300b31c9c277ca1",
+  "originalInputSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+  "runnerSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e"
+}

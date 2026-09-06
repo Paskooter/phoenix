@@ -481,12 +481,12 @@
         "reviewEvidence": "docs/parity/evidence/2026-09-06/gateway-registry/review.json"
       },
       "nextImplementation": {
-        "state": "changes_requested",
-        "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Report source env/default candidate is frozen. Root requested original EnvVars cache/clearCache behavior and run-service CLI/parseInt port semantics before acceptance; agent reassigned temporarily to N08 interpreter fixes.",
+        "state": "awaiting_review",
+        "assignee": "Luna Max / capture_writer_repair; root acceptance",
+        "scope": "Frozen follow-up adds source EnvVars mutable cache/clearCache and CLI parseInt/argument precedence with explicit PORT launcher adapters. Agent reports 13/13 source port controls and 104 skills tests; root review and integrated configuration acceptance remain pending.",
         "baseRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c",
-        "candidateRevision": "b4bdf09abc22c4fbc0cf2b4096bb1f5b9e987100",
-        "worktree": ".parity/worktrees/c03-report-config"
+        "candidateRevision": "80689ac351be6e3bf6b16032cce15c45a8a17220",
+        "worktree": ".parity/worktrees/c03-report-config-followup"
       }
     },
     {
@@ -920,7 +920,7 @@
         "scripts/parity-production",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The grammar engine approximates the original; a static golden grader currently scores 74/89 and is not the production parser.",
+      "finding": "Original C++ compiler/parser and service source plus archived binaries are recovered and pinned. Root controls establish bounded sorting, pruning and interpreter repairs, but the experimental compiled-launch profile mixes native scores with AST named-rule scores and regresses real BE cancellation. Complete requested-rule scoring/tie/validity behavior, grammar compilation and factories remain open.",
       "acceptance": [
         "Differentially test semantic actions, recursion, optional/repeated rules, wildcards, equivalents, locale/token normalization, weights and designated-loser ties.",
         "Recover all factory entity semantics, including names, places, dates, times, durations and numeric entities, from version-matched source/artifacts.",
@@ -1075,7 +1075,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "in_progress",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1097,7 +1097,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "Reviewed grammar metadata and general optional-code-point/group handling are integrated. Full replay matches HTTP status and complete decoded response.data for 20,233/20,528 requests: 17 additional failures fixed, no newly failing IDs, 295 remaining. All 73 report cases and four non-200 cases match within that scope. Full outer HTTP/routing/action parity remains separate and open.",
+      "finding": "Default main remains 20,233/20,528 archived HTTP status/data matches. Isolated compiled candidate e586360 matches 20,528/20,528 and passes 449 default plus 63 configured tests, but a real BE multiple-rule request regresses timer cancellation by mixing native and AST score scales. Root aborted integration and restored Moth. Source-comparable selection for every requested rule and expanded original BE rule-set coverage are required.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1153,13 +1153,14 @@
       ],
       "nextImplementation": {
         "state": "changes_requested",
-        "assignee": "Codex root with Luna Max executor/interpreter agents",
+        "assignee": "Luna Max / audio_encoding_repair; original-service fixtures by capture_writer_repair; root acceptance",
         "worktree": ".parity/worktrees/n08-fst-root",
         "baseRevision": "3aff56d3fa4b69b851e0bdbcf40e9de7e9fe494a",
-        "candidateRevision": "fb5b2ae2fefd930261ddea42ef821a4a0149302a",
-        "scope": "Root independently matches all 20,528 HTTP status/data cases and reduces strict smoke to 648 differences (11 removed, zero new paths). Source review requires artifact pin/snapshot, native final ordering/pruning and interpreter-expression repairs before integration. Default main remains 20,233/20,528; no full-task credit.",
+        "candidateRevision": "e58636066ddfeb4ddae0b6282300b31c9c277ca1",
+        "scope": "Root verified artifact/runtime/executor/interpreter repairs and the full fixed corpus. Strict smoke remains 648 differences with no new paths. Moth exposed launch/native vs named/AST scoring regression; candidate merge aborted and robot rolled back. All requested rules need comparable source-native execution/selection; no full-task credit.",
         "artifact": "docs/parity/candidates/N-08-compiled-fst.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/initial-root-review.json"
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/combined-root-review.json",
+        "repairWorktree": ".parity/worktrees/n08-mixed-score"
       }
     },
     {
@@ -2080,7 +2081,7 @@
       "track": "classic",
       "phase": 0,
       "priority": "P0",
-      "status": "in_progress",
+      "status": "todo",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2184,7 +2185,7 @@
         "packages/account/src",
         "packages/account/portal"
       ],
-      "finding": "Account lifecycle candidate d69f586 is withheld after independent review found internal credential/target dispatch differences and 65/98 event contract differences (14 acceptance differences). The earlier 14-case normalized comparison does not establish raw HTTP or SNS/startup parity. Luna Max is repairing those source mechanisms; all full operation/lifecycle criteria remain open.",
+      "finding": "Original d69f586 candidate remains withheld. Follow-ups repair event validation and source target/payload behavior; independent review found and repaired leakage into portal/Settings requests. Latest isolated 8ec760 reports 37/37 and 25/25 TCP matrices plus 98/98 AccountUpdated events. Root acceptance, public/internal boundary coverage and full operation/SNS/Mongo/bootstrap lifecycle remain open.",
       "acceptance": [
         "Implement/verify every Account and AccountAdmin operation from the inventory, including signup/authentication, profile, credentials, deactivation and recovery flows.",
         "Match original validation, roles, errors, ownership, durable state and downstream effects using SDK fixtures.",
@@ -2203,10 +2204,10 @@
       },
       "nextImplementation": {
         "state": "awaiting_review",
-        "assignee": "Luna Max / capture_writer_repair; independent review by http_contract_repair",
-        "candidateRevision": "44611265128b1c7c472ca79dda0211658f232240",
-        "worktree": ".parity/worktrees/a03-repair",
-        "scope": "Agent reports 98/98 source AccountUpdated events and 25/25 actual original Node8 TCP status/raw-body/header matches, with 56 unit tests. Independent source review is running; root acceptance and full SNS/bootstrap remain open."
+        "assignee": "Luna Max / http_contract_repair and capture_writer_repair; root acceptance",
+        "candidateRevision": "8ec76076fe2df6ecfc39773022cb78ef11c50f09",
+        "worktree": ".parity/worktrees/a03-parser-isolation",
+        "scope": "Independent review repaired Hapi parser selection leaking into portal/Settings requests. Agent reports 37/37 expanded and 25/25 original TCP comparisons including raw/header/entity validation, 98/98 events, and 78 tests. Root integration and complete Account/bootstrap delivery remain open."
       }
     },
     {
@@ -2299,7 +2300,7 @@
       "implementationReview": {
         "state": "changes_requested",
         "assignee": "Codex root with Luna Max candidates",
-        "scope": "Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Candidate transport 77f994f and Account peer d36a1af require independent integration review; full Settings graph/persistence remains open.",
+        "scope": "Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Source-pinned Settings transport work is paused while the robot NLU regression is repaired. Account peer d36a1af is under independent review by http_contract_repair. Full Settings graph/persistence remains open.",
         "candidateRevision": "32f382f066ef6eefa0adefb84a0f13dc59947b99",
         "prerequisiteRevision": "d36a1af4fb09b3a61635f4bca15fde84944de5d7",
         "worktree": ".parity/worktrees/a06-review-root",

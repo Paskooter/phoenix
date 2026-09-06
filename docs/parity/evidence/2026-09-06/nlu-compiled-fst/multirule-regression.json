@@ -1,0 +1,74 @@
+{
+  "input": {
+    "text": "cancel the timer",
+    "rules": [
+      "launch",
+      "globals/global_commands_launch"
+    ]
+  },
+  "defaultAst": {
+    "entities": {
+      "domain": "timer",
+      "hours": "null",
+      "minutes": "null",
+      "seconds": "null",
+      "skill": "@be/clock",
+      "union_original_fst_name": "handle:clock/launch"
+    },
+    "intent": "stop",
+    "rules": [
+      "launch"
+    ]
+  },
+  "compiledStatus": 200,
+  "compiled": {
+    "entities": {
+      "domain": "global_commands"
+    },
+    "intent": "stop",
+    "rules": [
+      "globals/global_commands_launch"
+    ]
+  },
+  "nativeSource": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "nativeParseSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+  "nativeExecution": "archived CLI executed on host with its archived LD_LIBRARY_PATH; Node8 wrapper selection is a separate control",
+  "nativeResults": {
+    "launch": [
+      {
+        "Input": "cancel the timer",
+        "NLParse": {
+          "domain": "timer",
+          "intent": "stop",
+          "hours": "null",
+          "minutes": "null",
+          "seconds": "null",
+          "skill": "@be/clock",
+          "priority": "HIGH",
+          "union_original_fst_name": "handle:clock/launch"
+        },
+        "heuristic_score": 13,
+        "index": 0
+      }
+    ],
+    "globals": [
+      {
+        "Input": "cancel the timer",
+        "NLParse": {
+          "intent": "stop",
+          "domain": "global_commands",
+          "priority": "HIGH"
+        },
+        "heuristic_score": 7,
+        "index": 0
+      }
+    ]
+  },
+  "finding": "Compiled launch and AST named rule scores use different scales; native picks launch score13 over globals score7, whereas the mixed candidate promotes globals.",
+  "sourceSelectionControl": {
+    "artifact": "source-selection-control.json",
+    "winnerRule": "launch",
+    "nativeScore": 13,
+    "executedOriginalNodeVersion": "v8.9.4"
+  }
+}

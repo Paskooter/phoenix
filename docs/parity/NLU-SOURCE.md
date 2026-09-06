@@ -46,3 +46,16 @@ failing IDs across the 20,528-request HTTP status/data replay. The remaining
 Source recovery does not close N-02 or N-08. Compiled-path ordering, complete
 grammar/factory behavior and full corpus agreement remain open and are tracked
 in the [checklist](TASKS.md).
+
+The compiled launch candidate now matches all 20,528 archived HTTP parser
+responses, but it remains withheld after a real Moth request exposed incompatible
+scoring between compiled launch and AST named rules. The
+[combined review](candidates/N-08-compiled-fst.md) records the successful source
+controls, failed robot request and verified rollback. This is why a corpus pass
+alone does not close parser parity.
+
+The service callsite is additionally recovered at
+[`ConvTech/jibo-nlu-service@5d6755a`](https://pvindex.org/gitea/ConvTech/jibo-nlu-service/src/commit/5d6755a5116694e2801438f358b862109cd16ba5).
+Its `execute_parse_from_uri` creates new graph groups and a new sentence parser
+for each request. The [file hashes and cache-lifetime correction](evidence/2026-09-06/nlu-compiled-fst/service-cache-lifecycle.json)
+distinguish that service behavior from a retained native library parser.

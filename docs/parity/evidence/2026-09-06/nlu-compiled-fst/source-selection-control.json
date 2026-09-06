@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceModule": "packages/parser/lib/robustparser/RobustParserClient.js",
+  "sourceModuleSha256": "fa07847affa4c688509e21b674d9b3965f81d72b96d218bef78e454a2d48fec0",
+  "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "node": "v8.9.4",
+  "exitCode": 0,
+  "winner": [
+    {
+      "Input": "cancel the timer",
+      "NLParse": {
+        "domain": "timer",
+        "intent": "stop",
+        "hours": "null",
+        "minutes": "null",
+        "seconds": "null",
+        "skill": "@be/clock",
+        "priority": "HIGH",
+        "union_original_fst_name": "handle:clock/launch"
+      },
+      "heuristic_score": 13,
+      "index": 0
+    },
+    "launch"
+  ],
+  "runReceiptSha256": "8c6f17b01ffc8bfe81e368b23a9796729d0f63c42192cbe404dbff8e9782ec6f",
+  "stdoutSha256": "bfdc09065370cefcb5fbbe2024430492d9294d77055043ab505b0b5035724f4c",
+  "scope": "Original getBestResult exported function executed under pinned Node8 using the two archived-native CLI results; this is not a complete original HTTP request. Independent actual-service multiple-rule capture follows.",
+  "earlierAttempts": "A 45-second command timeout retained no selection result; attempting to inspect/exec its removed container failed. A new owned container with a 120-second allowance completed in 90.68 seconds. Failed attempts remain private."
+}

@@ -1,0 +1,12 @@
+{
+  "repository": "ConvTech/jibo-nlu-service",
+  "revision": "5d6755a5116694e2801438f358b862109cd16ba5",
+  "recoveredVia": "Jibo MCP gitea_read_file at immutable Git HEAD resolved independently by git ls-remote",
+  "files": {
+    "nluservice/nlu_request_executor.cc": "48b685e43d39045509b15b5c3743d431518c3f340b66fa89c6cdb386de58359f",
+    "nluservice/nlu_request_executor.h": "82d30860a88798144b56014eea5f2553e5618a02d5d01274780e0b46cf29d145"
+  },
+  "finding": "execute_parse_from_uri constructs fresh fst_group_base instances for each requested URI and a new sentence parser for each HTTP request. read_open_fst_from_uri in native library91b1bb6 constructs a new fst_group; underlying factory bytes are cached globally.",
+  "correction": "CACHE-001 initial review described the lifetime of a retained library parser, not this service request callsite. Per-request dynamic graph reset is appropriate for this source service; disk rereads after metadata verification were still a real implementation issue and are fixed in root36eb2b4.",
+  "sourceBinaryBuildRelationshipVerified": false
+}

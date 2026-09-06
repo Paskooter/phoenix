@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 0 | 46 | 0 | 0 |
-| classic | 0 | 20 | 1 | 0 |
+| pegasus | 0 | 46 | 1 | 0 |
+| classic | 0 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
-Current task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
+Current task: **N-08 — Restore exact NLU outputs and close corpus mismatches**.
 
-Next ready task: **C-01 — Match the shared HTTP response and error contract**.
+Next ready task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -172,7 +172,7 @@ Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/pari
 
 ### A-01 — Map every Classic operation to controllers, consumers and tests
 
-- [ ] **in_progress** · P0 · classic · implementation: partial
+- [ ] **todo** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: PM-03.
 
@@ -560,7 +560,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-01, V-01.
 
-The grammar engine approximates the original; a static golden grader currently scores 74/89 and is not the production parser.
+Original C++ compiler/parser and service source plus archived binaries are recovered and pinned. Root controls establish bounded sorting, pruning and interpreter repairs, but the experimental compiled-launch profile mixes native scores with AST named-rule scores and regresses real BE cancellation. Complete requested-rule scoring/tie/validity behavior, grammar compilation and factories remain open.
 
 Done when:
 
@@ -672,11 +672,11 @@ Evidence: pending.
 
 ### N-08 — Restore exact NLU outputs and close corpus mismatches
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [ ] **in_progress** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-Reviewed grammar metadata and general optional-code-point/group handling are integrated. Full replay matches HTTP status and complete decoded response.data for 20,233/20,528 requests: 17 additional failures fixed, no newly failing IDs, 295 remaining. All 73 report cases and four non-200 cases match within that scope. Full outer HTTP/routing/action parity remains separate and open.
+Default main remains 20,233/20,528 archived HTTP status/data matches. Isolated compiled candidate e586360 matches 20,528/20,528 and passes 449 default plus 63 configured tests, but a real BE multiple-rule request regresses timer cancellation by mixing native and AST score scales. Root aborted integration and restored Moth. Source-comparable selection for every requested rule and expanded original BE rule-set coverage are required.
 
 Done when:
 
@@ -913,7 +913,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **changes_requested**; Codex root with Luna Max candidates.
 
-Candidate scope: Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Candidate transport 77f994f and Account peer d36a1af require independent integration review; full Settings graph/persistence remains open.
+Candidate scope: Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Source-pinned Settings transport work is paused while the robot NLU regression is repaired. Account peer d36a1af is under independent review by http_contract_repair. Full Settings graph/persistence remains open.
 
 Candidate report: [docs/parity/candidates/A-06-root-review.md](../../docs/parity/candidates/A-06-root-review.md).
 
@@ -1312,7 +1312,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-02.
 
-Account lifecycle candidate d69f586 is withheld after independent review found internal credential/target dispatch differences and 65/98 event contract differences (14 acceptance differences). The earlier 14-case normalized comparison does not establish raw HTTP or SNS/startup parity. Luna Max is repairing those source mechanisms; all full operation/lifecycle criteria remain open.
+Original d69f586 candidate remains withheld. Follow-ups repair event validation and source target/payload behavior; independent review found and repaired leakage into portal/Settings requests. Latest isolated 8ec760 reports 37/37 and 25/25 TCP matrices plus 98/98 AccountUpdated events. Root acceptance, public/internal boundary coverage and full operation/SNS/Mongo/bootstrap lifecycle remain open.
 
 Done when:
 

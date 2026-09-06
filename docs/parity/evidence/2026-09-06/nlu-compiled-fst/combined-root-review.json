@@ -1,0 +1,81 @@
+{
+  "date": "2026-09-06T08:56:47.902813+00:00",
+  "reviewer": "Codex root",
+  "status": "changes_requested",
+  "integrated": false,
+  "deploymentAccepted": false,
+  "fullTaskVerified": false,
+  "candidateRevision": "e58636066ddfeb4ddae0b6282300b31c9c277ca1",
+  "sourceTreeSha256": "53833e4ad8ead7b4e85e8b670427ccb64d7e1d033cb33631f78a00e296502b96",
+  "sourceFiles": 5108,
+  "sourceRepairsVerified": [
+    "closed launch graph pin",
+    "same verified launch/factory bytes executed after load",
+    "invalid configured profiles fail before HTTP startup",
+    "native integer final comparator and unstable tie ordering with heap fallback",
+    "native pruning boundary controls",
+    "complete generated interpreter script preserves raw block scope and underscore fields",
+    "only first native result considered by launch adapter"
+  ],
+  "unitTests": {
+    "default": {
+      "passed": 449,
+      "failed": 0,
+      "skipped": 2
+    },
+    "configuredNlu": {
+      "passed": 63,
+      "failed": 0,
+      "skipped": 0
+    },
+    "scopeCorrection": "Two configured artifact tests are skipped in the default suite and pass in the configured suite. The original default-AST requestParser assertions remain explicitly bound to AST; compiled loop-member expectations come from the original capture."
+  },
+  "fullHttpReplay": {
+    "cases": 20528,
+    "matches": 20528,
+    "differences": 0,
+    "scope": "HTTP status and complete decoded parser data; fixed archived corpus"
+  },
+  "mothBundleHttpReplay": {
+    "candidateRevision": "495f38d4af48df357694bc48ade5760d67981acd",
+    "cases": 20528,
+    "matches": 20528,
+    "differences": 0
+  },
+  "strictProduction": {
+    "cases": 43,
+    "differences": 648,
+    "invariantFailures": 0,
+    "coverageGaps": 0,
+    "exactDifferenceListEqualPriorCompiledSnapshot": true,
+    "referenceMainDifferences": 659,
+    "removedComparedWithMain": 11,
+    "newComparedWithMain": 0,
+    "captureExitCode": 0,
+    "comparisonExitCode": 1,
+    "overallParityPass": false
+  },
+  "newBlockingFinding": "Real BE requests launch and globals/global_commands_launch together. Compiled launch score13 loses to the unrelated AST priority scale for cancel the timer; archived native scores13 vs7 and the previous AST profile both select the clock launch result. The fixed corpus did not expose this multiple-rule regression. Candidate integration was aborted and Moth restored.",
+  "nextRequiredWork": [
+    "Use source-comparable native scoring for every requested rule under the compiled profile; do not special-case timer cancellation or rescale AST scores by an arbitrary constant.",
+    "Pin and execute every consumed graph/factory snapshot, retain default AST profile, and reproduce designated-loser ties and post-selection validity.",
+    "Add original multiple-rule and original BE rule-set captures to acceptance, repeat full corpus/strict comparison after code changes, then repeat Moth launch/local/cancellation tests."
+  ],
+  "remainingScope": [
+    "Complete grammar/compiler/factory generation",
+    "Cross-rule selection and full external-agent behavior",
+    "Full HTTP/routing/action/provider parity",
+    "Natural microphone wake and physical light-ring acceptance"
+  ],
+  "artifacts": {
+    "full-parser-replay-final.json": "caf499c4303d83e763c5530079ce4087296549d9e4d668b22466e62df7cf5553",
+    "full-parser-replay-moth-profile.json": "dbf0c8e82e27a481f2bad4c8738392af5e1168aad0c283eb7fd6e07199fd2284",
+    "combined-full-unit-final.log": "99e1da35d97ac0c92ac4cb47dbc297767da2eb681d8bf4069e45b230e546ec06",
+    "combined-nlu-configured-final.log": "083de939f03945e7225b1ab9bb8a49a6b863d074ded0d5ef8fbbc255c344d08f",
+    "combined-nlu-configured-first.log": "ee371acdfa6eb495b77ff2f8bc93de4c8bbb77b3a735242460e2a130bf8ec595",
+    "production-final/run.json": "d79f08a71e498978682a26182a0a4eb0ba5bf911f7189bdefd19acf15eb1be47",
+    "production-final/comparison.json": "86f3fd20553b20afda471b07984d545bef51f8db74d91d1e65b81f0546d3a407",
+    "production-final/phoenix-source.json": "7b40f43d88c6b212f39a8942fab154704d1cc3392fbddfd706be0dbed95b8907",
+    "multirule-regression.json": "f9b1405530b285b85b398b2116e4de09c108cd04a60acb6d1633db6ac8bdf989"
+  }
+}

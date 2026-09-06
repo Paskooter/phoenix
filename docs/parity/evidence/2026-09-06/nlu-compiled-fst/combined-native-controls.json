@@ -1,0 +1,443 @@
+{
+  "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "nativeParserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+  "executionCorrection": "The interpreter and 30-case adversarial runners invoke archived native executables directly on the VM with archived LD_LIBRARY_PATH. Their original Node8 Docker metadata does not describe these execution commands. This summary claims host native CLI execution; the original production service capture separately uses pinned Node8 Docker.",
+  "sortSourceControl": {
+    "cases": 306,
+    "oldFailures": 10,
+    "newFailures": 0,
+    "fallbackCalls": 123,
+    "scope": "Source comparator executed with host GCC11 libstdc++; actual archived native FST probes are separate",
+    "recordSha256": "bcd1fe62705722e8d0e7edd8464cb8b7a01a6bbd78c4ee2b87e9e6dd47647845"
+  },
+  "nativeSmallTieAndPruneControl": {
+    "summary": {
+      "acceptedMatches": 21,
+      "branchMatches": 21,
+      "cases": 21,
+      "scoreMatches": 21
+    },
+    "recordSha256": "8b034b6880bb7aee17a1e8e51054302872b64fb4af75115dd562cc7444774dce",
+    "scope": "21 archived-native first-branch/score/acceptance controls; 4 host-compiled pruning helper vectors are separate evidence"
+  },
+  "nativeAdversarialControl": {
+    "summary": {
+      "cases": 30,
+      "nativeSuccesses": 30,
+      "candidateSuccesses": 30,
+      "nativeResultCount": 30,
+      "candidateResultCount": 46848,
+      "winnerMatches": 30,
+      "heuristicMatches": 30,
+      "failures": []
+    },
+    "recordSha256": "a30cc6988a5da24b8fac770a729a599d985ca6c0421fa83347481444786ea67f",
+    "vectorsSha256": "5f6f7202c54a276894c2acea6f8c45334549c7af9b92853a9967a50cc6a51e9a",
+    "candidateSourceSha256": "a61fca2739a12cbec8dbcf2632bc0a5497227741addc9840b01c53d835050e8c",
+    "cases": [
+      {
+        "name": "pipe-128",
+        "size": 128,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-buckets-128",
+        "size": 128,
+        "nativeStatus": 0,
+        "nativeWinner": 1,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 1,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "alternating-128",
+        "size": 128,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "alternating-buckets-128",
+        "size": 128,
+        "nativeStatus": 0,
+        "nativeWinner": 127,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 127,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "median-128",
+        "size": 128,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          1
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 1
+      },
+      {
+        "name": "median-buckets-128",
+        "size": 128,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-512",
+        "size": 512,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-buckets-512",
+        "size": 512,
+        "nativeStatus": 0,
+        "nativeWinner": 1,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 1,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "alternating-512",
+        "size": 512,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "alternating-buckets-512",
+        "size": 512,
+        "nativeStatus": 0,
+        "nativeWinner": 511,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 511,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "median-512",
+        "size": 512,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          1
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 1
+      },
+      {
+        "name": "median-buckets-512",
+        "size": 512,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-1024",
+        "size": 1024,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-buckets-1024",
+        "size": 1024,
+        "nativeStatus": 0,
+        "nativeWinner": 1,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 1,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "alternating-1024",
+        "size": 1024,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "alternating-buckets-1024",
+        "size": 1024,
+        "nativeStatus": 0,
+        "nativeWinner": 1023,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 1023,
+        "candidateScore": 2
+      },
+      {
+        "name": "median-1024",
+        "size": 1024,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          1
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 1
+      },
+      {
+        "name": "median-buckets-1024",
+        "size": 1024,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-2048",
+        "size": 2048,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-buckets-2048",
+        "size": 2048,
+        "nativeStatus": 0,
+        "nativeWinner": 1,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 1,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "alternating-2048",
+        "size": 2048,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "alternating-buckets-2048",
+        "size": 2048,
+        "nativeStatus": 0,
+        "nativeWinner": 2047,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 2047,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "median-2048",
+        "size": 2048,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          1
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 1
+      },
+      {
+        "name": "median-buckets-2048",
+        "size": 2048,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-4096",
+        "size": 4096,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "pipe-buckets-4096",
+        "size": 4096,
+        "nativeStatus": 0,
+        "nativeWinner": 1,
+        "nativeScores": [
+          1.8
+        ],
+        "candidateWinner": 1,
+        "candidateScore": 1.8
+      },
+      {
+        "name": "alternating-4096",
+        "size": 4096,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      },
+      {
+        "name": "alternating-buckets-4096",
+        "size": 4096,
+        "nativeStatus": 0,
+        "nativeWinner": 4095,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 4095,
+        "candidateScore": 2
+      },
+      {
+        "name": "median-4096",
+        "size": 4096,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          1
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 1
+      },
+      {
+        "name": "median-buckets-4096",
+        "size": 4096,
+        "nativeStatus": 0,
+        "nativeWinner": 0,
+        "nativeScores": [
+          2
+        ],
+        "candidateWinner": 0,
+        "candidateScore": 2
+      }
+    ],
+    "scope": "30 valid generated FSTs, 128-4096 finals after a+SPACE; archived native emits only the first result. Full sort order comparison uses the separate host C++ control."
+  },
+  "interpreter": {
+    "recordSha256": "00961db0db04c9421185738258eb7e11b11cd1b80560072709483a32e491a716",
+    "candidateInterpreterSha256": "ea17783138c2c62fc3aa031a4b06a4ca648926991a4b182832d6001be3ba4d9d",
+    "cases": [
+      {
+        "name": "var-function-persistence",
+        "grammarSha256": "d0964d37072a759a787790ee32f6c0ea9cd7943809f785893920e041de6c9eda",
+        "fstSha256": "6ce85afa722c3d57e97292d2676c2e166ce57997c6b0356b9f1898de7d71af18",
+        "compileStatus": 0,
+        "parseStatus": 0,
+        "nativeResult": {
+          "result": 2
+        },
+        "candidateResult": {
+          "result": 2
+        },
+        "exactNlParseEqual": true
+      },
+      {
+        "name": "nested-closure",
+        "grammarSha256": "91c1eb772d41593fd6f1b737e62d9b9ed6ede35c047351ab3df913579c2be664",
+        "fstSha256": "0b32c3db720db130c3053171fd79940092d920968ed812b326c60090087ba277",
+        "compileStatus": 0,
+        "parseStatus": 0,
+        "nativeResult": {
+          "result": 3
+        },
+        "candidateResult": {
+          "result": 3
+        },
+        "exactNlParseEqual": true
+      },
+      {
+        "name": "repeated-context",
+        "grammarSha256": "6e5a8b293e8e5f026cd6dae860239106ee7e7e9ca9472e223b6b23c581d8a54f",
+        "fstSha256": "b14bb6b25ddd805104aa06a6248c3be307cf45995367f738fa73eedfc340ae5e",
+        "compileStatus": 0,
+        "parseStatus": 0,
+        "nativeResult": {
+          "seen": 2
+        },
+        "candidateResult": {
+          "seen": 2
+        },
+        "exactNlParseEqual": true
+      },
+      {
+        "name": "underscore-root",
+        "grammarSha256": "8e0f528d0431438213df6fccd5402aca2e06bbaab22a82a0f91fd3c61612233c",
+        "fstSha256": "8937468c0da33e1cba0ced3aeaf515056712a2b0edb6eb371ed53cb891a87eca",
+        "compileStatus": 0,
+        "parseStatus": 0,
+        "nativeResult": {
+          "_d": "compiler-value",
+          "intent": "tag"
+        },
+        "candidateResult": {
+          "_d": "compiler-value",
+          "intent": "tag"
+        },
+        "exactNlParseEqual": true
+      }
+    ],
+    "scope": "4 fresh grammars compiled and parsed by archived native binaries; same FST bytes parsed/interpreted by Phoenix; host Node VM diagnostic text is not equivalent to embedded native V8"
+  },
+  "firstBestControl": {
+    "recordSha256": "4234079a995762c52d2d62b1c3444ee799cf379e160b5db57d2fce0723dc9f61",
+    "nativeOnlyOneEmptyWinner": true,
+    "lowerRankedIntentNotPromotedByRootAdapter": true,
+    "unitTest": "compiledFstRuntime.test.js: an invalid native winner does not promote a lower-ranked intent"
+  },
+  "sourceBinaryBuildRelationshipVerified": false
+}

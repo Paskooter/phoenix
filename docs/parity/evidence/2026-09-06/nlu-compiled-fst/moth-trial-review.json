@@ -1,0 +1,85 @@
+{
+  "status": "rejected and rolled back after real-client multiple-rule regression",
+  "candidateRevision": "495f38d4af48df357694bc48ade5760d67981acd",
+  "parserCandidateRevision": "e58636066ddfeb4ddae0b6282300b31c9c277ca1",
+  "transportBaseRevision": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+  "beVersion": "11.0.1",
+  "input": "original BE Jetstream SDK clientASR text injection",
+  "authentication": "disabled diagnostic transport profile",
+  "candidateChecks": {
+    "clock": {
+      "nativeStatus": "SUCCEEDED",
+      "intent": "askForTime",
+      "skill": "@be/clock",
+      "ttsActivity": true,
+      "clockScreenshotInspectedByRoot": true
+    },
+    "joke": {
+      "nativeStatus": "SUCCEEDED",
+      "intent": "requestTellJiboContent",
+      "skill": "chitchat-skill",
+      "ttsActivity": true,
+      "view": "eyeView"
+    },
+    "timerDurationFollowup": {
+      "globalIntent": "start",
+      "localIntent": "timerValue",
+      "localMinutes": "1",
+      "localRule": "clock/timer_set_value",
+      "nativeStatus": "SUCCEEDED",
+      "fullTimerLifecycleAccepted": false
+    },
+    "cancelTimer": {
+      "nativeStatus": "SUCCEEDED",
+      "actualRule": "globals/global_commands_launch",
+      "actualDomain": "global_commands",
+      "actualSkillMatch": null,
+      "expectedRule": "launch",
+      "expectedDomain": "timer",
+      "expectedSkill": "@be/clock",
+      "parityPass": false
+    }
+  },
+  "listening": {
+    "beIssuedBlueLedCommand": true,
+    "color": [
+      0.05,
+      0.73,
+      0.94
+    ],
+    "physicalRingAcceptance": false,
+    "microphoneWakeAcceptance": false
+  },
+  "rollback": {
+    "revision": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+    "allFiveServiceHealthChecksPassed": true,
+    "nativeRobotPidAndConfigurationUnchanged": true,
+    "firstRestoreAttempt": "25-second startup timeout; stopped that owned process and retained evidence",
+    "secondRestoreAttempt": "120-second startup allowance; completed readiness and source checks",
+    "restoredCancelTimerRule": "launch",
+    "restoredCancelTimerSkill": "@be/clock",
+    "restoredCountdownScreenshotInspectedByRoot": "58 seconds remaining",
+    "finalBeState": {
+      "skill": "@be/idle",
+      "view": "eyeView",
+      "talking": false,
+      "listen": "Idle",
+      "probeRemaining": false
+    }
+  },
+  "timerObservationCorrection": "clock/alarm_timer_okay accepts correction/stop phrases. The flow starts the timer before its acknowledgment; it does not require yes confirmation. Root initially misread the follow-up. The restored-profile screenshot shows the countdown already running before the injected yes response, which correctly had empty NLU.",
+  "privateArtifacts": {
+    "deployment.json": "347dba52e022e8e9417ff4fa081b524ac8a2c49962adcd71a90e9ea2b1ffa1e3",
+    "clock.json": "9d5815354a5d076bf2a7d3f3f14900acee6b119d0e20606ea13784a53561e51c",
+    "clock-view-2.png": "b916787b6975c5fc0cdd80a4473869afd3e9b3992147db6f96fe9383aa76ce10",
+    "joke.json": "e2a986259be828f9f2d54aa2e6a40d39fe6e8c09d5608a4954e8f765abef24f3",
+    "timer-followup.json": "0a61a27c1f8a447b060732774deb0261fe529674eb0694ff79c23dd9ac044382",
+    "timer-cancel.json": "9c1401a23c4b157a2e7e17bae15ff8011a5811c02d37bc73435e0656b81c0218",
+    "rollback-result.json": "d94cccd0c0d87cbc0ad2ccef4c8afa115f7a49d00e41038d6e9392a4e5fbbfae",
+    "restored-timer-confirm.json": "cf1006d7c46fbb973abb115e7709ae2be9b501205fa140b461161cfe7400bbbe",
+    "restored-timer-confirm-view-2.png": "d7b9818abdbc665fa5e3ca2928eecb93a9763e097fe3ea0ac9d41f3991964d76",
+    "restored-timer-cancel.json": "dcd95e303f7fdb8cd83d5688ef59d80627767592f159007c3005368a1767b97a",
+    "after-restore-state.json": "71bd67936ca3d55d60165b1c2a9874903ce2fed565960d9d2fdcee207b1cc29f"
+  },
+  "privacy": "Only derived outcomes and hashes are published. Original robot contexts, audio, identities and screenshots remain private."
+}
