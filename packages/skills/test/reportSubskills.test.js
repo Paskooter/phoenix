@@ -69,13 +69,16 @@ const slims = (r) => {
 };
 const mims = (r) => slims(r).map((s) => s.config.play.meta.mim_id);
 const esml = (r) => slims(r).map((s) => s.config.play.esml).join(' | ');
+const sourceRequest = () => ({ req: { jibo: { toHeader: () => ({
+  'x-jibo-transid': 'test-transid', 'x-jibo-robotid': 'test-robot', 'x-jibo-logging-config': '{}',
+}) } } });
 
 // --- commute ---------------------------------------------------------------------
 
 test('commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)', async () => {
   // 8:00, arrive 9:00, 30 min in traffic (25 baseline) -> depart 8:30, +5 extra mins.
   mapsLeg = { duration: { value: 1500 }, duration_in_traffic: { value: 1800 } };
-  const r = await reportSkill(launch('requestCommute', isoAt('08:00')));
+  const r = await reportSkill(launch('requestCommute', isoAt('08:00')), sourceRequest());
   assert.deepEqual(mims(r), ['CommuteConfirmSpeaker', 'CommuteDrivePoor', 'CommuteDepartTimeNotNormal']);
   assert.match(esml(r), /8:30 AM/, 'depart time rendered via departDT.toString({timeOnly})');
 });
@@ -83,7 +86,7 @@ test('commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft 
 test('commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft', async () => {
   // 8:00, arrive 9:00, 45 min in traffic (25 baseline) -> depart 8:15, 15 min left, +20 extra.
   mapsLeg = { duration: { value: 1500 }, duration_in_traffic: { value: 2700 } };
-  const r = await reportSkill(launch('requestCommute', isoAt('08:00')));
+  const r = await reportSkill(launch('requestCommute', isoAt('08:00')), sourceRequest());
   assert.deepEqual(mims(r), ['CommuteConfirmSpeaker', 'CommuteDriveTerrible', 'CommuteDepartTimeNotNormal', 'CommuteMinutesLeft']);
   assert.match(esml(r), /15 minutes/, 'minsLeft resolved');
 });
@@ -91,7 +94,7 @@ test('commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft', asy
 test('commute: no traffic -> DriveNormal + DepartTimeNormal', async () => {
   // 8:00, arrive 9:00, 25 min flat -> depart 8:35; 35 min left (>=30, no MinutesLeft).
   mapsLeg = { duration: { value: 1500 }, duration_in_traffic: { value: 1500 } };
-  const r = await reportSkill(launch('requestCommute', isoAt('08:00')));
+  const r = await reportSkill(launch('requestCommute', isoAt('08:00')), sourceRequest());
   assert.deepEqual(mims(r), ['CommuteConfirmSpeaker', 'CommuteDriveNormal', 'CommuteDepartTimeNormal']);
   assert.match(esml(r), /8:35 AM/);
 });
@@ -99,13 +102,13 @@ test('commute: no traffic -> DriveNormal + DepartTimeNormal', async () => {
 test('commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now', async () => {
   mapsLeg = { duration: { value: 1500 }, duration_in_traffic: { value: 1500 } };
   // depart 8:35; at 8:40 -> -5 min -> Hurry
-  let r = await reportSkill(launch('requestCommute', isoAt('08:40')));
+  let r = await reportSkill(launch('requestCommute', isoAt('08:40')), sourceRequest());
   assert.deepEqual(mims(r), ['CommuteConfirmSpeaker', 'CommuteDriveHurry']);
   // at 8:55 -> -20 min -> Late
-  r = await reportSkill(launch('requestCommute', isoAt('08:55')));
+  r = await reportSkill(launch('requestCommute', isoAt('08:55')), sourceRequest());
   assert.deepEqual(mims(r), ['CommuteConfirmSpeaker', 'CommuteDriveLate']);
   // at 05:00 -> +215 min -> Now
-  r = await reportSkill(launch('requestCommute', isoAt('05:00')));
+  r = await reportSkill(launch('requestCommute', isoAt('05:00')), sourceRequest());
   assert.deepEqual(mims(r), ['CommuteConfirmSpeaker', 'CommuteNow']);
   assert.match(esml(r), /25 minutes/, 'durationMins in the Now prompt');
 });
@@ -118,7 +121,7 @@ test('calendar: two concurrent events today -> Count + SummaryAndTime + Parallel
     google: [{ summary: 'Standup', start: { dateTime: nowPlus(5 * 60 * 1000), timestamp: t } }],
     outlook: [{ summary: 'Dentist', start: { dateTime: nowPlus(5 * 60 * 1000), timestamp: t } }],
   };
-  const r = await reportSkill(launch('requestCalendar', nowISO()));
+  const r = await reportSkill(launch('requestCalendar', nowISO()), sourceRequest());
   assert.deepEqual(mims(r), ['CalendarEventCountToday', 'CalendarSummaryAndTime', 'CalendarParallelEvent', 'CalendarOutro']);
   const text = esml(r);
   assert.match(text, /Standup/);
@@ -129,14 +132,14 @@ test('calendar: two concurrent events today -> Count + SummaryAndTime + Parallel
 test('calendar: events only tomorrow -> TomorrowOnly + Count + walk', async () => {
   const t = Date.now() + 24 * 3600 * 1000;
   calendarEvents = { google: [{ summary: 'Flight to Boston', start: { dateTime: nowPlus(24 * 3600 * 1000), timestamp: t } }], outlook: [] };
-  const r = await reportSkill(launch('requestCalendar', nowISO()));
+  const r = await reportSkill(launch('requestCalendar', nowISO()), sourceRequest());
   assert.deepEqual(mims(r), ['CalendarTomorrowOnly', 'CalendarEventCountTomorrow', 'CalendarSummaryAndTime', 'CalendarOutro']);
   assert.match(esml(r), /Flight to Boston/);
 });
 
 test('calendar: asked for tomorrow with nothing scheduled -> Nothing', async () => {
   calendarEvents = { google: [], outlook: [] };
-  const r = await reportSkill(launch('requestCalendar', nowISO(), { date: 'tomorrow' }));
+  const r = await reportSkill(launch('requestCalendar', nowISO(), { date: 'tomorrow' }), sourceRequest());
   assert.deepEqual(mims(r), ['CalendarNothing']);
 });
 
@@ -146,7 +149,7 @@ test('calendar: all-day event today reads the fullDay phrasing', async () => {
     google: [{ summary: 'Company holiday', fullDay: true, start: { dateTime: nowPlus(5 * 60 * 1000), timestamp: t } }],
     outlook: [],
   };
-  const r = await reportSkill(launch('requestCalendar', nowISO()));
+  const r = await reportSkill(launch('requestCalendar', nowISO()), sourceRequest());
   assert.deepEqual(mims(r), ['CalendarEventCountToday', 'CalendarSummaryAndTime', 'CalendarOutro']);
   assert.match(esml(r), /all day event/, 'mimPromptText calendar.fullDay phrasing');
 });

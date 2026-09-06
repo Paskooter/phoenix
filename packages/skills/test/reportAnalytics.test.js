@@ -118,7 +118,9 @@ test('report graph emits source results analytics on its real response path', as
         skill: { id: 'report-skill' },
         result: { nlu: { intent: 'launchPersonalReport', entities: {}, rules: [] }, asr: { text: '' }, memo: 'Reactive' },
       },
-    });
+    }, { req: { jibo: { toHeader: () => ({
+      'x-jibo-transid': 'analytics-transid', 'x-jibo-robotid': 'analytics-robot', 'x-jibo-logging-config': '{}',
+    }) } } });
 
     assert.deepEqual(response.data.analytics['report-skill'][1], {
       event: 'Personal Report Results',

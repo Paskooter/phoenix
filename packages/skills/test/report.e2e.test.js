@@ -86,9 +86,12 @@ const launch = () => ({
 });
 
 const slims = (r) => r.data.action.config.jcp.children.filter((c) => c.type === 'SLIM');
+const sourceRequest = () => ({ req: { jibo: { toHeader: () => ({
+  'x-jibo-transid': 'test-transid', 'x-jibo-robotid': 'test-robot', 'x-jibo-logging-config': '{}',
+}) } } });
 
 test('full report: weather change tables + news headlines assemble the mega-MAN', async () => {
-  const r = await reportSkill(launch());
+  const r = await reportSkill(launch(), sourceRequest());
   assert.equal(r.data.final, true);
   const mims = slims(r).map((s) => s.config.play.meta.mim_id);
   assert.deepEqual(mims, [
@@ -113,7 +116,7 @@ test('full report: weather change tables + news headlines assemble the mega-MAN'
 test('single-skill weather request speaks real conditions (Intro + change + temp MIMs)', async () => {
   const req = launch();
   req.data.result.nlu.intent = 'requestWeatherPR';
-  const r = await reportSkill(req);
+  const r = await reportSkill(req, sourceRequest());
   const mims = slims(r).map((s) => s.config.play.meta.mim_id);
   assert.deepEqual(mims, ['WeatherIntro', 'WeatherChangeCloudyWet', 'WeatherTodayWarmer'],
     'no kickoff/settings/outro mims on single-skill launch');

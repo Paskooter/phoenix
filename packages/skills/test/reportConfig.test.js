@@ -157,7 +157,10 @@ test('source NET_lasso and NET_settings names drive local peer HTTP exchange', a
     try {
       const data = {
         runtime: { location: { lat: 42.36, lng: -71.06 } },
-        log: { error() {} },
+        req: { jibo: { toHeader: () => ({
+          'x-jibo-transid': 'config-transid', 'x-jibo-robotid': 'config-robot', 'x-jibo-logging-config': '{}',
+        }) } },
+        log: { debug() {}, info() {}, warn() {}, error() {} },
       };
       const weather = await LassoClient.fetchDarkSky(data);
       assert.equal(weather.currently.temperature, 71);
