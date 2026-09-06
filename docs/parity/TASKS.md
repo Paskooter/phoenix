@@ -321,7 +321,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree. The frozen ec02766 full compiled comparison exposes three empty GivenName wildcard cases: two incorrect decision weights and one erroneous route. Root is repairing these against the original Operator/Any implementation.
+Root accepted original Any entity non-emptiness: 22 Node8 controls match and three full-corpus empty-name route/weight failures are fixed. Full compiled20534 now has zero differences, with external coverage gaps retained. Exact/NOT coercion, nested paths, tree traversal/ties and intentless skill-entity fallback remain open.
 
 Done when:
 
@@ -333,6 +333,14 @@ Source: [Original Pegasus packages/hub/src/intent](https://pvindex.org/gitea/jib
 Phoenix: [packages/gateway/src/intentRouter.js](../../packages/gateway/src/intentRouter.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
+
+Candidate scope: Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.
+
+Candidate report: [docs/parity/candidates/H-03-S-03-residual-repair-20260906.md](../../docs/parity/candidates/H-03-S-03-residual-repair-20260906.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json](../../docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-04 — Match skill launches, updates, redirects and session handoff
 
@@ -676,7 +684,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields.
+The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields. Subsequent compiled full-production replay ef0457f removes all11 route/prompt differences across20,534 fixtures; the same8 external-answer cases remain unhosted. This does not alter the separate default AST149 measurement.
 
 Done when:
 
@@ -974,7 +982,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-01, N-06.
 
-QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified. The frozen ec02766 full compiled comparison retains one fallback prompt mismatch for chitchat:2250:0:base (are you a jedi). Original/candidate parser, route, session and analytics agree; selected prompt/ESML/auto-rule metadata differ. A Luna Max candidate is in progress.
+QN/AN/MAN/MIM and opt-in implementations exist. Root accepted fallback RNG consumption repair: Dice/Coin are only constructed after valid MIM resolution, matching the original Jedi fallback prompt/ESML/metadata. Full compiled20534 now has zero differences, with external coverage gaps retained. Complete factory and session branch coverage remains open.
 
 Done when:
 
@@ -986,6 +994,14 @@ Source: [Original Pegasus packages/baseskill/src/graph/mims/factories](https://p
 Phoenix: [packages/skills/src/graph/mims/factories.js](../../packages/skills/src/graph/mims/factories.js); [packages/skills/src/graph/mims/optIn.js](../../packages/skills/src/graph/mims/optIn.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
+
+Candidate scope: Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.
+
+Candidate report: [docs/parity/candidates/H-03-S-03-residual-repair-20260906.md](../../docs/parity/candidates/H-03-S-03-residual-repair-20260906.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json](../../docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-04 — Match MIM rendering, conditions, selection and JCP output
 

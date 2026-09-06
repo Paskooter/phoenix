@@ -93,7 +93,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **529 unit tests** and the default
+The latest accepted main checkpoint passes **532 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -102,12 +102,15 @@ The prior compiled-FST strict 43-case smoke also passed. The default AST
 profile still has **149 corpus differences across 20,528 requests**, down from 295. The
 [accepted root review](evidence/2026-09-06/nlu-ast-ranking/root-review.json) records
 146 repaired cases, zero new failure IDs, and the remaining limits.
-The [new complete compiled-profile comparison](evidence/2026-09-06/production/main-ec02766-full-compiled/review.json)
-on `ec02766` has **11 field differences across four of 20,534 cases**, zero
+The [new complete compiled-profile comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
+on frozen `ef0457f` has **zero field differences across 20,534 cases**, zero
 invariants and 16 gap instances across the same eight unhosted external-answer
-cases. All 20,528 parser responses and all compared sessions, analytics and
-provider sequences agree. Three routing cases belong to H-03 and one fallback
-prompt case to S-03. The earlier default-profile `057f67c` baseline retains its
+cases. All captured parser, routing, action, session, analytics and provider
+fields agree. The H-03 empty-name and S-03 fallback repairs removed all 11
+differences from the preceding compiled run; broader task acceptance remains
+open. Integrated-main confirmation passed after two retained ASR fixture
+timeouts and passing unchanged predecessor/current focused controls. The
+earlier default-profile `057f67c` baseline retains its
 49,155 differences; profiles and limitations remain explicit in
 [PRODUCTION.md](PRODUCTION.md). No complete product workstream is certified.
 

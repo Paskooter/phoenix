@@ -609,12 +609,22 @@
       "phoenix": [
         "packages/gateway/src/intentRouter.js"
       ],
-      "finding": "P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree. The frozen ec02766 full compiled comparison exposes three empty GivenName wildcard cases: two incorrect decision weights and one erroneous route. Root is repairing these against the original Operator/Any implementation.",
+      "finding": "Root accepted original Any entity non-emptiness: 22 Node8 controls match and three full-corpus empty-name route/weight failures are fixed. Full compiled20534 now has zero differences, with external coverage gaps retained. Exact/NOT coercion, nested paths, tree traversal/ties and intentless skill-entity fallback remain open.",
       "acceptance": [
         "Match exact/NOT/wildcard/nested-entity matching, parent fallback, weights, registration ties and case behavior against original fixtures.",
         "An intentless or unregistered decision never launches merely because an entities.skill value names a skill; local-turn rule gating is preserved."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Codex root and Luna Max / http_contract_repair",
+        "candidateRevision": "452722ce18112cef43b760573a63773c5f6a789d",
+        "reviewedCandidateRevision": "ef0457f199728197cc3187a2fe8ff7537b926003",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.",
+        "artifact": "docs/parity/candidates/H-03-S-03-residual-repair-20260906.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json"
+      }
     },
     {
       "id": "H-04",
@@ -1156,7 +1166,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields.",
+      "finding": "The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields. Subsequent compiled full-production replay ef0457f removes all11 route/prompt differences across20,534 fixtures; the same8 external-answer cases remain unhosted. This does not alter the separate default AST149 measurement.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1244,6 +1254,26 @@
           "worktree": ".parity/worktrees/n08-integration-root",
           "artifact": "docs/parity/candidates/N-08-compiled-fst.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json"
+        },
+        {
+          "state": "working",
+          "assignee": "Luna Max candidate; root acceptance",
+          "scope": "Explicit per-character weights have 30 valid independent native controls: 23 baseline selected-result matches and 27 candidate matches, with three remaining zero-word $w false matches. Full HTTP replay is still running; cardinality repair is requested. Global last-equal-score proposal remains rejected. No whole-task credit.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-explicit-weight/root-review-pending.json",
+          "candidates": [
+            {
+              "revision": "1aeec0125667c5d1a23cfcdb510a13985d6f416e",
+              "worktree": ".parity/worktrees/n08-explicit-weight",
+              "state": "changes_requested",
+              "reason": "Three root native controls show mandatory $w falsely accepting zero words; preserve frozen full replay and repair in a follow-up."
+            },
+            {
+              "revision": "1855df7996badc48c00cea8286c1e07e26d40ac5",
+              "worktree": ".parity/worktrees/n08-ast-timeframe",
+              "state": "changes_requested",
+              "reason": "Native graph ties do not support global last-equal-score selection."
+            }
+          ]
         }
       ],
       "deploymentReview": {
@@ -1264,23 +1294,12 @@
       ],
       "nextImplementation": {
         "state": "working",
-        "assignee": "Luna Max candidate; root acceptance",
-        "scope": "Explicit per-character weights have 30 valid independent native controls: 23 baseline selected-result matches and 27 candidate matches, with three remaining zero-word $w false matches. Full HTTP replay is still running; cardinality repair is requested. Global last-equal-score proposal remains rejected. No whole-task credit.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-explicit-weight/root-review-pending.json",
-        "candidates": [
-          {
-            "revision": "1aeec0125667c5d1a23cfcdb510a13985d6f416e",
-            "worktree": ".parity/worktrees/n08-explicit-weight",
-            "state": "changes_requested",
-            "reason": "Three root native controls show mandatory $w falsely accepting zero words; preserve frozen full replay and repair in a follow-up."
-          },
-          {
-            "revision": "1855df7996badc48c00cea8286c1e07e26d40ac5",
-            "worktree": ".parity/worktrees/n08-ast-timeframe",
-            "state": "changes_requested",
-            "reason": "Native graph ties do not support global last-equal-score selection."
-          }
-        ]
+        "assignee": "Luna Max / audio_encoding_repair; root acceptance",
+        "candidateRevision": "2a814ab68321701cb5fa49435ad369d03cfc8a4a",
+        "worktree": ".parity/worktrees/n08-explicit-weight-followup",
+        "scope": "Explicit heuristic/mandatory base-word repair and stable parser compilation cache. Fresh root native selected-result controls match30/30 valid cases, up from27; negative compiler control is excluded and scores remain unverified. Full unchanged default HTTP replay is assigned with a7200s outer cap after measured cache bottleneck; prior3600s timeout at12000/20528 remains retained. No main acceptance yet.",
+        "previousCandidateRevision": "1aeec0125667c5d1a23cfcdb510a13985d6f416e",
+        "previousRootReview": "docs/parity/evidence/2026-09-06/nlu-explicit-weight/root-review-pending.json"
       }
     },
     {
@@ -1700,12 +1719,22 @@
         "packages/skills/src/graph/mims/factories.js",
         "packages/skills/src/graph/mims/optIn.js"
       ],
-      "finding": "QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified. The frozen ec02766 full compiled comparison retains one fallback prompt mismatch for chitchat:2250:0:base (are you a jedi). Original/candidate parser, route, session and analytics agree; selected prompt/ESML/auto-rule metadata differ. A Luna Max candidate is in progress.",
+      "finding": "QN/AN/MAN/MIM and opt-in implementations exist. Root accepted fallback RNG consumption repair: Dice/Coin are only constructed after valid MIM resolution, matching the original Jedi fallback prompt/ESML/metadata. Full compiled20534 now has zero differences, with external coverage gaps retained. Complete factory and session branch coverage remains open.",
       "acceptance": [
         "Replay each factory's success, failure, no-input, no-match, escalation and terminal branches with frozen inputs.",
         "Verify repeat, thanks, cancel, wrong identity, unknown speaker, accept/decline and dialog referent changes through complete sessions."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Codex root and Luna Max / http_contract_repair",
+        "candidateRevision": "452722ce18112cef43b760573a63773c5f6a789d",
+        "reviewedCandidateRevision": "ef0457f199728197cc3187a2fe8ff7537b926003",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.",
+        "artifact": "docs/parity/candidates/H-03-S-03-residual-repair-20260906.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json"
+      }
     },
     {
       "id": "S-04",

@@ -1,0 +1,703 @@
+{
+  "rows": [
+    {
+      "group": "values",
+      "id": "missing",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "missing",
+        "matches": false
+      },
+      "baseline": {
+        "id": "missing",
+        "matches": false
+      },
+      "candidate": {
+        "id": "missing",
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "null",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "null",
+        "value": null,
+        "matches": false
+      },
+      "baseline": {
+        "id": "null",
+        "value": null,
+        "matches": true
+      },
+      "candidate": {
+        "id": "null",
+        "value": null,
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "empty-string",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "empty-string",
+        "value": "",
+        "matches": false
+      },
+      "baseline": {
+        "id": "empty-string",
+        "value": "",
+        "matches": true
+      },
+      "candidate": {
+        "id": "empty-string",
+        "value": "",
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "blank-string",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "blank-string",
+        "value": " ",
+        "matches": true
+      },
+      "baseline": {
+        "id": "blank-string",
+        "value": " ",
+        "matches": true
+      },
+      "candidate": {
+        "id": "blank-string",
+        "value": " ",
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "false",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "false",
+        "value": false,
+        "matches": true
+      },
+      "baseline": {
+        "id": "false",
+        "value": false,
+        "matches": true
+      },
+      "candidate": {
+        "id": "false",
+        "value": false,
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "true",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "true",
+        "value": true,
+        "matches": true
+      },
+      "baseline": {
+        "id": "true",
+        "value": true,
+        "matches": true
+      },
+      "candidate": {
+        "id": "true",
+        "value": true,
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "zero",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "zero",
+        "value": 0,
+        "matches": true
+      },
+      "baseline": {
+        "id": "zero",
+        "value": 0,
+        "matches": true
+      },
+      "candidate": {
+        "id": "zero",
+        "value": 0,
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "negative-number",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "negative-number",
+        "value": -2,
+        "matches": true
+      },
+      "baseline": {
+        "id": "negative-number",
+        "value": -2,
+        "matches": true
+      },
+      "candidate": {
+        "id": "negative-number",
+        "value": -2,
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "word",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "word",
+        "value": "Jane",
+        "matches": true
+      },
+      "baseline": {
+        "id": "word",
+        "value": "Jane",
+        "matches": true
+      },
+      "candidate": {
+        "id": "word",
+        "value": "Jane",
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "empty-array",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "empty-array",
+        "value": [],
+        "matches": false
+      },
+      "baseline": {
+        "id": "empty-array",
+        "value": [],
+        "matches": true
+      },
+      "candidate": {
+        "id": "empty-array",
+        "value": [],
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "empty-member-array",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "empty-member-array",
+        "value": [
+          "",
+          null,
+          []
+        ],
+        "matches": false
+      },
+      "baseline": {
+        "id": "empty-member-array",
+        "value": [
+          "",
+          null,
+          []
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "empty-member-array",
+        "value": [
+          "",
+          null,
+          []
+        ],
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "nested-empty-array",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "nested-empty-array",
+        "value": [
+          [],
+          [
+            ""
+          ]
+        ],
+        "matches": false
+      },
+      "baseline": {
+        "id": "nested-empty-array",
+        "value": [
+          [],
+          [
+            ""
+          ]
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "nested-empty-array",
+        "value": [
+          [],
+          [
+            ""
+          ]
+        ],
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "false-member",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "false-member",
+        "value": [
+          false
+        ],
+        "matches": true
+      },
+      "baseline": {
+        "id": "false-member",
+        "value": [
+          false
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "false-member",
+        "value": [
+          false
+        ],
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "zero-member",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "zero-member",
+        "value": [
+          0
+        ],
+        "matches": true
+      },
+      "baseline": {
+        "id": "zero-member",
+        "value": [
+          0
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "zero-member",
+        "value": [
+          0
+        ],
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "nested-word",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "nested-word",
+        "value": [
+          [
+            "Jane"
+          ]
+        ],
+        "matches": true
+      },
+      "baseline": {
+        "id": "nested-word",
+        "value": [
+          [
+            "Jane"
+          ]
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "nested-word",
+        "value": [
+          [
+            "Jane"
+          ]
+        ],
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "empty-object",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "empty-object",
+        "value": {},
+        "matches": false
+      },
+      "baseline": {
+        "id": "empty-object",
+        "value": {},
+        "matches": true
+      },
+      "candidate": {
+        "id": "empty-object",
+        "value": {},
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "object-empty-member",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "object-empty-member",
+        "value": {
+          "name": ""
+        },
+        "matches": true
+      },
+      "baseline": {
+        "id": "object-empty-member",
+        "value": {
+          "name": ""
+        },
+        "matches": true
+      },
+      "candidate": {
+        "id": "object-empty-member",
+        "value": {
+          "name": ""
+        },
+        "matches": true
+      }
+    },
+    {
+      "group": "values",
+      "id": "nested-empty-object",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "nested-empty-object",
+        "value": [
+          {}
+        ],
+        "matches": false
+      },
+      "baseline": {
+        "id": "nested-empty-object",
+        "value": [
+          {}
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "nested-empty-object",
+        "value": [
+          {}
+        ],
+        "matches": false
+      }
+    },
+    {
+      "group": "values",
+      "id": "nested-object",
+      "baselineExact": true,
+      "candidateExact": true,
+      "source": {
+        "id": "nested-object",
+        "value": [
+          [
+            {
+              "name": ""
+            }
+          ]
+        ],
+        "matches": true
+      },
+      "baseline": {
+        "id": "nested-object",
+        "value": [
+          [
+            {
+              "name": ""
+            }
+          ]
+        ],
+        "matches": true
+      },
+      "candidate": {
+        "id": "nested-object",
+        "value": [
+          [
+            {
+              "name": ""
+            }
+          ]
+        ],
+        "matches": true
+      }
+    },
+    {
+      "group": "routes",
+      "id": "chitchat:1886:0:base",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "chitchat:1886:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "hasJiboMetPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0,
+            "memo": {
+              "mim": "KU_HaveYouMetNotLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "baseline": {
+        "id": "chitchat:1886:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "hasJiboMetPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0.5,
+            "memo": {
+              "mim": "KU_HaveYouMetNotLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "id": "chitchat:1886:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "hasJiboMetPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0,
+            "memo": {
+              "mim": "KU_HaveYouMetNotLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      }
+    },
+    {
+      "group": "routes",
+      "id": "hub-client:174:0:base",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "hub-client:174:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "hasJiboMetPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0,
+            "memo": {
+              "mim": "KU_HaveYouMetNotLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "baseline": {
+        "id": "hub-client:174:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "hasJiboMetPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0.5,
+            "memo": {
+              "mim": "KU_HaveYouMetNotLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "id": "hub-client:174:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "hasJiboMetPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0,
+            "memo": {
+              "mim": "KU_HaveYouMetNotLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      }
+    },
+    {
+      "group": "routes",
+      "id": "hub-client:1669:0:base",
+      "baselineExact": false,
+      "candidateExact": true,
+      "source": {
+        "id": "hub-client:1669:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "isJiboFriendsWithPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "no-route"
+        }
+      },
+      "baseline": {
+        "id": "hub-client:1669:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "isJiboFriendsWithPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "match",
+          "decision": {
+            "skillID": "chitchat-skill",
+            "weight": 0.5,
+            "memo": {
+              "mim": "RI_JBO_IsFriendsWithNonLM",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "candidate": {
+        "id": "hub-client:1669:0:base",
+        "nlu": {
+          "entities": {
+            "GivenName": "",
+            "union_original_fst_name": "handle:chitchat/launch"
+          },
+          "intent": "isJiboFriendsWithPerson",
+          "rules": [
+            "launch"
+          ]
+        },
+        "routing": {
+          "kind": "no-route"
+        }
+      }
+    }
+  ],
+  "controls": 22,
+  "baselineExact": 12,
+  "candidateExact": 22,
+  "normalization": "Runtime metadata is separate. Original Any predicates compare exactly. Route/no-route uses the unchanged production driver projection; no decision fields normalized."
+}

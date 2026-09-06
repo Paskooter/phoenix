@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "caseID": "chitchat:2250:0:base",
+  "seed": 2593396555,
+  "inputSha256": "0b31eab4340a5feb03b0b8a957dc48cd9f2147a8b4f98134561f14137392c4f2",
+  "referenceRoot": "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c",
+  "referenceSource": {
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "processQueryNodeSourceSha256": "e43b5d842e81cec42384109510dcdf8c12a94650b43db759c92a4ce3c7cbb5d3",
+    "processQueryNodeCompiledSha256": "532aecbf7d8426bb35ef0eab63583e3b3c69679ecbb2a8c4ab333bfaa5a6af0b"
+  },
+  "source": {
+    "runtime": "v22.22.0",
+    "randomCalls": 1,
+    "promptID": "CC_GQA_Failure_scripted_AN_06",
+    "autoRuleConfig": true,
+    "esml": "Honestly I <phoneme ph=\"th iy ng k ai\">thinki</phoneme>don't know enough to answer that."
+  },
+  "candidate": {
+    "runtime": "v22.22.0",
+    "randomCalls": 1,
+    "promptID": "CC_GQA_Failure_scripted_AN_06",
+    "autoRuleConfig": true,
+    "esml": "Honestly I <phoneme ph=\"th iy ng k ai\">thinki</phoneme>don't know enough to answer that."
+  },
+  "comparable": [
+    "promptID",
+    "autoRuleConfig",
+    "esml",
+    "randomCalls"
+  ],
+  "equal": true
+}

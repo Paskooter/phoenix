@@ -11,10 +11,11 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
 - **Status: implemented in part; 1:1 compatibility is not yet verified.**
-  The [latest complete comparison](docs/parity/evidence/2026-09-06/production/main-ec02766-full-compiled/review.json)
-  covers **20,534 fixtures** with the compiled-FST parser: **11 field differences across
-  four cases**, zero trace invariants, and **eight external-service cases unhosted on
-  both sides**. All 20,528 parser responses match; the complete gate still fails.
+  The [latest complete comparison](docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
+  covers **20,534 fixtures** with the compiled-FST parser: **zero field differences**
+  and zero trace invariants. **Eight external-service cases remain unhosted on both
+  sides**, so the complete gate still fails. All captured parser, routing, action,
+  session and analytics fields now agree.
   Both default and compiled **43-case smoke profiles pass**. The default AST parser
   separately retains **149 differences across 20,528 requests**, down from 295.
   [Production comparisons](docs/parity/PRODUCTION.md) record exact scope and evidence.

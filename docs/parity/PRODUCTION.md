@@ -27,26 +27,38 @@ The [smoke golden](../../packages/harness/resources/goldens/production-smoke/sou
 
 ## Complete baseline and reviewed integration
 
-The [latest complete comparison](evidence/2026-09-06/production/main-ec02766-full-compiled/review.json)
-executes all **20,534 fixtures** on frozen main `ec02766` with the explicit
-compiled-FST parser. It has **11 field differences across four cases**, zero
-trace invariants and **16 coverage-gap instances**: the same eight external
-answer cases on each side. Capture and cleanup completed successfully; the
-unchanged strict comparator returns exit 1.
+The [latest complete comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
+executes all **20,534 fixtures** on frozen review revision `ef0457f` with the
+explicit compiled-FST parser. It has **zero field differences**, zero trace
+invariants and **16 coverage-gap instances**: the same eight external answer
+cases on each side. All captured fields agree; the unchanged strict comparator
+still returns exit 1 because the external actions remain uncovered.
 
 | Dimension | Latest compiled-profile agreement |
 |---|---:|
 | Parser HTTP response | 20,528 / 20,528 |
-| Selected skill or no-route result | 20,527 / 20,528 |
-| Complete action object | 20,433 / 20,434 |
+| Selected skill or no-route result | 20,528 / 20,528 |
+| Complete action object | 20,434 / 20,434 |
 | Complete session state | 20,434 / 20,434 |
 | Analytics | 20,434 / 20,434 |
 | Provider request sequence | 83 / 83 |
 
-Three failing cases concern empty-name wildcard routing (H-03); one concerns
-fallback prompt selection for “are you a jedi” (S-03). The external answer
-cases remain Q-01 coverage obligations. Equal missing coverage does not count
-as verified behavior. The earlier default-profile baseline below remains
+The repair removes all 11 differences in the
+[previous `ec02766` comparison](evidence/2026-09-06/production/main-ec02766-full-compiled/review.json):
+three cases with empty-name wildcard routing and one fallback prompt for
+“are you a jedi.” Root reproduced the original Any predicate and verified that
+fallback must avoid constructing Dice/Coin before sampling its prompt. No
+golden, shared driver, comparator, fixture seed or product deadline changed.
+
+The integrated checkpoint `452722c` passes **532 unit tests** and default
+strict43. An initial run retained two 3-second ASR fixture timeouts during
+heavy VM IO stalls; those unchanged fixtures passed on both predecessor and
+current main, followed by one successful unchanged full confirmation. The
+review retains both attempts and their exact scope.
+
+The eight external answer cases remain Q-01 coverage obligations. Equal
+missing coverage does not count as verified behavior. Broader H-03/S-03
+acceptance remains open. The earlier default-profile baseline below remains
 historical evidence; this compiled run does not replace the separate default
 AST result.
 
