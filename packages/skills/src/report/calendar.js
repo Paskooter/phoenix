@@ -211,7 +211,7 @@ export class CalendarFactory {
   createGraph(gm) {
     const g = new Graph(gm, 'Calendar', Object.values(CalendarTransition));
     const logicNode = new CalendarMimLogic('Calendar Mim Logic');
-    const outroNode = new DefaultNode('Calendar Outro');
+    const outroNode = new DefaultNode('CalendarOutro');
     g.addNode(logicNode, [[DefaultTransition.Done, outroNode]]);
     g.addNode(outroNode, [[DefaultTransition.Done, CalendarTransition.Done]]);
     g.finalize();
