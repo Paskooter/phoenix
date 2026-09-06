@@ -1,0 +1,119 @@
+{
+  "status": "Root accepted bounded GraphSkill host allocation and node identity",
+  "integratedRevision": "4f9d5a7126deced3c50b5443a523fce9e5c1ac8f",
+  "reviewedCandidateRevision": "520f87af4866bde4640746dd50aa3cba98034898",
+  "candidateInputRevision": "c4bb6d2da80ce3aa7ce89524f783178994f024c8",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "scope": [
+    "Construct cohosted Chitchat then Report in a shared host manager.",
+    "Keep explicit/env standalone Report allocation independent of imported skills.",
+    "Make exported SKILLS allocation independent of first-request order.",
+    "Match CalendarOutro source name and repair stale graph diagnostic tools."
+  ],
+  "verification": {
+    "graphNodesExactByIdAndName": 45,
+    "sourceRuntime": "Extracted Node8.9.4 on host in user/network namespace, loopback only; not pinned-Docker equivalence",
+    "sourceNodeBinarySha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d",
+    "standaloneLaunchFollowup": {
+      "source": [
+        31,
+        40
+      ],
+      "candidate": [
+        31,
+        40
+      ],
+      "traceEqual": true,
+      "candidateStartStopCycles": 2
+    },
+    "cohostedLaunchFollowup": {
+      "candidate": [
+        35,
+        44
+      ],
+      "traceOffsetEqualsSourceChitchatAllocation": true,
+      "candidateStartStopCycles": 2
+    },
+    "publicRegistryFreshRequestOrders": {
+      "cases": 2,
+      "responsesEqual": true,
+      "reportNode": 35,
+      "chitchatNode": 0
+    },
+    "unit": {
+      "confirmationPassed": 492,
+      "failed": 0,
+      "skipped": 3,
+      "earlierAttempt": {
+        "passed": 491,
+        "failed": 1,
+        "skipped": 3,
+        "failure": "Ogg fragmented-frame ASR fixture exceeded its unchanged 3000ms timeout.",
+        "isolatedConfirmation": "Same test passed with original deadline; full unchanged suite then passed.",
+        "causeEstablished": false
+      }
+    },
+    "strictProduction": {
+      "cases": 43,
+      "baselineDifferences": 375,
+      "candidateDifferences": 218,
+      "removedDifferenceRecords": 157,
+      "addedDifferenceRecords": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "gatePass": false,
+      "labelRepairChangedDifferenceRecords": false
+    },
+    "sourceStable": true,
+    "workspaceLinksLocal": true,
+    "integratedFilesEqualReviewedCandidate": true
+  },
+  "sourceFiles": {
+    "packages/baseskill/src/graph/GraphManager.ts": "d17d9a53339011ed1e4e7bea321e8552ac81831529f904089148bf1ecdbc87a1",
+    "packages/baseskill/lib/graph/GraphManager.js": "1796979f3ca65a0ee3dfb83fb08b2abd92c4d9085cdabefb435a0d73e2f67586",
+    "packages/baseskill/src/graph/Graph.ts": "7a32bca95400d2c098afda4e297b17cd27882718303d532a6651640277ecaa86",
+    "packages/baseskill/lib/graph/Graph.js": "33365b7f73cced60abfe0a256f582ef0e39e99715b52d8296613d3db0f87ce46",
+    "packages/baseskill/src/GraphSkill.ts": "5648740b29d386549747d673452a5ca834103e24b6858f77f710572a4b399b3e",
+    "packages/baseskill/lib/GraphSkill.js": "449d1fdfb89c8a230a384afe40b17516b33be78c3591757d42919fd36afaf6be",
+    "packages/report-skill/src/PersonalReport.ts": "5b42689cd211b53f2621cc62378629b2aba04cfee976ec85445899b5b2e71c9b",
+    "packages/report-skill/lib/PersonalReport.js": "cfd83a2a7277dfcf6fa4706cc940d400bbc0981bbbed91540d3a2c31d33e1b69",
+    "packages/chitchat-skill/src/Chitchat.ts": "ce6a30c6c6fa6155347ef5d118f9d1e0f135f6cfff32188db65145d3e1f336d8",
+    "packages/chitchat-skill/lib/Chitchat.js": "05a70d967ed6889de7ad400a94634f5c428a5c3401afa92ad14b74fc5514c900",
+    "packages/report-skill/src/subskills/calendar/CalendarFactory.ts": "9091bda8d6383fed1ab1cbc198102ada7afe6011acee5d8707718899229ad441",
+    "packages/report-skill/lib/subskills/calendar/CalendarFactory.js": "4f6b749cf4f5a93e5a45159f8842d59aed097796cd467c82c2c9c2fc1a846dd4"
+  },
+  "limits": [
+    "Original Pegasus does not export Phoenix SKILLS; registry controls verify the explicit host construction contract against source graph allocations.",
+    "Follow-up comparisons cover status, response type, final flag, node IDs and node trace projection, not full Report bodies.",
+    "Focused controls use loopback port1 as unavailable providers; no live-provider/robot deployment credit.",
+    "Full S-01 graph lifecycle, cross-deployment session migration and full server parity remain open.",
+    "The candidate production adapter explicitly constructs the source cohost topology. Original adapter, driver, fixture, golden and comparator remain unchanged.",
+    "The earlier 44-of-45 node-name check failed and is retained; source label was repaired before acceptance."
+  ],
+  "evidenceHashes": {
+    "workspace-install-receipt.json": "311b2e17c85959790a149f1bf4038d28da9d98c6134b0747d124c81609280e40",
+    "full-unit.log": "483621143d22e2f9736b97de03fe68259ac012c8905222a79e7e571374ec25d3",
+    "full-unit-receipt.json": "b24dc76aec1d7ebdb1932fb94c7d3d117481d335e802d98defd29285b1a2f2de",
+    "asr-isolated.log": "244d020b5eb7571b6904d18295db7d424b46c93a91edf93666482ba52ec146f0",
+    "asr-isolated-receipt.json": "57f487b70ce61043dc0e76ee534fcefeb941bcd72c459ae0d87ec9816078a562",
+    "full-unit-confirmation.log": "9b3dacf0d88a338f397687ecb0077e69f20e5abd0850f7d5338a7ae18730471f",
+    "full-unit-confirmation-receipt.json": "ef8ad7b303890851206f34763f2aaca10d03a6238945cad52edb24b1d82e1205",
+    "graph-source.log": "a857689b106173da75f8803f771b7aea0d850c976dd7eb551c5237640386c1c4",
+    "graph-source-receipt.json": "d06a02f8db6b7df02502b592e73518a4d0f4754237c87092b37009f5a2435295",
+    "graph-candidate.log": "505ba15c05730ee2f5b235d5c3c919476fb731c5c3a1d817a0286c2ff86f0f89",
+    "graph-candidate-receipt.json": "eb34f31024e39150c4693bf061b21855b99b8639de87ad175e761295bc17bbcd",
+    "source-followup.log": "4856a0a2ea2c4ec8586a83e31c6ea8ba6beb3487d2886bd02a1b5b4118c46e03",
+    "source-followup-receipt.json": "f25e6d43bbcdc3f948bb578ae86a4c845663489b1c897943bed0a0440913db9e",
+    "deployment-followup.json": "dbb0036db0154c2784bce4ef5b22ae11eb77edf4aec97455fada727f531bfaa8",
+    "deployment-followup-receipt.json": "d6d7ff7b188fa732addf5ad3328606480455b8674db6129da9ddebc54fd0b01d",
+    "public-report-first.json": "7723e525d50e9bb2b6c362154f898818becff04fdee4906a998bdce2b8360da9",
+    "public-report-first-receipt.json": "a657d316190a1f5c57d912ede72f6583aa9918359bb82a0db31d58196ea77770",
+    "public-chitchat-first.json": "dad103ce74969340a4f0874e513c6ba0b4d67ba2db313437befdd919fcaf2cb0",
+    "public-chitchat-first-receipt.json": "8a0410cde75da93b9e822e538a68566132cdd815cdb886a03b390c4e61c20cfe",
+    "source-review.json": "3ce001266b0554a5f054108a927ebfee0d4c501becee3244a4f458993bc1aeb7",
+    "strict-receipt.json": "cd55b4635ef8b35c70163270de5e2e96242a2901c0d2442c2633ae19d3201d1e",
+    "production/run.json": "05de82bfb5eeb9fb054750c3c96673add5d769dc96fdea0d370990952270b3c7",
+    "production/comparison.json": "34e2179a0f3434892be9a0674a5ce8093d462d9d50f0e8fe0f7d72b6e164580b",
+    "strict-regression-review.json": "dfb5da681cca8928a887b6e5bf2ffbac3509d47503e50cee18521ef88bc491e7"
+  }
+}

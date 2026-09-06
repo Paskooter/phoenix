@@ -1,5 +1,7 @@
 # S-01 GraphSkill session node identity repair
 
+Root accepted the repaired bounded allocation slice in `4f9d5a7`. The [independent review](../evidence/2026-09-06/service-integration/graph-allocation-review.json) records all 45 source node identities, standalone/cohosted follow-ups, 492 unit passes on confirmation and 218 remaining strict differences. Full S-01 remains open; earlier candidate observations below retain their historical scope.
+
 Status: **candidate, awaiting lead review**
 
 Base: `20bbfaad61a9360c5bd09906b068e7b181424ddf`

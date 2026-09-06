@@ -254,7 +254,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; its strict complete-server smoke had 440 differences; later accepted Report analytics work reduces the current total to 375. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
+Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; its strict complete-server smoke had 440 differences; later accepted Report analytics and graph allocation work reduces the current total to 218. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
 
 Done when:
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient and Report analytics work reduces the current total to 375. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics and graph allocation work reduces the current total to 218. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
 
 Done when:
 
@@ -927,7 +927,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/re
 
 Owner: Codex. Dependencies: H-04, V-02.
 
-Root integrated the reviewed response wrapper/request-gate repairs and GraphSkill preconditions. Fresh original Node 8 comparisons match 87 HTTP status/body cases, 18 fallback mutation cases and 12 launch-session witnesses; all integrated outputs repeat exactly. Existing truthy launch sessions are now rejected without replacement. Main passes 402 unit tests. Complete graph construction, continuation/interruption and session migration acceptance remain open.
+Root accepted prior request/session preconditions and now source graph allocation across explicit/env standalone and cohosted deployments. All 45 node identities and bounded follow-up traces match; 492 unit tests pass on confirmation after one retained ASR fixture timeout. Strict smoke has 218 differences, 157 removed and none added. Full lifecycle, interruption and session migration acceptance remain open.
 
 Done when:
 
@@ -941,13 +941,13 @@ Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/gra
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
-Candidate scope: GraphSkill ordinary request ordering, source-shaped field/session errors and launch-session preservation. Bounded acceptance only; full graph lifecycle remains open.
+Candidate scope: Bounded graph allocation per standalone/cohosted host, deterministic exported registry and source node name. 45 source node identities and follow-up trace controls match; 492 unit confirmation passes; strict 218 differences with 157 removed and none added. Full S-01 remains open.
 
-Candidate report: [docs/parity/candidates/S-01-graph.md](../../docs/parity/candidates/S-01-graph.md).
+Candidate report: [docs/parity/candidates/S-01-graph-nodeid-public-skills.md](../../docs/parity/candidates/S-01-graph-nodeid-public-skills.md).
 
-Lead review: Codex root; [docs/parity/reviews/s01-graph-root/review.json](../../docs/parity/reviews/s01-graph-root/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/graph-allocation-review.json](../../docs/parity/evidence/2026-09-06/service-integration/graph-allocation-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-02 — Verify global results, speaker overrides and supplemental behaviors
 
@@ -1087,7 +1087,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-03, S-05, H-05, C-03.
 
-Root accepted the source Personal Report Results analytics builder and GetDataNode integration: 5 original compiled-builder controls and 486 unit tests pass. Current strict complete-server smoke has 375 differences, with 65 failing fields resolved and none introduced by this slice. Report orchestration, preferences/identity, provider ordering and deployment remain open.
+Root accepted the source Personal Report Results analytics builder and GetDataNode integration: 5 original compiled-builder controls and 486 unit tests pass. At analytics integration, strict smoke had 375 differences with 65 failing fields resolved and none introduced; accepted graph allocation now reduces the current total to 218. Report orchestration, preferences/identity, provider ordering and deployment remain open.
 
 Done when:
 

@@ -48,7 +48,7 @@ This profile is selected with `PHOENIX_NLU_RUNTIME=compiled-fst` and requires th
 
 An earlier launch-only candidate failed on Moth because it compared native scores with AST priority scores. That failure and rollback remain recorded in the [candidate history](candidates/N-08-compiled-fst.md). The repaired all-rule profile uses one scoring scale and is now running on Moth. The [real-client trial](evidence/2026-09-06/nlu-compiled-fst/moth-multirule-review.json) verifies clock display/TTS, joke TTS and a persistent timer's creation and cancellation. Microphone wake-up and physical ring illumination remain unverified.
 
-Source recovery and these bounded checks do not close N-02 or N-08. After the accepted SettingsClient transport and Report analytics fixes, the complete server smoke comparison retains 375 differences, and grammar compilation, broader factory behavior and native build reproduction remain tracked in the [checklist](TASKS.md).
+Source recovery and these bounded checks do not close N-02 or N-08. After the accepted SettingsClient transport, Report analytics and graph allocation fixes, the complete server smoke comparison retains 218 differences, and grammar compilation, broader factory behavior and native build reproduction remain tracked in the [checklist](TASKS.md).
 
 The service callsite is additionally recovered at
 [`ConvTech/jibo-nlu-service@5d6755a`](https://pvindex.org/gitea/ConvTech/jibo-nlu-service/src/commit/5d6755a5116694e2801438f358b862109cd16ba5).

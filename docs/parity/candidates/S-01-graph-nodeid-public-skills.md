@@ -1,5 +1,7 @@
 # S-01 exported skills registry follow-up
 
+Root accepted the repaired bounded allocation slice in `4f9d5a7`. The [independent review](../evidence/2026-09-06/service-integration/graph-allocation-review.json) records all 45 source node identities, standalone/cohosted follow-ups, 492 unit passes on confirmation and 218 remaining strict differences. Full S-01 remains open; earlier candidate observations below retain their historical scope.
+
 Status: **candidate, awaiting lead review**
 
 Base: `e043a276c4dd9f0e14703a282a3f346b6f6f2878`
