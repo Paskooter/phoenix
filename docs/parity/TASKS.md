@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-Default main remains 20,233/20,528 archived HTTP status/data matches. Root candidate 41b4696 executes all 98 pinned public graphs and preserves default AST behavior. Isolated verification matches 20,528/20,528 responses, 449 unit tests and 63 configured tests; strict smoke retains exactly the previous 648 differences. Original BE multi-rule HTTP controls, per-rule failure review and a new Moth trial remain pending; e586360 regression and rollback are preserved.
+Default main remains 20,233/20,528 archived HTTP status/data matches. Root candidate866a384 runs all98 pinned public graphs and continues after an individual native rule failure. It matches20,528/20,528 corpus responses with449 unit/64 configured tests passing; strict smoke retains the same648 differences. A new42-case candidate capture completed, but original attempts failed the all98-load setup before any cases. Moth remains on the restored backend; no new deployment or full-task acceptance.
 
 Done when:
 
@@ -913,7 +913,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **changes_requested**; Codex root with Luna Max candidates.
 
-Candidate scope: Root credential fix remains frozen. Settings transport candidate 6d79a57 and Account peer follow-up 6590b89 await root review. Agent peer evidence reports 22/22 query, 7/7 malformed-membership wire matches, 14/15 populated matches and 20/22 baseline raw-body matches; remaining storage/key-order boundaries are explicit. No Settings integration or full-task acceptance.
+Candidate scope: Root credential fix remains frozen. Settings transport candidate dc7d8ca independently matches all78 preserved original TCP status/raw-body/header/provider controls with Date excluded;81 Account/common units pass. Root is reviewing fresh main-based integration to avoid importing old branch changes. Account peer6590b89, public authentication wiring, provider/update/delete and full A06 acceptance remain open.
 
 Candidate report: [docs/parity/candidates/A-06-root-review.md](../../docs/parity/candidates/A-06-root-review.md).
 

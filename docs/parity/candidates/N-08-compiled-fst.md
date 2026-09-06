@@ -1,20 +1,38 @@
 # Compiled NLU profile — root review
 
-Status: repaired candidate `41b4696` awaits original multiple-rule HTTP controls
+Status: repaired candidate `866a384` awaits original multiple-rule HTTP controls
 and a new Moth trial. It is isolated and has not been deployed or integrated.
 The earlier `e586360` regression and verified rollback remain recorded below.
 No full parity task is checked off.
 
+The [per-rule failure review](../evidence/2026-09-06/nlu-compiled-fst/rule-failure-review.json)
+records the latest repair: an individual native rule failure no longer prevents
+the remaining requested rules from competing. Profile verification still fails
+at startup, and an invalid selected winner is rejected without promoting a
+lower result. Original TypeScript controls used explicit dependency seams on
+Node 22; they are separate from native graph and original HTTP evidence.
+Root verified 449 default unit passes (three configured skips), 64 configured
+NLU passes and 20,528/20,528 archived HTTP status/data matches. The latest
+43-case strict comparison retains exactly the same 648 differences.
+
+The new 42-case candidate capture completed without execution failures. Two
+original capture attempts reached native readiness but failed the all-98-rule
+load prerequisite before any case ran. Separate native and original service
+initialization controls loaded all 98 rules successfully; root is investigating
+the setup difference. The candidate capture alone earns no parity acceptance.
+The prepared Moth bundle `3150063` has byte-identical NLU files and passes all
+64 configured tests; Moth remains on the restored default AST backend.
+
 The [multiple-rule repair review](../evidence/2026-09-06/nlu-compiled-fst/mixed-rule-review.json)
-records source-scored execution for all 98 requested public graphs, explicit
+records the preceding `41b4696` source-scored execution for all 98 requested public graphs, explicit
 artifact configuration and verified in-memory graph snapshots. Root preserved
 the default AST path and added graph substitution and lazy executor controls.
 After provisioning and verifying candidate-local workspace links, root reran
 449 unit tests, 63 configured NLU tests and all 20,528 archived parser HTTP
 responses successfully. The 43-case production comparison retains exactly the
 same 648 differences as the preceding compiled candidate, with no invariant
-failures or coverage gaps. Actual BE multi-rule combinations and native rule
-failure handling remain under independent source review.
+failures or coverage gaps. The per-rule failure review above supersedes its
+pending failure-boundary check; actual BE multi-rule HTTP controls remain open.
 
 The [combined root review](../evidence/2026-09-06/nlu-compiled-fst/combined-root-review.json)
 records 20,528/20,528 original HTTP status/data matches, 449 passing default

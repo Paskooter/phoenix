@@ -1,0 +1,101 @@
+{
+  "status": "root reviewed parser boundary; original multiple-rule HTTP capture and Moth trial pending",
+  "rootCandidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
+  "previousCandidateRevision": "41b46966e2998c2c753d4defbdfeb1aaccbaade7",
+  "integratedIntoMain": false,
+  "deployed": false,
+  "changes": [
+    "Catch one requested native rule failure and continue arbitration among other valid rule responses, matching RobustParserClient.getRuleResponse.",
+    "Artifact/profile verification remains a startup failure outside this per-rule catch.",
+    "Retain source rejection of a selected missing-intent or SKIP winner; do not promote a lower-scoring result."
+  ],
+  "sourceBoundaryControl": {
+    "runtime": "Node v22.22.0",
+    "compiler": "TypeScript 2.5.3",
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "clientSourceSha256": "2c4b7c1544d82c4e42863cdacf06226fb31f5ba6745827bf165124e3a22b0906",
+    "handlerSourceSha256": "dc577c81cf61ce0ecd19c74ada04f6a0fda2521a8834982aff0c2432730fe70e",
+    "scope": "Executed original TypeScript with narrow native-request and service dependencies replaced by controlled seams. Node8 attempt did not complete. These controls are not archived native graph or full original HTTP results.",
+    "controls": [
+      "failed rule plus successful rule",
+      "selected missing-intent result",
+      "selected SKIP result"
+    ]
+  },
+  "verification": {
+    "defaultUnit": {
+      "passed": 449,
+      "failed": 0,
+      "skipped": 3
+    },
+    "configuredNlu": {
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullHttp": {
+      "cases": 20528,
+      "matches": 20528,
+      "differences": 0,
+      "scope": "HTTP status and complete decoded parser data against the unchanged archived original corpus."
+    },
+    "strictProduction": {
+      "candidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
+      "cases": 43,
+      "differences": 648,
+      "invariantFailures": 0,
+      "coverageGaps": 0,
+      "sameCompleteDifferenceListAsPreviousCompiled": true
+    },
+    "sourceStability": {
+      "receiptsRecord": "41b4696 plus the uncommitted rule-failure repair",
+      "committed866a384FileFingerprintEqualsAllThreeReceipts": true,
+      "allTrackedFileFingerprintSha256": "cd764c0db913916f0cf0f7b590749104d4456db377fb99a944dc6c2571a3e7ab"
+    }
+  },
+  "newMultipleRuleMatrix": {
+    "cases": 42,
+    "candidateCaptureComplete": true,
+    "candidateExecutionFailures": 0,
+    "candidateSourceAndGraphsStable": true,
+    "sourceCaptureComplete": false,
+    "originalExecutedCases": 0,
+    "originalLatestAttempt": 6,
+    "originalSetupObservation": "Native readiness reached; 7 grammar loads returned HTTP 200, followed by 5 HTTP 400 No thread available errors. The all-98-load prerequisite failed before any case ran.",
+    "diagnosticControls": "Separate native and source-equivalent ParserService initialization controls loaded all 98 graphs and received 196 performance events. The difference between these controls and the full capture is under investigation; the trigger is not established.",
+    "acceptance": false
+  },
+  "mothBundle": {
+    "revision": "3150063655567151eb0c8d478d140bc1efd29ced",
+    "transportBase": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+    "allTrackedNluFilesEqualRootCandidate": true,
+    "configuredNluPassed": 64,
+    "deployed": false,
+    "robotRemainsOn": "restored default AST backend"
+  },
+  "limits": [
+    "Full N-08 remains open; no checklist completion credit.",
+    "Native multi-rule HTTP expectations, routing/actions, complete server behavior and natural microphone/ring acceptance remain separate verification boundaries.",
+    "The 42-case candidate capture alone is not a parity comparison."
+  ],
+  "privateEvidenceHashes": {
+    "rule-failure-before-fix.log": "3836685d730c1e636d5d1f86cda55873001fa97a04b2a1726e1dac06c591c2a7",
+    "rule-failure-repair/default-unit.log": "5e9953c5b7796fd057ff05042a77161b0c054f9bb35793c7e233d6daa280d893",
+    "rule-failure-repair/default-unit-receipt.json": "d24712a2d114fe0a1d322d5d07a8163df4eb1a71769a3da624e437a1f27df969",
+    "rule-failure-repair/configured-nlu.log": "bf22e3b1a71e32b988ed77b4b3946994d02c69b7e7625c795931a943a187b25b",
+    "rule-failure-repair/configured-nlu-receipt.json": "daf18a8534007a3aad02e5e016aa169eba3bbcbc0d7b32e296b0bf751b03d87f",
+    "rule-failure-repair/full-http.json": "59058e6d910df166b9b881abc56c648cb78d714906e3c5977b6a312755bb31fd",
+    "rule-failure-repair/full-http-receipt.json": "e7538968ea4f88b0aca78abd348fc42c9fb4a3993137c23f5d43920d5b2d23a6",
+    "rule-failure-production/run.json": "7102120992dc62374ac5a0022d20ef61647b69448d83f7553acf198d6e610714",
+    "rule-failure-production/comparison.json": "86f3fd20553b20afda471b07984d545bef51f8db74d91d1e65b81f0546d3a407",
+    "multirule-candidate/receipt.json": "52d65c74d1972d1d722b4ebfef8f71826635628d89f69e6c2fbf360451c90682",
+    "multirule-candidate/candidate.json.gz": "434b5862ea630bd3a75e6ddbae3b151ce9109afa307b8f341ac54ccb5bef6329",
+    "moth-rule-failure-repair/source-equivalence.json": "f71af01fdfaa1a6d19bfc50974377746ca9bfad93a00d3ee05fd6798fe966c80",
+    "moth-rule-failure-repair/configured-nlu-receipt.json": "04806c54a76ff1d51ee93f0320ff2e500d71af008dc9e1b2a150eea94ae47b0e"
+  },
+  "additionalPrivateEvidenceHashes": {
+    ".parity/reviews/n08-mixed-boundary-20260906/source-wrapper-control.json": "40f8bae4e3b1013d1ad80cfb624eb758a882e07d253ef6dfccf960474c28cac5",
+    ".parity/reviews/n08-original-multirule-20260906/attempt-6-reference.json.gz": "8b65fb56e9ede3eb157d6882367203aa105cdc9c9784a455e0f35d4c061a2913",
+    ".parity/reviews/n08-original-multirule-20260906/attempt-6-postflight.json": "e71828f59bc35ab1be28be2f1a2122b172f63d2f86581905d4248de71edbe371"
+  }
+}
