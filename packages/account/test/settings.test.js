@@ -59,6 +59,26 @@ test('AWS-JSON GetSettings: default report-skill data shape the report-skill exp
   assert.equal(entry.data.commuteEnabled.value, 0, 'commute off by default');
 });
 
+test('Settings headers cannot change JSON parsing on unrelated Account routes', async () => {
+  for (const [method, path] of [['POST', '/api/missing'], ['PUT', '/'], ['POST', '/api/settings']]) {
+    const responses = [];
+    for (const target of [undefined, 'Settings_20160801.GetSettings']) {
+      const response = await fetch(`${base}${path}`, {
+        method,
+        headers: {
+          'content-type': 'application/json',
+          ...(target ? { 'x-amz-target': target } : {}),
+        },
+        body: '"primitive"',
+      });
+      const body = await response.json();
+      responses.push({ status: response.status, type: body.type, data: body.data });
+    }
+    assert.equal(responses[0].status, 400, `${method} ${path} retains its strict parser`);
+    assert.deepEqual(responses[1], responses[0], `${method} ${path} ignores the unrelated target header`);
+  }
+});
+
 test('Account peer routes expose the source Account client response fields', async () => {
   const member = await fetch(`${base}/isLoopMember?accountId=${encodeURIComponent(owner._id)}&loopId=${encodeURIComponent(loop._id)}`);
   assert.equal(member.status, 200);

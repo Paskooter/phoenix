@@ -49,7 +49,9 @@ function isCreateHubTokenTarget(req) {
 }
 
 function isSettingsTarget(req) {
-  return /^settings/i.test(String(req?.headers?.['x-amz-target'] || '').split('.').slice(0, -1).join('.'));
+  return req.method === 'POST'
+    && new URL(req.originalUrl || req.url, 'http://localhost').pathname === '/'
+    && /^settings/i.test(String(req.headers?.['x-amz-target'] || '').split('.').slice(0, -1).join('.'));
 }
 
 export function createAccountService({ store = getStore(), settingsProviders } = {}) {
