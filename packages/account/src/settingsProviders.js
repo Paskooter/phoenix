@@ -9,10 +9,420 @@
 import { AssertionError } from 'node:assert';
 import http from 'node:http';
 import https from 'node:https';
+import { parse as legacyUrlParse, resolve as legacyUrlResolve } from 'node:url';
+import { logger } from '@phoenix/common';
 
 import { getSettingsData, setSettingsData } from './settingsData.js';
 
 const REPORT_SKILL = 'report-skill';
+const PERSON_JSON_MIME = /^application\/(?:[a-z0-9.]*[+-]json|json)$/i;
+const personHttpAgent = new http.Agent({ keepAlive: true, maxSockets: Infinity });
+const personHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: Infinity });
+const personLog = logger('account.person');
+const PERSON_BOOM_STATUS_CODES = Object.freeze({
+  100: 'Continue',
+  101: 'Switching Protocols',
+  102: 'Processing',
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  203: 'Non-Authoritative Information',
+  204: 'No Content',
+  205: 'Reset Content',
+  206: 'Partial Content',
+  207: 'Multi-Status',
+  300: 'Multiple Choices',
+  301: 'Moved Permanently',
+  302: 'Moved Temporarily',
+  303: 'See Other',
+  304: 'Not Modified',
+  305: 'Use Proxy',
+  307: 'Temporary Redirect',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  402: 'Payment Required',
+  403: 'Forbidden',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  406: 'Not Acceptable',
+  407: 'Proxy Authentication Required',
+  408: 'Request Time-out',
+  409: 'Conflict',
+  410: 'Gone',
+  411: 'Length Required',
+  412: 'Precondition Failed',
+  413: 'Request Entity Too Large',
+  414: 'Request-URI Too Large',
+  415: 'Unsupported Media Type',
+  416: 'Requested Range Not Satisfiable',
+  417: 'Expectation Failed',
+  418: "I'm a teapot",
+  422: 'Unprocessable Entity',
+  423: 'Locked',
+  424: 'Failed Dependency',
+  425: 'Unordered Collection',
+  426: 'Upgrade Required',
+  428: 'Precondition Required',
+  429: 'Too Many Requests',
+  431: 'Request Header Fields Too Large',
+  451: 'Unavailable For Legal Reasons',
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  502: 'Bad Gateway',
+  503: 'Service Unavailable',
+  504: 'Gateway Time-out',
+  505: 'HTTP Version Not Supported',
+  506: 'Variant Also Negotiates',
+  507: 'Insufficient Storage',
+  509: 'Bandwidth Limit Exceeded',
+  510: 'Not Extended',
+  511: 'Network Authentication Required',
+});
+
+function personRequestTimeout() {
+  return process.env.ETCO_server_http_timeout || 60000;
+}
+
+function personRedirectLimit() {
+  return process.env.ETCO_server_http_maxredirects || 3;
+}
+
+function personError(message, options = {}) {
+  const error = new Error(message);
+  if (options.isBoom) error.isBoom = true;
+  if (options.statusCode !== undefined) {
+    error.output = {
+      statusCode: options.statusCode,
+      payload: { statusCode: options.statusCode, message },
+    };
+  }
+  return error;
+}
+
+function personBoomReformat() {
+  this.output.payload.statusCode = this.output.statusCode;
+  this.output.payload.error = PERSON_BOOM_STATUS_CODES[this.output.statusCode] || 'Unknown';
+  if (this.output.statusCode === 500) this.output.payload.message = 'An internal server error occurred';
+  else if (this.message) this.output.payload.message = this.message;
+}
+
+function personInitializeBadGateway(error, message) {
+  error.isBoom = true;
+  error.isServer = true;
+  if (!Object.prototype.hasOwnProperty.call(error, 'data')) error.data = null;
+  error.output = {
+    statusCode: 502,
+    payload: {},
+    headers: {},
+  };
+  error.reformat = personBoomReformat;
+  if (!message && !error.message) {
+    error.reformat();
+    message = error.output.payload.error;
+  }
+  if (message) error.message = `${message}${error.message ? `: ${error.message}` : ''}`;
+  error.reformat();
+  return error;
+}
+
+function personBoomTypeof(message, data) {
+  if (data instanceof Error && !data.isBoom) return personInitializeBadGateway(data, message);
+  return personBadGateway(message, data);
+}
+
+function personGatewayTimeoutFactory(message, data) {
+  return personGatewayTimeout(message, data);
+}
+
+function personGatewayTimeout(message, data) {
+  const error = personError(message, { isBoom: true });
+  error.isServer = true;
+  error.data = data;
+  error.output = {
+    statusCode: 504,
+    payload: {
+      statusCode: 504,
+      error: 'Gateway Time-out',
+      message,
+    },
+    headers: {},
+  };
+  error.reformat = personBoomReformat;
+  error.typeof = personGatewayTimeoutFactory;
+  return error;
+}
+
+function personLogHttpError(uri, marker, error, trace) {
+  personLog.error(`Error during HTTP request to URI:${uri}, Marker:${marker}`, {
+    marker,
+    error: {
+      code: error && error.code,
+      message: error && error.message,
+      trace,
+    },
+  });
+}
+
+function personBadGateway(message, data) {
+  const error = new Error(message || undefined);
+  error.data = data;
+  error.typeof = personBoomTypeof;
+  return personInitializeBadGateway(error);
+}
+
+function personBadGatewayFromError(message, cause, trace) {
+  cause.trace = trace;
+  return personInitializeBadGateway(cause, message);
+}
+
+function personBadImplementation(error) {
+  // Boom.badImplementation(responseError) wraps the original Error, keeping
+  // its name/message while adding the standard 500 output fields.
+  if (!Object.prototype.hasOwnProperty.call(error, 'data')) error.data = undefined;
+  error.isBoom = true;
+  error.isServer = true;
+  error.isDeveloperError = true;
+  error.output = {
+    statusCode: 500,
+    payload: {
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'An internal server error occurred',
+    },
+    headers: {},
+  };
+  return error;
+}
+
+function personProviderError(message, statusCode, code) {
+  const error = personError(message, { isBoom: true });
+  error.isServer = statusCode >= 500;
+  const outputMessage = statusCode === 500 ? 'An internal server error occurred' : message;
+  error.data = { code };
+  error.output = {
+    statusCode,
+    payload: {
+      statusCode,
+      error: http.STATUS_CODES[statusCode] || 'Unknown',
+      message: outputMessage,
+      code,
+    },
+    headers: {},
+  };
+  return error;
+}
+
+function personHeaderValue(value) {
+  // Both pinned Node 8 and the candidate's built-in HTTP client write
+  // Latin-1 header values as their single-byte wire representation. Keep the
+  // JSON string intact so an ID such as U+00E9 follows that source path.
+  return value;
+}
+
+function personResponseValue(response, chunks) {
+  const buffer = Buffer.concat(chunks);
+  if (buffer.length === 0) return null;
+  const contentType = String(response.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (!PERSON_JSON_MIME.test(contentType)) return buffer;
+  try {
+    return JSON.parse(buffer.toString());
+  } catch (error) {
+    error.isBoom = true;
+    throw error;
+  }
+}
+
+function personLegacyHostnamePrefix(hostname) {
+  for (let index = 0; index < hostname.length; index += 1) {
+    const code = hostname.charCodeAt(index);
+    const valid = (code >= 97 && code <= 122)
+      || code === 46
+      || (code >= 65 && code <= 90)
+      || (code >= 48 && code <= 57)
+      || code === 45
+      || code === 43
+      || code === 95
+      || code > 127;
+    if (!valid) return index;
+  }
+  return -1;
+}
+
+// Node 8's legacy url.parse accepted malformed bracket authorities and let
+// http.request produce the eventual DNS error. Node 22's legacy parser throws
+// before that point, so retain the old parser's bounded authority/path result
+// only for this source-observable malformed-authority shape.
+function personLegacyMalformedAuthority(raw) {
+  const match = /^([a-z0-9.+-]+:)(\/\/)([^/?#]*)(.*)$/i.exec(raw);
+  if (!match || !match[3].includes('[') || match[3].includes(']')) return null;
+  const authority = match[3];
+  const portMatch = /:[0-9]*$/.exec(authority);
+  let host = authority;
+  let port = null;
+  if (portMatch) {
+    if (portMatch[0] !== ':') port = portMatch[0].slice(1);
+    host = host.slice(0, -portMatch[0].length);
+  }
+  const invalidIndex = personLegacyHostnamePrefix(host);
+  if (invalidIndex === -1) return null;
+  const hostname = host.slice(0, invalidIndex);
+  const pathname = `/${host.slice(invalidIndex)}${match[4]}`;
+  const formatted = `${match[1].toLowerCase()}//${hostname}${port ? `:${port}` : ''}${pathname}`;
+  return legacyUrlParse(formatted);
+}
+
+function personLegacyUrl(raw) {
+  try {
+    return legacyUrlParse(raw);
+  } catch (error) {
+    const fallback = personLegacyMalformedAuthority(raw);
+    if (fallback) return fallback;
+    throw error;
+  }
+}
+
+function personRequest(base, method, operation, context, payload, redirectsLeft, snapshot, deadline, trace) {
+  if (redirectsLeft === undefined) redirectsLeft = personRedirectLimit();
+  if (deadline === undefined) {
+    // Wreck installs one timeout on the initial request.  Redirects reuse its
+    // callback and options, so the same timer stays alive until the final
+    // response headers arrive; the body read starts after that timer is
+    // cleared.  Keep that lifecycle explicit instead of giving every hop a
+    // fresh timer.
+    deadline = { at: Date.now() + Number(personRequestTimeout()), started: false, timer: null };
+  }
+  if (trace === undefined) trace = [];
+  return new Promise((resolve, reject) => {
+    let url;
+    let body;
+    let headers;
+    let client;
+    let agent;
+    try {
+      url = personLegacyUrl(base);
+      if (snapshot) {
+        body = snapshot.body;
+        headers = snapshot.headers;
+      } else {
+        body = JSON.stringify(payload);
+        headers = {
+          'x-amz-credentials': personHeaderValue(JSON.stringify({ id: context.userId })),
+          'x-amz-target': `Person_20160801.${operation}`,
+          'content-length': Buffer.byteLength(body),
+        };
+      }
+      client = url.protocol === 'https:' ? https : http;
+      agent = url.protocol === 'https:' ? personHttpsAgent : personHttpAgent;
+      trace.push({ method, url: base });
+    } catch (error) {
+      reject(error);
+      return;
+    }
+    let settled = false;
+    let timeoutId;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      if (error) reject(error);
+      else resolve(value);
+    };
+    let request;
+    try {
+      request = client.request({
+        protocol: url.protocol,
+        hostname: url.hostname,
+        port: url.port || undefined,
+        path: url.path || undefined,
+        method,
+        headers,
+        agent,
+        host: url.host || undefined,
+      }, (response) => {
+        const redirect = [301, 302, 307, 308].includes(response.statusCode);
+        // Wreck clears the initial request timer when the final response
+        // headers arrive. It does not reset that wall-clock budget for a
+        // redirect hop, and the body read happens after this point.
+        if (!redirect && deadline.timer !== null) {
+          clearTimeout(deadline.timer);
+          deadline.timer = null;
+        }
+        if (redirect) {
+          const location = response.headers.location;
+          response.resume();
+          if (!location || redirectsLeft === 0) {
+            finish(personBadGateway(location ? 'Maximum redirections reached' : 'Received redirection without location', trace));
+            return;
+          }
+          const redirectUrl = /^https?:/i.test(location)
+            ? location
+            : legacyUrlResolve(url.href, location);
+          personRequest(redirectUrl, method, operation, context, payload, redirectsLeft - 1, { body, headers }, deadline, trace)
+            .then((value) => finish(null, value), (error) => finish(error));
+          return;
+        }
+        const chunks = [];
+        let responseFinished = false;
+        const premature = () => {
+          if (!responseFinished && !response.complete) {
+            finish(personError('Payload stream closed prematurely', { isBoom: true }));
+          }
+        };
+        response.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        response.once('error', (error) => finish(personError(error.message, { isBoom: true })));
+        response.once('aborted', premature);
+        response.once('close', premature);
+        response.once('end', () => {
+          responseFinished = true;
+          try {
+            const value = personResponseValue(response, chunks);
+            if (value && value.error) {
+              // BaseClient/Boom.createWithCode has no own statusCode or code;
+              // it stores those values in output/data. A missing statusCode
+              // crashes the pinned Boom implementation; keep this process safe
+              // while retaining the provider error as an explicit divergence.
+              const error = value.statusCode === undefined
+                ? personError(value.message, { isBoom: true })
+                : personProviderError(value.message, value.statusCode, value.code);
+              finish(error);
+              return;
+            }
+            finish(null, value);
+          } catch (error) {
+            finish(personBadImplementation(error));
+          }
+        });
+      });
+      if (!deadline.started) {
+        deadline.started = true;
+        const remaining = Math.max(0, deadline.at - Date.now());
+        deadline.timer = setTimeout(() => {
+          request.destroy();
+          const marker = Date.now();
+          const timeoutError = personGatewayTimeout('Client request timeout');
+          personLogHttpError(trace[0]?.url || base, marker, timeoutError, trace);
+          finish(timeoutError);
+        }, remaining);
+        timeoutId = deadline.timer;
+      }
+      request.once('error', (error) => {
+        if (settled) return;
+        const marker = Date.now();
+        personLogHttpError(trace[0]?.url || base, marker, error, trace);
+        if (error.code === 'ECONNRESET') {
+          finish(personGatewayTimeout(`Gateway Time-out. Log marker:${marker}`));
+          return;
+        }
+        finish(personBadGatewayFromError('Client request error', error, trace));
+      });
+      request.write(body);
+      request.end();
+    } catch (error) {
+      finish(error);
+    }
+  });
+}
+
 const LASSO_JSON_MIME = /^application\/(?:[a-z0-9.]*[+-]json|json)$/i;
 const lassoHttpAgent = new http.Agent({ keepAlive: true, maxSockets: Infinity });
 const lassoHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: Infinity });
@@ -579,26 +989,21 @@ function networkHub(fetchImpl, base, account) {
   };
 }
 
-function networkPerson(fetchImpl, base) {
+function networkPerson(_fetchImpl, base) {
   return {
-    getAccountProperties: (context, keys) => sendPerson(fetchImpl, base, context, 'GetAccountProperties', { keys }),
-    getLoopProperties: (context, keys) => sendPerson(fetchImpl, base, context, 'GetLoopProperties', { keys, loopId: context.loopId }),
-    setAccountProperty: (context, key, value) => sendPerson(fetchImpl, base, context, 'SetAccountProperty', { key, value }),
-    setLoopProperty: (context, key, value) => sendPerson(fetchImpl, base, context, 'SetLoopProperty', { key, value, loopId: context.loopId }),
+    getAccountProperties: (context, keys) => personRequest(base, 'POST', 'GetAccountProperties', context, { keys }),
+    getLoopProperties: (context, keys) => personRequest(base, 'POST', 'GetLoopProperties', context, {
+      keys,
+      loopId: context.loopId,
+    }),
+    setAccountProperty: (context, key, value) => personRequest(base, 'POST', 'SetAccountProperty', context, { key, value }),
+    setLoopProperty: (context, key, value) => personRequest(base, 'POST', 'SetLoopProperty', context, {
+      loopId: context.loopId,
+      transId: context.transactionId,
+      key,
+      value,
+    }),
   };
-}
-
-async function sendPerson(fetchImpl, base, context, operation, payload) {
-  const response = await requestJson(fetchImpl, 'Person', base, '/', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-credentials': JSON.stringify({ id: context.userId }),
-      'x-amz-target': `Person_20160801.${operation}`,
-    },
-    body: payload,
-  });
-  return response;
 }
 
 function networkLasso(_fetchImpl, base) {
