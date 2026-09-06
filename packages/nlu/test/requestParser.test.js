@@ -130,8 +130,12 @@ test('applies loop member detection after the named parse', () => {
     ] },
   }), {
     rules: ['launch'],
-    intent: 'generalWhoQuestions',
+    // The pinned source corpus selects RULE_WhoIsPerson and then enriches the
+    // selected GivenName through LoopMemberDetector. This assertion used to
+    // preserve the pre-source-score AST tie result (generalWhoQuestions).
+    intent: 'whoIsPerson',
     entities: {
+      GivenName: 'jane',
       union_original_fst_name: 'handle:chitchat/launch',
       loopMemberReferent: 'u-jane',
       'given-name': 'Jane',
@@ -145,7 +149,11 @@ test('applies loop member detection after the named parse', () => {
       { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
     ] },
   }).entities, {
+    GivenName: 'jane',
     union_original_fst_name: 'handle:chitchat/launch',
+    loopMemberReferent: 'u-jane',
+    'given-name': 'Jane',
+    'last-name': 'Jetson',
   });
   assert.deepEqual(parseRequest({
     text: 'who is undefined undefined',
@@ -171,6 +179,24 @@ test('applies loop member detection after the named parse', () => {
       'last-name': 'Jetson',
     },
   });
+});
+
+test('uses source byte heuristic for wildcard arbitration in the default AST profile', () => {
+  const cases = [
+    ['can you tell jokes', 'requestTellJiboContent', { JiboContent: 'Joke' }],
+    ['are you a natterjack', 'idle', {}],
+    ['are you a crane', 'idle', {}],
+    ['what are you doing', 'doesJiboHavePlansForEvent', { Timeframe: 'Now' }],
+    ['what have you been doing', 'whatDidJiboAction', { Timeframe: 'Day' }],
+  ];
+  for (const [text, intent, entities] of cases) {
+    const result = parseRequest({ text, rules: ['launch'] });
+    assert.equal(result.intent, intent, text);
+    assert.deepEqual(result.entities, {
+      ...entities,
+      union_original_fst_name: 'handle:chitchat/launch',
+    }, text);
+  }
 });
 
 test('keeps source priority and punctuation metadata semantic', () => {

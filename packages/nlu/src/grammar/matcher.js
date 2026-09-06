@@ -27,9 +27,22 @@ import { eqEquals } from './eqWords.js';
 
 const EMPTY = Object.freeze({});
 
-// Cost charged per token consumed by a wildcard ($*, $wNN, unknown-factory fallback).
-// Tuned against the reference corpus (see WORKLOG 2026-06-09 Phase C).
-const WILDCARD_TOKEN_COST = 0.7;
+// The native compiler's result_fst score is input-string byte length minus the
+// accumulated arc heuristic. This bounded repair applies that source byte
+// heuristic to word wildcards: the compiler assigns <1.0> per non-space byte
+// and <0.0> to the wildcard's trailing separator. Literal specificity remains
+// the existing grammar-word unit in this slice because changing all literal
+// path widths also changes established holiday/entity arbitration.
+function utf8Bytes(value) {
+  return Buffer.byteLength(String(value), 'utf8');
+}
+
+function sourceWildcardCost(tokens, start, count, prefix) {
+  if (prefix) return prefix[start + count] - prefix[start];
+  let cost = 0;
+  for (let index = start; index < start + count; index += 1) cost += utf8Bytes(tokens[index]);
+  return cost;
+}
 
 function freshEnts(prev) { return Object.assign({}, prev); }
 
@@ -98,8 +111,8 @@ function* match(node, start, ctx, depth) {
   switch (node.type) {
     case 'lit': {
       // Lowercased + apostrophe-stripped equality (see tokenize/_norm).
-      // specificity: 1 — a literal token in the rule counts toward specificity,
-      // which the registry uses to break ties between candidate skills.
+      // Keep literal specificity at one grammar-word unit. Wildcard arc costs
+      // below use the source's byte heuristic in this bounded repair.
       if (start < tokens.length && (tokens[start] === _norm(node.word) || eqEquals(ctx.eq, tokens[start], _norm(node.word)))) {
         const ent = freshEnts(EMPTY); const sub = freshEnts(EMPTY);
         const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokens[start]);
@@ -128,15 +141,15 @@ function* match(node, start, ctx, depth) {
       // specificity: 0 — star matches don't count, so longest-match across
       // skills picks the rule that's filled with literal content, not the one
       // that wraps a single literal in `$* X $*`.
-      // Each token a wildcard swallows costs WILDCARD_TOKEN_COST — the FST compiler
-      // assigns real arc weights to wildcard arcs, which is what demotes `$* x $*`
-      // catch-alls below structured arms (every full parse consumes all tokens, so
-      // ordering hinges on the literal/wildcard composition of the path).
+      // The compiler's wildcard factory assigns heuristic 1.0 per non-space
+      // character and 0.0 to its trailing separator. Every full parse consumes
+      // the same input string, so this is the source-compatible cost that demotes
+      // `$* x $*` catch-alls below structured arms.
       const maxN = (typeof node.max === 'number') ? node.max : (tokens.length - start);
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
         const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens.slice(start, start + n).join(' '));
-        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + n * WILDCARD_TOKEN_COST };
+        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + sourceWildcardCost(tokens, start, n, ctx.wildcardPrefix) };
       }
       return;
     }
@@ -186,8 +199,8 @@ function* match(node, start, ctx, depth) {
       }
       if (!target && node.prefix === 'factory' && ctx.factoryWords && ctx.factoryWords.has(node.name)) {
         // Word-list factory (extracted reference vocab): match ONLY listed
-        // phrases, longest-first. Verified content counts as literal matches
-        // (specificity = phrase length, no wildcard cost). Exposes the matched
+        // phrases, longest-first. Verified content counts as literal grammar
+        // words (with no wildcard cost). Exposes the matched
         // text as the `_<name>` sub-field (e.g. `{_selfid=first_name._first_name}`)
         // alongside the usual `this._parsed` capture.
         const byFirst = ctx.factoryWords.get(node.name);
@@ -220,7 +233,7 @@ function* match(node, start, ctx, depth) {
         for (let n = 1; n <= 3; n += 1) {
           if (start + n > tokens.length) break;
           const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokens.slice(start, start + n).join(' '));
-          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + n * WILDCARD_TOKEN_COST };
+          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + sourceWildcardCost(tokens, start, n, ctx.wildcardPrefix) };
         }
         // Also try zero-match (factory might be optional in context).
         const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} }, '');
@@ -327,13 +340,12 @@ function expandCharClass(body) {
 }
 
 // Public: try to match a TopRule against the input tokens. Returns the BEST
-// full-input match — highest specificity (sum of literal/class tokens matched
-// along the path). On ties, returns the first one discovered, mirroring the
+// full-input match — highest grammar specificity minus accumulated arc cost. On
+// ties, returns the first one discovered, mirroring the
 // cloud's first-best behaviour. Returns null when no full match exists.
 // Rank a parse the way the real engine's union arbitration does: by the
-// `priority` the grammar assigned (HIGH > unset > LOW), then by heuristic score
-// (specificity = count of literal/factory tokens matched, so a rule full of real
-// words beats a `$* x $*` wildcard wrapper). LOW is the deflector/catch-all tier
+// `priority` the grammar assigned (HIGH > unset > LOW), then by the bounded
+// source-like wildcard heuristic score. LOW is the deflector/catch-all tier
 // (`{% intent='idle' %}`, generic GQA) — it only wins when nothing better matches.
 export function priorityRank(p) {
   // Source rule files contain both the legacy upper-case spelling and the
@@ -343,14 +355,22 @@ export function priorityRank(p) {
   const priority = typeof p === 'string' ? p.trim().toUpperCase() : '';
   return priority === 'HIGH' ? 2 : (priority === 'LOW' ? 0 : 1);
 }
-// heuristic = specificity - accumulated FST cost: mirrors the reference binary's
-// heuristic_score (e.g. "who is ada lovelace" -> 14.7 = ~15 literals - 0.3 cost).
+// The bounded matcher score keeps its existing grammar-word specificity and
+// now uses the native wildcard arc heuristic for its accumulated cost. The
+// priority term remains the Phoenix cross-grammar arbitration layer.
 export function parseScore(entities, specificity, cost = 0) {
   return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0) - (cost || 0);
 }
 
 export function matchRule(node, tokens, ctx) {
   const fullCtx = Object.assign({ tokens, rules: ctx.rules || {}, maxDepth: 250 }, ctx);
+  if (!fullCtx.wildcardPrefix) {
+    fullCtx.wildcardPrefix = [0];
+    for (const token of tokens) {
+      const previous = fullCtx.wildcardPrefix[fullCtx.wildcardPrefix.length - 1];
+      fullCtx.wildcardPrefix.push(previous + utf8Bytes(token));
+    }
+  }
   // INTRA-grammar path selection is pure FST shortest-path: maximize
   // (specificity - cost). `priority` is hub-level arbitration metadata carried in
   // the tags — the FST never sees it, so it must NOT bias which arm wins here
