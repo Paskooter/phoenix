@@ -1,0 +1,65 @@
+{
+  "baselineSha256": "755aa970d147b50338fcdf579397ac5733fd30a69b601aa24d4aed08923e95f6",
+  "candidateSha256": "b215f742a551781d43311973672bf8d710811a110265285e651a58265dfa020b",
+  "baselineCount": 659,
+  "candidateCount": 659,
+  "newPaths": [],
+  "removedPaths": [],
+  "changedValues": [
+    {
+      "before": {
+        "path": "/cases/14/routing/decision/skillID",
+        "kind": "value",
+        "expected": "chitchat-skill",
+        "actual": "answer-skill"
+      },
+      "after": {
+        "path": "/cases/14/routing/decision/skillID",
+        "kind": "value",
+        "expected": "chitchat-skill",
+        "actual": "answer"
+      }
+    },
+    {
+      "before": {
+        "path": "/cases/14/coverageGap",
+        "kind": "presence",
+        "expectedPresent": false,
+        "actualPresent": true,
+        "actual": {
+          "skillID": "answer-skill",
+          "scope": "Cloud action service is outside this isolated fixture profile"
+        }
+      },
+      "after": {
+        "path": "/cases/14/coverageGap",
+        "kind": "presence",
+        "expectedPresent": false,
+        "actualPresent": true,
+        "actual": {
+          "skillID": "answer",
+          "scope": "Cloud action service is outside this isolated fixture profile"
+        }
+      }
+    }
+  ],
+  "invariantsEqual": true,
+  "coverageGaps": {
+    "before": [
+      {
+        "side": "candidate",
+        "id": "boundary:loop-full-name",
+        "skillID": "answer-skill",
+        "scope": "Cloud action service is outside this isolated fixture profile"
+      }
+    ],
+    "after": [
+      {
+        "side": "candidate",
+        "id": "boundary:loop-full-name",
+        "skillID": "answer",
+        "scope": "Cloud action service is outside this isolated fixture profile"
+      }
+    ]
+  }
+}

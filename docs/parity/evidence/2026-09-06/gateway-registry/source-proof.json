@@ -1,0 +1,286 @@
+{
+  "revision": "5c0a7390539663ba749d360de348a428c088505c",
+  "runtime": "v8.9.4",
+  "compiler": "2.5.3",
+  "method": "ts.transpileModule, isolated CommonJS modules; no type check or original Gulp bundle verification",
+  "files": [
+    {
+      "path": "packages/hub/src/config/SkillConfigManager.ts",
+      "sha256": "22b132c24b4f19c8ca894b3d90c62b7ee52b64d11738d92c47dcca5896cd6ebc",
+      "compiledPath": "packages/hub/lib/config/SkillConfigManager.js",
+      "compiledSha256": "cf092605a45636c813d8555c813b772cb52652124e849909cbe2a6d03e55e9f9"
+    },
+    {
+      "path": "packages/hub/src/config/interfaces.ts",
+      "sha256": "a31ebce440f9fc0b68cee7d4eae8b07cbb741c0141ba75ee8020693682c9f0d3",
+      "compiledPath": "packages/hub/lib/config/interfaces.js",
+      "compiledSha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230"
+    },
+    {
+      "path": "packages/hub/src/config/ConfigFileParser.ts",
+      "sha256": "5d132acbb38b5ee3abc032c65106441695627dcb907f867ac1a8329003237c80",
+      "compiledPath": "packages/hub/lib/config/ConfigFileParser.js",
+      "compiledSha256": "4dfc75e8ad0866a05672a4ce4cc976bef019df8dab1d2c0d5d1b40a30bd5dcf9"
+    },
+    {
+      "path": "packages/hub/src/config/HubConfigProvider.ts",
+      "sha256": "4ea97e8a2a05fecdedfdbdc8c278a2d29f5ad5485af52d086426c42a73b100e7",
+      "compiledPath": "packages/hub/lib/config/HubConfigProvider.js",
+      "compiledSha256": "f13dac4dd4ce5b409687511d79078c86ad05c098226163f83d93db058109d916"
+    },
+    {
+      "path": "packages/hub/src/config/index.ts",
+      "sha256": "44d159e6c81406abb818bf2cac22c768fd0392b8413684ae396419ce4b3abf94",
+      "compiledPath": "packages/hub/lib/config/index.js",
+      "compiledSha256": "24e602ebb8347f67a39ac3d590b571568ceaee69506fee9b1cfb8694315a123f"
+    },
+    {
+      "path": "packages/hub/src/config/validation/ManifestSettingViewValidator.ts",
+      "sha256": "6a7950600f03ceeb298ad70000faa8d9d2a43ec50663590f700f1f2a8abaf937",
+      "compiledPath": "packages/hub/lib/config/validation/ManifestSettingViewValidator.js",
+      "compiledSha256": "ca58a37061b3e6eb876ed238dbcfc256d7d39e7d236d9746567d695a4d058186"
+    },
+    {
+      "path": "packages/hub/src/config/validation/SkillConfigValidator.ts",
+      "sha256": "7083659c6a710f258df52dab64eb6a3bf52b49643c0c2c4c45cf0aab7427d0c5",
+      "compiledPath": "packages/hub/lib/config/validation/SkillConfigValidator.js",
+      "compiledSha256": "02b62cf5bc6fd14310e9c53fdc14516a8dc3b4465b4eda9ac30940bd500af606"
+    },
+    {
+      "path": "packages/hub/src/config/validation/ConfigFileValidator.ts",
+      "sha256": "198d416ad6ef5a3f42de7ec15863fe2b408ef115332f52943d857f105b674628",
+      "compiledPath": "packages/hub/lib/config/validation/ConfigFileValidator.js",
+      "compiledSha256": "17d2a57211dccc46a8be3b170d2cd2da6d54cbbb1873f6871c94abdb29f94f4d"
+    },
+    {
+      "path": "packages/hub/src/config/validation/index.ts",
+      "sha256": "83e52e2673c0e8e9680d0b9b425ed39eab52d5e2681f486e402a0bb7480e7efb",
+      "compiledPath": "packages/hub/lib/config/validation/index.js",
+      "compiledSha256": "aaa30452bf71663d9a52e937ef02a0ab2f459ba7c48b0a773888d9eeeea711b1"
+    },
+    {
+      "path": "packages/hub/src/skill/SkillUtils.ts",
+      "sha256": "14b1853141b75a9f8e335857fd2a37b9ae502212b8495698ce6393e1a4035819",
+      "compiledPath": "packages/hub/lib/skill/SkillUtils.js",
+      "compiledSha256": "d7a3a883b7ef36fdf0bf5cc59579f7865461515fea0058b2fa2c3f0afb903436"
+    },
+    {
+      "path": "packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts",
+      "sha256": "4c103dea9b8239f91ed93a8b6d89025c8133d5b646a2e5cf87de7870d7399c12",
+      "compiledPath": "packages/hub/lib/skill-list/SkillListGetHttpRequestsHandler.js",
+      "compiledSha256": "6963370fa36ccc67cad412bad0c91e34c06e969bb3f5a445ee9cda16eaeab73b"
+    },
+    {
+      "path": "packages/hub/src/utils/TimeUtils.ts",
+      "sha256": "9b49bfe2f3c0c59739e9a0734d44096f54381d3a1edad610788cbb9d224ef6c6",
+      "compiledPath": "packages/hub/lib/utils/TimeUtils.js",
+      "compiledSha256": "169a0e9e1300de5ea0020f44b82b92d0817492fd063b01bd31541b15cbbca1b2"
+    },
+    {
+      "path": "packages/hub/src/HubService.ts",
+      "sha256": "51d61540ad6b9201b75724670658f3196facc2ce22addb580001e55631fabae7",
+      "compiledPath": "packages/hub/lib/HubService.js",
+      "compiledSha256": "5de00b6be2dc2d08e4de337155aae55c368a255c3ccf59d1ac7f8817e6092b4c"
+    },
+    {
+      "path": "packages/interfaces/src/proactive/proactive.ts",
+      "sha256": "9eb2a005b37070d7c1b1a194d47e438c80ca7c28ad8bc5a41cede9de3aa8928c",
+      "compiledPath": "packages/interfaces/lib/proactive/proactive.js",
+      "compiledSha256": "fa601e121b68fe84d5d2ce7ffc3dc6f13637c9fa255031ce743fc73cbb696234"
+    },
+    {
+      "path": "packages/interfaces/src/proactive/context.ts",
+      "sha256": "912d46c0a51756330b53c5f3ccc7d414d43df7ff3f3190ad2278a721bd7a682c",
+      "compiledPath": "packages/interfaces/lib/proactive/context.js",
+      "compiledSha256": "b7e9c4717921b83f1988f64120446a3e0fc5d01cf374784c01eea0cd4d4791be"
+    },
+    {
+      "path": "packages/interfaces/src/proactive/settings.ts",
+      "sha256": "b71e912f7815cb5c4282f0e754af69f0d4680b40312a292620d21cb860cf2b46",
+      "compiledPath": "packages/interfaces/lib/proactive/settings.js",
+      "compiledSha256": "a44d01c9b93bf9957f5077e59f3bbb7f4144aa80331e3850d710275db3844d1c"
+    },
+    {
+      "path": "packages/interfaces/src/proactive/history.ts",
+      "sha256": "4d2b4643231cb9dd58f7a45e4296a8575532ce5347cd18c60316ead3159dc4b0",
+      "compiledPath": "packages/interfaces/lib/proactive/history.js",
+      "compiledSha256": "d0c7b681e5876f494beecaa0b95253d5faf096aea624583bb96c0d9c438915e8"
+    },
+    {
+      "path": "packages/interfaces/src/proactive/index.ts",
+      "sha256": "ec9cb813be720d8a407c60ec06bd68e2ffd57543b8cb93eba86347cc7b21c4e9",
+      "compiledPath": "packages/interfaces/lib/proactive/index.js",
+      "compiledSha256": "fd609f09ff57c70a4831d7ab9dfb37ee16dfeed101db6639789ed7f0cbc2942e"
+    },
+    {
+      "path": "packages/interfaces/src/time.ts",
+      "sha256": "f44ceca12aeccb82569f7eca0b36c5f8b5ca9729098c10848379e35458a6d786",
+      "compiledPath": "packages/interfaces/lib/time.js",
+      "compiledSha256": "7a1cf7d33d22ebec60f097596173ef6a03accd4e3d25da9ed51bcafedf546c45"
+    },
+    {
+      "path": "packages/interfaces/src/skill/config.ts",
+      "sha256": "450bd6da8da2f0215daf9ce477f989f479d02c79b16e648cf3cea0c4f6d20103",
+      "compiledPath": "packages/interfaces/lib/skill/config.js",
+      "compiledSha256": "16b3d5886ff05c7b3966d9ddf329c802b58c666c9f25be39ed0487ab3a4efa33"
+    },
+    {
+      "path": "packages/interfaces/src/history/skilllaunch/query.ts",
+      "sha256": "f3eb79b6f5cadee13eb30ef5c8716da1852bcbd90b5aa06600ef17dd12726774",
+      "compiledPath": "packages/interfaces/lib/history/skilllaunch/query.js",
+      "compiledSha256": "8d7cb53468ba2b6412e0bacb58d08a60c3600ebccb102f26b5d71b0daaeb3901"
+    },
+    {
+      "path": "packages/utils/src/service/BaseService.ts",
+      "sha256": "642572cf3f806303240c74e89eaada5aa447da39e75cd2ca8bdb54d8dc4297f6",
+      "compiledPath": "packages/utils/lib/service/BaseService.js",
+      "compiledSha256": "2f2f37a21cda673e1fe45c64eb0d19cfdb1d72f91837da73dddaff2411fa6427"
+    },
+    {
+      "path": "packages/utils/src/service/handlers/BaseHttpHandler.ts",
+      "sha256": "d675e8e1756b1c5212c2b8db6d4efa9c4caa748cd2dd1f60893fd69ae449f385",
+      "compiledPath": "packages/utils/lib/service/handlers/BaseHttpHandler.js",
+      "compiledSha256": "c207e4ef1f8c58f74f604c91379d20182411dde65e9ea43a6198bb845107c250"
+    },
+    {
+      "path": "packages/utils-common/src/Object.ts",
+      "sha256": "347f25c2817bc66972a20c175d0e380d874a62803a9f61dd61a98e56ec1c7857",
+      "installedSource": "node_modules/@jibo/utils-common/src/Object.ts",
+      "installedSha256": "347f25c2817bc66972a20c175d0e380d874a62803a9f61dd61a98e56ec1c7857",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/utils-common/src/FileUtils.ts",
+      "sha256": "572c1b0bb34ea5a214d4d425e86204d2ace945023c612afc8d7508dc362a351d",
+      "installedSource": "node_modules/@jibo/utils-common/src/FileUtils.ts",
+      "installedSha256": "572c1b0bb34ea5a214d4d425e86204d2ace945023c612afc8d7508dc362a351d",
+      "matchesGit": true
+    }
+  ],
+  "resources": [
+    {
+      "path": "packages/hub/resources/skills/skills-local.json",
+      "sha256": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629"
+    },
+    {
+      "path": "packages/hub/external-skills/answer_manifest.json",
+      "sha256": "39d392236cdc9dbd48a2aeaaefb1ef1a03a17fffd9921c1321d93205cf549573"
+    },
+    {
+      "path": "packages/hub/external-skills/news_manifest.json",
+      "sha256": "e24cca2b6cca2d72f9615449183b5825dbc76cc89c376f35edbaa0ea8afddde9"
+    },
+    {
+      "path": "packages/hub/pegasus-skills/report_skill_manifest.json",
+      "sha256": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc"
+    },
+    {
+      "path": "packages/hub/pegasus-skills/chitchat_skill_manifest.json",
+      "sha256": "29022d7336281f76e63a894a2cf6c34c800f667ffa10c9e90622b68b4059c45b"
+    },
+    {
+      "path": "packages/hub/be-skills/circuit_saver_manifest.json",
+      "sha256": "72e8da260622d8a8c361a13b8aab134d000a2b2418d7ea6148973a9448b6afa2"
+    },
+    {
+      "path": "packages/hub/be-skills/clock_manifest.json",
+      "sha256": "f8a4d18a2ddf2329d8024f44382a983c915a4d2d225ab7ff165878b264728021"
+    },
+    {
+      "path": "packages/hub/be-skills/create_manifest.json",
+      "sha256": "b08d9effc78db7449fac1b5b3b8e599cde9f6cd06d3e0f44b86d1c1247dd5435"
+    },
+    {
+      "path": "packages/hub/be-skills/exercise_manifest.json",
+      "sha256": "aa03b2d4bddd679ba7bf9d0a84aff300d15fa77329c0d2e6054b168cca34da26"
+    },
+    {
+      "path": "packages/hub/be-skills/friendly_tips_manifest.json",
+      "sha256": "5ff4055989b27956d9eb9654033628e5614706b1caa7bb2309403a0c19aed811"
+    },
+    {
+      "path": "packages/hub/be-skills/gallery_manifest.json",
+      "sha256": "9a4e194a2183254925feb8b8caaf32289ed456d95ab11f7c3336357625aae55c"
+    },
+    {
+      "path": "packages/hub/be-skills/greetings_manifest.json",
+      "sha256": "5b9171e4ee39f77cffc710e0ca9c4be498f1e9b7e053036ce4c6fff6684148a4"
+    },
+    {
+      "path": "packages/hub/be-skills/hue_control_manifest.json",
+      "sha256": "28609afa955ebd139ac9fb283accc05e33aa724a1c8e9e8f2d41a3904e231e36"
+    },
+    {
+      "path": "packages/hub/be-skills/ifttt_manifest.json",
+      "sha256": "63530dc7a4e767f35a3da381fbb6692dcde1ba49bfe0431b6709aed6d90520b6"
+    },
+    {
+      "path": "packages/hub/be-skills/introductions_manifest.json",
+      "sha256": "8568156a41842f87b1a11e0bc29902a1413aa0c4eb90a3ffcf5d237324f964f6"
+    },
+    {
+      "path": "packages/hub/be-skills/main_menu_manifest.json",
+      "sha256": "8170b27a26fb54139f3d8d393e248749d010d0b086ba7da8e6a12b1a39c3e9ba"
+    },
+    {
+      "path": "packages/hub/be-skills/radio_manifest.json",
+      "sha256": "4a981e5454b4e245e7fae551682b75651c3baf2683938f02a2bb35dfef0e1c44"
+    },
+    {
+      "path": "packages/hub/be-skills/settings_manifest.json",
+      "sha256": "ab81907610a26d12a547611058e62bb975928ea48b4afd0e52b5acf770856f1a"
+    },
+    {
+      "path": "packages/hub/be-skills/surprises_ota_manifest.json",
+      "sha256": "eec4fa890ebe6c864f35ef235c64176f35519e361d46372abbf8320352d7fc65"
+    },
+    {
+      "path": "packages/hub/be-skills/tutorial_manifest.json",
+      "sha256": "67d5c5767605a0eb6603b3cf85377a6819226a20e755b504a0610f9f7ae9a5b2"
+    },
+    {
+      "path": "packages/hub/be-skills/who_am_i_manifest.json",
+      "sha256": "0707eb8b193d5a84a91638361b39c1e9512cb1804fca050292ee725782c8fbdf"
+    },
+    {
+      "path": "packages/hub/be-skills/word_of_the_day_manifest.json",
+      "sha256": "d76d20aec716dca85847545fffe563e1ff393d158ed2c6d1fd6a0d102db24bdc"
+    }
+  ],
+  "nativeRuntime": {
+    "version": "1.7.3",
+    "abi": "node-v57-linux-x64-glibc",
+    "sourceUrl": "https://storage.googleapis.com/grpc-precompiled-binaries/node/grpc/v1.7.3/node-v57-linux-x64-glibc.tar.gz",
+    "archiveSha256": "3b51c660a7fb220be2ea20972f753ba15448a3956806780cac0ac81d5254edd9",
+    "binaryPath": "node_modules/grpc/src/node/extension_binary/node-v57-linux-x64-glibc/grpc_node.node",
+    "binarySha256": "4dcc11e12a4cac262097b87663a339f1d14140cd1efde4e0126f9f44b49d1348",
+    "bytes": 6639021,
+    "provenance": "Version and download URL match pinned grpc package.json binary metadata; publisher artifact digest observed on download, no separately signed digest."
+  },
+  "runtimeFiles": [
+    {
+      "path": "node_modules/grpc/src/node/extension_binary/node-v57-linux-x64-glibc/grpc_node.node",
+      "sha256": "4dcc11e12a4cac262097b87663a339f1d14140cd1efde4e0126f9f44b49d1348"
+    },
+    {
+      "path": "node_modules/grpc/package.json",
+      "sha256": "244ce4d00ffcaf10f507ff97b803eb4d5da57b99ac34cdea9063f6a61a2290f7",
+      "version": "1.7.3"
+    },
+    {
+      "path": "node_modules/express/package.json",
+      "sha256": "0dd3cb03e42c69854997f83247e5eb73eef304c13d84b1e26fa043197c9da799",
+      "version": "4.16.2"
+    },
+    {
+      "path": "node_modules/body-parser/package.json",
+      "sha256": "1fec91227385bd1330d6507c5805bf7926c6799a84be6de363b4ea606ce2e755",
+      "version": "1.18.2"
+    },
+    {
+      "path": "node_modules/@jibo/utils-common/package.json",
+      "sha256": "50a8dc29e2fb525dbfc3c53b52b466ea1d9a5fc81d74095ed24dbe8fa1e66004",
+      "version": "1.0.5"
+    }
+  ]
+}

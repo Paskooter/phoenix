@@ -1,0 +1,11 @@
+{
+  "format": "TAP test results and failure diagnostics only; unrelated application logs omitted",
+  "privateRawLogSha256": {
+    "full-unit-candidate.log": "8fe66b86c5b9d61fd817fe5b9d40d5b19679d2d08913f8623b8d64f94644b162",
+    "full-unit-fixed.log": "8303534fc2e7f9e636f0ce19eb7bcbc346d9b6869a0eef08459ed1ef62ff353e",
+    "main-unit.log": "3aeed19ed1b273c18fb8578798f6f388177d0c7e6d5f37b6411fe7f566e18939",
+    "listen-fixture-fixed.log": "add2493e4da0ce604b0b146e6bf7774a25c64a6d8847d18c70cd06d63857d980",
+    "registry-unit-fixed.log": "5081d96998aae64bf467dce48cfac6449ff6bc09f84769b8ea48e8dccabb6cc1",
+    "registry-provenance-test.log": "055b1a2830b9763508e4b2bd3d2eb59d0c8d695e43e7337f7e58fe9f7e4a0053"
+  }
+}

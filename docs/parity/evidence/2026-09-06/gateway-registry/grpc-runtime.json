@@ -1,0 +1,10 @@
+{
+  "version": "1.7.3",
+  "abi": "node-v57-linux-x64-glibc",
+  "sourceUrl": "https://storage.googleapis.com/grpc-precompiled-binaries/node/grpc/v1.7.3/node-v57-linux-x64-glibc.tar.gz",
+  "archiveSha256": "3b51c660a7fb220be2ea20972f753ba15448a3956806780cac0ac81d5254edd9",
+  "binaryPath": "node_modules/grpc/src/node/extension_binary/node-v57-linux-x64-glibc/grpc_node.node",
+  "binarySha256": "4dcc11e12a4cac262097b87663a339f1d14140cd1efde4e0126f9f44b49d1348",
+  "bytes": 6639021,
+  "provenance": "Version and download URL match pinned grpc package.json binary metadata; publisher artifact digest observed on download, no separately signed digest."
+}

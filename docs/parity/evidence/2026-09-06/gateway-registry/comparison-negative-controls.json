@@ -1,0 +1,99 @@
+{
+  "originalSha256": "e36cfe66cf5a5209d69b268444eb017f8d7a657f86ee9331d6cf6bc47b2b591b",
+  "candidateSha256": "ea7f783e7d8891b5c00f41d53804bdf84425f59143304d2174251c832a2d74cc",
+  "comparatorSha256": "9813f75a1f3099c98b9a7f8f067b7533b0c47436f2a3b7eda437e53b4bb12498",
+  "baselineMatches": 161,
+  "total": 11,
+  "rejected": 11,
+  "controls": [
+    {
+      "id": "missing-metadata",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "registries/url-\"http://skill/\""
+      ]
+    },
+    {
+      "id": "changed-url",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "registries/url-\"http://skill/\""
+      ]
+    },
+    {
+      "id": "missing-validation-row",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "validations/row-ids",
+        "validations/undefined-config"
+      ]
+    },
+    {
+      "id": "duplicate-validation-row",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "validations/row-ids",
+        "validations/undefined-config"
+      ]
+    },
+    {
+      "id": "reordered-validation-rows",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "validations/row-ids"
+      ]
+    },
+    {
+      "id": "mutable-registry",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "registries/url-\"http://skill/\""
+      ]
+    },
+    {
+      "id": "body-key-order",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "http/GET /skills/robot"
+      ]
+    },
+    {
+      "id": "missing-content-type",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "http/GET /skills/robot"
+      ]
+    },
+    {
+      "id": "wrong-content-length",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "http/GET /skills/robot"
+      ]
+    },
+    {
+      "id": "added-keep-alive",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [
+        "http/GET /skills/robot"
+      ]
+    },
+    {
+      "id": "invalid-error-etag",
+      "rejected": true,
+      "exitCode": 1,
+      "differenceIds": [],
+      "validationError": "ETag does not cover error body"
+    }
+  ]
+}

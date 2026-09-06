@@ -1,0 +1,152 @@
+{
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "result": "accepted-bounded-registry-configuration-and-deployment-slice",
+  "task": "C-03",
+  "taskStatus": "open",
+  "baseRevision": "c28f9e57882cff86c79d6fea6b09118edec0ee7b",
+  "candidateRevisions": [
+    "02a6560ece15cf3a7f6c3faed8809b81239941e5",
+    "97d7547b081daf9ea83950d29aedf917014cdb9f",
+    "b7c1245b4ad43039151d29d7339ab3edf2b3c84c"
+  ],
+  "integratedCodeRevision": "a18c4eb29c7f1a9e768dff714b57548952ab47a4",
+  "finding": "Complete source manifests, URL composition, validation and manager ordering now replace silent skipping/inference/fallback. Original robot-specific skill list routes expose full metadata. Explicit Phoenix deployment profiles preserve service routing, and per-skill hosts select their actual skill at /v1/main.",
+  "source": {
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "runtime": "v8.9.4",
+    "compiler": "TypeScript 2.5.3",
+    "method": "Original source modules emitted independently as CommonJS and executed with real HubService/BaseService/HTTP middleware; not the historical Gulp release build",
+    "proof": "source-proof.json",
+    "freshGitByteVerification": "source-verification.json",
+    "sourceFiles": 25,
+    "registryResources": 22,
+    "nodeImage": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "nativeAddonProvenance": "grpc-runtime.json",
+    "limit": "Contract source, emitted modules, resources, addon and selected dependency metadata are hashed. This proof does not independently authenticate every transitive dependency body or reproduce the historical release bundle."
+  },
+  "differential": {
+    "artifact": "comparison-main.json",
+    "checks": 161,
+    "matches": 161,
+    "differences": 0,
+    "groups": {
+      "managerValidation": 102,
+      "registries": 28,
+      "environment": 7,
+      "originalRegistry": 1,
+      "realHttp": 19,
+      "orderedInventories": 4
+    },
+    "scope": "Complete registry/manager results, freeze and errors; real TCP status, raw response body text and headers for original robot-specific skill lists",
+    "normalization": [
+      "Temporary registry fixture path only",
+      "HTTP Date only",
+      "ERROR UUID and timestamp only; error ETag must first match its complete raw body"
+    ],
+    "originalCapture": "packages/gateway/test/fixtures/registry-original.json.gz",
+    "captureProvenance": "packages/gateway/test/fixtures/registry-original.provenance.json",
+    "candidateCapture": "candidate-main.json.gz",
+    "candidateRawSha256": "2e48933faee6c7ea7fd1df2674cd13d5686c989e61fd0c172b0747fe9ba7e387"
+  },
+  "negativeControls": {
+    "comparison": {
+      "artifact": "comparison-negative-controls.json",
+      "rejected": 11,
+      "total": 11,
+      "scope": "Metadata/URL/freeze changes, missing/duplicate/reordered rows, raw JSON key order, content-type/content-length/keep-alive and error ETag"
+    },
+    "originalPin": {
+      "artifact": "pin-negative-controls.json",
+      "rejected": 5,
+      "total": 5,
+      "scope": "Incorrect source revision, source bytes, compiled bytes, registry resource and native runtime checksum. No original file modified and no successful capture emitted."
+    }
+  },
+  "checks": {
+    "integratedMainUnit": {
+      "passed": 420,
+      "failed": 0,
+      "artifact": "main-unit.log",
+      "revision": "a18c4eb29c7f1a9e768dff714b57548952ab47a4"
+    },
+    "fixtureProvenanceFollowup": {
+      "passed": 3,
+      "failed": 0,
+      "artifact": "registry-provenance-test.log",
+      "scope": "Fresh run after rebinding the fixture to the frozen original capture and adding provenance checksum assertions"
+    },
+    "isolatedCandidateUnit": {
+      "passed": 417,
+      "failed": 0,
+      "artifact": "full-unit-fixed.log",
+      "revision": "97d7547b081daf9ea83950d29aedf917014cdb9f"
+    },
+    "composeConfig": {
+      "command": "docker compose config --quiet",
+      "exitCode": 0
+    },
+    "nativeLauncherSyntax": {
+      "command": "bash -n scripts/run-compose-stack.sh",
+      "exitCode": 0
+    },
+    "deploymentDispatch": "Real HTTP tests in packages/skills/test/start.test.js exercise known answer/report/chitchat responses, combined-host routing and unknown selection failure. Included in the integrated unit run; live compose ports were not started."
+  },
+  "failedHistory": [
+    {
+      "state": "incomplete-original",
+      "attempts": 2,
+      "reason": "Original gRPC 1.7.3 ABI-57 addon missing. First run exited zero without a result; a completion guard now prevents incomplete success. Neither counted."
+    },
+    {
+      "state": "failed-original-observation",
+      "reason": "Third run exceeded the old 5-second HTTP observation deadline during heavy disk I/O; subsequent probe timeout is 30 seconds. This is not a service-latency acceptance."
+    },
+    {
+      "state": "completed-mismatch",
+      "artifact": "comparison-before-null-manifest-fix.json",
+      "checks": 153,
+      "matches": 152,
+      "reason": "Null-manifest property assignment TypeError used modern Node wording. General wrapper error translation corrected it; later environment cases expanded scope to 161 checks."
+    },
+    {
+      "state": "failed-candidate-unit",
+      "artifact": "full-unit-candidate.log",
+      "passed": 417,
+      "failed": 1,
+      "reason": "Restoring recordLaunchHistory=true exposed a listen test that used an unrelated existing History port and hung. Root terminated only its own test child. The fixture now hosts and closes a real isolated History service; a fresh whole run passed."
+    }
+  ],
+  "strictProductionSmoke": {
+    "state": "completed-mismatch",
+    "cases": 43,
+    "differences": 659,
+    "invariants": 0,
+    "coverageGaps": 1,
+    "captureFailures": 0,
+    "artifacts": [
+      "smoke-run.json",
+      "smoke-comparison.json",
+      "smoke-phoenix-source.json",
+      "smoke-regression-review.json"
+    ],
+    "candidateRevision": "02a6560ece15cf3a7f6c3faed8809b81239941e5",
+    "baseline": "docs/parity/evidence/2026-09-06/nlu-optional-atoms/smoke-comparison.json",
+    "regressionReview": "No added/removed difference paths. Two values within the existing boundary:loop-full-name failure changed from answer-skill to original registry answer, including its coverage-gap identity. Counts are unchanged, not byte-identical results. The deployment follow-up changes explicit profiles, leaving this no-override smoke path unchanged."
+  },
+  "remaining": [
+    "Report NET_lasso/prefsFromConfig and other required variables, precedence and CLI behavior remain open.",
+    "Restored answer/news registrations do not prove their implementation or availability.",
+    "Settings consumers, speech-history recording and complete proactive filtering remain separate open work.",
+    "No robot deployment or physical wake/ring/animation acceptance is credited by this review.",
+    "Full C-03 and the product-wide parity goal remain open; checklist completion stays 7/79."
+  ],
+  "commands": {
+    "original": "docker run --rm --pull=never --network=none -v <phoenix>:/work:ro -v <output>:/out <node8-image> node /work/scripts/parity-reference/gateway-registry-original.cjs /work/.parity/reference/5c0a7390539663ba749d360de348a428c088505c /out/source-proof.json /out/original.json",
+    "candidate": "node scripts/parity-reference/gateway-registry-candidate.mjs .parity/reference/5c0a7390539663ba749d360de348a428c088505c <output>/candidate.json",
+    "compare": "node scripts/parity-reference/gateway-registry-compare.mjs <output>/original.json <output>/candidate.json <output>/comparison.json",
+    "negative": "node scripts/parity-reference/gateway-registry-negative-controls.mjs <output>/original.json <output>/candidate.json <fresh-output-dir>",
+    "pins": "Node 8: node scripts/parity-reference/gateway-registry-pin-controls.cjs <prepared-original> <source-proof.json> <fresh-output-dir>",
+    "unit": "npm run test:unit"
+  }
+}

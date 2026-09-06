@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 import run from '../../../scripts/parity-reference/gateway-registry-probe.cjs';
 import { normalizeHttp } from '../../../scripts/parity-reference/gateway-registry-normalize.mjs';
 import { loadRegistry } from '../src/registry.js';
@@ -13,7 +14,16 @@ import { SkillConfigManager } from '../src/skillClient.js';
 import { createGateway } from '../src/index.js';
 
 test('registry, config and real HTTP boundary match pinned original Node 8 execution', async () => {
-  const expected = JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/registry-original.json.gz', import.meta.url))));
+  const provenance = JSON.parse(readFileSync(new URL('./fixtures/registry-original.provenance.json', import.meta.url)));
+  const compressed = readFileSync(new URL('./fixtures/registry-original.json.gz', import.meta.url));
+  const originalBytes = gunzipSync(compressed);
+  const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+  assert.equal(sha(compressed), provenance.compressedSha256, 'original fixture archive');
+  assert.equal(sha(originalBytes), provenance.captureSha256, 'complete original capture');
+  assert.equal(sha(readFileSync(new URL(`../../../${provenance.sourceProof}`, import.meta.url))), provenance.sourceProofSha256, 'original source proof');
+  assert.equal(provenance.sourceRevision, '5c0a7390539663ba749d360de348a428c088505c');
+  const expected = JSON.parse(originalBytes);
+  assert.equal(expected.runtime, provenance.sourceRuntime);
   const actual = await run({
     name: 'unit-test',
     manager: configs => new SkillConfigManager(configs),

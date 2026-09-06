@@ -1,0 +1,44 @@
+{
+  "runtime": "v8.9.4",
+  "proofSha256": "698aaff61f235b039f7fcf5752fc1440ae6ca94ca6000a21338d81922d491b78",
+  "runnerSha256": "4a2bba51f14233e95e4abf28fe0f3f23dd209e96766c4aa3edac9453486891d9",
+  "total": 5,
+  "rejected": 5,
+  "controls": [
+    {
+      "id": "source-revision",
+      "rejected": true,
+      "exitCode": 1,
+      "expectedError": "Wrong source pin",
+      "emittedCapture": false
+    },
+    {
+      "id": "source-bytes",
+      "rejected": true,
+      "exitCode": 1,
+      "expectedError": "Source changed:",
+      "emittedCapture": false
+    },
+    {
+      "id": "compiled-bytes",
+      "rejected": true,
+      "exitCode": 1,
+      "expectedError": "Compiled source changed:",
+      "emittedCapture": false
+    },
+    {
+      "id": "registry-resource",
+      "rejected": true,
+      "exitCode": 1,
+      "expectedError": "Resource/runtime mismatch:",
+      "emittedCapture": false
+    },
+    {
+      "id": "native-runtime",
+      "rejected": true,
+      "exitCode": 1,
+      "expectedError": "Resource/runtime mismatch:",
+      "emittedCapture": false
+    }
+  ]
+}

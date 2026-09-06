@@ -254,7 +254,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-Unreadable manifests are silently skipped, metadata/basePath are dropped, and report-skill requires NET_data where Pegasus uses NET_lasso.
+Root accepted the registry/configuration slice: complete manifests and source URL composition, validation/startup failure, original skill-list routes, source defaults and explicit deployment profiles. The integrated comparison matches 161/161 checks and 420 unit tests pass. Report NET_lasso/prefsFromConfig, other required variables and CLI behavior remain open.
 
 Done when:
 
@@ -267,6 +267,14 @@ Source: [Original Pegasus packages/hub/src/config](https://pvindex.org/gitea/jib
 Phoenix: [packages/gateway/src/config.js](../../packages/gateway/src/config.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js); [packages/common/src/env.js](../../packages/common/src/env.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max / audio_encoding_repair.
+
+Candidate scope: Bounded source registry, gateway config and robot-specific HTTP skill lists, plus explicit per-skill deployment dispatch. Source/resources independently byte-checked, 161 differential checks match, 16 negative controls reject altered input, 420 integrated unit tests pass. Full C-03 remains open.
+
+Candidate report: [docs/parity/candidates/C-03-registry.md](../../docs/parity/candidates/C-03-registry.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/gateway-registry/review.json](../../docs/parity/evidence/2026-09-06/gateway-registry/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-01 — Restore the robot-specific skill-list endpoints
 
@@ -889,7 +897,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-Settings are primarily report-specific; the original API supports skill lists, data/view retrieval, updates and deletion. Original Pegasus sends Settings_20160801.GetSettings, with a string skill selector in report and an array in hub.
+A Settings controller/provider candidate and Account peer prerequisites are awaiting root integration review. Agent reports 51/51 controller/server comparisons and 22/22 Account peer HTTP cases; their controlled provider seams do not establish the complete production graph, persistence or real-client behavior. Main still has the earlier report-oriented Settings path.
 
 Done when:
 
@@ -902,6 +910,14 @@ Source: [jiborobot/srv-jibo-server-client/apis/settings-2017-12-19.normal.json](
 Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js); [packages/account/src/settingsData.js](../../packages/account/src/settingsData.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair and capture_writer_repair.
+
+Candidate scope: Settings route/controller/provider traversal and default HTTP peer clients (8a310f5), with Account membership/populated-loop prerequisite candidate eb69373. Root must review raw framing, configured real peer graph and full integrated tests before any bounded acceptance.
+
+Candidate report: [docs/parity/candidates/A-06-settings-followup.md](../../docs/parity/candidates/A-06-settings-followup.md).
+
+Lead verification: pending. This candidate does not certify task parity.
 
 ## 3. Verify complete skill output and interactions
 
@@ -1296,7 +1312,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-02.
 
-A Phoenix portal/account model exists, but the robot AWS face mainly handles OOBE; 26 Account and two admin operations cannot be credited from portal tests.
+Account lifecycle candidate d69f586 is withheld after independent review found internal credential/target dispatch differences and 65/98 event contract differences (14 acceptance differences). The earlier 14-case normalized comparison does not establish raw HTTP or SNS/startup parity. Luna Max is repairing those source mechanisms; all full operation/lifecycle criteria remain open.
 
 Done when:
 
@@ -1309,6 +1325,14 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 Phoenix: [packages/account/src](../../packages/account/src); [packages/account/portal](../../packages/account/portal).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **changes_requested**; Luna Max / capture_writer_repair.
+
+Candidate scope: Repair original internal credentials/target parsing, event validation and raw HTTP framing. Preserve public SigV4 as an explicit deployment adapter. Full Account lifecycle and SNS/bootstrap remain unverified.
+
+Candidate report: [docs/parity/candidates/A-03-review-20260906.md](../../docs/parity/candidates/A-03-review-20260906.md).
+
+Lead verification: pending. This candidate does not certify task parity.
 
 ### A-04 — Complete Loop operations and membership lifecycle
 

@@ -1,0 +1,16 @@
+{
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "v8.9.4",
+  "sourceProof": "docs/parity/evidence/2026-09-06/gateway-registry/source-proof.json",
+  "sourceProofSha256": "698aaff61f235b039f7fcf5752fc1440ae6ca94ca6000a21338d81922d491b78",
+  "captureMethod": "Actual original HubService/manager/config modules on pinned Node 8; source and compiled hashes asserted before execution",
+  "captureSha256": "e36cfe66cf5a5209d69b268444eb017f8d7a657f86ee9331d6cf6bc47b2b591b",
+  "compressedSha256": "21c8f705ddde2a10d81326d3ad53efa793d5fb0232b6a647043da58fdc42b117",
+  "capturingCodeRevision": "02a6560ece15cf3a7f6c3faed8809b81239941e5",
+  "probeFiles": {
+    "scripts/parity-reference/gateway-registry-original.cjs": "4a2bba51f14233e95e4abf28fe0f3f23dd209e96766c4aa3edac9453486891d9",
+    "scripts/parity-reference/gateway-registry-probe.cjs": "38d5d5a03687307686f6440ccae8adc5f48bf18f585c868a21f5463c48eda7d6",
+    "scripts/parity-reference/gateway-registry-cases.cjs": "7c7d8160f066b67ec6a3c982da8bad9054559826ed402107cda48573cb87124a"
+  },
+  "review": "docs/parity/evidence/2026-09-06/gateway-registry/review.json"
+}

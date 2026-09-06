@@ -463,13 +463,29 @@
         "packages/skills/src/report/lassoClient.js",
         "packages/common/src/env.js"
       ],
-      "finding": "Unreadable manifests are silently skipped, metadata/basePath are dropped, and report-skill requires NET_data where Pegasus uses NET_lasso.",
+      "finding": "Root accepted the registry/configuration slice: complete manifests and source URL composition, validation/startup failure, original skill-list routes, source defaults and explicit deployment profiles. The integrated comparison matches 161/161 checks and 420 unit tests pass. Report NET_lasso/prefsFromConfig, other required variables and CLI behavior remain open.",
       "acceptance": [
         "Load unmodified reference registries including settings metadata, paths, versions and URL composition; reject invalid configurations as the reference does.",
         "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.",
         "Document optional alias behavior and prove an individual Phoenix service works under the reference environment."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Codex root with Luna Max / audio_encoding_repair",
+        "scope": "Bounded source registry, gateway config and robot-specific HTTP skill lists, plus explicit per-skill deployment dispatch. Source/resources independently byte-checked, 161 differential checks match, 16 negative controls reject altered input, 420 integrated unit tests pass. Full C-03 remains open.",
+        "baseRevision": "c28f9e57882cff86c79d6fea6b09118edec0ee7b",
+        "candidateRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c",
+        "artifact": "docs/parity/candidates/C-03-registry.md",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/gateway-registry/review.json"
+      },
+      "nextImplementation": {
+        "state": "working",
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Original report-skill NET_lasso, prefsFromConfig, required variables/defaults/precedence and actual local peer HTTP exchange; isolated candidate, root acceptance pending.",
+        "baseRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c"
+      }
     },
     {
       "id": "H-01",
@@ -1136,10 +1152,10 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max / http_contract_repair",
-        "worktree": ".parity/worktrees/nlu-path-score",
-        "baseRevision": "66e2abc331dc0707abbce0a9714674c3c3bf8a08",
-        "scope": "Native scoring candidate ef42422 fixes 169 prior mismatches but introduces 15 previously passing tie-family differences and omits four non-200 HTTP cases from its direct replay. The follow-up must include the complete 20,528-request HTTP domain and resolve new differences; root has not accepted it.",
-        "candidateRevision": "ef4242236eb601af992068e0c5ac7c85ad625fc8"
+        "worktree": ".parity/worktrees/nlu-fst-regression",
+        "baseRevision": "9528f1a49ed487161af2f09cb54a26e860865cf7",
+        "candidateRevision": "9528f1a49ed487161af2f09cb54a26e860865cf7",
+        "scope": "Agent reports 20,486/20,528 full HTTP status/data matches using an explicit compiled-FST profile, including all four non-200 controls. Compared with main: 282 fixed, 29 newly differing, 13 remaining. Root has not accepted it; follow-up targets the 29 regressions. Native compiler/factory generation remains open."
       }
     },
     {
@@ -2164,13 +2180,23 @@
         "packages/account/src",
         "packages/account/portal"
       ],
-      "finding": "A Phoenix portal/account model exists, but the robot AWS face mainly handles OOBE; 26 Account and two admin operations cannot be credited from portal tests.",
+      "finding": "Account lifecycle candidate d69f586 is withheld after independent review found internal credential/target dispatch differences and 65/98 event contract differences (14 acceptance differences). The earlier 14-case normalized comparison does not establish raw HTTP or SNS/startup parity. Luna Max is repairing those source mechanisms; all full operation/lifecycle criteria remain open.",
       "acceptance": [
         "Implement/verify every Account and AccountAdmin operation from the inventory, including signup/authentication, profile, credentials, deactivation and recovery flows.",
         "Match original validation, roles, errors, ownership, durable state and downstream effects using SDK fixtures.",
         "Verify the Phoenix portal against the completed backend and preserve existing paired robots during migration."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "changes_requested",
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Repair original internal credentials/target parsing, event validation and raw HTTP framing. Preserve public SigV4 as an explicit deployment adapter. Full Account lifecycle and SNS/bootstrap remain unverified.",
+        "candidateRevision": "d69f586623783a0352da2366a85f504afde779b3",
+        "worktree": ".parity/worktrees/a03-repair",
+        "artifact": "docs/parity/candidates/A-03-review-20260906.md",
+        "reviewedBy": "Codex root",
+        "reviewFinding": "Independent source review identified boundary and validation blockers; see report. No integration accepted."
+      }
     },
     {
       "id": "A-04",
@@ -2252,13 +2278,22 @@
         "packages/account/src/settingsFace.js",
         "packages/account/src/settingsData.js"
       ],
-      "finding": "Settings are primarily report-specific; the original API supports skill lists, data/view retrieval, updates and deletion. Original Pegasus sends Settings_20160801.GetSettings, with a string skill selector in report and an array in hub.",
+      "finding": "A Settings controller/provider candidate and Account peer prerequisites are awaiting root integration review. Agent reports 51/51 controller/server comparisons and 22/22 Account peer HTTP cases; their controlled provider seams do not establish the complete production graph, persistence or real-client behavior. Main still has the earlier report-oriented Settings path.",
       "acceptance": [
         "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
         "Cover non-report skills and malformed/unknown settings using controller-derived fixtures."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / audio_encoding_repair and capture_writer_repair",
+        "scope": "Settings route/controller/provider traversal and default HTTP peer clients (8a310f5), with Account membership/populated-loop prerequisite candidate eb69373. Root must review raw framing, configured real peer graph and full integrated tests before any bounded acceptance.",
+        "candidateRevision": "8a310f563c05146d7a93b5e24cdf4b47ad4a7fd2",
+        "prerequisiteRevision": "eb693730f51515646fbad16794854bc08c7bf26f",
+        "worktree": ".parity/worktrees/a06-settings-followup",
+        "artifact": "docs/parity/candidates/A-06-settings-followup.md"
+      }
     },
     {
       "id": "A-07",
