@@ -302,6 +302,67 @@ test('network Lasso keeps one request deadline across redirect hops', async () =
   }
 });
 
+test('network Lasso preserves source post-timeout redirect requests', async () => {
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    const listener = `${req.socket.localAddress}:${req.socket.localPort}`;
+    const request = {
+      method: req.method,
+      url: req.url,
+      host: req.headers.host,
+      listener,
+      hostMatchesListener: req.headers.host === listener,
+    };
+    requests.push(request);
+    req.resume();
+    req.once('end', () => {
+      const index = requests.length;
+      if (index === 1) {
+        res.writeHead(307, { location: '/v1/credential?hop=2', connection: 'close' });
+        res.end();
+        return;
+      }
+      if (index === 2) {
+        setTimeout(() => {
+          if (res.destroyed) return;
+          res.writeHead(307, { location: '/v1/credential?hop=3', connection: 'close' });
+          res.end();
+        }, 100);
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'application/json', connection: 'close' });
+      res.end(JSON.stringify({ credentialExists: true }));
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    await withProcessEnv('ETCO_server_http_timeout', '25', async () => {
+      const lasso = providers(`127.0.0.1:${server.address().port}`);
+      await assert.rejects(
+        () => lasso.getCredential(context, {
+          skillId: 'skill-post-timeout-redirect',
+          serviceName: 'google',
+          serviceAccountName: 'calendar',
+          scopes: ['read'],
+        }),
+        (error) => error.message === 'Failed to get google calendar credentials',
+      );
+      // The source's redirected child request is not owned by the original
+      // timer. Keep the peer open long enough to observe its next hop.
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    assert.deepEqual(requests.map(({ method, url }) => ({ method, url })), [
+      { method: 'GET', url: '/v1/credential?accountId=account-1&skillId=skill-post-timeout-redirect&serviceName=google&serviceAccountName=calendar&scopes%5B0%5D=read' },
+      { method: 'GET', url: '/v1/credential?hop=2' },
+      { method: 'GET', url: '/v1/credential?hop=3' },
+    ]);
+    assert.equal(requests.length, 3);
+    assert.ok(requests.every((request) => request.hostMatchesListener));
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('network Lasso snapshots transaction headers across redirects', async () => {
   const requests = [];
   const server = http.createServer((req, res) => {

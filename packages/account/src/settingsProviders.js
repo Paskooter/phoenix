@@ -177,7 +177,12 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
     const timeout = () => {
       const error = new Error('Client request timeout');
       finish(error);
-      for (const activeRequest of requestState.activeRequests) activeRequest.destroy(error);
+      // Wreck's timeout belongs to the original request object. Redirect
+      // requests are created without that timeout and continue to run after
+      // the public promise has rejected; their later responses can therefore
+      // produce observable follow-up requests. Aborting every active request
+      // here suppresses that source-visible post-settlement sequence.
+      if (request && !request.destroyed) request.destroy(error);
     };
     let request;
     try {
