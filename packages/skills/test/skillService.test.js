@@ -139,6 +139,31 @@ function request(port, mode) {
   });
 }
 
+test('skillRoute preserves the decorated request identity and its fields', async () => {
+  const req = {
+    headers: { 'x-jibo-transid': 'trace-fixture', authorization: 'caller-secret' },
+    body: REQUEST,
+    method: 'POST',
+    url: '/v1/main?source=fixture',
+    socket: {},
+  };
+  const log = { error() {} };
+  const response = await skillRoute('fixture-skill', async (body, context) => {
+    assert.strictEqual(context.req, req);
+    assert.strictEqual(context.req.body, body);
+    assert.strictEqual(context.req.log, log);
+    assert.equal(context.req.method, 'POST');
+    assert.equal(context.req.url, '/v1/main?source=fixture');
+    assert.deepEqual(context.req.jibo.toHeader(), {
+      'x-jibo-transid': 'trace-fixture',
+      'x-jibo-robotid': 'unknown',
+      'x-jibo-logging-config': '{}',
+    });
+    return { verified: true };
+  })({ body: REQUEST, trace: {}, log, req });
+  assert.equal(response.verified, true, 'request assertions must not become a swallowed skill error');
+});
+
 test('skillRoute measures awaited handler time and overwrites handler timings', async () => {
   const result = await invoke(async () => {
     await new Promise((resolve) => setTimeout(resolve, 8));

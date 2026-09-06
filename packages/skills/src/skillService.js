@@ -13,7 +13,7 @@ import { newMsgId, now, SkillResponseType } from '@phoenix/contracts';
 // `req.jibo = new JiboHeaders(req.headers)`. Keep the same three trace headers
 // and defaults at the skills boundary without copying authentication or other
 // caller headers into downstream provider requests.
-export function sourceJiboHeaders(headers = {}) {
+export function sourceJiboHeaders(headers) {
   const values = {
     transID: headers['x-jibo-transid'] || 'unknown',
     robotID: headers['x-jibo-robotid'] || 'unknown',
@@ -41,10 +41,16 @@ export function skillRoute(skillId, handler) {
     // assigning `timings` fails.
     const startTime = Date.now();
     try {
+      // BaseService decorates the original HTTP request before BaseSkill and
+      // GraphSkill receive it. Retain its identity, stream and request fields.
+      // Direct Phoenix handler calls without HTTP use an explicit local adapter.
+      const request = req ?? { headers: {}, body };
+      request.jibo = sourceJiboHeaders(request.headers);
+      request.log = log;
       const response = await handler(body, {
         trace,
         log,
-        req: { jibo: sourceJiboHeaders(req && req.headers), log },
+        req: request,
       });
       setResponseTimings(response, Date.now() - startTime);
       return response;
