@@ -8,6 +8,7 @@ import * as weather from './weather.js';
 import * as news from './news.js';
 import * as calendar from './calendar.js';
 import * as commute from './commute.js';
+import { RESULTS_EVENT, buildResultsAnalytics } from './analytics.js';
 
 // --- IntentSplitNode -----------------------------------------------------------
 
@@ -191,10 +192,7 @@ export class GetDataNode extends NoOpNode {
 
     // Personal Report results analytics.
     try {
-      this.personalReport.track(data, 'Personal Report Results', {
-        weather: !!data.result[Names.weather], calendar: !!data.result[Names.calendar],
-        commute: !!data.result[Names.commute], news: !!data.result[Names.news],
-      });
+      this.personalReport.track(data, RESULTS_EVENT, buildResultsAnalytics(data));
     } catch (err) {
       log?.error?.('Unable to track Results analytics:', { error: err.message });
     }
