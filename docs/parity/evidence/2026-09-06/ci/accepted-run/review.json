@@ -1,0 +1,119 @@
+{
+  "date": "2026-09-06T03:21:29.461285+00:00",
+  "reviewer": "Codex root",
+  "result": "pass",
+  "scope": "V-03 coverage and comparison infrastructure acceptance only",
+  "phoenixRevision": "1926d64f00c6e9b95f2640328466818b59f2c967",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "workflow": {
+    "conclusion": "failure",
+    "createdAt": "2026-09-06T03:07:48Z",
+    "event": "push",
+    "headBranch": "main",
+    "headSha": "1926d64f00c6e9b95f2640328466818b59f2c967",
+    "name": "Phoenix parity",
+    "path": ".github/workflows/parity.yml",
+    "runAttempt": 1,
+    "runId": 34008215915,
+    "runNumber": 2,
+    "runUrl": "https://github.com/Paskooter/phoenix/actions/runs/34008215915",
+    "status": "completed",
+    "updatedAt": "2026-09-06T03:08:45Z",
+    "workflowSha256": "8071a8969e1584ba3e3da709dbe8197b1af4c0d1fe2af63cbd197b38293b24be"
+  },
+  "jobs": [
+    {
+      "id": 101419213098,
+      "name": "Strict production comparison",
+      "conclusion": "failure",
+      "observedFailure": "strict smoke comparison returned mismatch and exit code 1"
+    },
+    {
+      "id": 101419213179,
+      "name": "Unit tests and checklist",
+      "conclusion": "success",
+      "observedFailure": null
+    }
+  ],
+  "acceptance": [
+    {
+      "criterion": "Map source scenarios, named grammar, protocol operations and asset sets to owning tasks and coverage states",
+      "result": "pass",
+      "evidence": "docs/parity/evidence/2026-09-06/coverage-review/review.json",
+      "counts": {
+        "sourceFiles": 6146,
+        "sourceTestCases": 960,
+        "publicOperations": 89,
+        "wireContracts": 223,
+        "namedRuntimeGrammarSources": 117,
+        "assetSets": 45
+      },
+      "limits": "Mapped missing/partial coverage is explicit; every grammar remains functionally unverified."
+    },
+    {
+      "criterion": "Preserve all hub-client and report corpus occurrences with overlap and stable denominators",
+      "result": "pass",
+      "evidence": "scripts/parity-coverage/corpus-gates.json",
+      "counts": {
+        "hubBase": 7029,
+        "hubConditional": 1973,
+        "report": 73,
+        "chitchatBase": 10035,
+        "chitchatConditional": 1397,
+        "corpusOccurrences": 20507,
+        "boundaryAndDirectCases": 27,
+        "fullCases": 20534
+      }
+    },
+    {
+      "criterion": "Grade complete production requests, parser outputs, routing and actions against provenance-pinned original captures and reject mismatches in hosted CI",
+      "result": "pass",
+      "evidence": "docs/parity/evidence/2026-09-06/ci/accepted-run/review.json",
+      "observed": "Unit/checklist job passed, valid complete 43-case capture produced the retained strict 659-difference rejection, and artifact upload succeeded."
+    }
+  ],
+  "rootVerification": {
+    "candidateArtifactHashes": "All downloaded manifest hashes recomputed and matched",
+    "candidateCaptureComplete": true,
+    "caseCount": 43,
+    "uniqueOrderedCaseIds": true,
+    "captureFailures": 0,
+    "lateEffects": 0,
+    "originalCaptureTools": "Exact four-tool set and hashes match the reviewed golden and current source",
+    "goldenReview": "pass; golden files and original-control artifact hashes checked",
+    "sourceHeadMatchesHostedCheckout": true,
+    "sourceTreeSha256": "d8b1994be9783ff6935c085ddc11393515e66b091ed4c9158e817879b411bae6",
+    "workflowSha256": "8071a8969e1584ba3e3da709dbe8197b1af4c0d1fe2af63cbd197b38293b24be",
+    "offlineComparatorExitCode": 1,
+    "offlineComparatorResult": "Byte-identical to hosted comparison.json",
+    "hostedUnitTestsPassed": 405,
+    "hostedInventoryTestsPassed": 6,
+    "hostedChecklistPassed": true
+  },
+  "reproduce": "node scripts/parity-production/compare.mjs --reference packages/harness/resources/goldens/production-smoke/reference.json.gz --candidate docs/parity/evidence/2026-09-06/ci/accepted-run/candidate.json.gz --suite packages/harness/resources/goldens/production-smoke/suite.json --out /tmp/phoenix-ci-1926d64-comparison.json (expected exit 1 and SHA-256 755aa970d147b50338fcdf579397ac5733fd30a69b601aa24d4aed08923e95f6)",
+  "production": {
+    "result": "mismatch",
+    "cases": 43,
+    "differences": 659,
+    "invariants": 0,
+    "coverageGaps": 1
+  },
+  "artifactRetention": {
+    "hostedArtifactId": 9981629958,
+    "hostedZipSha256": "c47fc4bf233cac5b9c16eeae1d9ef7ad85d8dd0e5e4e6b4c88ea625a0e43fe81",
+    "expiresAt": "2026-09-13T03:08:22Z",
+    "reviewedArtifactsCommitted": true
+  },
+  "limits": [
+    "A passing infrastructure review does not make the failing Phoenix comparison pass or close a product feature.",
+    "Hosted full-suite selection is available; this hosted acceptance used smoke. Complete source control and failing full baseline were independently retained and reviewed earlier.",
+    "Full HubService orchestration, providers, persistence, physical wake/listening and release acceptance remain under their existing product tasks."
+  ],
+  "artifacts": {
+    "candidate.json.gz": "a5078dd825d90b7a17a5ae6e0f41127eeeb5a7203d0d097708be4527c9501ceb",
+    "comparison.json": "755aa970d147b50338fcdf579397ac5733fd30a69b601aa24d4aed08923e95f6",
+    "phoenix-source.json": "5cba154d28e0c4347b4ecaa2b8fc9128fe116730df342553280a9aafdcde0b2e",
+    "run.json": "7db87bb3910dbf50acd53ff7a75324e65e90296c97437fd42983a850f067aaf0",
+    "unit-checklist-excerpts.txt": "8174245fe3f2e20ca7bcaa74cdd03ab5e8d085cd1a72370fd11406723da3d908"
+  }
+}

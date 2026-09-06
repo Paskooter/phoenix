@@ -244,8 +244,8 @@
       "track": "verification",
       "phase": 0,
       "priority": "P0",
-      "status": "in_progress",
-      "implementation": "partial",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "PM-03"
@@ -259,7 +259,7 @@
       ],
       "phoenix": [
         "docs/parity/COVERAGE.md",
-        "docs/parity/evidence/2026-09-05/coverage/source-inventory.json",
+        "docs/parity/evidence/2026-09-06/coverage/source-inventory.json",
         "scripts/parity-coverage",
         "scripts/parity-production",
         "packages/harness/resources/corpora/sources.json",
@@ -271,31 +271,37 @@
         "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json",
         "scripts/parity-coverage/corpus-gates.json",
         ".github/workflows/parity.yml",
-        "docs/parity/evidence/2026-09-06/coverage-review/review.json"
+        "docs/parity/evidence/2026-09-06/coverage-review/review.json",
+        "docs/parity/evidence/2026-09-06/ci/accepted-run/review.json"
       ],
-      "finding": "Root reviewed and integrated all corpus-to-production-gate links: 20,507 corpus occurrences plus 27 boundary/direct cases, with the failing 20,534-case baseline retained. All 117 named grammar sources have exact resource copies; functional grammar coverage stays missing. Six inventory mutation tests and 17 scanner/comparison tests pass. V-03 still requires the first hosted CI run to demonstrate rejection of the known mismatch.",
+      "finding": "Root verified the complete source/resource coverage inventory, stable corpus-to-production-gate links and hosted CI rejection. The 20,534-case full baseline remains a mismatch. GitHub run 34008215915 at 1926d64 passed 405 unit tests, six inventory tests and checklist validation; its valid 43-case capture failed strictly on 659 differences, zero invariants and one coverage gap. Root reproduced the comparison byte-for-byte. This closes verification infrastructure only; missing product coverage remains explicit.",
       "acceptance": [
         "Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.",
         "Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.",
         "Grade the production parser with complete requests, intents, entities, winning rules, no-match behavior, skill/memo and action outputs; pin golden provenance and reject mismatches in CI."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-06",
+          "basis": "Root source/resource denominator review, complete original controls and full failing baseline, inventory mutation tests, and actual hosted mismatch rejection with independent offline replay",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "1926d64f00c6e9b95f2640328466818b59f2c967",
+          "command": "python3 scripts/parity-coverage/inventory.test.py; GitHub Actions run 34008215915; offline replay command in linked review.json",
+          "artifact": "docs/parity/evidence/2026-09-06/ci/accepted-run/review.json",
+          "result": "pass",
+          "notes": "All three V-03 infrastructure criteria reviewed. The strict Phoenix comparison remains failing; no product operation or grammar gate is promoted by this closure."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Complete corpus gate provenance/denominators and separate grammar preservation counts; reviewed by root with portable end-to-end mutation checks. V-03 awaits hosted CI acceptance.",
+        "scope": "Complete corpus gate provenance/denominators and separate grammar preservation counts; root reviewed portable end-to-end mutation checks and hosted CI mismatch rejection.",
         "worktree": ".parity/worktrees/v03-coverage",
         "baseRevision": "794526320d73c451152eb8d187c322137480ff55",
         "candidateRevision": "78fd104b3e9f91b4241fdf2a080eea3e131363fa",
         "artifact": "docs/parity/candidates/V-03-coverage.md",
         "reviewedBy": "Codex root",
         "reviewEvidence": "docs/parity/evidence/2026-09-06/coverage-review/review.json"
-      },
-      "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Codex root",
-        "scope": "Observe new GitHub CI workflow executing the strict smoke and retaining the known mismatch; hosted result pending.",
-        "artifact": ".github/workflows/parity.yml"
       },
       "implementationReviewHistory": [
         {
@@ -1957,7 +1963,7 @@
       "track": "classic",
       "phase": 0,
       "priority": "P0",
-      "status": "todo",
+      "status": "in_progress",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1983,8 +1989,8 @@
       "verification": [],
       "nextImplementation": {
         "state": "working",
-        "assignee": "Luna Max / http_contract_repair",
-        "scope": "Recover source/consumer contracts for legacy Settings_20160801 and missing voice-training/JOT operation discovery in an isolated candidate."
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Complete an operation-level source/controller/consumer/test mapping from discovery candidate c4ad49d and independent MCP validation. Preserve 169 confirmed target-operation pairs as a lower bound, the possible Jot-prefix 170th pair, legacy Settings and proposed functional Jot/VoiceTraining ownership; root acceptance remains pending."
       }
     },
     {

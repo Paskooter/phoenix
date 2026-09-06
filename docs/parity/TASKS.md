@@ -9,15 +9,15 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | Track | Verified | Total | In progress | Blocked |
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
-| verification | 3 | 4 | 1 | 0 |
+| verification | 4 | 4 | 0 | 0 |
 | pegasus | 0 | 46 | 0 | 0 |
-| classic | 0 | 18 | 0 | 0 |
+| classic | 0 | 18 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
-Current task: **V-03 — Map all original tests and resources into a coverage denominator**.
+Current task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
 
-Next ready task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
+Next ready task: **C-01 — Match the shared HTTP response and error contract**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -123,11 +123,11 @@ Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/pa
 
 ### V-03 — Map all original tests and resources into a coverage denominator
 
-- [ ] **in_progress** · P0 · verification · implementation: partial
+- [x] **verified** · P0 · verification · implementation: complete
 
 Owner: Codex. Dependencies: PM-03.
 
-Root reviewed and integrated all corpus-to-production-gate links: 20,507 corpus occurrences plus 27 boundary/direct cases, with the failing 20,534-case baseline retained. All 117 named grammar sources have exact resource copies; functional grammar coverage stays missing. Six inventory mutation tests and 17 scanner/comparison tests pass. V-03 still requires the first hosted CI run to demonstrate rejection of the known mismatch.
+Root verified the complete source/resource coverage inventory, stable corpus-to-production-gate links and hosted CI rejection. The 20,534-case full baseline remains a mismatch. GitHub run 34008215915 at 1926d64 passed 405 unit tests, six inventory tests and checklist validation; its valid 43-case capture failed strictly on 659 differences, zero invariants and one coverage gap. Root reproduced the comparison byte-for-byte. This closes verification infrastructure only; missing product coverage remains explicit.
 
 Done when:
 
@@ -137,13 +137,13 @@ Done when:
 
 Source: [Original Pegasus packages/integration-tests-int](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-int); [Original Pegasus packages/integration-tests-ext](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-ext); [Original Pegasus packages/hub/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/tests); [Original Pegasus packages/parser/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/tests); [Original Pegasus packages/test-utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils).
 
-Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-05/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-05/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs); [docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json](../../docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json); [scripts/parity-coverage/corpus-gates.json](../../scripts/parity-coverage/corpus-gates.json); [.github/workflows/parity.yml](../../.github/workflows/parity.yml); [docs/parity/evidence/2026-09-06/coverage-review/review.json](../../docs/parity/evidence/2026-09-06/coverage-review/review.json).
+Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-06/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-06/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs); [docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json](../../docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json); [scripts/parity-coverage/corpus-gates.json](../../scripts/parity-coverage/corpus-gates.json); [.github/workflows/parity.yml](../../.github/workflows/parity.yml); [docs/parity/evidence/2026-09-06/coverage-review/review.json](../../docs/parity/evidence/2026-09-06/coverage-review/review.json); [docs/parity/evidence/2026-09-06/ci/accepted-run/review.json](../../docs/parity/evidence/2026-09-06/ci/accepted-run/review.json).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-06/ci/accepted-run/review.json](../../docs/parity/evidence/2026-09-06/ci/accepted-run/review.json) (2026-09-06; Root source/resource denominator review, complete original controls and full failing baseline, inventory mutation tests, and actual hosted mismatch rejection with independent offline replay).
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
 
-Candidate scope: Complete corpus gate provenance/denominators and separate grammar preservation counts; reviewed by root with portable end-to-end mutation checks. V-03 awaits hosted CI acceptance.
+Candidate scope: Complete corpus gate provenance/denominators and separate grammar preservation counts; root reviewed portable end-to-end mutation checks and hosted CI mismatch rejection.
 
 Candidate report: [docs/parity/candidates/V-03-coverage.md](../../docs/parity/candidates/V-03-coverage.md).
 
@@ -172,7 +172,7 @@ Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/pari
 
 ### A-01 — Map every Classic operation to controllers, consumers and tests
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [ ] **in_progress** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: PM-03.
 

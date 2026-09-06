@@ -1,6 +1,6 @@
 # Production parser, routing and skill comparison
 
-V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory is reviewed and integrated; V-03 remains open for the first hosted CI acceptance run.
+V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory and hosted CI rejection are reviewed; V-03 infrastructure is verified. Product comparison failures remain open.
 
 The bounded writer now exports the full corpus under Node 8. The independently
 repeated [20,534-case original control](evidence/2026-09-05/production/stream-writer-full-control/review.json)
@@ -150,7 +150,12 @@ links. The [first hosted run](evidence/2026-09-06/ci/first-run/review.json)
 confirmed the 659-difference smoke rejection, with no capture failures. All
 405 unit tests and six inventory tests passed. Checklist validation exposed an
 untracked N-02 directory reference; its replacement now names the existing
-diagnostic and production tools. The next hosted run must validate that fix.
+diagnostic and production tools. The [second hosted run](evidence/2026-09-06/ci/accepted-run/review.json)
+validated the fix at `1926d64`: all 405 unit tests, six inventory tests and
+checklist checks passed. The 43-case capture completed without failures and
+returned the same 659 differences, zero invariants and one coverage gap. Root
+reproduced its comparison byte-for-byte and accepted V-03 infrastructure.
+The CI comparison remains red until its behavioral differences are repaired.
 Local workflow and coverage integration checks are recorded in the
 [root review](evidence/2026-09-06/coverage-review/review.json).
 

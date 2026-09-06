@@ -22,16 +22,16 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
 
 <!-- parity-progress:start -->
 
-![7.8% checklist completion — 6 of 77 tasks verified](docs/parity/progress.svg)
+![9.1% checklist completion — 7 of 77 tasks verified](docs/parity/progress.svg)
 
-**7.8% checklist completion · 6/77 tasks verified.**
+**9.1% checklist completion · 7/77 tasks verified.**
 
 Counts only tasks whose full acceptance criteria and evidence have been reviewed. Candidate implementations do not count. This includes planning and verification tooling; it is not a percentage of server functionality.
 
 | Track | Verified | Total |
 |---|---:|---:|
 | Planning | 3 | 3 |
-| Verification tooling | 3 | 4 |
+| Verification tooling | 4 | 4 |
 | Pegasus | 0 | 46 |
 | Companion cloud | 0 | 18 |
 | Restoration | 0 | 1 |
