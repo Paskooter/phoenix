@@ -1,0 +1,76 @@
+{
+  "status": "Root accepted bounded Report SettingsClient transport compatibility",
+  "integratedRevision": "26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3",
+  "reviewedCandidateRevision": "4a79da9f5f9c31573bf6bdd29575b9ac8d22d7cb",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateInputRevision": "0174941310e6289bf23e2c1ed7e2a2a7f4997250",
+  "scope": [
+    "Match source Axios 0.17.1 request headers, order, framing and decoded response/error behavior.",
+    "Preserve original redirect methods/body removal, relative/cross-authority redirects and 21-redirect limit.",
+    "Preserve gzip/deflate decoding, invalid/empty JSON transforms and truncated response boundaries."
+  ],
+  "verification": {
+    "unit": {
+      "passed": 482,
+      "failed": 0,
+      "skipped": 3
+    },
+    "freshOriginalClientControls": {
+      "cases": 36,
+      "allChecksMatch": 36,
+      "sourceRuntime": "Exact extracted Node8.9.4 executable on host; not pinned-Docker equivalence",
+      "candidateRuntime": "Node22.22.0",
+      "directAndCallerPaths": true,
+      "allCallerCasesReachedSettings": true,
+      "errorResponseHeadersCompared": true,
+      "excludedErrorResponseHeaders": [
+        "Date"
+      ],
+      "otherExcludedParsedFields": [
+        "Top-level runtime label",
+        "error.stack"
+      ],
+      "requestComparison": "Full header names/order, method, path and body bytes; only assigned fixture peer authorities rebound.",
+      "fixtureResponseBytesCompared": true
+    },
+    "strictProduction": {
+      "cases": 43,
+      "baselineDifferences": 488,
+      "candidateDifferences": 440,
+      "resolvedFailingPaths": 48,
+      "newFailingPaths": 0,
+      "changedExistingFailingPaths": 6,
+      "removedDifferenceRecords": 54,
+      "addedDifferenceRecords": 6,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "gatePass": false,
+      "remainingOrdering": "Six pre-existing Report weather/news request-order differences changed values. They remain literal strict failures and are tracked under Report orchestration."
+    },
+    "integratedFilesEqualReviewedCandidate": true,
+    "sourceStable": true,
+    "workspaceLinksLocal": true
+  },
+  "metadataCorrection": "The copied client-check wrapper initially labeled non-unit modes with the compiled profile in its receipt. Actual environment selection restricted compiled NLU to parser/strict modes. The source and candidate client children received explicit fixture environments. Raw receipts and a separate metadata correction are retained.",
+  "limits": [
+    "Full C-03 and full server parity remain open.",
+    "Original host/runtime error stacks are retained but are not claimed byte-identical.",
+    "Live providers, deployed DNS/TLS behavior and real robot use of this Settings client remain pending.",
+    "No comparator, golden or old failed capture was relabeled to accept this slice."
+  ],
+  "evidenceHashes": {
+    "workspace-install-receipt.json": "815f385e9304fdb6d78fe167f4ba261f7deb019fd0aae628b6d0bbc1c85200f0",
+    "full-unit.log": "924b6aadd0ae3da9a9da20850b5a505d1acf6cc17e4a80fe8cb11fc41ce3a471",
+    "full-unit-receipt.json": "16c0ac3a50fac9df1df388fb8c53b3a103dc2a58a86fac7cb4962f7a1c2dcfd9",
+    "client22/response-controls.json": "a26d52900e73f5fca5147a3b54c18f43d69776127354a59b91b2dad929650067",
+    "client22-receipt.json": "e80b6faf851fc939e14352fd7cd94d8afcffa16f94d2f8f51edc52ab50500cee",
+    "client14/extra-controls.json": "ee9c87503d3e82f02144c3f778db31acb659a84d2ed97667dc9ce83de93ca63c",
+    "client14-receipt.json": "5724c2f1858ea49d6ddd8051b510b79790f1fab0205e20316ea7b0f7a70d58b9",
+    "client-root-comparison.json": "a54d9a6a525216188d57f5d8bc68128b5175432cbbf27860db198ecfd129bb42",
+    "client-profile-metadata-correction.json": "c49fdcdae4f15e94af11adbbaeaa66697bd0d7225c0ee6c248181cb8b4ca563e",
+    "production/run.json": "76c44746d578f9506a4d901abf1f07a2e44609f3d7d99f86de01a77baac26d9c",
+    "production/comparison.json": "f59a94bd74a12b9085be601d1c4cc918832dd81e0bda057dc7c044f638ef605f",
+    "strict-receipt.json": "6ded7fae1309a576a5084f5df280904bb997895fbfea3aae77be304731499cb4",
+    "strict-regression-review.json": "492251510a3ff67a1a98845f3a80a6802a9f23043263a6a62ff6ef51bc5f9051"
+  }
+}

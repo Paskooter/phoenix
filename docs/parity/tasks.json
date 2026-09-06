@@ -463,7 +463,7 @@
         "packages/skills/src/report/lassoClient.js",
         "packages/common/src/env.js"
       ],
-      "finding": "Registry/configuration slice remains accepted. Root integrated report source environment defaults/cache/aliases, generic minimist port parsing and source client headers while preserving actual request ownership. All 448 integrated unit tests pass on confirmation; strict smoke removes 160 differences with none added. CLI failure/shutdown behavior is additionally accepted with 480 unit passes and 5 source controls. The broader SettingsClient transport follow-up and deployed providers remain open.",
+      "finding": "Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; strict complete-server smoke has 440 differences. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.",
       "acceptance": [
         "Load unmodified reference registries including settings metadata, paths, versions and URL composition; reject invalid configurations as the reference does.",
         "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.",
@@ -473,20 +473,12 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidate",
-        "candidateRevision": "7ae5fbc7793c88113fc41b7bd3fcb17bfef9081d",
-        "reviewedCandidateRevision": "528e1221e115fda1ef1d108fd3962af901ff173f",
+        "candidateRevision": "26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3",
+        "reviewedCandidateRevision": "4a79da9f5f9c31573bf6bdd29575b9ac8d22d7cb",
         "reviewedBy": "Codex root",
-        "scope": "Additional bounded CLI missing/synchronous/rejected startup and five-second shutdown behavior, including root fallback logger repair. 480 unit passes, 5 original runner controls, 2 actual process checks. Prior configuration/client acceptance remains recorded in history; full C-03 remains open.",
-        "artifact": "docs/parity/candidates/C-03-cli-followup.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/cli-review.json"
-      },
-      "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / audio_encoding_repair; root acceptance",
-        "candidateRevision": "0174941310e6289bf23e2c1ed7e2a2a7f4997250",
-        "baseRevision": "61f6b1c449d441e3d2abb5d3b0ef81c9ed428a59",
-        "worktree": ".parity/worktrees/c03-settings-wire-followup",
-        "scope": "Agent candidate matches source SettingsClient ordinary raw wire and 22 redirect/compression/response/caller cases; broader redirect controls and root integration remain pending. 450 unit tests reported by agent; no full-task acceptance."
+        "scope": "Additional bounded source SettingsClient request/response transport. Root 36 original-client checks including error headers and 482 unit tests pass. Strict smoke 440 differences: 48 failing fields resolved, zero new failing fields; 6 existing request-order differences changed values and remain open. Prior registry/configuration/CLI acceptance remains in history. Full C-03 remains open.",
+        "artifact": "docs/parity/candidates/C-03-settings-wire-followup.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/settings-client-review.json"
       },
       "implementationReviewHistory": [
         {
@@ -507,6 +499,16 @@
           "scope": "Bounded report configuration, generic CLI port parsing and client trace/Settings headers, including root request-identity repair; full C-03 remains open. Integrated 448-unit confirmation, source-client and strict regression checks pass their documented boundaries.",
           "artifact": "docs/parity/candidates/C-03-client-wire-repair.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max candidate",
+          "candidateRevision": "7ae5fbc7793c88113fc41b7bd3fcb17bfef9081d",
+          "reviewedCandidateRevision": "528e1221e115fda1ef1d108fd3962af901ff173f",
+          "reviewedBy": "Codex root",
+          "scope": "Additional bounded CLI missing/synchronous/rejected startup and five-second shutdown behavior, including root fallback logger repair. 480 unit passes, 5 original runner controls, 2 actual process checks. Prior configuration/client acceptance remains recorded in history; full C-03 remains open.",
+          "artifact": "docs/parity/candidates/C-03-cli-followup.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/cli-review.json"
         }
       ]
     },
@@ -1118,7 +1120,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. Strict complete-server smoke has 488 remaining differences, 11 removed with none added. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.",
+      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); accepted SettingsClient work now reduces the current total to 440. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1557,10 +1559,11 @@
       "nextImplementation": {
         "state": "awaiting_review",
         "assignee": "Luna Max / capture_writer_repair; root acceptance",
-        "baseRevision": "20bbfaad61a9360c5bd09906b068e7b181424ddf",
-        "scope": "Agent shared GraphManager/source construction-order candidate reports 11 focused and 109 skills tests, with pinned source numeric ID controls. Strict production recapture and root integration remain pending.",
-        "candidateRevision": "d77c6e3725da8de6decc1ae440aa9dfc7beb4820",
-        "worktree": ".parity/worktrees/skill-graph-nodeid"
+        "baseRevision": "26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3",
+        "candidateRevision": "e043a276c4dd9f0e14703a282a3f346b6f6f2878",
+        "worktree": ".parity/worktrees/skill-graph-nodeid-main-integration",
+        "scope": "Root withheld the first shared-GraphManager candidate because it changed standalone Report IDs. Agent repair now exercises explicit/env standalone node 31 and cohosted node 35, with 117 skills tests reported. Strict compiled43 has 290 differences versus current-main 440; all added content-length records remain retained. Root source review and combined integration are pending; no full-task credit.",
+        "previousCandidateRevision": "d77c6e3725da8de6decc1ae440aa9dfc7beb4820"
       }
     },
     {
@@ -1799,7 +1802,15 @@
         "Compare launch intents, UserID/opt-in, ordering/toggles, prefsFromConfig and Settings requests/defaults using the original report tests.",
         "Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation and matching analytics."
       ],
-      "verification": []
+      "verification": [],
+      "nextImplementation": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / audio_encoding_repair; root acceptance",
+        "baseRevision": "26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3",
+        "candidateRevision": "06b1213b932264610b8f02a2696096f3851c40a8",
+        "worktree": ".parity/worktrees/s08-report-analytics-integration",
+        "scope": "Source Personal Report Results analytics builder and GetDataNode integration. Agent reports 5 original builder matches, 116 skills tests and 375 strict compiled43 differences versus current-main 440, with zero new failing paths. Root review and combined verification are pending; full orchestration remains open."
+      }
     },
     {
       "id": "S-09",
@@ -2367,17 +2378,13 @@
       "nextImplementation": {
         "state": "changes_requested",
         "assignee": "Luna Max / http_contract_repair; root acceptance",
-        "candidateRevision": "6c4b8fc995aa8149406bd650736b8820ff4e382a",
-        "baseRevision": "aaa3a064c221f9b0ca6156ecdc91af1c63dbde87",
-        "worktree": ".parity/worktrees/a06-update-delete-candidate",
-        "scope": "Agent original actual-TCP adversarial matrix found 5 differences across 46 rows: null delete-item boundary, missing provider method wording and 3 provider call-order differences. Repair is in progress on a fresh branch; frozen 6c4b8fc remains unaccepted. Prior 25 handler and 78 TCP controls retain their narrower scope.",
-        "artifact": "docs/parity/candidates/A-06-update-delete-20260906.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/settings-root/update-delete-changes-requested.json",
-        "repairCandidate": {
-          "state": "awaiting_review",
-          "candidateRevision": "f763f75b274cbf0807f60709cced6e8e079b6a2c",
-          "scope": "Agent reports 52 source TCP matches including delayed/rejecting seams; a fresh current-main integration is being prepared for root review."
-        }
+        "candidateRevision": "2d16e43b304d7967109c21a846086f10a839c814",
+        "baseRevision": "3b52dddc728ab9f9e7fff8a3882c0c5bedbf0053",
+        "worktree": ".parity/worktrees/a06-update-delete-persistence",
+        "scope": "Unmerged Update/Delete candidate repaired five source TCP defects (52 subsequent matches reported), then loop-member persistence and skill credential isolation. Original Lasso scope-identity review now finds 4 differences in 11 controls: permutations, duplicates, requested subsets and a delimiter collision in legacy fallback. A fresh repair is required before root acceptance. Live providers/Mongo/public authentication remain open.",
+        "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+        "previousCandidateRevision": "6c4b8fc995aa8149406bd650736b8820ff4e382a",
+        "priorReviewEvidence": "docs/parity/evidence/2026-09-06/settings-root/update-delete-changes-requested.json"
       }
     },
     {
