@@ -1,0 +1,92 @@
+TAP version 13
+# Subtest: native character-class optional scope: [me?et]
+not ok 1 - native character-class optional scope: [me?et]
+  ---
+  duration_ms: 4.061869
+  type: 'test'
+  location: '/home/shell/work/phoenix/packages/nlu/test/charClass.test.js:18:3'
+  failureType: 'testCodeFailure'
+  error: 'accept met'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: ~
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/packages/nlu/test/charClass.test.js:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: native character-class optional scope: [cat?s]
+ok 2 - native character-class optional scope: [cat?s]
+  ---
+  duration_ms: 0.883224
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?cd]
+not ok 3 - native character-class optional scope: [ab?cd]
+  ---
+  duration_ms: 0.273729
+  type: 'test'
+  location: '/home/shell/work/phoenix/packages/nlu/test/charClass.test.js:18:3'
+  failureType: 'testCodeFailure'
+  error: 'accept abd'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: ~
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/packages/nlu/test/charClass.test.js:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native character-class optional scope: [ab?cde]
+not ok 4 - native character-class optional scope: [ab?cde]
+  ---
+  duration_ms: 0.211862
+  type: 'test'
+  location: '/home/shell/work/phoenix/packages/nlu/test/charClass.test.js:18:3'
+  failureType: 'testCodeFailure'
+  error: 'accept abde'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: ~
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/packages/nlu/test/charClass.test.js:21:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native character-class optional scope: [ab?(cd)e]
+ok 5 - native character-class optional scope: [ab?(cd)e]
+  ---
+  duration_ms: 0.35398
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?(c|d)e]
+ok 6 - native character-class optional scope: [ab?(c|d)e]
+  ---
+  duration_ms: 0.22119
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 3
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 98.075629

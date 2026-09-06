@@ -1,0 +1,110 @@
+{
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "result": "replacement-candidate-awaiting-complete-regression-review",
+  "task": "N-08",
+  "taskStatus": "open",
+  "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
+  "worktree": ".parity/worktrees/nlu-optional-root",
+  "baseRevision": "7330e6673de5785de599c44b782eaccd12435200",
+  "source": "source-proof.json",
+  "nativeProbes": "native-probes.json",
+  "finding": "The earlier duplicate-boundary special case fits met/meet but does not implement the original general rule. Inside a character class, ? bypasses one next Unicode code point or a parenthesized group. Root replaced greedy whole-word atoms with code-point atoms and retained existing group/escape parsing.",
+  "before": {
+    "tests": 6,
+    "passed": 3,
+    "failed": 3,
+    "artifact": "before.log"
+  },
+  "candidateChecks": {
+    "nluSuite": {
+      "passed": 32,
+      "failed": 0,
+      "artifact": "nlu-tests-final.log"
+    },
+    "wholeUnitRun": {
+      "passed": 410,
+      "failed": 4,
+      "total": 414,
+      "artifact": "unit.log",
+      "failures": "Four existing OGG/audio fixtures hit their unchanged 3000ms deadlines during the concurrent run; this whole run failed."
+    },
+    "focusedAudioRepeat": {
+      "passed": 34,
+      "failed": 0,
+      "artifact": "asr-focused.log",
+      "limitation": "Fresh isolated-suite success does not erase whole-run failures or close H-07 timing acceptance."
+    }
+  },
+  "fullHttpReplay": {
+    "state": "running",
+    "referenceCases": 20528,
+    "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
+    "artifact": ".parity/reviews/n08-optional-root/full-parser-replay.json",
+    "scope": "HTTP status and full decoded response.data, including malformed input cases; no new full result is claimed yet."
+  },
+  "strictSmoke": {
+    "state": "completed-mismatch",
+    "artifact": ".parity/runs/nlu-optional-root-smoke",
+    "cases": 43,
+    "differences": 659,
+    "invariants": 0,
+    "coverageGaps": 1,
+    "candidateCaptureFailures": 0,
+    "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
+    "artifacts": {
+      "smoke-run.json": "731bfda2f33637fa321553026c1fc92781f06b593f8f3214e4358d3956c50d03",
+      "smoke-comparison.json": "755aa970d147b50338fcdf579397ac5733fd30a69b601aa24d4aed08923e95f6",
+      "smoke-phoenix-source.json": "6eb15344c9ddf8566191385f17c8e07fe9802063d90302ce0796324a22d5d940"
+    }
+  },
+  "historicalSpecialCaseEvidence": {
+    "candidateRevision": "66e2abc331dc0707abbce0a9714674c3c3bf8a08",
+    "cases": 20534,
+    "parserCases": 20528,
+    "exactParserMatches": 20229,
+    "semanticMismatches": 298,
+    "observationFailures": 1,
+    "fixedFromEarlierReplay": 14,
+    "newSemanticMismatchIds": 0,
+    "strictDifferences": 8658,
+    "strictInvariants": 5,
+    "gapInstances": 97,
+    "limit": "These measurements belong to the earlier special-case candidate. Four isolated timeout-neighborhood repeats passed, but the failed full-run observation remains unresolved. They are not the replacement candidate score."
+  },
+  "limits": [
+    "No complete N-08 acceptance or complete product task is verified.",
+    "Source version is pinned; reproducible native binary build-to-source identity remains unproven.",
+    "Weighted/FST tie ordering, factory/reference handling and complete grammar semantics remain separate open work.",
+    "The robot continues running the previously reviewed restored transport profile."
+  ],
+  "testLogPublication": {
+    "format": "TAP test results and failure diagnostics only; unrelated application logs omitted",
+    "privateRawLogSha256": {
+      "before.log": "fa2da35a8cf6d648255a1e0cc69604d6c3d6c1d54011c60568f6441b7de2e017",
+      "nlu-tests-final.log": "1347901d0ce15869454595aa2d157bc4ec085221164803d4c6a0987e247f91cf",
+      "unit.log": "c552a2de0ae4c390dd290e05f4b89ce32c5ad87dfa711ab216082db5e1b6d2e8",
+      "asr-focused.log": "0c192fcfa5525f97a741b6c29ce952e94efcdd9925f3450ddeaf7aca135dd2f6"
+    }
+  },
+  "candidateFiles": [
+    {
+      "path": "packages/nlu/src/grammar/matcher.js",
+      "sha256": "0cd77b6faa959b9b4cdeffec2a25ac2b7f126f0041c5566560eeecd400192082"
+    },
+    {
+      "path": "packages/nlu/test/requestParser.test.js",
+      "sha256": "1b66ee8592c5e9f421e07767666a77839f678f33978258909a0744d255849a37"
+    },
+    {
+      "path": "packages/nlu/test/charClass.test.js",
+      "sha256": "a9f66626e07c779391f3f980db6a7be50c74298bdf8f9787ab59392abf342209"
+    }
+  ],
+  "commands": {
+    "nativeSynthetic": "PYTHONDONTWRITEBYTECODE=1 python3 .parity/reviews/n08-optional-root/probe.py host",
+    "nativeRunnerSha256": "bd6d39fc86762f13c73cc106dd5a63740a7872b68109681bf2cb0cccf46ec4d4",
+    "fullHttpReplay": "node .parity/reviews/replay-full-parser.mjs /home/shell/work/phoenix/.parity/worktrees/nlu-optional-root/packages/nlu/src/index.js /home/shell/work/phoenix/.parity/reviews/n08-optional-root/full-parser-replay.json",
+    "fullHttpReplayRunnerSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e"
+  }
+}

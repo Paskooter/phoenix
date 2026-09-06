@@ -1,27 +1,31 @@
-# N-08 follow-up: shared-boundary optional class variants
+# N-08 follow-up: optional character-class atoms
 
-Status: **working candidate; unverified and awaiting lead review**
-Owner: Luna Max
+Status: **initial special case needs replacement; general fix awaits complete regression review**
+Owner: Codex root, with Luna Max source review
 Base: `4b45dae17bdf186de108b903ec7ca50b15d0944d`
 Previous N-08 repair: `774dba170b5294ec85185d3e3186e349c8038811`
 Reference revision: `5c0a7390539663ba749d360de348a428c088505c`
 
-This follow-up repairs one source grammar interpretation in
-`packages/nlu/src/grammar/matcher.js`. A simple source character class such as
-`[me?et]` uses `?` for an optional suffix whose first character is already the
-last character of the stem. The source FST therefore accepts `met` and `meet`.
-The candidate previously emitted `me` and `meet`, which prevented the
-`RULE_HasJiboMetPerson` arms from reaching the person matcher for the source
-`have you met ...` controls. The matcher now handles this shared-boundary form
-for simple unescaped word bodies, while grouped, alternated, and escaped class
-bodies retain the existing recursive expansion.
+Root's [native compiler and source review](../evidence/2026-09-06/nlu-optional-atoms/review.json)
+found that `?` makes the next Unicode code point or parenthesized group
+optional inside `[]`. Thus `[me?et]` accepts `met` and `meet`, while `[ab?cd]`
+accepts `abd` and `abcd`. The initial candidate used a duplicate-character
+special case that did not implement that general rule.
+
+Replacement candidate `63bbddd63bcf72cefa601a4f8929efc1cc196df5` uses one
+code point per bare atom and retains group and escape handling. All 32 NLU
+tests pass. Its complete 20,528-request HTTP replay is running in a frozen
+worktree. Strict smoke remains a mismatch: 659 field differences, zero
+invariants and one uncovered action. The broader 414-test run had four audio
+deadline failures; the isolated 34-test audio suite passed. Both results are
+retained. This candidate has not been integrated into main or accepted.
 
 The focused request tests exercise `have you met alicia yet`, `have you met the
 amazon echo`, and loop-member enrichment for `have you met george`. No rule
 resource, factory inventory, normalizer, corpus, oracle, or harness file was
 changed.
 
-## Differential evidence
+## Historical special-case differential evidence
 
 The stored N-08 lead replay at
 `.parity/reviews/full-parser-n08.json` contains 20,528 source-backed HTTP
@@ -56,6 +60,8 @@ Under Node `v22.22.0`:
 - full replay of all 20,528 stored original rows — 20,230 matches, 298
   differences, zero newly failing IDs.
 
-This remains an unverified N-08 candidate. Root should rerun the full
-20,528-case replay after integration and review the remaining arbitration,
-entity/factory, loop-member, and other grammar differences before acceptance.
+Those counts describe the historical special-case replay. Its separate full
+production capture had 20,229 exact parser matches, 298 semantic mismatches
+and one observation timeout; it remains a failed full run. Neither historical
+run supplies the replacement candidate's score. N-08 stays open for complete
+arbitration, entities/factories, loop handling, grammar and production parity.

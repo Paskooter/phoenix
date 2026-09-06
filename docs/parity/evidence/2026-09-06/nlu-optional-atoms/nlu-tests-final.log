@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: native character-class optional scope: [me?et]
+ok 1 - native character-class optional scope: [me?et]
+  ---
+  duration_ms: 2.577427
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [cat?s]
+ok 2 - native character-class optional scope: [cat?s]
+  ---
+  duration_ms: 0.325859
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?cd]
+ok 3 - native character-class optional scope: [ab?cd]
+  ---
+  duration_ms: 0.219125
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?cde]
+ok 4 - native character-class optional scope: [ab?cde]
+  ---
+  duration_ms: 0.281394
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?(cd)e]
+ok 5 - native character-class optional scope: [ab?(cd)e]
+  ---
+  duration_ms: 0.247189
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?(c|d)e]
+ok 6 - native character-class optional scope: [ab?(c|d)e]
+  ---
+  duration_ms: 0.201442
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?éd]
+ok 7 - native character-class optional scope: [ab?éd]
+  ---
+  duration_ms: 0.326118
+  type: 'test'
+  ...
+# Subtest: native character-class optional scope: [ab?😀d]
+ok 8 - native character-class optional scope: [ab?😀d]
+  ---
+  duration_ms: 0.27931
+  type: 'test'
+  ...
+# Subtest: eqEquals: members of a set are equal, non-members are not
+ok 9 - eqEquals: members of a set are equal, non-members are not
+  ---
+  duration_ms: 29.516817
+  type: 'test'
+  ...
+# Subtest: fullParse: ASR homophone confusion still parses ("set a timer for too minutes")
+ok 10 - fullParse: ASR homophone confusion still parses ("set a timer for too minutes")
+  ---
+  duration_ms: 1203.749914
+  type: 'test'
+  ...
+# Subtest: fullParse: chitchat personality/command intents that used to no-match
+ok 11 - fullParse: chitchat personality/command intents that used to no-match
+  ---
+  duration_ms: 1172.844655
+  type: 'test'
+  ...
+# Subtest: fullParse: smart-home routes to @be/hue-control
+ok 12 - fullParse: smart-home routes to @be/hue-control
+  ---
+  duration_ms: 141.785547
+  type: 'test'
+  ...
+# Subtest: fullParse: priority arbitration drops LOW catch-alls for HIGH intents
+ok 13 - fullParse: priority arbitration drops LOW catch-alls for HIGH intents
+  ---
+  duration_ms: 153.533363
+  type: 'test'
+  ...
+# Subtest: full pipeline: new long-tail intents now resolve
+ok 14 - full pipeline: new long-tail intents now resolve
+  ---
+  duration_ms: 183.074104
+  type: 'test'
+  ...
+# Subtest: full pipeline: existing question routing is unchanged (fallback only adds)
+ok 15 - full pipeline: existing question routing is unchanged (fallback only adds)
+  ---
+  duration_ms: 112.576456
+  type: 'test'
+  ...
+# Subtest: fullParse: pure garbage still returns null
+ok 16 - fullParse: pure garbage still returns null
+  ---
+  duration_ms: 75.296679
+  type: 'test'
+  ...
+# Subtest: who-question -> generalWhoQuestions with person entity, launch rule
+ok 17 - who-question -> generalWhoQuestions with person entity, launch rule
+  ---
+  duration_ms: 2.811731
+  type: 'test'
+  ...
+# Subtest: tell me about -> requestTellAboutThing
+ok 18 - tell me about -> requestTellAboutThing
+  ---
+  duration_ms: 0.792292
+  type: 'test'
+  ...
+# Subtest: no match -> reference no-match shape (gotcha \#7)
+ok 19 - no match -> reference no-match shape (gotcha \#7)
+  ---
+  duration_ms: 0.597202
+  type: 'test'
+  ...
+# Subtest: empty input -> no match
+ok 20 - empty input -> no match
+  ---
+  duration_ms: 1.897197
+  type: 'test'
+  ...
+# Subtest: be-skill: "what time is it" -> askForTime + skill=@be/clock
+ok 21 - be-skill: "what time is it" -> askForTime + skill=@be/clock
+  ---
+  duration_ms: 814.102859
+  type: 'test'
+  ...
+# Subtest: be-skill: "open the clock" -> menu + skill=@be/clock
+ok 22 - be-skill: "open the clock" -> menu + skill=@be/clock
+  ---
+  duration_ms: 144.273936
+  type: 'test'
+  ...
+# Subtest: question still routes to answer-skill intents (no be-skill false match)
+ok 23 - question still routes to answer-skill intents (no be-skill false match)
+  ---
+  duration_ms: 185.382162
+  type: 'test'
+  ...
+# Subtest: garbage -> no match
+ok 24 - garbage -> no match
+  ---
+  duration_ms: 155.407555
+  type: 'test'
+  ...
+# Subtest: loads the complete source inventory and the timer named rule
+ok 25 - loads the complete source inventory and the timer named rule
+  ---
+  duration_ms: 726.975659
+  type: 'test'
+  ...
+# Subtest: evaluates only requested rules and keeps local turns out of launch
+ok 26 - evaluates only requested rules and keeps local turns out of launch
+  ---
+  duration_ms: 383.867516
+  type: 'test'
+  ...
+# Subtest: selects a named result across multiple requests and de-duplicates it
+ok 27 - selects a named result across multiple requests and de-duplicates it
+  ---
+  duration_ms: 108.63896
+  type: 'test'
+  ...
+# Subtest: applies loop member detection after the named parse
+ok 28 - applies loop member detection after the named parse
+  ---
+  duration_ms: 422.386422
+  type: 'test'
+  ...
+# Subtest: keeps source priority and punctuation metadata semantic
+ok 29 - keeps source priority and punctuation metadata semantic
+  ---
+  duration_ms: 960.310281
+  type: 'test'
+  ...
+# Subtest: expands optional characters in source person grammar
+ok 30 - expands optional characters in source person grammar
+  ---
+  duration_ms: 365.038495
+  type: 'test'
+  ...
+# Subtest: HTTP parser accepts the complete request data and preserves empty shape
+ok 31 - HTTP parser accepts the complete request data and preserves empty shape
+  ---
+  duration_ms: 83.343617
+  type: 'test'
+  ...
+# Subtest: HTTP parser still rejects malformed text before rule loading
+ok 32 - HTTP parser still rejects malformed text before rule loading
+  ---
+  duration_ms: 4.469164
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3449.588951

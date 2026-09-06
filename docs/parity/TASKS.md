@@ -674,9 +674,9 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / http_contract_repair.
+- [x] Candidate implementation — **awaiting_review**; Codex root.
 
-Candidate scope: Agent full replay reports 20,230/20,528 status/data matches and 14 fixes. Root independent fixed full production run has 20,229 exact parser matches, the same 298 semantic mismatch IDs and one unreproduced observation timeout. No new semantic mismatch IDs; native optional-class compiler probes remain pending before bounded integration.
+Candidate scope: General native optional-code-point/group behavior; all 32 NLU tests pass. Complete 20,528-request HTTP replay is running. Strict smoke remains 659 differences, zero invariants and one gap. The 414-test run had four audio deadline failures; all 34 isolated audio tests pass. Earlier failures are retained.
 
 Candidate report: [docs/parity/candidates/N-08-followup.md](../../docs/parity/candidates/N-08-followup.md).
 

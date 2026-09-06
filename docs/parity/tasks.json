@@ -1082,16 +1082,15 @@
       "verification": [],
       "implementationReview": {
         "state": "awaiting_review",
-        "assignee": "Luna Max / http_contract_repair",
-        "scope": "Agent full replay reports 20,230/20,528 status/data matches and 14 fixes. Root independent fixed full production run has 20,229 exact parser matches, the same 298 semantic mismatch IDs and one unreproduced observation timeout. No new semantic mismatch IDs; native optional-class compiler probes remain pending before bounded integration.",
-        "worktree": ".parity/worktrees/nlu-next",
-        "baseRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
-        "evidence": [
-          "docs/parity/evidence/2026-09-06/nlu-n08-followup/full-replay-review.json"
-        ],
-        "candidateRevision": "7e0abbc83f0da8fb9a3f94752555b6074989f0e6",
+        "assignee": "Codex root",
+        "scope": "General native optional-code-point/group behavior; all 32 NLU tests pass. Complete 20,528-request HTTP replay is running. Strict smoke remains 659 differences, zero invariants and one gap. The 414-test run had four audio deadline failures; all 34 isolated audio tests pass. Earlier failures are retained.",
+        "worktree": ".parity/worktrees/nlu-optional-root",
+        "baseRevision": "7330e6673de5785de599c44b782eaccd12435200",
+        "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
         "artifact": "docs/parity/candidates/N-08-followup.md",
-        "branch": "codex/candidate-nlu-next-20260905"
+        "evidence": [
+          "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json"
+        ]
       },
       "implementationReviewHistory": [
         {
@@ -1108,6 +1107,22 @@
           "reviewedBy": "Codex root",
           "reviewEvidence": "docs/parity/evidence/2026-09-05/production/n08-full-parser-review/review.json",
           "reviewFinding": "89 prior failures repaired and zero newly failing cases in the full20,528-request status/data replay; full N-08 remains open."
+        },
+        {
+          "state": "changes_requested",
+          "assignee": "Luna Max / http_contract_repair",
+          "scope": "Agent full replay reports 20,230/20,528 status/data matches and 14 fixes. Root independent fixed full production run has 20,229 exact parser matches, the same 298 semantic mismatch IDs and one unreproduced observation timeout. No new semantic mismatch IDs; native optional-class compiler probes remain pending before bounded integration.",
+          "worktree": ".parity/worktrees/nlu-next",
+          "baseRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
+          "evidence": [
+            "docs/parity/evidence/2026-09-06/nlu-n08-followup/full-replay-review.json"
+          ],
+          "candidateRevision": "7e0abbc83f0da8fb9a3f94752555b6074989f0e6",
+          "artifact": "docs/parity/candidates/N-08-followup.md",
+          "branch": "codex/candidate-nlu-next-20260905",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json",
+          "reviewFinding": "Native code-point/group semantics disprove the duplicate-boundary mechanism. Replace with general atom handling; full historic capture also contains one unresolved observation timeout."
         }
       ],
       "nextImplementation": {
@@ -1115,7 +1130,8 @@
         "assignee": "Luna Max / http_contract_repair",
         "worktree": ".parity/worktrees/nlu-path-score",
         "baseRevision": "66e2abc331dc0707abbce0a9714674c3c3bf8a08",
-        "scope": "Replace unsupported token/priority scoring using the pinned native compiler/FST consumed-byte and path-cost algorithm. Independent native synthetic probes are running with capture_writer_repair. Frozen empirical ranking 9f5477 remains unaccepted."
+        "scope": "Native scoring candidate ef42422 fixes 169 prior mismatches but introduces 15 previously passing tie-family differences and omits four non-200 HTTP cases from its direct replay. The follow-up must include the complete 20,528-request HTTP domain and resolve new differences; root has not accepted it.",
+        "candidateRevision": "ef4242236eb601af992068e0c5ac7c85ad625fc8"
       }
     },
     {

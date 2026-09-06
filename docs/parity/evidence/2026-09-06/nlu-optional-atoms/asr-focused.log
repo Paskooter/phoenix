@@ -1,0 +1,214 @@
+TAP version 13
+# Subtest: VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+ok 1 - VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+  ---
+  duration_ms: 61.727277
+  type: 'test'
+  ...
+# Subtest: VAD: stop() before SOS resolves start() with undefined
+ok 2 - VAD: stop() before SOS resolves start() with undefined
+  ---
+  duration_ms: 0.50153
+  type: 'test'
+  ...
+# Subtest: WAV header: 44-byte RIFF, 16kHz mono 16-bit
+ok 3 - WAV header: 44-byte RIFF, 16kHz mono 16-bit
+  ---
+  duration_ms: 0.266845
+  type: 'test'
+  ...
+# Subtest: LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+ok 4 - LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+  ---
+  duration_ms: 8.318032
+  type: 'test'
+  ...
+# Subtest: LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+ok 5 - LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+  ---
+  duration_ms: 1.648466
+  type: 'test'
+  ...
+# Subtest: LINEAR16 stop preserves an even final partial VAD window
+ok 6 - LINEAR16 stop preserves an even final partial VAD window
+  ---
+  duration_ms: 3.994074
+  type: 'test'
+  ...
+# Subtest: VAD and EOS are invariant across PCM chunk boundaries
+ok 7 - VAD and EOS are invariant across PCM chunk boundaries
+  ---
+  duration_ms: 13.36518
+  type: 'test'
+  ...
+# Subtest: encoded fixtures preserve VAD events and PCM cut across decoder chunking
+ok 8 - encoded fixtures preserve VAD events and PCM cut across decoder chunking
+  ---
+  duration_ms: 132.479889
+  type: 'test'
+  ...
+# Subtest: max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+ok 9 - max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+  ---
+  duration_ms: 14.641561
+  type: 'test'
+  ...
+# Subtest: declared audio formats are validated before a provider session starts
+ok 10 - declared audio formats are validated before a provider session starts
+  ---
+  duration_ms: 0.969459
+  type: 'test'
+  ...
+# Subtest: bounded decoder queue rejects input without buffering a whole turn
+ok 11 - bounded decoder queue rejects input without buffering a whole turn
+  ---
+  duration_ms: 0.484469
+  type: 'test'
+  ...
+# Subtest: missing ffmpeg is an explicit runtime decoder error
+ok 12 - missing ffmpeg is an explicit runtime decoder error
+  ---
+  duration_ms: 3.122461
+  type: 'test'
+  ...
+# Subtest: decoder rejects empty or truncated FLAC streams at end-of-input
+ok 13 - decoder rejects empty or truncated FLAC streams at end-of-input
+  ---
+  duration_ms: 7.890461
+  type: 'test'
+  ...
+# Subtest: decoder finish followed by abort settles without a dangling OGG promise
+ok 14 - decoder finish followed by abort settles without a dangling OGG promise
+  ---
+  duration_ms: 4.162342
+  type: 'test'
+  ...
+# Subtest: OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+ok 15 - OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+  ---
+  duration_ms: 5.216651
+  type: 'test'
+  ...
+# Subtest: explicit OGG end-of-input accepts decoded audio before a missing EOS page
+ok 16 - explicit OGG end-of-input accepts decoded audio before a missing EOS page
+  ---
+  duration_ms: 53.826147
+  type: 'test'
+  ...
+# Subtest: decoder bounds include an active FLAC frame and clean up on overflow
+ok 17 - decoder bounds include an active FLAC frame and clean up on overflow
+  ---
+  duration_ms: 1.275988
+  type: 'test'
+  ...
+# Subtest: decoder reports a missing process and clears its child without a pending finish
+ok 18 - decoder reports a missing process and clears its child without a pending finish
+  ---
+  duration_ms: 3.912688
+  type: 'test'
+  ...
+# Subtest: OGG decoder emits PCM before the paced source reaches EOF
+ok 19 - OGG decoder emits PCM before the paced source reaches EOF
+  ---
+  duration_ms: 341.388098
+  type: 'test'
+  ...
+# Subtest: FLAC decoder emits PCM before the paced source reaches EOF
+ok 20 - FLAC decoder emits PCM before the paced source reaches EOF
+  ---
+  duration_ms: 176.111506
+  type: 'test'
+  ...
+# Subtest: paced OGG input can reach SOS before the source reaches EOF
+ok 21 - paced OGG input can reach SOS before the source reaches EOF
+  ---
+  duration_ms: 344.842439
+  type: 'test'
+  ...
+# Subtest: paced FLAC input can reach SOS before the source reaches EOF
+ok 22 - paced FLAC input can reach SOS before the source reaches EOF
+  ---
+  duration_ms: 407.152973
+  type: 'test'
+  ...
+# Subtest: OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+ok 23 - OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+  ---
+  duration_ms: 52.956046
+  type: 'test'
+  ...
+# Subtest: FLAC frames are decoded incrementally before VAD despite fragmented input
+ok 24 - FLAC frames are decoded incrementally before VAD despite fragmented input
+  ---
+  duration_ms: 8.356535
+  type: 'test'
+  ...
+# Subtest: FLAC decoded waveform matches the immutable lossless fixture
+ok 25 - FLAC decoded waveform matches the immutable lossless fixture
+  ---
+  duration_ms: 14.485405
+  type: 'test'
+  ...
+# Subtest: FLAC surfaces a native decoder error even when it decoded no PCM
+ok 26 - FLAC surfaces a native decoder error even when it decoded no PCM
+  ---
+  duration_ms: 4.877558
+  type: 'test'
+  ...
+# Subtest: FLAC rejects an oversized native chunk before allocating PCM
+ok 27 - FLAC rejects an oversized native chunk before allocating PCM
+  ---
+  duration_ms: 0.420898
+  type: 'test'
+  ...
+# Subtest: FLAC accepts every single-byte split across metadata and frame headers
+ok 28 - FLAC accepts every single-byte split across metadata and frame headers
+  ---
+  duration_ms: 28.794596
+  type: 'test'
+  ...
+# Subtest: malformed declared audio rejects the session with a decoder error
+ok 29 - malformed declared audio rejects the session with a decoder error
+  ---
+  duration_ms: 3.572234
+  type: 'test'
+  ...
+# Subtest: encoded session cancellation aborts decoder resources before SOS
+ok 30 - encoded session cancellation aborts decoder resources before SOS
+  ---
+  duration_ms: 4.075697
+  type: 'test'
+  ...
+# Subtest: encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+ok 31 - encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+  ---
+  duration_ms: 16.069859
+  type: 'test'
+  ...
+# Subtest: hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+ok 32 - hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+  ---
+  duration_ms: 0.35361
+  type: 'test'
+  ...
+# Subtest: factory: non-English languages throw (reference gate)
+ok 33 - factory: non-English languages throw (reference gate)
+  ---
+  duration_ms: 0.159092
+  type: 'test'
+  ...
+# Subtest: normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+ok 34 - normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+  ---
+  duration_ms: 0.57956
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2907.57158

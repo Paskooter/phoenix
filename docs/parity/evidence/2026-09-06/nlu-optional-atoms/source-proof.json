@@ -1,0 +1,92 @@
+{
+  "kind": "jibo-nlu-optional-class-source-proof",
+  "status": "read-only-source-analysis",
+  "source": {
+    "repo": "ConvTech/jibo-nlu",
+    "owner": "ConvTech",
+    "commit": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "archiveUrl": "https://pvindex.org/gitea/ConvTech/jibo-nlu/archive/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e.tar.gz",
+    "archiveSha256": "3bf858a742b9caeb157c1cf4010ff314e94e58b19bfc413d67141a0861b00f51",
+    "readVia": "mcp__jibo__gitea_read_file at the pinned commit",
+    "files": {
+      "compiler/compiler.ypp": {
+        "sha256": "6732bf04ed15183663f7458180554aea82dfac5cc4ce2e4b64f8a031d5d95323",
+        "lines": {
+          "rulecontentOptional": "118-128",
+          "normalWordOuterGroup": "130-150",
+          "charClass": "186-216"
+        }
+      },
+      "compiler/list_manip.cpp": {
+        "sha256": "6bbb39f85348e2ab16956489b33c997ddef2ddc502ea81944934de97ab73d0bb",
+        "lines": {
+          "newWord": "150-169",
+          "putParenthesesAndOptional": "185-201",
+          "newUtf8Char": "284-300"
+        }
+      },
+      "compiler/compiler.l": {
+        "sha256": "8611de156863d13f557fc485bb2e91db398e8873608ebfd1496c8d1d3556676e",
+        "lines": {
+          "specialCharacterSets": "15-16",
+          "wordOrValueEscapes": "39",
+          "operatorToken": "40"
+        }
+      },
+      "compiler/rule_cmp.cpp": {
+        "sha256": "a247278c1e14b6feb8b2d80289253345fa342974f62bf3c25bf21080909d9866",
+        "lines": {
+          "wordEdgeAndOrFlag": "153-170",
+          "optionalEpsilon": "211-229",
+          "parenthesizedGroup": "273-312"
+        }
+      },
+      "utils/string_utils.cpp": {
+        "sha256": "0d746f15b63c4a63f0373aa7f6556160455c4abeef8be2901057730a79e2cb58",
+        "lines": {
+          "removeBackslashes": "216-237"
+        }
+      },
+      "types/compile_types.h": {
+        "sha256": "2ecbfb5cb99865e86e2e477009f9137fc455cf5f47bfb2c262c9daf56b224ac0",
+        "lines": {
+          "elementTypes": "129-155",
+          "operatorTokens": "245-260"
+        }
+      }
+    }
+  },
+  "semantics": {
+    "plainCharacterClassWord": "new_word produces one parenthesized atom per decoded UTF-8 code point; OPTIONAL_ELTYPE bypasses only the first subsequent atom because processWORD_ELTYPE consumes the or flag and clears it.",
+    "explicitGroup": "Parenthesized content is wrapped with OPENPARENT_ELTYPE/CLOSEPARENT_ELTYPE; processOPENPARENT_ELTYPE and processCLOSEPARENT_ELTYPE preserve the optional epsilon branch around the complete group.",
+    "normalRuleWord": "Normal rule-content words receive an additional outer put_parentheses, so their optional operand boundary differs from an ungrouped character-class word.",
+    "escapedOperator": "A backslash plus a special character is lexed as WORD_OR_VALUE and the backslash is removed; the resulting '?' is literal data.",
+    "utf8": "TextIterator advances by code point and new_utf8_char groups all bytes of a valid 1-4 byte code point, so optionality cannot split a valid multibyte character."
+  },
+  "vectors": [
+    {"grammar": "[me?et]", "optionalAtom": "e", "requiredSuffix": "t", "accepts": ["met", "meet"], "rejects": ["me"]},
+    {"grammar": "[cat?s]", "optionalAtom": "s", "requiredSuffix": "", "accepts": ["cat", "cats"]},
+    {"grammar": "[ab?cd]", "optionalAtom": "c", "requiredSuffix": "d", "accepts": ["abd", "abcd"], "rejects": ["ab", "abc"]},
+    {"grammar": "[ab?cde]", "optionalAtom": "c", "requiredSuffix": "de", "accepts": ["abde", "abcde"], "rejects": ["ab", "abe", "abcd"]},
+    {"grammar": "[ab?(cd)e]", "optionalAtom": "(cd)", "requiredSuffix": "e", "accepts": ["abe", "abcde"], "rejects": ["ab", "abde"]},
+    {"grammar": "[ab?(c|d)e]", "optionalAtom": "(c|d)", "requiredSuffix": "e", "accepts": ["abe", "abce", "abde"], "rejects": ["ab"]},
+    {"grammar": "[ab?\\?d]", "optionalAtom": "literal ?", "requiredSuffix": "d", "accepts": ["abd", "ab?d"], "rejects": ["ab"]}
+  ],
+  "preservedProbeEvidence": {
+    "scope": "Existing host outputs in .parity/reviews/n08-optional-root; not rerun by this task",
+    "files": {
+      "host/original/parse.stdout": "fa9ce64d8b0299f95d47d04e6c8e4946680f778ec9218bfb6d9149a8a8374e06",
+      "host/distinct/parse.stdout": "0a713840d638d597c5e1ff00baba5dd628d7bae55e7ac1763375a90fbcefdc02",
+      "host/long/parse.stdout": "3d76c122b3c186363102998dee1482806e514ecc1605dc8a9218a6f3aaf01cf5",
+      "host/group/parse.stdout": "2f1cb6054fbb6630f4229cfb59f5b9fd696108573596b4331fd9e39ffaa119ab",
+      "host/escape/parse.stdout": "a2a994692688c5cef1583ec1110a0de6b8b661c772850cb1a56f4934392e60ce",
+      "host/alternation/parse.stdout": "80f575c1e88ec000d2e9cb8f41ac5fa3c78741be076b54a4e3a1bc792e7cd611"
+    }
+  },
+  "implication": "Do not special-case [me?et] as a three-way shared boundary. Implement optionality at the source-defined next atom boundary: one code point in an ungrouped character class, a complete explicit group/reference/outer-grouped normal word when such a boundary exists.",
+  "execution": {
+    "nativeCompilerRerun": false,
+    "robotOrServiceMutation": false,
+    "runtimeCandidateMutation": false
+  }
+}

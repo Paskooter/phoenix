@@ -1,0 +1,601 @@
+{
+  "mode": "host-native-CLI",
+  "runtime": "Linux-5.15.0-186-generic-x86_64-with-glibc2.35",
+  "originalBinaryArtifact": {
+    "bytes": 30545646,
+    "path": ".parity/downloads/jibo-nlu-v2.8.3-linux-x64.zip",
+    "sha256": "388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b"
+  },
+  "binaries": [
+    {
+      "bytes": 14665147,
+      "path": "input/build/bin/grm2fst",
+      "sha256": "ed5c9868c772b8fcb370e995cc0617906562fd192809b9590e0f313699e87ba3"
+    },
+    {
+      "bytes": 14703000,
+      "path": "input/build/bin/parse",
+      "sha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b"
+    },
+    {
+      "bytes": 15869655,
+      "path": "input/build/bin/jibo-nlu-service",
+      "sha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54"
+    },
+    {
+      "bytes": 4004589,
+      "path": "input/build/lib/libfst.so.3",
+      "sha256": "b7bb55f3a251d8b1da064adf970607749f28c58e02349d1f193ba0d03154ad6d"
+    },
+    {
+      "bytes": 7868202,
+      "path": "input/build/lib/libjibonlu.a",
+      "sha256": "2c0f7599138b2eec731d75dc47ed9321a2d18084ba2dd426ecec81f1ed3d5f89"
+    }
+  ],
+  "allAgentInputAndCommandLogHashesIndependentlyChecked": true,
+  "probeCases": [
+    {
+      "name": "original",
+      "body": "me?et",
+      "inputs": [
+        "me",
+        "met",
+        "meet"
+      ],
+      "grammarSha256": "d6b49883de7f74871b8f09ac0c0b1e236ebb7067c514902b8670eb0673d73a07",
+      "textSha256": "7a9d30feb3a8c8c472e1680892e992d8435dfe53f0524ecff8fdd0eb488046d7",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/original/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/original/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.31298675015568733,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/original/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/original/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.32688519498333335,
+        "stdoutSha256": "fa9ce64d8b0299f95d47d04e6c8e4946680f778ec9218bfb6d9149a8a8374e06",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "me": [],
+        "met": [
+          {
+            "Input": "met",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        "meet": [
+          {
+            "Input": "meet",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "ordinary",
+      "body": "cat?s",
+      "inputs": [
+        "cat",
+        "cats"
+      ],
+      "grammarSha256": "a764781c69352266d2e95cbd62faaa834b3ec441856c4bba08cf61c64f52fc84",
+      "textSha256": "7e1ee3e7f31d0842970defdb47ec8189d02d6a0354b679d1854bb957b4dd2463",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/ordinary/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/ordinary/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.10093879792839289,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/ordinary/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/ordinary/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.19274142012000084,
+        "stdoutSha256": "fe2f8ceac03def4997be2eee5bfe1abf8dec76ef32d6a4c0df9dfbc8e9b56967",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "cat": [
+          {
+            "Input": "cat",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        "cats": [
+          {
+            "Input": "cats",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "distinct",
+      "body": "ab?cd",
+      "inputs": [
+        "ab",
+        "abd",
+        "abcd",
+        "abc"
+      ],
+      "grammarSha256": "bd4de02292961219b7f2ec75d670b3f5c7d13a34464739aed7a3fd702691ed7f",
+      "textSha256": "48cfc81dec634a9080f3aa27d5142db1a4274b5f7ea8c71a094b230512481ee1",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/distinct/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/distinct/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.12221053382381797,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/distinct/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/distinct/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.2578781289048493,
+        "stdoutSha256": "0a713840d638d597c5e1ff00baba5dd628d7bae55e7ac1763375a90fbcefdc02",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "ab": [],
+        "abd": [
+          {
+            "Input": "abd",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        "abcd": [
+          {
+            "Input": "abcd",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ],
+        "abc": []
+      }
+    },
+    {
+      "name": "long",
+      "body": "ab?cde",
+      "inputs": [
+        "ab",
+        "abde",
+        "abcde",
+        "abe",
+        "abcd"
+      ],
+      "grammarSha256": "40271d4d693eb39739bc788157df1e51620470495f29a1431aca9f30c96356fc",
+      "textSha256": "ae379e80f51f6c2dbcf7c86fb2179e5043567cde73e086b7494ba529ad3f2e96",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/long/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/long/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.09880156582221389,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/long/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/long/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.21507287817075849,
+        "stdoutSha256": "3d76c122b3c186363102998dee1482806e514ecc1605dc8a9218a6f3aaf01cf5",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "ab": [],
+        "abde": [
+          {
+            "Input": "abde",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ],
+        "abcde": [
+          {
+            "Input": "abcde",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 6,
+            "index": 0
+          }
+        ],
+        "abe": [],
+        "abcd": []
+      }
+    },
+    {
+      "name": "group",
+      "body": "ab?(cd)e",
+      "inputs": [
+        "ab",
+        "abe",
+        "abcde",
+        "abde"
+      ],
+      "grammarSha256": "57b8ec0b76aeb42f763a1ed1951201e71dffff4498936971420cbd575fbfa04f",
+      "textSha256": "29934977c9345a069baf9eb7801a3971a1de3ca488c34b59bba7b6ff4a497f7a",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/group/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/group/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.10079661710187793,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/group/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/group/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.5142554310150445,
+        "stdoutSha256": "2f1cb6054fbb6630f4229cfb59f5b9fd696108573596b4331fd9e39ffaa119ab",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "ab": [],
+        "abe": [
+          {
+            "Input": "abe",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        "abcde": [
+          {
+            "Input": "abcde",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 6,
+            "index": 0
+          }
+        ],
+        "abde": []
+      }
+    },
+    {
+      "name": "escape",
+      "body": "ab?\\?d",
+      "inputs": [
+        "ab",
+        "abd",
+        "ab?d"
+      ],
+      "grammarSha256": "db9dfee17271b38ded51cdeedb700a32153385ea3f11fedad32935acf49a542d",
+      "textSha256": "a7a0c233e28b447d2f4a040a01d60c5b872675b7dfe601d07854112806e4e817",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/escape/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/escape/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.10050606681033969,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/escape/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/escape/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.13019892387092113,
+        "stdoutSha256": "a2a994692688c5cef1583ec1110a0de6b8b661c772850cb1a56f4934392e60ce",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "ab": [],
+        "abd": [
+          {
+            "Input": "abd",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        "ab?d": [
+          {
+            "Input": "ab?d",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "alternation",
+      "body": "ab?(c|d)e",
+      "inputs": [
+        "ab",
+        "abe",
+        "abce",
+        "abde"
+      ],
+      "grammarSha256": "8f6009e628a73de5808511552a4aceff9a99df54f8c3f6d8d497055ae2695cef",
+      "textSha256": "9871bcbb6a783dfd3f74115d107075ea5693a038398fba42e59961e6381f874a",
+      "compile": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+          "--grm",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/alternation/input.grm",
+          "--parsing_fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/alternation/output.fst"
+        ],
+        "exit": 0,
+        "seconds": 0.38972323201596737,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "parse": {
+        "command": [
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+          "--fst",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/alternation/output.fst",
+          "--txt",
+          "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/host/alternation/input.txt",
+          "--json"
+        ],
+        "exit": 0,
+        "seconds": 0.167031308170408,
+        "stdoutSha256": "80f575c1e88ec000d2e9cb8f41ac5fa3c78741be076b54a4e3a1bc792e7cd611",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "results": {
+        "ab": [],
+        "abe": [
+          {
+            "Input": "abe",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        "abce": [
+          {
+            "Input": "abce",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ],
+        "abde": [
+          {
+            "Input": "abde",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 5,
+            "index": 0
+          }
+        ]
+      }
+    }
+  ],
+  "unicodeCases": [
+    {
+      "body": "ab?éd",
+      "inputs": [
+        "abd",
+        "abéd"
+      ],
+      "commands": [
+        {
+          "command": [
+            "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+            "--grm",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/accent.grm",
+            "--parsing_fst",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/accent.fst"
+          ],
+          "exit": 0
+        },
+        {
+          "command": [
+            "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+            "--fst",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/accent.fst",
+            "--txt",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/accent.txt",
+            "--json"
+          ],
+          "exit": 0
+        }
+      ],
+      "results": [
+        [
+          {
+            "Input": "abd",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        [
+          {
+            "Input": "abéd",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 6,
+            "index": 0
+          }
+        ]
+      ]
+    },
+    {
+      "body": "ab?😀d",
+      "inputs": [
+        "abd",
+        "ab😀d"
+      ],
+      "commands": [
+        {
+          "command": [
+            "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/grm2fst",
+            "--grm",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/emoji.grm",
+            "--parsing_fst",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/emoji.fst"
+          ],
+          "exit": 0
+        },
+        {
+          "command": [
+            "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build/bin/parse",
+            "--fst",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/emoji.fst",
+            "--txt",
+            "/home/shell/work/phoenix/.parity/reviews/n08-optional-root/utf8/emoji.txt",
+            "--json"
+          ],
+          "exit": 0
+        }
+      ],
+      "results": [
+        [
+          {
+            "Input": "abd",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 4,
+            "index": 0
+          }
+        ],
+        [
+          {
+            "Input": "ab😀d",
+            "NLParse": {
+              "intent": "probe"
+            },
+            "heuristic_score": 8,
+            "index": 0
+          }
+        ]
+      ]
+    }
+  ],
+  "failedDockerStart": {
+    "result": "container-start-timeout-before-compiler-execution",
+    "containerId": "77305ced4d3c",
+    "timeoutSeconds": 25,
+    "lastObservedState": "created",
+    "lastObservedPid": 0,
+    "lastObservedStartedAt": "0001-01-01T00:00:00Z",
+    "compilerOutputExists": false,
+    "caseDirectory": "original",
+    "assertedNativeResult": null
+  },
+  "isolation": "Pinned original compiler/parser binaries, bundled native libraries and local synthetic grammar/text files. No original NLU service, provider or robot was used. Docker first attempt stayed Created and was removed after identity verification; it supplies no native result."
+}
