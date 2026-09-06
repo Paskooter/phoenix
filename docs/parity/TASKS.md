@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. The earlier authentication-disabled main trial failed CONTEXT preprocessing. A later authenticated43c81f3 trial passed native token issuance, both socket paths and SDK clock/proactive; the previous compiled-profile backend was restored. An unexplained BE exit was recovered by relaunching unchanged11.0.1 and rechecking clock/idle.
+The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open.
 
 Done when:
 
@@ -690,13 +690,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root source review and gateway correction.
 
-Candidate scope: Bounded explicit compiled profile for all 98 public graphs and 16 pinned factory files (15 FSTs), with source scoring/ties/winner rejection and per-rule failures. Root combined 477-unit/64 configured/full 20,528 HTTP and 42 strict multi-rule checks pass; strict production retains 488 differences, 11 removed with none added. Moth clock/joke and same-job timer create/cancel verified through actual client text injection. Full N-08 and microphone/physical ring acceptance remain open.
+Candidate scope: Bounded default AST wildcard-byte ranking plus original answer registrations in the shared-host deployment. Independent 20,528-row HTTP replay repairs 146 previous failures: 20,379 matches and 149 differences, zero newly failing previously passing IDs, 125 unchanged residuals and 24 changed residuals. Final root 516 unit tests, 9 configured gateway checks and strict43 zero-difference smoke pass. Full N-08 remains open.
 
-Candidate report: [docs/parity/candidates/N-08-compiled-fst.md](../../docs/parity/candidates/N-08-compiled-fst.md).
+Candidate report: [docs/parity/candidates/N-08-ast-score-20260906.md](../../docs/parity/candidates/N-08-ast-score-20260906.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json](../../docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review.json](../../docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

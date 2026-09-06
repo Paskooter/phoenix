@@ -42,7 +42,7 @@ traces `?` through the original compiler and confirms its behavior with the
 native binaries. That review rejected a duplicate-character special case and
 replaced it with the general code-point/group rule. The replacement is
 integrated after root review: it fixes 17 previous differences with no newly
-failing IDs across the 20,528-request HTTP status/data replay. The default AST profile retains 295 differences.
+failing IDs across the 20,528-request HTTP status/data replay. That checkpoint retained 295 default AST differences; the later ranking repair below reduces the current total to 149.
 
 The [compiled-profile integration](evidence/2026-09-06/nlu-compiled-fst/integration-review.json) now executes all 98 pinned public graphs with source scoring and tie rules. It matches all 20,528 archived HTTP parser responses and all 42 [original native multi-rule HTTP/routing cases](evidence/2026-09-06/nlu-compiled-fst/multirule-http-review.json). The latter original capture uses the exact extracted Node 8 executable on the host in an isolated network namespace; it is not a replacement for pinned Docker goldens.
 
@@ -52,7 +52,9 @@ An earlier launch-only candidate failed on Moth because it compared native score
 
 Source recovery and these bounded checks do not close N-02 or N-08. After the accepted SettingsClient, Report analytics, graph allocation and Report Lasso transport fixes, the configured 43-case server smoke comparison has zero differences, invariants and coverage gaps. Grammar compilation, broader factory behavior, native build reproduction and full-server acceptance remain tracked in the [checklist](TASKS.md).
 
-A [default AST ranking candidate](evidence/2026-09-06/nlu-ast-ranking/root-review-pending.json) reports 149 corpus differences, pending independent root acceptance. Fresh native controls support a bounded wildcard byte-ranking improvement and expose remaining explicit-weight, equal-cost graph-order and bare-Unicode grammar gaps. A proposed global last-equal-score tie rule was rejected after additional native controls. Candidate results do not replace the accepted 295-difference default-AST baseline.
+The [default AST ranking repair](evidence/2026-09-06/nlu-ast-ranking/root-review.json) is accepted after independent root replay of all 20,528 requests: 20,379 match and 149 differ. It repairs 146 previous failures without making a previously passing case fail. Another 24 outputs changed but still fail and remain recorded separately. Native controls support a bounded wildcard byte-ranking improvement; explicit weights, equal-cost graph order, factory behavior and bare-Unicode grammar handling remain open. The AST rank is not the native numeric score. A proposed global last-equal-score rule was rejected after native counterexamples.
+
+The same review found that Phoenix's shared-host answer manifest omitted 11 original registrations. It now preserves all 23 source answer registrations, including named-person questions. Six native CLI/original-router controls establish the expected routes; the source ParserService HTTP attempts failed setup and receive no credit. The final combined parser/routing tree passes 516 active unit tests, nine configured gateway checks and all 43 strict compiled smoke cases. This checkpoint has not been deployed to Moth.
 
 The service callsite is additionally recovered at
 [`ConvTech/jibo-nlu-service@5d6755a`](https://pvindex.org/gitea/ConvTech/jibo-nlu-service/src/commit/5d6755a5116694e2801438f358b862109cd16ba5).

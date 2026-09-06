@@ -11,11 +11,12 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
 - **Status: implemented in part; 1:1 compatibility is not yet verified.**
-  The [latest reviewed integration](docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json)
+  The [latest reviewed integration](docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review.json)
   matches all **43 configured compiled-FST smoke fixtures**, with zero field differences,
   trace invariants or coverage gaps. This is a bounded component profile. The complete
   `057f67c` baseline covers **20,534 fixtures** with **49,155 field differences**
-  and predates the latest repairs. The default AST parser still has **295 corpus differences**.
+  and predates the latest repairs. The default AST parser has **149 differences across
+  20,528 requests**, down from 295 after independent review.
   [Production comparisons](docs/parity/PRODUCTION.md) record exact scope and evidence.
   Follow the [execution plan](docs/parity/PLAN.md) and [verified task checklist](docs/parity/TASKS.md).
   Run `npm run parity:status` for progress and the next ready task. [M9-REPORT.md](M9-REPORT.md)

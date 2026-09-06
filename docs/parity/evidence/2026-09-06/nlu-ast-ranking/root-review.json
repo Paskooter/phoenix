@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-06T19:08:58.873054+00:00",
+  "decision": "accepted bounded implementation; full N-08 remains open",
+  "reviewedBy": "Codex root",
+  "scope": "Default AST wildcard-byte ranking and complete original answer intent registrations for Phoenix shared skill host",
+  "integratedRuntimeRevision": "051cce7a565062938b4d38b8069d993cffa35f46",
+  "agentCandidateRevision": "031844d24e9030c73159bf96a7b37da30ea6c36f",
+  "fullReplayRootRevision": "8f5ec748c578c66cb115c73ae265b1e1bcd0af3e",
+  "finalRootReviewRevision": "e77913ad799228b42f557787bfaefd762473023e",
+  "finalRootChanges": [
+    "3f7bbf1: preserve all 23 original answer registrations plus the existing Phoenix answerQuestion alias",
+    "e77913a: correct wildcard rank explanation and add a native unequal-byte-cost regression control"
+  ],
+  "sourcePins": {
+    "pegasus": "5c0a7390539663ba749d360de348a428c088505c",
+    "nativeCpp": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "nativeBuild": "Archived binary identity is pinned separately; exact source rebuild remains unverified"
+  },
+  "rootFullHttpReplay": {
+    "sourceCases": 20528,
+    "sourceIdsUnique": true,
+    "sourceReferenceSha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+    "sourceFileSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+    "scope": "HTTP status and decoded parser data, unchanged input corpus/comparator; not full server or request latency parity",
+    "baseline": {
+      "cases": 20528,
+      "matches": 20233,
+      "differences": 295,
+      "groups": {
+        "boundary": {
+          "cases": 21,
+          "matches": 20
+        },
+        "chitchat": {
+          "cases": 11432,
+          "matches": 11266
+        },
+        "hub-client": {
+          "cases": 9002,
+          "matches": 8874
+        },
+        "report": {
+          "cases": 73,
+          "matches": 73
+        }
+      }
+    },
+    "candidate": {
+      "cases": 20528,
+      "matches": 20379,
+      "differences": 149,
+      "groups": {
+        "boundary": {
+          "cases": 21,
+          "matches": 21
+        },
+        "chitchat": {
+          "cases": 11432,
+          "matches": 11346
+        },
+        "hub-client": {
+          "cases": 9002,
+          "matches": 8939
+        },
+        "report": {
+          "cases": 73,
+          "matches": 73
+        }
+      }
+    },
+    "fixedCount": 146,
+    "newFailureCount": 0,
+    "unchangedResidualCount": 125,
+    "changedResidualCount": 24,
+    "rootExactlyReproducesAgentDifferencesAndGroups": true
+  },
+  "changedResidualIds": [
+    "chitchat:71:4:base",
+    "chitchat:71:4:condition:0",
+    "chitchat:366:0:base",
+    "chitchat:1904:0:base",
+    "chitchat:2270:4:base",
+    "chitchat:2270:4:condition:0",
+    "chitchat:2444:0:base",
+    "chitchat:2444:5:base",
+    "chitchat:3127:1:base",
+    "chitchat:4357:0:base",
+    "chitchat:4360:0:base",
+    "chitchat:4395:2:base",
+    "chitchat:4395:2:condition:0",
+    "chitchat:4491:1:base",
+    "chitchat:4504:0:base",
+    "hub-client:216:2:base",
+    "hub-client:216:2:condition:0",
+    "hub-client:218:0:base",
+    "hub-client:243:0:base",
+    "hub-client:243:5:base",
+    "hub-client:1224:0:base",
+    "hub-client:1224:1:base",
+    "hub-client:1254:1:base",
+    "hub-client:1598:0:base"
+  ],
+  "validation": {
+    "fullUnits": {
+      "passed": 516,
+      "failed": 0,
+      "skipped": 3,
+      "total": 519
+    },
+    "compiledHttp": {
+      "cases": 20528,
+      "matches": 20528,
+      "differences": 0,
+      "scope": "Previously completed root replay on 8f5; compiled runtime unchanged"
+    },
+    "configuredGateway": {
+      "passed": 9,
+      "failed": 0,
+      "scope": "Source registry controls and full CLIENT_ASR/CLIENT_NLU WebSocket paths under compiled profile"
+    },
+    "compiledServerSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "sourceStableDuringRuns": true,
+    "mainRuntimeScriptsResourcesTestsEqualReviewedTree": true,
+    "allFinalWorkspaceLinksLocal": true,
+    "matcherExecutableTokensEqualFullReplay": 2154,
+    "integratedMainStrictGate": {
+      "exitCode": 0,
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    }
+  },
+  "nativeRankingBasis": {
+    "freshControlsAttempted": 9,
+    "successfulCompileParsePairs": 8,
+    "baselineWinnerAgreement": 2,
+    "candidateWinnerAgreement": 3,
+    "newlyCorrectControl": "different-wildcard-bytes",
+    "restriction": "For ordinary unweighted full parses, literal-token specificity minus non-space wildcard bytes gives a rank offset by an input constant from native wildcard byte cost including separators. This is not native numeric score equivalence. Explicit weights, zero-length ties, factories and normalization boundaries remain open.",
+    "excludedInvalidControl": "w02 is not a native built-in; the failed compile receives no passing credit"
+  },
+  "gatewayFix": {
+    "cause": "The shared-host answer-skill manifest omitted 11 original answer registrations. Once Ada parsed as whoIsPerson, gateway matched no cloud skill and completed LISTEN without a cloud action.",
+    "originalObservation": "Native launch.fst selects whoIsPerson for Ada Lovelace; original getBestResult/getNLParseEntities and IntentRouter select cloud answer.",
+    "evidenceProfile": "Six archived native CLI results passed to original Node8 extraction and router in network-isolated pinned containers; not original ParserService HTTP execution",
+    "finalBehavior": "Person-name and generic question requests reach answer-skill through the real WebSocket/NLU/skill pipeline; source skill ID answer maps to explicit deployment alias answer-skill",
+    "providerLimitation": "Cloud action delivery is checked. External answer-provider knowledge, speech recognition and robot display behavior are outside this fixture."
+  },
+  "retainedFailuresAndRejectedChanges": [
+    {
+      "artifact": "root-review-pending.json",
+      "state": "Historical pending review and failed first attempts preserved unchanged"
+    },
+    {
+      "check": "First full default-AST baseline replay",
+      "exitCode": 124,
+      "details": "1800-second outer orchestration limit expired. Both later fixed-worktree replays completed with 3600-second outer budgets and unchanged requests/comparator; no latency parity claim."
+    },
+    {
+      "check": "Initial candidate units",
+      "passed": 512,
+      "failed": 1,
+      "details": "Gateway Ada cloud-action failure resolved by source-backed deployment manifest fix; expected native person intent updated, cloud-action assertion retained."
+    },
+    {
+      "check": "Original gateway HTTP controls",
+      "attempts": [
+        {
+          "runtime": "Host-extracted Node8 in isolated namespace",
+          "completedCases": 0,
+          "failure": "Native startup deadline"
+        },
+        {
+          "runtime": "Pinned Node8 Docker, network none",
+          "completedCases": 0,
+          "failure": "Native service became ready but grammar loads failed with No thread available; no case credited"
+        }
+      ]
+    },
+    {
+      "check": "Global last-equal-score tie candidate 1855df7",
+      "state": "changes_requested",
+      "details": "15 native tie controls agree 9 times with strict first and 5 with proposed global last; not integrated"
+    },
+    {
+      "check": "Supplemental w03/quoted-Unicode matrix",
+      "details": "Initial compile hit 40-second outer timeout during observed I/O stalls; no successful matrix credit"
+    }
+  ],
+  "remainingGates": [
+    "149 default AST HTTP status/data differences, including 24 changed but still failing outputs",
+    "Explicit per-character weight follow-up 1aeec012 is unverified and has a separate full replay running",
+    "Native graph tie ordering, factory/normalization boundaries and reproducible native source build",
+    "Complete server corpus rerun, durable providers and full lifecycle acceptance",
+    "Microphone wake and physical ring/real robot acceptance remain open; this commit is not a hardware verification"
+  ],
+  "evidenceHashes": {
+    ".parity/reviews/n08-ast-family-root-20260906/retry/baseline-http.json": "50b0c8518b1f93ad1922bf4cf5866b614c2091821873ae12baa60f54058f29c1",
+    ".parity/reviews/n08-ast-family-root-20260906/retry/candidate-http.json": "d4182a939e238491f796d97a0493c76300e6b0b41e1037dd0a8362cf3f6a4490",
+    ".parity/reviews/n08-ast-family-root-20260906/retry/baseline-http-receipt.json": "2fc9ab9dfec61b3d295ef9b539249ea3c5bee6bbbe67018d3e5ab4dad0642ea0",
+    ".parity/reviews/n08-ast-family-root-20260906/retry/candidate-http-receipt.json": "0e4a292365748d8f96ff9c78f96ec8fae75fd6c67c5e5b30ebc6c0ec45c9890c",
+    ".parity/reviews/n08-ast-family-root-20260906/retry/reconciliation.json": "12c9936355f8372e00efc74211402905eef8bb6b64b679412e096901b47f9364",
+    ".parity/reviews/n08-ast-family-root-20260906/retry/baseline-equivalence.json": "fa5acde3394db54ecb0b3c579023a396a12fa8d9eca581c8aa8fa70f5060a5ff",
+    ".parity/reviews/n08-ast-family-root-20260906/compiled-http.json": "0e5a21957e96f3642c03997e6db3f41a48ca04f55edf7657f19e7630aacec8c7",
+    ".parity/reviews/n08-ast-family-root-20260906/native-controls/native-results.json": "a9363f2628b46e2a50fdf11880ee294bd4c3ca234143e5ec9b8709316033f36f",
+    ".parity/reviews/n08-ast-family-root-20260906/gateway-native-cli/receipt.json": "da1c457bf5d8cf7ecda3700b718d6d2cd8032d9b8697e54f8de0d87f764f5a0e",
+    ".parity/reviews/n08-ast-family-root-20260906/gateway-native-cli/route-receipt.json": "29936f92deac8469cbec46ea9307446392aaacc8164a945e161664e6c22bee1a",
+    ".parity/reviews/n08-ast-family-root-20260906/gateway-source-docker/receipt.json": "1a9f79c83afb6a4a4560fe991701598718b076066328ba0af16f8cf16e8ce267",
+    ".parity/reviews/n08-route-root-20260906/unit-receipt.json": "c551117ffcee0852eb2f585caa25a11d6891a065a76b2eb50d2408ec06a7f393",
+    ".parity/reviews/n08-route-root-20260906/configured-gateway-receipt.json": "0e4d7a0e9c925fba60cb7ecc9eaba0ea0bd1bd7cd5e54d194a63242427894667",
+    ".parity/reviews/n08-route-root-20260906/strict-receipt.json": "8a4104bbc21b069c073225d1c074c8930779846483bfdb3aabee5ba9d244960d",
+    ".parity/reviews/n08-route-root-20260906/production/comparison.json": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+    ".parity/reviews/n08-route-root-20260906/matcher-token-equivalence.json": "0e44ce7d4c43fa65fea3cb36d5e24182dc972b9f4ce3cff44088255d28e36161",
+    ".parity/runs/ci-production-65845941-a06b-4f51-8e4c-58f334027a9e/comparison.json": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+  }
+}

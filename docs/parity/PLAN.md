@@ -93,11 +93,11 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **512 unit tests** and the configured
+The latest accepted main checkpoint passes **516 unit tests** and the configured
 compiled-FST strict **43-case smoke with zero differences, invariants or coverage
-gaps**. The default AST profile still has **295 accepted-baseline corpus
-differences**. [Current candidate review](evidence/2026-09-06/nlu-ast-ranking/root-review-pending.json)
-records proposed improvements and unresolved checks separately.
+gaps**. The default AST profile still has **149 corpus differences across 20,528 requests**, down from 295. The
+[accepted root review](evidence/2026-09-06/nlu-ast-ranking/root-review.json) records
+146 repaired cases, zero new failure IDs, and the remaining limits.
 The complete `057f67c` baseline has **49,155 field differences across 20,534
 cases**, zero invariants and 97 gap instances across both sides. Exact action
 objects agree in 20,170/20,434 comparisons. The complete baseline predates the
