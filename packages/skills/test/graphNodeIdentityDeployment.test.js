@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { start } from '../src/index.js';
+import { createSkillsService, SKILLS, start } from '../src/index.js';
 
 const body = {
   type: 'LISTEN_LAUNCH',
@@ -27,11 +27,11 @@ const body = {
   },
 };
 
-async function post(server, path = '/v1/main') {
+async function post(server, path = '/v1/main', requestBody = body) {
   const response = await fetch(`http://127.0.0.1:${server.address().port}${path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(requestBody),
   });
   return { status: response.status, body: await response.json() };
 }
@@ -78,6 +78,21 @@ test('combined host allocates chitchat before report in one manager', async () =
   const oldPrefs = process.env.ETCO_report_prefsFromConfig;
   process.env.ETCO_report_prefsFromConfig = 'true';
   const server = await start(0, { skillId: null });
+  try {
+    const result = await post(server, '/v1/report-skill/main');
+    assert.equal(result.status, 200);
+    assert.equal(result.body.data.skill.session.nodeID, 35);
+  } finally {
+    await close(server);
+    if (oldPrefs === undefined) delete process.env.ETCO_report_prefsFromConfig;
+    else process.env.ETCO_report_prefsFromConfig = oldPrefs;
+  }
+});
+
+test('exported SKILLS registry allocates cohosted graphs before first request', async () => {
+  const oldPrefs = process.env.ETCO_report_prefsFromConfig;
+  process.env.ETCO_report_prefsFromConfig = 'true';
+  const server = await createSkillsService({ name: 'skills-registry-test', skills: SKILLS, defaultId: 'answer-skill' }).listen(0);
   try {
     const result = await post(server, '/v1/report-skill/main');
     assert.equal(result.status, 200);

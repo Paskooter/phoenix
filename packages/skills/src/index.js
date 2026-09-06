@@ -37,13 +37,24 @@ export { colorSkill } from './colorSkill.js';
 export { exampleSkill } from './exampleSkill.js';
 export { templateSkill } from './templateSkill.js';
 
-// Compatibility descriptors retain the historical named handlers. The service
-// entrypoint below uses createBuiltinSkills so graph construction is scoped to
-// the selected host and ordered chitchat -> report for a combined host.
+// Compatibility descriptors retain the historical named handlers. A caller
+// that passes SKILLS directly to createSkillsService still represents one
+// co-hosted host, so its first request must not decide graph-ID allocation.
+// Build that registry lazily, in the source order, while keeping selected
+// start() hosts on their own managers below.
+let publicBuiltinSkills;
+
+function publicSkillHandler(skillId) {
+  return (...args) => {
+    if (!publicBuiltinSkills) publicBuiltinSkills = createBuiltinSkills({ graphManager: new GraphManager() });
+    return publicBuiltinSkills.find((skill) => skill.id === skillId).handler(...args);
+  };
+}
+
 export const SKILLS = [
   { id: 'answer-skill', handler: answerSkill },
-  { id: 'chitchat-skill', handler: (...args) => getChitchatSkill()(...args) },
-  { id: 'report-skill', handler: (...args) => getReportSkill()(...args) },
+  { id: 'chitchat-skill', handler: publicSkillHandler('chitchat-skill') },
+  { id: 'report-skill', handler: publicSkillHandler('report-skill') },
   { id: 'color-skill', handler: colorSkill },
   { id: 'example-skill', handler: exampleSkill },
   { id: 'template-skill', handler: templateSkill },
