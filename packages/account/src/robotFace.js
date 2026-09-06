@@ -72,7 +72,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store) {
+export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
   // oobe.handler.ts mapping keys (lowercased for the prefix-tolerant match).
   const ops = {
     setuprobot: setupRobot,
@@ -92,7 +92,7 @@ export function robotFaceRoutes(store) {
 
     // Settings_* — the report-skill's user-prefs source (NET_settings points here).
     if (/^settings/i.test(prefix)) {
-      return void settingsAwsDispatch(store, { req, res, body: body || {}, op, log });
+      return settingsAwsDispatch(store, { req, res, body, op, prefix, log, providers: settingsProviders });
     }
 
     // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
@@ -122,7 +122,12 @@ export function robotFaceRoutes(store) {
   };
   // Hapi presents an omitted request payload to CreateHubToken as null. Other
   // legacy robot handlers retain the service's historical object default.
-  dispatch.bodyDefault = (req) => parseTarget(req).op.toLowerCase() === 'createhubtoken' ? null : {};
+  dispatch.bodyDefault = (req) => {
+    const target = parseTarget(req);
+    if (target.op.toLowerCase() === 'createhubtoken') return null;
+    if (/^settings/i.test(target.prefix)) return null;
+    return {};
+  };
 
   return {
     'POST /': dispatch,
