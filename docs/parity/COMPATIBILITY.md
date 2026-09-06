@@ -31,6 +31,11 @@ The BE 12 archive includes Jibo Server Client `3.0.79` and three nested `3.0.117
 - Original HTTP/WS stack: Express **4.16.2**, body-parser **1.18.2**, ws **3.3.3**. `jibo-cai-utils@6.0.1`, `jibo-typed-events@6.0.1`, `jibo-log@5.0.7`, `jibo-data-utils@3.0.1` and the remainder resolve through the original lock. This includes a dependency written as `latest`; it must retain its locked value.
 - Axios is **the Jibo fork** at `9ffcb402fec0fa6041658b8f99ffe6619c65b6a0`, reported as `0.17.1`, alongside a separately locked stock `0.18.0`. Replacing the fork with stock Axios can change requests; it is not a provisioning-only change.
 - NLU: the original postinstall requests **2.8.3**. The repository bundles **2.8.2** (SHA-256 `a84aef41fe6ff79026b627c683260862f7971280c3bf21ab45fa8c10f35c4975`). Use the retrieved [2.8.3 archive](https://pvindex.org/repository/nlu/jibo-nlu/jibo-nlu-v2.8.3-linux-x64.zip), hash it and record execution before using it as an oracle. Results from 2.8.2 require their own label and cannot certify 2.8.3 parity.
+
+The [NLU source record](NLU-SOURCE.md) now also pins the complete original
+compiler/parser source at `ConvTech/jibo-nlu@91b1bb6` and documents the executed
+2.8.3 compiler/parser probes. Source and binary provenance remain separate;
+the source archive is not counted as verified grammar functionality.
 - Registry addresses may be relocated to `https://pvindex.org/npm/` following the Jibo MCP `jibo://npmrc` resource. Exact versions and original tarball hashes remain pinned. A hash mismatch is an unresolved dependency difference, not permission to discard integrity checking.
 
 V-01 records what actually executes, including interpreter, dependency closure, build adaptations, fake providers, fixed time/randomness and any unavailable modules. A partial runnable reference is useful; it must list its exclusions. Original credentials and historical production endpoints are not fixture configuration.

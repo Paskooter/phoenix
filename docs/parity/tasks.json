@@ -891,13 +891,16 @@
       "reference": [
         "pegasus:packages/parser/src/robustparser/RobustParserClient.ts",
         "pegasus:packages/parser/robust-parser",
-        "jibo:ConvTech/jibo-nlu/parser/parser.cpp"
+        "jibo:ConvTech/jibo-nlu/parser/parser.cpp",
+        "jibo:ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:compiler",
+        "jibo:ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:parser"
       ],
       "phoenix": [
         "packages/nlu/src/grammar",
         "packages/nlu/resources/factory-words",
         "packages/nlu/tools/legacyOracleDiagnostic.mjs",
-        "scripts/parity-production"
+        "scripts/parity-production",
+        "docs/parity/NLU-SOURCE.md"
       ],
       "finding": "The grammar engine approximates the original; a static golden grader currently scores 74/89 and is not the production parser.",
       "acceptance": [
@@ -1066,12 +1069,15 @@
       "reference": [
         "pegasus:packages/parser/src/handlers/ParseRequestHandler.ts",
         "pegasus:packages/parser/src/robustparser/RobustParserClient.ts",
-        "pegasus:packages/chitchat-skill/resources/test-manifest.json"
+        "pegasus:packages/chitchat-skill/resources/test-manifest.json",
+        "jibo:ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:compiler",
+        "jibo:ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:parser"
       ],
       "phoenix": [
         "packages/nlu/src/index.js",
         "packages/nlu/src/fullGrammar.js",
-        "packages/harness/src/corpusRunner.js"
+        "packages/harness/src/corpusRunner.js",
+        "docs/parity/NLU-SOURCE.md"
       ],
       "finding": "Reviewed source grammar metadata repairs are integrated. Full replay matches HTTP status and complete decoded response.data for20,216/20,528 requests:89 prior failures fixed, no newly failing IDs,312 remaining. All73 report cases match. Full outer HTTP/routing/action parity remains separate and open.",
       "acceptance": [
