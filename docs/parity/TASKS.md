@@ -897,7 +897,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-Root integrated Settings getter/view/provider-seam/internal-listener behavior and restricted its JSON parser selection to the intended Account endpoint. All 78 source TCP cases and provider traces match; the original Report client reads byte-identical preferences from the actual listener with fixed providers. Update/Delete, live providers/Mongo and public authentication remain open.
+Root accepted bounded Settings getter/view/internal dispatch and mutation behavior: 78 original getter TCP and 52 original Update/Delete cases match status, raw bodies, header maps except Date, ordered provider calls and partial effects. Local loop sharing, account/skill credential isolation, delete/recreate, report calendar-service replacement and disk reopen pass 29 controls. Full OAuth/token exchange, real Mongo/network peers, public authentication and ambiguous legacy marker migration remain open.
 
 Done when:
 
@@ -907,17 +907,17 @@ Done when:
 
 Source: [jiborobot/srv-jibo-server-client/apis/settings-2017-12-19.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/settings-2017-12-19.normal.json); [Original Pegasus packages/hub/src/utils/SettingsClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/SettingsClient.ts); [Original Pegasus packages/report-skill/src/SettingsClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/SettingsClient.ts).
 
-Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js); [packages/account/src/settingsData.js](../../packages/account/src/settingsData.js).
+Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js); [packages/account/src/settingsData.js](../../packages/account/src/settingsData.js); [packages/account/src/settingsProviders.js](../../packages/account/src/settingsProviders.js); [docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json](../../docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json).
 
 Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
-Candidate scope: Bounded Settings getter/controller/provider-seam/internal-transport slice with root POST / parser isolation. All 78 preserved original TCP status/raw-body/header/provider cases match after excluding Date only. Full A-06 and deployed providers/public authentication remain open.
+Candidate scope: Bounded internal Update/Delete and local identity/persistence slice. Root matches 52 original mutation and 78 getter TCP cases; 29 local/reopen controls and 501 unit tests pass. Strict43 retains the identical 218 differences. Full A-06, OAuth/Mongo/network providers/public authentication remain open.
 
-Candidate report: [docs/parity/candidates/A-06-transport-review-20260906.md](../../docs/parity/candidates/A-06-transport-review-20260906.md).
+Candidate report: [docs/parity/candidates/A-06-main-identity-20260906.md](../../docs/parity/candidates/A-06-main-identity-20260906.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/review.json](../../docs/parity/evidence/2026-09-06/service-integration/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json](../../docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 3. Verify complete skill output and interactions
 

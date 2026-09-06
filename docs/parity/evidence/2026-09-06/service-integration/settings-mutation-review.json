@@ -1,0 +1,82 @@
+{
+  "status": "Root accepted bounded Settings mutation and local persistence compatibility",
+  "integratedRevision": "844e609f9c726144086b9152c74e5a7540de3350",
+  "reviewedCandidateRevision": "d73efff2e14121aa92434f27d0839652c18f2b3b",
+  "candidateInputRevision": "85423d0daad1ed4fd1f3254c35c57e15a1794837",
+  "sourceRevision": "jiborobot/srv-settings-ws@0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+  "scope": [
+    "Internal UpdateSettings/DeleteSettings dispatch, validation, errors, ordered provider calls and partial effects.",
+    "Local loop properties shared by loop, credential existence isolated by account/skill/service/scope query, delete/recreate behavior and report calendar-service replacement."
+  ],
+  "verification": {
+    "unit": {
+      "passed": 501,
+      "failed": 0,
+      "skipped": 3
+    },
+    "sourceMutationTCP": {
+      "cases": 52,
+      "observations": 56,
+      "matched": 52,
+      "runtime": "Original TypeScript2.5.3 ES2015 emitted service on pinned Node8.9.4 Docker; Phoenix on host Node22",
+      "comparison": "Case/step order and identity, raw inputs, credentials, targets, HTTP status/raw body/decoded body/header maps excluding Date only, ordered provider calls and final provider state."
+    },
+    "sourceGetterTCP": {
+      "cases": 78,
+      "matched": 78,
+      "comparison": "Exact case inputs and order, status/raw body/header maps excluding Date only and ordered provider calls."
+    },
+    "sourceProvenance": {
+      "sourceFiles": 23,
+      "freshRootReemittedFiles": 23,
+      "allBytesMatchObservedRuntime": true,
+      "compiler": "TypeScript2.5.3, ES2015/CommonJS/decorators; not an original release build"
+    },
+    "candidateIntegration": {
+      "localIdentityControls": 9,
+      "diskCloseReopenControls": 20,
+      "passed": 29,
+      "mutationResponseBodiesAlsoChecked": true,
+      "readOnlyReopenStoreBytesUnchanged": true
+    },
+    "strictProduction": {
+      "cases": 43,
+      "baselineDifferences": 218,
+      "candidateDifferences": 218,
+      "literalRecordsIdentical": true,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "gatePass": false
+    },
+    "integratedFilesEqualReviewedCandidate": true,
+    "sourceStable": true,
+    "workspaceLinksLocal": true
+  },
+  "limits": [
+    "Full A-06 remains open.",
+    "Local credential existence markers do not implement OAuth authorization-code exchange, token storage/refresh or real Mongo behavior.",
+    "Live network provider wiring and public authentication remain unverified for this slice.",
+    "Ambiguous historical colon-delimited credential markers are not migrated.",
+    "Source captures preserve header maps; raw response header order is not claimed exact.",
+    "Original fixtures/providers/golden/driver/comparator were not changed or weakened."
+  ],
+  "evidenceHashes": {
+    "workspace-install-receipt.json": "3dccd2bfbd60a1638e72f4dc332a7e4004e865a89b0dae5092a42ca5e7ad00e2",
+    "full-unit.log": "92a97750655e2550ab064d8f40973a054e5a7638f3f1d8aedfa1660ebb45cde3",
+    "full-unit-receipt.json": "1b77faeae55bfb8a1ee164f99a61fd128139788b4b69139b6522c17ecc80e9d9",
+    "tcp52.log": "0d056c55d7ef7b9d0b77c23c32567e95b9535c0cf875e104cbc7477f2a8e70f0",
+    "tcp52-receipt.json": "65a7685422967add7d22e36c4ae41066d111fdcbf330c2ba22918a7fcc21d934",
+    "tcp78-receipt.json": "a2707ce971c4cc62ec52f4b86441bc0d0cea04ba2e50b318e4751d3ffbb775a1",
+    "candidate-internal-tcp.json": "6efdda25459428e50d52dd9789cf267e802edbdd7b42d6e2d8192e094181c26d",
+    "local9.log": "fdea3a8f776f81225cbb474568b8403a320fd06f987066c4f23e1443efdb80f2",
+    "local9-receipt.json": "05cd715d442536569b163dcdb51e4b8ac042fc32baa1e69f7980f74f272c76a4",
+    "reopen20.log": "f54925f6f48c71e2a0adc51423df4f27d2ea1064918945ae5e60ba4bafd92fcb",
+    "reopen20-receipt.json": "0a6e3f570ff63c91f7c51ce0454d557044b8ab36df4cebd9c65cd4a4f15ea6fa",
+    "source-emission-review.json": "28d1f0cc9a54036562e45461c0265e6a9d30679a01e594d19673a5e917006322",
+    "root-comparison.json": "bf7efab9d40678bd0b4028919351ddd45e0a6cf235e8c69f5c999eb7dcbf53a4",
+    "production/run.json": "332d75960d3b356b1b8589fcc5b0bfb1053111a73cac5185c40105b3bed5471b",
+    "production/comparison.json": "34e2179a0f3434892be9a0674a5ce8093d462d9d50f0e8fe0f7d72b6e164580b",
+    "strict-receipt.json": "19359def7a7b33b414029089e4a185d0464c034f8deae505e5e0d08153e29570",
+    "strict-regression-review.json": "0019e9a2c0d04647a58858fd9c5bcd0bfde1b8fe9be2d4eecb16014bd2cc44f7"
+  }
+}

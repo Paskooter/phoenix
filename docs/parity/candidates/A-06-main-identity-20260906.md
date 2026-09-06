@@ -1,3 +1,5 @@
+Root review: accepted the bounded mutation/local persistence slice at `844e609f9c726144086b9152c74e5a7540de3350`. [Independent review evidence](../evidence/2026-09-06/service-integration/settings-mutation-review.json) records 52 mutation and 78 getter source TCP matches, 29 integration controls and 501 unit passes. Full A-06 remains open. The candidate notes below retain their original review status.
+
 # A-06 current-main Update/Delete and credential-identity candidate
 
 Status: unverified candidate pending root review.

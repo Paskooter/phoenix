@@ -2365,9 +2365,11 @@
       ],
       "phoenix": [
         "packages/account/src/settingsFace.js",
-        "packages/account/src/settingsData.js"
+        "packages/account/src/settingsData.js",
+        "packages/account/src/settingsProviders.js",
+        "docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json"
       ],
-      "finding": "Root integrated Settings getter/view/provider-seam/internal-listener behavior and restricted its JSON parser selection to the intended Account endpoint. All 78 source TCP cases and provider traces match; the original Report client reads byte-identical preferences from the actual listener with fixed providers. Update/Delete, live providers/Mongo and public authentication remain open.",
+      "finding": "Root accepted bounded Settings getter/view/internal dispatch and mutation behavior: 78 original getter TCP and 52 original Update/Delete cases match status, raw bodies, header maps except Date, ordered provider calls and partial effects. Local loop sharing, account/skill credential isolation, delete/recreate, report calendar-service replacement and disk reopen pass 29 controls. Full OAuth/token exchange, real Mongo/network peers, public authentication and ambiguous legacy marker migration remain open.",
       "acceptance": [
         "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
@@ -2377,12 +2379,12 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidates",
-        "candidateRevision": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
+        "candidateRevision": "844e609f9c726144086b9152c74e5a7540de3350",
+        "reviewedCandidateRevision": "d73efff2e14121aa92434f27d0839652c18f2b3b",
         "reviewedBy": "Codex root",
-        "scope": "Bounded Settings getter/controller/provider-seam/internal-transport slice with root POST / parser isolation. All 78 preserved original TCP status/raw-body/header/provider cases match after excluding Date only. Full A-06 and deployed providers/public authentication remain open.",
-        "artifact": "docs/parity/candidates/A-06-transport-review-20260906.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json",
-        "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152"
+        "scope": "Bounded internal Update/Delete and local identity/persistence slice. Root matches 52 original mutation and 78 getter TCP cases; 29 local/reopen controls and 501 unit tests pass. Strict43 retains the identical 218 differences. Full A-06, OAuth/Mongo/network providers/public authentication remain open.",
+        "artifact": "docs/parity/candidates/A-06-main-identity-20260906.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json"
       },
       "implementationReviewHistory": [
         {
@@ -2396,16 +2398,18 @@
           "reviewedBy": "Codex root",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/settings-root/credential-repair-freeze.json",
           "transportCandidateRevision": "dc7d8ca28cd932697a4c7ba4a177eca3831e9710"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max candidates",
+          "candidateRevision": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded Settings getter/controller/provider-seam/internal-transport slice with root POST / parser isolation. All 78 preserved original TCP status/raw-body/header/provider cases match after excluding Date only. Full A-06 and deployed providers/public authentication remain open.",
+          "artifact": "docs/parity/candidates/A-06-transport-review-20260906.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json",
+          "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152"
         }
-      ],
-      "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / http_contract_repair; root acceptance",
-        "candidateRevision": "85423d0daad1ed4fd1f3254c35c57e15a1794837",
-        "baseRevision": "14acdecdf8df1bde1127e3e2f43a77d08b1122bf",
-        "worktree": ".parity/worktrees/a06-main-identity",
-        "scope": "Agent repaired deleted-superset reactivation and source report calendar-service replacement. Reports 52 source Update/Delete TCP, 78 getter TCP, 9 actual-listener identity and 20 disk close/reopen checks. Root combined review remains pending. Local credential markers do not establish OAuth/Mongo/public authentication; ambiguous old delimiter-marker migration remains unsupported."
-      }
+      ]
     },
     {
       "id": "A-07",
