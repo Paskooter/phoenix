@@ -127,7 +127,7 @@ Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/pa
 
 Owner: Codex. Dependencies: PM-03.
 
-The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01/H-10 integration passes 402 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.
+Root reviewed and integrated all corpus-to-production-gate links: 20,507 corpus occurrences plus 27 boundary/direct cases, with the failing 20,534-case baseline retained. All 117 named grammar sources have exact resource copies; functional grammar coverage stays missing. Six inventory mutation tests and 17 scanner/comparison tests pass. V-03 still requires the first hosted CI run to demonstrate rejection of the known mismatch.
 
 Done when:
 
@@ -137,17 +137,17 @@ Done when:
 
 Source: [Original Pegasus packages/integration-tests-int](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-int); [Original Pegasus packages/integration-tests-ext](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/integration-tests-ext); [Original Pegasus packages/hub/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/tests); [Original Pegasus packages/parser/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/tests); [Original Pegasus packages/test-utils](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils).
 
-Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-05/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-05/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs); [docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json](../../docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json).
+Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-05/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-05/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs); [docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json](../../docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json); [scripts/parity-coverage/corpus-gates.json](../../scripts/parity-coverage/corpus-gates.json); [.github/workflows/parity.yml](../../.github/workflows/parity.yml); [docs/parity/evidence/2026-09-06/coverage-review/review.json](../../docs/parity/evidence/2026-09-06/coverage-review/review.json).
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
 
-Candidate scope: Bounded Node 8 full-corpus trace writer; candidate only, root recaptures and reviews original controls before accepting V-03.
+Candidate scope: Complete corpus gate provenance/denominators and separate grammar preservation counts; reviewed by root with portable end-to-end mutation checks. V-03 awaits hosted CI acceptance.
 
-Candidate report: [docs/parity/candidates/V-03.md](../../docs/parity/candidates/V-03.md).
+Candidate report: [docs/parity/candidates/V-03-coverage.md](../../docs/parity/candidates/V-03-coverage.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json](../../docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/coverage-review/review.json](../../docs/parity/evidence/2026-09-06/coverage-review/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### V-04 — Establish the Moth real-robot verification loop
 

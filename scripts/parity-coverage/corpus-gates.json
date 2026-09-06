@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "gates": [
+    {
+      "id": "production-v2-full",
+      "coverage": "partial",
+      "suite": "production-v2",
+      "suiteFile": "packages/harness/resources/goldens/production-full/suite.json",
+      "sourceFile": "packages/harness/resources/goldens/production-full/source.json",
+      "referenceFile": "packages/harness/resources/goldens/production-full/reference.json.gz",
+      "evidenceFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json",
+      "runFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/run.json",
+      "phoenixSourceFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/phoenix-source.json",
+      "comparisonFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/comparison.json.gz",
+      "candidateFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/candidate.json.gz",
+      "artifactSha256": {
+        "packages/harness/resources/goldens/production-full/suite.json": "7adb8a8f48b0806cebc31ec420f289bca10703c15195aeaf5fd1ed60deddd327",
+        "packages/harness/resources/goldens/production-full/source.json": "80a22278b9c72978bf9b88638ab64415b493f562d310c3f98e89ff4872bbf01e",
+        "packages/harness/resources/goldens/production-full/reference.json.gz": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json": "c9c1ca2b42a0d79156f4ba6269bf67bee4ed9eb9599500ddbe195435563eee6c",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/run.json": "dcd3b54a95d250281b5365ca295b716827fd3f5ba06226dbb838e0a4354cb739",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/phoenix-source.json": "2b5724c72991578fffdcb377f1585ead21e554512e616f44e26f899950f07584",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/comparison.json.gz": "d732eef5c2ca76715d695690257165230e9e9fba27010fb04779c45dcfd2ebb2",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/candidate.json.gz": "f4abb5db644606ee8171dd8aada87e7428b9eb9f9f15e989afa657ada5cd8a48",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/candidate.log": "68ebc3a4092e605ac33809ce7aecf0e23171d36bfc0eca10b4fea78e8eada68f",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/compare.log": "90f69eed8bf15597f177e1ec0e437ab284c65516321f02132ae021a5cac50b1a"
+      },
+      "denominator": {
+        "corpusOccurrences": 20507,
+        "boundaryCases": 21,
+        "directSkillCases": 6,
+        "boundaryAndDirectCases": 27,
+        "totalCases": 20534
+      },
+      "corpora": {
+        "chitchat": {
+          "baseOccurrences": 10035,
+          "conditionalOccurrences": 1397,
+          "cases": 11432
+        },
+        "hub-client": {
+          "baseOccurrences": 7029,
+          "conditionalOccurrences": 1973,
+          "cases": 9002
+        },
+        "report": {
+          "baseOccurrences": 73,
+          "conditionalOccurrences": 0,
+          "cases": 73
+        }
+      },
+      "scope": "The pinned production-v2 full pipeline executes every preserved corpus occurrence and conditional branch through the real HTTP parser handler, routing, local skill registry, production request builders and frozen fixture providers, alongside the named parser-boundary and direct-skill cases. This is execution coverage and retained differential evidence; it is not a passing Phoenix parity result.",
+      "remainingGaps": {
+        "providers": "Weather, news, calendar and maps are frozen fixtures; current provider availability, network behavior and hardware rendering are outside this gate.",
+        "hub": "Full HubService orchestration, proactive transactions and unhosted external cloud actions are outside this component profile; the baseline retains 97 side-specific external-action gap instances (8 reference, 89 candidate; 91 unique cases).",
+        "originalTests": "The 950 original test declarations and 960 expanded source cases remain separate inventory obligations. The production suite does not claim to execute every original test file, hook or historical external integration.",
+        "phoenixResult": "The reviewed Phoenix baseline is a mismatch with 49,155 field differences and zero invariant failures; it is intentionally partial coverage rather than a complete gate."
+      }
+    }
+  ]
+}

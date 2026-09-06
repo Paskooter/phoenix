@@ -1,0 +1,82 @@
+name: Phoenix parity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Production comparison suite
+        type: choice
+        options: [smoke, full]
+        default: smoke
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parity-${{ github.workflow }}-${{ github.ref }}-${{ inputs.suite || 'smoke' }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests and checklist
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22.22.0
+          package-manager-cache: false
+      - name: Install audio test dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - run: npm ci
+      - run: npm run test:unit
+      - run: python3 scripts/parity-coverage/inventory.test.py
+      - run: npm run parity:check
+
+  production:
+    name: Strict production comparison
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.suite == 'full' && 240 || 20 }}
+    env:
+      PARITY_SUITE: ${{ inputs.suite || 'smoke' }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22.22.0
+          package-manager-cache: false
+      - run: npm ci
+      - name: Compare Phoenix with the reviewed original capture
+        run: |
+          case "$PARITY_SUITE" in
+            smoke) npm run parity:gate -- --out .parity/runs/ci-production ;;
+            full) python3 scripts/parity-production/run.py --golden packages/harness/resources/goldens/production-full --out .parity/runs/ci-production ;;
+            *) exit 2 ;;
+          esac
+      - name: Retain comparison evidence even when parity fails
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: production-${{ env.PARITY_SUITE }}-${{ github.sha }}
+          path: |
+            .parity/runs/ci-production/run.json
+            .parity/runs/ci-production/phoenix-source.json
+            .parity/runs/ci-production/comparison.json
+            .parity/runs/ci-production/candidate.json.gz
+            .parity/runs/ci-production/*.log
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0

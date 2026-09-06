@@ -1,0 +1,94 @@
+{
+  "date": "2026-09-06T02:40:48.042291+00:00",
+  "reviewer": "Codex root",
+  "result": "accepted-bounded-coverage-integration",
+  "taskStatus": "V-03 remains in_progress for hosted CI acceptance",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "mainParentRevision": "e0956e5026fd4545582cb635d4b0a2e676ae74ab",
+  "candidateRevision": "78fd104b3e9f91b4241fdf2a080eea3e131363fa",
+  "files": {
+    "scripts/parity-coverage/inventory.py": "4b163e5492f7a7d4bc88282e5c9c5faecdb638a384aa8ea9716ee0d6af5da0f2",
+    "scripts/parity-coverage/inventory.test.py": "ad572ee55b19c9011e8a835e14c4448a4769019f91cb7b45d8575c35213da052",
+    "scripts/parity-coverage/corpus-gates.json": "98b4bf2d7d8ea19d2ae843bc62de0ed8ebce7b3bd1e84a66ed62ac1c00b0c24c",
+    ".github/workflows/parity.yml": "8071a8969e1584ba3e3da709dbe8197b1af4c0d1fe2af63cbd197b38293b24be",
+    "docs/parity/evidence/2026-09-06/coverage/source-inventory.json": "052f252b9aaca30eb06ae6f1356b609aed382f29eb493894a252964dbc428b03",
+    "docs/parity/evidence/2026-09-06/coverage/corpora.json": "8f928799abac2ddcbfddccafedd73c002665d846cdd4dd11107c8b932d85aaaf",
+    "docs/parity/evidence/2026-09-06/coverage/syntax-facts.json": "9ebc9bbfb37fcd4531d77cdebb1f2ca19a70bc5c28ee416902c25ce0f4227384"
+  },
+  "inventoryCounts": {
+    "sourceFiles": 6146,
+    "testDeclarations": 950,
+    "expandedSourceCases": 960,
+    "singleTestDeclarations": 946,
+    "dynamicTestDeclarations": 4,
+    "originalSkippedDeclarations": 1,
+    "originalPendingDeclarations": 0,
+    "routeRegistrations": 43,
+    "publicOperations": 89,
+    "explicitPublicOperations": 43,
+    "wireContracts": 223,
+    "grammarFiles": 119,
+    "runtimeGrammarSources": 117,
+    "identicalPhoenixGrammarSources": 117,
+    "byteIdenticalPhoenixGrammarCopies": 117,
+    "byteIdenticalPhoenixGrammarResourceFiles": 146,
+    "identicalMappedRuntimeGrammarSources": 29,
+    "compiledRuntimeRules": 98,
+    "manualRequests": 7,
+    "assetSets": 45,
+    "corpusCoverageGates": 1,
+    "partialCorpusOccurrences": 20507,
+    "productionBoundaryAndDirectCases": 27,
+    "productionCases": 20534,
+    "operationsWithPartialGates": 9,
+    "operationsWithCompleteGates": 0
+  },
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/parity-coverage/inventory.test.py",
+      "exitCode": 0,
+      "tests": 6,
+      "artifact": "inventory-tests.txt"
+    },
+    {
+      "command": "node --test scripts/parity-coverage/scan.test.cjs packages/harness/test/corpusManifest.test.js packages/harness/test/productionCompare.test.js",
+      "exitCode": 0,
+      "tests": 17,
+      "artifact": "comparison-tests.txt"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/parity-coverage/inventory.py --source /home/shell/work/pegasus --out .parity/reviews/v03-coverage-root/main",
+      "exitCode": 0,
+      "result": "All three generated files byte-identical to the candidate and integrated published inventory"
+    },
+    {
+      "command": ".parity/tools/actionlint/1.7.12/actionlint .github/workflows/parity.yml",
+      "exitCode": 0,
+      "artifact": "workflow-lint.txt",
+      "toolArchiveSha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+    }
+  ],
+  "rootChanges": [
+    "Made focused inventory tests consume the source-pinned vendored corpus bytes so a clean CI checkout needs no private sibling repository.",
+    "Mutation fixtures now exercise the complete gate validator with updated temporary artifact hashes, rather than calling the semantic helper directly.",
+    "Added a hosted workflow with separate unit/checklist and strict differential jobs; first actual run remains pending."
+  ],
+  "coverageMeaning": "All 20,507 preserved corpus occurrences plus 27 parser-boundary/direct-skill cases have a retained partial gate. Grammar preservation is 117 named sources, 146 resource placements and 29 mapped grammar copies; every grammar remains functionally unverified.",
+  "retainedBaseline": {
+    "phoenixRevision": "057f67c136358b0d0f2f7f3bf201b23f5664c734",
+    "cases": 20534,
+    "differences": 49155,
+    "invariants": 0,
+    "coverageGapInstances": 97
+  },
+  "limits": [
+    "This integration does not close a product task or turn the failing baseline into a pass.",
+    "Provider behavior, full HubService orchestration, original source test execution and physical client behavior retain their owning tasks.",
+    "Hosted CI must be observed rejecting the actual mismatch before V-03 infrastructure acceptance."
+  ],
+  "artifacts": {
+    "workflow-lint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inventory-tests.txt": "69d755ff3b9f497a052d69d804c1f7d0a9fada04db8db122a4a5d4a857e4d736",
+    "comparison-tests.txt": "cb6edd4d97fd13d05581c6b49d7ac90b70ef25beb448c9b34c473114d0174fcd"
+  }
+}

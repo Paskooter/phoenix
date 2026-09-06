@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: all three frozen corpora retain their original occurrence and conditional denominators
+ok 1 - all three frozen corpora retain their original occurrence and conditional denominators
+  ---
+  duration_ms: 235.299772
+  type: 'test'
+  ...
+# Subtest: missing intent is an absent expectation, including the archived hub-client MIM cases
+ok 2 - missing intent is an absent expectation, including the archived hub-client MIM cases
+  ---
+  duration_ms: 98.523979
+  type: 'test'
+  ...
+# Subtest: duplicate commands and conditional values remain independent fixture instances
+ok 3 - duplicate commands and conditional values remain independent fixture instances
+  ---
+  duration_ms: 0.558808
+  type: 'test'
+  ...
+# Subtest: changed corpus bytes and invalid input shapes cannot enter a grade silently
+ok 4 - changed corpus bytes and invalid input shapes cannot enter a grade silently
+  ---
+  duration_ms: 0.952293
+  type: 'test'
+  ...
+# Subtest: production goldens retain reviewed source hashes and agree across two original runtime captures
+ok 5 - production goldens retain reviewed source hashes and agree across two original runtime captures
+  ---
+  duration_ms: 80.102152
+  type: 'test'
+  ...
+# Subtest: complete report corpus control retains its uncovered external action and cannot become a passing gate
+ok 6 - complete report corpus control retains its uncovered external action and cannot become a passing gate
+  ---
+  duration_ms: 308.317667
+  type: 'test'
+  ...
+# Subtest: complete fixture generation retains all corpus occurrences and conditional variants
+ok 7 - complete fixture generation retains all corpus occurrences and conditional variants
+  ---
+  duration_ms: 230.551979
+  type: 'test'
+  ...
+# Subtest: production grade rejects changed entities, winning rules and null-versus-empty no-match results
+ok 8 - production grade rejects changed entities, winning rules and null-versus-empty no-match results
+  ---
+  duration_ms: 226.515284
+  type: 'test'
+  ...
+# Subtest: production grade rejects incomplete parser requests and changed routing memo types
+ok 9 - production grade rejects incomplete parser requests and changed routing memo types
+  ---
+  duration_ms: 111.550329
+  type: 'test'
+  ...
+# Subtest: production requests use the real builder and retain dialog-reference injection as a compared output
+ok 10 - production requests use the real builder and retain dialog-reference injection as a compared output
+  ---
+  duration_ms: 103.822494
+  type: 'test'
+  ...
+# Subtest: production grade retains action ESML, display IDs, analytics and complete continuation state
+ok 11 - production grade retains action ESML, display IDs, analytics and complete continuation state
+  ---
+  duration_ms: 204.02404
+  type: 'test'
+  ...
+# Subtest: production grade independently rejects incomplete captures, bad bytes, timestamps and generated IDs
+ok 12 - production grade independently rejects incomplete captures, bad bytes, timestamps and generated IDs
+  ---
+  duration_ms: 382.720515
+  type: 'test'
+  ...
+# Subtest: production compare CLI exits zero for the original control and nonzero for a behavioral mismatch
+ok 13 - production compare CLI exits zero for the original control and nonzero for a behavioral mismatch
+  ---
+  duration_ms: 3537.022499
+  type: 'test'
+  ...
+# Subtest: coverage discovery ignores comments and strings while retaining nested suites, skips and pending tests
+ok 14 - coverage discovery ignores comments and strings while retaining nested suites, skips and pending tests
+  ---
+  duration_ms: 133.773777
+  type: 'test'
+  ...
+# Subtest: coverage discovery distinguishes loop/factory declarations from fixed registrations
+ok 15 - coverage discovery distinguishes loop/factory declarations from fixed registrations
+  ---
+  duration_ms: 137.516055
+  type: 'test'
+  ...
+# Subtest: source registrations and wire contracts retain their source locations without counting production calls as tests
+ok 16 - source registrations and wire contracts retain their source locations without counting production calls as tests
+  ---
+  duration_ms: 132.405686
+  type: 'test'
+  ...
+# Subtest: unparseable source returns diagnostics and fails instead of silently disappearing from the denominator
+ok 17 - unparseable source returns diagnostics and fails instead of silently disappearing from the denominator
+  ---
+  duration_ms: 119.938155
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5327.356448

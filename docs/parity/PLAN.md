@@ -39,13 +39,14 @@ The ledger has **77 tasks**: 3 management, 4 verification, 46 Pegasus, 18 compan
 [PRODUCTION.md](PRODUCTION.md) records the failing 20,534-case comparison and
 reviewed integration checkpoints. [COVERAGE.md](COVERAGE.md) records 960 source
 cases, 89 public operation instances and all three preserved corpora; final
-corpus-to-gate links remain to be reconciled before V-03 closes. A-01 retains
+corpus-to-gate links are now reviewed and integrated. V-03 still needs the
+new hosted CI connection to demonstrate rejection of the known mismatch. A-01 retains
 the companion-cloud operation inventory. Bounded implementation acceptance
 does not close the parent product task.
 
 The first concrete defects to resolve once the comparison gate is available are null/error serialization (C-01), missing skill-list paths/config metadata (C-03/H-01), incorrect default skill endpoints (H-09), ignored NLU rule selection (N-01), history routes/payloads (I-01), and proactive settings (H-05). Calendar envelopes/providers and durable state follow their explicitly listed dependencies.
 
-Consumer inspection identifies explicit gates that hardware trials must measure and repair: original CreateHubToken/SigV4 behavior (A-02/H-10), declared audio encoding support (H-07), and the full transaction/session handoff into Nimbus (H-02/H-04). These remain in their existing tasks. The full trace writer is repaired and independently controlled. V-03 now owns final coverage-link review; failed historical captures remain retained.
+Consumer inspection identifies explicit gates that hardware trials must measure and repair: original CreateHubToken/SigV4 behavior (A-02/H-10), declared audio encoding support (H-07), and the full transaction/session handoff into Nimbus (H-02/H-04). These remain in their existing tasks. The full trace writer is repaired and independently controlled. V-03 now owns hosted CI acceptance; failed historical captures remain retained.
 
 ## Parallel implementation and lead verification
 

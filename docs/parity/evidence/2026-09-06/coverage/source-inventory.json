@@ -131722,6 +131722,12 @@
       "sourceRulePath": "chitchat/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/chitchat/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/chitchat/launch.rule",
+        "packages/nlu/resources/rules-src/chitchat/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -131743,6 +131749,12 @@
       "sourceRulePath": "circuit-saver/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/circuit-saver/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/circuit-saver/launch.rule",
+        "packages/nlu/resources/rules-src/circuit-saver/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -131762,7 +131774,12 @@
       "sha256": "425eb182d4528e24a4f593ea5eb14b11ea28c775fc5fec3793f251f9d3312163",
       "sourceRulePath": "circuit-saver/play_again.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/circuit-saver/play_again.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/circuit-saver/play_again.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131782,7 +131799,12 @@
       "sha256": "6abcc1900a853a7eebf7ea8bdcb3412136954dcfe22660509c8afdd154f6bdda",
       "sourceRulePath": "clock/alarm_set_value.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_set_value.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_set_value.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131802,7 +131824,12 @@
       "sha256": "9da20dec12cf491db5b810d78227d54670e055a29120e28b78d3ba47ce3453ae",
       "sourceRulePath": "clock/alarm_timer_ampm.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_ampm.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_ampm.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131822,7 +131849,12 @@
       "sha256": "e9991f373e4a0547d9e0023ae7adbf3a64e6564b4b6101b3834fe991b713e0c7",
       "sourceRulePath": "clock/alarm_timer_change.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_change.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_change.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131842,7 +131874,12 @@
       "sha256": "401f90dab58557304f5e625117e1785439ce6de4bcc0130091abbf4c3d6503e8",
       "sourceRulePath": "clock/alarm_timer_info.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_info.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_info.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131862,7 +131899,12 @@
       "sha256": "8a2f2eb7366a47daf747e8f91e37062065e00aeb077584837c258cad19530b88",
       "sourceRulePath": "clock/alarm_timer_none_set.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_none_set.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_none_set.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131882,7 +131924,12 @@
       "sha256": "b3501b24450608d134d248586b6a3daee01207fdcbe48f8741829603e2921649",
       "sourceRulePath": "clock/alarm_timer_okay.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_okay.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_okay.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131902,7 +131949,12 @@
       "sha256": "b2fc74299ba34fe8d706681ad0f763eca1883141555cec8d631da9059471ff1d",
       "sourceRulePath": "clock/alarm_timer_other_set.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_other_set.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_other_set.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131922,7 +131974,12 @@
       "sha256": "c6f1a671175373bc44dc48cb1b8a64558bc0e0722eb4557f41956b0e0175853e",
       "sourceRulePath": "clock/alarm_timer_query_menu.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_query_menu.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_query_menu.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131942,7 +131999,12 @@
       "sha256": "e1c637fb5e6eb37596847c8b39230bf49760eedfb034b84b3b57cec38feaffaf",
       "sourceRulePath": "clock/alarm_timer_too_long.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/alarm_timer_too_long.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/alarm_timer_too_long.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131962,7 +132024,12 @@
       "sha256": "c193b436adc81fa4fa2869290570554da6c42604c157279c287bc9473450abd6",
       "sourceRulePath": "clock/clock_menu.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/clock_menu.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/clock_menu.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -131984,6 +132051,12 @@
       "sourceRulePath": "clock/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/clock/launch.rule",
+        "packages/nlu/resources/rules-src/clock/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132003,7 +132076,12 @@
       "sha256": "b0890ada9d37e42c0c3ab576257c6a52ef8f177747a1027ed3ce76d25266255a",
       "sourceRulePath": "clock/stop_timer.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/stop_timer.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/stop_timer.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132023,7 +132101,12 @@
       "sha256": "8d8610d6ea3259d7f8f97d34e0ae056ac3631d2611907d8b2ddf003484bfb67a",
       "sourceRulePath": "clock/timer_set_value.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/clock/timer_set_value.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/clock/timer_set_value.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132043,7 +132126,12 @@
       "sha256": "b11fd10c69adea6af5c000c16d7ca3db5744b0071b82494ef6761ec4d4e6e0b7",
       "sourceRulePath": "create/execute_create_menu.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/create/execute_create_menu.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/create/execute_create_menu.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132063,7 +132151,12 @@
       "sha256": "34e00169bc77357966f824918e967b283eb03814ed16e1bded0dd0dbf3704a94",
       "sourceRulePath": "create/is_it_a_keeper.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/create/is_it_a_keeper.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/create/is_it_a_keeper.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132085,6 +132178,12 @@
       "sourceRulePath": "create/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/create/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/create/launch.rule",
+        "packages/nlu/resources/rules-src/create/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132104,7 +132203,12 @@
       "sha256": "8475006f68e2169a4b15af27ccf379aa3b8115f719d6abcc77b7aea5ecd569f3",
       "sourceRulePath": "create/take_another_photo.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/create/take_another_photo.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/create/take_another_photo.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132126,6 +132230,12 @@
       "sourceRulePath": "exercise/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/exercise/launch.rule",
+        "packages/nlu/resources/rules-src/exercise/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132145,7 +132255,12 @@
       "sha256": "da450c149d7164860c1fb9d6786d25b2b7bf8556e9d068032b3904919f1037d6",
       "sourceRulePath": "exercise/pause_hold.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/pause_hold.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/exercise/pause_hold.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132165,7 +132280,12 @@
       "sha256": "e6691404d9e7fac43ff31ea963949239a76122b56ffc646a538264c60253a865",
       "sourceRulePath": "exercise/ready_now.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/ready_now.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/exercise/ready_now.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132185,7 +132305,12 @@
       "sha256": "6fabc25ae65122ad4de6bb00841b6612470cfd7a631ff4720a66cdf70ddde556",
       "sourceRulePath": "exercise/ready_to_start.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/ready_to_start.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/exercise/ready_to_start.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132205,7 +132330,12 @@
       "sha256": "16be509e953f23cb0a84c2d2476e9686309cc14a448869e2135aa342538ce0bc",
       "sourceRulePath": "exercise/routine_selector.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/routine_selector.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/exercise/routine_selector.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132225,7 +132355,12 @@
       "sha256": "4bf1771596155e280b4151fec7f1d535eeb659fb0cd9c583efbf12dd91845cdf",
       "sourceRulePath": "exercise/run_control.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/run_control.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/exercise/run_control.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132245,7 +132380,12 @@
       "sha256": "8c52cef4fa2157fc2b8a56fceb70b4b90859cd7df4ad61345454e6ebee7751be",
       "sourceRulePath": "exercise/want_to.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/exercise/want_to.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/exercise/want_to.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132267,6 +132407,12 @@
       "sourceRulePath": "friendly-tips/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/friendly-tips/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/friendly-tips/launch.rule",
+        "packages/nlu/resources/rules-src/friendly-tips/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132286,7 +132432,12 @@
       "sha256": "89830f760796084a3e2e1ef65f90f3ab1a293b98a41f6f09e5a687ccfa4be244",
       "sourceRulePath": "friendly-tips/want_more_tdd.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/friendly-tips/want_more_tdd.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/friendly-tips/want_more_tdd.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132306,7 +132457,12 @@
       "sha256": "c026e37942e9c3774338e1e820db18b5b4d61f163804792f6b8d4097950c5348",
       "sourceRulePath": "gallery/confirm_delete_item.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/gallery/confirm_delete_item.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/gallery/confirm_delete_item.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132326,7 +132482,12 @@
       "sha256": "764ab58ada240f8e2ed5aada9cb0ba60e1eeb1220a7d9b510206a1336783d727",
       "sourceRulePath": "gallery/gallery_preview.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/gallery/gallery_preview.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/gallery/gallery_preview.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132346,7 +132507,12 @@
       "sha256": "ecba8bc8e32d0b0a7cf7faf5d9592e4a1f24982822bddb29d86363c9a58aeb99",
       "sourceRulePath": "gallery/item_pause.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/gallery/item_pause.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/gallery/item_pause.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132366,7 +132532,12 @@
       "sha256": "73c5acaec4a1d7777cdb7cf12ed0a5b8f9bdba5319295e83ce1ef9f610e686df",
       "sourceRulePath": "gallery/item_view.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/gallery/item_view.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/gallery/item_view.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132388,6 +132559,12 @@
       "sourceRulePath": "gallery/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/gallery/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/gallery/launch.rule",
+        "packages/nlu/resources/rules-src/gallery/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132409,6 +132586,12 @@
       "sourceRulePath": "globals/global_commands_launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/globals/global_commands_launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/globals/global_commands_launch.rule",
+        "packages/nlu/resources/rules-src/globals/global_commands_launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132430,6 +132613,12 @@
       "sourceRulePath": "globals/gui_nav.rule",
       "phoenixFile": "packages/nlu/resources/grammar/globals/gui_nav.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/globals/gui_nav.rule",
+        "packages/nlu/resources/rules-src/globals/gui_nav.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132451,6 +132640,12 @@
       "sourceRulePath": "globals/mim_repeat.rule",
       "phoenixFile": "packages/nlu/resources/grammar/globals/mim_repeat.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/globals/mim_repeat.rule",
+        "packages/nlu/resources/rules-src/globals/mim_repeat.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132472,6 +132667,12 @@
       "sourceRulePath": "globals/mim_thanks.rule",
       "phoenixFile": "packages/nlu/resources/grammar/globals/mim_thanks.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/globals/mim_thanks.rule",
+        "packages/nlu/resources/rules-src/globals/mim_thanks.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132491,7 +132692,12 @@
       "sha256": "4b58d6f9a7b567bcfc54b5471338818c030cfb7357bcf7e91f02708fbee4709d",
       "sourceRulePath": "greetings/bedtime_reminder.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/bedtime_reminder.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/bedtime_reminder.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132511,7 +132717,12 @@
       "sha256": "5f4c1a8b07ff5369c8ab4a4bee80230a935897f086ddd544de6f05aac5f08b86",
       "sourceRulePath": "greetings/day_quality.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/day_quality.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/day_quality.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132531,7 +132742,12 @@
       "sha256": "9cc3aa8fbee1ac04e32467153b98dcafcd468a3974e40f9a11c20f0f95d09137",
       "sourceRulePath": "greetings/greetings_hello.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/greetings_hello.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/greetings_hello.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132553,6 +132769,12 @@
       "sourceRulePath": "greetings/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/greetings/launch.rule",
+        "packages/nlu/resources/rules-src/greetings/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132572,7 +132794,12 @@
       "sha256": "042aad8d9244c23749ba15fe36a62a732e8b2ca354bf6804b33665764ec83fd3",
       "sourceRulePath": "greetings/proactive_general_question.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/proactive_general_question.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/proactive_general_question.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132592,7 +132819,12 @@
       "sha256": "b1f63e35dd181591866ac9afb813b1b815e474c07461a8e3c7a67846112d195a",
       "sourceRulePath": "greetings/proactive_general_statement.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/proactive_general_statement.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/proactive_general_statement.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132612,7 +132844,12 @@
       "sha256": "091ec188b2af255bbfdaa96a9c9e8895cf72b2bc888ca2078f7f79ffbe5a3ac2",
       "sourceRulePath": "greetings/proactive_morning_question.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/proactive_morning_question.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/proactive_morning_question.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132632,7 +132869,12 @@
       "sha256": "6c543d708a47804b4eb71acb44c37317e4d6271c97a151bc2d429626439c4ad8",
       "sourceRulePath": "greetings/proactive_morning_statement.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/proactive_morning_statement.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/proactive_morning_statement.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132652,7 +132894,12 @@
       "sha256": "80b37562da4fb77b31f289664927146db15b638c2b278dce47db65ab6090f20e",
       "sourceRulePath": "greetings/proactive_playful_question.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/proactive_playful_question.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/proactive_playful_question.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132672,7 +132919,12 @@
       "sha256": "d19a6294442bcf9a1b2ea3365f7d0cdf71c6f8a9c7cb8396962b30821fa2ca2e",
       "sourceRulePath": "greetings/proactive_playful_statement.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/proactive_playful_statement.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/proactive_playful_statement.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132692,7 +132944,12 @@
       "sha256": "95b6630c40126811511042ceac314bf7a0c4157f311c869591a571891d69b0e7",
       "sourceRulePath": "greetings/sleep_quality.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/sleep_quality.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/sleep_quality.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132712,7 +132969,12 @@
       "sha256": "916b5370955a725a8875c7a70bb57a851348cee4e2a8a7af1270b2d32c64764e",
       "sourceRulePath": "greetings/you_too.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/greetings/you_too.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/greetings/you_too.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132732,7 +132994,12 @@
       "sha256": "0fd807bbd37b8f034205afe7dfc5c955608bcd670d205e3cc595688714e7e70b",
       "sourceRulePath": "hue-control/are_lights.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/are_lights.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/are_lights.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132752,7 +133019,12 @@
       "sha256": "1b3fdd991d5918a9e857cf158c62a88747e1b80074efb995bcf0a3ab07602eaf",
       "sourceRulePath": "hue-control/delete_data_confirmation.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/delete_data_confirmation.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/delete_data_confirmation.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132772,7 +133044,12 @@
       "sha256": "ff7d1a3fac37f983c17b5107d4d7edff79ba4ac474a65fbcd4995366d655e9e4",
       "sourceRulePath": "hue-control/did_flash.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/did_flash.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/did_flash.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132792,7 +133069,12 @@
       "sha256": "1f39855dff0d893f3f30812043dde4c300c5c652e0df85cf9c0e2247955caeff",
       "sourceRulePath": "hue-control/first_time.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/first_time.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/first_time.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132812,7 +133094,12 @@
       "sha256": "2016d80b1fd1748d90f78f69949b750e7139a56cc7ba9f8f430abb9c36f50faa",
       "sourceRulePath": "hue-control/get_close.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/get_close.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/get_close.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132832,7 +133119,12 @@
       "sha256": "7fc46a44c7e515fca670e20e99edec3e5268d9fba47629caa1b69c6baaf029da",
       "sourceRulePath": "hue-control/have_app.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/have_app.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/have_app.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132854,6 +133146,12 @@
       "sourceRulePath": "hue-control/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/hue-control/launch.rule",
+        "packages/nlu/resources/rules-src/hue-control/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -132873,7 +133171,12 @@
       "sha256": "c31ed3adfbd8df0cfe4207cfb8f1cf05f893e9a4c8da47ed5d404d958d4e0f59",
       "sourceRulePath": "hue-control/near_lights.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/near_lights.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/near_lights.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132893,7 +133196,12 @@
       "sha256": "d8be2fd7a7a430498631345254d2bce935d37ae3184730f398d5651119505c4a",
       "sourceRulePath": "hue-control/need_some_more_time.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/need_some_more_time.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/need_some_more_time.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132913,7 +133221,12 @@
       "sha256": "4b7ae3b0dbafe4fb32af4e9bd4982df7a21685747ed940e2ae6541c6495a37f1",
       "sourceRulePath": "hue-control/post_control.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/post_control.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/post_control.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132933,7 +133246,12 @@
       "sha256": "0f8ad21fb264575e6ce7371dd06bdaeb5d1ab4efad2fc2465a26d620377a3d21",
       "sourceRulePath": "hue-control/press_screen.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/press_screen.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/press_screen.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132953,7 +133271,12 @@
       "sha256": "785bd4d980d2ccebd0d6e436784b76daf402bfc047812bb922f9b45f37d8ff5b",
       "sourceRulePath": "hue-control/ready.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/ready.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/ready.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132973,7 +133296,12 @@
       "sha256": "98a283c341f0a5bf9196bb2dae0190b1f5cf6745c2e9e36db0705a4625889273",
       "sourceRulePath": "hue-control/want_to_set_up.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/want_to_set_up.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/want_to_set_up.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -132993,7 +133321,12 @@
       "sha256": "b4926595d0d506030ec89687637cfdc2d01bf49e12d1e3140f104924e55bcf42",
       "sourceRulePath": "hue-control/you_still_here.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/hue-control/you_still_here.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/hue-control/you_still_here.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133013,7 +133346,12 @@
       "sha256": "143b6f9c0849416be06afab74768b14e2a0eec210ebdf5fae941fe25d1e99b90",
       "sourceRulePath": "idle/turn_back_question.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/idle/turn_back_question.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/idle/turn_back_question.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133035,6 +133373,12 @@
       "sourceRulePath": "ifttt/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/ifttt/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/ifttt/launch.rule",
+        "packages/nlu/resources/rules-src/ifttt/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133054,7 +133398,12 @@
       "sha256": "db2f83f431b680e9ad4fab6bd3e850492574f1f2bd1b9a41415e67893ed42079",
       "sourceRulePath": "introductions/any_more_intros.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/any_more_intros.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/introductions/any_more_intros.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133074,7 +133423,12 @@
       "sha256": "ea5a266b2d7867e2c930a487009274dd3399157b13828fbd7cf6a5ea578966e1",
       "sourceRulePath": "introductions/face_capture_ready.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/face_capture_ready.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/introductions/face_capture_ready.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133094,7 +133448,12 @@
       "sha256": "77be4275e8afa56fd7320b5b28a82ad349738adeb43ddb1c77ef2862ae43d2ca",
       "sourceRulePath": "introductions/intro_looper.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/intro_looper.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/introductions/intro_looper.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133114,7 +133473,12 @@
       "sha256": "6e85baf1aef3f3acef4284c11bd023102e45eba2c9e2ee8d11ce7701bb4412c5",
       "sourceRulePath": "introductions/is_name_right.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/is_name_right.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/introductions/is_name_right.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133136,6 +133500,12 @@
       "sourceRulePath": "introductions/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/introductions/launch.rule",
+        "packages/nlu/resources/rules-src/introductions/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133155,7 +133525,12 @@
       "sha256": "71d50d7e9f0c7aaed7f050eb358deb2e894320c78053a1f10eac41a6cb24008b",
       "sourceRulePath": "introductions/recognition_any_more.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/recognition_any_more.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/introductions/recognition_any_more.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133175,7 +133550,12 @@
       "sha256": "dfe8ae85bdc3d61ac6b1578f7841db2836ecc4f4cba9493e1bf1c84d02075251",
       "sourceRulePath": "introductions/recognition_type_menu.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/introductions/recognition_type_menu.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/introductions/recognition_type_menu.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133195,7 +133575,12 @@
       "sha256": "0fd9b964877ce9719a2180a763e862fdad9dbd4a2ca7f597eb35d4ce9e8880da",
       "sourceRulePath": "main-menu/execute_fun_stuff.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/main-menu/execute_fun_stuff.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/main-menu/execute_fun_stuff.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133215,7 +133600,12 @@
       "sha256": "addbe09a589a34ffe0091ed1640046d802677e28942d49de2a6ca3a360ac34f3",
       "sourceRulePath": "main-menu/execute_main_menu.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/main-menu/execute_main_menu.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/main-menu/execute_main_menu.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133235,7 +133625,12 @@
       "sha256": "54de00ee92aaf3283d29a75b068a1cc2195b15b5407ee5680680a3d2843b1faa",
       "sourceRulePath": "main-menu/execute_personal_report.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/main-menu/execute_personal_report.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/main-menu/execute_personal_report.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133257,6 +133652,12 @@
       "sourceRulePath": "main-menu/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/main-menu/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/main-menu/launch.rule",
+        "packages/nlu/resources/rules-src/main-menu/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133278,6 +133679,12 @@
       "sourceRulePath": "radio/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/radio/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/radio/launch.rule",
+        "packages/nlu/resources/rules-src/radio/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133297,7 +133704,12 @@
       "sha256": "969f77bbca6c8ed808eea43ddb30608c312e66e03f8040c2ef13e25145c85468",
       "sourceRulePath": "radio/radio_get_genre.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/radio/radio_get_genre.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/radio/radio_get_genre.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133317,7 +133729,12 @@
       "sha256": "0fc5cadf7317afdcaae9667937c539f99cbe17764b91d47dbbf035f222a21a59",
       "sourceRulePath": "radio/radio_get_genre_ca.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/radio/radio_get_genre_ca.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/radio/radio_get_genre_ca.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133337,7 +133754,12 @@
       "sha256": "709b00f71c9d6497bbadf0ea9095b14fcc7215c1499a4fb8dd3d1d870e26696f",
       "sourceRulePath": "radio/run_control.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/radio/run_control.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/radio/run_control.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133359,6 +133781,12 @@
       "sourceRulePath": "report/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/report/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/report/launch.rule",
+        "packages/nlu/resources/rules-src/report/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133378,7 +133806,12 @@
       "sha256": "eb9d82d145200a9e93afeb182094b98934b959cb4b819b441e1a273b5bb06e61",
       "sourceRulePath": "settings/download_now_later.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/settings/download_now_later.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/settings/download_now_later.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133398,7 +133831,12 @@
       "sha256": "038a2dfee515b78bc801b6a5e419d46a0ed878850e5053aeb35bb365c04d3b59",
       "sourceRulePath": "settings/execute_settings_menu.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/settings/execute_settings_menu.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/settings/execute_settings_menu.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133420,6 +133858,12 @@
       "sourceRulePath": "settings/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/settings/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/settings/launch.rule",
+        "packages/nlu/resources/rules-src/settings/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133439,7 +133883,12 @@
       "sha256": "d714c01570a1d6bf9d6f6c92163994d2af4be3a748df735280e9577b91e13271",
       "sourceRulePath": "settings/okay_thanks_to_clear.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/settings/okay_thanks_to_clear.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/settings/okay_thanks_to_clear.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133459,7 +133908,12 @@
       "sha256": "75f5dd8627adb8cf1d3c613961aabd3017fe1df461e7d4995f37ec621ff6343a",
       "sourceRulePath": "settings/shut_down_confirmation.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/settings/shut_down_confirmation.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/settings/shut_down_confirmation.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133479,7 +133933,12 @@
       "sha256": "2d657745d28a9740a7d8184f9673fde0a911f1240105c49065279a583ec91c1d",
       "sourceRulePath": "settings/volume_control.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/settings/volume_control.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/settings/volume_control.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133502,6 +133961,12 @@
       "sourceRulePath": "shared/no_id.rule",
       "phoenixFile": "packages/nlu/resources/grammar/shared/no_id.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/shared/no_id.rule",
+        "packages/nlu/resources/rules-src/shared/no_id.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133524,6 +133989,12 @@
       "sourceRulePath": "shared/verify_id.rule",
       "phoenixFile": "packages/nlu/resources/grammar/shared/verify_id.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/shared/verify_id.rule",
+        "packages/nlu/resources/rules-src/shared/verify_id.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133546,6 +134017,12 @@
       "sourceRulePath": "shared/wildcard.rule",
       "phoenixFile": "packages/nlu/resources/grammar/shared/wildcard.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/shared/wildcard.rule",
+        "packages/nlu/resources/rules-src/shared/wildcard.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133568,6 +134045,12 @@
       "sourceRulePath": "shared/wrong_id.rule",
       "phoenixFile": "packages/nlu/resources/grammar/shared/wrong_id.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/shared/wrong_id.rule",
+        "packages/nlu/resources/rules-src/shared/wrong_id.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133590,6 +134073,12 @@
       "sourceRulePath": "shared/yes_no.rule",
       "phoenixFile": "packages/nlu/resources/grammar/shared/yes_no.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/shared/yes_no.rule",
+        "packages/nlu/resources/rules-src/shared/yes_no.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133609,7 +134098,12 @@
       "sha256": "b3819cb70ae7f99fd2f2457961b286ddb034f4cf33bbf38d70d52cef8cb6fcb9",
       "sourceRulePath": "surprises-date/offer_date_fact.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/surprises-date/offer_date_fact.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/surprises-date/offer_date_fact.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133631,6 +134125,12 @@
       "sourceRulePath": "surprises-ota/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/surprises-ota/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/surprises-ota/launch.rule",
+        "packages/nlu/resources/rules-src/surprises-ota/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133650,7 +134150,12 @@
       "sha256": "566443b7011ef3509080979d410988e2be684033c3cc1e9b4cc9f9817d8e2193",
       "sourceRulePath": "surprises-ota/offer_ota_release_notes.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/surprises-ota/offer_ota_release_notes.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/surprises-ota/offer_ota_release_notes.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133670,7 +134175,12 @@
       "sha256": "959b2398f3733dd8043752411d1dc70eb21c460f92d86681687ab0b1867984d7",
       "sourceRulePath": "surprises-ota/want_to_download_now.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/surprises-ota/want_to_download_now.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/surprises-ota/want_to_download_now.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133690,7 +134200,12 @@
       "sha256": "e234907d3de0a8d58b38a2944195e54871aaeee4d43d9ebe082d6287d73b190d",
       "sourceRulePath": "surprises-user-research/future_feature_frequency.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/surprises-user-research/future_feature_frequency.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/surprises-user-research/future_feature_frequency.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133710,7 +134225,12 @@
       "sha256": "94d9cad7ae2a7dc84ac940815bbadb6016980aa01a78dabbe6653af0b07eaca7",
       "sourceRulePath": "surprises-user-research/future_feature_yes_no_maybe.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/surprises-user-research/future_feature_yes_no_maybe.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/surprises-user-research/future_feature_yes_no_maybe.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133732,6 +134252,12 @@
       "sourceRulePath": "template-skill/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/template-skill/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/template-skill/launch.rule",
+        "packages/nlu/resources/rules-src/template-skill/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133751,7 +134277,12 @@
       "sha256": "7e2e67e60aa48f4f5e0fe60fbfca1d40c259c591608ea0831410c2388655ecfa",
       "sourceRulePath": "tutorial/dance.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/tutorial/dance.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/tutorial/dance.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133771,7 +134302,12 @@
       "sha256": "01606de5d34a5d35e2a7d19cc20c0cae6ef7d83ddae7da76616da4e56cad042e",
       "sourceRulePath": "tutorial/keep_photo.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/tutorial/keep_photo.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/tutorial/keep_photo.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133793,6 +134329,12 @@
       "sourceRulePath": "tutorial/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/tutorial/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/tutorial/launch.rule",
+        "packages/nlu/resources/rules-src/tutorial/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133812,7 +134354,12 @@
       "sha256": "dd91fb1c0901d0a55e1094e4cd0645e184b724ba54565354cf57ee10f22b71b8",
       "sourceRulePath": "tutorial/take_photo.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/tutorial/take_photo.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/tutorial/take_photo.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133832,7 +134379,12 @@
       "sha256": "a514112ab17e24b0f2a88a0cd16604f51d8f83e63cac8d1458cfdc9a48f5c1d8",
       "sourceRulePath": "tutorial/where_are_you.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/tutorial/where_are_you.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/tutorial/where_are_you.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133852,7 +134404,12 @@
       "sha256": "aed853beef6fe43e3304b9a93d1644691e2298265c5f9fe667c7aab0d1a9b642",
       "sourceRulePath": "tutorial/yes_no.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/tutorial/yes_no.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/tutorial/yes_no.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133872,7 +134429,12 @@
       "sha256": "fe06b9934641ccb5ef700dfbb44d5f9cc1913cf4402ed3385faf45d60199a9e3",
       "sourceRulePath": "who-am-i/collect_looper.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/who-am-i/collect_looper.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/who-am-i/collect_looper.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133892,7 +134454,12 @@
       "sha256": "747146c8378275dcdd5c0251cb61aa2c5a59ebfe98ad9131d8bd7ef7f6431c24",
       "sourceRulePath": "who-am-i/confirm.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/who-am-i/confirm.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/who-am-i/confirm.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133914,6 +134481,12 @@
       "sourceRulePath": "who-am-i/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/who-am-i/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/who-am-i/launch.rule",
+        "packages/nlu/resources/rules-src/who-am-i/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -133933,7 +134506,12 @@
       "sha256": "0f01d49e829abc5614cda54c1c533f6360342de69962414f0e4645b47c3f2c7f",
       "sourceRulePath": "who-am-i/name_is_right.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/who-am-i/name_is_right.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/who-am-i/name_is_right.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133953,7 +134531,12 @@
       "sha256": "330690da81a3474a82c291636023529476942b2d2f822af33a78048be35ca688",
       "sourceRulePath": "who-am-i/want_to_enroll.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/who-am-i/want_to_enroll.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/who-am-i/want_to_enroll.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133973,7 +134556,12 @@
       "sha256": "9758f50f0b7c787f159debb5da0f8d699135b54b899bd95eb1f039b974467ae0",
       "sourceRulePath": "word-of-the-day/fun_fact.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/word-of-the-day/fun_fact.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/word-of-the-day/fun_fact.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -133995,6 +134583,12 @@
       "sourceRulePath": "word-of-the-day/launch.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/word-of-the-day/launch.rule",
       "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": true,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/grammar/skills/word-of-the-day/launch.rule",
+        "packages/nlu/resources/rules-src/word-of-the-day/launch.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 2,
       "coverage": "missing"
     },
     {
@@ -134014,7 +134608,12 @@
       "sha256": "a59ec1f4dfd1739b2d6c54b238f661b96a7705a10aab62d16107b67cd2568130",
       "sourceRulePath": "word-of-the-day/offer.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/word-of-the-day/offer.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/word-of-the-day/offer.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -134034,7 +134633,12 @@
       "sha256": "4e2af2c5339821c4cf60797d2f5958055a640b7e967b745abfadb1f131188254",
       "sourceRulePath": "word-of-the-day/puzzle.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/word-of-the-day/puzzle.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/word-of-the-day/puzzle.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -134054,7 +134658,12 @@
       "sha256": "305432fe6ed7efd37505e8d104286073577bb5fd0bdc6d9e9cc4afdde1c24938",
       "sourceRulePath": "word-of-the-day/right_word.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/word-of-the-day/right_word.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/word-of-the-day/right_word.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -134074,7 +134683,12 @@
       "sha256": "c3464737e0ecad4e34a00fa54a3c313dcb446eae90af809cd3ceefe860149d69",
       "sourceRulePath": "word-of-the-day/surprise.rule",
       "phoenixFile": "packages/nlu/resources/grammar/skills/word-of-the-day/surprise.rule",
-      "phoenixBytesIdentical": false,
+      "phoenixBytesIdentical": true,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [
+        "packages/nlu/resources/rules-src/word-of-the-day/surprise.rule"
+      ],
+      "phoenixByteIdenticalResourceCopyCount": 1,
       "coverage": "missing"
     },
     {
@@ -134093,6 +134707,9 @@
       "sourceRulePath": null,
       "phoenixFile": null,
       "phoenixBytesIdentical": false,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [],
+      "phoenixByteIdenticalResourceCopyCount": 0,
       "coverage": "missing"
     },
     {
@@ -134111,6 +134728,9 @@
       "sourceRulePath": null,
       "phoenixFile": null,
       "phoenixBytesIdentical": false,
+      "phoenixMappedGrammarBytesIdentical": false,
+      "phoenixByteIdenticalResourceCopies": [],
+      "phoenixByteIdenticalResourceCopyCount": 0,
       "coverage": "missing"
     }
   ],
@@ -135706,6 +136326,64 @@
         "N-01",
         "R-02"
       ]
+    }
+  ],
+  "corpusCoverageGates": [
+    {
+      "id": "production-v2-full",
+      "coverage": "partial",
+      "suite": "production-v2",
+      "suiteFile": "packages/harness/resources/goldens/production-full/suite.json",
+      "sourceFile": "packages/harness/resources/goldens/production-full/source.json",
+      "referenceFile": "packages/harness/resources/goldens/production-full/reference.json.gz",
+      "evidenceFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json",
+      "runFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/run.json",
+      "phoenixSourceFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/phoenix-source.json",
+      "comparisonFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/comparison.json.gz",
+      "candidateFile": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/candidate.json.gz",
+      "artifactSha256": {
+        "packages/harness/resources/goldens/production-full/suite.json": "7adb8a8f48b0806cebc31ec420f289bca10703c15195aeaf5fd1ed60deddd327",
+        "packages/harness/resources/goldens/production-full/source.json": "80a22278b9c72978bf9b88638ab64415b493f562d310c3f98e89ff4872bbf01e",
+        "packages/harness/resources/goldens/production-full/reference.json.gz": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json": "c9c1ca2b42a0d79156f4ba6269bf67bee4ed9eb9599500ddbe195435563eee6c",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/run.json": "dcd3b54a95d250281b5365ca295b716827fd3f5ba06226dbb838e0a4354cb739",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/phoenix-source.json": "2b5724c72991578fffdcb377f1585ead21e554512e616f44e26f899950f07584",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/comparison.json.gz": "d732eef5c2ca76715d695690257165230e9e9fba27010fb04779c45dcfd2ebb2",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/candidate.json.gz": "f4abb5db644606ee8171dd8aada87e7428b9eb9f9f15e989afa657ada5cd8a48",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/candidate.log": "68ebc3a4092e605ac33809ce7aecf0e23171d36bfc0eca10b4fea78e8eada68f",
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/compare.log": "90f69eed8bf15597f177e1ec0e437ab284c65516321f02132ae021a5cac50b1a"
+      },
+      "denominator": {
+        "corpusOccurrences": 20507,
+        "boundaryCases": 21,
+        "directSkillCases": 6,
+        "boundaryAndDirectCases": 27,
+        "totalCases": 20534
+      },
+      "corpora": {
+        "chitchat": {
+          "baseOccurrences": 10035,
+          "conditionalOccurrences": 1397,
+          "cases": 11432
+        },
+        "hub-client": {
+          "baseOccurrences": 7029,
+          "conditionalOccurrences": 1973,
+          "cases": 9002
+        },
+        "report": {
+          "baseOccurrences": 73,
+          "conditionalOccurrences": 0,
+          "cases": 73
+        }
+      },
+      "scope": "The pinned production-v2 full pipeline executes every preserved corpus occurrence and conditional branch through the real HTTP parser handler, routing, local skill registry, production request builders and frozen fixture providers, alongside the named parser-boundary and direct-skill cases. This is execution coverage and retained differential evidence; it is not a passing Phoenix parity result.",
+      "remainingGaps": {
+        "providers": "Weather, news, calendar and maps are frozen fixtures; current provider availability, network behavior and hardware rendering are outside this gate.",
+        "hub": "Full HubService orchestration, proactive transactions and unhosted external cloud actions are outside this component profile; the baseline retains 97 side-specific external-action gap instances (8 reference, 89 candidate; 91 unique cases).",
+        "originalTests": "The 950 original test declarations and 960 expanded source cases remain separate inventory obligations. The production suite does not claim to execute every original test file, hook or historical external integration.",
+        "phoenixResult": "The reviewed Phoenix baseline is a mismatch with 49,155 field differences and zero invariant failures; it is intentionally partial coverage rather than a complete gate."
+      }
     }
   ],
   "assetSets": [
@@ -141710,10 +142388,17 @@
     "wireContracts": 223,
     "grammarFiles": 119,
     "runtimeGrammarSources": 117,
-    "identicalPhoenixGrammarSources": 29,
+    "identicalPhoenixGrammarSources": 117,
+    "byteIdenticalPhoenixGrammarCopies": 117,
+    "byteIdenticalPhoenixGrammarResourceFiles": 146,
+    "identicalMappedRuntimeGrammarSources": 29,
     "compiledRuntimeRules": 98,
     "manualRequests": 7,
     "assetSets": 45,
+    "corpusCoverageGates": 1,
+    "partialCorpusOccurrences": 20507,
+    "productionBoundaryAndDirectCases": 27,
+    "productionCases": 20534,
     "operationsWithPartialGates": 9,
     "operationsWithCompleteGates": 0
   },
@@ -141726,6 +142411,8 @@
     "Source cases include reviewed loop/title expansion and skips; they do not claim that the original runner imported or executed every file.",
     "Public operations include every reviewed mount/alias and derived HEAD/OPTIONS route. Bodies/errors/configuration branches still need per-operation parity gates.",
     "Path-based task ownership assigns responsibility; coverage requires a reviewed executable mapping.",
-    "Corpora, scenarios, grammars, contracts and assets overlap and must not be summed into a feature percentage."
+    "Corpora, scenarios, grammars, contracts and assets overlap and must not be summed into a feature percentage.",
+    "Corpus partial status records full-pipeline execution evidence with source and artifact pins; it does not certify Phoenix parity, provider behavior, full HubService orchestration or original-test completion.",
+    "Grammar byte identity is reported separately from functional interpretation: 117 runtime sources have exact Phoenix rules-src copies, while 29 also match the mapped runtime grammar locations."
   ]
 }

@@ -268,9 +268,12 @@
         "packages/nlu/tools/legacyOracleDiagnostic.mjs",
         "packages/harness/resources/goldens/production-smoke/source.json",
         "scripts/parity-production/gate.mjs",
-        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json"
+        "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json",
+        "scripts/parity-coverage/corpus-gates.json",
+        ".github/workflows/parity.yml",
+        "docs/parity/evidence/2026-09-06/coverage-review/review.json"
       ],
-      "finding": "The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01/H-10 integration passes 402 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.",
+      "finding": "Root reviewed and integrated all corpus-to-production-gate links: 20,507 corpus occurrences plus 27 boundary/direct cases, with the failing 20,534-case baseline retained. All 117 named grammar sources have exact resource copies; functional grammar coverage stays missing. Six inventory mutation tests and 17 scanner/comparison tests pass. V-03 still requires the first hosted CI run to demonstrate rejection of the known mismatch.",
       "acceptance": [
         "Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.",
         "Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.",
@@ -279,22 +282,47 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / capture_writer_repair",
-        "scope": "Bounded Node 8 full-corpus trace writer; candidate only, root recaptures and reviews original controls before accepting V-03.",
-        "worktree": ".parity/worktrees/capture-writer",
-        "branch": "codex/candidate-capture-20260905",
-        "baseRevision": "b654de598255ba023f33ff31656bfa5bc84057d4",
-        "candidateRevision": "0ba431ca2b9c6c6d7bebfce7819621b12084c95f",
-        "artifact": "docs/parity/candidates/V-03.md",
-        "reviewFinding": "Node 8 bounded writer and byte-preserving batching reviewed, including >256 MiB output, premature close, fresh 43/73 controls and complete 20,534-case cross-writer comparison. No Phoenix product gate is closed by original repeatability.",
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Complete corpus gate provenance/denominators and separate grammar preservation counts; reviewed by root with portable end-to-end mutation checks. V-03 awaits hosted CI acceptance.",
+        "worktree": ".parity/worktrees/v03-coverage",
+        "baseRevision": "794526320d73c451152eb8d187c322137480ff55",
+        "candidateRevision": "78fd104b3e9f91b4241fdf2a080eea3e131363fa",
+        "artifact": "docs/parity/candidates/V-03-coverage.md",
         "reviewedBy": "Codex root",
-        "reviewEvidence": "docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json"
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/coverage-review/review.json"
       },
       "nextImplementation": {
-        "state": "working",
-        "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Reconcile partial corpus-to-production-gate inventory links and exact grammar resource copies; no V-03 task closure until root review."
-      }
+        "state": "awaiting_review",
+        "assignee": "Codex root",
+        "scope": "Observe new GitHub CI workflow executing the strict smoke and retaining the known mismatch; hosted result pending.",
+        "artifact": ".github/workflows/parity.yml"
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / capture_writer_repair",
+          "scope": "Bounded Node 8 full-corpus trace writer; candidate only, root recaptures and reviews original controls before accepting V-03.",
+          "worktree": ".parity/worktrees/capture-writer",
+          "branch": "codex/candidate-capture-20260905",
+          "baseRevision": "b654de598255ba023f33ff31656bfa5bc84057d4",
+          "candidateRevision": "0ba431ca2b9c6c6d7bebfce7819621b12084c95f",
+          "artifact": "docs/parity/candidates/V-03.md",
+          "reviewFinding": "Node 8 bounded writer and byte-preserving batching reviewed, including >256 MiB output, premature close, fresh 43/73 controls and complete 20,534-case cross-writer comparison. No Phoenix product gate is closed by original repeatability.",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair",
+          "scope": "Complete corpus gate provenance/denominators and separate grammar preservation counts; reviewed by root with portable end-to-end mutation checks. V-03 awaits hosted CI acceptance.",
+          "worktree": ".parity/worktrees/v03-coverage",
+          "baseRevision": "794526320d73c451152eb8d187c322137480ff55",
+          "candidateRevision": "78fd104b3e9f91b4241fdf2a080eea3e131363fa",
+          "artifact": "docs/parity/candidates/V-03-coverage.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/coverage-review/review.json"
+        }
+      ]
     },
     {
       "id": "V-04",

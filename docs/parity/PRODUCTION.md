@@ -1,6 +1,6 @@
 # Production parser, routing and skill comparison
 
-V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. V-03 remains open for final corpus-to-gate inventory reconciliation and review.
+V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory is reviewed and integrated; V-03 remains open for the first hosted CI acceptance run.
 
 The bounded writer now exports the full corpus under Node 8. The independently
 repeated [20,534-case original control](evidence/2026-09-05/production/stream-writer-full-control/review.json)
@@ -133,6 +133,22 @@ The v1 [40-case control](evidence/2026-09-05/production/control/run.json), [1,52
 Early v2 captures failed native setup with “No thread available.” The native source shows performance notifications use a Poco task manager; hosting the missing performance dependency alone did not eliminate the failure. With supported serial RPC and the local sink, both independent smoke and report controls load all 98 grammars without errors. Failed runs remain in `.parity/runs/production-request-builder-{control,report-control,perf-control}`; no case from an incomplete capture receives credit. The precise native scheduling failure remains outside this serial component profile.
 
 The initial unit run also exposed a pre-existing calendar fixture race: two supposedly simultaneous events used different `Date.now()` calls. Its clock is now frozen, with no production calendar change. Both legacy diagnostic graders return exit 1 on mismatches; the alternate-engine diagnostic moved outside automatic unit-test discovery and still reports its historical 74/89.
+
+## Hosted CI
+
+The [GitHub workflow](../../.github/workflows/parity.yml) runs unit tests,
+coverage-gate mutation tests and checklist validation on main pushes and pull
+requests. An independent job compares the 43-case production smoke against
+the reviewed original capture. A manual `full` selection runs all 20,534 cases.
+Every comparison mismatch remains a failed job; no accepted-difference count
+or success override hides the current failures.
+
+Both comparison success and failure retain the run metadata, source
+fingerprint, candidate capture, full comparison and logs for seven days.
+Accepted root evidence is separately committed under this document's evidence
+links. The first hosted run is pending; local workflow validation and the
+coverage integration are recorded in the
+[root review](evidence/2026-09-06/coverage-review/review.json).
 
 ## Commands
 
