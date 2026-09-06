@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 0 | 46 | 0 | 0 |
-| classic | 0 | 18 | 1 | 0 |
+| classic | 0 | 20 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -176,18 +176,18 @@ Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/pari
 
 Owner: Codex. Dependencies: PM-03.
 
-The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md).
+The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md). Root-reviewed historical discovery adds 24 Jot pairs, 10 VoiceTraining pairs and the legacy Settings pair: 169 literal pairs, or 173 with four directly observed alternate Jot pairs. Denominator closure and controller/runtime parity remain open. Functional ownership is now explicit in A-19/A-20.
 
 Done when:
 
-- Assign all 134 targets, including admin variants, to a handler, source controller, consumer, parity task and verification scenario.
+- Assign all current 134 targets and every additional required historical/client-observed pair to a handler, source controller, consumer, parity task and verification scenario.
 - Record auth/ownership, schema, errors, persistence and observable side effects per operation; dispatch/shape support alone is not verification.
 - Investigate services with no client API file, including voice training, Jot and other archive services, and register any additional required contracts.
 - Recover legacy contract versions used by the original clients, including Settings_20160801.GetSettings; keep the 20171219 SDK surface independently mapped.
 
 Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/account-2015-11-11.normal.json); [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/loop-2016-03-24.normal.json); [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oobe-2016-10-26.normal.json).
 
-Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic).
+Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic); [docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json](../../docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json).
 
 Evidence: pending.
 
@@ -1221,6 +1221,48 @@ Evidence: pending.
 
 ## 4. Complete companion-cloud and restored features
 
+### A-19 — Implement and verify versioned Jot messaging contracts
+
+- [ ] **todo** · P1 · classic · implementation: missing
+
+Owner: Codex. Dependencies: A-01, A-02, A-04, A-14.
+
+Functional child registered from A-18 discovery. Historical models contain 24 versioned Jot pairs; four additional alternate-prefix pairs are observed in archived tests. Phoenix has no Jot service registration. Version and deployed-prefix ambiguity remains open.
+
+Done when:
+
+- Map every required versioned Jot pair and the direct bulk unread-count route to source controllers and clients; resolve model/test prefix conflicts explicitly.
+- Compare authentication, loop membership, robot impersonation, content/parts validation and error precedence against original source/runtime.
+- Implement and compare create/list/update/read or delivery/seen behavior, pagination, media population and observable event side effects for each required version.
+- Verify durable state after restart, retry behavior, cross-loop isolation and original-client messaging journeys; retain external dependency failures.
+
+Source: [server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/handlers/message.handler.js](https://pvindex.org/gitea/server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/src/branch/master/handlers/message.handler.js); [jiborobot/srv-jot-ws-archived@4432ac5d017ae1971a447f42e7a4b29da7eb2e58:archive/message.spec.js](https://pvindex.org/gitea/jiborobot/srv-jot-ws-archived@4432ac5d017ae1971a447f42e7a4b29da7eb2e58:archive/src/branch/master/message.spec.js).
+
+Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
+
+Evidence: pending.
+
+### A-20 — Implement and verify versioned VoiceTraining and file contracts
+
+- [ ] **todo** · P1 · classic · implementation: missing
+
+Owner: Codex. Dependencies: A-01, A-02, A-03, A-09.
+
+Functional child registered from A-18 discovery. Three historical model versions define 10 versioned pairs. Current source exports UploadVoiceTraining and ListVoiceTrainings; older UploadFile/RemoveFile/ListFiles/GetFile aliases and their version-specific controllers remain unresolved. Phoenix has no VoiceTraining service registration.
+
+Done when:
+
+- Resolve historical upload/list/file-operation versions and target aliases against original controllers and clients, including unsupported-method errors.
+- Compare credentials, ownership, upload key/body validation, size limits, paths and downstream Backup request/response bytes without placeholder success.
+- Verify upload/list/remove/get persistence and errors for each required version, including interrupted requests, restart and cross-account isolation.
+- Complete original-client or real-robot enrollment/training and retrieval journeys with stored artifacts and provider failures retained.
+
+Source: [server/voice-ws@a0ec047a86d6811176d0f05a6cce5a660a2cadd8:lib/handlers/index.js](https://pvindex.org/gitea/server/voice-ws@a0ec047a86d6811176d0f05a6cce5a660a2cadd8:lib/src/branch/master/handlers/index.js); [jiborobot/srv-voice-ws-archived@0e8dc870beaad8caf1dc9ae415a5d250a580b570:server.js](https://pvindex.org/gitea/jiborobot/srv-voice-ws-archived@0e8dc870beaad8caf1dc9ae415a5d250a580b570:server.js/src/branch/master/).
+
+Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
+
+Evidence: pending.
+
 ### X-01 — Verify restored-branch answer and NLU extensions separately
 
 - [ ] **todo** · P1 · restoration · implementation: partial
@@ -1519,7 +1561,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-01, A-02, A-03.
 
-The API inventory includes services/admin operations beyond the current prefix router; full controller coverage is unassessed.
+The API inventory includes services/admin operations beyond the current prefix router; full controller coverage is unassessed. Newly recovered Jot and VoiceTraining functional contracts are assigned to explicit child tasks A-19 and A-20; this registration does not verify their behavior.
 
 Done when:
 

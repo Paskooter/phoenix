@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "result": "source-discovery-accepted-functional-parity-open",
+  "basis": "Independent Jibo MCP source review, original Pegasus byte verification, and recomputed versioned operation unions",
+  "candidateRevision": "c4ad49d090b387dd5c941a9bb514877f500e6ed4",
+  "correctedOperationMapCandidate": "250e288c714cb9bad0102cf49076c7dda2ee60ca",
+  "counts": {
+    "unit": "target prefix plus operation name",
+    "currentModels": 26,
+    "currentPairs": 134,
+    "historicalModels": 8,
+    "historicalOperationInstances": 49,
+    "historicalPairs": 34,
+    "historicalPairsByPrefix": {
+      "VoiceTraining_20151103": 4,
+      "Jot_20160126": 10,
+      "VoiceTraining_20160103": 4,
+      "VoiceTraining_20151020": 2,
+      "Jot_20160310": 14
+    },
+    "legacySettingsPairs": 1,
+    "literalModelAndLegacyUnion": 169,
+    "plusFourObservedAlternatePairs": 173,
+    "wholeLaterModelPrefixSubstitutionScenario": 170,
+    "hypotheticalFifthAlternateUnion": 174
+  },
+  "currentInventory": {
+    "path": "docs/parity/evidence/2026-09-05/classic-api-inventory.json",
+    "sha256": "43735051b241e5f2451b1398bab14103a1d8e19e56dd5b45dcbad020fc53602b",
+    "revision": "155d20a8102960b2aeb89c197bdf04dc1f1fc344"
+  },
+  "historicalModels": "historical-models.json",
+  "originalSettingsConsumers": [
+    {
+      "path": "packages/hub/src/utils/SettingsClient.ts",
+      "sha256": "6fb7c357ecac197afca2fac6bafdb96069bbe883e6ea6b015ef689a7c8ecf94b",
+      "revision": "5c0a7390539663ba749d360de348a428c088505c",
+      "versionLine": 4,
+      "constructedTargetLine": 31,
+      "restoredByteEquality": true
+    },
+    {
+      "path": "packages/report-skill/src/SettingsClient.ts",
+      "sha256": "d64a853b1d65be0519be5fd7b57d688427d13be9ad60c7fbe121e0b4dc598635",
+      "revision": "5c0a7390539663ba749d360de348a428c088505c",
+      "versionLine": 12,
+      "constructedTargetLine": 176,
+      "restoredByteEquality": true
+    }
+  ],
+  "jotAlternatePrefixEvidence": {
+    "repository": "jiborobot/srv-jot-ws-archived",
+    "revision": "4432ac5d017ae1971a447f42e7a4b29da7eb2e58",
+    "path": "archive/message.spec.js",
+    "reviewSourceSha256": "88c204cf858797c89523fa425075f6ebd3cead9e88f590a82d7ea24855badc65",
+    "directlyObservedOperations": [
+      "CreateMessage",
+      "ListMessages",
+      "MarkLoopRead",
+      "MarkRead"
+    ],
+    "unprovenAlternateOperation": "NumberOfUnreadMessagesInLoops",
+    "deployedPrefixResolved": false
+  },
+  "registeredFunctionalChildren": {
+    "A-19": "Jot",
+    "A-20": "VoiceTraining"
+  },
+  "remaining": [
+    "All version-specific controller and deployed alias contracts",
+    "Complete per-operation ownership, errors, persistence and side effects",
+    "Legacy VoiceTraining file-operation dispatch versus current upload/list handlers",
+    "Direct Jot bulk route outside X-Amz-Target pair counts",
+    "Original Settings legacy target gateway routing",
+    "All original-runtime and real-client functional verification"
+  ],
+  "progressEffect": {
+    "before": "7/77 (9.1%)",
+    "after": "7/79 (8.9%)",
+    "newVerifiedTasks": 0,
+    "reason": "Two explicit functional children split previously unassigned companion-cloud scope; the verified numerator is unchanged."
+  },
+  "modelVersionRule": "historical-models.json uses source metadata.apiVersion; differing filenames and earlier discovery labels are preserved separately."
+}

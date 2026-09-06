@@ -22,7 +22,7 @@ Replacement providers are acceptable implementation mechanisms. Verify their ada
 
 ## Execution order
 
-The ledger has **77 tasks**: 3 management, 4 verification, 46 Pegasus, 18 companion-cloud, 1 restoration and 5 release tasks. **PM-01–PM-03 are complete.** These counts describe the initial plan's granularity, not percent-complete software. Dependencies in the ledger control readiness; phase labels group the work for readability.
+The ledger has **79 tasks**: 3 management, 4 verification, 46 Pegasus, 20 companion-cloud, 1 restoration and 5 release tasks. **PM-01–PM-03 are complete.** Jot (A-19) and VoiceTraining (A-20) split newly recovered functional scope from A-18; the verified numerator remains 7. These counts describe checklist granularity, not percent-complete software. Dependencies in the ledger control readiness; phase labels group the work for readability.
 
 | Stage | Main tasks | Exit condition |
 |---|---|---|
@@ -30,7 +30,7 @@ The ledger has **77 tasks**: 3 management, 4 verification, 46 Pegasus, 18 compan
 | 1. Repair public contract blockers | C-01–C-03, H-01–H-05, H-09–H-10, N-01, I-01, D-01 | Original requests reach the correct services; exact shapes/rules/settings/identity/error behavior is covered |
 | 2. Complete parsing, data and state | N-02–N-08, I-02–I-03, D-02–D-07, H-06–H-08, A-02/A-06 | Named rules and local turns work; calendar/OAuth/persistence/history/provider contracts are verified |
 | 3. Verify complete skill behavior | S-01–S-14, Q-01 | Full sessions, branch conditions, ESML/JCP/analytics and robot views match source fixtures |
-| 4. Finish companion-cloud behavior | A-03–A-05, A-07–A-18; X-01 if retained | Every required API operation has real behavior and evidence; no placeholder is credited |
+| 4. Finish companion-cloud behavior | A-03–A-05, A-07–A-20; X-01 if retained | Every required API operation has real behavior and evidence; no placeholder is credited |
 | 5. Verify the deployed product | R-01–R-04 | Unmodified clients, individual service swaps, clean install/migration, reliability and real-client journeys pass |
 | 6. Release closure | R-05 | Source inventory reconciled, zero unexplained required gaps, reproducible parity report and operational/rollback instructions |
 

@@ -1,0 +1,1273 @@
+{
+  "repository": "jiborobot/srv-jibo-server-client",
+  "models": [
+    {
+      "service": "jot",
+      "apiVersion": "2016-01-26",
+      "revision": "4c68f963156a0db54ffe67f57aa2f0a467d695ff",
+      "path": "apis/jot-2016-01-26.normal.json",
+      "role": "latest model before the 2016-05-12 replacement",
+      "metadata": {
+        "apiVersion": "2016-01-26",
+        "endpointPrefix": "jot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Jot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Jot_20160126",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "name": "CreateMessage",
+          "input": {
+            "shape": "MessageRequest",
+            "type": "structure",
+            "required": [
+              "payload",
+              "recipients"
+            ],
+            "members": {
+              "payload": "Payload",
+              "recipients": "Parties"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "payload",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "payload": "Payload",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "delivered": "Delivered",
+              "seen": "Seen"
+            }
+          }
+        },
+        {
+          "name": "RemoveMessage",
+          "input": {
+            "shape": "IdRequest",
+            "type": "structure",
+            "required": [
+              "id"
+            ],
+            "members": {
+              "id": "Id"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "payload",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "payload": "Payload",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "delivered": "Delivered",
+              "seen": "Seen"
+            }
+          }
+        },
+        {
+          "name": "ListIncomingMessages",
+          "input": {
+            "shape": "ListIncomingRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "senderId": "Id",
+              "skip": "Skip"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "ListSentMessages",
+          "input": {
+            "shape": "ListSentRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "recipientId": "Id",
+              "skip": "Skip"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "MarkDelivered",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        },
+        {
+          "name": "MarkSeen",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2016-01-26"
+    },
+    {
+      "service": "jot",
+      "apiVersion": "2016-04-10",
+      "revision": "1b26ad786bd6bf989452cb462f3c16ccff034473",
+      "path": "apis/jot-2016-03-10.normal.json",
+      "role": "initial 2016-03-10 model; records operations later removed by the same-version revision",
+      "metadata": {
+        "apiVersion": "2016-04-10",
+        "endpointPrefix": "jot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Jot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Jot_20160310",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "name": "CreatePart",
+          "input": {
+            "shape": "PartRequest",
+            "type": "structure",
+            "required": [
+              "path"
+            ],
+            "members": {
+              "path": "PartPath",
+              "body": "Stream"
+            },
+            "payload": "body"
+          },
+          "output": {
+            "shape": "Part",
+            "type": "structure",
+            "required": [
+              "type"
+            ],
+            "members": {
+              "type": "PartType",
+              "path": "PartPath",
+              "url": "PartUrl",
+              "meta": "Payload"
+            }
+          }
+        },
+        {
+          "name": "CreateMessage",
+          "input": {
+            "shape": "MessageRequest",
+            "type": "structure",
+            "required": [
+              "payload",
+              "parts"
+            ],
+            "members": {
+              "parts": "Parts",
+              "recipients": "Parties"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "delivered": "Delivered",
+              "seen": "Seen",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "UpdateMessage",
+          "input": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "delivered": "Delivered",
+              "seen": "Seen",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "delivered": "Delivered",
+              "seen": "Seen",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "RemoveMessage",
+          "input": {
+            "shape": "IdRequest",
+            "type": "structure",
+            "required": [
+              "id"
+            ],
+            "members": {
+              "id": "Id"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "delivered": "Delivered",
+              "seen": "Seen",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "GetMessages",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "ListIncomingMessages",
+          "input": {
+            "shape": "ListIncomingRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "senderId": "Id",
+              "skip": "Skip",
+              "from": "Timestamp"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "ListSentMessages",
+          "input": {
+            "shape": "ListSentRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "recipientId": "Id",
+              "skip": "Skip",
+              "from": "Timestamp"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "MarkDelivered",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        },
+        {
+          "name": "MarkAllDelivered",
+          "input": null,
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        },
+        {
+          "name": "MarkSeen",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        },
+        {
+          "name": "MarkAllSeen",
+          "input": null,
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2016-03-10"
+    },
+    {
+      "service": "jot",
+      "apiVersion": "2016-03-10",
+      "revision": "39f53698b3b4eaa606101997305b548cdfed7f40",
+      "path": "apis/jot-2016-03-10.normal.json",
+      "role": "latest 2016-03-10 model in recovered history",
+      "metadata": {
+        "apiVersion": "2016-03-10",
+        "endpointPrefix": "jot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Jot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Jot_20160310",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "name": "CreatePart",
+          "input": {
+            "shape": "PartRequest",
+            "type": "structure",
+            "required": [
+              "path"
+            ],
+            "members": {
+              "path": "PartPath",
+              "body": "Stream"
+            },
+            "payload": "body"
+          },
+          "output": {
+            "shape": "Part",
+            "type": "structure",
+            "required": [
+              "type"
+            ],
+            "members": {
+              "type": "PartType",
+              "path": "PartPath",
+              "url": "PartUrl",
+              "meta": "Payload",
+              "shaHash": "string",
+              "length": "long"
+            }
+          }
+        },
+        {
+          "name": "CreateMessage",
+          "input": {
+            "shape": "MessageRequest",
+            "type": "structure",
+            "required": [
+              "parts"
+            ],
+            "members": {
+              "parts": "Parts",
+              "recipients": "Parties"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "UpdateMessage",
+          "input": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "RemoveMessage",
+          "input": {
+            "shape": "IdRequest",
+            "type": "structure",
+            "required": [
+              "id"
+            ],
+            "members": {
+              "id": "Id"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "GetMessages",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "ListMessages",
+          "input": {
+            "shape": "ListRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "partyId": "PartyId",
+              "skip": "Skip",
+              "fromId": "Id"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "MarkSeen",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        },
+        {
+          "name": "MarkAllSeen",
+          "input": null,
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2016-03-10"
+    },
+    {
+      "service": "jot",
+      "apiVersion": "2016-03-10",
+      "revision": "bfab9a6dd5e9e9ded385a2f54dc49630c9834694",
+      "path": "apis/jot-2016-05-10.normal.json",
+      "role": "2016-05-10 model",
+      "metadata": {
+        "apiVersion": "2016-03-10",
+        "endpointPrefix": "jot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Jot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Jot_20160310",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "name": "CreatePart",
+          "input": {
+            "shape": "PartRequest",
+            "type": "structure",
+            "required": [
+              "path"
+            ],
+            "members": {
+              "path": "PartPath",
+              "meta": "Meta",
+              "body": "Stream"
+            },
+            "payload": "body"
+          },
+          "output": {
+            "shape": "Part",
+            "type": "structure",
+            "required": [
+              "type"
+            ],
+            "members": {
+              "type": "PartType",
+              "path": "PartPath",
+              "url": "PartUrl",
+              "meta": "Payload",
+              "shaHash": "string",
+              "length": "long"
+            }
+          }
+        },
+        {
+          "name": "CreateMessage",
+          "input": {
+            "shape": "MessageRequest",
+            "type": "structure",
+            "required": [
+              "parts"
+            ],
+            "members": {
+              "parts": "Parts",
+              "recipients": "Parties"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "UpdateMessage",
+          "input": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "RemoveMessage",
+          "input": {
+            "shape": "IdRequest",
+            "type": "structure",
+            "required": [
+              "id"
+            ],
+            "members": {
+              "id": "Id"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "parts",
+              "recipients"
+            ],
+            "members": {
+              "_id": "Id",
+              "parts": "Parts",
+              "sender": "Party",
+              "recipients": "Parties",
+              "created": "Timestamp",
+              "updated": "Timestamp",
+              "pending": "Pending",
+              "deleted": "Deleted",
+              "delivery": "Delivery",
+              "reminder": "Delivery"
+            }
+          }
+        },
+        {
+          "name": "GetMessages",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "ListInbox",
+          "input": {
+            "shape": "ListRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "skip": "Skip",
+              "limit": "integer",
+              "ids": "Ids",
+              "createdAfter": "Timestamp",
+              "createdBefore": "Timestamp"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "ListSent",
+          "input": {
+            "shape": "ListRequest",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "skip": "Skip",
+              "limit": "integer",
+              "ids": "Ids",
+              "createdAfter": "Timestamp",
+              "createdBefore": "Timestamp"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "MarkSeen",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        },
+        {
+          "name": "MarkAllSeen",
+          "input": null,
+          "output": {
+            "shape": "MarkResult",
+            "type": "string"
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2016-05-10"
+    },
+    {
+      "service": "jot",
+      "apiVersion": "2016-05-12",
+      "revision": "b2da11bc626ab9c39aeb36449470ce10fba256ee",
+      "path": "apis/jot-2016-05-12.normal.json",
+      "role": "latest 2016-05-12 model before the Jot API was removed",
+      "metadata": {
+        "apiVersion": "2016-05-12",
+        "endpointPrefix": "jot",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Jot",
+        "signatureVersion": "v4",
+        "targetPrefix": "Jot_20160126",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "name": "CreateMessage",
+          "input": {
+            "shape": "MessageRequest",
+            "type": "structure",
+            "required": [
+              "loopId"
+            ],
+            "members": {
+              "content": "Content",
+              "impersonateAs": "ImpersonateAs",
+              "loopId": "LoopId",
+              "isEncrypted": "Encrypted",
+              "parts": "PartRequests",
+              "tags": "Tags"
+            }
+          },
+          "output": {
+            "shape": "Message",
+            "type": "structure",
+            "required": [
+              "content",
+              "loopId"
+            ],
+            "members": {
+              "id": "Id",
+              "loopId": "LoopId",
+              "content": "Content",
+              "sender": "AccountId",
+              "tags": "Tags",
+              "parts": "MessageParts",
+              "isRead": "Read",
+              "isEncrypted": "Encrypted",
+              "created": "Timestamp"
+            }
+          }
+        },
+        {
+          "name": "ListMessages",
+          "input": {
+            "shape": "ListRequest",
+            "type": "structure",
+            "required": [
+              "loopId"
+            ],
+            "members": {
+              "loopId": "LoopId",
+              "impersonateAs": "ImpersonateAs",
+              "after": "Timestamp",
+              "before": "Timestamp"
+            }
+          },
+          "output": {
+            "shape": "Messages",
+            "type": "list"
+          }
+        },
+        {
+          "name": "MarkRead",
+          "input": {
+            "shape": "IdsRequest",
+            "type": "structure",
+            "required": [
+              "ids"
+            ],
+            "members": {
+              "ids": "Ids",
+              "impersonateAs": "ImpersonateAs"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "structure",
+            "required": [
+              "result"
+            ],
+            "members": {
+              "result": "string"
+            }
+          }
+        },
+        {
+          "name": "MarkLoopRead",
+          "input": {
+            "shape": "LoopIdRequest",
+            "type": "structure",
+            "required": [
+              "loopId"
+            ],
+            "members": {
+              "loopId": "LoopId",
+              "impersonateAs": "ImpersonateAs"
+            }
+          },
+          "output": {
+            "shape": "MarkResult",
+            "type": "structure",
+            "required": [
+              "result"
+            ],
+            "members": {
+              "result": "string"
+            }
+          }
+        },
+        {
+          "name": "NumberOfUnreadMessagesInLoops",
+          "input": {
+            "shape": "NumberOfUnreadMessagesRequest",
+            "type": "structure",
+            "required": [
+              "loopIds"
+            ],
+            "members": {
+              "loopIds": "Ids"
+            }
+          },
+          "output": {
+            "shape": "NumberOfUnreadMessagesResult",
+            "type": "structure",
+            "required": [
+              "count"
+            ],
+            "members": {
+              "count": "integer"
+            }
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2016-05-12"
+    },
+    {
+      "service": "voicetraining",
+      "apiVersion": "2015-10-20",
+      "revision": "0e4c44d8eeb51ee654aa6215901b1ec09fc940a0",
+      "path": "apis/voicetraining-2015-06-17.normal.json",
+      "role": "original voice-training model before the 2015-11-03 replacement",
+      "metadata": {
+        "apiVersion": "2015-10-20",
+        "endpointPrefix": "voicetraining",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo VoiceTraining",
+        "signatureVersion": "v4",
+        "targetPrefix": "VoiceTraining_20151020",
+        "protocol": "multipart"
+      },
+      "operations": [
+        {
+          "name": "UploadVoiceTraining",
+          "input": {
+            "shape": "UploadVoiceRequest",
+            "type": "structure",
+            "required": [
+              "key",
+              "body"
+            ],
+            "members": {
+              "key": "string",
+              "body": "blob"
+            }
+          },
+          "output": {
+            "shape": "UploadVoiceResponse",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "result": "string"
+            }
+          }
+        },
+        {
+          "name": "ListVoiceTrainings",
+          "input": {
+            "shape": "ListVoiceTrainings",
+            "type": "structure",
+            "required": [],
+            "members": {}
+          },
+          "output": {
+            "shape": "VoiceTrainingsList",
+            "type": "list"
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2015-10-20"
+    },
+    {
+      "service": "voicetraining",
+      "apiVersion": "2015-11-03",
+      "revision": "29ef3c25db75e3fda3a96c41908a56f4fa79e9c0",
+      "path": "apis/voicetraining-2015-11-03.normal.json",
+      "role": "latest multipart model before the 2016-01-03 rename",
+      "metadata": {
+        "apiVersion": "2015-11-03",
+        "endpointPrefix": "voicetraining",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo Voicetraining",
+        "signatureVersion": "v4",
+        "targetPrefix": "VoiceTraining_20151103",
+        "protocol": "multipart"
+      },
+      "operations": [
+        {
+          "name": "UploadFile",
+          "input": {
+            "shape": "UploadFileRequest",
+            "type": "structure",
+            "required": [
+              "key",
+              "body"
+            ],
+            "members": {
+              "key": "Key",
+              "body": "blob"
+            }
+          },
+          "output": {
+            "shape": "UploadFileResponse",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "key": "Key",
+              "accountId": "string",
+              "url": "string"
+            }
+          }
+        },
+        {
+          "name": "RemoveFile",
+          "input": {
+            "shape": "RemoveFileRequest",
+            "type": "structure",
+            "required": [
+              "id"
+            ],
+            "members": {
+              "id": "string"
+            }
+          },
+          "output": {
+            "shape": "RemoveFileResponse",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "key": "Key",
+              "_id": "string",
+              "accountId": "string",
+              "url": "string"
+            }
+          }
+        },
+        {
+          "name": "ListFiles",
+          "input": null,
+          "output": {
+            "shape": "FileList",
+            "type": "list"
+          }
+        },
+        {
+          "name": "GetFile",
+          "input": {
+            "shape": "GetFileRequest",
+            "type": "structure",
+            "required": [
+              "key"
+            ],
+            "members": {
+              "key": "Key"
+            }
+          },
+          "output": {
+            "shape": "FileLink",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "url": "string",
+              "key": "Key",
+              "_id": "string",
+              "accountId": "string"
+            }
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2015-11-03"
+    },
+    {
+      "service": "voicetraining",
+      "apiVersion": "2016-01-03",
+      "revision": "4c68f963156a0db54ffe67f57aa2f0a467d695ff",
+      "path": "apis/voicetraining-2016-01-03.normal.json",
+      "role": "latest JSON model before removal",
+      "metadata": {
+        "apiVersion": "2016-01-03",
+        "endpointPrefix": "voicetraining",
+        "jsonVersion": "1.1",
+        "serviceFullName": "Jibo VoiceTraining",
+        "signatureVersion": "v4",
+        "targetPrefix": "VoiceTraining_20160103",
+        "protocol": "json"
+      },
+      "operations": [
+        {
+          "name": "UploadFile",
+          "input": {
+            "shape": "UploadFileRequest",
+            "type": "structure",
+            "required": [
+              "key"
+            ],
+            "members": {
+              "key": "Key",
+              "body": "Stream"
+            },
+            "payload": "body"
+          },
+          "output": {
+            "shape": "FileLink",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "url": "string",
+              "key": "Key",
+              "id": "string",
+              "accountId": "AccountId"
+            }
+          }
+        },
+        {
+          "name": "RemoveFile",
+          "input": {
+            "shape": "FileRequest",
+            "type": "structure",
+            "required": [
+              "key"
+            ],
+            "members": {
+              "key": "Key"
+            }
+          },
+          "output": {
+            "shape": "FileLink",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "url": "string",
+              "key": "Key",
+              "id": "string",
+              "accountId": "AccountId"
+            }
+          }
+        },
+        {
+          "name": "ListFiles",
+          "input": null,
+          "output": {
+            "shape": "FileList",
+            "type": "list"
+          }
+        },
+        {
+          "name": "GetFile",
+          "input": {
+            "shape": "FileRequest",
+            "type": "structure",
+            "required": [
+              "key"
+            ],
+            "members": {
+              "key": "Key"
+            }
+          },
+          "output": {
+            "shape": "FileLink",
+            "type": "structure",
+            "required": [],
+            "members": {
+              "url": "string",
+              "key": "Key",
+              "id": "string",
+              "accountId": "AccountId"
+            }
+          }
+        }
+      ],
+      "discoveryVersionLabel": "2016-01-03"
+    }
+  ],
+  "versionRule": "apiVersion comes from source metadata; filename and discoveryVersionLabel are retained independently."
+}
