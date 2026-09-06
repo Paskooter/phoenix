@@ -436,6 +436,15 @@ export function settingsInternalDispatch(store, {
     sourceError(res, 415, 'Unsupported Media Type', 'Unsupported Media Type', undefined, true);
     return true;
   }
+  if (methodName === 'updateSettings' || methodName === 'deleteSettings') {
+    const validation = validateMutationRequest(body);
+    if (validation) {
+      validationError(res, validation.field, validation.detail, true);
+      return true;
+    }
+    const effectiveProviders = providers || createSettingsProviders({ store });
+    return dispatchMutationWithProviders(res, req, body, effectiveProviders, methodName);
+  }
   return settingsAwsDispatch(store, { req, res, body, op: methodName, prefix, log, providers });
 }
 
@@ -502,6 +511,305 @@ export function createSettingsInternalService({ store = getStore(), settingsProv
     name: 'settings',
     routes: settingsInternalRoutes(store, { providers }),
   });
+}
+
+// -- source-shaped UpdateSettings/DeleteSettings -----------------------------
+//
+// The robot-facing AWS-JSON compatibility route retains its historical envelope and
+// store adapter.  The internal Settings listener, however, exposes the srv-settings-ws
+// handler contract: membership and Hub are consulted first, then the controller routes
+// each requested data node to Person or Lasso and returns { data: ... }.  Keep this path
+// separate so an internal peer request cannot silently change the public robot face.
+
+function sourceBoom(statusCode, message, code) {
+  const error = new Error(message);
+  error.isBoom = true;
+  error.statusCode = statusCode;
+  error.output = {
+    payload: {
+      statusCode,
+      error: statusCode === 403 ? 'Forbidden' : statusCode === 422 ? 'Unprocessable Entity' : 'Error',
+      message,
+      ...(code ? { code } : {}),
+    },
+  };
+  return error;
+}
+
+function validateMutationRequest(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { field: 'value', detail: 'must be an object' };
+  if (body.data === undefined) return { field: 'data', detail: 'is required' };
+  if (!body.data || typeof body.data !== 'object' || Array.isArray(body.data)) {
+    return { field: 'data', detail: 'must be an object' };
+  }
+  if (body.loopId === undefined) return { field: 'loopId', detail: 'is required' };
+  if (typeof body.loopId !== 'string') return { field: 'loopId', detail: 'must be a string' };
+  if (body.loopId.length === 0) return { field: 'loopId', detail: 'is not allowed to be empty' };
+  if (body.transId !== undefined) {
+    if (typeof body.transId !== 'string') return { field: 'transId', detail: 'must be a string' };
+    if (body.transId.length === 0) return { field: 'transId', detail: 'is not allowed to be empty' };
+  }
+  return null;
+}
+
+function sourceMutationConfig(configs) {
+  const settings = configs.map((item) => ({ skillId: item.id, view: item.settings.view }));
+  const nodes = sourceDataNodes(settings);
+  const dataNodes = {};
+  nodes.forEach((node) => { dataNodes[node.key] = node; });
+  return dataNodes;
+}
+
+function validateSourceDataNode(node, value) {
+  if (typeof value !== 'object') throw new Error(`Invalid value in "${node.key}": must be an object`);
+  if (node.view.type === 'oauth') {
+    if (value === null) throw new TypeError(`Cannot read property 'serviceName' of null`);
+    if (!value.serviceName) throw new Error(`Missing serviceName in "${node.key}"`);
+    if (!value.serviceAccountName) throw new Error(`Missing serviceAccountName in "${node.key}"`);
+    if (!value.authCode) throw new Error(`Missing authCode in "${node.key}"`);
+    if (!value.scopes) throw new Error(`Missing scopes in "${node.key}"`);
+    if (!value.clientId) value.clientId = node.view.oauthParams.iosClientId;
+    if (!value.redirectUri && value.clientId === node.view.oauthParams.iosClientId) {
+      value.redirectUri = node.view.oauthParams.iosCallbackUri;
+    }
+    return;
+  }
+  if (node.view.type === 'switch' || node.view.type === 'toggle') {
+    if (value === null) throw new TypeError(`Cannot read property 'value' of null`);
+    if (value.value === 1) value.value = true;
+    if (value.value === 0) value.value = false;
+    if (typeof value.value !== 'boolean') {
+      throw new Error(`Value in "${node.key}" must be in format {"value": boolean}`);
+    }
+  }
+}
+
+function sourceMutationContext(req, body) {
+  return {
+    loopId: body.loopId,
+    transactionId: body.transId,
+    userId: credentialIdFromCreds(req),
+  };
+}
+
+async function sourceSkillConfigs(context, providers) {
+  const configs = await providers.hub.getSkillConfigs(context);
+  return { configs, dataNodes: sourceMutationConfig(configs) };
+}
+
+// Keep missing injected peer methods source-visible. The original controller calls its
+// `this.clients` object directly, so a missing seam reports that object path in the
+// TypeError. Phoenix's provider graph has a different local variable name; translate the
+// failure at the call boundary instead of rewriting error output after the operation.
+function sourceProviderCall(client, method, sourcePath, args) {
+  if (!client || typeof client[method] !== 'function') {
+    throw new TypeError(`this.clients.${sourcePath} is not a function`);
+  }
+  return client[method](...args);
+}
+
+async function updateWithProviders({ req, body, providers }) {
+  const context = sourceMutationContext(req, body);
+  await providers.account.checkUserBelongsToLoop(context);
+  const { dataNodes } = await sourceSkillConfigs(context, providers);
+  const requestData = body.data;
+  const results = {};
+  const connectableValues = {};
+  const errors = {};
+  const dataByService = {};
+
+  Object.keys(requestData).forEach((key) => {
+    const item = requestData[key];
+    const serviceName = item && item.dataService;
+    if (dataNodes[key]) {
+      validateSourceDataNode(dataNodes[key], item.value);
+      dataByService[serviceName] = dataByService[serviceName] || {};
+      dataByService[serviceName][key] = item;
+    } else {
+      results[key] = undefined;
+      errors[key] = { message: `Property ${key} is not found in ${item && item.skillId} manifest` };
+    }
+  });
+
+  const services = {
+    person: async (data) => {
+      const keys = Object.keys(data);
+      await Promise.all(keys.map((key) => sourceProviderCall(
+        providers.person, 'setAccountProperty', 'person.setAccountProperty',
+        [context, key, data[key].value],
+      )));
+      Object.assign(results, await sourceProviderCall(
+        providers.person, 'getAccountProperties', 'person.getAccountProperties', [context, keys],
+      ));
+    },
+    loop: async (data) => {
+      const keys = Object.keys(data);
+      await Promise.all(keys.map((key) => sourceProviderCall(
+        providers.person, 'setLoopProperty', 'person.setLoopProperty',
+        [context, key, data[key].value],
+      )));
+      Object.assign(results, await sourceProviderCall(
+        providers.person, 'getLoopProperties', 'person.getLoopProperties', [context, keys],
+      ));
+    },
+    lasso: async (data) => {
+      await Promise.all(Object.keys(data).map(async (key) => {
+        const node = dataNodes[key];
+        if (!node || node.view.type !== 'oauth') return;
+        const value = data[key].value;
+        const credential = {
+          skillId: data[key].skillId,
+          serviceName: value.serviceName,
+          serviceAccountName: value.serviceAccountName,
+          scopes: value.scopes,
+          clientId: value.clientId,
+          authCode: value.authCode,
+          redirectUri: value.redirectUri,
+        };
+        try {
+          await providers.lasso.createUpdateCredential(context, credential);
+        } catch (error) {
+          errors[key] = { message: error.message };
+        }
+        // The transpiled source continuation yields once after the create/update
+        // await, allowing already-ready Person/loop service continuations to start
+        // their reads before Lasso's read begins. Preserve that scheduling boundary
+        // as an execution rule; provider call traces remain observable evidence.
+        await Promise.resolve();
+        results[key] = await sourceProviderCall(
+          providers.lasso, 'getCredential', 'lasso.getCredential', [context, credential],
+        );
+        if (node.view.connectableParentKey) {
+          const current = results[node.view.connectableParentKey];
+          if (!(current && current.value === true)) {
+            connectableValues[node.view.connectableParentKey] = {
+              value: Boolean(results[key] && results[key].credentialExists),
+            };
+          }
+        }
+      }));
+    },
+  };
+
+  await Promise.all(Object.keys(dataByService).map(async (serviceID) => {
+    if (!services[serviceID]) throw sourceBoom(422, `Unknown data service: ${serviceID}`, 'UNKNOWN_DATA_SERVICE');
+    await services[serviceID](dataByService[serviceID]);
+  }));
+
+  const result = { data: {} };
+  Object.keys(requestData).forEach((key) => {
+    const item = requestData[key] || dataNodes[key];
+    result.data[key] = {
+      skillId: item.skillId,
+      dataService: item.dataService,
+      value: results[key],
+    };
+    if (errors[key]) result.data[key].error = errors[key];
+    if (typeof result.data[key].value === 'undefined') delete result.data[key].value;
+  });
+  Object.keys(connectableValues).forEach((key) => {
+    result.data[key] = {
+      skillId: dataNodes[key].skillId,
+      dataService: dataNodes[key].dataService,
+      value: connectableValues[key],
+    };
+  });
+  return result;
+}
+
+function wildcardKeyRegExp(wildcardKey) {
+  const pieces = wildcardKey.split(':').map((piece) => piece === '*' ? '([a-zA-Z-]+?)' : piece);
+  if (pieces.length !== 3) throw new Error(`Invalid key: ${wildcardKey}`);
+  return new RegExp(`^${pieces.join(':')}$`);
+}
+
+async function deleteWithProviders({ req, body, providers }) {
+  const context = sourceMutationContext(req, body);
+  await providers.account.checkUserBelongsToLoop(context);
+  const { dataNodes } = await sourceSkillConfigs(context, providers);
+  const requestData = body.data;
+  const results = {};
+  const errors = {};
+  const dataByService = {};
+  Object.keys(requestData).forEach((key) => {
+    // The original controller dereferences each request item while grouping. A null
+    // item therefore reaches the generic internal-error boundary before service
+    // dispatch; retaining the direct access is part of the wire contract.
+    const serviceName = requestData[key].dataService;
+    dataByService[serviceName] = dataByService[serviceName] || {};
+    dataByService[serviceName][key] = requestData[key];
+  });
+
+  const deleteLassoCredential = async (key, skillId, oauthParams) => {
+    const params = {
+      skillId,
+      serviceAccountName: oauthParams.serviceAccountName,
+      serviceName: oauthParams.serviceName,
+      scopes: oauthParams.scopes,
+    };
+    try {
+      await sourceProviderCall(
+        providers.lasso, 'deleteCredential', 'lasso.deleteCredential', [context, params],
+      );
+      results[key] = { deleted: true };
+    } catch (error) {
+      errors[key] = { message: error.message };
+      results[key] = { deleted: false };
+    }
+  };
+  const deleteAll = async (wildcardKey, skillId) => {
+    const regexp = wildcardKeyRegExp(wildcardKey);
+    const foundKeys = Object.keys(dataNodes).filter((key) => regexp.test(key)
+      && dataNodes[key].skillId === skillId && dataNodes[key].dataService === 'lasso');
+    try {
+      if (foundKeys.length === 0) throw new Error(`Properties matching ${wildcardKey} are not found in skill manifests`);
+      await Promise.all(foundKeys.map((key) => deleteLassoCredential(key, dataNodes[key].skillId, dataNodes[key].view.oauthParams)));
+      results[wildcardKey] = { deleted: true };
+    } catch (error) {
+      results[wildcardKey] = { deleted: false };
+      errors[wildcardKey] = { message: error.message };
+    }
+  };
+
+  await Promise.all(Object.keys(dataByService).map(async (serviceID) => {
+    if (serviceID !== 'lasso') {
+      throw sourceBoom(422, `Remove operation for ${serviceID} is not supported`, 'REMOVE_FOR_TARGET_NOT_SUPPORTED');
+    }
+    await Promise.all(Object.keys(dataByService[serviceID]).map((key) => {
+      const item = dataByService[serviceID][key];
+      if (item && item.oauthParams) return deleteLassoCredential(key, item.skillId, item.oauthParams);
+      if (dataNodes[key]) return deleteLassoCredential(dataNodes[key].key, dataNodes[key].skillId, dataNodes[key].view.oauthParams);
+      if (key.indexOf('*') > -1) return deleteAll(key, item && item.skillId);
+      errors[key] = { message: `${key} is not found in skill manifests` };
+      return undefined;
+    }));
+  }));
+
+  const result = { data: {} };
+  Object.keys(requestData).forEach((key) => {
+    const item = requestData[key];
+    result.data[key] = {
+      skillId: item.skillId,
+      dataService: item.dataService,
+      deleted: Boolean(results[key] && results[key].deleted),
+    };
+    if (errors[key]) result.data[key].error = errors[key];
+  });
+  return result;
+}
+
+function dispatchMutationWithProviders(res, req, body, providers, operation) {
+  const action = operation === 'updateSettings' ? updateWithProviders : deleteWithProviders;
+  return action({ req, body, providers })
+    .then((result) => sourceJson(res, 200, result))
+    .catch((error) => {
+      const info = sourceErrorInfo(error);
+      if (info.status === 500) {
+        sourceError(res, 500, 'Internal Server Error', 'An internal server error occurred', undefined, true);
+      } else {
+        sourceError(res, info.status, info.errorName, info.message, info.code, true);
+      }
+    });
 }
 
 function parseSettingsTarget(req) {

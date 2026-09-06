@@ -6,7 +6,7 @@
 // the account store/data store seams explicitly. The Settings controller remains the one
 // implementation of validation, view traversal and error projection in both cases.
 
-import { getSettingsData } from './settingsData.js';
+import { getSettingsData, setSettingsData } from './settingsData.js';
 
 const REPORT_SKILL = 'report-skill';
 
@@ -124,26 +124,230 @@ function localHub(store, account) {
 }
 
 function localPerson(store) {
+  // Person's LoopProperty model is keyed by loopId + key. The account ID only
+  // records who last changed the property; it is not part of the lookup key.
+  const loopRecordKey = (context) => `loop:${context.loopId}`;
+  const readLoopData = (context) => {
+    const record = store.settings.get(loopRecordKey(context));
+    return (record && record.data) || {};
+  };
+  const writeLoopData = (context, data) => {
+    store.settings.set(loopRecordKey(context), { _id: loopRecordKey(context), data, updated: Date.now() });
+    store.flush();
+  };
   return {
     async getAccountProperties(context, keys) {
       const data = getSettingsData(store, context.userId);
       return Object.fromEntries(keys.map((key) => [key, data[key]]).filter(([, value]) => value !== undefined));
     },
-    async getLoopProperties() {
-      // Phoenix's account store has no Person loop-property collection yet. Returning an
-      // empty object preserves source default handling; a configured NET_person client is
-      // selected whenever the real Person boundary is available.
-      return {};
+    async getLoopProperties(context, keys) {
+      const data = readLoopData(context);
+      return Object.fromEntries(keys.map((key) => [key, data[key]]).filter(([, value]) => value !== undefined));
+    },
+    async setAccountProperty(context, key, value) {
+      const data = { ...getSettingsData(store, context.userId), [key]: value };
+      setSettingsData(store, context.userId, data);
+    },
+    async setLoopProperty(context, key, value) {
+      const data = { ...readLoopData(context), [key]: value };
+      writeLoopData(context, data);
     },
   };
+}
+
+function lassoRecordKey(context) {
+  return `lasso:${context.userId}`;
+}
+
+function normalizedScopes(scopes) {
+  // Lasso queries scopes as Mongo `$all`, so order and repeated values do not
+  // identify a different credential. Keep a deterministic set in new local
+  // keys while retaining the original tuple values when reading old records.
+  return [...new Set(Array.isArray(scopes) ? scopes : [])].sort();
+}
+
+function lassoCredentialKey(params) {
+  // Lasso's unique Mongo index is accountId + skillId + serviceName +
+  // serviceAccountName + scopes. Keep the full logical tuple in the local seam;
+  // JSON avoids collisions when a scope itself contains ':' (for example an OAuth
+  // URL), and canonical scope ordering follows Lasso's unordered `$all` lookup.
+  return JSON.stringify([
+    params.skillId,
+    params.serviceName,
+    params.serviceAccountName,
+    normalizedScopes(params.scopes),
+  ]);
+}
+
+function parseLassoCredentialKey(key) {
+  if (typeof key !== 'string' || key[0] !== '[') return null;
+  try {
+    const tuple = JSON.parse(key);
+    if (!Array.isArray(tuple) || tuple.length !== 4 || !Array.isArray(tuple[3])) return null;
+    if (tuple.slice(0, 3).some((part) => typeof part !== 'string')) return null;
+    if (tuple[3].some((scope) => typeof scope !== 'string')) return null;
+    return {
+      skillId: tuple[0],
+      serviceName: tuple[1],
+      serviceAccountName: tuple[2],
+      scopes: tuple[3],
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function lassoScopesContain(storedScopes, requestedScopes) {
+  const stored = Array.isArray(storedScopes) ? storedScopes : [];
+  const requested = Array.isArray(requestedScopes) ? requestedScopes : [];
+  return requested.every((scope) => stored.includes(scope));
+}
+
+function validateLassoScopes(scopes) {
+  if (!Array.isArray(scopes)) throw new Error('Scopes should be an array');
+  if (!scopes.length) throw new Error('Scopes should be not empty array');
+  if (!scopes.every((scope) => typeof scope === 'string')) throw new Error('Scopes should be strings');
+}
+
+function lassoScalarMatches(stored, query, allowWildcards = false) {
+  return ['skillId', 'serviceName', 'serviceAccountName'].every((field) => (
+    (allowWildcards && query[field] === '*') || stored[field] === query[field]
+  ));
+}
+
+function lassoEntries(store, context) {
+  const data = readLassoData(store, context);
+  return Object.entries(data).flatMap(([key, value]) => {
+    const identity = parseLassoCredentialKey(key);
+    return identity ? [{ key, identity, value }] : [];
+  });
+}
+
+function lassoQueryMatches(entry, params) {
+  return lassoScalarMatches(entry.identity, params)
+    && lassoScopesContain(entry.identity.scopes, params.scopes);
+}
+
+function lassoDeleteMatches(entry, params) {
+  const scopeFilter = !Array.isArray(params.scopes) || params.scopes.length === 0
+    || params.scopes[0] === '*'
+    || lassoScopesContain(entry.identity.scopes, params.scopes);
+  return lassoScalarMatches(entry.identity, params, true) && scopeFilter;
+}
+
+function legacyWireSafe(params) {
+  // The old report wire key is service:account:scope[:scope]. It cannot encode
+  // a colon-containing component injectively. Dedicated JSON records remain the
+  // authoritative path for those values; only unambiguous legacy markers may
+  // be read or written as a compatibility fallback.
+  return [params.serviceName, params.serviceAccountName, ...(params.scopes || [])]
+    .every((value) => typeof value === 'string' && !value.includes(':'));
+}
+
+function lassoWireKey(params) {
+  return `${params.serviceName}:${params.serviceAccountName}:${(params.scopes || []).join(':')}`;
+}
+
+function readLassoData(store, context) {
+  const record = store.settings.get(lassoRecordKey(context));
+  return (record && record.data) || {};
+}
+
+function writeLassoData(store, context, data) {
+  store.settings.set(lassoRecordKey(context), {
+    _id: lassoRecordKey(context),
+    data,
+    updated: Date.now(),
+  });
+  store.flush();
+}
+
+function writeReportWireMarker(store, context, params, marker) {
+  // Keep the existing report-skill wire representation for the portal and
+  // legacy AWS view. The authoritative local Lasso identity remains the
+  // skill-aware record above.
+  if (params.skillId !== REPORT_SKILL || !legacyWireSafe(params)) return;
+  const data = { ...getSettingsData(store, context.userId), [lassoWireKey(params)]: marker };
+  setSettingsData(store, context.userId, data);
+}
+
+function deleteOtherReportCredentials(store, context, credential) {
+  // Lasso's saveCredential keeps only one provider for a report calendar slot.
+  // The source query deliberately omits scopes, so every active credential for
+  // the same account/skill/calendar slot and another service is removed.
+  if (!['workCalendar', 'personalCalendar'].includes(credential.serviceAccountName)) return;
+  const data = { ...readLassoData(store, context) };
+  for (const entry of lassoEntries(store, context)) {
+    if (entry.identity.skillId !== REPORT_SKILL
+      || entry.identity.serviceAccountName !== credential.serviceAccountName
+      || entry.identity.serviceName === credential.serviceName
+      || !entry.value || entry.value.credentialExists !== true) continue;
+    data[entry.key] = { credentialExists: false };
+  }
+  writeLassoData(store, context, data);
+
+  // Preserve the old report marker's observable false state when its safe,
+  // delimiter-free representation can identify the replaced service.
+  const settings = { ...getSettingsData(store, context.userId) };
+  for (const [key, value] of Object.entries(settings)) {
+    if (!value || value.credentialExists !== true) continue;
+    const parts = key.split(':');
+    if (parts.length < 3 || parts[1] !== credential.serviceAccountName || parts[0] === credential.serviceName) continue;
+    settings[key] = { credentialExists: false };
+  }
+  setSettingsData(store, context.userId, settings);
 }
 
 function localLasso(store) {
   return {
     async getCredential(context, params) {
-      const data = getSettingsData(store, context.userId);
-      return data[`${params.serviceName}:${params.serviceAccountName}:${(params.scopes || []).join(':')}`]
-        || { credentialExists: false };
+      validateLassoScopes(params.scopes);
+      const entries = lassoEntries(store, context).filter((entry) => lassoQueryMatches(entry, params));
+      const active = entries.filter((entry) => entry.value && entry.value.credentialExists === true);
+      // Source Credentials.find returns one record only when exactly one Mongo
+      // credential satisfies the scalar identity and requested-scope subset.
+      // More than one result is treated as no credential by checkCredentialExists.
+      if (active.length === 1) return active[0].value;
+      if (entries.length > 0) return { credentialExists: false };
+      // Read records created by the pre-repair local seam for report-skill while
+      // the skill-aware store is being introduced.
+      if (params.skillId === REPORT_SKILL && legacyWireSafe(params)) {
+        const legacy = getSettingsData(store, context.userId)[lassoWireKey(params)];
+        if (legacy && Object.prototype.hasOwnProperty.call(legacy, 'credentialExists')) return legacy;
+      }
+      return { credentialExists: false };
+    },
+    async createUpdateCredential(context, credential) {
+      validateLassoScopes(credential.scopes);
+      const entries = lassoEntries(store, context).filter((entry) => lassoQueryMatches(entry, credential));
+      // Lasso saveCredential first finds an existing credential with the same
+      // scalar identity and requested scope subset, preserving its stored scope
+      // set when the request uses a different order or fewer scopes.
+      // DELETE leaves a local false marker so the legacy settings view can
+      // report credentialExists:false, but the source Lasso document is
+      // physically removed. Never reactivate a tombstone as an existing
+      // credential during a later subset/permutation update.
+      const activeEntries = entries.filter((entry) => entry.value && entry.value.credentialExists === true);
+      const existing = activeEntries.length === 1 ? activeEntries[0] : null;
+      const key = existing ? existing.key : lassoCredentialKey(credential);
+      const data = { ...readLassoData(store, context), [key]: { credentialExists: true } };
+      writeLassoData(store, context, data);
+      writeReportWireMarker(store, context, credential, { credentialExists: true });
+      deleteOtherReportCredentials(store, context, credential);
+    },
+    async deleteCredential(context, params) {
+      const data = { ...readLassoData(store, context) };
+      const entries = lassoEntries(store, context).filter((entry) => lassoDeleteMatches(entry, params));
+      if (entries.length > 0) {
+        // The source DELETE uses the same requested-scope subset relation and
+        // removes every matching record. A false marker preserves the existing
+        // local settings persistence shape while making subsequent GETs false.
+        for (const entry of entries) data[entry.key] = { credentialExists: false };
+      } else {
+        data[lassoCredentialKey(params)] = { credentialExists: false };
+      }
+      writeLassoData(store, context, data);
+      writeReportWireMarker(store, context, params, { credentialExists: false });
     },
   };
 }
@@ -186,6 +390,8 @@ function networkPerson(fetchImpl, base) {
   return {
     getAccountProperties: (context, keys) => sendPerson(fetchImpl, base, context, 'GetAccountProperties', { keys }),
     getLoopProperties: (context, keys) => sendPerson(fetchImpl, base, context, 'GetLoopProperties', { keys, loopId: context.loopId }),
+    setAccountProperty: (context, key, value) => sendPerson(fetchImpl, base, context, 'SetAccountProperty', { key, value }),
+    setLoopProperty: (context, key, value) => sendPerson(fetchImpl, base, context, 'SetLoopProperty', { key, value, loopId: context.loopId }),
   };
 }
 
@@ -225,6 +431,25 @@ function networkLasso(fetchImpl, base) {
       } catch (_error) {
         throw new Error(`Failed to get ${params.serviceName} ${params.serviceAccountName} credentials`);
       }
+    },
+    async createUpdateCredential(context, credential) {
+      await requestJson(fetchImpl, 'Lasso', base, '/v1/credential', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...transactionHeaders(context) },
+        body: { ...credential, accountId: context.userId },
+      });
+    },
+    async deleteCredential(context, params) {
+      const url = new URL('/v1/credential', base);
+      url.searchParams.set('accountId', context.userId);
+      url.searchParams.set('skillId', params.skillId);
+      url.searchParams.set('serviceName', params.serviceName);
+      url.searchParams.set('serviceAccountName', params.serviceAccountName);
+      (params.scopes || []).forEach((scope) => url.searchParams.append('scopes', scope));
+      await requestJson(fetchImpl, 'Lasso', base, `${url.pathname}${url.search}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...transactionHeaders(context) },
+      });
     },
   };
 }
