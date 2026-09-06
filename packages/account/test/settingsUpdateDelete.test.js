@@ -517,7 +517,7 @@ test('configured Person/Lasso providers use the source update/delete peer bounda
     });
     assert.deepEqual(requests[3].query, [
       ['accountId', 'user-1'], ['skillId', 'report-skill'], ['serviceName', 'google'],
-      ['serviceAccountName', 'calendar'], ['scopes', 'read'],
+      ['serviceAccountName', 'calendar'], ['scopes[0]', 'read'],
     ]);
   } finally {
     await new Promise((resolve) => peer.close(resolve));

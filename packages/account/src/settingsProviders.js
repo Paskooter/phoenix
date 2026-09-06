@@ -6,9 +6,24 @@
 // the account store/data store seams explicitly. The Settings controller remains the one
 // implementation of validation, view traversal and error projection in both cases.
 
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import https from 'node:https';
+
 import { getSettingsData, setSettingsData } from './settingsData.js';
 
 const REPORT_SKILL = 'report-skill';
+const LASSO_JSON_MIME = /^application\/(?:[a-z0-9.]*[+-]json|json)$/i;
+const lassoHttpAgent = new http.Agent({ keepAlive: true, maxSockets: Infinity });
+const lassoHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: Infinity });
+
+function lassoRequestTimeout() {
+  return process.env.ETCO_server_http_timeout || 60000;
+}
+
+function lassoRedirectLimit() {
+  return process.env.ETCO_server_http_maxredirects || 3;
+}
 
 function baseUrl(raw) {
   if (!raw) return null;
@@ -73,6 +88,118 @@ function sourceLoopMemberError() {
 
 function transactionHeaders(context) {
   return context.transactionId === undefined ? {} : { 'X-JIBO-transID': context.transactionId };
+}
+
+function lassoHeaders(context) {
+  // srv-settings-ws/@jibo/server's BaseClient always supplies both headers. In
+  // particular, retaining an undefined transaction value lets Node reject the
+  // request before a peer sees it, which is the source behavior for a malformed
+  // Settings context.
+  return {
+    'Content-Type': 'application/json',
+    'X-JIBO-transID': context.transactionId,
+  };
+}
+
+function parseLassoResponse(response) {
+  if (Buffer.isBuffer(response)) throw new Error(response.toString());
+  if (typeof response === 'object') return response;
+  throw new Error(`Lasso response was: ${JSON.stringify(response)}`);
+}
+
+function lassoResponsePayload(response, chunks) {
+  const buffer = Buffer.concat(chunks);
+  if (buffer.length === 0) return null;
+  const contentType = String(response.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (!LASSO_JSON_MIME.test(contentType)) return buffer;
+  return JSON.parse(buffer.toString());
+}
+
+function lassoRequest(base, method, path, context, payload, redirectsLeft) {
+  if (redirectsLeft === undefined) redirectsLeft = lassoRedirectLimit();
+  const url = new URL(path, base);
+  const body = payload === undefined ? null : JSON.stringify(payload);
+  const headers = lassoHeaders(context);
+  if (body !== null) headers['content-length'] = Buffer.byteLength(body);
+  const client = url.protocol === 'https:' ? https : http;
+  const agent = url.protocol === 'https:' ? lassoHttpsAgent : lassoHttpAgent;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      if (error) reject(error);
+      else resolve(value);
+    };
+    let request;
+    try {
+      request = client.request({
+        protocol: url.protocol,
+        hostname: url.hostname,
+        port: url.port || undefined,
+        path: `${url.pathname}${url.search}`,
+        method,
+        headers,
+        agent,
+        timeout: lassoRequestTimeout(),
+      }, (response) => {
+        const redirect = [301, 302, 307, 308].includes(response.statusCode);
+        if (redirect) {
+          const location = response.headers.location;
+          if (!location || redirectsLeft <= 0) {
+            response.resume();
+            finish(new Error(location ? 'Maximum redirections reached' : 'Received redirection without location'));
+            return;
+          }
+          const redirectUrl = new URL(location, url);
+          response.resume();
+          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1)
+            .then((value) => finish(null, value), (error) => finish(error));
+          return;
+        }
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        response.once('error', (error) => finish(error));
+        response.once('aborted', () => finish(new Error('Payload stream closed prematurely')));
+        response.once('close', () => {
+          if (!response.complete) finish(new Error('Payload stream closed prematurely'));
+        });
+        response.once('end', () => {
+          try {
+            const value = lassoResponsePayload(response, chunks);
+            // BaseClient rejects a decoded payload carrying an error field,
+            // irrespective of the HTTP status. The operation wrapper below
+            // supplies the source's public error message.
+            if (value && value.error) {
+              const error = new Error(value.message || 'Lasso returned an error');
+              error.code = value.code;
+              error.statusCode = value.statusCode;
+              finish(error);
+              return;
+            }
+            finish(null, value);
+          } catch (error) {
+            finish(error);
+          }
+        });
+      });
+      request.once('error', (error) => finish(error));
+      request.once('timeout', () => {
+        request.destroy(new Error('Client request timeout'));
+      });
+      if (body !== null) request.write(body);
+      request.end();
+    } catch (error) {
+      finish(error);
+    }
+  });
+}
+
+function checkLassoRequiredProperties(data, requestType) {
+  assert(data.skillId, `Missing skillId in lasso credentials ${requestType} request`);
+  assert(data.serviceName, `Missing serviceName in lasso credentials ${requestType} request`);
+  assert(data.serviceAccountName, `Missing serviceAccountName in lasso credentials ${requestType} request`);
+  assert(data.scopes, `Missing scopes in lasso credentials ${requestType} request`);
 }
 
 function localAccount(store) {
@@ -408,23 +535,24 @@ async function sendPerson(fetchImpl, base, context, operation, payload) {
   return response;
 }
 
-function networkLasso(fetchImpl, base) {
+function networkLasso(_fetchImpl, base) {
   return {
     async getCredential(context, params) {
+      checkLassoRequiredProperties(params, 'get');
       const url = new URL('/v1/credential', base);
       url.searchParams.set('accountId', context.userId);
       url.searchParams.set('skillId', params.skillId);
       url.searchParams.set('serviceName', params.serviceName);
       url.searchParams.set('serviceAccountName', params.serviceAccountName);
-      (params.scopes || []).forEach((scope, index) => url.searchParams.set(`scopes[${index}]`, scope));
+      params.scopes.forEach((scope, index) => url.searchParams.set(`scopes[${index}]`, scope));
       try {
-        const response = await requestJson(fetchImpl, 'Lasso', base, `${url.pathname}${url.search}`, {
-          headers: { 'Content-Type': 'application/json', ...transactionHeaders(context) },
-        });
+        const response = parseLassoResponse(await lassoRequest(
+          base, 'GET', `${url.pathname}${url.search}`, context,
+        ));
         // Match Lasso.getCredential: parseLassoResponse, assert non-empty, assert
         // credentialExists, then wrap every failure in its operation-specific error.
         if (!response) throw new Error('Lasso returned an empty response');
-        if (typeof response !== 'object' || !Object.prototype.hasOwnProperty.call(response, 'credentialExists')) {
+        if (!Object.prototype.hasOwnProperty.call(response, 'credentialExists')) {
           throw new Error('Lasso returned invalid response: credentialExists is missing');
         }
         return response;
@@ -433,23 +561,39 @@ function networkLasso(fetchImpl, base) {
       }
     },
     async createUpdateCredential(context, credential) {
-      await requestJson(fetchImpl, 'Lasso', base, '/v1/credential', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...transactionHeaders(context) },
-        body: { ...credential, accountId: context.userId },
-      });
+      checkLassoRequiredProperties(credential, 'save');
+      assert(credential.authCode, 'Missing authCode in lasso value');
+      const payload = {
+        skillId: credential.skillId,
+        accountId: context.userId,
+        serviceName: credential.serviceName,
+        serviceAccountName: credential.serviceAccountName,
+        scopes: credential.scopes,
+        authCode: credential.authCode,
+      };
+      if (credential.clientId) payload.clientId = credential.clientId;
+      if (credential.redirectUri) payload.redirectUri = credential.redirectUri;
+      try {
+        return parseLassoResponse(await lassoRequest(base, 'POST', '/v1/credential', context, payload));
+      } catch (_error) {
+        throw new Error(`Failed to connect ${credential.serviceName} ${credential.serviceAccountName}`);
+      }
     },
     async deleteCredential(context, params) {
+      checkLassoRequiredProperties(params, 'delete');
       const url = new URL('/v1/credential', base);
       url.searchParams.set('accountId', context.userId);
       url.searchParams.set('skillId', params.skillId);
       url.searchParams.set('serviceName', params.serviceName);
       url.searchParams.set('serviceAccountName', params.serviceAccountName);
-      (params.scopes || []).forEach((scope) => url.searchParams.append('scopes', scope));
-      await requestJson(fetchImpl, 'Lasso', base, `${url.pathname}${url.search}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', ...transactionHeaders(context) },
-      });
+      params.scopes.forEach((scope, index) => url.searchParams.set(`scopes[${index}]`, scope));
+      try {
+        parseLassoResponse(await lassoRequest(
+          base, 'DELETE', `${url.pathname}${url.search}`, context,
+        ));
+      } catch (_error) {
+        throw new Error(`Failed to disconnect ${params.serviceName} ${params.serviceAccountName}`);
+      }
     },
   };
 }
