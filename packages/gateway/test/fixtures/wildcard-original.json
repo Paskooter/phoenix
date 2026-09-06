@@ -1,0 +1,192 @@
+{
+  "runtime": "v8.9.4",
+  "values": [
+    {
+      "id": "missing",
+      "matches": false
+    },
+    {
+      "id": "null",
+      "value": null,
+      "matches": false
+    },
+    {
+      "id": "empty-string",
+      "value": "",
+      "matches": false
+    },
+    {
+      "id": "blank-string",
+      "value": " ",
+      "matches": true
+    },
+    {
+      "id": "false",
+      "value": false,
+      "matches": true
+    },
+    {
+      "id": "true",
+      "value": true,
+      "matches": true
+    },
+    {
+      "id": "zero",
+      "value": 0,
+      "matches": true
+    },
+    {
+      "id": "negative-number",
+      "value": -2,
+      "matches": true
+    },
+    {
+      "id": "word",
+      "value": "Jane",
+      "matches": true
+    },
+    {
+      "id": "empty-array",
+      "value": [],
+      "matches": false
+    },
+    {
+      "id": "empty-member-array",
+      "value": [
+        "",
+        null,
+        []
+      ],
+      "matches": false
+    },
+    {
+      "id": "nested-empty-array",
+      "value": [
+        [],
+        [
+          ""
+        ]
+      ],
+      "matches": false
+    },
+    {
+      "id": "false-member",
+      "value": [
+        false
+      ],
+      "matches": true
+    },
+    {
+      "id": "zero-member",
+      "value": [
+        0
+      ],
+      "matches": true
+    },
+    {
+      "id": "nested-word",
+      "value": [
+        [
+          "Jane"
+        ]
+      ],
+      "matches": true
+    },
+    {
+      "id": "empty-object",
+      "value": {},
+      "matches": false
+    },
+    {
+      "id": "object-empty-member",
+      "value": {
+        "name": ""
+      },
+      "matches": true
+    },
+    {
+      "id": "nested-empty-object",
+      "value": [
+        {}
+      ],
+      "matches": false
+    },
+    {
+      "id": "nested-object",
+      "value": [
+        [
+          {
+            "name": ""
+          }
+        ]
+      ],
+      "matches": true
+    }
+  ],
+  "routes": [
+    {
+      "id": "chitchat:1886:0:base",
+      "nlu": {
+        "entities": {
+          "GivenName": "",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "intent": "hasJiboMetPerson",
+        "rules": [
+          "launch"
+        ]
+      },
+      "routing": {
+        "kind": "match",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "weight": 0,
+          "memo": {
+            "mim": "KU_HaveYouMetNotLM",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "hub-client:174:0:base",
+      "nlu": {
+        "entities": {
+          "GivenName": "",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "intent": "hasJiboMetPerson",
+        "rules": [
+          "launch"
+        ]
+      },
+      "routing": {
+        "kind": "match",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "weight": 0,
+          "memo": {
+            "mim": "KU_HaveYouMetNotLM",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "hub-client:1669:0:base",
+      "nlu": {
+        "entities": {
+          "GivenName": "",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "intent": "isJiboFriendsWithPerson",
+        "rules": [
+          "launch"
+        ]
+      },
+      "routing": {
+        "kind": "no-route"
+      }
+    }
+  ]
+}

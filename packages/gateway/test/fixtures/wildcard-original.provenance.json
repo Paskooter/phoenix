@@ -1,0 +1,48 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "v8.9.4",
+  "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "network": "none",
+  "fixtureSha256": "9356b8ca08ef1f7716c0f869fc13f7a643cffb706631e0cb6067eac5871659b4",
+  "sourceFiles": {
+    "packages/hub/src/intent/decision-tree/abstract/Operator.ts": "dd25d72a1b4c48b9881a51a09c43c429df2242ecca65727971002427457752a1",
+    "packages/hub/src/intent/decision-tree/operators/Any.ts": "1f3a3ec011acff1a5da5c960103d763f5db46c4190a6a388916a9cb76437a9b6",
+    "packages/hub/src/intent/IRDecisionMaker.ts": "ed4e4997fbe56f63e68ee16fa0a3b336d6787fb70d99a4ba8f026af8fc5bf536",
+    "packages/hub/src/intent/IntentRouter.ts": "d0611de2d3bb6e2e905be792009c5b55c324122caea348343941e1bae3538fa8",
+    "packages/hub/lib/intent/decision-tree/abstract/Operator.js": "bba9368610096a369827b4a609c64461445803f3f74f2b25694cc1fa2cf95a3e",
+    "packages/hub/lib/intent/decision-tree/operators/Any.js": "11db47257e0cb6e6d1477e7524516ba7e976e3016c84249bddd599ba04a16b3f",
+    "packages/hub/lib/intent/IRDecisionMaker.js": "5c9639f29a9e21ee9876f1322f13bb801023adee32f7c0d7e4234e0e45d84915",
+    "packages/hub/lib/intent/IntentRouter.js": "710b9d1a3b4536d2edab902fa423b5ed69ac51f3fea0d06181237fcbdcf677bb"
+  },
+  "sourceCommand": {
+    "kind": "source",
+    "argv": [
+      "docker",
+      "run",
+      "--rm",
+      "--name",
+      "codex-root-h03-empty-20260906",
+      "--network",
+      "none",
+      "-v",
+      "/home/shell/work/phoenix/.parity/reviews/h03-empty-entity-root-20260906:/review:ro",
+      "-v",
+      "/home/shell/work/phoenix/.parity/reviews/h03-empty-entity-root-20260906/out:/out:rw",
+      "-v",
+      "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c:/reference:ro",
+      "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+      "node",
+      "/review/source.cjs"
+    ],
+    "exitCode": 0,
+    "durationSeconds": 5.21
+  },
+  "sourceControllerSha256": "98aa63c8e62b1740afb54c011a1eabfe0357c797f59822bbeee7006ff03011f8",
+  "inputSha256": "968b9e6c8722b65b86b4132f4560e2f7b59bedf41371d38bbb0bf60131a16a2e",
+  "comparisonSha256": "7004d5abbdb28513a03b32bbb6d189e67e3e2611b80b00a859d1ac1a6100d79c",
+  "scope": "19 original Any operator results and three actual skills-local route/no-route decisions from the full compiled corpus. Source capture executes unmodified emitted Pegasus modules. Route/no-route uses the same projection as the production driver; raw internal undefined/null returns are outside this claim.",
+  "baselineMatches": 12,
+  "candidateMatches": 22,
+  "controls": 22,
+  "normalization": "No predicate or decision fields normalized; runtime metadata is separate."
+}

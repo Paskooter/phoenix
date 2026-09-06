@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { IntentRouter } from '../src/intentRouter.js';
+import { loadRegistry } from '../src/registry.js';
 
 const registry = [
   {
@@ -64,4 +66,27 @@ test('launch-by-skill-entity: routes when grammar emits skill but no manifest in
 test('launch-by-skill-entity ignores an unknown skill id', () => {
   const r = new IntentRouter(registry);
   assert.equal(r.getSkillIDFromNLU({ intent: '', rules: ['launch'], entities: { skill: '@be/nope' } }), null);
+});
+
+const wildcardOriginal = JSON.parse(readFileSync(new URL('./fixtures/wildcard-original.json', import.meta.url)));
+
+test('wildcard entity content matches original scalar, array and object controls', () => {
+  const router = new IntentRouter([{
+    id: 'wildcard-control',
+    intents: [{ name: 'wildcard', entities: [{ name: 'value', value: '*' }] }],
+  }]);
+  for (const control of wildcardOriginal.values) {
+    const entities = Object.hasOwn(control, 'value') ? { value: control.value } : {};
+    const decision = router.getSkillIDFromNLU({ intent: 'wildcard', rules: ['launch'], entities });
+    assert.equal(Boolean(decision), control.matches, control.id);
+  }
+});
+
+test('empty given names preserve original fallback weights and no-route decisions', async () => {
+  const router = new IntentRouter(await loadRegistry({ indexFile: 'skills-local.json', env: {} }));
+  for (const control of wildcardOriginal.routes) {
+    const decision = router.getSkillIDFromNLU(control.nlu);
+    const routing = decision ? { kind: 'match', decision } : { kind: 'no-route' };
+    assert.deepEqual(routing, control.routing, control.id);
+  }
 });

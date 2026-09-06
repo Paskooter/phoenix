@@ -8,6 +8,24 @@
 
 const WILDCARD = '*';
 
+// The source Any operator checks content, not JavaScript truthiness. Scalar
+// zero/false are valid values; arrays need a non-empty member, while objects
+// need at least one own key. An empty string must not select a name wildcard.
+function hasEntityValue(value) {
+  if (Array.isArray(value)) return value.some(hasEntityValue);
+  if (value === null) return false;
+  switch (typeof value) {
+    case 'string':
+    case 'number':
+    case 'boolean':
+      return String(value).length > 0;
+    case 'object':
+      return Object.keys(value).length > 0;
+    default:
+      return false;
+  }
+}
+
 export class IntentRouter {
   /** @param {Array<{id:string, intents:Array<{name:string, entities?:Array<{name:string,value:string,matchRule?:string}>, memo?:any}>}>} skillConfigs */
   constructor(skillConfigs) {
@@ -55,7 +73,7 @@ export class IntentRouter {
       for (const ec of reg.entities) {
         const present = entities[ec.name];
         if (ec.value === WILDCARD) {
-          if (present === undefined) { ok = false; break; }
+          if (!hasEntityValue(present)) { ok = false; break; }
           weight += 0.5;
         } else {
           const rule = ec.matchRule || 'EXACT';
