@@ -1,0 +1,229 @@
+{
+  "source": "Original frozen minimist and exact source run-service expression, executed on host Node for this diagnostic; Node8 source-function controls follow",
+  "sourceSha256": "55e1248d57e7aabcaa6f150d0b1d7bfb3047535244b280db4d1a0584d825eac3",
+  "node": "v22.22.0",
+  "candidate": "80689ac351be6e3bf6b16032cce15c45a8a17220",
+  "cases": 12,
+  "matches": 6,
+  "rows": [
+    {
+      "name": "repeated-long",
+      "args": [
+        "--port",
+        "8123",
+        "--port",
+        "9234"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "port": [
+          8123,
+          9234
+        ]
+      },
+      "expected": 8123,
+      "actual": 9234,
+      "equal": false,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "repeated-short",
+      "args": [
+        "-p",
+        "8123",
+        "-p",
+        "9234"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "p": [
+          8123,
+          9234
+        ]
+      },
+      "expected": 8123,
+      "actual": 9234,
+      "equal": false,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "repeated-mixed",
+      "args": [
+        "-p=8123",
+        "--p=9234"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "p": [
+          8123,
+          9234
+        ]
+      },
+      "expected": 8123,
+      "actual": 9234,
+      "equal": false,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "short-cluster",
+      "args": [
+        "-xp8765"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "x": "p8765"
+      },
+      "expected": 8080,
+      "actual": 8080,
+      "equal": true,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "short-cluster-with-value",
+      "args": [
+        "-vp",
+        "8765"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "v": true,
+        "p": 8765
+      },
+      "expected": 8765,
+      "actual": 8080,
+      "equal": false,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "duplicate-zero",
+      "args": [
+        "--port=0",
+        "--port=9234"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "port": [
+          0,
+          9234
+        ]
+      },
+      "expected": 0,
+      "actual": 9234,
+      "equal": false,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "object-and-scalar",
+      "args": [
+        "--port.x=8123",
+        "--port=9234"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "port": [
+          {
+            "x": 8123
+          },
+          9234
+        ]
+      },
+      "expected": null,
+      "actual": 9234,
+      "equal": false,
+      "expectedIsNaN": true,
+      "actualIsNaN": false
+    },
+    {
+      "name": "short-exponent-plus",
+      "args": [
+        "-p1e+3"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "p": 1000
+      },
+      "expected": 1000,
+      "actual": 1000,
+      "equal": true,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "normal-long",
+      "args": [
+        "--port",
+        "8765"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "port": 8765
+      },
+      "expected": 8765,
+      "actual": 8765,
+      "equal": true,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "normal-p",
+      "args": [
+        "-p",
+        "8765"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "p": 8765
+      },
+      "expected": 8765,
+      "actual": 8765,
+      "equal": true,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "negation-after-set",
+      "args": [
+        "--p=8123",
+        "--no-p"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "p": [
+          8123,
+          false
+        ]
+      },
+      "expected": 8123,
+      "actual": 8123,
+      "equal": true,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    },
+    {
+      "name": "negation-before-set",
+      "args": [
+        "--no-p",
+        "--port=9234"
+      ],
+      "sourceArgv": {
+        "_": [],
+        "p": false,
+        "port": 9234
+      },
+      "expected": 9234,
+      "actual": 9234,
+      "equal": true,
+      "expectedIsNaN": false,
+      "actualIsNaN": false
+    }
+  ],
+  "status": "changes_requested",
+  "scope": "Root diagnostic of archived minimist plus the source port expression on host Node, not execution of the original Node8 service entrypoint.",
+  "originalDiagnosticSha256": "9c89686b78093dd0cf9b1baa059590bba5e45f3c85e501795a588c273326357a"
+}

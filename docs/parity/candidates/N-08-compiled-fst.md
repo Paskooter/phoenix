@@ -1,8 +1,20 @@
-# Compiled NLU launch profile — root review
+# Compiled NLU profile — root review
 
-Status: changes requested after a real Moth trial. Candidate `e586360` is
-isolated; its main merge was aborted and Moth was restored to the previous
-backend. No full parity task is checked off.
+Status: repaired candidate `41b4696` awaits original multiple-rule HTTP controls
+and a new Moth trial. It is isolated and has not been deployed or integrated.
+The earlier `e586360` regression and verified rollback remain recorded below.
+No full parity task is checked off.
+
+The [multiple-rule repair review](../evidence/2026-09-06/nlu-compiled-fst/mixed-rule-review.json)
+records source-scored execution for all 98 requested public graphs, explicit
+artifact configuration and verified in-memory graph snapshots. Root preserved
+the default AST path and added graph substitution and lazy executor controls.
+After provisioning and verifying candidate-local workspace links, root reran
+449 unit tests, 63 configured NLU tests and all 20,528 archived parser HTTP
+responses successfully. The 43-case production comparison retains exactly the
+same 648 differences as the preceding compiled candidate, with no invariant
+failures or coverage gaps. Actual BE multi-rule combinations and native rule
+failure handling remain under independent source review.
 
 The [combined root review](../evidence/2026-09-06/nlu-compiled-fst/combined-root-review.json)
 records 20,528/20,528 original HTTP status/data matches, 449 passing default

@@ -1,0 +1,90 @@
+{
+  "status": "awaiting original multiple-rule HTTP controls and new Moth trial",
+  "integratedIntoMain": false,
+  "deployed": false,
+  "rootCandidateRevision": "41b46966e2998c2c753d4defbdfeb1aaccbaade7",
+  "agentCandidateRevision": "9ba76581eeb8b28daaef360b7c4856daf884619c",
+  "baseRevision": "e58636066ddfeb4ddae0b6282300b31c9c277ca1",
+  "changes": [
+    "Execute every requested public rule using its own verified native graph; compare native scores across rules.",
+    "Preserve original designated-loser ties and reject a selected missing-intent or SKIP result without promoting a lower result.",
+    "Require the explicit compiled graph directory; snapshot and verify all 98 graphs against the pinned inventory.",
+    "Root preserved the existing default AST path and added missing/altered graph and lazy executor snapshot controls."
+  ],
+  "profile": {
+    "publicRules": 98,
+    "inventorySha256": "4377949617eb3169f1466ddb2844f2f5f9948f43e1942a2e35f38c3664dc4aa5",
+    "ruleManifestSha256": "7648a6449f62d7664c7f9a602ec50e9195daeb92e30aaefbf0ebd2d50a0a3142"
+  },
+  "verification": {
+    "defaultUnit": {
+      "passed": 449,
+      "failed": 0,
+      "skipped": 2
+    },
+    "configuredNlu": {
+      "passed": 63,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullHttp": {
+      "cases": 20528,
+      "matches": 20528,
+      "differences": 0,
+      "groups": {
+        "boundary": {
+          "cases": 21,
+          "matches": 21
+        },
+        "chitchat": {
+          "cases": 11432,
+          "matches": 11432
+        },
+        "hub-client": {
+          "cases": 9002,
+          "matches": 9002
+        },
+        "report": {
+          "cases": 73,
+          "matches": 73
+        }
+      },
+      "scope": "Complete parser data and HTTP status against unchanged fixed original captures; not routing/actions or microphone acceptance."
+    },
+    "strictProduction": {
+      "cases": 43,
+      "differences": 648,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "sameDifferenceListAsPreviousCompiled": true
+    }
+  },
+  "workspaceSetupCorrection": "Initial checks lacked candidate-local workspace links. Root interrupted the full unit run, retained the initial logs and captures as superseded setup evidence, installed isolated dependencies, verified every @phoenix workspace link, then reran all reported checks. Only the isolated reruns are counted.",
+  "limits": [
+    "The earlier e586360 real-robot cancellation regression and rollback remain preserved.",
+    "Full original HTTP controls for actual BE multiple-rule combinations are pending; native per-rule failure handling also remains under source review.",
+    "The new Moth transport bundle is prepared but has not been deployed.",
+    "Full N-08 and all other incomplete parity tasks remain open."
+  ],
+  "privateEvidenceHashes": {
+    "default-unit-receipt.json": "9c099350e818fa7d59345bef0b2cbd50953bdfeb84cdbba01ab594c5aa6a695b",
+    "configured-nlu-receipt.json": "9cbf6740eb2a41b40bd5e1ee9f403fd5b7be85d6389146337e2a11f923bbadb0",
+    "full-http-receipt.json": "584251b5425f0cd47052b75f80dd30216dc2973b6baecc55fed65cecd681802d",
+    "default-unit.log": "2c6e7f0de227a145f9da1b1b94e847fee639f59b921260c43e91eee4ebb8ffc5",
+    "configured-nlu.log": "82c00718989d4185c6bbbaeb78f9884f24a9674fb4c2e16b20261eee87fc035f",
+    "full-http.json": "59058e6d910df166b9b881abc56c648cb78d714906e3c5977b6a312755bb31fd",
+    "production/run.json": "78bdca11e2bccecdf0b6b97a8f2f157972bd02bc000517cee6355d55fefb6811",
+    "production/comparison.json": "86f3fd20553b20afda471b07984d545bef51f8db74d91d1e65b81f0546d3a407",
+    "default-unit-interrupted.json": "6776530a8beb4cf5cd678f1fd6a12877969a689703a8fdb710540658e1d3a669"
+  },
+  "mothBundle": {
+    "revision": "97ff2540ebc71ac9fee54f5fb6eeb994a6c45b7b",
+    "transportBase": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+    "parserRevision": "41b46966e2998c2c753d4defbdfeb1aaccbaade7",
+    "fullHttpCases": 20528,
+    "fullHttpMatches": 20528,
+    "fullHttpDifferences": 0,
+    "receiptSha256": "4fb481657126e6601296bfb5c68997d57faf336ddedadeb9aa51329e3d9a37b9",
+    "deployed": false
+  }
+}

@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-Default main remains 20,233/20,528 archived HTTP status/data matches. Isolated compiled candidate e586360 matches 20,528/20,528 and passes 449 default plus 63 configured tests, but a real BE multiple-rule request regresses timer cancellation by mixing native and AST score scales. Root aborted integration and restored Moth. Source-comparable selection for every requested rule and expanded original BE rule-set coverage are required.
+Default main remains 20,233/20,528 archived HTTP status/data matches. Root candidate 41b4696 executes all 98 pinned public graphs and preserves default AST behavior. Isolated verification matches 20,528/20,528 responses, 449 unit tests and 63 configured tests; strict smoke retains exactly the previous 648 differences. Original BE multi-rule HTTP controls, per-rule failure review and a new Moth trial remain pending; e586360 regression and rollback are preserved.
 
 Done when:
 
@@ -913,7 +913,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **changes_requested**; Codex root with Luna Max candidates.
 
-Candidate scope: Root credential fix is frozen; 14 remaining target/content-type/CORS edges require explicit internal/public transport selection. Source-pinned Settings transport work is paused while the robot NLU regression is repaired. Account peer d36a1af is under independent review by http_contract_repair. Full Settings graph/persistence remains open.
+Candidate scope: Root credential fix remains frozen. Settings transport candidate 6d79a57 and Account peer follow-up 6590b89 await root review. Agent peer evidence reports 22/22 query, 7/7 malformed-membership wire matches, 14/15 populated matches and 20/22 baseline raw-body matches; remaining storage/key-order boundaries are explicit. No Settings integration or full-task acceptance.
 
 Candidate report: [docs/parity/candidates/A-06-root-review.md](../../docs/parity/candidates/A-06-root-review.md).
 
