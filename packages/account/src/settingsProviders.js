@@ -117,6 +117,9 @@ function sourceAssert(condition, message) {
   // Node 8's assert module includes the error code in the observable name.
   // Keep this translation local to the source assertion boundary.
   error.name = 'AssertionError [ERR_ASSERTION]';
+  // Node 22 adds this diagnostic field; the pinned Node 8 AssertionError does
+  // not expose it on the wire.
+  delete error.diff;
   throw error;
 }
 
