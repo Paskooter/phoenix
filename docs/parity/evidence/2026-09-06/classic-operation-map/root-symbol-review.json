@@ -1,0 +1,1266 @@
+{
+  "reviewer": "Codex root",
+  "method": "Independent TypeScript AST check against freshly read MCP source; compares all candidate pins and agent line/call assertions.",
+  "sourceRepository": "jiborobot/srv-account-ws",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "candidateRevision": "b0c41c87175f4e262fcc8ca9db645faa0bb10c2d",
+  "sourceFiles": [
+    {
+      "path": "src/handlers/account.handler.ts",
+      "sha256": "95e90e3773519b08a5f5ec3f17b10dacdc60f7e063f1d4adae77ed7b8f4ca903",
+      "bytes": 11006
+    },
+    {
+      "path": "src/controllers/account.ctrl.ts",
+      "sha256": "b55d56785031ea69422b1872aed2a4f58f1ece216e4baa5bae9452376a876bf1",
+      "bytes": 18726
+    },
+    {
+      "path": "src/handlers/loop.handler.ts",
+      "sha256": "dcef10c095f0b781387663118e13f5d47f1f0a8b258340e4168a09ab6bf5b12d",
+      "bytes": 10816
+    },
+    {
+      "path": "src/controllers/loop.ctrl.ts",
+      "sha256": "2ab287d96964829fc4ae6f9e745e83628d0be19ee91ee4076b9c5c4b3f8d74b3",
+      "bytes": 32335
+    }
+  ],
+  "checked": 51,
+  "failures": 0,
+  "operations": [
+    {
+      "id": "current:Account_20151111.AcceptTerms",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.AcceptTerms",
+        "line": 325
+      },
+      "dispatch": {
+        "key": "acceptTerms",
+        "line": 13
+      },
+      "directCalls": [
+        {
+          "method": "acceptTerms",
+          "line": 326
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.acceptTerms",
+        "line": 477
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ActivateByCode",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ActivateByCode",
+        "line": 69
+      },
+      "dispatch": {
+        "key": "activateByCode",
+        "line": 14
+      },
+      "directCalls": [
+        {
+          "method": "activateByCode",
+          "line": 70
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.activateByCode",
+        "line": 213
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ActivateById",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ActivateById",
+        "line": 85
+      },
+      "dispatch": {
+        "key": "activateById",
+        "line": 15
+      },
+      "directCalls": [
+        {
+          "method": "activateById",
+          "line": 86
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.activateById",
+        "line": 204
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ChangeEmail",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ChangeEmail",
+        "line": 203
+      },
+      "dispatch": {
+        "key": "changeEmail",
+        "line": 16
+      },
+      "directCalls": [
+        {
+          "method": "changeEmail",
+          "line": 204
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.changeEmail",
+        "line": 312
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ChangePassword",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ChangePassword",
+        "line": 186
+      },
+      "dispatch": {
+        "key": "changePassword",
+        "line": 17
+      },
+      "directCalls": [
+        {
+          "method": "changePassword",
+          "line": 190
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.changePassword",
+        "line": 248
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.CheckEmail",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.CheckEmail",
+        "line": 141
+      },
+      "dispatch": {
+        "key": "checkEmail",
+        "line": 18
+      },
+      "directCalls": [
+        {
+          "method": "checkEmail",
+          "line": 142
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.checkEmail",
+        "line": 128
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ConfirmEmailReset",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ConfirmEmailReset",
+        "line": 77
+      },
+      "dispatch": {
+        "key": "confirmEmailReset",
+        "line": 19
+      },
+      "directCalls": [
+        {
+          "method": "confirmEmailReset",
+          "line": 78
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.confirmEmailReset",
+        "line": 257
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.Create",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.Create",
+        "line": 158
+      },
+      "dispatch": {
+        "key": "create",
+        "line": 20
+      },
+      "directCalls": [
+        {
+          "method": "create",
+          "line": 169
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.create",
+        "line": 102
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.CreateAccessToken",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.CreateAccessToken",
+        "line": 269
+      },
+      "dispatch": {
+        "key": "createAccessToken",
+        "line": 21
+      },
+      "directCalls": [
+        {
+          "method": "createAccessToken",
+          "line": 270
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.createAccessToken",
+        "line": 425
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.CreateHubToken",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.CreateHubToken",
+        "line": 280
+      },
+      "dispatch": {
+        "key": "createHubToken",
+        "line": 22
+      },
+      "directCalls": [
+        {
+          "method": "createHubToken",
+          "line": 281
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.createHubToken",
+        "line": 436
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.FacebookConnect",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.FacebookConnect",
+        "line": 306
+      },
+      "dispatch": {
+        "key": "facebookConnect",
+        "line": 23
+      },
+      "directCalls": [
+        {
+          "method": "facebookConnect",
+          "line": 307
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.facebookConnect",
+        "line": 465
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.FacebookMobileConnect",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.FacebookMobileConnect",
+        "line": 317
+      },
+      "dispatch": {
+        "key": "facebookMobileConnect",
+        "line": 24
+      },
+      "directCalls": [
+        {
+          "method": "facebookMobileConnect",
+          "line": 318
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.facebookMobileConnect",
+        "line": 472
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.FacebookPrepareLogin",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.FacebookPrepareLogin",
+        "line": 296
+      },
+      "dispatch": {
+        "key": "facebookPrepareLogin",
+        "line": 25
+      },
+      "directCalls": [
+        {
+          "method": "facebookPrepareLogin",
+          "line": 297
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.facebookPrepareLogin",
+        "line": 452
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.Get",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.Get",
+        "line": 129
+      },
+      "dispatch": {
+        "key": "get",
+        "line": 26
+      },
+      "directCalls": [
+        {
+          "method": "get",
+          "line": 131
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.get",
+        "line": 71
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.GetAccountByAccessToken",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.GetAccountByAccessToken",
+        "line": 291
+      },
+      "dispatch": {
+        "key": "getAccountByAccessToken",
+        "line": 27
+      },
+      "directCalls": [
+        {
+          "method": "getAccountByAccessToken",
+          "line": 292
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.getAccountByAccessToken",
+        "line": 447
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.Login",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.Login",
+        "line": 48
+      },
+      "dispatch": {
+        "key": "login",
+        "line": 28
+      },
+      "directCalls": [
+        {
+          "method": "login",
+          "line": 49
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.login",
+        "line": 177
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.PasswordResetByCode",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.PasswordResetByCode",
+        "line": 227
+      },
+      "dispatch": {
+        "key": "passwordResetByCode",
+        "line": 29
+      },
+      "directCalls": [
+        {
+          "method": "passwordReset",
+          "line": 231
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.passwordReset",
+        "line": 348
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.Remove",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.Remove",
+        "line": 177
+      },
+      "dispatch": {
+        "key": "remove",
+        "line": 30
+      },
+      "directCalls": [
+        {
+          "method": "removeById",
+          "line": 178
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.removeById",
+        "line": 190
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.RemovePhoto",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.RemovePhoto",
+        "line": 260
+      },
+      "dispatch": {
+        "key": "removePhoto",
+        "line": 31
+      },
+      "directCalls": [
+        {
+          "method": "removePhoto",
+          "line": 262
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.removePhoto",
+        "line": 417
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ResendActivationCode",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ResendActivationCode",
+        "line": 103
+      },
+      "dispatch": {
+        "key": "resendActivationCode",
+        "line": 32
+      },
+      "directCalls": [
+        {
+          "method": "resendActivation",
+          "line": 104
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.resendActivation",
+        "line": 132
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ResetEmail",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ResetEmail",
+        "line": 95
+      },
+      "dispatch": {
+        "key": "resetEmail",
+        "line": 33
+      },
+      "directCalls": [
+        {
+          "method": "resetEmail",
+          "line": 96
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.resetEmail",
+        "line": 284
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.ResetKeys",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.ResetKeys",
+        "line": 61
+      },
+      "dispatch": {
+        "key": "resetKeys",
+        "line": 34
+      },
+      "directCalls": [
+        {
+          "method": "reset",
+          "line": 62
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.reset",
+        "line": 185
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.Search",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.Search",
+        "line": 56
+      },
+      "dispatch": {
+        "key": "search",
+        "line": 35
+      },
+      "directCalls": [
+        {
+          "method": "search",
+          "line": 57
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.search",
+        "line": 237
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.SendPasswordReset",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.SendPasswordReset",
+        "line": 216
+      },
+      "dispatch": {
+        "key": "sendPasswordReset",
+        "line": 36
+      },
+      "directCalls": [
+        {
+          "method": "sendPasswordReset",
+          "line": 220
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.sendPasswordReset",
+        "line": 334
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.SendPhoneVerificationCode",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.SendPhoneVerificationCode",
+        "line": 239
+      },
+      "dispatch": {
+        "key": "sendPhoneVerificationCode",
+        "line": 37
+      },
+      "directCalls": [
+        {
+          "method": "sendPhoneVerificationCode",
+          "line": 241
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.sendPhoneVerificationCode",
+        "line": 362
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.Update",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.Update",
+        "line": 118
+      },
+      "dispatch": {
+        "key": "update",
+        "line": 38
+      },
+      "directCalls": [
+        {
+          "method": "update",
+          "line": 122
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.update",
+        "line": 160
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.UpdatePhoto",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.UpdatePhoto",
+        "line": 254
+      },
+      "dispatch": {
+        "key": "updatePhoto",
+        "line": 39
+      },
+      "directCalls": [
+        {
+          "method": "updatePhoto",
+          "line": 256
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.updatePhoto",
+        "line": 404
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Account_20151111.VerifyPhoneByCode",
+      "handler": {
+        "path": "src/handlers/account.handler.ts",
+        "symbol": "AccountHandler.VerifyPhoneByCode",
+        "line": 248
+      },
+      "dispatch": {
+        "key": "verifyPhoneByCode",
+        "line": 40
+      },
+      "directCalls": [
+        {
+          "method": "verifyPhoneByCode",
+          "line": 250
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/account.ctrl.ts",
+        "symbol": "AccountController.verifyPhoneByCode",
+        "line": 384
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.AcceptLoopInvitation",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.AcceptInvitation",
+        "line": 167
+      },
+      "dispatch": {
+        "key": "acceptLoopInvitation",
+        "line": 12
+      },
+      "directCalls": [
+        {
+          "method": "acceptInvitation",
+          "line": 168
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.acceptInvitation",
+        "line": 527
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.ClearRobot",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.ClearRobot",
+        "line": 210
+      },
+      "dispatch": {
+        "key": "clearRobot",
+        "line": 13
+      },
+      "directCalls": [
+        {
+          "method": "clearRobot",
+          "line": 211
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.clearRobot",
+        "line": 566
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.CreateLoop",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.CreateLoop",
+        "line": 43
+      },
+      "dispatch": {
+        "key": "createLoop",
+        "line": 14
+      },
+      "directCalls": [
+        {
+          "method": "create",
+          "line": 44
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.create",
+        "line": 111
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.DeclineLoopInvitation",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.DeclineInvitation",
+        "line": 178
+      },
+      "dispatch": {
+        "key": "declineLoopInvitation",
+        "line": 15
+      },
+      "directCalls": [
+        {
+          "method": "declineInvitation",
+          "line": 179
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.declineInvitation",
+        "line": 545
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.FindOwner",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.FindOwner",
+        "line": 246
+      },
+      "dispatch": {
+        "key": "findOwner",
+        "line": 16
+      },
+      "directCalls": [
+        {
+          "method": "findOwnerId",
+          "line": 247
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.findOwnerId",
+        "line": 621
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.GetRobot",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.GetRobot",
+        "line": 198
+      },
+      "dispatch": {
+        "key": "getRobot",
+        "line": 17
+      },
+      "directCalls": [
+        {
+          "method": "getRobot",
+          "line": 199
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.getRobot",
+        "line": 577
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.InviteLoopMember",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.InviteMember",
+        "line": 88
+      },
+      "dispatch": {
+        "key": "inviteLoopMember",
+        "line": 18
+      },
+      "directCalls": [
+        {
+          "method": "inviteMember",
+          "line": 89
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.inviteMember",
+        "line": 220
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.ListLoopMembers",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.ListMembers",
+        "line": 141
+      },
+      "dispatch": {
+        "key": "listLoopMembers",
+        "line": 19
+      },
+      "directCalls": [
+        {
+          "method": "listMembers",
+          "line": 142
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.listMembers",
+        "line": 425
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.ListLoops",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.ListLoops",
+        "line": 68
+      },
+      "dispatch": {
+        "key": "listLoops",
+        "line": 20
+      },
+      "directCalls": [
+        {
+          "method": "list",
+          "line": 69
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.list",
+        "line": 166
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.ListOwnerRobots",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.ListOwnerRobots",
+        "line": 189
+      },
+      "dispatch": {
+        "key": "listOwnerRobots",
+        "line": 21
+      },
+      "directCalls": [
+        {
+          "method": "listRobots",
+          "line": 191
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.listRobots",
+        "line": 584
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.RemoveLoop",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.RemoveLoop",
+        "line": 218
+      },
+      "dispatch": {
+        "key": "removeLoop",
+        "line": 22
+      },
+      "directCalls": [
+        {
+          "method": "remove",
+          "line": 219
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.remove",
+        "line": 596
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.RemoveLoopMember",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.RemoveMember",
+        "line": 155
+      },
+      "dispatch": {
+        "key": "removeLoopMember",
+        "line": 23
+      },
+      "directCalls": [
+        {
+          "method": "removeMember",
+          "line": 156
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.removeMember",
+        "line": 469
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.RemoveMemberPhoto",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.RemoveMemberPhoto",
+        "line": 337
+      },
+      "dispatch": {
+        "key": "removeMemberPhoto",
+        "line": 24
+      },
+      "directCalls": [
+        {
+          "method": "removeMemberPhoto",
+          "line": 341
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.removeMemberPhoto",
+        "line": 410
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.SetEnrollment",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.SetEnrollment",
+        "line": 233
+      },
+      "dispatch": {
+        "key": "setEnrollment",
+        "line": 25
+      },
+      "directCalls": [
+        {
+          "method": "setEnrollment",
+          "line": 234
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.setEnrollment",
+        "line": 600
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.SetLegalGuardian",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.SetLegalGuardian",
+        "line": 256
+      },
+      "dispatch": {
+        "key": "setLegalGuardian",
+        "line": 26
+      },
+      "directCalls": [
+        {
+          "method": "setLegalGuardian",
+          "line": 257
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.setLegalGuardian",
+        "line": 653
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.SuspendLoop",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.SuspendLoop",
+        "line": 308
+      },
+      "dispatch": {
+        "key": "suspendLoop",
+        "line": 27
+      },
+      "directCalls": [
+        {
+          "method": "suspendLoop",
+          "line": 309
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.suspendLoop",
+        "line": 761
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.SuspendRobotLoop",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.SuspendRobotLoop",
+        "line": 316
+      },
+      "dispatch": {
+        "key": "suspendRobotLoop",
+        "line": 28
+      },
+      "directCalls": [
+        {
+          "method": "suspendRobotLoop",
+          "line": 317
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.suspendRobotLoop",
+        "line": 750
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.UpdateAgreementStatus",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.UpdateAgreementStatus",
+        "line": 268
+      },
+      "dispatch": {
+        "key": "updateAgreementStatus",
+        "line": 29
+      },
+      "directCalls": [
+        {
+          "method": "updateAgreementStatus",
+          "line": 269
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.updateAgreementStatus",
+        "line": 691
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.UpdateLoop",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.UpdateLoop",
+        "line": 56
+      },
+      "dispatch": {
+        "key": "updateLoop",
+        "line": 30
+      },
+      "directCalls": [
+        {
+          "method": "update",
+          "line": 57
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.update",
+        "line": 154
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.UpdateLoopMember",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.UpdateMember",
+        "line": 114
+      },
+      "dispatch": {
+        "key": "updateLoopMember",
+        "line": 31
+      },
+      "directCalls": [
+        {
+          "method": "updateMember",
+          "line": 115
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.updateMember",
+        "line": 323
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.UpdateMemberPhoto",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.UpdateMemberPhoto",
+        "line": 325
+      },
+      "dispatch": {
+        "key": "updateMemberPhoto",
+        "line": 32
+      },
+      "directCalls": [
+        {
+          "method": "updateMemberPhoto",
+          "line": 329
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.updateMemberPhoto",
+        "line": 390
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.UpdateNickname",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.UpdateNickname",
+        "line": 280
+      },
+      "dispatch": {
+        "key": "updateNickname",
+        "line": 33
+      },
+      "directCalls": [
+        {
+          "method": "updateNickname",
+          "line": 281
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.updateNickname",
+        "line": 705
+      },
+      "status": "source-symbol-verified"
+    },
+    {
+      "id": "current:Loop_20160324.UpdatePhoneticName",
+      "handler": {
+        "path": "src/handlers/loop.handler.ts",
+        "symbol": "LoopHandler.UpdatePhoneticName",
+        "line": 295
+      },
+      "dispatch": {
+        "key": "updatePhoneticName",
+        "line": 34
+      },
+      "directCalls": [
+        {
+          "method": "updatePhoneticName",
+          "line": 296
+        }
+      ],
+      "controller": {
+        "path": "src/controllers/loop.ctrl.ts",
+        "symbol": "LoopController.updatePhoneticName",
+        "line": 721
+      },
+      "status": "source-symbol-verified"
+    }
+  ],
+  "limits": [
+    "Source symbols and direct dispatch are verified; runtime operations remain not-run.",
+    "Other map assertions about payloads, persistence, errors and provider effects remain provisional except separately documented bounded source reviews."
+  ],
+  "runner": {
+    "path": ".parity/reviews/a01-map-integration/check-symbols.cjs",
+    "sha256": "14b3896205ed53e83ab1c06ac1fb4867e1de9505ab32050ac65fcd79e05314e2"
+  },
+  "sourceSnapshot": "MCP source body with presentation heading removed; original final newline preserved."
+}

@@ -1,0 +1,119 @@
+{
+  "reviewer": "Codex root",
+  "sourceRepository": "jiborobot/srv-account-ws",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "kind": "source-wiring-review-no-runtime-execution",
+  "files": [
+    {
+      "path": "src/index.ts",
+      "sha256": "2f8eb78a46fa7f304262d436c718dcd8642164319d029a9d335ce8f54b6d064c",
+      "bytes": 4221
+    },
+    {
+      "path": "src/schemes/account.ts",
+      "sha256": "7b7054842350212f37b6cc0a8c5feda52950ce46dc1ae6dabfdfad6683555cbe",
+      "bytes": 2995
+    },
+    {
+      "path": "src/schemes/loop.ts",
+      "sha256": "1b560150d85e314b2936fa00e5a235b71e7ca1e00723d2fa8294aa51dc9d4d40",
+      "bytes": 3227
+    },
+    {
+      "path": "src/controllers/account.ctrl.ts",
+      "sha256": "b55d56785031ea69422b1872aed2a4f58f1ece216e4baa5bae9452376a876bf1",
+      "bytes": 18726
+    },
+    {
+      "path": "src/controllers/loop.ctrl.ts",
+      "sha256": "2ab287d96964829fc4ae6f9e745e83628d0be19ee91ee4076b9c5c4b3f8d74b3",
+      "bytes": 32335
+    }
+  ],
+  "wiring": [
+    {
+      "path": "src/index.ts",
+      "lines": [
+        28,
+        32,
+        33
+      ],
+      "finding": "startInterceptor installs setupAccountEntityTriggers after Mongo connection and before the startup callback."
+    },
+    {
+      "path": "src/schemes/account.ts",
+      "lines": [
+        94,
+        98,
+        99
+      ],
+      "finding": "Account save middleware calls the replaceable accountSchema.postSave."
+    },
+    {
+      "path": "src/schemes/loop.ts",
+      "lines": [
+        75,
+        79,
+        80
+      ],
+      "finding": "Loop save middleware calls the replaceable loopSchema.postSave."
+    },
+    {
+      "path": "src/index.ts",
+      "lines": [
+        41,
+        42,
+        58,
+        62,
+        63,
+        65,
+        66,
+        72
+      ],
+      "finding": "Installed Account postSave schedules AccountUpdated with termsAccepted and other account fields via setImmediate; next() proceeds without awaiting send. Synchronous construction errors and rejected sends are logged."
+    },
+    {
+      "path": "src/index.ts",
+      "lines": [
+        74,
+        75,
+        104,
+        105,
+        107,
+        108,
+        114
+      ],
+      "finding": "Installed Loop postSave schedules LoopUpdated via setImmediate; next() proceeds without awaiting send. Synchronous construction errors and rejected sends are logged."
+    },
+    {
+      "path": "src/controllers/account.ctrl.ts",
+      "lines": [
+        477,
+        478,
+        479,
+        480
+      ],
+      "finding": "AcceptTerms updates termsAccepted and saves the Account, reaching the installed AccountUpdated hook in a started service."
+    },
+    {
+      "path": "src/controllers/loop.ctrl.ts",
+      "lines": [
+        566,
+        575,
+        596,
+        597,
+        770,
+        775,
+        776,
+        777
+      ],
+      "finding": "ClearRobot reaches remove/_remove, which clears the robot association, soft-deletes and saves the Loop, reaching its installed LoopUpdated hook."
+    }
+  ],
+  "supersedes": "The earlier controller/default-schema-only review left these outer hooks unrecovered; treating that scope as proof of no AccountUpdated or LoopUpdated would be incorrect.",
+  "limits": [
+    "Actual EventSender serialization, SNS/provider delivery and HTTP timing are not executed by this source review.",
+    "Hooks are conditional on startup wiring and document save; they do not imply events for pure reads or direct database updates."
+  ],
+  "sourceSnapshot": "MCP source body with presentation heading removed; original final newline preserved."
+}

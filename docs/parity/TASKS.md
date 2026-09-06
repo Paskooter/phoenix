@@ -176,7 +176,7 @@ Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/pari
 
 Owner: Codex. Dependencies: PM-03.
 
-The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md). Root-reviewed historical discovery adds 24 Jot pairs, 10 VoiceTraining pairs and the legacy Settings pair: 169 literal pairs, or 173 with four directly observed alternate Jot pairs. Denominator closure and controller/runtime parity remain open. Functional ownership is now explicit in A-19/A-20.
+The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md). Root-reviewed historical discovery adds 24 Jot pairs, 10 VoiceTraining pairs and the legacy Settings pair: 169 literal pairs, or 173 with four directly observed alternate Jot pairs. Denominator closure and controller/runtime parity remain open. Functional ownership is now explicit in A-19/A-20. The integrated provisional operation map assigns all 169 canonical pairs plus four observed aliases to registered tasks. Root independently verified all 51 Account/Admin and Loop handler/controller dispatch symbols; every runtime scenario remains not-run, and wider contract assertions still require operation-level review.
 
 Done when:
 
@@ -187,9 +187,17 @@ Done when:
 
 Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/account-2015-11-11.normal.json); [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/loop-2016-03-24.normal.json); [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/oobe-2016-10-26.normal.json).
 
-Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic); [docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json](../../docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json).
+Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic); [docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json](../../docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json); [docs/parity/candidates/A-01-operation-map.json](../../docs/parity/candidates/A-01-operation-map.json); [scripts/parity-coverage/a01_operation_map.py](../../scripts/parity-coverage/a01_operation_map.py).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
+
+Candidate scope: Provisional operation map and 51 original Account/Admin/Loop dispatch symbol mappings accepted after independent root source checks. All operation scenarios remain not-run; no A-01 acceptance criterion is closed. Root uses reviewed historical model input and registered A-19/A-20 ownership. Root also recovered startup-installed AccountUpdated/LoopUpdated save hooks, correcting the earlier isolated-controller side-effect assumptions.
+
+Candidate report: [docs/parity/candidates/A-01-operation-map.md](../../docs/parity/candidates/A-01-operation-map.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/classic-operation-map/review.json](../../docs/parity/evidence/2026-09-06/classic-operation-map/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 1. Repair public contract blockers
 

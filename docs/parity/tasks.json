@@ -2075,9 +2075,11 @@
         "docs/parity/evidence/2026-09-05/classic-api-inventory.json",
         "CLASSIC-SERVICES.md",
         "packages/classic",
-        "docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json"
+        "docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json",
+        "docs/parity/candidates/A-01-operation-map.json",
+        "scripts/parity-coverage/a01_operation_map.py"
       ],
-      "finding": "The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md). Root-reviewed historical discovery adds 24 Jot pairs, 10 VoiceTraining pairs and the legacy Settings pair: 169 literal pairs, or 173 with four directly observed alternate Jot pairs. Denominator closure and controller/runtime parity remain open. Functional ownership is now explicit in A-19/A-20.",
+      "finding": "The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md). Root-reviewed historical discovery adds 24 Jot pairs, 10 VoiceTraining pairs and the legacy Settings pair: 169 literal pairs, or 173 with four directly observed alternate Jot pairs. Denominator closure and controller/runtime parity remain open. Functional ownership is now explicit in A-19/A-20. The integrated provisional operation map assigns all 169 canonical pairs plus four observed aliases to registered tasks. Root independently verified all 51 Account/Admin and Loop handler/controller dispatch symbols; every runtime scenario remains not-run, and wider contract assertions still require operation-level review.",
       "acceptance": [
         "Assign all current 134 targets and every additional required historical/client-observed pair to a handler, source controller, consumer, parity task and verification scenario.",
         "Record auth/ownership, schema, errors, persistence and observable side effects per operation; dispatch/shape support alone is not verification.",
@@ -2085,12 +2087,15 @@
         "Recover legacy contract versions used by the original clients, including Settings_20160801.GetSettings; keep the 20171219 SDK surface independently mapped."
       ],
       "verification": [],
-      "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / audio_encoding_repair",
-        "candidateRevision": "250e288c714cb9bad0102cf49076c7dda2ee60ca",
-        "scope": "169 canonical operation rows plus four observed alternate-prefix pairs; Account/Admin and Loop source mapping is recovered. Root is reviewing operation-specific assertions and remaining source gaps; no A-01 acceptance criterion is closed.",
-        "worktree": ".parity/worktrees/a01-controller-recovery"
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / capture_writer_repair",
+        "candidateRevision": "b0c41c87175f4e262fcc8ca9db645faa0bb10c2d",
+        "worktree": ".parity/worktrees/a01-controller-symbol-followup",
+        "scope": "Provisional operation map and 51 original Account/Admin/Loop dispatch symbol mappings accepted after independent root source checks. All operation scenarios remain not-run; no A-01 acceptance criterion is closed. Root uses reviewed historical model input and registered A-19/A-20 ownership. Root also recovered startup-installed AccountUpdated/LoopUpdated save hooks, correcting the earlier isolated-controller side-effect assumptions.",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/classic-operation-map/review.json",
+        "artifact": "docs/parity/candidates/A-01-operation-map.md"
       }
     },
     {

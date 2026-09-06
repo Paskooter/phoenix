@@ -1,0 +1,88 @@
+{
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "result": "accepted-working-map-with-explicit-unverified-contracts",
+  "candidateRevision": "b0c41c87175f4e262fcc8ca9db645faa0bb10c2d",
+  "sourceSymbolEvidence": "root-symbol-review.json",
+  "sourceRepository": "jiborobot/srv-account-ws",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "sourceSymbolsChecked": 51,
+  "sourceSymbolFailures": 0,
+  "canonicalOperationRows": 169,
+  "additionalDirectlyObservedAliases": 4,
+  "runtimeScenariosRun": 0,
+  "tasksClosed": 0,
+  "integrationChanges": [
+    "Use existing root-reviewed historical-model evidence; do not publish stale discovery prose or its incorrect per-prefix counts/framework status assertions.",
+    "Require registered A-19/A-20 ownership for every historical operation; remove stale proposed-child labels.",
+    "Fail source pinning if Git revision cannot be read rather than fabricating a fallback revision.",
+    "Follow schema postSave through original src/index.ts bootstrap. Account and Loop save events are scheduled there; the earlier absence-of-event assumption was scoped too narrowly.",
+    "Keep framework/Joi validation status as an explicit runtime capture requirement rather than guessing 400."
+  ],
+  "reviewLimits": [
+    "Source symbols and direct dispatch are verified; runtime operations remain not-run.",
+    "Other map assertions about payloads, persistence, errors and provider effects remain provisional except separately documented bounded source reviews.",
+    "The generated model reflects the source snapshot in its baseRevision; new runtime work requires new operation-level evidence.",
+    "Original schema, downstream dependency and framework execution are separate from this dispatch-symbol check.",
+    "Literal 169-pair model union and four directly observed alternate-prefix pairs do not settle deployed version/alias compatibility."
+  ],
+  "validation": {
+    "state": "passed",
+    "commands": [
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/parity-coverage/a01_operation_map.py build",
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/parity-coverage/a01_operation_map.py validate"
+    ],
+    "negativeControls": [
+      {
+        "name": "missing canonical row",
+        "rejected": true,
+        "errors": [
+          "operationCount does not equal operations length",
+          "operation ids differ from source denominator: expected 169, got 168",
+          "missing: historical:VoiceTraining_20160103.UploadFile"
+        ]
+      },
+      {
+        "name": "unregistered task",
+        "rejected": true,
+        "errors": [
+          "current:Account_20151111.AcceptTerms: task A-404 is not in tasks.json"
+        ]
+      },
+      {
+        "name": "stale proposed ownership",
+        "rejected": true,
+        "errors": [
+          "current:Account_20151111.AcceptTerms: operation must belong to a registered task"
+        ]
+      },
+      {
+        "name": "false runtime verification",
+        "rejected": true,
+        "errors": [
+          "current:Account_20151111.AcceptTerms: runtime verification must remain not-run"
+        ]
+      },
+      {
+        "name": "inferred alias counted as observed",
+        "rejected": true,
+        "errors": [
+          "additionalClientPrefixUnionPairCount must be 173 directly observed target-prefix + operation pairs"
+        ]
+      },
+      {
+        "name": "omitted startup event",
+        "rejected": true,
+        "errors": [
+          "current:Account_20151111.AcceptTerms: source side-effect witness is missing",
+          "current:Account_20151111.AcceptTerms: unsupported side-effect claim 'AccountUpdated publication is not asserted' remains"
+        ]
+      }
+    ],
+    "candidateCanonicalIdsPreserved": true,
+    "allRuntimeScenarioGroupsNotRun": true,
+    "sourceMapSha256": "52d2e576c0e476add5c4fde3fdd89af2ec466b336f85bc496a4820ecc45682a0",
+    "continuousCheck": ".github/workflows/parity.yml unit job"
+  },
+  "startupHookEvidence": "startup-hook-review.json"
+}
