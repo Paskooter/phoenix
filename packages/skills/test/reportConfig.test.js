@@ -330,3 +330,20 @@ test('executable service wrapper routes synchronous and rejected startup errors 
   assert.equal(seen[4], RUN_SERVICE_SHUTDOWN_MS);
   assert.equal(seen[5], 1);
 });
+
+test('service runner still schedules shutdown when its error logger fails', (t) => {
+  const stderr = [];
+  const shutdown = [];
+  const originalError = console.error;
+  console.error = (...args) => stderr.push(args);
+  t.after(() => { console.error = originalError; });
+  const loggerError = new Error('logging configuration unavailable');
+  const startupError = new Error('startup failed');
+  runService('Skills', () => { throw startupError; }, {
+    reportError: () => { throw loggerError; },
+    scheduleExit: (callback, delay) => { shutdown.push(delay); callback(); },
+    exit: (status) => shutdown.push(status),
+  });
+  assert.deepEqual(stderr, [['Error creating error logger', loggerError], [startupError]]);
+  assert.deepEqual(shutdown, [5000, 1]);
+});

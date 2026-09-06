@@ -95,7 +95,12 @@ export function runService(serviceName, serviceStarter, {
   exit = (status) => process.exit(status),
 } = {}) {
   const handleError = (error) => {
-    reportError(error);
+    try {
+      reportError(error);
+    } catch (loggerError) {
+      console.error('Error creating error logger', loggerError);
+      console.error(error);
+    }
     scheduleExit(() => exit(1), shutdownMs);
   };
 
