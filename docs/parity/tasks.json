@@ -942,9 +942,10 @@
         "packages/nlu/resources/factory-words",
         "packages/nlu/tools/legacyOracleDiagnostic.mjs",
         "scripts/parity-production",
-        "docs/parity/NLU-SOURCE.md"
+        "docs/parity/NLU-SOURCE.md",
+        "docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json"
       ],
-      "finding": "Original C++ compiler/parser and service source plus archived binaries are recovered and pinned. Root controls establish bounded sorting, pruning and interpreter repairs, but the experimental compiled-launch profile mixes native scores with AST named-rule scores and regresses real BE cancellation. Complete requested-rule scoring/tie/validity behavior, grammar compilation and factories remain open.",
+      "finding": "Original C++ compiler/parser/service source and archived distribution artifacts are recovered and pinned. Root verified all 60 active reference build files match the requested 2.8.3 distribution, separately from the bundled 2.8.2 ZIP and v2.7.5 service config. Exact historical source rebuild remains unverified; a disposable modern build fails on missing legacy V8 headers and OpenFST API incompatibility. The accepted explicit compiled98 profile now avoids the historical mixed-score cancellation failure; default AST gaps, grammar compilation and broader factory semantics remain open.",
       "acceptance": [
         "Differentially test semantic actions, recursion, optional/repeated rules, wildcards, equivalents, locale/token normalization, weights and designated-loser ties.",
         "Recover all factory entity semantics, including names, places, dates, times, durations and numeric entities, from version-matched source/artifacts.",
@@ -952,9 +953,10 @@
       ],
       "verification": [],
       "nextImplementation": {
-        "state": "working",
+        "state": "changes_requested",
         "assignee": "Luna Max / audio_encoding_repair; root acceptance",
-        "scope": "Rebuild pinned original native source in an isolated workspace to establish compiler/parser oracle provenance. Source, dependency and toolchain pins plus binary/probe comparisons are required; version strings alone do not prove equivalence."
+        "scope": "Artifact/source-label evidence reviewed; exact historical build remains unverified. Recover legacy V8/OpenFST and other historical inputs before claiming source-to-binary provenance. Archived artifacts remain pinned separately; no exploratory compiler output is accepted.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json"
       }
     },
     {
@@ -1820,9 +1822,9 @@
       "nextImplementation": {
         "state": "changes_requested",
         "assignee": "Luna Max / capture_writer_repair; root acceptance",
-        "candidateRevision": "d80c45f4aca7dc076b9ac9ec675b789b6a7cb8db",
-        "worktree": ".parity/worktrees/report-lasso",
-        "scope": "Lasso source transport candidate reports 18 core/boundary source matches. Root requests truncated-response, full error-data/header, raw wire and malformed-input controls before acceptance. Source GetDataNode construction order matches; preserve scheduling and literal remaining transport-arrival differences."
+        "candidateRevision": "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
+        "worktree": ".parity/worktrees/report-lasso-integration",
+        "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Root found redirect header reconstruction and is requesting exact source TypeError wording. Root reproduction and final acceptance remain pending; prefetch rejection behavior stays an explicit Node8/Node22 divergence."
       },
       "implementationReview": {
         "state": "accepted",

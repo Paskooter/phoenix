@@ -1,0 +1,85 @@
+{
+  "status": "Root reviewed native distribution provenance; source rebuild remains unverified",
+  "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "sourceFiles": 121,
+  "labels": {
+    "sourcePackagingVersion": "v2.8.3",
+    "requestedDistributionVersion": "2.8.3",
+    "bundledRepositoryZipNameVersion": "2.8.2",
+    "serviceConfigurationVersion": "v2.7.5",
+    "executableVersionSelfIdentification": false
+  },
+  "requestedZipSha256": "388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b",
+  "bundledZipSha256": "a84aef41fe6ff79026b627c683260862f7971280c3bf21ab45fa8c10f35c4975",
+  "rootVerification": {
+    "reviewer": "Codex root",
+    "manifestFilesRehashed": 32,
+    "declaredBuildInputFilesRehashed": 4,
+    "referenceBuildFiles": 60,
+    "referenceBuildByteMatchesRequested23": true,
+    "bundled22VsRequested23ChangedFiles": [
+      "data/en-us/factory_rules/yes_no.fst",
+      "data/en-us/factory_rules/first_name.fst",
+      "data/en-us/factory_rules/timer.fst",
+      "data/en-us/factory_rules/time.fst",
+      "lib/libjibonlu.a"
+    ],
+    "scope": "Independent evidence byte/provenance review, not a source-to-binary rebuild or rerun of the exploratory compiler",
+    "exactHistoricalSourceRebuildVerified": false,
+    "directZipExtractionChecks": [
+      {
+        "archiveSha256": "388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b",
+        "extractedBuildFileBytesCompared": 60
+      },
+      {
+        "archiveSha256": "a84aef41fe6ff79026b627c683260862f7971280c3bf21ab45fa8c10f35c4975",
+        "extractedBuildFileBytesCompared": 60
+      }
+    ]
+  },
+  "artifactControls": {
+    "reportedBy": "Luna Max; root verified the evidence bytes",
+    "hostSyntheticCompileParseExitCodes": [
+      0,
+      0
+    ],
+    "hostTimerCompileParseExitCodes": [
+      0,
+      0
+    ],
+    "disposableUbuntuSyntheticCompileParseExitCodes": [
+      0,
+      0
+    ],
+    "scope": "Archived distribution behavior, not a newly built compiler"
+  },
+  "exploratoryBuild": {
+    "environment": "Disposable Ubuntu24.04; modern GCC13.3, Boost1.83, Poco1.11, OpenFST1.7.9, flex2.6.4 and Bison3.8.2",
+    "cmakeConfigured": true,
+    "buildExitCode": 2,
+    "failures": [
+      "Missing legacy V8 headers",
+      "OpenFST API incompatibility"
+    ],
+    "usedAsOracleOrDeployed": false
+  },
+  "remainingInputs": [
+    "Historical Boost 1.58.0 development files requested by README; modern probe had Boost 1.83.0.",
+    "Legacy V8 headers and exact V8 source/build inputs; the extracted archive contains static V8 libraries but no v8.h or libplatform headers.",
+    "The OpenFST headers/library version used to produce the archive; modern 1.7.9 is API-incompatible with pinned source kNoSymbol references.",
+    "Exact historical CMake version (source only says install CMake), Poco version, compiler/binutils and linker flags.",
+    "Pinned sibling jibo-nlu-data and jibo-nlu-service source revisions required by build.bash, plus the runtime dependency and service-framework archives named by README.",
+    "A native compiler Dockerfile/build image; the pinned Dockerfile is the Pegasus Node8 runtime image, not a C++ build image."
+  ],
+  "limits": [
+    "Exact source-to-binary build provenance remains unverified.",
+    "Reproducible archived output does not prove that this source/toolchain built that binary.",
+    "Full N-02 remains open; default AST compatibility gaps are distinct from the accepted explicit compiled98 profile."
+  ],
+  "evidenceHashes": {
+    "n02-followup-report.json": "4e4784aaf9026f7e47075e0300c6cc07ecabfa84719ea8fb07f9be8141d3ef8a",
+    "n02-followup-report.md": "bb8228b7da546ad214c35d863c012dc646698aae9539ec08c2bee83dd13e99aa",
+    "evidence-manifest.json": "702b506e2b501cadd57baf256fb27587505fd6cdff3dbb5ca5cd6e27b33bebc9",
+    "root-review.json": "4ea3fb987356f373b8a7fc02293444d64f70f459098b056ec3af93b213f13293"
+  }
+}

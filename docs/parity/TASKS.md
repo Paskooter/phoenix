@@ -560,7 +560,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-01, V-01.
 
-Original C++ compiler/parser and service source plus archived binaries are recovered and pinned. Root controls establish bounded sorting, pruning and interpreter repairs, but the experimental compiled-launch profile mixes native scores with AST named-rule scores and regresses real BE cancellation. Complete requested-rule scoring/tie/validity behavior, grammar compilation and factories remain open.
+Original C++ compiler/parser/service source and archived distribution artifacts are recovered and pinned. Root verified all 60 active reference build files match the requested 2.8.3 distribution, separately from the bundled 2.8.2 ZIP and v2.7.5 service config. Exact historical source rebuild remains unverified; a disposable modern build fails on missing legacy V8 headers and OpenFST API incompatibility. The accepted explicit compiled98 profile now avoids the historical mixed-score cancellation failure; default AST gaps, grammar compilation and broader factory semantics remain open.
 
 Done when:
 
@@ -570,7 +570,7 @@ Done when:
 
 Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/robustparser/RobustParserClient.ts); [Original Pegasus packages/parser/robust-parser](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser); [ConvTech/jibo-nlu/parser/parser.cpp](https://pvindex.org/gitea/ConvTech/jibo-nlu/src/branch/master/parser/parser.cpp); [ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:compiler](https://pvindex.org/gitea/ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:compiler/src/branch/master/); [ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:parser](https://pvindex.org/gitea/ConvTech/jibo-nlu@91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e:parser/src/branch/master/).
 
-Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [scripts/parity-production](../../scripts/parity-production); [docs/parity/NLU-SOURCE.md](../../docs/parity/NLU-SOURCE.md).
+Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [scripts/parity-production](../../scripts/parity-production); [docs/parity/NLU-SOURCE.md](../../docs/parity/NLU-SOURCE.md); [docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json](../../docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json).
 
 Evidence: pending.
 

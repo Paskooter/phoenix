@@ -13,11 +13,13 @@ The [manifest](evidence/2026-09-06/nlu-source/source-manifest.json) records all
 121 source files and their hashes. The 104,098-byte source archive has SHA-256
 `3bf858a742b9caeb157c1cf4010ff314e94e58b19bfc413d67141a0861b00f51`.
 
-The archived native 2.8.3 compiler/parser binaries are also executed for
-behavioral comparisons. Their distribution archive has SHA-256
+The compiler/parser binaries from the requested 2.8.3 distribution are also
+executed for behavioral comparisons. Their distribution archive has SHA-256
 `388646e950660d8ae00e1c96e6791c85e688cc2193ed0dcf744b33538b34113b`.
 The source version and binary artifact are pinned separately; a reproducible
 rebuild proving their exact build relationship remains unverified.
+
+The [native build provenance review](evidence/2026-09-06/nlu-source/native-build-provenance-review.json) confirms that all 60 files in the active reference build match the requested 2.8.3 distribution. The separately bundled ZIP named 2.8.2 differs in four factory graphs and one static library; its key executables have the same hashes. The service configuration labels itself v2.7.5. These packaging and configuration labels do not establish executable build provenance. A disposable modern build configured successfully but failed on missing legacy V8 headers and incompatible OpenFST APIs. No exploratory output was used as an oracle or deployed.
 
 | Behavior | Original implementation | Parity task |
 |---|---|---|
