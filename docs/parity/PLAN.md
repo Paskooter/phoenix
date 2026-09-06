@@ -35,7 +35,8 @@ The ledger has **79 tasks**: 3 management, 4 verification, 46 Pegasus, 20 compan
 | 6. Release closure | R-05 | Source inventory reconciled, zero unexplained required gaps, reproducible parity report and operational/rollback instructions |
 
 **V-01–V-04 are verified as infrastructure.** Current lead work is
-**A-01**, the companion-cloud operation mapping. V-03's complete
+**N-08**, source-backed NLU compatibility, with independent A-06 adapter
+candidates under review. A-01 operation mapping remains in the backlog. V-03's complete
 original/Phoenix production baseline is retained.
 [PRODUCTION.md](PRODUCTION.md) records the failing 20,534-case comparison and
 reviewed integration checkpoints. [COVERAGE.md](COVERAGE.md) records 960 source
@@ -92,12 +93,15 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-Current main passes **405 unit tests** and still fails its strict 43-case smoke
-with **659 field differences**, zero invariants and one unhosted action gap.
+The latest accepted main checkpoint passes **512 unit tests** and the configured
+compiled-FST strict **43-case smoke with zero differences, invariants or coverage
+gaps**. The default AST profile still has **295 accepted-baseline corpus
+differences**. [Current candidate review](evidence/2026-09-06/nlu-ast-ranking/root-review-pending.json)
+records proposed improvements and unresolved checks separately.
 The complete `057f67c` baseline has **49,155 field differences across 20,534
 cases**, zero invariants and 97 gap instances across both sides. Exact action
 objects agree in 20,170/20,434 comparisons. The complete baseline predates the
-latest A-02/S-01/H-10 integration; all dimensions and limitations are retained in
+latest parser, Settings, graph and Report transport repairs; all dimensions and limitations are retained in
 [PRODUCTION.md](PRODUCTION.md). No complete product workstream is certified.
 
 Future long captures should use an isolated, fixed verification worktree so

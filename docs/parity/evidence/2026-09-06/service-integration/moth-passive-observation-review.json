@@ -1,0 +1,34 @@
+{
+  "status": "Completed read-only observation; wake/microphone/ring acceptance remains open",
+  "robot": "Moth",
+  "backendRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+  "startedAt": "2026-09-06T18:06:06.576730+00:00",
+  "finishedAt": "2026-09-06T18:21:07.517888+00:00",
+  "durationLimitSeconds": 900,
+  "beStateSamples": 840,
+  "observationErrors": 0,
+  "nativeEventCounts": {
+    "PROACTIVE": 2,
+    "TURN_STARTED": 2,
+    "TURN_RESULT": 2
+  },
+  "observedBehavior": "An unsolicited proactive greeting entered TTS and active listening, completed two SOS_TIMEOUT turns with empty ASR text and returned to idle. No input was injected by this observer.",
+  "wakeWordEvents": 0,
+  "recognizedSpeechTurns": 0,
+  "physicalBlueRingVerified": false,
+  "microphoneAcceptance": false,
+  "nativeBackendAndConfigUnchanged": true,
+  "limits": [
+    "No user wake-word observation was received during the capture window.",
+    "SUCCEEDED native transaction status on a SOS_TIMEOUT response is not recognized-speech success.",
+    "This capture does not verify trigger selection, full greeting semantics, physical illumination or natural wake-word recognition."
+  ],
+  "privateEvidenceHashes": {
+    "observe.py": "b89127a3b1d384aa06b260845f883491a70de77d82057e39ee1d1a6fb3db687c",
+    "ready.json": "e4c2aa2d4203839cfb7841f282b4e324847b925fac06f1b4993e49494b4f5ea5",
+    "receipt.json": "6b8f1a10a538b5897624fd4056113e0118e6ea4e91a9328b945da86c8661bdab",
+    "events.jsonl": "e4ef5245cd80298465c12b3ea5b6bce9fc1ee5a15cc67e81ec762063fcb221e3",
+    "states.jsonl": "67cb7556c2c75b1a7a4385488e181c80358f3bcfa85e8246a5296fa915d7f418",
+    "postflight.json": "00450d01353000397b071e802432ca8a9267efc78fc8a540fce7604bb835cda1"
+  }
+}

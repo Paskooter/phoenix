@@ -914,7 +914,7 @@
         "packages/nlu/src/fullGrammar.js",
         "packages/nlu/resources"
       ],
-      "finding": "Integrated request/rule candidate now repairs the real Moth clock cancellation path: original LocalTurnRequest.update(cancel) returns the exact original clock/timer_set_value intent/entities and closes the timer screen without retry. Root43 smoke has36/37 exact parser responses and33/33 winning-rule agreement. Missing factory coverage and the launch loop-name grammar remain open.",
+      "finding": "The accepted compiled profile loads and verifies all 98 public graphs and 16 factory files, honors requested rules and matches 42 original multi-rule HTTP/routing cases. The 20,528-row compiled HTTP replay is exact; default AST still has 295 accepted-baseline differences and unsupported dependency boundaries. Moth clock/timer local turns are verified through client text injection. Complete cross-profile rule/dependency acceptance remains open.",
       "acceptance": [
         "Accept text/rules/loop/external as one request; select only requested known rules and return the winning rule name.",
         "Inventory and import every required named rule and dependency with hashes; do not silently skip parse/load failures.",
@@ -999,7 +999,7 @@
         "packages/nlu/resources/grammar",
         "packages/harness"
       ],
-      "finding": "Most named clock and menu follow-up grammars are missing; launch-corpus results cannot cover them.",
+      "finding": "The clock/settings/menu graphs are now present in the 98-graph compiled inventory. Root verified Moth clock display/TTS, a five-minute timer create/cancel sequence and short timer expiry through the real client with injected text. Every named rule, value/confirmation/volume/menu boundary and acoustic local-turn path still needs task-specific acceptance.",
       "acceptance": [
         "Replay every clock/settings/main-menu named rule with positive, negative and boundary utterances.",
         "Verify alarm/timer values, AM/PM, cancellation, confirmation, volume and menu selections through local-turn WS sessions."
@@ -1028,7 +1028,7 @@
         "packages/nlu/resources/grammar",
         "packages/harness"
       ],
-      "finding": "Enrollment, name confirmation, looper selection and greeting follow-up files are absent from the full-grammar import.",
+      "finding": "Identity, introduction and greeting graphs are available in the 98-graph compiled profile. That implementation removes the audit-era missing-file blocker; complete known/unknown-member, ambiguous-name, no-input and multi-turn source comparisons remain unverified for this task.",
       "acceptance": [
         "Cover each named introduction/who-am-i/greeting rule, including no-input/no-match and ambiguous name responses.",
         "Compare entities/referents and rule names in multi-turn robot transcripts using known and unknown loop members."
@@ -1055,7 +1055,7 @@
         "packages/nlu/src/fullGrammar.js",
         "packages/nlu/resources/grammar"
       ],
-      "finding": "Globals are intentionally not matched as top-level rules. Follow-ups for Hue, media, exercise, radio, tutorials, surprises and word-of-the-day are missing.",
+      "finding": "The 98-graph compiled profile now includes the inventoried device/content and global-command graphs, with 42 original multi-rule HTTP/routing controls accepted. Full positive/negative fixtures for every named rule and global interruption/local precedence journeys remain open.",
       "acceptance": [
         "Use the rule inventory to cover all remaining named rules and explicit global stop/repeat/thanks/navigation behavior.",
         "Exercise global interruption and local-rule precedence without false launches or over-triggering; no named rule is left without a fixture."
@@ -1081,7 +1081,7 @@
       "phoenix": [
         "packages/nlu/src/index.js"
       ],
-      "finding": "The HTTP handler discards loop data and has no detector equivalent.",
+      "finding": "The request parser now accepts loop context and performs ordered member enrichment, emitting loopMemberReferent, given-name and last-name fields. Source-backed loop-name cases are part of earlier bounded NLU reviews. The complete aliases, punctuation, duplicates, missing members, ambiguity and speaker/referent matrix remains unverified.",
       "acceptance": [
         "Port the source's ordered name/referent resolution and given-name/last-name/loopMemberReferent output semantics.",
         "Match source fixtures for aliases, punctuation, duplicates, missing members, ambiguous references and speaker/referent interactions."
@@ -1241,7 +1241,26 @@
           "scope": "Full-main real-client deployment must supply a verified socket identity. Diagnostic authentication-disabled trial failed and was rolled back; parser-scoring evidence remains unchanged.",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/reviewed-main-moth-trial.json"
         }
-      ]
+      ],
+      "nextImplementation": {
+        "state": "working",
+        "assignee": "Luna Max candidates; root verification and acceptance",
+        "scope": "Default AST wildcard byte-ranking candidate 031844d is under independent root replay and gateway source-contract review. The compiled profile still matches 20,528 HTTP rows and 43 strict smoke cases. Global last-equal-score candidate 1855df7 is rejected for integration after native counterexamples. No full task credit.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review-pending.json",
+        "candidates": [
+          {
+            "revision": "031844d24e9030c73159bf96a7b37da30ea6c36f",
+            "worktree": ".parity/worktrees/n08-ast-family",
+            "state": "awaiting_review"
+          },
+          {
+            "revision": "1855df7996badc48c00cea8286c1e07e26d40ac5",
+            "worktree": ".parity/worktrees/n08-ast-timeframe",
+            "state": "changes_requested",
+            "reason": "No source basis for a global last-equal-score rule; it matches 5/15 native controls versus 9/15 for the prerequisite."
+          }
+        ]
+      }
     },
     {
       "id": "I-01",
@@ -2455,17 +2474,17 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max candidates; root acceptance",
-        "scope": "Independent Settings Lasso and Person network adapters await original-control follow-ups and root review. Root requested timeout, full error-field and redirect snapshot corrections; no network adapter is accepted yet.",
+        "scope": "Settings Lasso and Person adapters now have candidate body/header snapshots, shared redirect deadlines and expanded error-field controls. Root requested final comparisons with complete captured fields and immutable command receipts. No network adapter is accepted yet.",
         "candidates": [
           {
-            "revision": "1b039455a8903b9fd055896177ab5e140d04de86",
-            "worktree": ".parity/worktrees/a06-lasso-network-followup",
-            "state": "changes_requested"
+            "revision": "6cfb23ff5c42ec42cb3cfa0c191ab4b7138cda2a",
+            "worktree": ".parity/worktrees/a06-lasso-body-followup",
+            "state": "awaiting_review"
           },
           {
-            "revision": "479e6da7b95376003d553f7be6b33885ff02cb5e",
-            "worktree": ".parity/worktrees/a06-person-network-followup",
-            "state": "unverified"
+            "revision": "979294723a83765a31cd8a078b230044fa89faa2",
+            "worktree": ".parity/worktrees/a06-person-timeout",
+            "state": "awaiting_review"
           }
         ]
       }

@@ -426,7 +426,7 @@ Lead review: Codex root; [docs/parity/reviews/h10-root/review.json](../../docs/p
 
 Owner: Codex. Dependencies: C-02, V-03.
 
-Integrated request/rule candidate now repairs the real Moth clock cancellation path: original LocalTurnRequest.update(cancel) returns the exact original clock/timer_set_value intent/entities and closes the timer screen without retry. Root43 smoke has36/37 exact parser responses and33/33 winning-rule agreement. Missing factory coverage and the launch loop-name grammar remain open.
+The accepted compiled profile loads and verifies all 98 public graphs and 16 factory files, honors requested rules and matches 42 original multi-rule HTTP/routing cases. The 20,528-row compiled HTTP replay is exact; default AST still has 295 accepted-baseline differences and unsupported dependency boundaries. Moth clock/timer local turns are verified through client text injection. Complete cross-profile rule/dependency acceptance remains open.
 
 Done when:
 
@@ -580,7 +580,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02.
 
-Most named clock and menu follow-up grammars are missing; launch-corpus results cannot cover them.
+The clock/settings/menu graphs are now present in the 98-graph compiled inventory. Root verified Moth clock display/TTS, a five-minute timer create/cancel sequence and short timer expiry through the real client with injected text. Every named rule, value/confirmation/volume/menu boundary and acoustic local-turn path still needs task-specific acceptance.
 
 Done when:
 
@@ -599,7 +599,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-06.
 
-Enrollment, name confirmation, looper selection and greeting follow-up files are absent from the full-grammar import.
+Identity, introduction and greeting graphs are available in the 98-graph compiled profile. That implementation removes the audit-era missing-file blocker; complete known/unknown-member, ambiguous-name, no-input and multi-turn source comparisons remain unverified for this task.
 
 Done when:
 
@@ -618,7 +618,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02.
 
-Globals are intentionally not matched as top-level rules. Follow-ups for Hue, media, exercise, radio, tutorials, surprises and word-of-the-day are missing.
+The 98-graph compiled profile now includes the inventoried device/content and global-command graphs, with 42 original multi-rule HTTP/routing controls accepted. Full positive/negative fixtures for every named rule and global interruption/local precedence journeys remain open.
 
 Done when:
 
@@ -637,7 +637,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-01.
 
-The HTTP handler discards loop data and has no detector equivalent.
+The request parser now accepts loop context and performs ordered member enrichment, emitting loopMemberReferent, given-name and last-name fields. Source-backed loop-name cases are part of earlier bounded NLU reviews. The complete aliases, punctuation, duplicates, missing members, ambiguity and speaker/referent matrix remains unverified.
 
 Done when:
 

@@ -215,3 +215,9 @@ or other skills need to be removed.
 ## Timer cancellation repaired in lead integration
 
 Moth BE11.0.1 now completes the original clock duration/cancel flow using Phoenix candidate16d9116. The source SDK local update returns the exact original named-rule result and the timer screen closes without retry. This is CLIENT_ASR injection, not microphone acceptance. [Evidence](evidence/2026-09-05/hardware/timer-local-cancel-fixed.json).
+
+## 2026-09-06 passive observation after BE recovery
+
+A [15-minute read-only observation](evidence/2026-09-06/service-integration/moth-passive-observation-review.json) sampled 840 BE states without connection errors. Moth produced a proactive greeting, entered speech and active listening, then completed two no-speech timeout turns and returned to idle. The observer injected no input. Backend/native processes and baseline configuration, credentials and trust hashes were unchanged at postflight.
+
+No wake-word event or recognized speech was captured. The physical blue ring, microphone wake-up and full greeting/trigger semantics remain unverified. Successful transaction status on an empty `SOS_TIMEOUT` result is not speech-recognition success. The earlier unexplained BE exit remains a stability follow-up.

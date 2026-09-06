@@ -1,0 +1,126 @@
+{
+  "status": "Review in progress; no NLU candidate accepted by this checkpoint",
+  "publishedMainRevision": "77458673fcd188f656a9e4b91f45426fc33b1668",
+  "candidateRevision": "031844d24e9030c73159bf96a7b37da30ea6c36f",
+  "rootReviewRevision": "8f5ec748c578c66cb115c73ae265b1e1bcd0af3e",
+  "sourcePins": {
+    "pegasus": "5c0a7390539663ba749d360de348a428c088505c",
+    "nativeCpp": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e"
+  },
+  "candidateClaim": {
+    "basis": "Agent full default-AST HTTP replay; independent root repeat pending",
+    "cases": 20528,
+    "differencesBefore": 295,
+    "differencesAfter": 149,
+    "fixed": 146,
+    "unchangedFailures": 125,
+    "changedFailures": 24,
+    "newlyFailingPreviouslyPassingIds": 0
+  },
+  "completedRootChecks": {
+    "compiledHttp": {
+      "cases": 20528,
+      "matches": 20528,
+      "scope": "HTTP status and decoded parser data; all 98-graph profile"
+    },
+    "strictServerSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "pass": true
+    },
+    "nativeRanking": {
+      "execution": "Archived binaries in pinned Node8 image; network none",
+      "attemptedGrammars": 9,
+      "successfulCompileParsePairs": 8,
+      "baselineWinnersAgree": 2,
+      "candidateWinnersAgree": 3,
+      "newWinnerRegressions": 0,
+      "fixedControl": "different-wildcard-bytes",
+      "limits": [
+        "Explicit ASCII per-character weight remains wrong in both AST versions.",
+        "Zero-wildcard equal-cost ordering remains wrong in both.",
+        "Three identical-byte bare-Unicode grammars fail the AST lexer in both.",
+        "One intended bounded-wildcard probe did not compile: w02 is not a native built-in. Retained without positive-test credit.",
+        "Numeric native scores are not equal to the AST proxy."
+      ]
+    },
+    "commentCorrection": {
+      "preparedOutsideFrozenTree": true,
+      "executableTokensIdentical": true,
+      "tokensCompared": 2154,
+      "finding": "Native wildcard separators carry the active weight; the AST byte proxy has only a restricted constant-offset rank relation, excluding unresolved tie and explicit-weight behavior."
+    }
+  },
+  "retainedFailures": [
+    {
+      "check": "First fresh main default-AST full replay",
+      "exitCode": 124,
+      "cause": "1800-second outer orchestration limit expired; last progress was 16000/20528 and no final result file was emitted.",
+      "sourceAndOracleStable": true,
+      "retry": "Running in frozen worktrees with 3600-second outer limit. HTTP inputs, comparison and product deadlines unchanged; this budget does not grade request latency."
+    },
+    {
+      "check": "Supplemental native w03/quoted-Unicode matrix",
+      "exitCode": 1,
+      "cause": "First Docker compile exceeded 40-second outer bound during observed VM I/O stalls; no completed matrix credit.",
+      "ownedContainerCleanup": "No matching owned container remained at inspection."
+    },
+    {
+      "check": "Root candidate full unit suite",
+      "passed": 512,
+      "failed": 1,
+      "skipped": 3,
+      "total": 516,
+      "failure": "Gateway CLIENT_ASR Ada Lovelace fixture selected an on-robot person intent instead of its expected cloud answer action.",
+      "followup": "Candidate and compiled profile agree on the new parser result; original-service control is pending before code or test acceptance."
+    },
+    {
+      "check": "Original service gateway routing probe",
+      "exitCode": 2,
+      "completedCases": 0,
+      "failure": "Original RobustParserProcess startup deadline expired before any rule loads or parser requests.",
+      "sourceAndRuntimeHashesStable": true,
+      "environment": "Host-extracted Node8 in isolated unprivileged network namespace; VM I/O stalls observed. Exact startup cause is not established.",
+      "followup": "Retained; retry required without changing source deadlines."
+    }
+  ],
+  "tieFollowupDecision": {
+    "candidateRevision": "1855df7996badc48c00cea8286c1e07e26d40ac5",
+    "state": "changes_requested",
+    "decision": "Do not integrate global last-equal-score-wins.",
+    "independentAgentControls": {
+      "cases": 15,
+      "strictFirstAgreement": 9,
+      "lastEqualAgreement": 5,
+      "execution": "Archived native binaries directly on host with pinned library path; not Docker and not a network-isolated execution."
+    },
+    "sourceBasis": "Native traversal replaces a state only for lower cost; optimized graph state ordering does not imply AST alternative ordering."
+  },
+  "remainingGates": [
+    "Independent full default-AST baseline/candidate reconciliation.",
+    "Resolve gateway source-contract assertion and complete final unit/configured checks.",
+    "Correct candidate source-weight explanation before integration.",
+    "Explicit weights, native graph ties, factory weights and normalization-sensitive paths remain NLU gaps.",
+    "No whole checklist task is closed."
+  ],
+  "evidenceHashes": {
+    "compiled-http.json": "0e5a21957e96f3642c03997e6db3f41a48ca04f55edf7657f19e7630aacec8c7",
+    "compiled-http-receipt.json": "f4bab88a356213efdf4cacfb10c3ed22c0e78ab607bde90cf186ee4b1875bf5f",
+    "production/comparison.json": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+    "strict-receipt.json": "e84863040ee0388f7944f6abe6de6bf6adee95ff5d545ab387f0e4017ec57f41",
+    "baseline-http-receipt.json": "89dc8c2ce0885114a3aebc2c8890532667eecb19f9285b1900ed9a9defba9d59",
+    "full-unit.log": "b83be298a74cc79e6a19a564964f1b556d822e5970ac91987133f953b8a7f27c",
+    "full-unit-receipt.json": "366bbc66d6066e1b0173f10cdf2ee419fc491f847aad72deff69874199cba137",
+    "native-controls/comparison.json": "d97658aabf1783e67b9ff5a832b37dabcd305f33394d4f81f6928d36fc8ea73b",
+    "native-controls/native-results.json": "a9363f2628b46e2a50fdf11880ee294bd4c3ca234143e5ec9b8709316033f36f",
+    "native-controls/supplemental/failed-run-cleanup.json": "542033bd388fef73dfa722fe9a05c80de6864ea9a27824f2c67094cde7c7fb16",
+    "matcher-comment-token-review.json": "7f106faf65d8323561a54b8a129ec5408b7827ab487652ce8ea869999d967f5f",
+    "retry/baseline-equivalence.json": "fa5acde3394db54ecb0b3c579023a396a12fa8d9eca581c8aa8fa70f5060a5ff",
+    "gateway-route-probe.json": "dac9195f0cb4e586d5ea418ee7c0dc18cc660dd5feae635d66f75819a017a6c9",
+    "gateway-source/gateway-source-host-netns-receipt.json": "e3e4718f4646bf6fc90252322b7c75494c67991868aeabc34f12127d45d6dd9b",
+    "gateway-source/gateway-source-host-netns-reference.json.gz": "8c6d042ba67ce87ef88039cf340d5e21e48e7016615668d67e06a56532301517"
+  },
+  "tieEvidenceHash": "7e199f9ce2b0503e5eada4d3a56e99eab3a8bcf43b10740bbc213e2bd904a0ee"
+}
