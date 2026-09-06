@@ -397,7 +397,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root integrated bounded JWT/upgrade and CONTEXT identity repairs: all 1,965 auth outcomes match original Node 8 on host Node 22 and deployment Node 20; all 187 expanded CONTEXT cases match. Moth at e0956e5 recovered from server-secret rotation without a native restart: two cached-token HTTP 401 requests, one new signed TLS token issuance, fresh listen/proactive upgrades and two successful rendered SDK clock turns. Configuration, credentials and trust were restored byte exactly. Expiry, per-request retry grouping and the optional account-backed extension remain open; Moth now runs reviewed transport revision 5e626b8.
+Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified.
 
 Done when:
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. The earlier authentication-disabled main trial failed CONTEXT preprocessing. A later authenticated43c81f3 trial passed native token issuance, both socket paths and SDK clock/proactive; the previous compiled-profile backend was restored. An unexplained BE exit was recovered by relaunching unchanged11.0.1 and rechecking clock/idle.
 
 Done when:
 

@@ -826,7 +826,7 @@
         "packages/gateway/test/hubAuth.test.js",
         "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root integrated bounded JWT/upgrade and CONTEXT identity repairs: all 1,965 auth outcomes match original Node 8 on host Node 22 and deployment Node 20; all 187 expanded CONTEXT cases match. Moth at e0956e5 recovered from server-secret rotation without a native restart: two cached-token HTTP 401 requests, one new signed TLS token issuance, fresh listen/proactive upgrades and two successful rendered SDK clock turns. Configuration, credentials and trust were restored byte exactly. Expiry, per-request retry grouping and the optional account-backed extension remain open; Moth now runs reviewed transport revision 5e626b8.",
+      "finding": "Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -846,9 +846,9 @@
       },
       "nextImplementation": {
         "state": "working",
-        "assignee": "Luna Max / http_contract_repair; root owns robot and acceptance",
-        "scope": "Recover original Jetstream hub-JWT issuance/refresh and local Account token flow for an authenticated Moth deployment. Current authentication-disabled main trial fails CONTEXT identity and was rolled back. No production auth weakening or simulated authentication acceptance.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/reviewed-main-moth-trial.json"
+        "assignee": "Codex root",
+        "scope": "Source-backed persistent authenticated development deployment, native token expiry/per-request retry grouping and BE stability follow-up. Temporary43c81f3 issuer/Hub trial is accepted within its bounded scope; current restored backend remains3150063.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
       },
       "implementationReviewHistory": [
         {
@@ -879,6 +879,15 @@
           "artifact": "docs/parity/HARDWARE.md",
           "reviewedBy": "Codex root",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "43c81f32b4ea2ef3a6f172944ce8bb6e6ebac150",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded authenticated reviewed-main temporary deployment with real native issuer, both socket paths, SDK clock/proactive and verified rollback/relaunch recovery; full H-10 remains open.",
+          "artifact": "docs/parity/HARDWARE.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
         }
       ]
     },
@@ -1138,7 +1147,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.",
+      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. The earlier authentication-disabled main trial failed CONTEXT preprocessing. A later authenticated43c81f3 trial passed native token issuance, both socket paths and SDK clock/proactive; the previous compiled-profile backend was restored. An unexplained BE exit was recovered by relaunching unchanged11.0.1 and rechecking clock/idle.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1218,12 +1227,21 @@
         }
       ],
       "deploymentReview": {
-        "state": "changes_requested",
-        "candidateRevision": "c6f8f655a003bcf26ecba1cd354c6aa9e1d19f96",
+        "state": "accepted",
+        "candidateRevision": "43c81f32b4ea2ef3a6f172944ce8bb6e6ebac150",
         "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
-        "scope": "Full-main real-client deployment must supply a verified socket identity. Diagnostic authentication-disabled trial failed and was rolled back; parser-scoring evidence remains unchanged.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/reviewed-main-moth-trial.json"
-      }
+        "scope": "Temporary authenticated full-main clock/proactive exchanges passed on the unchanged compiled98-graph profile. Restored backend clock passed, including after an unexplained BE exit and identical-slot relaunch. Persistent current-main deployment, microphone/ring and stability remain open.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
+      },
+      "deploymentReviewHistory": [
+        {
+          "state": "changes_requested",
+          "candidateRevision": "c6f8f655a003bcf26ecba1cd354c6aa9e1d19f96",
+          "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+          "scope": "Full-main real-client deployment must supply a verified socket identity. Diagnostic authentication-disabled trial failed and was rolled back; parser-scoring evidence remains unchanged.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/reviewed-main-moth-trial.json"
+        }
+      ]
     },
     {
       "id": "I-01",

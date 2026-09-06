@@ -1,5 +1,17 @@
 # Moth hardware validation
 
+The [latest authenticated main trial](evidence/2026-09-06/service-integration/authenticated-main-moth-review.json)
+used frozen `43c81f3` with the real native signed TLS Account issuer and the
+compiled 98-graph profile. Both authenticated socket paths and original SDK
+clock/proactive exchanges passed. Baseline configuration, credentials and trust
+were restored; Moth currently uses diagnostic backend `3150063`, not the later
+main checkout. A subsequent BE exit with code 0 has no established cause.
+Relaunching the identical BE 11.0.1 slot restored the debugger; the SDK clock
+and later idle were verified again without restarting native Jetstream or
+changing backend/configuration bytes. Microphone wake-up, physical ring
+illumination and persistent current-main deployment remain open.
+
+
 ## Native authentication verified on 2026-09-06
 
 The [first native authentication review](evidence/2026-09-06/hardware/a02-native-auth-reviewed.json)

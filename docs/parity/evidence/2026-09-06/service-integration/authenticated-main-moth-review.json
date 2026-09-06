@@ -1,0 +1,108 @@
+{
+  "status": "Root accepted bounded authenticated reviewed-main Moth trial and verified restored profile",
+  "trialRevision": "43c81f32b4ea2ef3a6f172944ce8bb6e6ebac150",
+  "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+  "profile": {
+    "robotPackage": "Original BE11.0.1 parity slot",
+    "trialAuthentication": "enabled, real Account issuer via Classic TLS entrypoint",
+    "nlu": "compiled-fst all98 pinned graphs",
+    "currentDeployment": "Previous3150063 diagnostic backend restored; trial43c81f3 was temporary"
+  },
+  "verification": {
+    "nativeTokenFlow": {
+      "operation": "Account_20151111.CreateHubToken",
+      "request": "Original native signed POST with exact{} body",
+      "status": 200,
+      "tlsProtocol": "TLSv1.2",
+      "jwtVerified": true,
+      "sameIssuedTokenAcceptedByBothPaths": true,
+      "acceptedPaths": [
+        "/v1/listen",
+        "/v1/proactive"
+      ],
+      "httpUpgradeStatus": 101,
+      "issuancePrecedesBothUpgrades": true
+    },
+    "clock": {
+      "input": "Original BE SDK clientASR text injection: what time is it",
+      "authenticatedTrialSdkSucceeded": true,
+      "restoredSdkSucceeded": true,
+      "postRelaunchSdkSucceeded": true,
+      "matchingAckStartAndResultChecked": true,
+      "ttsActivityAndClockViewObserved": true,
+      "visualReview": "Root viewed each captured cyan clock face; exact displayed time and clock-hand layout are not accepted by these still images."
+    },
+    "proactive": {
+      "input": "Original BE SDK synthetic SURPRISE trigger",
+      "ackPromiseAndMatchingNativeEventVerified": true,
+      "temporaryProbeCleanedUp": true,
+      "naturalProactivityAcceptance": false
+    },
+    "rollback": {
+      "baselineConfigurationCredentialsAndTrustByteEqual": true,
+      "usrLocalReadOnly": true,
+      "temporaryTrustMountRemoved": true,
+      "temporaryRemoteFilesRemoved": true,
+      "ownedIssuerAndHubProcessesStopped": true,
+      "backendHealthchecks": 5,
+      "finalIdleVerified": true
+    }
+  },
+  "retainedFailures": [
+    {
+      "attempt": "Authenticated trial launcher v1",
+      "failure": "Observer accessed an uninitialized Gateway after missing two awaits.",
+      "beforeNativeMutation": true,
+      "rollbackVerified": true,
+      "resolution": "Exact corrected observer was locally started and checked before fresh v2 execution."
+    },
+    {
+      "attempt": "Authenticated trial v2 TLS startup",
+      "failure": "One unknown-CA TLS alert preceded successful native signed issuance.",
+      "causeEstablished": false,
+      "laterSuccessfulFlowVerified": true
+    },
+    {
+      "attempt": "Later BE exit and CDP postflight",
+      "failure": "Installed BE process exited with code0 at14:20:05UTC; later CDP connection reset.",
+      "causeEstablished": false,
+      "resolution": "Relaunched identical BE11.0.1 slot using installed SSM package-name lookup; native/backend processes and source/configuration bytes were preserved. Root reverified SDK clock and later idle."
+    },
+    {
+      "attempt": "First BE relaunch request",
+      "failure": "SSM /run returned404 when given slot directory; installed source requires package name despite field dirName.",
+      "resolution": "Corrected package-name request succeeded. No robot source was changed."
+    }
+  ],
+  "limits": [
+    "Full H-10 and N-08 remain open.",
+    "Trial proves real native token issuance and authenticated SDK exchanges for its frozen revision, not persistent deployment of later main commits.",
+    "Token expiry, per-request retry grouping and optional account-backed revocation/unavailability remain separately open.",
+    "Microphone wake-up, physical blue-ring illumination, natural proactivity and complete clock animation/time rendering remain unverified.",
+    "The later BE exit has no established cause and remains a stability follow-up.",
+    "Earlier failed authentication-disabled main trial and successful restored clocks retain their original evidence."
+  ],
+  "evidenceHashes": {
+    "trial.json": "2e48e65f88a0d3511465ef0f6f53f746cd8bc3645128de2e1c1e26df41f851fa",
+    "initial/issuer.jsonl": "f0e1bce97de407d1583cca100d900da078e4896c9a2da641799e8ab380fd4b30",
+    "initial/hub.jsonl": "47420a4ea08c1c1d86f952cb3b1bcb7227bb3b94d6e8bf43d6c1cd3d2dd7961a",
+    "initial-clock.json": "d00ba7da44ac198c9493681f91c53e9e96858e73b4f2de0111c2a2fafb6df9b8",
+    "restored-clock.json": "2501032d375f9663a45143f806e9d9c7f0a18d543098024d1e102e60c95c5fbd",
+    "initial-proactive.json": "bc378ea8ca541e6e316b9495217f3263c265c45943ad1819618c2c030939d06e",
+    "initial-clock-view-2.png": "5b108831a78713cde7358e5e64c477fca81865766a594107d95408ceec04ada7",
+    "restored-clock-view-2.png": "f5d96492f68c51a916ee243dd386765faeebe6dffe52a15b5ae4690047bdec6c",
+    "root-postflight-review.json": "163045aa1dd27c1162de0244d615a06898dd9aa006b681b6cfd4f082070fbc1b",
+    "postflight-note-errata.json": "62324e7eb2062678494760fe61f666f4ce64aa6d70b7026915667abd6e73259b"
+  },
+  "recoveryEvidenceHashes": {
+    "initial-readonly.json": "28c95f1ae278ac4f49931fb52cc0fdd4697c5b8908d978c4c758e32ae1459fca",
+    "skill-and-messages.json": "159b26a7b13a9b4e9be38d9be75d6fbea3964644029ffa0bf763515f2ed07a67",
+    "ssm-bundle-installed.js": "88daae19883921238efbf2a56dd8e8670b89bec95d967953ab060b74db1b4e38",
+    "relaunch.json": "fa424f488f338d21b0caa3ea89abe768db255a82b42b6fbbf8e8f801a19bc207",
+    "relaunch-2.json": "59162c4509ba5feadfb53a02541a82d08c6455d3da44b8fc059d56f4a10953da",
+    "clock.json": "8744f55161fcef0a43a51122d156caffa5d6f72e3016dcca79ce549c4a775c0d",
+    "clock-view-2.png": "e35a2c60987aa18f1191dd2897577eb4c76062de17ccfd5bf04ce5e052a44054",
+    "clock-execution.json": "ebbc564467355d59293a9337b9a4253f5bf70e3856aed8c5f438a88f6dae266b",
+    "idle-later.json": "31ae5c6ef7b21d506c27a1984fc0f5d2941bbf83e74e803a6ef2c09e78093489"
+  }
+}
