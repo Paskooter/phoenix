@@ -880,7 +880,8 @@
       "phoenix": [
         "packages/nlu/src/grammar",
         "packages/nlu/resources/factory-words",
-        "packages/nlu/test/oracle"
+        "packages/nlu/tools/legacyOracleDiagnostic.mjs",
+        "scripts/parity-production"
       ],
       "finding": "The grammar engine approximates the original; a static golden grader currently scores 74/89 and is not the production parser.",
       "acceptance": [

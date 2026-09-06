@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "result": "strict-mismatch-rejection-confirmed; checklist-fix-pending-next-run",
+  "workflow": {
+    "conclusion": "failure",
+    "createdAt": "2026-09-06T02:46:02Z",
+    "event": "push",
+    "headBranch": "main",
+    "headSha": "4b625d519a4c8016b8721613b8895c8ce2e85432",
+    "name": "Phoenix parity",
+    "path": ".github/workflows/parity.yml",
+    "runAttempt": 1,
+    "runId": 34007320572,
+    "runNumber": 1,
+    "runUrl": "https://github.com/Paskooter/phoenix/actions/runs/34007320572",
+    "status": "completed",
+    "updatedAt": "2026-09-06T02:46:55Z",
+    "workflowSha256": "8071a8969e1584ba3e3da709dbe8197b1af4c0d1fe2af63cbd197b38293b24be"
+  },
+  "jobs": [
+    {
+      "id": 101416818748,
+      "name": "Unit tests and checklist",
+      "conclusion": "failure",
+      "observedFailure": "N-02: missing Phoenix path packages/nlu/test/oracle"
+    },
+    {
+      "id": 101416818834,
+      "name": "Strict production comparison",
+      "conclusion": "failure",
+      "observedFailure": "strict smoke comparison returned mismatch and exit code 1"
+    }
+  ],
+  "unitTestsPassed": 405,
+  "inventoryTestsPassed": 6,
+  "production": {
+    "cases": 43,
+    "captureComplete": true,
+    "captureFailures": 0,
+    "uniqueOrderedCaseIds": true,
+    "differences": 659,
+    "invariants": 0,
+    "coverageGaps": 1,
+    "result": "mismatch"
+  },
+  "repair": "N-02 linked an empty local packages/nlu/test/oracle directory absent from Git. Replace it with the actual legacy diagnostic tool and production comparison scripts. Full N-02 remains open.",
+  "artifacts": {
+    "comparison.json": "755aa970d147b50338fcdf579397ac5733fd30a69b601aa24d4aed08923e95f6",
+    "phoenix-source.json": "eeba47f6aa7d199768bc38d9499a2a99530024915d9db1630e1a2d42116d026b",
+    "run.json": "4564f6ccd40f1912dc6b4ff1f923a51bcb9c4e8729ca4acee44efd73b7bb8c40",
+    "candidate.json.gz": "8834dc72b30a9a1101a23f570ccca64625912cdac2f48c873edc1453de08fece"
+  }
+}

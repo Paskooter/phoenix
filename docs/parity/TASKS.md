@@ -554,7 +554,7 @@ Done when:
 
 Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/robustparser/RobustParserClient.ts); [Original Pegasus packages/parser/robust-parser](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/robust-parser); [ConvTech/jibo-nlu/parser/parser.cpp](https://pvindex.org/gitea/ConvTech/jibo-nlu/src/branch/master/parser/parser.cpp).
 
-Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/test/oracle](../../packages/nlu/test/oracle).
+Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [scripts/parity-production](../../scripts/parity-production).
 
 Evidence: pending.
 

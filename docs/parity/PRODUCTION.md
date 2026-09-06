@@ -146,8 +146,12 @@ or success override hides the current failures.
 Both comparison success and failure retain the run metadata, source
 fingerprint, candidate capture, full comparison and logs for seven days.
 Accepted root evidence is separately committed under this document's evidence
-links. The first hosted run is pending; local workflow validation and the
-coverage integration are recorded in the
+links. The [first hosted run](evidence/2026-09-06/ci/first-run/review.json)
+confirmed the 659-difference smoke rejection, with no capture failures. All
+405 unit tests and six inventory tests passed. Checklist validation exposed an
+untracked N-02 directory reference; its replacement now names the existing
+diagnostic and production tools. The next hosted run must validate that fix.
+Local workflow and coverage integration checks are recorded in the
 [root review](evidence/2026-09-06/coverage-review/review.json).
 
 ## Commands
