@@ -1,0 +1,16 @@
+{
+  "command": "npm run test:unit",
+  "checkout": "main with exactly the three reviewed optional-atom candidate files integrated",
+  "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
+  "counts": {
+    "tests": 414,
+    "pass": 414,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "rawLog": ".parity/reviews/n08-optional-root/main-unit.log",
+  "rawLogSha256": "000316717dc5f97e0786bcd401ae4846d4ff0911c3d5eb0e8c786a4a2d5e1307",
+  "limitation": "This fresh complete run passed; the earlier concurrent run and its four audio deadline failures remain recorded separately."
+}

@@ -38,8 +38,10 @@ Neither kind of evidence substitutes for the other.
 For example, the [optional-atom review](evidence/2026-09-06/nlu-optional-atoms/review.json)
 traces `?` through the original compiler and confirms its behavior with the
 native binaries. That review rejected a duplicate-character special case and
-replaced it with the general code-point/group rule. The replacement remains a
-candidate until its regression review is complete.
+replaced it with the general code-point/group rule. The replacement is
+integrated after root review: it fixes 17 previous differences with no newly
+failing IDs across the 20,528-request HTTP status/data replay. The remaining
+295 differences keep full NLU parity open.
 
 Source recovery does not close N-02 or N-08. Compiled-path ordering, complete
 grammar/factory behavior and full corpus agreement remain open and are tracked

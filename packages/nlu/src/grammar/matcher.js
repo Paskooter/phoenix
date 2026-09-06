@@ -108,10 +108,8 @@ function* match(node, start, ctx, depth) {
       return;
     }
     case 'class': {
-      // `[salutation?s]` → "salutation" or "salutations" (the `?` makes the
-      // suffix optional). Generalized: parse body into a base + optional
-      // suffix groups separated by `?`. Match the produced word(s) against
-      // the next input token.
+      // Inside [], ? makes the next character or parenthesized group
+      // optional. Match the expanded words against the next input token.
       const variants = expandCharClass(node.body);
       for (const v of variants) {
         if (start < tokens.length && (tokens[start] === _norm(v) || eqEquals(ctx.eq, tokens[start], _norm(v)))) {
@@ -273,6 +271,7 @@ function mergeObj(a, b) {
 // `|` alternation, `?X` optionals, `(...)` grouping — applied
 // character-by-character with no inter-token space. So:
 //   `[salutation?s]`   → ['salutation', 'salutations']
+//   `[me?et]`          → ['met', 'meet']
 //   `[danc(e|(ing))]`  → ['dance', 'dancing']
 //   `[do?(ing)]`       → ['do', 'doing']
 //   `[is?(n\'t)]`      → ['is', "isn't"]
@@ -310,18 +309,19 @@ function expandCharClass(body) {
     return parseAtom();
   }
   function parseAtom() {
+    if (pos >= body.length) return [''];
     if (body[pos] === '(') {
       pos += 1;
       const r = parseAlt();
       if (body[pos] === ')') pos += 1;
       return r;
     }
-    let s = '';
-    while (pos < body.length && !/[?()|]/.test(body[pos])) {
-      if (body[pos] === '\\' && pos + 1 < body.length) { s += body[pos + 1]; pos += 2; continue; }
-      s += body[pos]; pos += 1;
-    }
-    return [s];
+    // A bare atom is one character. Consuming the whole following word
+    // here incorrectly made ? discard every remaining character in it.
+    if (body[pos] === '\\' && pos + 1 < body.length) pos += 1;
+    const character = String.fromCodePoint(body.codePointAt(pos));
+    pos += character.length;
+    return [character];
   }
   return parseAlt();
 }

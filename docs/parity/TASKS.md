@@ -660,7 +660,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-Reviewed source grammar metadata repairs are integrated. Full replay matches HTTP status and complete decoded response.data for20,216/20,528 requests:89 prior failures fixed, no newly failing IDs,312 remaining. All73 report cases match. Full outer HTTP/routing/action parity remains separate and open.
+Reviewed grammar metadata and general optional-code-point/group handling are integrated. Full replay matches HTTP status and complete decoded response.data for 20,233/20,528 requests: 17 additional failures fixed, no newly failing IDs, 295 remaining. All 73 report cases and four non-200 cases match within that scope. Full outer HTTP/routing/action parity remains separate and open.
 
 Done when:
 
@@ -674,13 +674,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Codex root.
+- [x] Candidate implementation — **accepted**; Codex root.
 
-Candidate scope: General native optional-code-point/group behavior; all 32 NLU tests pass. Complete 20,528-request HTTP replay is running. Strict smoke remains 659 differences, zero invariants and one gap. The 414-test run had four audio deadline failures; all 34 isolated audio tests pass. Earlier failures are retained.
+Candidate scope: General native optional-code-point/group behavior integrated after root source/native review and full 20,528-request status/data replay: 20,233 matches, 17 fixes, zero new mismatch IDs. All 414 integrated-main unit tests pass. Strict smoke remains 659 differences; complete N-08 remains open.
 
 Candidate report: [docs/parity/candidates/N-08-followup.md](../../docs/parity/candidates/N-08-followup.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json](../../docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

@@ -1,7 +1,7 @@
 {
   "date": "2026-09-06",
   "reviewer": "Codex root",
-  "result": "replacement-candidate-awaiting-complete-regression-review",
+  "result": "accepted-bounded-optional-atom-repair",
   "task": "N-08",
   "taskStatus": "open",
   "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
@@ -34,14 +34,45 @@
       "failed": 0,
       "artifact": "asr-focused.log",
       "limitation": "Fresh isolated-suite success does not erase whole-run failures or close H-07 timing acceptance."
+    },
+    "integratedMainUnitRun": {
+      "passed": 414,
+      "failed": 0,
+      "total": 414,
+      "artifact": "main-unit-result.json"
     }
   },
   "fullHttpReplay": {
-    "state": "running",
+    "state": "completed-reviewed-mismatch",
     "referenceCases": 20528,
     "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
-    "artifact": ".parity/reviews/n08-optional-root/full-parser-replay.json",
-    "scope": "HTTP status and full decoded response.data, including malformed input cases; no new full result is claimed yet."
+    "exactStatusDataMatches": 20233,
+    "differences": 295,
+    "baselineMatches": 20216,
+    "priorDifferencesFixed": 17,
+    "newlyFailingIds": 0,
+    "allFourNon200CasesMatch": true,
+    "groups": {
+      "boundary": {
+        "cases": 21,
+        "matches": 20
+      },
+      "chitchat": {
+        "cases": 11432,
+        "matches": 11266
+      },
+      "hub-client": {
+        "cases": 9002,
+        "matches": 8874
+      },
+      "report": {
+        "cases": 73,
+        "matches": 73
+      }
+    },
+    "artifact": "full-http-review.json",
+    "rawArtifact": ".parity/reviews/n08-optional-root/full-parser-replay.json",
+    "scope": "HTTP status and full decoded response.data only, including malformed input cases. Full outer HTTP/routing/action parity remains separate and open."
   },
   "strictSmoke": {
     "state": "completed-mismatch",
@@ -106,5 +137,7 @@
     "nativeRunnerSha256": "bd6d39fc86762f13c73cc106dd5a63740a7872b68109681bf2cb0cccf46ec4d4",
     "fullHttpReplay": "node .parity/reviews/replay-full-parser.mjs /home/shell/work/phoenix/.parity/worktrees/nlu-optional-root/packages/nlu/src/index.js /home/shell/work/phoenix/.parity/reviews/n08-optional-root/full-parser-replay.json",
     "fullHttpReplayRunnerSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e"
-  }
+  },
+  "reviewScope": "Original source and native probes plus full 20,528-request HTTP status/data regression review; full N-02/N-08 and strict production parity remain open.",
+  "integration": "Exactly the three candidate files integrated into main after confirming the pre-change NLU tree matched the frozen baseline."
 }

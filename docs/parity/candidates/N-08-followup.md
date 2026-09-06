@@ -1,6 +1,6 @@
 # N-08 follow-up: optional character-class atoms
 
-Status: **initial special case needs replacement; general fix awaits complete regression review**
+Status: **general optional-atom fix accepted and integrated; full N-08 remains open**
 Owner: Codex root, with Luna Max source review
 Base: `4b45dae17bdf186de108b903ec7ca50b15d0944d`
 Previous N-08 repair: `774dba170b5294ec85185d3e3186e349c8038811`
@@ -14,11 +14,17 @@ special case that did not implement that general rule.
 
 Replacement candidate `63bbddd63bcf72cefa601a4f8929efc1cc196df5` uses one
 code point per bare atom and retains group and escape handling. All 32 NLU
-tests pass. Its complete 20,528-request HTTP replay is running in a frozen
-worktree. Strict smoke remains a mismatch: 659 field differences, zero
-invariants and one uncovered action. The broader 414-test run had four audio
-deadline failures; the isolated 34-test audio suite passed. Both results are
-retained. This candidate has not been integrated into main or accepted.
+tests pass. Root's complete 20,528-request HTTP replay found 20,233 exact
+status/data matches and 295 differences: 17 earlier failures fixed and no
+newly failing IDs. All four non-200 cases and all 73 report cases match in
+that scope. The three reviewed files are integrated into main, where the
+standard 414-test unit suite passed. The earlier concurrent unit run's four
+audio deadline failures and isolated 34-test repeat remain separate evidence.
+
+Strict smoke remains a mismatch: 659 field differences, zero invariants and
+one uncovered action. Full outer HTTP/routing/action parity and complete
+N-08 remain open. [Root comparison](../evidence/2026-09-06/nlu-optional-atoms/full-http-review.json)
+records fixed and remaining IDs, input/reference hashes and error coverage.
 
 The focused request tests exercise `have you met alicia yet`, `have you met the
 amazon echo`, and loop-member enrichment for `have you met george`. No rule

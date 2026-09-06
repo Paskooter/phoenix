@@ -224,6 +224,43 @@ test('keeps source priority and punctuation metadata semantic', () => {
   });
 });
 
+test('expands optional characters in source person grammar', () => {
+  // `[me?et]` is the source spelling for both "met" and "meet". The
+  // `?` makes the next `e` optional; the final `t` remains required.
+  // The unrelated `me` variant must not be emitted.
+  assert.deepEqual(parseRequest({ text: 'have you met alicia yet', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'hasJiboMetPerson',
+    entities: {
+      GivenName: 'alicia',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+  assert.deepEqual(parseRequest({ text: 'have you met the amazon echo', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'hasJiboMetPerson',
+    entities: {
+      Person: 'Alexa',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
+  assert.deepEqual(parseRequest({
+    text: 'have you met george',
+    rules: ['launch'],
+    loop: { users: [{ id: 'test-looper-id-2', firstName: 'George', lastName: 'Jetson' }] },
+  }), {
+    rules: ['launch'],
+    intent: 'hasJiboMetPerson',
+    entities: {
+      GivenName: 'george',
+      union_original_fst_name: 'handle:chitchat/launch',
+      loopMemberReferent: 'test-looper-id-2',
+      'given-name': 'George',
+      'last-name': 'Jetson',
+    },
+  });
+});
+
 test('HTTP parser accepts the complete request data and preserves empty shape', async () => {
   const response = await fetch(`${base}/v1/parse`, {
     method: 'POST',
