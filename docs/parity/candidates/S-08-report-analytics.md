@@ -2,9 +2,9 @@
 
 Status: **bounded candidate; unverified pending root review**
 
-Owner: Luna Max  
-Base: `7ae5fbc7793c88113fc41b7bd3fcb17bfef9081d`  
-Reference revision: `5c0a7390539663ba749d360de348a428c088505c`  
+Owner: Luna Max
+Base: `7ae5fbc7793c88113fc41b7bd3fcb17bfef9081d`
+Reference revision: `5c0a7390539663ba749d360de348a428c088505c`
 Audit date: 2026-09-06
 
 ## Observed difference
