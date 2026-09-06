@@ -247,10 +247,6 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
       requestState.activeRequests.add(request);
       request.once('close', () => requestState.activeRequests.delete(request));
       request.once('error', (error) => finish(error));
-      // Node 8 exposed interim 1xx responses through the response boundary
-      // that clears Wreck's request timer. Node 22 exposes them as
-      // `information`; preserve the observable 100-Continue behavior.
-      request.once('information', () => clearLassoTimeout(requestState));
       if (rootRequest) requestState.timer = setTimeout(timeout, requestState.timeoutMs);
       if (body !== null) request.write(body);
       request.end();

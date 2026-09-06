@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import net from 'node:net';
 
 const { createSettingsProviders } = await import('../src/settingsProviders.js');
 
@@ -442,6 +443,39 @@ test('network Lasso keeps malformed redirect locations inside the source error w
     } finally {
       await closePeer(peer);
     }
+  }
+});
+
+test('network Lasso keeps the Wreck deadline through informational headers', async () => {
+  const server = net.createServer((socket) => {
+    let request = '';
+    socket.on('data', (chunk) => {
+      request += chunk.toString();
+      if (!request.includes('\r\n\r\n')) return;
+      socket.write('HTTP/1.1 100 Continue\r\n\r\n');
+      setTimeout(() => {
+        if (socket.destroyed) return;
+        const body = JSON.stringify({ credentialExists: true });
+        socket.end(`HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`);
+      }, 100);
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    await withProcessEnv('ETCO_server_http_timeout', '25', async () => {
+      const lasso = providers(`127.0.0.1:${server.address().port}`);
+      await assert.rejects(
+        () => lasso.getCredential(context, {
+          skillId: 'skill-information-timeout',
+          serviceName: 'google',
+          serviceAccountName: 'calendar',
+          scopes: ['read'],
+        }),
+        (error) => error.message === 'Failed to get google calendar credentials',
+      );
+    });
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
   }
 });
 

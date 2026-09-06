@@ -41,16 +41,20 @@ response after an informational response, and delayed body bytes after final
 headers. The old candidate's socket inactivity timers let the multi-hop chain
 complete; the source's Wreck timer is one wall-clock deadline started before
 the first request. `lassoRequest` now carries one timer state through redirect
-recursion, clears it at final headers, and clears it on Node 22's informational
-response event to match the pinned Node 8 behavior. The repaired full captured
-comparison is **5/5 exact** after normalizing only generated runtime, duration,
-source marker, and loopback Host port.
+recursion and clears it at final headers. The prior informational control used
+the default 60-second timeout and therefore did not establish interim-response
+timer behavior. A separate source control now sends 100 Continue, delays all
+final headers by 100 ms, and sets `ETCO_server_http_timeout=25`; pinned Wreck
+times out. The candidate's `information` listener incorrectly cleared the
+deadline, so the follow-up removes it and adds a direct regression test. The
+repaired full captured comparison remains **5/5 exact** after normalizing only
+generated runtime, duration, source marker, and loopback Host port.
 
 Focused validation:
 
 ```text
 node --test packages/account/test/settingsLassoNetwork.test.js packages/account/test/settingsProviders.test.js
-12 passed, 0 failed
+14 passed, 0 failed
 ```
 
 Private receipts and commands are under
