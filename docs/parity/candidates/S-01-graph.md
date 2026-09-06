@@ -161,3 +161,7 @@ provider failures, graph node semantics after dispatch, continuation data
 shape, and the source process-singleton versus Phoenix per-skill manager
 architecture. Engine-generated TypeError wording is retained as runtime
 behavior; this candidate does not add broad error-string translation.
+
+## Root review — 2026-09-06
+
+Accepted and integrated for the bounded scope in the [root review](../reviews/s01-graph-root/review.json). Fresh integrated comparisons agree and main passes 402 unit tests. The parent product task remains open for its remaining acceptance criteria. Earlier candidate statuses above are historical.

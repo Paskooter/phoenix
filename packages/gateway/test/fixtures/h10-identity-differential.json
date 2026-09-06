@@ -1,0 +1,253 @@
+{
+  "auth": {
+    "id": "acct-1",
+    "friendlyId": "robot-1"
+  },
+  "remoteAddress": "192.0.2.10",
+  "cases": [
+    {
+      "id": "defaults",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "runtime": {
+            "loop": {}
+          },
+          "skill": null
+        }
+      }
+    },
+    {
+      "id": "overrides-and-trim",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en-US",
+            "release": "robot-release",
+            "remoteAddress": "198.51.100.5",
+            "extra": "preserved"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "  Ada ",
+                  "lastName": " Lovelace  ",
+                  "phoneticName": "  A-da "
+                },
+                {
+                  "firstName": "",
+                  "lastName": null,
+                  "phoneticName": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "conflicting-account",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-other",
+            "robotID": "robot-1"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "conflicting-robot",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-other"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-account-explicit",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "",
+            "robotID": "robot-1"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-robot-explicit",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-release-explicit",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "release": ""
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "runtime-missing",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {}
+        }
+      }
+    },
+    {
+      "id": "runtime-null",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": null
+        }
+      }
+    },
+    {
+      "id": "users-not-array",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "null-user",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [null]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "non-string-name",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 7
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "data-missing",
+      "message": {
+        "type": "CONTEXT"
+      }
+    },
+    {
+      "id": "data-null",
+      "message": {
+        "type": "CONTEXT",
+        "data": null
+      }
+    },
+    {
+      "id": "disabled-auth-null",
+      "auth": null,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "disabled-auth-undefined",
+      "auth": "undefined",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "empty-auth-object",
+      "auth": {},
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "non-context-no-op",
+      "message": {
+        "type": "LISTEN",
+        "data": null
+      }
+    }
+  ]
+}

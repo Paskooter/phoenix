@@ -270,7 +270,7 @@
         "scripts/parity-production/gate.mjs",
         "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json"
       ],
-      "finding": "The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01 integration passes 384 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.",
+      "finding": "The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01/H-10 integration passes 402 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.",
       "acceptance": [
         "Inventory each original test scenario, named grammar, protocol operation and asset set, assigning a parity task and a covered/missing status.",
         "Add the 7,029-utterance hub-client and 73-utterance report corpora without hiding overlap or changing denominators.",
@@ -289,6 +289,11 @@
         "reviewFinding": "Node 8 bounded writer and byte-preserving batching reviewed, including >256 MiB output, premature close, fresh 43/73 controls and complete 20,534-case cross-writer comparison. No Phoenix product gate is closed by original repeatability.",
         "reviewedBy": "Codex root",
         "reviewEvidence": "docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json"
+      },
+      "nextImplementation": {
+        "state": "working",
+        "assignee": "Luna Max / audio_encoding_repair",
+        "scope": "Reconcile partial corpus-to-production-gate inventory links and exact grammar resource copies; no V-03 task closure until root review."
       }
     },
     {
@@ -735,7 +740,7 @@
         "packages/common/src/jwt.js",
         "packages/gateway/test/hubAuth.test.js"
       ],
-      "finding": "Native signed CreateHubToken-to-Bearer listen/proactive is verified as a bounded A-02 path. JWT rejection and context identity candidates remain separate and unaccepted. Root expanded original Node 8 JWT probes: the 132-case candidate matches, but 105 diagnostic mismatches remain in a 1,965-case structural mutation matrix. Native cached-token 401 refetch/expiry and context identity checks remain open.",
+      "finding": "Root integrated bounded JWT/upgrade and CONTEXT identity repairs. All 1,965 source Node 8 JWT/auth/upgrade outcomes match both host Node 22 and deployment Node 20; the prior 105 diagnostics differences are resolved. All 187 expanded CONTEXT outcomes and mutations match source. Main passes 402 unit tests. Native cached-token 401 refetch/expiry and optional account-backed extension acceptance remain open; Moth still runs the prior reviewed transport-only stack.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -744,19 +749,42 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "changes_requested",
+        "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
         "worktree": ".parity/worktrees/hub-auth",
-        "candidateRevision": "32334295f67fda273afb353372679e6a9e9dd0d4",
-        "scope": "HMAC JWT and upgrade rejection behavior. Root requests correction of 105 additional malformed-payload diagnostic differences in 1,965 original Node 8 cases; no H-10 implementation has been accepted.",
-        "artifact": "docs/parity/candidates/H-10.md"
+        "candidateRevision": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+        "scope": "Bounded HMAC JWT and upgrade rejection behavior: 1,965 exact outcomes on Node 22 and Node 20 against original Node 8, with main integration replay. Native lifecycle and account extension remain open.",
+        "artifact": "docs/parity/candidates/H-10.md",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/reviews/h10-root/review.json"
       },
       "nextImplementation": {
-        "assignee": "Luna Max / audio_encoding_repair",
-        "worktree": ".parity/worktrees/hub-identity",
         "state": "working",
-        "scope": "Original CONTEXT preprocessing/defaults and authenticated identity checks, with synthetic identities."
-      }
+        "assignee": "Luna Max / capture_writer_repair",
+        "scope": "Offline preparation only for root-owned native cached-token 401 refetch/secret-rotation trial; no robot or live-service changes."
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / capture_writer_repair",
+          "worktree": ".parity/worktrees/hub-auth",
+          "candidateRevision": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+          "scope": "Bounded HMAC JWT and upgrade rejection behavior: 1,965 exact outcomes on Node 22 and Node 20 against original Node 8, with main integration replay. Native lifecycle and account extension remain open.",
+          "artifact": "docs/parity/candidates/H-10.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/reviews/h10-root/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair",
+          "worktree": ".parity/worktrees/hub-identity",
+          "candidateRevision": "be7e21eac4f9c29ea3e053af6e03513d8ba94c3d",
+          "scope": "187 exact JSON-shaped CONTEXT preprocessing/error/mutation cases; source disabled-auth failure preserved. Complete transaction lifecycle remains open.",
+          "artifact": "docs/parity/candidates/H-10-identity.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/reviews/h10-identity-root/review.json"
+        }
+      ]
     },
     {
       "id": "N-01",
@@ -1038,10 +1066,12 @@
         }
       ],
       "nextImplementation": {
+        "state": "awaiting_review",
         "assignee": "Luna Max / http_contract_repair",
         "worktree": ".parity/worktrees/nlu-ranking",
-        "state": "working",
-        "scope": "Source-backed arbitration/entity family among the remaining 298 status/data differences."
+        "candidateRevision": "e657f21903f29a825c667775b36f1fc25d0282bb",
+        "scope": "Empirically inferred ranking candidate reports 63 of 298 remaining rows fixed and 309 selected prior matches retained. Arbitrary priority weighting and full regressions require root review; not integrated.",
+        "artifact": "docs/parity/candidates/N-08-ranking.md"
       }
     },
     {
@@ -1358,7 +1388,7 @@
         "packages/skills/src/graph/graph.js",
         "packages/skills/src/graph/graphManager.js"
       ],
-      "finding": "The full production grader retains complete session and trace data. Root accepted 19 source response-wrapper HTTP cases and removal of the incompatible global request gate (21/33 boundary cases match; 12 graph errors retained). Those bounded repairs are integrated. Graph dispatch/session preconditions have a separate unaccepted e98a933 candidate; full continuation and migration acceptance remain open.",
+      "finding": "Root integrated the reviewed response wrapper/request-gate repairs and GraphSkill preconditions. Fresh original Node 8 comparisons match 87 HTTP status/body cases, 18 fallback mutation cases and 12 launch-session witnesses; all integrated outputs repeat exactly. Existing truthy launch sessions are now rejected without replacement. Main passes 402 unit tests. Complete graph construction, continuation/interruption and session migration acceptance remain open.",
       "acceptance": [
         "Compare graph finalization, subgraph composition, transitions, trace/data updates, terminal states and invalid graph/session errors.",
         "Continue captured sessions through all follow-up actions, including retries and global interruptions; detect corrupted/replayed sessions.",
@@ -1366,13 +1396,15 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "awaiting_review",
+        "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
         "worktree": ".parity/worktrees/skill-graph",
         "baseRevision": "0f4b856e3c86499ebee71cee8b54f09181676b6c",
         "candidateRevision": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
-        "scope": "GraphSkill context ordering and session guards, including rejection of launches with an existing truthy session; agent reports 87 HTTP and 12 launch witnesses matching source. Root review pending.",
-        "artifact": "docs/parity/candidates/S-01-graph.md"
+        "scope": "GraphSkill ordinary request ordering, source-shaped field/session errors and launch-session preservation. Bounded acceptance only; full graph lifecycle remains open.",
+        "artifact": "docs/parity/candidates/S-01-graph.md",
+        "reviewedBy": "Codex root",
+        "reviewEvidence": "docs/parity/reviews/s01-graph-root/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -1919,7 +1951,12 @@
         "Investigate services with no client API file, including voice training, Jot and other archive services, and register any additional required contracts.",
         "Recover legacy contract versions used by the original clients, including Settings_20160801.GetSettings; keep the 20171219 SDK surface independently mapped."
       ],
-      "verification": []
+      "verification": [],
+      "nextImplementation": {
+        "state": "working",
+        "assignee": "Luna Max / http_contract_repair",
+        "scope": "Recover source/consumer contracts for legacy Settings_20160801 and missing voice-training/JOT operation discovery in an isolated candidate."
+      }
     },
     {
       "id": "A-02",

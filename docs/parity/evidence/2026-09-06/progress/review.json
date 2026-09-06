@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-06",
+  "reviewedBy": "Codex root",
+  "scope": "Generated README checklist percentage and SVG, local pre-commit installation and staged-only updates",
+  "counts": {
+    "verifiedTasks": 6,
+    "tasks": 77,
+    "percent": "7.8"
+  },
+  "verification": {
+    "unitTests": 405,
+    "focusedTests": 3,
+    "failures": 0,
+    "realGitCommitTest": "Staged ledger remains at 1/2 and unstaged ledger at 2/2; README body edits retain their staged/unstaged state; committed and working SVG match their corresponding ledger."
+  },
+  "limits": "Checklist count includes management and verification tooling; not a weighted feature or behavior percentage. Hooks run for checkouts that install them; parity:check rejects stale generated files.",
+  "files": {
+    "hook.txt": "694712c8724a9173551af097ae8b6c121e02b9da25943c26ff035018fb79f729",
+    "unit.txt": "397b3f62f5d5d7dc90db75df6780a808a7645c53f121148275db3ddb260c255f"
+  }
+}

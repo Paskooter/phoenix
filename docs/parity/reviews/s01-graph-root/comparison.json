@@ -1,0 +1,9 @@
+{
+  "counts": {
+    "http": 87,
+    "directMutation": 18,
+    "launchSession": 12
+  },
+  "differences": [],
+  "pass": true
+}

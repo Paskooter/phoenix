@@ -1,15 +1,9 @@
 // CONTEXT message preprocessing — port of utils/MessagePreProcessor.ts + MessageValidator.ts.
 //
-// Fills GeneralData defaults (anonymous identity when auth is absent, i.e. disableAuth mode —
-// commit c776f204), trims loop-member names, and (only when authenticated) validates that the
-// CONTEXT identity matches the socket's JWT.
-
-const GENERAL_DEFAULTS = {
-  accountID: 'anonymous-account',
-  robotID: 'anonymous-robot',
-  lang: 'en',
-  release: '1.8.0', // assume Fajita unless told otherwise
-};
+// Fills GeneralData defaults from the authenticated socket, trims loop-member names, and
+// validates that the CONTEXT identity matches the socket's JWT. This mirrors the original
+// MessagePreProcessor: disableAuth leaves socket.auth unset, so a CONTEXT then fails at the
+// same identity access instead of inventing an anonymous account.
 
 /**
  * Mutates the CONTEXT message in place.
@@ -19,39 +13,59 @@ const GENERAL_DEFAULTS = {
  */
 export function preprocessContext(message, auth, remoteAddress) {
   const defaults = {
-    accountID: auth ? auth.id : GENERAL_DEFAULTS.accountID,
-    robotID: auth ? auth.friendlyId : GENERAL_DEFAULTS.robotID,
-    lang: GENERAL_DEFAULTS.lang,
-    release: GENERAL_DEFAULTS.release,
+    accountID: readLegacyProperty(auth, 'id'),
+    robotID: readLegacyProperty(auth, 'friendlyId'),
+    lang: 'en',
+    release: '1.8.0', // assume Fajita unless told otherwise
     remoteAddress,
   };
-  message.data.general = Object.assign({}, defaults, message.data.general);
+  const data = readLegacyProperty(message, 'data');
+  data.general = Object.assign({}, defaults, readLegacyProperty(data, 'general'));
 
-  const loop = message.data.runtime && message.data.runtime.loop;
+  const runtime = readLegacyProperty(data, 'runtime');
+  const loop = readLegacyProperty(runtime, 'loop');
   if (loop && loop.users) {
-    for (const u of loop.users) {
-      if (u.firstName) u.firstName = u.firstName.trim();
-      if (u.lastName) u.lastName = u.lastName.trim();
-      if (u.phoneticName) u.phoneticName = u.phoneticName.trim();
-    }
+    const users = loop.users;
+    const forEach = readLegacyProperty(users, 'forEach');
+    if (typeof forEach !== 'function') throw new TypeError('loop.users.forEach is not a function');
+    forEach.call(users, (user) => {
+      const firstName = readLegacyProperty(user, 'firstName');
+      user.firstName = firstName ? trimLegacy(firstName, 'user.firstName') : firstName;
+      const lastName = readLegacyProperty(user, 'lastName');
+      user.lastName = lastName ? trimLegacy(lastName, 'user.lastName') : lastName;
+      const phoneticName = readLegacyProperty(user, 'phoneticName');
+      user.phoneticName = phoneticName ? trimLegacy(phoneticName, 'user.phoneticName') : phoneticName;
+    });
   }
 
-  if (auth) validateGeneralData(message.data.general, auth);
+  validateGeneralData(data.general, auth);
 }
 
 /** Cross-check CONTEXT identity against the socket JWT (MessageValidator.validateGeneralData). */
 export function validateGeneralData(general, auth) {
-  if (!auth) return;
-  if (!general.accountID) throw new Error('accountID is missing in general data');
-  if (!general.robotID) throw new Error('robotID is missing in general data');
-  if (!general.release) throw new Error('release is missing in general data');
-  if (general.accountID !== auth.id) throw new Error('data.general.accountID is not equal to socket accountID');
-  if (general.robotID !== auth.friendlyId) throw new Error('data.general.robotID is not equal to socket robotID');
+  if (!readLegacyProperty(general, 'accountID')) throw new Error('accountID is missing in general data');
+  if (!readLegacyProperty(general, 'robotID')) throw new Error('robotID is missing in general data');
+  if (!readLegacyProperty(general, 'release')) throw new Error('release is missing in general data');
+  if (general.accountID !== readLegacyProperty(auth, 'id')) throw new Error('data.general.accountID is not equal to socket accountID');
+  if (general.robotID !== readLegacyProperty(auth, 'friendlyId')) throw new Error('data.general.robotID is not equal to socket robotID');
 }
 
 /** Minimal CONTEXT validation independent of auth (MessageValidator.validateContextMessage). */
 export function validateContextMessage(message) {
-  if (!message.data.general || !message.data.general.accountID) throw new Error('Invalid CONTEXT message: accountID is missing');
-  if (!message.data.general.robotID) throw new Error('Invalid CONTEXT message: robotID is missing');
+  const data = readLegacyProperty(message, 'data');
+  const general = readLegacyProperty(data, 'general');
+  if (!general || !general.accountID) throw new Error('Invalid CONTEXT message: accountID is missing');
+  if (!general.robotID) throw new Error('Invalid CONTEXT message: robotID is missing');
   return message;
+}
+
+function readLegacyProperty(object, property) {
+  if (object === undefined) throw new TypeError(`Cannot read property '${property}' of undefined`);
+  if (object === null) throw new TypeError(`Cannot read property '${property}' of null`);
+  return object[property];
+}
+
+function trimLegacy(value, expression) {
+  if (typeof value.trim !== 'function') throw new TypeError(`${expression}.trim is not a function`);
+  return value.trim();
 }

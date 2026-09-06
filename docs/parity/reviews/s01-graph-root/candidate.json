@@ -1,0 +1,1537 @@
+{
+  "runtime": "v22.22.0",
+  "result": {
+    "example-skill": {
+      "data-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of null",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "data-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "general-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "general-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "general-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "general-string": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "general-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "account-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "account-empty": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "robot-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.robotID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "robot-empty": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.robotID arrived",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-false": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-empty-object": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-empty-id": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-zero-id": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-string": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot create property 'id' on string 'existing'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot create property 'id' on number '7'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "skill-mismatch": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Incoming skill name doesn't match. This: 'example-skill', incoming: 'other-skill'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "type-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "type-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'null'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "type-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type '0'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "type-invalid": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "update-no-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "update-null-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "update-empty-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Node id 'undefined' isn't a part of this graph",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      },
+      "update-number-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Node id 'undefined' isn't a part of this graph",
+            "skill": {
+              "id": "example-skill"
+            }
+          }
+        }
+      }
+    },
+    "chitchat-skill": {
+      "data-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of null",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "data-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "general-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "general-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "general-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "general-string": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "general-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "account-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "account-empty": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "robot-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.robotID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "robot-empty": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.robotID arrived",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-false": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-empty-object": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-empty-id": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-zero-id": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-string": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot create property 'id' on string 'existing'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot create property 'id' on number '7'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "skill-mismatch": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Incoming skill name doesn't match. This: 'chitchat-skill', incoming: 'other-skill'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "type-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "type-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'null'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "type-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type '0'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "type-invalid": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "update-no-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "update-null-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "update-empty-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Node id 'undefined' isn't a part of this graph",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      },
+      "update-number-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Node id 'undefined' isn't a part of this graph",
+            "skill": {
+              "id": "chitchat-skill"
+            }
+          }
+        }
+      }
+    },
+    "report-skill": {
+      "data-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot read property 'general' of null",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "data-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "general-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "general-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "general-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "general-string": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "general-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "account-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "account-empty": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.accountID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "robot-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.robotID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "robot-empty": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill request without general.robotID arrived",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-false": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-empty-object": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-empty-id": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-zero-id": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-array": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-string": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot create property 'id' on string 'existing'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Cannot create property 'id' on number '7'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "skill-mismatch": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Incoming skill name doesn't match. This: 'report-skill', incoming: 'other-skill'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "type-missing": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'undefined'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "type-null": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'null'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "type-number": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type '0'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "type-invalid": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Unknown request type 'NOT_A_REQUEST'",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "update-no-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "update-null-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Skill session is required",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "update-empty-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Node id 'undefined' isn't a part of this graph",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      },
+      "update-number-session": {
+        "status": 200,
+        "body": {
+          "type": "ERROR",
+          "msgID": "<msgID>",
+          "ts": "<ts>",
+          "data": {
+            "message": "Node id 'undefined' isn't a part of this graph",
+            "skill": {
+              "id": "report-skill"
+            }
+          }
+        }
+      }
+    }
+  },
+  "directMutation": {
+    "example-skill": {
+      "missing": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "example-skill"
+        },
+        "skillId": "example-skill"
+      },
+      "null": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "example-skill"
+        },
+        "skillId": "example-skill"
+      },
+      "false": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "example-skill"
+        },
+        "skillId": "example-skill"
+      },
+      "empty-object": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "example-skill"
+        },
+        "skillId": "example-skill"
+      },
+      "empty-id": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "example-skill"
+        },
+        "skillId": "example-skill"
+      },
+      "array": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": [],
+        "skillId": "example-skill"
+      }
+    },
+    "chitchat-skill": {
+      "missing": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "chitchat-skill"
+        },
+        "skillId": "chitchat-skill"
+      },
+      "null": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "chitchat-skill"
+        },
+        "skillId": "chitchat-skill"
+      },
+      "false": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "chitchat-skill"
+        },
+        "skillId": "chitchat-skill"
+      },
+      "empty-object": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "chitchat-skill"
+        },
+        "skillId": "chitchat-skill"
+      },
+      "empty-id": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "chitchat-skill"
+        },
+        "skillId": "chitchat-skill"
+      },
+      "array": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": [],
+        "skillId": "chitchat-skill"
+      }
+    },
+    "report-skill": {
+      "missing": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "report-skill"
+        },
+        "skillId": "report-skill"
+      },
+      "null": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "report-skill"
+        },
+        "skillId": "report-skill"
+      },
+      "false": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "report-skill"
+        },
+        "skillId": "report-skill"
+      },
+      "empty-object": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "report-skill"
+        },
+        "skillId": "report-skill"
+      },
+      "empty-id": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": {
+          "id": "report-skill"
+        },
+        "skillId": "report-skill"
+      },
+      "array": {
+        "message": "Unknown request type 'NOT_A_REQUEST'",
+        "skill": [],
+        "skillId": "report-skill"
+      }
+    }
+  },
+  "launchSession": {
+    "LISTEN_LAUNCH:missing": {
+      "outcome": "success",
+      "before": {
+        "kind": "missing"
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 2,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "LISTEN_LAUNCH:null": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "object",
+        "value": null
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 2,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "LISTEN_LAUNCH:false": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "boolean",
+        "value": false
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 2,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "LISTEN_LAUNCH:zero": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "number",
+        "value": 0
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 2,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "LISTEN_LAUNCH:empty-string": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "string",
+        "value": ""
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 2,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "LISTEN_LAUNCH:truthy-object": {
+      "outcome": "error",
+      "before": {
+        "kind": "truthy-object",
+        "id": "old-session",
+        "nodeID": 99,
+        "traceLength": 0
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "old-session",
+        "nodeID": 99,
+        "traceLength": 0
+      },
+      "message": "Skill session should not exist here"
+    },
+    "PROACTIVE_LAUNCH:missing": {
+      "outcome": "success",
+      "before": {
+        "kind": "missing"
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 4,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "PROACTIVE_LAUNCH:null": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "object",
+        "value": null
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 4,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "PROACTIVE_LAUNCH:false": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "boolean",
+        "value": false
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 4,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "PROACTIVE_LAUNCH:zero": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "number",
+        "value": 0
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 4,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "PROACTIVE_LAUNCH:empty-string": {
+      "outcome": "success",
+      "before": {
+        "kind": "falsy",
+        "type": "string",
+        "value": ""
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "<generated>",
+        "nodeID": 4,
+        "traceLength": 2
+      },
+      "responseType": "SKILL_ACTION"
+    },
+    "PROACTIVE_LAUNCH:truthy-object": {
+      "outcome": "error",
+      "before": {
+        "kind": "truthy-object",
+        "id": "old-session",
+        "nodeID": 99,
+        "traceLength": 0
+      },
+      "after": {
+        "kind": "truthy-object",
+        "id": "old-session",
+        "nodeID": 99,
+        "traceLength": 0
+      },
+      "message": "Skill session should not exist here"
+    }
+  }
+}

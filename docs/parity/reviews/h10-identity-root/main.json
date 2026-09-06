@@ -1,0 +1,4197 @@
+{
+  "runtime": "v22.22.0",
+  "cases": {
+    "defaults": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "runtime": {
+            "loop": {}
+          },
+          "skill": null,
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          }
+        }
+      }
+    },
+    "overrides-and-trim": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en-US",
+            "release": "robot-release",
+            "remoteAddress": "198.51.100.5",
+            "extra": "preserved"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "Ada",
+                  "lastName": "Lovelace",
+                  "phoneticName": "A-da"
+                },
+                {
+                  "firstName": "",
+                  "lastName": null,
+                  "phoneticName": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "conflicting-account": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-other",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "conflicting-robot": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-other",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "missing-account-explicit": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "missing-robot-explicit": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "robotID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": null,
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "missing-release-explicit": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "release is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "runtime-missing": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          }
+        }
+      }
+    },
+    "runtime-null": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": null
+        }
+      }
+    },
+    "users-not-array": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "loop.users.forEach is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": {}
+            }
+          }
+        }
+      }
+    },
+    "null-user": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'firstName' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                null
+              ]
+            }
+          }
+        }
+      }
+    },
+    "non-string-name": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 7
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "data-missing": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'general' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT"
+      }
+    },
+    "data-null": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'general' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": null
+      }
+    },
+    "disabled-auth-null": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'id' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "disabled-auth-undefined": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'id' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "empty-auth-object": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "non-context-no-op": {
+      "ok": true,
+      "message": {
+        "type": "LISTEN",
+        "data": null
+      }
+    },
+    "root-data-0": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'general' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": null
+      }
+    },
+    "root-general-0": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-0": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": null
+        }
+      }
+    },
+    "root-loop-0": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": null
+          }
+        }
+      }
+    },
+    "root-users-0": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": null
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-0": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'firstName' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                null
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-0": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": null,
+                  "lastName": "B",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-0": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": null,
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-0": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": null
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-0": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'id' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-1": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'general' on boolean 'false'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": false
+      }
+    },
+    "root-general-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": false
+        }
+      }
+    },
+    "root-loop-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": false
+          }
+        }
+      }
+    },
+    "root-users-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": false
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-1": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on boolean 'false'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                false
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": false,
+                  "lastName": "B",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": false,
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-1": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-1": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-2": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'general' on boolean 'true'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": true
+      }
+    },
+    "root-general-2": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-2": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": true
+        }
+      }
+    },
+    "root-loop-2": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": true
+          }
+        }
+      }
+    },
+    "root-users-2": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "loop.users.forEach is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": true
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-2": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on boolean 'true'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                true
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-2": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": true,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-2": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": true,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-2": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-2": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-3": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'general' on number '0'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": 0
+      }
+    },
+    "root-general-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": 0
+        }
+      }
+    },
+    "root-loop-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": 0
+          }
+        }
+      }
+    },
+    "root-users-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": 0
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-3": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on number '0'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 0,
+                  "lastName": "B",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": 0,
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-3": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-3": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-4": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'general' on number '7'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": 7
+      }
+    },
+    "root-general-4": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-4": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": 7
+        }
+      }
+    },
+    "root-loop-4": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": 7
+          }
+        }
+      }
+    },
+    "root-users-4": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "loop.users.forEach is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": 7
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-4": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on number '7'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                7
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-4": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 7,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-4": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": 7,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-4": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": 7
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-4": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-5": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'general' on string ''",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": ""
+      }
+    },
+    "root-general-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": ""
+        }
+      }
+    },
+    "root-loop-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": ""
+          }
+        }
+      }
+    },
+    "root-users-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": ""
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-5": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on string ''",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                ""
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "",
+                  "lastName": "B",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-5": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": ""
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-5": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-6": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'general' on string 'text'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": "text"
+      }
+    },
+    "root-general-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "0": "t",
+            "1": "e",
+            "2": "x",
+            "3": "t",
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": "text"
+        }
+      }
+    },
+    "root-loop-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": "text"
+          }
+        }
+      }
+    },
+    "root-users-6": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "loop.users.forEach is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": "text"
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-6": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on string 'text'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                "text"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "text",
+                  "lastName": "B",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "text",
+                  "phoneticName": "C"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": "text"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-6": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-7": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": []
+      }
+    },
+    "root-general-7": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-7": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": []
+        }
+      }
+    },
+    "root-loop-7": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": []
+          }
+        }
+      }
+    },
+    "root-users-7": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": []
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-7": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                []
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-7": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-7": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": [],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-7": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": []
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-7": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-8": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          }
+        }
+      }
+    },
+    "root-general-8": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-8": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {}
+        }
+      }
+    },
+    "root-loop-8": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-users-8": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "loop.users.forEach is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": {}
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-8": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {}
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-8": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": {},
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-8": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": {},
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-8": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": {}
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-8": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-9": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": [
+          null
+        ]
+      }
+    },
+    "root-general-9": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "0": null,
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-9": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": [
+            null
+          ]
+        }
+      }
+    },
+    "root-loop-9": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": [
+              null
+            ]
+          }
+        }
+      }
+    },
+    "root-users-9": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'firstName' of null",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                null
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-9": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                [
+                  null
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-9": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [
+                    null
+                  ],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-9": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": [
+                    null
+                  ],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-9": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": [
+                    null
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-9": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-10": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": [
+          7
+        ]
+      }
+    },
+    "root-general-10": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "0": 7,
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-10": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": [
+            7
+          ]
+        }
+      }
+    },
+    "root-loop-10": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": [
+              7
+            ]
+          }
+        }
+      }
+    },
+    "root-users-10": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'firstName' on number '7'",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                7
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-10": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                [
+                  7
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-10": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [
+                    7
+                  ],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-10": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": [
+                    7
+                  ],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-10": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": [
+                    7
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-10": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-11": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": [
+          {}
+        ]
+      }
+    },
+    "root-general-11": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "0": {},
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-11": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": [
+            {}
+          ]
+        }
+      }
+    },
+    "root-loop-11": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": [
+              {}
+            ]
+          }
+        }
+      }
+    },
+    "root-users-11": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {}
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-11": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                [
+                  {}
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-11": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [
+                    {}
+                  ],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-11": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": [
+                    {}
+                  ],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-11": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": [
+                    {}
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-11": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-data-12": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'loop' of undefined",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "forEach": null,
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          }
+        }
+      }
+    },
+    "root-general-12": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10",
+            "forEach": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-runtime-12": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "forEach": null
+          }
+        }
+      }
+    },
+    "root-loop-12": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "forEach": null
+            }
+          }
+        }
+      }
+    },
+    "root-users-12": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "loop.users.forEach is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": {
+                "forEach": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "root-user-item-12": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "forEach": null
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-firstName-12": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.firstName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": {
+                    "forEach": null
+                  },
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-lastName-12": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.lastName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": {
+                    "forEach": null
+                  },
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-phoneticName-12": {
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "user.phoneticName.trim is not a function",
+        "constructor": "TypeError"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "A",
+                  "lastName": "B",
+                  "phoneticName": {
+                    "forEach": null
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "root-auth-12": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-0": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": null,
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-1": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": false,
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-2": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": true,
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-3": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": 0,
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-4": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": 7,
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-5": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "accountID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-6": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "text",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-7": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [],
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-8": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": {},
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-9": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [
+              null
+            ],
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-10": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [
+              7
+            ],
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-11": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [
+              {}
+            ],
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-accountID-12": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.accountID is not equal to socket accountID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": {
+              "forEach": null
+            },
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-0": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "robotID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": null,
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-1": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "robotID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": false,
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-2": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": true,
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-3": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "robotID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": 0,
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-4": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": 7,
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-5": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "robotID is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-6": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "text",
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-7": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": [],
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-8": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": {},
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-9": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": [
+              null
+            ],
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-10": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": [
+              7
+            ],
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-11": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": [
+              {}
+            ],
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-robotID-12": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "data.general.robotID is not equal to socket robotID",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": {
+              "forEach": null
+            },
+            "lang": "en",
+            "release": "1.8.0",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-0": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "release is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": null,
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-1": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "release is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": false,
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-2": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": true,
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-3": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "release is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": 0,
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-4": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": 7,
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-5": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "release is missing in general data",
+        "constructor": "Error"
+      },
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-6": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": "text",
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-7": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": [],
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-8": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": {},
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-9": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": [
+              null
+            ],
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-10": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": [
+              7
+            ],
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-11": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": [
+              {}
+            ],
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    "root-general-release-12": {
+      "ok": true,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en",
+            "release": {
+              "forEach": null
+            },
+            "remoteAddress": "192.0.2.10"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    }
+  }
+}

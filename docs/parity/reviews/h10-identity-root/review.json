@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-06",
+  "reviewedBy": "Codex root",
+  "decision": "accepted-bounded-repair",
+  "sourceRuntime": "v8.9.4",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceFiles": {
+    "packages/baseskill/src/GraphSkill.ts": "5648740b29d386549747d673452a5ca834103e24b6858f77f710572a4b399b3e",
+    "packages/baseskill/src/graph/GraphManager.ts": "d17d9a53339011ed1e4e7bea321e8552ac81831529f904089148bf1ecdbc87a1",
+    "packages/hub/src/utils/MessagePreProcessor.ts": "c04ae6a4e4e8989420dcb1135dbd43adc1cdc08b68b4a4d197e1e5ce522cffbc",
+    "packages/hub/src/utils/MessageValidator.ts": "5503b7d2f773a5daf6eecc0fdd2b09fcba5d12a91ffd48b666f91f2d592e723d",
+    "packages/utils/src/service/BaseService.ts": "642572cf3f806303240c74e89eaada5aa447da39e75cd2ca8bdb54d8dc4297f6",
+    "packages/baseskill/lib/GraphSkill.js": "449d1fdfb89c8a230a384afe40b17516b33be78c3591757d42919fd36afaf6be",
+    "packages/baseskill/lib/graph/GraphManager.js": "1796979f3ca65a0ee3dfb83fb08b2abd92c4d9085cdabefb435a0d73e2f67586",
+    "packages/hub/lib/utils/MessagePreProcessor.js": "da27c1e530172808a229f01700de287474f46ddd4a3c8c8b20e5605a6bc21cbf",
+    "packages/hub/lib/utils/MessageValidator.js": "8b2c5a1ad04f38423aaf7a72a37e776912165ec07c3b4138be85dc20d4921087",
+    "packages/utils/lib/service/BaseService.js": "2f2f37a21cda673e1fe45c64eb0d19cfdb1d72f91837da73dddaff2411fa6427"
+  },
+  "mainBeforeIntegration": "794526320d73c451152eb8d187c322137480ff55",
+  "integratedReplayMatches": true,
+  "fullTaskVerified": false,
+  "candidateRevision": "be7e21eac4f9c29ea3e053af6e03513d8ba94c3d",
+  "counts": {
+    "sourceAndHost": 187
+  },
+  "normalization": [
+    "Runtime metadata excluded; full errors and mutated message objects compared."
+  ],
+  "limits": [
+    "Synthetic JSON-shaped CONTEXT preprocessing plus non-CONTEXT dispatch; no claim of complete downstream transaction error envelopes.",
+    "Disabled-auth CONTEXT fails at the original socket.auth access; no synthetic anonymous identity is created.",
+    "Moth remains on the previously loaded 5e626b8 transport trial; these changes are not deployed to that stack."
+  ],
+  "files": {
+    "candidate.json": "bd59f367a50883b1266169ebee45ba39295bcbeafec3c72026d46b69b7e04120",
+    "candidate.mjs": "0850f23b6c104277f7efa0915052867629cd7a206813416d2bff57a549de9cd8",
+    "comparison.json": "021d302c49a7ef3bdba7201484b5efd6b8856912bbb0614f139386cf8a54e852",
+    "fixtures.json": "ef92287a067c7354ee5c663d39f0c9dad13cbb1b48d308d0c6c8e011e60c7ac3",
+    "main.json": "bd59f367a50883b1266169ebee45ba39295bcbeafec3c72026d46b69b7e04120",
+    "source.json": "c41c9531ff816eb517ca6f5f2939257ba29cd02db80455c11341879cccc9bb1d"
+  },
+  "integratedPaths": [
+    {
+      "path": "packages/gateway/src/preprocessor.js",
+      "candidate": "be7e21eac4f9c29ea3e053af6e03513d8ba94c3d",
+      "before": "5d95e7a84da9ffdb56fafd71aa4d87729ba1ac1a0cbbee38675ec13e5a3b767c",
+      "after": "67f5d9cd62ec665c42cf883408050befb5d60e787943d7ca3e1fabc061fde878"
+    },
+    {
+      "path": "packages/gateway/test/preprocessor.identity.test.js",
+      "candidate": "be7e21eac4f9c29ea3e053af6e03513d8ba94c3d",
+      "before": null,
+      "after": "a39569677a41adff04725fd919f674823c9223285827924c03e891fa3c097390"
+    },
+    {
+      "path": "packages/gateway/test/fixtures/h10-identity-differential.json",
+      "candidate": "be7e21eac4f9c29ea3e053af6e03513d8ba94c3d",
+      "before": null,
+      "after": "6fe7382c40e25a328cd92acd6b82988fecfd43c29ae501fec436ca7b4d98d770"
+    },
+    {
+      "path": "packages/gateway/tools/h10-identity-source-probe.cjs",
+      "candidate": "be7e21eac4f9c29ea3e053af6e03513d8ba94c3d",
+      "before": null,
+      "after": "eaa635e4bfe943c76fb7697030902b31aa282056941236a7a841caeac300ef9f"
+    }
+  ]
+}

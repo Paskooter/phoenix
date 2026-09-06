@@ -10,18 +10,41 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   its `docs/atlas/` (full system documentation + the rebuild plan this repo follows).
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
-- **Status: implemented in part; 1:1 compatibility is not yet verified.** The
-  [2026-09-05 source audit](docs/parity/AUDIT.md) found missing named grammars, API/configuration
-  mismatches, incomplete calendar/OAuth and persistence, and Classic stubs. **280 unit tests
-  pass**, while `npm test` correctly fails the strict production v2 comparison: **1,659 field
-  differences across 42 smoke fixtures**. The separate 73-occurrence report baseline has
-  **6,751 differences**; [full corpus grading](docs/parity/PRODUCTION.md) remains in progress.
-  The audit's limited chitchat diagnostic scored **98.2%
-  intent / 96.8% MIM routing**, with 329 mismatching utterances; it omitted full parser and
-  action parity. These are separate measurements, not whole-server completion percentages.
+- **Status: implemented in part; 1:1 compatibility is not yet verified.**
+  The [latest recorded integration](docs/parity/evidence/2026-09-06/production/main-s01-h10-smoke/run.json)
+  retains **659 field differences across 43 smoke fixtures**, zero trace invariants
+  and one unhosted action gap. The complete `057f67c` baseline covers **20,534
+  fixtures**, with **49,155 field differences**; it predates the latest repairs.
+  [Production comparisons](docs/parity/PRODUCTION.md) record exact scope and evidence.
   Follow the [execution plan](docs/parity/PLAN.md) and [verified task checklist](docs/parity/TASKS.md).
   Run `npm run parity:status` for progress and the next ready task. [M9-REPORT.md](M9-REPORT.md)
   is a historical report superseded by this audit.
+
+<!-- parity-progress:start -->
+
+![7.8% checklist completion — 6 of 77 tasks verified](docs/parity/progress.svg)
+
+**7.8% checklist completion · 6/77 tasks verified.**
+
+Counts only tasks whose full acceptance criteria and evidence have been reviewed. Candidate implementations do not count. This includes planning and verification tooling; it is not a percentage of server functionality.
+
+| Track | Verified | Total |
+|---|---:|---:|
+| Planning | 3 | 3 |
+| Verification tooling | 3 | 4 |
+| Pegasus | 0 | 46 |
+| Companion cloud | 0 | 18 |
+| Restoration | 0 | 1 |
+| Release | 0 | 5 |
+
+[Verified checklist](docs/parity/TASKS.md) · [Execution plan](docs/parity/PLAN.md) · [Behavioral comparisons](docs/parity/PRODUCTION.md)
+
+<!-- parity-progress:end -->
+
+Progress is regenerated from the task ledger on each commit by the repository's
+pre-commit hook. `npm install` installs the hook; existing checkouts can run
+`npm run prepare`. `npm run parity:check` rejects a stale checklist or progress
+bar. Only the generated README block and bar are staged automatically.
 
 ## What works
 

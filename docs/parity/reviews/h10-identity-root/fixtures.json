@@ -1,0 +1,2777 @@
+{
+  "auth": {
+    "id": "acct-1",
+    "friendlyId": "robot-1"
+  },
+  "remoteAddress": "192.0.2.10",
+  "cases": [
+    {
+      "id": "defaults",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "runtime": {
+            "loop": {}
+          },
+          "skill": null
+        }
+      }
+    },
+    {
+      "id": "overrides-and-trim",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "lang": "en-US",
+            "release": "robot-release",
+            "remoteAddress": "198.51.100.5",
+            "extra": "preserved"
+          },
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "  Ada ",
+                  "lastName": " Lovelace  ",
+                  "phoneticName": "  A-da "
+                },
+                {
+                  "firstName": "",
+                  "lastName": null,
+                  "phoneticName": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "conflicting-account",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-other",
+            "robotID": "robot-1"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "conflicting-robot",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-other"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-account-explicit",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "",
+            "robotID": "robot-1"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-robot-explicit",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-release-explicit",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "acct-1",
+            "robotID": "robot-1",
+            "release": ""
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "runtime-missing",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {}
+        }
+      }
+    },
+    {
+      "id": "runtime-null",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": null
+        }
+      }
+    },
+    {
+      "id": "users-not-array",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "null-user",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                null
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "non-string-name",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 7
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "data-missing",
+      "message": {
+        "type": "CONTEXT"
+      }
+    },
+    {
+      "id": "data-null",
+      "message": {
+        "type": "CONTEXT",
+        "data": null
+      }
+    },
+    {
+      "id": "disabled-auth-null",
+      "auth": null,
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "disabled-auth-undefined",
+      "auth": "undefined",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "empty-auth-object",
+      "auth": {},
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "non-context-no-op",
+      "message": {
+        "type": "LISTEN",
+        "data": null
+      }
+    },
+    {
+      "id": "root-data-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": null
+      }
+    },
+    {
+      "id": "root-general-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": null,
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": null
+        }
+      }
+    },
+    {
+      "id": "root-loop-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": null
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                null
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": null,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": null,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": null
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": null
+    },
+    {
+      "id": "root-data-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": false
+      }
+    },
+    {
+      "id": "root-general-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": false,
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": false
+        }
+      }
+    },
+    {
+      "id": "root-loop-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": false
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                false
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": false,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": false,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": false
+    },
+    {
+      "id": "root-data-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": true
+      }
+    },
+    {
+      "id": "root-general-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": true,
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": true
+        }
+      }
+    },
+    {
+      "id": "root-loop-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": true
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                true
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": true,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": true,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": true
+    },
+    {
+      "id": "root-data-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": 0
+      }
+    },
+    {
+      "id": "root-general-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": 0,
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": 0
+        }
+      }
+    },
+    {
+      "id": "root-loop-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                0
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 0,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": 0,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": 0
+    },
+    {
+      "id": "root-data-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": 7
+      }
+    },
+    {
+      "id": "root-general-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": 7,
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": 7
+        }
+      }
+    },
+    {
+      "id": "root-loop-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                7
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": 7,
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": 7,
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": 7
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": 7
+    },
+    {
+      "id": "root-data-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": ""
+      }
+    },
+    {
+      "id": "root-general-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": "",
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": ""
+        }
+      }
+    },
+    {
+      "id": "root-loop-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": ""
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                ""
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "",
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": "",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": ""
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": ""
+    },
+    {
+      "id": "root-data-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": "text"
+      }
+    },
+    {
+      "id": "root-general-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": "text",
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": "text"
+        }
+      }
+    },
+    {
+      "id": "root-loop-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": "text"
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": "text"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                "text"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": "text",
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": "text",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": "text"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": "text"
+    },
+    {
+      "id": "root-data-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": []
+      }
+    },
+    {
+      "id": "root-general-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": [],
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": []
+        }
+      }
+    },
+    {
+      "id": "root-loop-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": []
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                []
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": [],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": []
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": []
+    },
+    {
+      "id": "root-data-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {}
+      }
+    },
+    {
+      "id": "root-general-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {}
+        }
+      }
+    },
+    {
+      "id": "root-loop-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {}
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": {},
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": {},
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": {}
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": {}
+    },
+    {
+      "id": "root-data-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": [
+          null
+        ]
+      }
+    },
+    {
+      "id": "root-general-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": [
+            null
+          ],
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": [
+            null
+          ]
+        }
+      }
+    },
+    {
+      "id": "root-loop-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": [
+              null
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                null
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                [
+                  null
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [
+                    null
+                  ],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": [
+                    null
+                  ],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": [
+                    null
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": [
+        null
+      ]
+    },
+    {
+      "id": "root-data-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": [
+          7
+        ]
+      }
+    },
+    {
+      "id": "root-general-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": [
+            7
+          ],
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": [
+            7
+          ]
+        }
+      }
+    },
+    {
+      "id": "root-loop-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": [
+              7
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                7
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                [
+                  7
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [
+                    7
+                  ],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": [
+                    7
+                  ],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": [
+                    7
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": [
+        7
+      ]
+    },
+    {
+      "id": "root-data-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": [
+          {}
+        ]
+      }
+    },
+    {
+      "id": "root-general-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": [
+            {}
+          ],
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": [
+            {}
+          ]
+        }
+      }
+    },
+    {
+      "id": "root-loop-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": [
+              {}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {}
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                [
+                  {}
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": [
+                    {}
+                  ],
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": [
+                    {}
+                  ],
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": [
+                    {}
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": [
+        {}
+      ]
+    },
+    {
+      "id": "root-data-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "forEach": null
+        }
+      }
+    },
+    {
+      "id": "root-general-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "forEach": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-runtime-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "forEach": null
+          }
+        }
+      }
+    },
+    {
+      "id": "root-loop-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "forEach": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-users-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": {
+                "forEach": null
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-user-item-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "forEach": null
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-firstName-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": {
+                    "forEach": null
+                  },
+                  "lastName": " B ",
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-lastName-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": {
+                    "forEach": null
+                  },
+                  "phoneticName": " C "
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-phoneticName-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {
+              "users": [
+                {
+                  "firstName": " A ",
+                  "lastName": " B ",
+                  "phoneticName": {
+                    "forEach": null
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "root-auth-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {},
+          "runtime": {
+            "loop": {}
+          }
+        }
+      },
+      "auth": {
+        "forEach": null
+      }
+    },
+    {
+      "id": "root-general-accountID-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": false
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": true
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": 0
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": 7
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": ""
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": "text"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": []
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": {}
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [
+              null
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [
+              7
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": [
+              {}
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-accountID-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "accountID": {
+              "forEach": null
+            }
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": false
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": true
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": 0
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": 7
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": ""
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": "text"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": []
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": {}
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": [
+              null
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": [
+              7
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": [
+              {}
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-robotID-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "robotID": {
+              "forEach": null
+            }
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-0",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": null
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-1",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": false
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-2",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": true
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-3",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": 0
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-4",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": 7
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-5",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": ""
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-6",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": "text"
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-7",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": []
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-8",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": {}
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-9",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": [
+              null
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-10",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": [
+              7
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-11",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": [
+              {}
+            ]
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "root-general-release-12",
+      "message": {
+        "type": "CONTEXT",
+        "data": {
+          "general": {
+            "release": {
+              "forEach": null
+            }
+          },
+          "runtime": {
+            "loop": {}
+          }
+        }
+      }
+    }
+  ]
+}

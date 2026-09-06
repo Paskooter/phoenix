@@ -1,0 +1,14 @@
+{
+  "sourceRuntime": {
+    "node": "v8.9.4",
+    "source": "jsonwebtoken@8.1.1 + BaseService",
+    "ws": "3.3.3"
+  },
+  "candidateRuntime": {
+    "node": "v20.20.2",
+    "candidate": "phoenix",
+    "sourceOutput": "/review/generated-source.json"
+  },
+  "cases": 1965,
+  "differences": []
+}

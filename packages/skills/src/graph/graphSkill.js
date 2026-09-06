@@ -18,6 +18,17 @@ const makeLog = () => {
 
 function isJCP(action) { return action && action.type === 'JCP'; }
 
+// GraphSkill's first source access is `body.data.general`. Node 8 reports a
+// null/undefined intermediate as "Cannot read property ... of ...", while
+// current Node reports "Cannot read properties ...". Localize only this
+// precondition access; errors thrown by graph nodes and handlers stay native.
+function sourceRequestData(body) {
+  const data = body.data;
+  if (data === null) throw new TypeError("Cannot read property 'general' of null");
+  if (data === undefined) throw new TypeError("Cannot read property 'general' of undefined");
+  return data;
+}
+
 function injectSupplementalBehaviors(data, action) {
   let behavior = action.config.jcp;
   if (data.behaviors.sequence.length) behavior = sequenceProtocol([...data.behaviors.sequence, behavior]);
@@ -65,21 +76,36 @@ export function createGraphSkill({ name, build }) {
   const facade = new SkillFacade(name);
   const initial = build(gm, facade);
 
-  return async function handle(request) {
+  return async function handle(request, context = {}) {
     const body = request;
-    const data = Object.assign({}, body.data, {
+    const log = context.log || makeLog();
+    log.debug('GraphSkill handling request: ', body);
+    // Keep the source GraphSkill ordering: its concrete handler receives the
+    // parsed request first, then validates the shared general context before
+    // applying the skill fallback/name mutation. This intentionally leaves
+    // null/undefined field failures to the actual property access rather than
+    // introducing a second request schema policy at the graph layer.
+    const requestData = sourceRequestData(body);
+    if (!requestData.general || !requestData.general.accountID) {
+      throw new Error('Skill request without general.accountID arrived');
+    }
+    if (!requestData.general.robotID) {
+      throw new Error('Skill request without general.robotID arrived');
+    }
+    if (!requestData.skill) requestData.skill = { id: name };
+    if (!requestData.skill.id) requestData.skill.id = name;
+    if (requestData.skill.id !== name) throw new Error(`Incoming skill name doesn't match. This: '${name}', incoming: '${requestData.skill.id}'`);
+    if (!requestData.result) log.warn("Didn't have action results when we expected them");
+
+    const data = Object.assign({}, requestData, {
       analytics: {},
       behaviors: { parallel: [], sequence: [] },
       local: {},
-      log: makeLog(),
+      log,
     });
-    data.skill = data.skill || { id: name };
-    if (!data.skill.id) data.skill.id = name;
-    if (data.skill.id !== name) throw new Error(`Incoming skill name doesn't match. This: '${name}', incoming: '${data.skill.id}'`);
 
     let nodeResponse;
     if (body.type === SkillRequestType.LISTEN_LAUNCH || body.type === SkillRequestType.PROACTIVE_LAUNCH) {
-      if (data.skill.session) delete data.skill.session; // a launch must start a fresh session
       // GraphSkill records the framework-level entry event before entering the
       // graph.  Skill-specific nodes append their own events afterwards.
       facade.track(data, 'Skill Entry', {
@@ -91,7 +117,6 @@ export function createGraphSkill({ name, build }) {
       });
       nodeResponse = await gm.start(initial, data);
     } else if (body.type === SkillRequestType.LISTEN_UPDATE) {
-      if (!data.skill.session) throw new Error('LISTEN_UPDATE without a session');
       nodeResponse = await gm.exitNode(data);
     } else {
       throw new Error(`Unknown request type '${body.type}'`);

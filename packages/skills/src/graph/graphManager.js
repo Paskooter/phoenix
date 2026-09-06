@@ -34,8 +34,9 @@ export class GraphManager {
   }
 
   async enterNode(data) {
+    if (!data.skill.session) throw new Error('Skill session is required');
     const node = this.getNode(data.skill.session.nodeID);
-    if (!node) throw new Error(`Node id '${data.skill.session.nodeID}' isn't part of this graph`);
+    if (!node) throw new Error(`Node id '${data.skill.session.nodeID}' isn't a part of this graph`);
     const r = await node.enter(data);
     data.skill.session.trace.push({ nodeID: node.id, transition: null });
     if (r && (r.action || r.redirect)) return r; // emit to robot (final may be false → multi-turn)
@@ -43,8 +44,9 @@ export class GraphManager {
   }
 
   async exitNode(data) {
+    if (!data.skill.session) throw new Error('Skill session is required');
     const node = this.getNode(data.skill.session.nodeID);
-    if (!node) throw new Error(`Node id '${data.skill.session.nodeID}' isn't part of this graph`);
+    if (!node) throw new Error(`Node id '${data.skill.session.nodeID}' isn't a part of this graph`);
     const r = await node.exit(data);
     if (r && r.transition) return this._executeTransition(node, r, data);
     return r;
@@ -52,9 +54,13 @@ export class GraphManager {
 
   async _executeTransition(node, result, data) {
     data.result = result.result || null;
-    if (!node.transitions.has(result.transition)) throw new Error(`Node '${node.name}' returned unregistered transition '${result.transition}'`);
+    if (!node.transitions.has(result.transition)) throw new Error(`State '${node.name}' returned unregistered transition '${result.transition}'`);
     const trace = data.skill.session.trace;
-    if (trace.length) trace[trace.length - 1].transition = result.transition;
+    if (!trace.length) throw new Error('Trace should exist');
+    const traceElement = trace[trace.length - 1];
+    if (traceElement.transition !== null) throw new Error("Trace transition shouldn't exist");
+    if (traceElement.nodeID !== node.id) throw new Error('Unexpected trace node ID');
+    traceElement.transition = result.transition;
     const next = node.transitions.get(result.transition);
     if (!next.destination) return null; // terminal transition
     data.skill.session.nodeID = next.destination.id;

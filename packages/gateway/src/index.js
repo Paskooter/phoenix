@@ -47,7 +47,7 @@ export function checkAuthentication(headers, secret) {
   try {
     return { auth: jwt.verify(parts[1], secret) };
   } catch (e) {
-    return { error: e.message };
+    return { error: e.name ? `${e.name}: ${e.message}` : e.message };
   }
 }
 
@@ -89,16 +89,18 @@ export function createGateway(config = loadConfig()) {
   const wss = new WebSocketServer({
     server: service.server,
     verifyClient: (info, cb) => {
-      const url = (info.req.url || '').split('?')[0];
+      // BaseService registers exact socket URLs. Query strings therefore remain
+      // part of the lookup key and are rejected with the source 404 contract.
+      const url = info.req.url || '';
       const pathOk = LISTEN_PATHS.has(url) || PROACTIVE_PATHS.has(url);
       if (config.disableAuth) {
-        if (!pathOk) return cb(false, 404, `no handler for ${info.req.url}`);
+        if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
         return cb(true, 200, '');
       }
       const { error, auth } = checkAuthentication(info.req.headers, config.hubTokenSecret);
       if (error) { log.warn('ws auth failed', { error }); return cb(false, 401, error); }
       info.req._auth = auth;
-      if (!pathOk) return cb(false, 404, `no handler for ${info.req.url}`);
+      if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
       if (!config.accountUrl) return cb(true, 200, ''); // shared-secret-only mode
       // Per-robot account validation (async — ws supports a deferred cb).
       verifyAgainstAccount(auth, config.accountUrl, log).then((r) => {

@@ -50,22 +50,27 @@ content lengths. The remaining differences retain their task ownership and
 coverage limits in the baseline review.
 
 Main now includes reviewed bounded A-02 native token/validation/framing and
-S-01 response-wrapper/request-gate repairs alongside the prior HTTP, parser,
-JCP/MIM, audio, prompt, report-view and provider-image changes. All **384 unit
-tests pass** in the [recorded integration run](evidence/2026-09-06/production/main-a02-s01-smoke/unit.txt).
-The [strict 43-case smoke](evidence/2026-09-06/production/main-a02-s01-smoke/run.json)
+S-01 response-wrapper/request-gate and graph preconditions, and H-10 JWT and
+CONTEXT identity repairs alongside the prior HTTP, parser, JCP/MIM, audio,
+prompt, report-view and provider-image changes. All **405 unit tests pass**, including the
+README progress automation, in the [recorded integration run](evidence/2026-09-06/progress/unit.txt).
+The [strict 43-case smoke](evidence/2026-09-06/production/main-s01-h10-smoke/run.json)
 still fails with **659 field differences**, zero invariants and one unhosted
 action gap. Full action agreement remains **25/26**. The complete baseline
-above predates this A-02/S-01 checkpoint; its counts have not been projected
+above predates these A-02/S-01/H-10 repairs; its counts have not been projected
 forward or relabeled as a passing result.
 
 The next N-08 candidate reports **20,230/20,528** status/decoded-data matches,
 14 fixes and no newly failing IDs in its [full replay](evidence/2026-09-06/nlu-n08-followup/full-replay-review.json).
 Root checked its hashes, denominators and original expected values; final
-integrated regression remains pending. That candidate is not yet in main.
+integrated regression is running in fixed verification checkout `66e2abc`,
+based on main `7945263` plus that candidate. It excludes the later graph and
+H-10 repairs. That N-08 candidate is not yet in main.
 The earlier accepted parser repair had fixed 89 failures without regressions,
-and all 73 report parser cases match. JWT diagnostics and further GraphSkill
-session repairs are also separate unaccepted candidates.
+and all 73 report parser cases match. The subsequent ranking candidate is
+separate and unaccepted. Root's [GraphSkill review](reviews/s01-graph-root/review.json),
+[JWT review](reviews/h10-root/review.json) and [CONTEXT review](reviews/h10-identity-root/review.json)
+record their accepted bounded scope and remaining lifecycle gaps.
 
 Moth completed native TLS token issuance, authenticated listen/proactive and
 a visible clock using the reviewed A-02 implementation. Weather, news images

@@ -1,0 +1,89 @@
+{
+  "date": "2026-09-06",
+  "reviewedBy": "Codex root",
+  "decision": "accepted-bounded-repair",
+  "sourceRuntime": "v8.9.4",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceFiles": {
+    "packages/baseskill/src/GraphSkill.ts": "5648740b29d386549747d673452a5ca834103e24b6858f77f710572a4b399b3e",
+    "packages/baseskill/src/graph/GraphManager.ts": "d17d9a53339011ed1e4e7bea321e8552ac81831529f904089148bf1ecdbc87a1",
+    "packages/hub/src/utils/MessagePreProcessor.ts": "c04ae6a4e4e8989420dcb1135dbd43adc1cdc08b68b4a4d197e1e5ce522cffbc",
+    "packages/hub/src/utils/MessageValidator.ts": "5503b7d2f773a5daf6eecc0fdd2b09fcba5d12a91ffd48b666f91f2d592e723d",
+    "packages/utils/src/service/BaseService.ts": "642572cf3f806303240c74e89eaada5aa447da39e75cd2ca8bdb54d8dc4297f6",
+    "packages/baseskill/lib/GraphSkill.js": "449d1fdfb89c8a230a384afe40b17516b33be78c3591757d42919fd36afaf6be",
+    "packages/baseskill/lib/graph/GraphManager.js": "1796979f3ca65a0ee3dfb83fb08b2abd92c4d9085cdabefb435a0d73e2f67586",
+    "packages/hub/lib/utils/MessagePreProcessor.js": "da27c1e530172808a229f01700de287474f46ddd4a3c8c8b20e5605a6bc21cbf",
+    "packages/hub/lib/utils/MessageValidator.js": "8b2c5a1ad04f38423aaf7a72a37e776912165ec07c3b4138be85dc20d4921087",
+    "packages/utils/lib/service/BaseService.js": "2f2f37a21cda673e1fe45c64eb0d19cfdb1d72f91837da73dddaff2411fa6427"
+  },
+  "mainBeforeIntegration": "794526320d73c451152eb8d187c322137480ff55",
+  "integratedReplayMatches": true,
+  "fullTaskVerified": false,
+  "candidateRevision": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+  "counts": {
+    "HTTPStatusAndNormalizedBody": 87,
+    "directMutation": 18,
+    "launchSessionWitness": 12
+  },
+  "normalization": [
+    "msgID",
+    "ts",
+    "timings.total; presence remains compared",
+    "generated launch session IDs; nodeID/trace length preserved"
+  ],
+  "tests": {
+    "skills": 95
+  },
+  "limits": [
+    "HTTP headers and property descriptor/Proxy behavior are not covered by this matrix.",
+    "Complete graph construction, continuation/interruption, node registration and migration remain S-01 obligations.",
+    "Existing truthy launch sessions are rejected and preserved; generated IDs for falsy launch sessions are normalized."
+  ],
+  "files": {
+    "candidate.json": "57a4417fab6612a59974dcaa484d0ac21e960848d432463128f14004cea26dcb",
+    "candidate.mjs": "a02c254c4ea5db85ac181d7eee00126697a62549dd235739da9f3c15b18dcc0f",
+    "comparison.json": "b75e53939d3569095d487a8c95a28801d6fb7150b0c721d9ce5912a57c98f8c3",
+    "main.json": "57a4417fab6612a59974dcaa484d0ac21e960848d432463128f14004cea26dcb",
+    "source.cjs": "c2f49b4a7f63a8a78ded4607f17b15c31a196dd369cf568001017142fd5d41fd",
+    "source.json": "2caed58dbf5019bde5204e0114e68388a7cb4adb73ecb14fe674f8a85c2ca605",
+    "unit.txt": "158feb446c4110985f694ea3261816f2765147c5da7a42d67dcc036b2227caaa"
+  },
+  "integratedPaths": [
+    {
+      "path": "packages/skills/src/graph/graphManager.js",
+      "candidate": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+      "before": "b5da71b5a5e62434c356daf82ceea15a4c37615dd31c72459588891451d4d6a4",
+      "after": "d436e107fa0e0ceda182a8d948cee1934677bddd48684e80dddd42b7c277f2cd"
+    },
+    {
+      "path": "packages/skills/src/graph/graphSkill.js",
+      "candidate": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+      "before": "fe5884bad2ef31389b7a6d1acb5a1bd4778f17678b3e688947d35df4cd38c5be",
+      "after": "8d2e3605cc06c3ea6ad68af2ace6f1a6e2b5fd95b75e4e2c23323ddb03ebda0b"
+    },
+    {
+      "path": "packages/skills/test/graphSkill.request.test.js",
+      "candidate": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+      "before": null,
+      "after": "5438074d76f84e5bb04ecdca8d0fa8f50d10d44482cbff2728e99998821b2911"
+    },
+    {
+      "path": "packages/skills/test/intentResponses.test.js",
+      "candidate": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+      "before": "48f99c33e5e0be125c930152928ce57a33945f2597f8035007b3ed154dd17a90",
+      "after": "e9c0b49af6930529ba31c96166efff9f7ac0fd5ef3859013208caa6f11434aa8"
+    },
+    {
+      "path": "packages/skills/test/skillRequest.test.js",
+      "candidate": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+      "before": "b6742f53d191a6fe1d96429c0427bb17b3354f6737b9826765822aaa8849fa71",
+      "after": "e496c9f8514406c17bd2f016d29d0c6852f252a7d7168429e8ce2d1b4bee015c"
+    },
+    {
+      "path": "packages/skills/tools/s01-skill-graph-source-boundaries.cjs",
+      "candidate": "e98a933208c4b4f77bfdc79110eae2073a6ea1d8",
+      "before": null,
+      "after": "c2f49b4a7f63a8a78ded4607f17b15c31a196dd369cf568001017142fd5d41fd"
+    }
+  ]
+}

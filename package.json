@@ -11,6 +11,7 @@
     "packages/*"
   ],
   "scripts": {
+    "prepare": "node scripts/parity-progress.mjs --install-hook",
     "test": "npm run test:unit && npm run parity:check && npm run parity:gate",
     "test:unit": "node --test",
     "parity:status": "node scripts/parity-status.mjs",

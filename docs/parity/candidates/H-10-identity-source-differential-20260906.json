@@ -1,0 +1,780 @@
+{
+  "status": "source differential review artifact",
+  "fixture": "packages/gateway/test/fixtures/h10-identity-differential.json",
+  "fixtureSha256": "6fe7382c40e25a328cd92acd6b82988fecfd43c29ae501fec436ca7b4d98d770",
+  "sourceCommand": "node:8.9.4-slim pinned digest 8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "candidateCommand": "Node host candidate probe",
+  "compared": "MessagePreProcessor.preProcessMessage over synthetic CONTEXT and non-CONTEXT cases",
+  "normalization": [
+    "runtime metadata and source hashes excluded from value comparison"
+  ],
+  "caseCount": 18,
+  "diffCount": 0,
+  "differences": [],
+  "source": {
+    "runtime": {
+      "node": "v8.9.4",
+      "source": "hub MessagePreProcessor + MessageValidator"
+    },
+    "source": {
+      "preProcessorSha256": "da27c1e530172808a229f01700de287474f46ddd4a3c8c8b20e5605a6bc21cbf",
+      "validatorSha256": "8b2c5a1ad04f38423aaf7a72a37e776912165ec07c3b4138be85dc20d4921087"
+    },
+    "cases": {
+      "defaults": {
+        "ok": true,
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "runtime": {
+              "loop": {}
+            },
+            "skill": null,
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            }
+          }
+        }
+      },
+      "overrides-and-trim": {
+        "ok": true,
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en-US",
+              "release": "robot-release",
+              "remoteAddress": "198.51.100.5",
+              "extra": "preserved"
+            },
+            "runtime": {
+              "loop": {
+                "users": [
+                  {
+                    "firstName": "Ada",
+                    "lastName": "Lovelace",
+                    "phoneticName": "A-da"
+                  },
+                  {
+                    "firstName": "",
+                    "lastName": null,
+                    "phoneticName": false
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "conflicting-account": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "data.general.accountID is not equal to socket accountID",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-other",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "conflicting-robot": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "data.general.robotID is not equal to socket robotID",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-other",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "missing-account-explicit": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "accountID is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "missing-robot-explicit": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "robotID is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": null,
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "missing-release-explicit": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "release is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "runtime-missing": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'loop' of undefined",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            }
+          }
+        }
+      },
+      "runtime-null": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'loop' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": null
+          }
+        }
+      },
+      "users-not-array": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "loop.users.forEach is not a function",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {
+                "users": {}
+              }
+            }
+          }
+        }
+      },
+      "null-user": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'firstName' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {
+                "users": [
+                  null
+                ]
+              }
+            }
+          }
+        }
+      },
+      "non-string-name": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "user.firstName.trim is not a function",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {
+                "users": [
+                  {
+                    "firstName": 7
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "data-missing": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'general' of undefined",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT"
+        }
+      },
+      "data-null": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'general' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": null
+        }
+      },
+      "disabled-auth-null": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'id' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {},
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "disabled-auth-undefined": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'id' of undefined",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {},
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "empty-auth-object": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "accountID is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "non-context-no-op": {
+        "ok": true,
+        "message": {
+          "type": "LISTEN",
+          "data": null
+        }
+      }
+    }
+  },
+  "candidate": {
+    "runtime": {
+      "node": "v22.22.0",
+      "candidate": "phoenix"
+    },
+    "cases": {
+      "defaults": {
+        "ok": true,
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "runtime": {
+              "loop": {}
+            },
+            "skill": null,
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            }
+          }
+        }
+      },
+      "overrides-and-trim": {
+        "ok": true,
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en-US",
+              "release": "robot-release",
+              "remoteAddress": "198.51.100.5",
+              "extra": "preserved"
+            },
+            "runtime": {
+              "loop": {
+                "users": [
+                  {
+                    "firstName": "Ada",
+                    "lastName": "Lovelace",
+                    "phoneticName": "A-da"
+                  },
+                  {
+                    "firstName": "",
+                    "lastName": null,
+                    "phoneticName": false
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "conflicting-account": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "data.general.accountID is not equal to socket accountID",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-other",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "conflicting-robot": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "data.general.robotID is not equal to socket robotID",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-other",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "missing-account-explicit": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "accountID is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "missing-robot-explicit": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "robotID is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": null,
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "missing-release-explicit": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "release is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "runtime-missing": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'loop' of undefined",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            }
+          }
+        }
+      },
+      "runtime-null": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'loop' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": null
+          }
+        }
+      },
+      "users-not-array": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "loop.users.forEach is not a function",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {
+                "users": {}
+              }
+            }
+          }
+        }
+      },
+      "null-user": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'firstName' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {
+                "users": [
+                  null
+                ]
+              }
+            }
+          }
+        }
+      },
+      "non-string-name": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "user.firstName.trim is not a function",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "accountID": "acct-1",
+              "robotID": "robot-1",
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {
+                "users": [
+                  {
+                    "firstName": 7
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "data-missing": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'general' of undefined",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT"
+        }
+      },
+      "data-null": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'general' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": null
+        }
+      },
+      "disabled-auth-null": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'id' of null",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {},
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "disabled-auth-undefined": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "message": "Cannot read property 'id' of undefined",
+          "constructor": "TypeError"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {},
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "empty-auth-object": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "message": "accountID is missing in general data",
+          "constructor": "Error"
+        },
+        "message": {
+          "type": "CONTEXT",
+          "data": {
+            "general": {
+              "lang": "en",
+              "release": "1.8.0",
+              "remoteAddress": "192.0.2.10"
+            },
+            "runtime": {
+              "loop": {}
+            }
+          }
+        }
+      },
+      "non-context-no-op": {
+        "ok": true,
+        "message": {
+          "type": "LISTEN",
+          "data": null
+        }
+      }
+    }
+  }
+}

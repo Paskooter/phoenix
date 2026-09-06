@@ -1,0 +1,605 @@
+TAP version 13
+# Subtest: answer-skill returns a wire-valid SKILL_ACTION
+ok 1 - answer-skill returns a wire-valid SKILL_ACTION
+  ---
+  duration_ms: 4.260307
+  type: 'test'
+  ...
+# Subtest: SKILL_ACTION carries a JCP SEQUENCE -> SLIM -> PLAY with esml + mim meta
+ok 2 - SKILL_ACTION carries a JCP SEQUENCE -> SLIM -> PLAY with esml + mim meta
+  ---
+  duration_ms: 0.883576
+  type: 'test'
+  ...
+# Subtest: the session round-trips the question (stateless skill contract)
+ok 3 - the session round-trips the question (stateless skill contract)
+  ---
+  duration_ms: 0.646045
+  type: 'test'
+  ...
+# Subtest: esml escaping escapes entities then strips leftover braces (answer-skill/server.js:188-200)
+ok 4 - esml escaping escapes entities then strips leftover braces (answer-skill/server.js:188-200)
+  ---
+  duration_ms: 0.233052
+  type: 'test'
+  ...
+# Subtest: example-skill: intent walk Node1 -> Node2 -> Node3 -> Done across LISTEN_UPDATEs
+ok 5 - example-skill: intent walk Node1 -> Node2 -> Node3 -> Done across LISTEN_UPDATEs
+  ---
+  duration_ms: 2.901862
+  type: 'test'
+  ...
+# Subtest: example-skill: memo beats intent; proactive memo takes the proactive arm
+ok 6 - example-skill: memo beats intent; proactive memo takes the proactive arm
+  ---
+  duration_ms: 0.657836
+  type: 'test'
+  ...
+# Subtest: example-skill: intent2 goes straight to Node2; unknown intent throws
+ok 7 - example-skill: intent2 goes straight to Node2; unknown intent throws
+  ---
+  duration_ms: 1.057997
+  type: 'test'
+  ...
+# Subtest: template-skill: valid memo plays the template MIM and finishes
+ok 8 - template-skill: valid memo plays the template MIM and finishes
+  ---
+  duration_ms: 3.242378
+  type: 'test'
+  ...
+# Subtest: template-skill: unknown memo throws
+ok 9 - template-skill: unknown memo throws
+  ---
+  duration_ms: 0.511981
+  type: 'test'
+  ...
+# Subtest: GraphManager assigns sequential node IDs
+ok 10 - GraphManager assigns sequential node IDs
+  ---
+  duration_ms: 1.437106
+  type: 'test'
+  ...
+# Subtest: color-skill multi-turn: launch asks (non-final), update replies (final) using the answer
+ok 11 - color-skill multi-turn: launch asks (non-final), update replies (final) using the answer
+  ---
+  duration_ms: 6.860898
+  type: 'test'
+  ...
+# Subtest: createGraphSkill: a no-action node ends the transaction (final, fireAndForget)
+ok 12 - createGraphSkill: a no-action node ends the transaction (final, fireAndForget)
+  ---
+  duration_ms: 0.463378
+  type: 'test'
+  ...
+# Subtest: GraphSkill follows source precondition order and error ownership
+ok 13 - GraphSkill follows source precondition order and error ownership
+  ---
+  duration_ms: 2.827762
+  type: 'test'
+  ...
+# Subtest: GraphSkill mutates source-shaped skill fallbacks before dispatch
+ok 14 - GraphSkill mutates source-shaped skill fallbacks before dispatch
+  ---
+  duration_ms: 12.236511
+  type: 'test'
+  ...
+# Subtest: GraphSkill preserves source debug/warning ordering before dispatch errors
+ok 15 - GraphSkill preserves source debug/warning ordering before dispatch errors
+  ---
+  duration_ms: 0.498916
+  type: 'test'
+  ...
+# Subtest: GraphSkill launch and proactive launch preserve truthy sessions for the source guard
+ok 16 - GraphSkill launch and proactive launch preserve truthy sessions for the source guard
+  ---
+  duration_ms: 2.402735
+  type: 'test'
+  ...
+# Subtest: GraphSkill launch and proactive launch replace only falsy sessions through GraphManager.start
+ok 17 - GraphSkill launch and proactive launch replace only falsy sessions through GraphManager.start
+  ---
+  duration_ms: 1.660909
+  type: 'test'
+  ...
+# Subtest: GraphManager matches source session and transition preconditions
+ok 18 - GraphManager matches source session and transition preconditions
+  ---
+  duration_ms: 1.280748
+  type: 'test'
+  ...
+# Subtest: report: requestNews -> news subskill only; ServiceDown when lasso is unreachable
+ok 19 - report: requestNews -> news subskill only; ServiceDown when lasso is unreachable
+  ---
+  duration_ms: 12.104892
+  type: 'test'
+  ...
+# Subtest: report: requestWeatherPR -> weather subskill only
+ok 20 - report: requestWeatherPR -> weather subskill only
+  ---
+  duration_ms: 3.121399
+  type: 'test'
+  ...
+# Subtest: report: launchPersonalReport without an ID asks WhoIsThis (QN, non-final)
+ok 21 - report: launchPersonalReport without an ID asks WhoIsThis (QN, non-final)
+  ---
+  duration_ms: 4.241572
+  type: 'test'
+  ...
+# Subtest: report: full report for an IDed adult -> SettingsFailed + per-service degradation + outro MAN
+ok 22 - report: full report for an IDed adult -> SettingsFailed + per-service degradation + outro MAN
+  ---
+  duration_ms: 5.79146
+  type: 'test'
+  ...
+# Subtest: report: requestCommute without an ID -> WhoIsThis, then notInLoop -> MustBeLooper
+ok 23 - report: requestCommute without an ID -> WhoIsThis, then notInLoop -> MustBeLooper
+  ---
+  duration_ms: 6.081861
+  type: 'test'
+  ...
+# Subtest: report: requestCalendar from a child -> MustBeAdult
+ok 24 - report: requestCalendar from a child -> MustBeAdult
+  ---
+  duration_ms: 1.842383
+  type: 'test'
+  ...
+# Subtest: report: proactive launch -> opt-in proposal question (VERIFY_ID base MIM)
+ok 25 - report: proactive launch -> opt-in proposal question (VERIFY_ID base MIM)
+  ---
+  duration_ms: 3.484807
+  type: 'test'
+  ...
+# Subtest: chitchat: dance memo plays the real RA_JBO_SpecificDance MIM (raw <anim> ESML)
+ok 26 - chitchat: dance memo plays the real RA_JBO_SpecificDance MIM (raw <anim> ESML)
+  ---
+  duration_ms: 37.116793
+  type: 'test'
+  ...
+# Subtest: chitchat: twerk memo plays the real RA_JBO_Twerk MIM
+ok 27 - chitchat: twerk memo plays the real RA_JBO_Twerk MIM
+  ---
+  duration_ms: 3.05924
+  type: 'test'
+  ...
+# Subtest: chitchat: aprilFools memo plays the real JF_AprilFools MIM
+ok 28 - chitchat: aprilFools memo plays the real JF_AprilFools MIM
+  ---
+  duration_ms: 3.622318
+  type: 'test'
+  ...
+# Subtest: chitchat: emotion-query memo resolves in emotion-responses
+ok 29 - chitchat: emotion-query memo resolves in emotion-responses
+  ---
+  duration_ms: 2.271897
+  type: 'test'
+  ...
+# Subtest: chitchat: semi-specific stem resolves via entity value + category CSV
+ok 30 - chitchat: semi-specific stem resolves via entity value + category CSV
+  ---
+  duration_ms: 1.682159
+  type: 'test'
+  ...
+# Subtest: chitchat: unknown memo MIM falls back to CC_Fallback; missing memo throws (reference)
+ok 31 - chitchat: unknown memo MIM falls back to CC_Fallback; missing memo throws (reference)
+  ---
+  duration_ms: 2.635407
+  type: 'test'
+  ...
+# Subtest: jcp: esmlRaw passes markup through, default escapes it
+ok 32 - jcp: esmlRaw passes markup through, default escapes it
+  ---
+  duration_ms: 2.13636
+  type: 'test'
+  ...
+# Subtest: QNFactory: question -> success carries the NLU result
+ok 33 - QNFactory: question -> success carries the NLU result
+  ---
+  duration_ms: 8.59151
+  type: 'test'
+  ...
+# Subtest: QNFactory: NoMatch escalates by index then exits FinalNoMatch when exhausted
+ok 34 - QNFactory: NoMatch escalates by index then exits FinalNoMatch when exhausted
+  ---
+  duration_ms: 5.939141
+  type: 'test'
+  ...
+# Subtest: QNFactory: NoInput plays the NI prompt
+ok 35 - QNFactory: NoInput plays the NI prompt
+  ---
+  duration_ms: 2.991011
+  type: 'test'
+  ...
+# Subtest: MANFactory: multiple announcement MIMs become one SEQUENCE of SLIMs (final)
+ok 36 - MANFactory: multiple announcement MIMs become one SEQUENCE of SLIMs (final)
+  ---
+  duration_ms: 18.530244
+  type: 'test'
+  ...
+# Subtest: MIMFactory router: announcement MIM takes the AN arm
+ok 37 - MIMFactory router: announcement MIM takes the AN arm
+  ---
+  duration_ms: 14.600443
+  type: 'test'
+  ...
+# Subtest: unifyMims: skill prompts replace base prompts; transform wins when provided
+ok 38 - unifyMims: skill prompts replace base prompts; transform wins when provided
+  ---
+  duration_ms: 11.760067
+  type: 'test'
+  ...
+# Subtest: OptIn: VERIFY_ID proposal uses unified skill prompt + base listen rule
+ok 39 - OptIn: VERIFY_ID proposal uses unified skill prompt + base listen rule
+  ---
+  duration_ms: 12.89579
+  type: 'test'
+  ...
+# Subtest: OptIn: yes -> Accepted -> content action; SKILL_OFFER analytics tracked
+ok 40 - OptIn: yes -> Accepted -> content action; SKILL_OFFER analytics tracked
+  ---
+  duration_ms: 3.02207
+  type: 'test'
+  ...
+# Subtest: OptIn: no -> decline announcement (final) from the base Decline MIM
+ok 41 - OptIn: no -> decline announcement (final) from the base Decline MIM
+  ---
+  duration_ms: 6.203183
+  type: 'test'
+  ...
+# Subtest: OptIn: wrongID -> WrongID MIM -> loopmember recovers identity; SetPresentPerson rides the next JCP
+ok 42 - OptIn: wrongID -> WrongID MIM -> loopmember recovers identity; SetPresentPerson rides the next JCP
+  ---
+  duration_ms: 5.062739
+  type: 'test'
+  ...
+# Subtest: full report: weather change tables + news headlines assemble the mega-MAN
+ok 43 - full report: weather change tables + news headlines assemble the mega-MAN
+  ---
+  duration_ms: 113.313646
+  type: 'test'
+  ...
+# Subtest: single-skill weather request speaks real conditions (Intro + change + temp MIMs)
+ok 44 - single-skill weather request speaks real conditions (Intro + change + temp MIMs)
+  ---
+  duration_ms: 73.931917
+  type: 'test'
+  ...
+# Subtest: S-13 source news parser filters incomplete images and removes the feed header
+ok 45 - S-13 source news parser filters incomplete images and removes the feed header
+  ---
+  duration_ms: 8.043169
+  type: 'test'
+  ...
+# Subtest: S-13 source news view rejects the whole map when one headline is incomplete
+ok 46 - S-13 source news view rejects the whole map when one headline is incomplete
+  ---
+  duration_ms: 5.894447
+  type: 'test'
+  ...
+# Subtest: S-13 source NewsMimLogic propagates an incomplete view failure
+ok 47 - S-13 source NewsMimLogic propagates an incomplete view failure
+  ---
+  duration_ms: 1.10218
+  type: 'test'
+  ...
+# (node:823448) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)
+ok 48 - commute: light traffic -> DrivePoor + DepartTimeNotNormal (no MinutesLeft at exactly 30)
+  ---
+  duration_ms: 132.148608
+  type: 'test'
+  ...
+# Subtest: commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft
+ok 49 - commute: heavy traffic + <30 min left -> DriveTerrible + MinutesLeft
+  ---
+  duration_ms: 21.393914
+  type: 'test'
+  ...
+# Subtest: commute: no traffic -> DriveNormal + DepartTimeNormal
+ok 50 - commute: no traffic -> DriveNormal + DepartTimeNormal
+  ---
+  duration_ms: 21.623248
+  type: 'test'
+  ...
+# Subtest: commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now
+ok 51 - commute: just missed the departure -> DriveHurry; long missed -> DriveLate; far ahead -> Now
+  ---
+  duration_ms: 68.325667
+  type: 'test'
+  ...
+# Subtest: calendar: two concurrent events today -> Count + SummaryAndTime + ParallelEvent + Outro
+ok 52 - calendar: two concurrent events today -> Count + SummaryAndTime + ParallelEvent + Outro
+  ---
+  duration_ms: 17.889619
+  type: 'test'
+  ...
+# Subtest: calendar: events only tomorrow -> TomorrowOnly + Count + walk
+ok 53 - calendar: events only tomorrow -> TomorrowOnly + Count + walk
+  ---
+  duration_ms: 33.370341
+  type: 'test'
+  ...
+# Subtest: calendar: asked for tomorrow with nothing scheduled -> Nothing
+ok 54 - calendar: asked for tomorrow with nothing scheduled -> Nothing
+  ---
+  duration_ms: 20.317784
+  type: 'test'
+  ...
+# Subtest: calendar: all-day event today reads the fullDay phrasing
+ok 55 - calendar: all-day event today reads the fullDay phrasing
+  ---
+  duration_ms: 16.919259
+  type: 'test'
+  ...
+# Subtest: S-13 source weather vector preserves the Nimbus view contract
+ok 56 - S-13 source weather vector preserves the Nimbus view contract
+  ---
+  duration_ms: 3.853406
+  type: 'test'
+  ...
+# Subtest: S-13 source news vector preserves image geometry and final close behavior
+ok 57 - S-13 source news vector preserves image geometry and final close behavior
+  ---
+  duration_ms: 0.767686
+  type: 'test'
+  ...
+# Subtest: S-13 source commute vectors preserve traffic and departure labels
+ok 58 - S-13 source commute vectors preserve traffic and departure labels
+  ---
+  duration_ms: 1.022249
+  type: 'test'
+  ...
+# Subtest: S-13 source calendar vector preserves icon, labels, and text placement
+ok 59 - S-13 source calendar vector preserves icon, labels, and text placement
+  ---
+  duration_ms: 2.185835
+  type: 'test'
+  ...
+# Subtest: S-13 weather view uses source temperature bands, assets, units, and offsets
+ok 60 - S-13 weather view uses source temperature bands, assets, units, and offsets
+  ---
+  duration_ms: 5.491772
+  type: 'test'
+  ...
+# Subtest: S-13 weather view keeps exact hot/cold threshold boundaries
+ok 61 - S-13 weather view keeps exact hot/cold threshold boundaries
+  ---
+  duration_ms: 11.908328
+  type: 'test'
+  ...
+# Subtest: S-13 news view scales images, labels strange news, and closes the last view
+ok 62 - S-13 news view scales images, labels strange news, and closes the last view
+  ---
+  duration_ms: 1.497209
+  type: 'test'
+  ...
+# Subtest: S-13 news view preserves source errors for empty or incomplete items
+ok 63 - S-13 news view preserves source errors for empty or incomplete items
+  ---
+  duration_ms: 2.125319
+  type: 'test'
+  ...
+# Subtest: S-13 commute view uses source traffic bands and departure labels
+ok 64 - S-13 commute view uses source traffic bands and departure labels
+  ---
+  duration_ms: 3.347687
+  type: 'test'
+  ...
+# Subtest: S-13 calendar view selects source card/icon/time fields and single-skill leaveEmpty
+ok 65 - S-13 calendar view selects source card/icon/time fields and single-skill leaveEmpty
+  ---
+  duration_ms: 4.020423
+  type: 'test'
+  ...
+# Subtest: S-13 calendar view handles full-day, night, default icon, and summary truncation
+ok 66 - S-13 calendar view handles full-day, night, default icon, and summary truncation
+  ---
+  duration_ms: 7.248584
+  type: 'test'
+  ...
+# Subtest: JCP builders keep command IDs distinct from response/session UUIDs
+ok 67 - JCP builders keep command IDs distinct from response/session UUIDs
+  ---
+  duration_ms: 3.469428
+  type: 'test'
+  ...
+# Subtest: supplemental Parallel uses the requester default succeedOnFirst field
+ok 68 - supplemental Parallel uses the requester default succeedOnFirst field
+  ---
+  duration_ms: 0.381914
+  type: 'test'
+  ...
+# Subtest: Slimmer preserves null versus omitted auto-rule overrides
+ok 69 - Slimmer preserves null versus omitted auto-rule overrides
+  ---
+  duration_ms: 3.775638
+  type: 'test'
+  ...
+# Subtest: GraphSkill records the framework Skill Entry analytics event on launch
+ok 70 - GraphSkill records the framework Skill Entry analytics event on launch
+  ---
+  duration_ms: 1.545881
+  type: 'test'
+  ...
+# Subtest: JCP command IDs do not change the UUID contract of the response envelope
+ok 71 - JCP command IDs do not change the UUID contract of the response envelope
+  ---
+  duration_ms: 0.623532
+  type: 'test'
+  ...
+# Subtest: S-05 source timezone vectors keep the original local day
+ok 72 - S-05 source timezone vectors keep the original local day
+  ---
+  duration_ms: 3.640674
+  type: 'test'
+  ...
+# Subtest: S-05 source birthday and age vector keeps Node8 values
+ok 73 - S-05 source birthday and age vector keeps Node8 values
+  ---
+  duration_ms: 2.577979
+  type: 'test'
+  ...
+# Subtest: S-05 PromptData uses the runtime offset for date fields and DateTime
+ok 74 - S-05 PromptData uses the runtime offset for date fields and DateTime
+  ---
+  duration_ms: 4.264586
+  type: 'test'
+  ...
+# Subtest: S-05 handles UTC day/month/year boundaries and seasonal windows
+ok 75 - S-05 handles UTC day/month/year boundaries and seasonal windows
+  ---
+  duration_ms: 2.19994
+  type: 'test'
+  ...
+# Subtest: S-05 preserves source loop selection, pronounceable names, typed data and location methods
+ok 76 - S-05 preserves source loop selection, pronounceable names, typed data and location methods
+  ---
+  duration_ms: 0.76466
+  type: 'test'
+  ...
+# Subtest: S-05 keeps the source date/location and loop guards independent
+ok 77 - S-05 keeps the source date/location and loop guards independent
+  ---
+  duration_ms: 2.158813
+  type: 'test'
+  ...
+# Subtest: S-05 rejects invalid runtime DateTime inputs while retaining the source loop offset
+ok 78 - S-05 rejects invalid runtime DateTime inputs while retaining the source loop offset
+  ---
+  duration_ms: 1.183754
+  type: 'test'
+  ...
+# Subtest: S-05 preserves source partial loop state and last duplicate match
+ok 79 - S-05 preserves source partial loop state and last duplicate match
+  ---
+  duration_ms: 4.232394
+  type: 'test'
+  ...
+# Subtest: S-05 exposes source long periods and permissive range parsing
+ok 80 - S-05 exposes source long periods and permissive range parsing
+  ---
+  duration_ms: 10.5802
+  type: 'test'
+  ...
+# Subtest: S-05 leaves standard data empty when location is absent
+ok 81 - S-05 leaves standard data empty when location is absent
+  ---
+  duration_ms: 0.40138
+  type: 'test'
+  ...
+# Subtest: S-05 leaves empty and incomplete runtimes at source defaults
+ok 82 - S-05 leaves empty and incomplete runtimes at source defaults
+  ---
+  duration_ms: 0.61685
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:36.491Z","level":"info","ns":"skill-request-boundary-test","msg":"listening","port":0}
+# Subtest: skillRoute forwards arbitrary object bodies to the handler
+ok 83 - skillRoute forwards arbitrary object bodies to the handler
+  ---
+  duration_ms: 2.639405
+  type: 'test'
+  ...
+# Subtest: real graph, chitchat, and report handlers retain their own boundary errors
+ok 84 - real graph, chitchat, and report handlers retain their own boundary errors
+  ---
+  duration_ms: 2.215871
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:36.542Z","level":"error","ns":"skill-request-boundary-test","msg":"handler threw","error":"Unexpected token 'n', \\"\#\\" is not valid JSON"}
+# {"t":"2026-09-06T01:40:36.545Z","level":"error","ns":"skill-request-boundary-test","msg":"handler threw","error":"Unexpected token '\\"', \\"\#\\" is not valid JSON"}
+# {"t":"2026-09-06T01:40:36.548Z","level":"error","ns":"skill-request-boundary-test","msg":"handler threw","error":"Unexpected token '7', \\"\#\\" is not valid JSON"}
+# {"t":"2026-09-06T01:40:36.551Z","level":"error","ns":"skill-request-boundary-test","msg":"handler threw","error":"Unexpected end of JSON input"}
+# Subtest: HTTP service forwards object bodies while common JSON parsing rejects primitives
+ok 85 - HTTP service forwards object bodies while common JSON parsing rejects primitives
+  ---
+  duration_ms: 70.197457
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:36.470Z","level":"info","ns":"skill-response-test","msg":"listening","port":0}
+# Subtest: skillRoute measures awaited handler time and overwrites handler timings
+ok 86 - skillRoute measures awaited handler time and overwrites handler timings
+  ---
+  duration_ms: 9.673782
+  type: 'test'
+  ...
+# Subtest: skillRoute preserves source error envelope without success timings
+ok 87 - skillRoute preserves source error envelope without success timings
+  ---
+  duration_ms: 2.262049
+  type: 'test'
+  ...
+# Subtest: skillRoute uses source error message conversion for strings and objects
+ok 88 - skillRoute uses source error message conversion for strings and objects
+  ---
+  duration_ms: 0.380602
+  type: 'test'
+  ...
+# Subtest: result assignment uses the frozen Node 8 wrapper error wording
+ok 89 - result assignment uses the frozen Node 8 wrapper error wording
+  ---
+  duration_ms: 0.652348
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:36.514Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.519Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":"fixture string failure"}
+# {"t":"2026-09-06T01:40:36.523Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{"code":"FIXTURE"}}
+# {"t":"2026-09-06T01:40:36.525Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":null}
+# {"t":"2026-09-06T01:40:36.526Z","level":"error","ns":"skill-response-test","msg":"handler threw","error":"Cannot read property 'message' of null"}
+# {"t":"2026-09-06T01:40:36.528Z","level":"error","ns":"skill-response-test","msg":"skill handler threw"}
+# {"t":"2026-09-06T01:40:36.528Z","level":"error","ns":"skill-response-test","msg":"handler threw","error":"Cannot read property 'message' of undefined"}
+# {"t":"2026-09-06T01:40:36.531Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.533Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.536Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.538Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.539Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.541Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.548Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.549Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.552Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# {"t":"2026-09-06T01:40:36.555Z","level":"error","ns":"skill-response-test","msg":"skill handler threw","error":{}}
+# Subtest: createSkillService matches the normalized source status/body matrix
+ok 90 - createSkillService matches the normalized source status/body matrix
+  ---
+  duration_ms: 95.509098
+  type: 'test'
+  ...
+# Subtest: weightedSample is deterministic with an injected rng
+ok 91 - weightedSample is deterministic with an injected rng
+  ---
+  duration_ms: 1.221176
+  type: 'test'
+  ...
+# Subtest: condition filtering: named prompt excluded when no speaker, included with one
+ok 92 - condition filtering: named prompt excluded when no speaker, included with one
+  ---
+  duration_ms: 5.250715
+  type: 'test'
+  ...
+# Subtest: Errors index selects the matching NoMatch prompt
+ok 93 - Errors index selects the matching NoMatch prompt
+  ---
+  duration_ms: 1.943585
+  type: 'test'
+  ...
+# Subtest: exhausted NoMatch index returns null and sets noMatchMax
+ok 94 - exhausted NoMatch index returns null and sets noMatchMax
+  ---
+  duration_ms: 0.944552
+  type: 'test'
+  ...
+# Subtest: play.meta carries prompt_id + mim_id
+ok 95 - play.meta carries prompt_id + mim_id
+  ---
+  duration_ms: 1.280899
+  type: 'test'
+  ...
+1..95
+# tests 95
+# suites 0
+# pass 95
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1538.943253

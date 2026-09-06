@@ -3,6 +3,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { completion, updateProgress } from './parity-progress.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ledger = JSON.parse(readFileSync(resolve(root, 'docs/parity/tasks.json'), 'utf8'));
@@ -126,12 +127,18 @@ if ([...args].some(arg => !['--write', '--check', '--json'].includes(arg))) {
   console.error('Usage: node scripts/parity-status.mjs [--write | --check] [--json]'); process.exit(1);
 }
 if (args.has('--write') && args.has('--check')) { console.error('Choose --write or --check.'); process.exit(1); }
-if (args.has('--write')) writeFileSync(target, rendered);
+if (args.has('--write')) {
+  writeFileSync(target, rendered);
+  updateProgress(root, { ledger });
+}
 if (args.has('--check') && (!existsSync(target) || readFileSync(target, 'utf8') !== rendered)) {
   console.error('TASKS.md is stale. Run npm run parity:status -- --write.'); process.exit(1);
 }
-if (args.has('--json')) console.log(JSON.stringify({ summary, current: current ? { id: current.id, title: current.title } : null, ready: ready.map(t => ({ id: t.id, title: t.title })) }, null, 2));
+if (args.has('--check')) updateProgress(root, { check: true, ledger });
+const progress = completion(ledger);
+if (args.has('--json')) console.log(JSON.stringify({ completion: progress, summary, current: current ? { id: current.id, title: current.title } : null, ready: ready.map(t => ({ id: t.id, title: t.title })) }, null, 2));
 else {
+  console.log(`Checklist: ${progress.verified}/${progress.total} verified (${progress.percent}%)`);
   for (const s of summary) console.log(`${s.track}: ${s.verified}/${s.total} verified; ${s.inProgress} in progress; ${s.blocked} blocked`);
   if (current) console.log(`Current: ${current.id} — ${current.title}`);
   console.log(`Next: ${ready[0] ? `${ready[0].id} — ${ready[0].title}` : 'no ready task'}`);

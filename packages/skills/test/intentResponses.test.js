@@ -20,7 +20,14 @@ const CHITCHAT_RUNTIME = {
 };
 
 function reqWithIntent(intent) {
-  return { data: { result: { nlu: { intent, entities: {} }, asr: { text: '' } }, runtime: CHITCHAT_RUNTIME, skill: null } };
+  return {
+    data: {
+      general: { accountID: 'fixture-account', robotID: 'fixture-robot' },
+      result: { nlu: { intent, entities: {} }, asr: { text: '' } },
+      runtime: CHITCHAT_RUNTIME,
+      skill: null,
+    },
+  };
 }
 const firstSlim = (action) => {
   const jcp = action.data.action.config.jcp;

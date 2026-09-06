@@ -89,12 +89,12 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-Current main passes **384 unit tests** and still fails its strict 43-case smoke
+Current main passes **405 unit tests** and still fails its strict 43-case smoke
 with **659 field differences**, zero invariants and one unhosted action gap.
 The complete `057f67c` baseline has **49,155 field differences across 20,534
 cases**, zero invariants and 97 gap instances across both sides. Exact action
 objects agree in 20,170/20,434 comparisons. The complete baseline predates the
-latest A-02/S-01 integration; all dimensions and limitations are retained in
+latest A-02/S-01/H-10 integration; all dimensions and limitations are retained in
 [PRODUCTION.md](PRODUCTION.md). No complete product workstream is certified.
 
 Future long captures should use an isolated, fixed verification worktree so

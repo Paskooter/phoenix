@@ -1,0 +1,444 @@
+TAP version 13
+# Subtest: sign/verify round-trips the payload and adds iat
+ok 1 - sign/verify round-trips the payload and adds iat
+  ---
+  duration_ms: 1.949447
+  type: 'test'
+  ...
+# Subtest: verify accepts each HMAC algorithm allowed by the pinned source defaults
+ok 2 - verify accepts each HMAC algorithm allowed by the pinned source defaults
+  ---
+  duration_ms: 0.625786
+  type: 'test'
+  ...
+# Subtest: verify rejects a wrong secret and a tampered payload
+ok 3 - verify rejects a wrong secret and a tampered payload
+  ---
+  duration_ms: 0.765891
+  type: 'test'
+  ...
+# Subtest: verify matches source errors for missing, malformed, algorithm, and signature cases
+ok 4 - verify matches source errors for missing, malformed, algorithm, and signature cases
+  ---
+  duration_ms: 1.130323
+  type: 'test'
+  ...
+# Subtest: verify parses JWT payloads before algorithm and signature checks
+ok 5 - verify parses JWT payloads before algorithm and signature checks
+  ---
+  duration_ms: 0.661274
+  type: 'test'
+  ...
+# Subtest: verify translates modern JSON diagnostics with source UTF-16 positions
+ok 6 - verify translates modern JSON diagnostics with source UTF-16 positions
+  ---
+  duration_ms: 1.399994
+  type: 'test'
+  ...
+# Subtest: verify compares canonical source signature text and decodes headers as binary
+ok 7 - verify compares canonical source signature text and decodes headers as binary
+  ---
+  duration_ms: 1.832355
+  type: 'test'
+  ...
+# Subtest: verify enforces exact exp boundaries without an implicit clock skew
+ok 8 - verify enforces exact exp boundaries without an implicit clock skew
+  ---
+  duration_ms: 0.773877
+  type: 'test'
+  ...
+# Subtest: verify enforces nbf boundaries and registered-claim types
+ok 9 - verify enforces nbf boundaries and registered-claim types
+  ---
+  duration_ms: 0.856775
+  type: 'test'
+  ...
+# Subtest: verify preserves source payload decoding for JWT primitives, objects, and null
+ok 10 - verify preserves source payload decoding for JWT primitives, objects, and null
+  ---
+  duration_ms: 0.57466
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+ok 11 - VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock
+  ---
+  duration_ms: 43.508634
+  type: 'test'
+  ...
+# Subtest: VAD: stop() before SOS resolves start() with undefined
+ok 12 - VAD: stop() before SOS resolves start() with undefined
+  ---
+  duration_ms: 0.55905
+  type: 'test'
+  ...
+# Subtest: WAV header: 44-byte RIFF, 16kHz mono 16-bit
+ok 13 - WAV header: 44-byte RIFF, 16kHz mono 16-bit
+  ---
+  duration_ms: 0.325498
+  type: 'test'
+  ...
+# Parakeet finalize on stop failed: ASR PCM ended on an odd byte boundary
+# Subtest: LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+ok 14 - LINEAR16 remains byte-for-byte PCM across odd network fragment boundaries
+  ---
+  duration_ms: 12.247
+  type: 'test'
+  ...
+# Subtest: LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+ok 15 - LINEAR16 rejects an odd final PCM byte instead of wrapping invalid WAV
+  ---
+  duration_ms: 5.302383
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: LINEAR16 stop preserves an even final partial VAD window
+ok 16 - LINEAR16 stop preserves an even final partial VAD window
+  ---
+  duration_ms: 8.316108
+  type: 'test'
+  ...
+# Subtest: VAD and EOS are invariant across PCM chunk boundaries
+ok 17 - VAD and EOS are invariant across PCM chunk boundaries
+  ---
+  duration_ms: 10.507974
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# EOS detected (max-buffer), finalizing with 3000 chunks
+# Subtest: encoded fixtures preserve VAD events and PCM cut across decoder chunking
+ok 18 - encoded fixtures preserve VAD events and PCM cut across decoder chunking
+  ---
+  duration_ms: 175.088383
+  type: 'test'
+  ...
+# Subtest: max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+ok 19 - max-buffer EOS cuts a large PCM chunk at the 30-second boundary
+  ---
+  duration_ms: 24.094655
+  type: 'test'
+  ...
+# Subtest: declared audio formats are validated before a provider session starts
+ok 20 - declared audio formats are validated before a provider session starts
+  ---
+  duration_ms: 0.682203
+  type: 'test'
+  ...
+# Subtest: bounded decoder queue rejects input without buffering a whole turn
+ok 21 - bounded decoder queue rejects input without buffering a whole turn
+  ---
+  duration_ms: 0.417471
+  type: 'test'
+  ...
+# Subtest: missing ffmpeg is an explicit runtime decoder error
+ok 22 - missing ffmpeg is an explicit runtime decoder error
+  ---
+  duration_ms: 3.202221
+  type: 'test'
+  ...
+# Subtest: decoder rejects empty or truncated FLAC streams at end-of-input
+ok 23 - decoder rejects empty or truncated FLAC streams at end-of-input
+  ---
+  duration_ms: 10.796911
+  type: 'test'
+  ...
+# Subtest: decoder finish followed by abort settles without a dangling OGG promise
+ok 24 - decoder finish followed by abort settles without a dangling OGG promise
+  ---
+  duration_ms: 15.178408
+  type: 'test'
+  ...
+# Subtest: OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+ok 25 - OGG finish rejects a prefix that ffmpeg decodes without an EOS page
+  ---
+  duration_ms: 5.074962
+  type: 'test'
+  ...
+# Subtest: explicit OGG end-of-input accepts decoded audio before a missing EOS page
+ok 26 - explicit OGG end-of-input accepts decoded audio before a missing EOS page
+  ---
+  duration_ms: 59.096829
+  type: 'test'
+  ...
+# Subtest: decoder bounds include an active FLAC frame and clean up on overflow
+ok 27 - decoder bounds include an active FLAC frame and clean up on overflow
+  ---
+  duration_ms: 1.380217
+  type: 'test'
+  ...
+# Subtest: decoder reports a missing process and clears its child without a pending finish
+ok 28 - decoder reports a missing process and clears its child without a pending finish
+  ---
+  duration_ms: 13.393375
+  type: 'test'
+  ...
+# Subtest: OGG decoder emits PCM before the paced source reaches EOF
+ok 29 - OGG decoder emits PCM before the paced source reaches EOF
+  ---
+  duration_ms: 334.640376
+  type: 'test'
+  ...
+# Subtest: FLAC decoder emits PCM before the paced source reaches EOF
+ok 30 - FLAC decoder emits PCM before the paced source reaches EOF
+  ---
+  duration_ms: 176.367757
+  type: 'test'
+  ...
+# Subtest: paced OGG input can reach SOS before the source reaches EOF
+ok 31 - paced OGG input can reach SOS before the source reaches EOF
+  ---
+  duration_ms: 370.095811
+  type: 'test'
+  ...
+# Subtest: paced FLAC input can reach SOS before the source reaches EOF
+ok 32 - paced FLAC input can reach SOS before the source reaches EOF
+  ---
+  duration_ms: 430.2955
+  type: 'test'
+  ...
+# EOS detected (silence), finalizing with 101 chunks
+# EOS detected (silence), finalizing with 100 chunks
+# Subtest: OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+ok 33 - OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames
+  ---
+  duration_ms: 57.232645
+  type: 'test'
+  ...
+# FLAC stream is missing the fLaC marker
+# Subtest: FLAC frames are decoded incrementally before VAD despite fragmented input
+ok 34 - FLAC frames are decoded incrementally before VAD despite fragmented input
+  ---
+  duration_ms: 24.753573
+  type: 'test'
+  ...
+# Subtest: FLAC decoded waveform matches the immutable lossless fixture
+ok 35 - FLAC decoded waveform matches the immutable lossless fixture
+  ---
+  duration_ms: 14.563121
+  type: 'test'
+  ...
+# Subtest: FLAC surfaces a native decoder error even when it decoded no PCM
+ok 36 - FLAC surfaces a native decoder error even when it decoded no PCM
+  ---
+  duration_ms: 1.521204
+  type: 'test'
+  ...
+# Subtest: FLAC rejects an oversized native chunk before allocating PCM
+ok 37 - FLAC rejects an oversized native chunk before allocating PCM
+  ---
+  duration_ms: 0.503675
+  type: 'test'
+  ...
+# Subtest: FLAC accepts every single-byte split across metadata and frame headers
+ok 38 - FLAC accepts every single-byte split across metadata and frame headers
+  ---
+  duration_ms: 15.521088
+  type: 'test'
+  ...
+# Subtest: malformed declared audio rejects the session with a decoder error
+ok 39 - malformed declared audio rejects the session with a decoder error
+  ---
+  duration_ms: 2.43653
+  type: 'test'
+  ...
+# Subtest: encoded session cancellation aborts decoder resources before SOS
+ok 40 - encoded session cancellation aborts decoder resources before SOS
+  ---
+  duration_ms: 4.202298
+  type: 'test'
+  ...
+# Subtest: encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+ok 41 - encoded session cancellation after SOS closes decoder without waiting for encoded EOS
+  ---
+  duration_ms: 9.485415
+  type: 'test'
+  ...
+# Subtest: hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+ok 42 - hints: $YESNO expands, unknown templates drop, global "jibo" appends, deduped
+  ---
+  duration_ms: 0.362227
+  type: 'test'
+  ...
+# Subtest: factory: non-English languages throw (reference gate)
+ok 43 - factory: non-English languages throw (reference gate)
+  ---
+  duration_ms: 0.180092
+  type: 'test'
+  ...
+# Subtest: normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+ok 44 - normalizeString: smart quotes/dashes -> ascii; non-strings -> ""
+  ---
+  duration_ms: 0.799215
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:49.886Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: checkAuthentication matches the source bearer and jsonwebtoken matrix
+ok 45 - checkAuthentication matches the source bearer and jsonwebtoken matrix
+  ---
+  duration_ms: 3.247648
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:49.892Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Authorization is required"}
+# {"t":"2026-09-06T01:40:49.895Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Only bearer scheme is supported"}
+# {"t":"2026-09-06T01:40:49.896Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# {"t":"2026-09-06T01:40:49.897Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: invalid signature"}
+# {"t":"2026-09-06T01:40:49.899Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"TokenExpiredError: jwt expired"}
+# {"t":"2026-09-06T01:40:49.900Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"NotBeforeError: jwt not active"}
+# {"t":"2026-09-06T01:40:49.902Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# {"t":"2026-09-06T01:40:49.905Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: upgrade rejection preserves status, source text, headers, and auth-before-path ordering
+ok 46 - upgrade rejection preserves status, source text, headers, and auth-before-path ordering
+  ---
+  duration_ms: 23.521157
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:49.926Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: valid bearer upgrades known exact paths and disableAuth still checks path first
+ok 47 - valid bearer upgrades known exact paths and disableAuth still checks path first
+  ---
+  duration_ms: 22.829887
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: live account accepts
+ok 48 - verifyAgainstAccount: live account accepts
+  ---
+  duration_ms: 45.984217
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: revoked/unknown account rejects
+ok 49 - verifyAgainstAccount: revoked/unknown account rejects
+  ---
+  duration_ms: 11.402761
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:50.017Z","level":"info","ns":"gateway","msg":"listening","port":7531}
+# Subtest: verifyAgainstAccount: friendlyId mismatch rejects
+ok 50 - verifyAgainstAccount: friendlyId mismatch rejects
+  ---
+  duration_ms: 3.995144
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: token without an accessKeyId claim is allowed (sim creds)
+ok 51 - verifyAgainstAccount: token without an accessKeyId claim is allowed (sim creds)
+  ---
+  duration_ms: 0.45918
+  type: 'test'
+  ...
+# Subtest: verifyAgainstAccount: unreachable account fails closed
+ok 52 - verifyAgainstAccount: unreachable account fails closed
+  ---
+  duration_ms: 2.531029
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:50.053Z","level":"info","ns":"gateway","msg":"listening","port":7532}
+# Subtest: verifyClient: disableAuth bypasses auth entirely
+ok 53 - verifyClient: disableAuth bypasses auth entirely
+  ---
+  duration_ms: 50.006553
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:50.067Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# {"t":"2026-09-06T01:40:50.079Z","level":"info","ns":"gateway","msg":"listening","port":7533}
+# Subtest: verifyClient: shared-secret-only accepts any validly-signed token (no accountUrl)
+ok 54 - verifyClient: shared-secret-only accepts any validly-signed token (no accountUrl)
+  ---
+  duration_ms: 29.600744
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:50.091Z","level":"warn","ns":"gateway","msg":"ws account check failed","error":"account not found or inactive"}
+# Subtest: verifyClient: with accountUrl, live account accepts and revoked rejects
+ok 55 - verifyClient: with accountUrl, live account accepts and revoked rejects
+  ---
+  duration_ms: 24.025222
+  type: 'test'
+  ...
+# Subtest: routes a launch intent to its skill and carries memo
+ok 56 - routes a launch intent to its skill and carries memo
+  ---
+  duration_ms: 1.496268
+  type: 'test'
+  ...
+# Subtest: does NOT route without the launch rule (gotcha \#6)
+ok 57 - does NOT route without the launch rule (gotcha \#6)
+  ---
+  duration_ms: 0.21609
+  type: 'test'
+  ...
+# Subtest: does NOT route a null intent
+ok 58 - does NOT route a null intent
+  ---
+  duration_ms: 1.285106
+  type: 'test'
+  ...
+# Subtest: entity-constrained registration outweighs the bare one (weight 1 > 0)
+ok 59 - entity-constrained registration outweighs the bare one (weight 1 > 0)
+  ---
+  duration_ms: 0.640084
+  type: 'test'
+  ...
+# Subtest: falls back to the bare registration when entity does not match
+ok 60 - falls back to the bare registration when entity does not match
+  ---
+  duration_ms: 0.188788
+  type: 'test'
+  ...
+# Subtest: unknown intent returns null
+ok 61 - unknown intent returns null
+  ---
+  duration_ms: 0.138513
+  type: 'test'
+  ...
+# Subtest: launch-by-skill-entity: routes when grammar emits skill but no manifest intent
+ok 62 - launch-by-skill-entity: routes when grammar emits skill but no manifest intent
+  ---
+  duration_ms: 0.149513
+  type: 'test'
+  ...
+# Subtest: launch-by-skill-entity ignores an unknown skill id
+ok 63 - launch-by-skill-entity ignores an unknown skill id
+  ---
+  duration_ms: 0.176084
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:49.968Z","level":"info","ns":"nlu","msg":"listening","port":7511}
+# {"t":"2026-09-06T01:40:49.972Z","level":"info","ns":"skills","msg":"listening","port":7514}
+# {"t":"2026-09-06T01:40:49.985Z","level":"info","ns":"gateway","msg":"listening","port":7510}
+# Subtest: CLIENT_ASR: full pipeline robot -> gateway -> nlu -> answer-skill
+ok 64 - CLIENT_ASR: full pipeline robot -> gateway -> nlu -> answer-skill
+  ---
+  duration_ms: 576.702021
+  type: 'test'
+  ...
+# Subtest: CLIENT_NLU: skips ASR + parser, routes directly
+ok 65 - CLIENT_NLU: skips ASR + parser, routes directly
+  ---
+  duration_ms: 8.677363
+  type: 'test'
+  ...
+# Subtest: no NLU match -> final LISTEN with match:null, no skill call
+ok 66 - no NLU match -> final LISTEN with match:null, no skill call
+  ---
+  duration_ms: 66.318842
+  type: 'test'
+  ...
+# {"t":"2026-09-06T01:40:50.533Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# Subtest: bad JWT is rejected at the upgrade (HTTP 401, no socket)
+ok 67 - bad JWT is rejected at the upgrade (HTTP 401, no socket)
+  ---
+  duration_ms: 2.893297
+  type: 'test'
+  ...
+1..67
+# tests 67
+# suites 0
+# pass 67
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3047.192918

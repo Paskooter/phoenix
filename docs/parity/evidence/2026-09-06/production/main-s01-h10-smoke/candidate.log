@@ -1,0 +1,9 @@
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"nlu","msg":"handler threw","transId":"boundary:external-disabled","error":"Cannot read property 'external' of null"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"nlu","msg":"handler threw","transId":"boundary:body-null","error":"Unexpected token 'n', \"#\" is not valid JSON"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"nlu","msg":"handler threw","transId":"boundary:missing-data","error":"Bad request: {}"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"nlu","msg":"handler threw","transId":"boundary:text-number","error":"Bad request: {\"data\":{\"text\":12,\"rules\":[\"launch\"]}}"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"chitchat-skill","msg":"skill handler threw","transId":"skill:chitchat-missing-memo","error":{}}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"report-skill","msg":"Error getting user prefs: Error getting Settings data: , Settings service 503","transId":"skill:report-provider-failure"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"report-skill","msg":"Error getting weather data: dark_sky 503","transId":"skill:report-provider-failure"}
+{"t":"2018-05-30T12:00:00.000Z","level":"error","ns":"report-skill","msg":"Error parsing news:","transId":"skill:report-provider-failure","error":"There was a problem getting NewsData. Error: ap_news 503"}
+{"complete":true,"cases":43,"failures":0}

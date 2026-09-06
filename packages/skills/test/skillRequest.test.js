@@ -101,13 +101,10 @@ test('real graph, chitchat, and report handlers retain their own boundary errors
       log,
     });
     // The exact pinned source fixture reaches GraphManager.exitNode and says
-    // "Skill session is required". Phoenix's existing graph facade checks the
-    // same request earlier and says "LISTEN_UPDATE without a session". Keep
-    // this assertion source-visible rather than hiding that graph gap behind
-    // the request boundary wrapper.
+    // "Skill session is required".
     assert.deepEqual(normalizeResponse(missingSession), {
       type: 'ERROR',
-      data: { message: 'LISTEN_UPDATE without a session', skill: { id: skillId } },
+      data: { message: 'Skill session is required', skill: { id: skillId } },
     });
   }
 });

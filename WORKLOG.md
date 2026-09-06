@@ -1,5 +1,40 @@
 # Phoenix worklog
 
+## 2026-09-06: automatic README checklist completion
+
+The user's requested README progress bar is generated from verified task
+statuses on every normal commit. It currently reads **6/77, or 7.8%**, with
+per-track counts and an explicit distinction from server feature completion.
+The installed pre-commit hook computes from the staged ledger and preserves
+unrelated staged/unstaged README text. New clones install it through
+`npm install`; `parity:check` rejects stale output. A real temporary Git
+repository verifies partial-commit behavior. The combined suite passes all
+405 tests; [progress evidence](docs/parity/evidence/2026-09-06/progress/review.json)
+retains the focused and full logs.
+
+## 2026-09-06: reviewed JWT, CONTEXT and GraphSkill repairs
+
+Root integrated the bounded S-01 graph and H-10 authentication candidates.
+Original Node 8 comparisons match 87 graph HTTP cases, 18 fallback mutations,
+12 launch-session witnesses, 1,965 JWT/auth/upgrade cases on both Node 22 and
+Node 20, and 187 CONTEXT preprocessing cases. Integrated main repeats the
+same outputs and passes 402 unit tests. The strict 43-case smoke remains at
+659 differences, zero invariants and one gap; these repairs do not imply a
+complete graph or authentication lifecycle pass.
+
+The prior 105 JWT diagnostic differences are resolved. Source disabled-auth
+CONTEXT failure is preserved; Moth still runs the prior reviewed transport
+stack, with no restart or configuration change in this checkpoint. A native
+cached-token 401 refetch trial is being prepared offline for root review.
+
+Both GitHub and Gitea were independently verified at `7945263`. A new full
+20,534-case run is pinned to isolated verification revision `66e2abc` (that
+checkpoint plus the N-08 optional-class candidate), allowing main to advance
+without invalidating its capture. It excludes this newer graph/H-10 change.
+The subsequent ranking candidate remains unreviewed and separate. V-03
+coverage-link reconciliation and A-01 legacy contract discovery are assigned
+in isolated Luna worktrees. No full product task is checked off by this work.
+
 ## 2026-09-06: full baseline, native authentication and skill-wrapper checkpoint
 
 The complete `057f67c` baseline captured all 20,534 cases with no trace

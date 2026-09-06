@@ -127,7 +127,7 @@ Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/pa
 
 Owner: Codex. Dependencies: PM-03.
 
-The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01 integration passes 384 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.
+The complete source-pinned Phoenix baseline now covers all 20,534 production fixtures: 49,155 field differences, zero invariants and 97 external-action gap instances (8 reference, 89 candidate; 91 unique cases). Complete action objects agree in 20,170/20,434 comparisons. Reviewed main A-02/S-01/H-10 integration passes 402 unit tests; strict smoke retains 659 differences and one gap. Final corpus-to-gate inventory links remain to be reconciled before V-03 infrastructure acceptance.
 
 Done when:
 
@@ -381,7 +381,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Native signed CreateHubToken-to-Bearer listen/proactive is verified as a bounded A-02 path. JWT rejection and context identity candidates remain separate and unaccepted. Root expanded original Node 8 JWT probes: the 132-case candidate matches, but 105 diagnostic mismatches remain in a 1,965-case structural mutation matrix. Native cached-token 401 refetch/expiry and context identity checks remain open.
+Root integrated bounded JWT/upgrade and CONTEXT identity repairs. All 1,965 source Node 8 JWT/auth/upgrade outcomes match both host Node 22 and deployment Node 20; the prior 105 diagnostics differences are resolved. All 187 expanded CONTEXT outcomes and mutations match source. Main passes 402 unit tests. Native cached-token 401 refetch/expiry and optional account-backed extension acceptance remain open; Moth still runs the prior reviewed transport-only stack.
 
 Done when:
 
@@ -396,13 +396,13 @@ Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [
 
 Evidence: pending.
 
-- [x] Candidate implementation — **changes_requested**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
-Candidate scope: HMAC JWT and upgrade rejection behavior. Root requests correction of 105 additional malformed-payload diagnostic differences in 1,965 original Node 8 cases; no H-10 implementation has been accepted.
+Candidate scope: Bounded HMAC JWT and upgrade rejection behavior: 1,965 exact outcomes on Node 22 and Node 20 against original Node 8, with main integration replay. Native lifecycle and account extension remain open.
 
 Candidate report: [docs/parity/candidates/H-10.md](../../docs/parity/candidates/H-10.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/reviews/h10-root/review.json](../../docs/parity/reviews/h10-root/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### N-01 — Honor complete parser requests and load every named rule
 
@@ -903,7 +903,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: H-04, V-02.
 
-The full production grader retains complete session and trace data. Root accepted 19 source response-wrapper HTTP cases and removal of the incompatible global request gate (21/33 boundary cases match; 12 graph errors retained). Those bounded repairs are integrated. Graph dispatch/session preconditions have a separate unaccepted e98a933 candidate; full continuation and migration acceptance remain open.
+Root integrated the reviewed response wrapper/request-gate repairs and GraphSkill preconditions. Fresh original Node 8 comparisons match 87 HTTP status/body cases, 18 fallback mutation cases and 12 launch-session witnesses; all integrated outputs repeat exactly. Existing truthy launch sessions are now rejected without replacement. Main passes 402 unit tests. Complete graph construction, continuation/interruption and session migration acceptance remain open.
 
 Done when:
 
@@ -917,13 +917,13 @@ Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/gra
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
-Candidate scope: GraphSkill context ordering and session guards, including rejection of launches with an existing truthy session; agent reports 87 HTTP and 12 launch witnesses matching source. Root review pending.
+Candidate scope: GraphSkill ordinary request ordering, source-shaped field/session errors and launch-session preservation. Bounded acceptance only; full graph lifecycle remains open.
 
 Candidate report: [docs/parity/candidates/S-01-graph.md](../../docs/parity/candidates/S-01-graph.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/reviews/s01-graph-root/review.json](../../docs/parity/reviews/s01-graph-root/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-02 — Verify global results, speaker overrides and supplemental behaviors
 

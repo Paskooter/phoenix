@@ -1,0 +1,15 @@
+{
+  "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+  "sourceRuntime": {
+    "node": "v8.9.4",
+    "source": "jsonwebtoken@8.1.1 + BaseService",
+    "ws": "3.3.3"
+  },
+  "candidateRuntime": {
+    "node": "v22.22.0",
+    "candidate": "phoenix",
+    "sourceOutput": "/home/shell/work/phoenix/.parity/reviews/h10-root/generated-source.json"
+  },
+  "cases": 1965,
+  "differences": []
+}

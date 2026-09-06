@@ -1,0 +1,96 @@
+{
+  "date": "2026-09-06",
+  "reviewedBy": "Codex root",
+  "decision": "accepted-bounded-repair",
+  "sourceRuntime": "v8.9.4",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceFiles": {
+    "packages/baseskill/src/GraphSkill.ts": "5648740b29d386549747d673452a5ca834103e24b6858f77f710572a4b399b3e",
+    "packages/baseskill/src/graph/GraphManager.ts": "d17d9a53339011ed1e4e7bea321e8552ac81831529f904089148bf1ecdbc87a1",
+    "packages/hub/src/utils/MessagePreProcessor.ts": "c04ae6a4e4e8989420dcb1135dbd43adc1cdc08b68b4a4d197e1e5ce522cffbc",
+    "packages/hub/src/utils/MessageValidator.ts": "5503b7d2f773a5daf6eecc0fdd2b09fcba5d12a91ffd48b666f91f2d592e723d",
+    "packages/utils/src/service/BaseService.ts": "642572cf3f806303240c74e89eaada5aa447da39e75cd2ca8bdb54d8dc4297f6",
+    "packages/baseskill/lib/GraphSkill.js": "449d1fdfb89c8a230a384afe40b17516b33be78c3591757d42919fd36afaf6be",
+    "packages/baseskill/lib/graph/GraphManager.js": "1796979f3ca65a0ee3dfb83fb08b2abd92c4d9085cdabefb435a0d73e2f67586",
+    "packages/hub/lib/utils/MessagePreProcessor.js": "da27c1e530172808a229f01700de287474f46ddd4a3c8c8b20e5605a6bc21cbf",
+    "packages/hub/lib/utils/MessageValidator.js": "8b2c5a1ad04f38423aaf7a72a37e776912165ec07c3b4138be85dc20d4921087",
+    "packages/utils/lib/service/BaseService.js": "2f2f37a21cda673e1fe45c64eb0d19cfdb1d72f91837da73dddaff2411fa6427"
+  },
+  "mainBeforeIntegration": "794526320d73c451152eb8d187c322137480ff55",
+  "integratedReplayMatches": true,
+  "fullTaskVerified": false,
+  "candidateRevision": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+  "counts": {
+    "eachRuntime": 1965
+  },
+  "candidateRuntimes": [
+    "v22.22.0",
+    "v20.20.2"
+  ],
+  "tests": {
+    "commonJWTAndGateway": 67
+  },
+  "normalization": [
+    "HTTP header names lowercased across ws 3.3.3 and ws 8.21; header values, status, reason, body, content length remain compared.",
+    "Runtime metadata excluded from outcome equality."
+  ],
+  "limits": [
+    "Bounded BaseService shared HMAC string-secret behavior, not all optional jsonwebtoken APIs or asymmetric-key verification.",
+    "Native cached-token 401 refetch, expiry lifecycle and optional account-backed extension remain open.",
+    "The 132-case pass preceded a 1965-case root expansion exposing 105 differences; those earlier failures remain retained privately and summarized in the prior candidate report."
+  ],
+  "files": {
+    "candidate-node20.json.gz": "2126f1acdc84c4e3eb1873ab1eff24730eedfa953bb9782bb90c5467755a6828",
+    "candidate-node22.json.gz": "37c02400f6b0d888aaf48cbcaa93520c20413401752a1e84a55c3dca0125999a",
+    "generated-comparison-c01118f-root-node20.json": "7f0cef82da4e86d3bcb9433a8ccc05112dfcf0c2264feaa1525b8f5a49f230fa",
+    "generated-comparison-c01118f-root.json": "6a89322bc16eff78c52977ca67c22600ce2a3a69eaa768f9db188e3b713f8cd0",
+    "generated-fixtures.json": "9e2136794936cfda7385a7e7d7b96a974c8609464143ee5097a27829ce241a29",
+    "main.json.gz": "6ffa044017a2a29306699bc546a9c12a2b98d9accc952154c0f7bd94c79ea351",
+    "source.json.gz": "cda7e199169f9a3b89bb35d54f0164f3251a5a13c260ebb90ff607f9b719b0af",
+    "unit.txt": "bf49daadde5ed948e58f9672f9eda4676362c32598bc1ced40d52f95d1c25269"
+  },
+  "integratedPaths": [
+    {
+      "path": "packages/common/src/jwt.js",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": "094ff526942ab618449ad4582a65550c43d6a04949508bf05e3754e10e31c4e9",
+      "after": "f0cd552a5a8bf21ae8735ac3792e502910f619da5e783a0d9887c67dddc4b0f1"
+    },
+    {
+      "path": "packages/common/test/jwt.test.js",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": "016981d2c7ede5d557d5ac67df0ae2531943b73265255381a4a703f5944c4a61",
+      "after": "6a695ba183a5c4ba908caba2071e41291d1037adfea4b5a15b81082a23e0f296"
+    },
+    {
+      "path": "packages/gateway/src/index.js",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": "b5067d592ee2d5e032a8121a6f3f0e9e7353b21c21fa8a28c5c26e73aebac394",
+      "after": "a070a1ff0fc2ef9983175ada260e0a41df73bc47b46e356e852565a4dcb4fb25"
+    },
+    {
+      "path": "packages/gateway/test/fixtures/h10-auth-differential.json",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": null,
+      "after": "9306f0777144ccb1ad5e9737485a561b5eff2d861b5ee4337691e41ad5f3ee80"
+    },
+    {
+      "path": "packages/gateway/test/hubAuth.contract.test.js",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": null,
+      "after": "9ab7c1096e45357adefdce57a4d89a888263292f0e91f622d348fb59ceeb2659"
+    },
+    {
+      "path": "packages/gateway/tools/h10-candidate-probe.mjs",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": null,
+      "after": "0ac9b689b281926a9739d28d02502ca26c8c5976e575691171ba5dd98c3548f2"
+    },
+    {
+      "path": "packages/gateway/tools/h10-source-probe.cjs",
+      "candidate": "c01118fedf4e8751fe8cffb5fac1fc4bfa713dff",
+      "before": null,
+      "after": "9ef0a426dbe28f14095d23e889e1f534aefffed7e887c8b6e900fcc057322df2"
+    }
+  ]
+}
