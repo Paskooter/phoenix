@@ -6,7 +6,9 @@
 // selection, the shared host keeps the combined multi-skill service and answer-skill default.
 
 import { DefaultPort } from '@phoenix/contracts';
+import { basename } from 'node:path';
 import { createSkillsService, createSkillService } from './skillService.js';
+import minimist from './vendor/minimist.cjs';
 import { answerSkill } from './answerSkill.js';
 import { reportSkill } from './reportSkill.js';
 import { chitchatSkill } from './chitchatSkill.js';
@@ -43,7 +45,33 @@ export const SKILLS = [
   { id: 'template-skill', handler: templateSkill },
 ];
 
-export function start(port = Number(process.env.PORT) || DefaultPort.skills, { skillId = process.env.PHOENIX_SKILL_ID } = {}) {
+function defaultPort() {
+  const configured = process.env.PORT || process.env.ETCO_server_port;
+  if (configured === undefined || configured === '') return DefaultPort.skills;
+  const parsed = Number(configured);
+  return Number.isFinite(parsed) ? parsed : DefaultPort.skills;
+}
+
+// The Pegasus run-service entrypoint uses minimist and then evaluates
+// parseInt(argv.p || argv.port || ETCO_server_port || '8080'). Keep the
+// programmatic start() default above as an explicit Phoenix deployment
+// adapter (PORT/shared-host), while making the executable path source-shaped.
+export function parseServiceArgs(args = process.argv.slice(2)) {
+  return minimist(Array.isArray(args) ? args : []);
+}
+
+/** Resolve the source run-service port from generic minimist argv and ETCO_server_port. */
+export function parseServicePort(args = process.argv.slice(2), env = process.env) {
+  const argv = parseServiceArgs(args);
+  const raw = argv.p || argv.port || env.ETCO_server_port || '8080';
+  return parseInt(raw);
+}
+
+export function serviceHelp(program = 'run-service.js') {
+  return `Usage: ${basename(program)} [options]\n  Options:\n  --port, -p: [default: 8080] Port of service`;
+}
+
+export function start(port = defaultPort(), { skillId = process.env.PHOENIX_SKILL_ID } = {}) {
   if (skillId) {
     const selected = SKILLS.find((skill) => skill.id === skillId);
     if (!selected) throw new Error(`Unknown PHOENIX_SKILL_ID '${skillId}'`);
@@ -53,5 +81,13 @@ export function start(port = Number(process.env.PORT) || DefaultPort.skills, { s
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  start().catch((e) => { console.error(e); process.exit(1); });
+  const argv = parseServiceArgs();
+  if (argv.h || argv.help) {
+    console.log(serviceHelp(process.argv[1]));
+    // The historical common run-service wrapper treats a help return with no
+    // service promise as an error and exits 1 after printing the usage text.
+    process.exitCode = 1;
+  } else {
+    start(parseServicePort()).catch((e) => { console.error(e); process.exit(1); });
+  }
 }

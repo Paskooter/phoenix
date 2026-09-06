@@ -7,6 +7,7 @@ import { test, before, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { SkillRequestType } from '@phoenix/contracts';
+import { clearReportEnvCache } from '../src/report/env.js';
 
 process.env.ETCO_report_prefsFromConfig = 'true';
 const { reportSkill } = await import('../src/reportSkill.js');
@@ -43,8 +44,9 @@ before(async () => {
   });
   await new Promise((r) => server.listen(0, r));
   process.env.NET_data = `localhost:${server.address().port}`;
+  clearReportEnvCache();
 });
-after(() => { server.close(); delete process.env.NET_data; mock.timers.reset(); });
+after(() => { server.close(); delete process.env.NET_data; clearReportEnvCache(); mock.timers.reset(); });
 
 const launch = (intent, iso, entities = {}) => ({
   type: SkillRequestType.LISTEN_LAUNCH, msgID: 'm', ts: 1,

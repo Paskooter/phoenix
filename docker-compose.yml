@@ -104,10 +104,11 @@ services:
     command: node packages/skills/src/index.js
     environment:
       - PORT=8080
+      - ETCO_server_port=8080
       - PHOENIX_SKILL_ID=report-skill
-      - NET_data=lasso:8080
-      - NET_settings=${NET_SETTINGS:-}
-      - ETCO_report_prefsFromConfig=${PREFS_FROM_CONFIG:-}
+      - NET_lasso=${NET_lasso:-lasso:8080}
+      - NET_settings=${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}
+      - prefsFromConfig=${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}
     ports:
       - 9003:8080
 

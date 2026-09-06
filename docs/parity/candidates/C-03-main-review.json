@@ -1,0 +1,102 @@
+{
+  "status": "bounded-integration-candidate-unverified",
+  "base": "25430c15a1a66837fe3025bf6e08279bacea8ae8",
+  "importedCandidate": "eb19f9489ce123b73e572e1eb55eb7b1b7dc924e",
+  "branch": "codex/candidate-c03-main-review-20260906",
+  "scope": {
+    "reportEnvironment": [
+      "packages/skills/src/report/env.js",
+      "packages/skills/src/report/lassoClient.js",
+      "packages/skills/src/report/settingsClient.js"
+    ],
+    "cli": [
+      "packages/skills/src/index.js",
+      "packages/skills/src/vendor/minimist.cjs",
+      "packages/skills/src/vendor/MINIMIST-LICENSE"
+    ],
+    "testsAndProbes": [
+      "packages/skills/test/reportConfig.test.js",
+      "packages/skills/test/report.e2e.test.js",
+      "packages/skills/test/reportSubskills.test.js",
+      "packages/skills/tools/c03-report-config-source-env.cjs",
+      "packages/skills/tools/c03-report-config-followup-source.cjs",
+      "packages/skills/tools/c03-report-client-source.cjs",
+      "packages/skills/tools/c03-report-client-candidate.mjs"
+    ],
+    "launcherFiles": [
+      ".env.example",
+      "docker-compose.yml",
+      "scripts/run-compose-stack.sh",
+      "scripts/run-sim-stack.sh"
+    ]
+  },
+  "source": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "runtime": "v8.9.4",
+    "minimistVersion": "1.2.0",
+    "minimistIndexSha256": "55e1248d57e7aabcaa6f150d0b1d7bfb3047535244b280db4d1a0584d825eac3",
+    "minimistLicenseSha256": "435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b",
+    "cliReceipt": {
+      "path": ".parity/reviews/c03-main-review/source-node8/cli-expanded.json",
+      "sha256": "c56ffd4f8462c6846880a0ba06df4211c99a90d5d6de43e525f771b2ff0cf073",
+      "cases": 26
+    },
+    "clientReceipt": {
+      "path": ".parity/reviews/c03-main-review/source-node8/client.json",
+      "sha256": "ef2ed3de17e7e8b9903c4c51e425fa894c1b845b24de4c2a42572ff04d860a03"
+    }
+  },
+  "candidate": {
+    "minimistSha256": "56e2a0d617cc5d059cbd3dc6fc9dec8e33067b115670720f8c2cc2830647d539",
+    "cliReplay": {
+      "path": ".parity/reviews/c03-main-review/candidate-cli-expanded.json",
+      "sha256": "da4cce8f6f01fa47c45e470390e170bc242cff7c2371969b07b54676e333b490",
+      "matched": 26,
+      "cases": 26
+    },
+    "clientReplay": {
+      "path": ".parity/reviews/c03-main-review/candidate-client.json",
+      "sha256": "275d7a046e60a39078a04cd73801fafc6dbc7c727f2265be93467be1cd489537"
+    }
+  },
+  "clientComparison": {
+    "path": ".parity/reviews/c03-main-review/client-comparison.json",
+    "sha256": "86ef34b19df529dc748e54967f85e80bee480ed5d0163eb8a45a285d1dfc1f58",
+    "decodedDarkSkyEqual": true,
+    "decodedSettingsEqual": true,
+    "urlEqual": true,
+    "bodyEqual": true,
+    "wireEqual": false,
+    "knownDifferences": [
+      "Original Lasso forwards req.jibo.toHeader x-source-header; candidate sends no Lasso GET header.",
+      "Original Settings POST content-type is application/json;charset=utf-8; candidate sends application/json."
+    ]
+  },
+  "validation": {
+    "install": "npm ci --ignore-scripts --offline",
+    "workspaceResolution": {
+      "path": ".parity/reviews/c03-main-review/candidate-runtime-resolution.json",
+      "sha256": "b28c95f257905a9d71db9eb0a4c62bf59421ec89f13cadd9db8b8f5c9a4bdb00",
+      "npmLsProblems": []
+    },
+    "focusedReportTests": {
+      "passed": 17,
+      "failed": 0,
+      "log": ".parity/reviews/c03-main-review/focused-report.log",
+      "sha256": "16b2d337a90c96141f2c707022038b4d462fcd31c459d08a02fa1535f6cebcbc"
+    },
+    "skillsSuite": {
+      "passed": 105,
+      "failed": 0,
+      "log": ".parity/reviews/c03-main-review/skills-unit.log",
+      "sha256": "f58dacd24e0ec459b392b3f2700e0450d5d93192cfae19f27e878a5f30d0f080"
+    }
+  },
+  "limits": [
+    "The 26-case control exercises minimist and the port expression, not the historical run-service wrapper.",
+    "Actual help stderr and the common runner five-second no-promise shutdown were not reproduced.",
+    "The source/candidate local-peer wire comparison retains two header differences listed above.",
+    "No compose/live-port/robot or strict production capture was run; providers and full C-03 parity remain open."
+  ]
+}

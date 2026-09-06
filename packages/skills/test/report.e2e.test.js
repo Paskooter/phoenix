@@ -5,6 +5,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { SkillRequestType } from '@phoenix/contracts';
+import { clearReportEnvCache } from '../src/report/env.js';
 import { reportSkill } from '../src/reportSkill.js';
 
 // Yesterday cloudy / high 60 -> today rain / high 75: ChangeCloudyWet (suppresses the Comment
@@ -65,8 +66,9 @@ before(async () => {
   });
   await new Promise((r) => server.listen(0, r));
   process.env.NET_data = `localhost:${server.address().port}`;
+  clearReportEnvCache();
 });
-after(() => { server.close(); delete process.env.NET_data; });
+after(() => { server.close(); delete process.env.NET_data; clearReportEnvCache(); });
 
 const launch = () => ({
   type: SkillRequestType.LISTEN_LAUNCH, msgID: 'm', ts: 1,

@@ -1,10 +1,11 @@
 // SettingsClient — port of report-skill/src/SettingsClient.ts. The AWS settings service is dead
 // ([DEAD] in DIVERGENCES.md), so the live paths are: un-IDed/child speaker -> defaults;
-// ETCO_report_prefsFromConfig=true -> resources/report-prefsConfig.json; otherwise the real
-// GetSettings POST against NET_settings (throws when unreachable -> caller's SettingsFailed path,
-// exactly like the reference behaves with the service down).
+// prefsFromConfig=true -> resources/report-prefsConfig.json; otherwise the real GetSettings
+// POST against NET_settings (with the source default settings.jibo.aws). ETCO_report_prefsFromConfig
+// remains a Phoenix alias when prefsFromConfig is absent.
 
 import { getJSON, getAccountFromLooper, speakerIsAdult } from './utils.js';
+import { getReportEnv, reportPeerURL } from './env.js';
 
 const SETTINGS_API_VERSION = '20160801';
 const PREFS_CONFIG = 'report-prefsConfig';
@@ -24,7 +25,7 @@ export class SettingsClient {
       log?.info?.('Speaker is a child, getting default prefs');
       return SettingsClient.getDefaultPrefs(log);
     }
-    if (process.env.ETCO_report_prefsFromConfig === 'true') {
+    if (getReportEnv().prefsFromConfig === 'true') {
       return getJSON(PREFS_CONFIG);
     }
 
@@ -53,9 +54,7 @@ export class SettingsClient {
     if (!accountId || accountId === NO_AUTH || !loopId) {
       throw new Error(`Missing creds for Settings request. Got accountID: ${!!accountId} | loopID: ${!!loopId}`);
     }
-    const base = process.env.NET_settings;
-    if (!base) throw new Error('NET_settings not configured (settings service unavailable)');
-    const res = await fetch(`http://${base}`, {
+    const res = await fetch(reportPeerURL(getReportEnv().NET_settings), {
       method: 'POST',
       headers: {
         'content-type': 'application/json',

@@ -16,6 +16,9 @@ if [ -f .env ]; then set -a; . ./.env; set +a; fi
 LLM_URL="${LLM_URL:-}"
 LLM_MODEL="${LLM_MODEL:-google/gemma-4-e4b}"
 PARAKEET_URL="${PARAKEET_URL:-}"
+REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
+REPORT_LASSO="${NET_lasso:-localhost:9007}"
+REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
 
 PORT=9005 ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
   node packages/nlu/src/index.js      > /tmp/phx-compose-parser.log  2>&1 &
@@ -24,11 +27,11 @@ PORT=9007 node packages/data/src/index.js     > /tmp/phx-compose-lasso.log   2>&
 
 # Skill services select one skill at /v1/main. The shared NET_skills profile still uses the
 # combined host when no PHOENIX_SKILL_ID is supplied.
-PORT=9009 PHOENIX_SKILL_ID=answer-skill NET_data=localhost:9007 ETCO_answer_llmUrl="$LLM_URL" ETCO_answer_llmModel="$LLM_MODEL" \
+PORT=9009 ETCO_server_port=9009 PHOENIX_SKILL_ID=answer-skill NET_data=localhost:9007 ETCO_answer_llmUrl="$LLM_URL" ETCO_answer_llmModel="$LLM_MODEL" \
   node packages/skills/src/index.js   > /tmp/phx-compose-answer.log  2>&1 &
-PORT=9003 PHOENIX_SKILL_ID=report-skill NET_data=localhost:9007 ETCO_report_prefsFromConfig="${PREFS_FROM_CONFIG:-}" \
+PORT=9003 ETCO_server_port=9003 PHOENIX_SKILL_ID=report-skill NET_lasso="$REPORT_LASSO" NET_settings="$REPORT_SETTINGS" prefsFromConfig="$REPORT_PREFS_FROM_CONFIG" \
   node packages/skills/src/index.js   > /tmp/phx-compose-report.log  2>&1 &
-PORT=9004 PHOENIX_SKILL_ID=chitchat-skill NET_data=localhost:9007 \
+PORT=9004 ETCO_server_port=9004 PHOENIX_SKILL_ID=chitchat-skill NET_data=localhost:9007 \
   node packages/skills/src/index.js   > /tmp/phx-compose-chitchat.log 2>&1 &
 
 # Phoenix extension (not in the reference contract): the OTA update server. A robot points

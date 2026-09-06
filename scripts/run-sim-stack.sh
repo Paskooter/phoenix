@@ -30,7 +30,7 @@ PORT=7013 node packages/history/src/index.js     > /tmp/phx-history.log 2>&1 &
 NET_data=localhost:7012 \
 ETCO_answer_llmUrl="$LLM_URL" \
 ETCO_answer_llmModel="$LLM_MODEL" \
-  PORT=7014 node packages/skills/src/index.js    > /tmp/phx-skills.log  2>&1 &
+  PORT=7014 ETCO_server_port=7014 node packages/skills/src/index.js    > /tmp/phx-skills.log  2>&1 &
 
 # Server-side ASR (the sim's 🎤 button): the gateway POSTs captured speech to
 # ${ETCO_server_parakeetUrl}/transcribe. Resolution order:

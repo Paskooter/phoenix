@@ -1,9 +1,10 @@
 // LassoClient — port of report-skill/src/LassoClient.ts + LassoClientUtils.ts against the
-// Phoenix data service (lasso port, NET_data). Same endpoints, same envelope: every relay
-// response wraps payload in `relayData`.
+// Phoenix data service. Source deployments use NET_lasso; NET_data remains a documented
+// Phoenix alias when the source name is absent. Every relay response wraps payload in `relayData`.
 
 import { parseXml } from './xml.js';
 import { getAccountFromLooper } from './utils.js';
+import { reportLassoURL } from './env.js';
 
 const msToSeconds = (ms) => ms / 1000;
 
@@ -27,9 +28,7 @@ export function extractResponseData(body, categoryName) {
 }
 
 function lassoBase() {
-  const net = process.env.NET_data;
-  if (!net) throw new Error('NET_data not configured');
-  return /^https?:\/\//.test(net) ? net : `http://${net}`;
+  return reportLassoURL();
 }
 
 export class LassoClient {
