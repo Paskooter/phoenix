@@ -123,11 +123,17 @@ class ProcessQueryNode extends NoOpNode {
       transition = ProcessQueryTransition.EmotionCommand;
     }
 
-    // The Do-MIM ANFactory renders data.local.path against data.local.promptData.
-    // (loadMims fills mim_id from the filename; the Slimmer nests this under `skill.` too.)
-    const dice = new Dice(6, rng); const coin = new Coin(rng);
+    // The source adds skill PromptData only after it has accepted the requested
+    // intent.  In particular, the fallback branch does not construct Dice or
+    // Coin.  Those constructors consume Math.random(), so creating them for an
+    // invalid memo shifts the source prompt sampler to a later random value.
+    // Keep the fallback path free of that side effect while retaining the
+    // source-shaped data available to valid MIMs.
+    if (validIntent && transition) {
+      const dice = new Dice(6, rng); const coin = new Coin(rng);
+      data.local.promptData = { dice, coin, entities, intent };
+    }
     data.local.path = join(baseDir, `${mimID}.mim`);
-    data.local.promptData = { dice, coin, entities, intent };
 
     const referent = data.runtime && data.runtime.dialog && data.runtime.dialog.referent;
     const emotion = data.runtime && data.runtime.character && data.runtime.character.emotion && data.runtime.character.emotion.name;
