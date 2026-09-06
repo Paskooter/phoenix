@@ -1,0 +1,237 @@
+{
+  "status": "Root accepted bounded Report Lasso request/response transport",
+  "integratedRevision": "0c95074e78de61b3c01f852c246ab9c1325c4a34",
+  "reviewedCandidateRevision": "305fc589e79e6376d9a0f3c4d3dd11dc5420504e",
+  "candidateInputRevisions": [
+    "148a378652b31264c4f6fe965b1505560c37cecd",
+    "4e58bbfb534463559ca864e6b562a29e97d41104",
+    "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
+    "6f5490084b1a5cc4615e638b102f9da7a13bcf8f",
+    "da0f08c6e16c3e3d897f7a1d0bdc27df3509ef4a"
+  ],
+  "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "scope": [
+    "Axios0.17.1-style request serialization, original Jibo headers, redirect methods/limits and header snapshots.",
+    "Response decompression, relay-data truthiness, partial-body/status errors and Node8 boundary diagnostics."
+  ],
+  "verification": {
+    "unit": {
+      "passed": 512,
+      "failed": 0,
+      "skipped": 3
+    },
+    "sourceControls": {
+      "runtime": "Original emitted Report service on pinned Node8.9.4; candidate Node22.22.0",
+      "cases": 51,
+      "exactMatches": 51,
+      "groups": [
+        {
+          "name": "core",
+          "count": 11,
+          "exact": 11,
+          "sameOrder": true
+        },
+        {
+          "name": "boundary",
+          "count": 7,
+          "exact": 7,
+          "sameOrder": true
+        },
+        {
+          "name": "edge",
+          "count": 26,
+          "exact": 26,
+          "sameOrder": true
+        },
+        {
+          "name": "snapshot",
+          "count": 3,
+          "exact": 3,
+          "sameOrder": true
+        },
+        {
+          "name": "mutation",
+          "count": 4,
+          "exact": 4,
+          "sameOrder": true
+        }
+      ],
+      "errorMessageQualifications": 0,
+      "normalizations": [
+        "Exact synthetic peer Host authorities rebound separately for A and B.",
+        "Source core harness top-level caught-error wrapper removed; all captured error fields retained."
+      ],
+      "captureLimits": [
+        "Core and boundary probes capture request header maps and selected error fields.",
+        "Edge probe compares raw request bytes, ordered parsed headers, bodies, and complete captured error responses.",
+        "Snapshot and mutation probes compare their selected headers, call count, result, and returned mutable object.",
+        "Peer order is retained within each captured stream; edge captures group A/B rather than a shared cross-peer clock."
+      ]
+    },
+    "strictProduction": {
+      "profile": "compiled-fst all98 pinned public graphs; declared component smoke",
+      "cases": 43,
+      "baselineDifferences": 218,
+      "candidateDifferences": 0,
+      "removed": 218,
+      "added": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "gatePass": true,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 37,
+          "agreement": 37,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 33,
+          "agreement": 33,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 33,
+          "agreement": 33,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 33,
+          "agreement": 33,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 37,
+          "agreement": 37,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 20,
+          "agreement": 20,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 27,
+          "agreement": 27,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 26,
+          "agreement": 26,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 26,
+          "agreement": 26,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 26,
+          "agreement": 26,
+          "differences": 0,
+          "invalid": 0
+        },
+        "noMatch": {
+          "compared": 9,
+          "agreement": 9,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 10,
+          "agreement": 10,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "sourceStable": true,
+    "integration": {
+      "filesCompared": 5132,
+      "allIntegratedRuntimeAndTestsEqualRootReviewedBytes": true,
+      "reviewedHead": "305fc589e79e6376d9a0f3c4d3dd11dc5420504e",
+      "reviewedTreeSha256": "5f54d0b3aa4f5fac8449ece68bb3b763b2b308a29f8ebbbae9f6e6c6678bbf81"
+    },
+    "driverComparatorAndGoldensUnchanged": true
+  },
+  "retainedFailedAttempts": [
+    {
+      "attempt": "Initial complete unit suite during VM I/O stalls",
+      "passed": 505,
+      "failed": 5,
+      "skipped": 3,
+      "failure": "OGG/Opus tests exceeded their original3000ms deadlines."
+    },
+    {
+      "attempt": "Unchanged isolated ASR during stalls",
+      "passed": 32,
+      "failed": 2,
+      "skipped": 0
+    },
+    {
+      "attempt": "Unchanged isolated ASR after I/O recovered",
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "deadlinesUnchanged": true
+    },
+    {
+      "attempt": "Original edge capture first outer run",
+      "exitCode": 1,
+      "note": "Outer60s subprocess timeout; complete-looking output not accepted. Fresh unchanged-case repeat exited0.",
+      "nestedSubprocessTimeoutSeconds": 60
+    },
+    {
+      "attempt": "Original prefetch observation during I/O stalls",
+      "note": "Original process exited0 but a250ms delay from request scheduling missed rejection. A fresh common event-observed probe waits for the actual HTTP response and verifies the original rejection."
+    }
+  ],
+  "knownDivergences": [
+    {
+      "case": "Failed background HEAD prefetch",
+      "requestAndResolvedValueAgree": true,
+      "sourceUnhandledRejections": 1,
+      "candidateUnhandledRejections": 0,
+      "includedIn51ExactControls": false,
+      "finding": "Phoenix consumes the detached request rejection; original Node8 emits unhandledRejection."
+    }
+  ],
+  "limits": [
+    "Full S-08 and C-03 remain open; no complete-task credit.",
+    "The43-fixture configured smoke is not the full20,534-case production corpus or full Hub/robot lifecycle.",
+    "Default AST parser retains295 archived corpus differences.",
+    "Live provider DNS/TLS, complete Report orchestration and natural microphone/physical ring behavior are not established here.",
+    "Phoenix logger adaptation remains an explicit deployment extension."
+  ],
+  "evidenceHashes": {
+    "full-unit-receipt.json": "05f3822b550b511d8f3b56053fd78623370e4bf6d413938f6609b8396b599563",
+    "full-unit.log": "4f4fba79fd0f41edac21abd89fcacfb9250cd52ec9d8b8b6c6359e850cc077b2",
+    "controls-execution.json": "59b92caeac3a06e7b2d55d153326dbf8e5039c974a66a33c17dd8221e9ab45a3",
+    "root-comparison.json": "bee523c012cb50552d3791b3232d53cda3d9ca8a223dc7ab7d417f1cb36a80b6",
+    "compare-root.py": "ef523cae9c53cb2f58595d6421ed9212d72f4df4a3e5234a5eccdedc8cdb6567",
+    "strict-receipt.json": "b630969a382698ca0dc5cc3412a2658de448636e1f435ee1b368e486308217d3",
+    "strict-regression-review.json": "309e917784c0413a8908684e856632de27f3c42496b13c55bf4ea6a243816e0b",
+    "production/run.json": "06d133093b383f11531edc827473dd6beb04103ed3fee1b4f9d4c088b18ee300",
+    "production/comparison.json": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+    "integration-bytes.json": "b24ba74bb37a1a66a30d266de119e0f1b39bbbea0d4f38496dff710005d573b4",
+    "prefetch-observed.cjs": "c6182131b3001fc65850808b49e454ed3fd6a8456e6d2be463add920ac97ba35",
+    "prefetch-execution.json": "19c1ce5a1a5d2a5607ac0ec9683063eda077a1a27d9c1bb6626fc932acc0b53b",
+    "source-prefetch-observed.json": "ecbf9cf7c312ab1dc6ad49ed99bf777773ba84a474186cd7e331dba8d79dfd76",
+    "candidate-prefetch-observed.json": "189477a98af68d512388c41722ac62f7471d90d795ddd70afc3d6de3f4748fd1"
+  },
+  "retainedEvidenceHashes": {
+    "full-unit-receipt.json": "f12bd8cd4807980e94d23ecfb1763207e4cb7d4aaa1842ddbe304576a1ce29f6",
+    "asr-isolated-1/receipt.json": "7c5be72d8a62281750fdd5452148ba2e52816294fe56eb6e255422fb339a792c",
+    "asr-isolated-2/receipt.json": "5b53d35eab2b4af92d87a053b14edda49573a9c774d3709844240666c2e146fd",
+    "original-attempt-1-timeout.json": "9cccff959156af517e25eb5d45099cf4797bb364961300a535240a1ef247e2f0",
+    "original-retry/execution.json": "0b092cbf95354da066705f3847beccbb7f1952e1fd18245ee79e71d0773b77ff"
+  }
+}

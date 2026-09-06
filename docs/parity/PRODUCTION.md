@@ -49,28 +49,28 @@ field differences, with another 20,297 differences in the resulting response
 content lengths. The remaining differences retain their task ownership and
 coverage limits in the baseline review.
 
-Main now includes reviewed bounded A-02 native token/validation/framing and
-S-01 response-wrapper/request-gate and graph preconditions, and H-10 JWT and
-CONTEXT identity repairs alongside the prior HTTP, parser, JCP/MIM, audio,
-prompt, report-view and provider-image changes. All **405 unit tests pass**, including the
-README progress automation, in the [recorded integration run](evidence/2026-09-06/progress/unit.txt).
-The [strict 43-case smoke](evidence/2026-09-06/production/main-s01-h10-smoke/run.json)
-still fails with **659 field differences**, zero invariants and one unhosted
-action gap. Full action agreement remains **25/26**. The complete baseline
-above predates these A-02/S-01/H-10 repairs; its counts have not been projected
-forward or relabeled as a passing result.
+The [latest root-reviewed Report Lasso integration](evidence/2026-09-06/service-integration/report-lasso-review.json)
+passes **512 unit tests** with three existing skips and matches **51 original
+Node 8 transport controls**. The strict **43-case compiled-FST smoke** now has
+**zero differences, zero invariants and zero coverage gaps**: all 218 differences
+from the preceding graph/Settings checkpoint are resolved. Original goldens,
+the shared driver and comparator are unchanged. A failed detached prefetch
+still emits an unhandled rejection in the original and is consumed by Phoenix;
+that case is explicitly excluded from the 51 exact controls.
 
-The next N-08 candidate reports **20,230/20,528** status/decoded-data matches,
-14 fixes and no newly failing IDs in its [full replay](evidence/2026-09-06/nlu-n08-followup/full-replay-review.json).
-Root checked its hashes, denominators and original expected values; final
-integrated regression is running in fixed verification checkout `66e2abc`,
-based on main `7945263` plus that candidate. It excludes the later graph and
-H-10 repairs. That N-08 candidate is not yet in main.
-The earlier accepted parser repair had fixed 89 failures without regressions,
-and all 73 report parser cases match. The subsequent ranking candidate is
-separate and unaccepted. Root's [GraphSkill review](reviews/s01-graph-root/review.json),
-[JWT review](reviews/h10-root/review.json) and [CONTEXT review](reviews/h10-identity-root/review.json)
-record their accepted bounded scope and remaining lifecycle gaps.
+The explicit compiled profile separately [matches all 20,528 archived parser
+HTTP responses and 42 native multi-rule controls](evidence/2026-09-06/nlu-compiled-fst/integration-review.json).
+Default AST parsing retains 295 corpus differences. The complete 20,534-case
+production baseline above has not been projected forward or relabeled as a
+passing run. Full Report orchestration, Hub lifecycle and live providers remain
+separate acceptance tasks. The conventional gate runs its declared profile;
+the configured result does not establish a passing default-AST gate.
+
+The integration evidence preserves an initial five-test OGG timeout run and a
+two-test isolated failure during VM disk I/O stalls, then an unchanged 34-test
+ASR pass and complete 512-test pass after I/O recovered. Request/test deadlines
+were not increased. The first original edge probe's outer process timed out;
+a fresh run completed, and only that completed capture was used for acceptance.
 
 Moth completed native TLS token issuance, authenticated listen/proactive and
 a visible clock using the reviewed A-02 implementation. Weather, news images

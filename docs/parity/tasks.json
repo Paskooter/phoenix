@@ -463,7 +463,7 @@
         "packages/skills/src/report/lassoClient.js",
         "packages/common/src/env.js"
       ],
-      "finding": "Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; its strict complete-server smoke had 440 differences; later accepted Report analytics and graph allocation work reduces the current total to 218. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.",
+      "finding": "Registry/configuration, CLI, SettingsClient and Report Lasso transport slices are integrated after root review. Latest51 original Lasso controls and512 unit tests pass; configured strict43 now has zero differences/invariants/gaps. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.",
       "acceptance": [
         "Load unmodified reference registries including settings metadata, paths, versions and URL composition; reject invalid configurations as the reference does.",
         "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.",
@@ -473,12 +473,12 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidate",
-        "candidateRevision": "26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3",
-        "reviewedCandidateRevision": "4a79da9f5f9c31573bf6bdd29575b9ac8d22d7cb",
+        "candidateRevision": "0c95074e78de61b3c01f852c246ab9c1325c4a34",
+        "reviewedCandidateRevision": "305fc589e79e6376d9a0f3c4d3dd11dc5420504e",
         "reviewedBy": "Codex root",
-        "scope": "Additional bounded source SettingsClient request/response transport. Root 36 original-client checks including error headers and 482 unit tests pass. Strict smoke 440 differences: 48 failing fields resolved, zero new failing fields; 6 existing request-order differences changed values and remain open. Prior registry/configuration/CLI acceptance remains in history. Full C-03 remains open.",
-        "artifact": "docs/parity/candidates/C-03-settings-wire-followup.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/settings-client-review.json"
+        "scope": "Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full C-03 remains open.",
+        "artifact": "docs/parity/candidates/S-08-lasso-snapshot-followup.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json"
       },
       "implementationReviewHistory": [
         {
@@ -509,6 +509,16 @@
           "scope": "Additional bounded CLI missing/synchronous/rejected startup and five-second shutdown behavior, including root fallback logger repair. 480 unit passes, 5 original runner controls, 2 actual process checks. Prior configuration/client acceptance remains recorded in history; full C-03 remains open.",
           "artifact": "docs/parity/candidates/C-03-cli-followup.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/cli-review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max candidate",
+          "candidateRevision": "26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3",
+          "reviewedCandidateRevision": "4a79da9f5f9c31573bf6bdd29575b9ac8d22d7cb",
+          "reviewedBy": "Codex root",
+          "scope": "Additional bounded source SettingsClient request/response transport. Root 36 original-client checks including error headers and 482 unit tests pass. Strict smoke 440 differences: 48 failing fields resolved, zero new failing fields; 6 existing request-order differences changed values and remain open. Prior registry/configuration/CLI acceptance remains in history. Full C-03 remains open.",
+          "artifact": "docs/parity/candidates/C-03-settings-wire-followup.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/settings-client-review.json"
         }
       ]
     },
@@ -1128,7 +1138,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics and graph allocation work reduces the current total to 218. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.",
+      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1813,29 +1823,41 @@
         "packages/skills/src/report/userId.js",
         "packages/skills/src/report/settingsClient.js"
       ],
-      "finding": "Root accepted the source Personal Report Results analytics builder and GetDataNode integration: 5 original compiled-builder controls and 486 unit tests pass. At analytics integration, strict smoke had 375 differences with 65 failing fields resolved and none introduced; accepted graph allocation now reduces the current total to 218. Report orchestration, preferences/identity, provider ordering and deployment remain open.",
+      "finding": "Root accepted Report Results analytics and bounded Lasso transport. Fresh51 original Node8 controls match,512 unit tests pass, and configured strict43 now has zero differences/invariants/gaps (218 resolved). Detached prefetch rejection remains different. Complete Report orchestration, preferences/identity, live provider behavior and deployment remain open.",
       "acceptance": [
         "Compare launch intents, UserID/opt-in, ordering/toggles, prefsFromConfig and Settings requests/defaults using the original report tests.",
         "Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation and matching analytics."
       ],
       "verification": [],
-      "nextImplementation": {
-        "state": "changes_requested",
-        "assignee": "Luna Max / capture_writer_repair; root acceptance",
-        "candidateRevision": "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
-        "worktree": ".parity/worktrees/report-lasso-integration",
-        "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Root found redirect header reconstruction and is requesting exact source TypeError wording. Root reproduction and final acceptance remain pending; prefetch rejection behavior stays an explicit Node8/Node22 divergence."
-      },
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidate",
-        "candidateRevision": "a22ff9ae051cacd4977e6502eb73d94c47e31120",
-        "reviewedCandidateRevision": "1e080a2993befa5f8e4f1cc06931d9b38d181242",
+        "candidateRevision": "0c95074e78de61b3c01f852c246ab9c1325c4a34",
+        "reviewedCandidateRevision": "305fc589e79e6376d9a0f3c4d3dd11dc5420504e",
         "reviewedBy": "Codex root",
-        "scope": "Bounded Report Results analytics fields, category order and provider status. Root source5/unit486/strict43 checks pass their documented boundaries; whole server comparison retains 375 differences. Full S-08 remains open.",
-        "artifact": "docs/parity/candidates/S-08-report-analytics.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/report-analytics-review.json"
-      }
+        "scope": "Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full S-08 remains open.",
+        "artifact": "docs/parity/candidates/S-08-lasso-snapshot-followup.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json"
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max candidate",
+          "candidateRevision": "a22ff9ae051cacd4977e6502eb73d94c47e31120",
+          "reviewedCandidateRevision": "1e080a2993befa5f8e4f1cc06931d9b38d181242",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded Report Results analytics fields, category order and provider status. Root source5/unit486/strict43 checks pass their documented boundaries; whole server comparison retains 375 differences. Full S-08 remains open.",
+          "artifact": "docs/parity/candidates/S-08-report-analytics.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/report-analytics-review.json"
+        },
+        {
+          "state": "changes_requested",
+          "assignee": "Luna Max / capture_writer_repair; root acceptance",
+          "candidateRevision": "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
+          "worktree": ".parity/worktrees/report-lasso-integration",
+          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Root found redirect header reconstruction and is requesting exact source TypeError wording. Root reproduction and final acceptance remain pending; prefetch rejection behavior stays an explicit Node8/Node22 divergence."
+        }
+      ]
     },
     {
       "id": "S-09",
@@ -2411,7 +2433,24 @@
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json",
           "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152"
         }
-      ]
+      ],
+      "nextImplementation": {
+        "state": "working",
+        "assignee": "Luna Max candidates; root acceptance",
+        "scope": "Independent Settings Lasso and Person network adapters await original-control follow-ups and root review. Root requested timeout, full error-field and redirect snapshot corrections; no network adapter is accepted yet.",
+        "candidates": [
+          {
+            "revision": "1b039455a8903b9fd055896177ab5e140d04de86",
+            "worktree": ".parity/worktrees/a06-lasso-network-followup",
+            "state": "changes_requested"
+          },
+          {
+            "revision": "479e6da7b95376003d553f7be6b33885ff02cb5e",
+            "worktree": ".parity/worktrees/a06-person-network-followup",
+            "state": "unverified"
+          }
+        ]
+      }
     },
     {
       "id": "A-07",

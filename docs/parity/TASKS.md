@@ -254,7 +254,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; its strict complete-server smoke had 440 differences; later accepted Report analytics and graph allocation work reduces the current total to 218. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
+Registry/configuration, CLI, SettingsClient and Report Lasso transport slices are integrated after root review. Latest51 original Lasso controls and512 unit tests pass; configured strict43 now has zero differences/invariants/gaps. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
 
 Done when:
 
@@ -270,11 +270,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
 
-Candidate scope: Additional bounded source SettingsClient request/response transport. Root 36 original-client checks including error headers and 482 unit tests pass. Strict smoke 440 differences: 48 failing fields resolved, zero new failing fields; 6 existing request-order differences changed values and remain open. Prior registry/configuration/CLI acceptance remains in history. Full C-03 remains open.
+Candidate scope: Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full C-03 remains open.
 
-Candidate report: [docs/parity/candidates/C-03-settings-wire-followup.md](../../docs/parity/candidates/C-03-settings-wire-followup.md).
+Candidate report: [docs/parity/candidates/S-08-lasso-snapshot-followup.md](../../docs/parity/candidates/S-08-lasso-snapshot-followup.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/settings-client-review.json](../../docs/parity/evidence/2026-09-06/service-integration/settings-client-review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json](../../docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-01 — Restore the robot-specific skill-list endpoints
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics and graph allocation work reduces the current total to 218. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient, Report analytics, graph allocation and Lasso transport work reduces the configured43-case smoke total to zero. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open. A later full-main Moth trial failed in authentication-disabled CONTEXT preprocessing; the previous compiled-profile backend was restored and clock display/TTS retested successfully.
 
 Done when:
 
@@ -1087,7 +1087,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-03, S-05, H-05, C-03.
 
-Root accepted the source Personal Report Results analytics builder and GetDataNode integration: 5 original compiled-builder controls and 486 unit tests pass. At analytics integration, strict smoke had 375 differences with 65 failing fields resolved and none introduced; accepted graph allocation now reduces the current total to 218. Report orchestration, preferences/identity, provider ordering and deployment remain open.
+Root accepted Report Results analytics and bounded Lasso transport. Fresh51 original Node8 controls match,512 unit tests pass, and configured strict43 now has zero differences/invariants/gaps (218 resolved). Detached prefetch rejection remains different. Complete Report orchestration, preferences/identity, live provider behavior and deployment remain open.
 
 Done when:
 
@@ -1102,11 +1102,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
 
-Candidate scope: Bounded Report Results analytics fields, category order and provider status. Root source5/unit486/strict43 checks pass their documented boundaries; whole server comparison retains 375 differences. Full S-08 remains open.
+Candidate scope: Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full S-08 remains open.
 
-Candidate report: [docs/parity/candidates/S-08-report-analytics.md](../../docs/parity/candidates/S-08-report-analytics.md).
+Candidate report: [docs/parity/candidates/S-08-lasso-snapshot-followup.md](../../docs/parity/candidates/S-08-lasso-snapshot-followup.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/report-analytics-review.json](../../docs/parity/evidence/2026-09-06/service-integration/report-analytics-review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json](../../docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-09 — Verify report weather language and condition tables
 
