@@ -28,13 +28,11 @@ function lassoRequestTimeout() {
 }
 
 function lassoRedirectLimit() {
-  const configured = process.env.ETCO_server_http_maxredirects;
-  if (!configured) return 3;
-  const redirects = Number(configured);
-  // A numeric zero is the intended Wreck setting. Wreck's raw string "0"
-  // falls through its strict zero check and can recurse without a bound;
-  // normalize it before the bounded native implementation sees it.
-  return Number.isFinite(redirects) && redirects >= 0 ? redirects : 0;
+  // Preserve Wreck's raw environment value. Its redirect counter uses a
+  // strict numeric zero check, so the string "0" follows one redirect and
+  // decrements to -1; this is observable with finite redirect chains and can
+  // recurse without a bound for a looping peer.
+  return process.env.ETCO_server_http_maxredirects || 3;
 }
 
 function baseUrl(raw) {
@@ -173,7 +171,7 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft, heade
         if (!redirect) request.setTimeout(0);
         if (redirect) {
           const location = response.headers.location;
-          if (!location || redirectsLeft <= 0) {
+          if (!location || redirectsLeft === 0) {
             response.resume();
             finish(new Error(location ? 'Maximum redirections reached' : 'Received redirection without location'));
             return;

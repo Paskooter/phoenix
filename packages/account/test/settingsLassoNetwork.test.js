@@ -297,28 +297,33 @@ test('network Lasso snapshots transaction headers across redirects', async () =>
   }
 });
 
-test('network Lasso treats maxredirects string zero as one bounded rejection', async () => {
+test('network Lasso preserves Wreck string-zero redirect decrement for a finite chain', async () => {
   let requests = 0;
   const server = http.createServer((req, res) => {
     requests += 1;
     req.resume();
     req.once('end', () => {
-      res.writeHead(307, { location: '/v1/credential', connection: 'close' });
-      res.end();
+      if (requests === 1) {
+        res.writeHead(302, { location: '/v1/credential?redirected=1', connection: 'close' });
+        res.end();
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'application/json', connection: 'close' });
+      res.end(JSON.stringify({ credentialExists: true }));
     });
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   try {
     await withProcessEnv('ETCO_server_http_maxredirects', '0', async () => {
       const lasso = providers(`127.0.0.1:${server.address().port}`);
-      await assert.rejects(
-        () => lasso.getCredential(context, {
+      assert.deepEqual(
+        await lasso.getCredential(context, {
           skillId: 'skill-limit', serviceName: 'google', serviceAccountName: 'calendar', scopes: [],
         }),
-        (error) => error.message === 'Failed to get google calendar credentials',
+        { credentialExists: true },
       );
     });
-    assert.equal(requests, 1);
+    assert.equal(requests, 2);
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }

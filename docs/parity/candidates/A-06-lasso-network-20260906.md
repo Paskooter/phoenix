@@ -126,15 +126,15 @@ review:
   own-property failure behavior;
 - redirect requests carry the initial header snapshot even if the caller
   mutates the context while the redirect is in flight;
-- redirect limits are normalized to a bounded numeric setting. Wreck 12.6.2's
-  raw environment string `"0"` falls through its strict `redirects === 0`
-  check and can recurse without a terminal bound (`wreck/lib/index.js:195-220`).
-  The candidate deliberately rejects the first redirect for numeric zero; the
-  pinned source control must retain that original fatal/non-terminating result
-  as a disclosed source divergence rather than weakening the comparator.
+- Wreck's raw redirect-limit value and strict numeric-zero decrement behavior
+  are retained. Thus `ETCO_server_http_maxredirects="0"` follows a finite
+  `302 -> 200` chain but can recurse without a terminal bound for a looping
+  peer (`wreck/lib/index.js:195-220`); the pinned source control must preserve
+  that nonterminating observation separately rather than weakening the
+  comparator.
 
 The follow-up focused suite passes 8/8 locally, including the delayed-body,
-header-mutation, assertion-name, shadowing-property, timeout-string, and
+header-mutation, assertion-name, shadowing-property, timeout-string, and finite
 `maxredirects="0"` controls. The prior 24/24 comparison remains a preserved
 record; its comparator did not include `error.name` and therefore did not prove
 that field.
