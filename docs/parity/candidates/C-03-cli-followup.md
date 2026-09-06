@@ -1,5 +1,7 @@
 # C-03 CLI follow-up candidate
 
+Root accepted the bounded shutdown behavior in `7ae5fbc`, including a repair for logger failure. The [root review](../evidence/2026-09-06/service-integration/cli-review.json) records 480 unit passes, 5 source boundary controls and actual process checks. The original candidate observations below retain their earlier scope; complete C-03 remains open.
+
 This is an unverified, isolated follow-up from `082d58651315a285b966399b7b227916d529975f`. It adds the source common-runner behavior at the Phoenix executable boundary: missing, synchronous, and rejected startup results are logged and schedule status-1 exit after the source five-second interval. The programmatic `start`, argument parsing, and port defaults remain unchanged. Help still derives its usage basename from the invoked path.
 
 The implementation is in `packages/skills/src/index.js`, with injected-hook tests in `packages/skills/test/reportConfig.test.js` and a CommonJS process probe at `packages/skills/tools/c03-cli-exec-probe.cjs`. The probe measures its child with `process.hrtime()` so the timings below do not use Docker wall time.

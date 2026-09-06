@@ -254,7 +254,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-Registry/configuration slice remains accepted. Root integrated report source environment defaults/cache/aliases, generic minimist port parsing and source client headers while preserving actual request ownership. All 448 integrated unit tests pass on confirmation; strict smoke removes 160 differences with none added. Common CLI runner follow-up and deployed provider compatibility remain open.
+Registry/configuration slice remains accepted. Root integrated report source environment defaults/cache/aliases, generic minimist port parsing and source client headers while preserving actual request ownership. All 448 integrated unit tests pass on confirmation; strict smoke removes 160 differences with none added. CLI failure/shutdown behavior is additionally accepted with 480 unit passes and 5 source controls. The broader SettingsClient transport follow-up and deployed providers remain open.
 
 Done when:
 
@@ -268,13 +268,13 @@ Phoenix: [packages/gateway/src/config.js](../../packages/gateway/src/config.js);
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
 
-Candidate scope: Bounded report configuration, generic CLI port parsing and client trace/Settings headers, including root request-identity repair; full C-03 remains open. Integrated 448-unit confirmation, source-client and strict regression checks pass their documented boundaries.
+Candidate scope: Additional bounded CLI missing/synchronous/rejected startup and five-second shutdown behavior, including root fallback logger repair. 480 unit passes, 5 original runner controls, 2 actual process checks. Prior configuration/client acceptance remains recorded in history; full C-03 remains open.
 
-Candidate report: [docs/parity/candidates/C-03-client-wire-repair.md](../../docs/parity/candidates/C-03-client-wire-repair.md).
+Candidate report: [docs/parity/candidates/C-03-cli-followup.md](../../docs/parity/candidates/C-03-cli-followup.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/review.json](../../docs/parity/evidence/2026-09-06/service-integration/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/cli-review.json](../../docs/parity/evidence/2026-09-06/service-integration/cli-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-01 — Restore the robot-specific skill-list endpoints
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. Strict complete-server smoke has 488 remaining differences, 11 removed with none added. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. Strict complete-server smoke has 488 remaining differences, 11 removed with none added. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
 
 Done when:
 

@@ -1,0 +1,32 @@
+{
+  "status": "Root verified a bounded real scheduler timer expiry on Moth",
+  "backendBundleRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+  "input": "Set a timer, followed by twenty seconds through original BE/Jetstream text injection",
+  "timerMilliseconds": 20000,
+  "persistentRecordAndSchedulerJobCreated": true,
+  "expiryObservedBeforeAnyCancelTurn": true,
+  "sameSchedulerJobRemovalAcknowledged": true,
+  "jobRemovalAfterRequestedEndMilliseconds": 337,
+  "storedTimerRemoved": true,
+  "jobAbsentAfterExpiry": true,
+  "clockSkillAndTtsActive": true,
+  "timerExpiryScreenObserved": true,
+  "screenObservation": "Stopwatch graphic showing zero at expiry",
+  "cleanupTurnCompleted": true,
+  "schedulerObserverRestored": true,
+  "microphoneAcceptance": false,
+  "physicalRingAcceptance": false,
+  "limits": [
+    "One owned timer expiry; alarms, restart restoration and broader clock flows remain open.",
+    "The follow-up cleanup found no persistent timer; it does not prove a second cancellation path."
+  ],
+  "evidenceHashes": {
+    "timer-expiry-receipt.json": "18066d506e01955572b95c2a327127a38b85263f1a455d2efdc7b52801ed9ebf",
+    "timer-expiry-set.json": "f50b90e2554c796088afb261f8e15ffcd3f33dd023221e20f85763a7d488a672",
+    "timer-expiry-created.json": "b42d961149cc66fe0431293866d5dc4c87f20dcc61b0a30da27a1d61c3f02458",
+    "timer-expiry-observation.json": "a8acc9f2a92d3c8d8f28b873fb25f1268cd21c2a5efabec703d0ec6c75330bd0",
+    "timer-expiry-observation-view-2.png": "3d4e5e55b201969c0e7ffd8c2c80ced77687ea88207459dd7747a29d9a2a41fb",
+    "timer-expiry-running.json": "f607029e99b1941f576160ff890a346dde39669c13834532c18fe3896d1695a7",
+    "timer-expiry-cancelled.json": "2d27371b6093b861a4901cf1d3857dfd996f0b159154bf94d019aa8706885c33"
+  }
+}

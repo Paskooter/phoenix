@@ -60,7 +60,7 @@
   },
   "limits": [
     "Microphone wake-up and physical blue-ring illumination remain unverified.",
-    "Timer expiry, alarm behavior, reboot restoration and all clock GUI states are separate checks.",
+    "Alarm behavior, reboot restoration and all clock GUI states are separate checks.",
     "This diagnostic transport profile does not establish public authentication or full provider compatibility.",
     "Full Phoenix/BE/Jetstream parity is not claimed."
   ],
@@ -85,5 +85,6 @@
     "timer-state-expression.js": "fa3ec77dc9c97f3b8083f4214350a26597ebe8df5b34c8bd3b55c6638e19f76f",
     "scheduler-list-expression.js": "bb3180927dbbfcf3216940016a8363b6eec3adcc0c9fdd87565614cce0d67d1e",
     "scheduler-forwarding-wrapper.js": "339f8c2018b0aa9210c96a9a8ca4862751dabe4cdbececd02907297b65f25865"
-  }
+  },
+  "subsequentExpiryReview": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/moth-timer-expiry-review.json"
 }

@@ -1,0 +1,51 @@
+{
+  "rootUnitPassed": 480,
+  "rootUnitSkipped": 3,
+  "focusedPassed": 11,
+  "sourceBoundaryBefore": {
+    "matches": 4,
+    "cases": 5
+  },
+  "sourceBoundaryAfter": {
+    "matches": 5,
+    "cases": 5
+  },
+  "processChecks": {
+    "cli-help": {
+      "status": 1,
+      "elapsedMilliseconds": 5129.732226,
+      "timedOut": false
+    },
+    "cli-invalid-port": {
+      "status": 1,
+      "elapsedMilliseconds": 5131.957771,
+      "timedOut": false
+    }
+  },
+  "status": "Root accepted bounded CLI startup failure/shutdown behavior",
+  "candidateRevision": "528e1221e115fda1ef1d108fd3962af901ff173f",
+  "integratedRevision": "7ae5fbc7793c88113fc41b7bd3fcb17bfef9081d",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceBoundaryRuntime": "Actual original common runner on Node22.22.0 with logging/newrelic/timer/exit seams; not a full executable source comparison",
+  "rootCorrection": "Preserve fallback error logging and scheduled shutdown if the configured logger throws.",
+  "limits": [
+    "Original startup logging/NewRelic setup and complete error stacks/wording remain different.",
+    "The prior source process controls use the extracted Node8 host executable with their documented environment; root fresh process checks run Node22.",
+    "Full C-03 remains open."
+  ],
+  "evidenceHashes": {
+    "source-proof.json": "194296e949ffce53c5ab5f150100c60ec1347c50c89967fd86da67b55a5f9e15",
+    "logger-boundary-before.json": "e89dd74eb7ae67075dcdbb4621754b79e7588187c98971c58d542d69c3de9d12",
+    "logger-boundary-after.json": "155bd960ed3e2a8858264da50a59011a8db2228a5666900e153adf95c4180992",
+    "workspace-install-receipt.json": "8296190e88f8b9fe5651a859fa850c5f4f23ef5eccf11fb0c034aa7ce91c7dba",
+    "focused.log": "fa4c7049a08313679c1e843e07d04be27389d1871795ce348af609e1c92ed5e6",
+    "focused-receipt.json": "76a8e63190506191f612d8268e9ae9a70c9041419c6e6322a4b3f8fbe0f8d4c8",
+    "full-unit.log": "b36e45ad9b0b542ab27be03bf87bbfcb8a4d59e92401294bf7d0133ed1e39612",
+    "full-unit-receipt.json": "478af9a133b25688356f94a7ea71fec9e991e67e197745d3a28fc3b50f2e992d",
+    "cli-help.log": "df4b47b0a2c1ecbccbf040acfd69c8b5657ab2025f97a2789cfd19d0eee95c8f",
+    "cli-help-receipt.json": "801c17e5abaace78390550c93ade51c6f51ff24074b604825328c7dfc0dc3a69",
+    "cli-invalid-port.log": "725fb9ad42b45d81b4ec05e70d7e6458ef624301cbf2038f4e59a291eff82ee1",
+    "cli-invalid-port-receipt.json": "d4505ce1c0ddbc581caed0dd0b18388bb31163eacdfce6c22bddc688a3f3f769",
+    "root-summary.json": "5d6f4baf07703d9f01745cc691b7e544141c7636fe372edf16c82825c5a04434"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "status": "Changes requested after agent original TCP controls; root acceptance remains pending",
+  "candidateRevision": "6c4b8fc995aa8149406bd650736b8820ff4e382a",
+  "sourceRevision": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+  "cases": 46,
+  "matches": 41,
+  "differences": 5,
+  "normalization": "Date header only",
+  "findings": [
+    "Null deletion item returns source 500 versus candidate 422.",
+    "Missing Lasso delete method has different error wording.",
+    "Three concurrent mutation cases have different provider call order despite matching responses and final state."
+  ],
+  "action": "Repair general source validation/error and mutation scheduling behavior in an isolated follow-up; retain failed captures.",
+  "integrated": false,
+  "evidenceHashes": {
+    "provenance.json": "2910c77e744d615c49fb80034351074f93b7e55817a60bb71af9177c8ed9aed7",
+    "comparison.json": "738c18baffee6ee16afc97d613b84d5f107f3eb95493d40c6524c76bc4b66fdd",
+    "original.json": "619144d99b1f471a6ca2ef0fb31f5a1cad6566fb302315efadc8faa7affeed4e",
+    "candidate.json": "e8b1f331b4b28a4bb2c7d07c561ea9bd8353df7209cce8f25f6cc8d16dc95eaf",
+    "cases.json": "81def73822edec23536f9f1489a9d10d8e0315b75cf39871a570e65d2a8b2dab"
+  }
+}
