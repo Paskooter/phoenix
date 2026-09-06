@@ -321,7 +321,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree.
+P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree. The frozen ec02766 full compiled comparison exposes three empty GivenName wildcard cases: two incorrect decision weights and one erroneous route. Root is repairing these against the original Operator/Any implementation.
 
 Done when:
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open.
+The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields.
 
 Done when:
 
@@ -974,7 +974,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-01, N-06.
 
-QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified.
+QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified. The frozen ec02766 full compiled comparison retains one fallback prompt mismatch for chitchat:2250:0:base (are you a jedi). Original/candidate parser, route, session and analytics agree; selected prompt/ESML/auto-rule metadata differ. A Luna Max candidate is in progress.
 
 Done when:
 

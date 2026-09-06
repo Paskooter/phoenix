@@ -1,0 +1,776 @@
+{
+  "schemaVersion": 1,
+  "kind": "complete-production-comparison",
+  "reviewer": "Codex root",
+  "date": "2026-09-06",
+  "decision": "accepted measurement; product gate fails",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "phoenixRevision": "ec02766a82a24e2e4f11c38aa66dd235adfcc8bd",
+  "phoenixSourceTreeSha256": "65f47ccc8b93563e6dfc353a71659b8869fc5c0e1342a54bedd5ecb3c2f7fe97",
+  "profile": "Explicit compiled-FST parser with all 98 public graphs and pinned factory artifacts; unchanged production component driver/comparator",
+  "result": "mismatch",
+  "exitCode": 1,
+  "completeCases": 20534,
+  "differences": 11,
+  "invariants": 0,
+  "coverageGaps": 16,
+  "coverageGapsBySide": {
+    "reference": 8,
+    "candidate": 8
+  },
+  "uniqueGapCases": 8,
+  "exactTraceCases": 20530,
+  "differentTraceCases": 4,
+  "dimensions": {
+    "parserHttp": {
+      "compared": 20528,
+      "agreement": 20528,
+      "differences": 0,
+      "invalid": 0
+    },
+    "intent": {
+      "compared": 20524,
+      "agreement": 20524,
+      "differences": 0,
+      "invalid": 0
+    },
+    "entities": {
+      "compared": 20524,
+      "agreement": 20524,
+      "differences": 0,
+      "invalid": 0
+    },
+    "rules": {
+      "compared": 20524,
+      "agreement": 20524,
+      "differences": 0,
+      "invalid": 0
+    },
+    "selectedSkill": {
+      "compared": 20528,
+      "agreement": 20527,
+      "differences": 1,
+      "invalid": 0
+    },
+    "memo": {
+      "compared": 20457,
+      "agreement": 20457,
+      "differences": 0,
+      "invalid": 0
+    },
+    "skillRequest": {
+      "compared": 20435,
+      "agreement": 20435,
+      "differences": 0,
+      "invalid": 0
+    },
+    "action": {
+      "compared": 20434,
+      "agreement": 20433,
+      "differences": 1,
+      "invalid": 0
+    },
+    "session": {
+      "compared": 20434,
+      "agreement": 20434,
+      "differences": 0,
+      "invalid": 0
+    },
+    "analytics": {
+      "compared": 20434,
+      "agreement": 20434,
+      "differences": 0,
+      "invalid": 0
+    },
+    "noMatch": {
+      "compared": 16,
+      "agreement": 16,
+      "differences": 0,
+      "invalid": 0
+    },
+    "providerRequests": {
+      "compared": 83,
+      "agreement": 83,
+      "differences": 0,
+      "invalid": 0
+    }
+  },
+  "groups": {
+    "parser-boundary": {
+      "selected": 21,
+      "agreement": 21,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 21,
+          "agreement": 21,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 17,
+          "agreement": 17,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 17,
+          "agreement": 17,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 17,
+          "agreement": 17,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 21,
+          "agreement": 21,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        },
+        "noMatch": {
+          "compared": 9,
+          "agreement": 9,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "direct-skill": {
+      "selected": 6,
+      "agreement": 6,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "skillRequest": {
+          "compared": 7,
+          "agreement": 7,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 6,
+          "agreement": 6,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 4,
+          "agreement": 4,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "chitchat:base": {
+      "selected": 10035,
+      "agreement": 10033,
+      "differencesOrInvalid": 2,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 10035,
+          "agreement": 10035,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 10035,
+          "agreement": 10035,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 10035,
+          "agreement": 10035,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 10035,
+          "agreement": 10035,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 10035,
+          "agreement": 10035,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 10022,
+          "agreement": 10022,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 10022,
+          "agreement": 10022,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 10022,
+          "agreement": 10021,
+          "differences": 1,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 10022,
+          "agreement": 10022,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 10022,
+          "agreement": 10022,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "chitchat:conditional": {
+      "selected": 1397,
+      "agreement": 1397,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 1397,
+          "agreement": 1397,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "hub-client:base": {
+      "selected": 7029,
+      "agreement": 7027,
+      "differencesOrInvalid": 2,
+      "actionCoverageGaps": 7,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 7029,
+          "agreement": 7029,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 7029,
+          "agreement": 7029,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 7029,
+          "agreement": 7029,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 7029,
+          "agreement": 7029,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 7029,
+          "agreement": 7028,
+          "differences": 1,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 6995,
+          "agreement": 6995,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 6969,
+          "agreement": 6969,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 6969,
+          "agreement": 6969,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 6969,
+          "agreement": 6969,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 6969,
+          "agreement": 6969,
+          "differences": 0,
+          "invalid": 0
+        },
+        "noMatch": {
+          "compared": 7,
+          "agreement": 7,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 7,
+          "agreement": 7,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "hub-client:conditional": {
+      "selected": 1973,
+      "agreement": 1973,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 0,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 1973,
+          "agreement": 1973,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 1973,
+          "agreement": 1973,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 1973,
+          "agreement": 1973,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 1973,
+          "agreement": 1973,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 1973,
+          "agreement": 1973,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 1966,
+          "agreement": 1966,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 1964,
+          "agreement": 1964,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 1964,
+          "agreement": 1964,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 1964,
+          "agreement": 1964,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 1964,
+          "agreement": 1964,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    },
+    "report:base": {
+      "selected": 73,
+      "agreement": 73,
+      "differencesOrInvalid": 0,
+      "actionCoverageGaps": 1,
+      "dimensions": {
+        "parserHttp": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "intent": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "entities": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "rules": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "selectedSkill": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "memo": {
+          "compared": 73,
+          "agreement": 73,
+          "differences": 0,
+          "invalid": 0
+        },
+        "skillRequest": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "action": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "session": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "analytics": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        },
+        "providerRequests": {
+          "compared": 72,
+          "agreement": 72,
+          "differences": 0,
+          "invalid": 0
+        }
+      }
+    }
+  },
+  "remainingCases": [
+    {
+      "index": 3680,
+      "id": "chitchat:1886:0:base",
+      "text": "have you met darth vader",
+      "paths": [
+        "/cases/3680/routing/decision/weight"
+      ],
+      "task": "H-03",
+      "finding": "Empty GivenName accepted by wildcard entity registration; source uses an unconstrained fallback or no route"
+    },
+    {
+      "index": 4434,
+      "id": "chitchat:2250:0:base",
+      "text": "are you a jedi",
+      "paths": [
+        "/cases/4434/turns/0/response/body/value/data/action/config/jcp/config/play/autoRuleConfig",
+        "/cases/4434/turns/0/response/body/value/data/action/config/jcp/config/play/esml",
+        "/cases/4434/turns/0/response/body/value/data/action/config/jcp/config/play/meta/prompt_id",
+        "/cases/4434/turns/0/response/headers/content-length"
+      ],
+      "task": "S-03",
+      "finding": "Fallback prompt selection differs"
+    },
+    {
+      "index": 11935,
+      "id": "hub-client:174:0:base",
+      "text": "did you meet darth vadar",
+      "paths": [
+        "/cases/11935/routing/decision/weight"
+      ],
+      "task": "H-03",
+      "finding": "Empty GivenName accepted by wildcard entity registration; source uses an unconstrained fallback or no route"
+    },
+    {
+      "index": 16709,
+      "id": "hub-client:1669:0:base",
+      "text": "are you friends with the toaster",
+      "paths": [
+        "/cases/16709/actionOutcome",
+        "/cases/16709/routing/decision",
+        "/cases/16709/routing/kind",
+        "/cases/16709/turns/length",
+        "/cases/16709/turns/0"
+      ],
+      "task": "H-03",
+      "finding": "Empty GivenName accepted by wildcard entity registration; source uses an unconstrained fallback or no route"
+    }
+  ],
+  "remainingCoverageGaps": [
+    {
+      "side": "reference",
+      "id": "hub-client:7:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:28:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:42:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:168:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:1372:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:1372:4:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "hub-client:1588:3:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "reference",
+      "id": "report:5:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:7:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:28:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:42:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:168:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:1372:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:1372:4:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "hub-client:1588:3:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    },
+    {
+      "side": "candidate",
+      "id": "report:5:0:base",
+      "skillID": "answer",
+      "scope": "Cloud action service is outside this isolated fixture profile"
+    }
+  ],
+  "sourceValidation": {
+    "frozenWorktree": "/home/shell/work/phoenix/.parity/worktrees/main-full-compiled-root-20260906",
+    "trackedFilesStable": true,
+    "headStable": true,
+    "finalStatus": "",
+    "workspaceDependenciesLocal": true,
+    "goldenFiles": {
+      "suite.json": "7adb8a8f48b0806cebc31ec420f289bca10703c15195aeaf5fd1ed60deddd327",
+      "reference.json.gz": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53"
+    },
+    "goldenManifestSha256": "80a22278b9c72978bf9b88638ab64415b493f562d310c3f98e89ff4872bbf01e",
+    "originalControlArtifact": "docs/parity/evidence/2026-09-05/production/buffered-writer-cross-control/review.json",
+    "originalControlArtifactSha256": "70a047ce178bd56ae7b5848eb68f1748df6aec255f3d52ad7c2dd5bf961e33b1",
+    "candidateCaptureExitCode": 0,
+    "comparisonExitCode": 1,
+    "caseOrRequestDeadlinesChanged": false,
+    "outerControllerTimeoutSeconds": 7200
+  },
+  "defaultSmokeClarification": {
+    "runtime": "default",
+    "cases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0,
+    "result": "match",
+    "sourceTreeSha256": "65f47ccc8b93563e6dfc353a71659b8869fc5c0e1342a54bedd5ecb3c2f7fe97",
+    "privateRun": ".parity/runs/ci-production-65845941-a06b-4f51-8e4c-58f334027a9e",
+    "runSha256": "60db52eb2180592d758f5b881f42bc9df43dd0910f5696aacdc59920f803d6fc"
+  },
+  "earlierBaseline": {
+    "revision": "057f67c136358b0d0f2f7f3bf201b23f5664c734",
+    "differences": 49155,
+    "profile": "Historical default parser; current complete capture explicitly selects compiled FST. This is not a same-profile AST improvement claim.",
+    "artifact": "docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json"
+  },
+  "limits": [
+    "The gate remains failing: 11 field differences and 16 gap instances. No exclusion or success override was added.",
+    "The eight gap cases select the external answer service, unhosted on both sides of this component profile. Equal missing coverage is not verified behavior.",
+    "This profile includes original parser/router/skill builder behavior, chitchat/report actions and frozen provider responses; full Hub orchestration, proactive lifecycles, live external services and robot rendering remain separate.",
+    "The default AST full HTTP replay still has 149 differences; this compiled run does not change that metric.",
+    "Current main has not been deployed to Moth. Read-only health confirms the earlier diagnostic backend and BE remain reachable."
+  ],
+  "evidenceHashes": {
+    "root-receipt.json": "894c659b3391f86085bcf3ce39c9f63f9b1b0389265b4272c9685df18d4311ae",
+    "started.json": "e133315c49d5f616423ac62f346935e38bb0600c387c70b92e478a53f9c04295",
+    "root-run.py": "d5ea7495f768f5849fe34a784b434c9dfd6c0a3808cd34e663a5491b1469f909",
+    "full/run.json": "cedcc04699c006fb9035f1ee00be30645de2b4ce48c84219447287671c993c19",
+    "full/comparison.json": "6b55279a32efd81ad25531d6b936b312681271c962c81de87fa80169e3bfdec2",
+    "full/candidate.json.gz": "5916865fbfcac68da3f1d8a86bdd9b0d3b2c72529377aa8de46ea9c37622b036",
+    "full/reference.json.gz": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53",
+    "full/suite.json": "7adb8a8f48b0806cebc31ec420f289bca10703c15195aeaf5fd1ed60deddd327",
+    "full/phoenix-source.json": "cdf52cbf8d53eeefd96f229493a88369b7a85c487ebcb5ef86e786160f1a5e86",
+    "full/candidate.log": "72efebfe9d608575d422f83b215437b31944319fe9fb48f00d3e9c693806896f",
+    "full/compare.log": "43ef233c7d454e53d1ab11fe30dc32b216dc5b2bbb169b09a09430b58c90c315"
+  },
+  "publicArtifacts": {
+    "comparison.json.gz": "1a8c90fae2d258213a3fe910e2f869111cd0131aa1e998ca677d7bc9b72654ed",
+    "run.json": "cedcc04699c006fb9035f1ee00be30645de2b4ce48c84219447287671c993c19"
+  }
+}

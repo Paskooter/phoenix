@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-06",
+  "reviewer": "Codex root",
+  "decision": "changes_requested",
+  "candidateRevision": "1aeec0125667c5d1a23cfcdb510a13985d6f416e",
+  "baselineRevision": "8f5ec748c578c66cb115c73ae265b1e1bcd0af3e",
+  "scope": "Bounded explicit heuristic state and base $w cardinality; full HTTP replay remains pending. No product task closure.",
+  "source": {
+    "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "pegasusRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "network": "none",
+    "binarySha256": {
+      "parse": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+      "grm2fst": "ed5c9868c772b8fcb370e995cc0617906562fd192809b9590e0f313699e87ba3"
+    },
+    "runtime": "v8.9.4"
+  },
+  "nativeControlSummary": {
+    "controls": 31,
+    "nativeValid": 30,
+    "baselineResultMatches": 23,
+    "candidateResultMatches": 27
+  },
+  "agentControlRepeatability": {
+    "controls": 24,
+    "allGrammarInputAndEmittedResultsUnchanged": true
+  },
+  "comparison": "Exact emitted NLParse array versus candidate singleton-or-empty selected entities; numeric scores and source rejection are separate open claims. No field normalization.",
+  "improvedControlIds": [
+    "word-wildcard-only",
+    "root-compete-wildcard",
+    "root-compete-alt-leak",
+    "root-compete-optional"
+  ],
+  "newlyFailingControlIds": [],
+  "remainingFailingControlIds": [
+    "root-word-empty-weighted",
+    "root-word-empty-reset",
+    "root-word-empty-default"
+  ],
+  "rejectedGrammarControls": [
+    {
+      "id": "negative-reset",
+      "commands": [
+        {
+          "kind": "compile",
+          "argv": [
+            "/native/bin/grm2fst",
+            "--grm",
+            "/review/input/negative-reset.grm",
+            "--parsing_fst",
+            "/out/negative-reset.fst"
+          ],
+          "exitCode": 70,
+          "signal": null,
+          "error": null,
+          "durationMs": 69
+        }
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "one",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "two-words",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "group-two-words",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "weighted_group"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "weighted_group"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "weighted_group"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "weighted-ref",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "weighted_ref"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "weighted_ref"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "weighted_ref"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "reset-after-word",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "reset"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "reset"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "reset"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "no-reset-two-words",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "no_reset"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "no_reset"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "no_reset"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "reset-after-group",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "reset_group"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "reset_group"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "reset_group"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "ref-internal-weight",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "ref_internal"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "ref_internal"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "ref_internal"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "ref-internal-reset",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "ref_reset"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "ref_reset"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "ref_reset"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "weighted-alt-plain",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "weighted-alt-reset",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "fixed-tilde",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "tilde"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "tilde"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "tilde"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "negative-reset",
+      "nativeValid": false,
+      "native": [],
+      "baseline": [],
+      "candidate": [],
+      "baselineResultMatch": null,
+      "candidateResultMatch": null,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "wildcard-internal-reset",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "wildcard_internal"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "wildcard_internal"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "wildcard_internal"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "wildcard-internal-override",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "wildcard_override"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "wildcard_override"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "wildcard_override"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "wildcard-following-default",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "wildcard_following"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "wildcard_following"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "wildcard_following"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "bounded-wildcard-inherited",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "bounded_inherited"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "bounded_inherited"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "bounded_inherited"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "alt-state-leak",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "alt-state-reset",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "ref-state-leak",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "ref_leak"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "ref_leak"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "ref_leak"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "word-wildcard-inherits",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "word_inherits"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "word_inherits"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "word_inherits"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "word-wildcard-reset",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "word_reset"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "word_reset"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "word_reset"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "word-wildcard-fraction",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "word_fraction"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "word_fraction"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "word_fraction"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "word-wildcard-only",
+      "nativeValid": true,
+      "native": [],
+      "baseline": [
+        {
+          "intent": "word_only"
+        }
+      ],
+      "candidate": [],
+      "baselineResultMatch": false,
+      "candidateResultMatch": true,
+      "scope": "unchanged agent native control"
+    },
+    {
+      "id": "root-word-empty-weighted",
+      "nativeValid": true,
+      "native": [],
+      "baseline": [
+        {
+          "intent": "x"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "x"
+        }
+      ],
+      "baselineResultMatch": false,
+      "candidateResultMatch": false,
+      "scope": "independent root competing-arm/cardinality control"
+    },
+    {
+      "id": "root-word-empty-reset",
+      "nativeValid": true,
+      "native": [],
+      "baseline": [
+        {
+          "intent": "x"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "x"
+        }
+      ],
+      "baselineResultMatch": false,
+      "candidateResultMatch": false,
+      "scope": "independent root competing-arm/cardinality control"
+    },
+    {
+      "id": "root-word-empty-default",
+      "nativeValid": true,
+      "native": [],
+      "baseline": [
+        {
+          "intent": "x"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "x"
+        }
+      ],
+      "baselineResultMatch": false,
+      "candidateResultMatch": false,
+      "scope": "independent root competing-arm/cardinality control"
+    },
+    {
+      "id": "root-compete-wildcard",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "wild"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "wild"
+        }
+      ],
+      "baselineResultMatch": false,
+      "candidateResultMatch": true,
+      "scope": "independent root competing-arm/cardinality control"
+    },
+    {
+      "id": "root-compete-reference",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "plain"
+        }
+      ],
+      "baselineResultMatch": true,
+      "candidateResultMatch": true,
+      "scope": "independent root competing-arm/cardinality control"
+    },
+    {
+      "id": "root-compete-alt-leak",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "carried"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baselineResultMatch": false,
+      "candidateResultMatch": true,
+      "scope": "independent root competing-arm/cardinality control"
+    },
+    {
+      "id": "root-compete-optional",
+      "nativeValid": true,
+      "native": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baseline": [
+        {
+          "intent": "optional"
+        }
+      ],
+      "candidate": [
+        {
+          "intent": "weighted"
+        }
+      ],
+      "baselineResultMatch": false,
+      "candidateResultMatch": true,
+      "scope": "independent root competing-arm/cardinality control"
+    }
+  ],
+  "controls": [
+    {
+      "id": "one",
+      "grammar": "TopRule = (<1.0>alpha<0.0>){intent='weighted'};",
+      "input": "alpha",
+      "source": "unchanged agent native control",
+      "grammarSha256": "b423b37fdab886e35e330156fac3cdb24f96f9b2a57c90e635fe97edc9bf16ac",
+      "inputSha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060"
+    },
+    {
+      "id": "two-words",
+      "grammar": "TopRule = (<1.0>alpha beta<0.0>){intent='weighted'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "3b00acc89bf69891fd0fae6457118bc536e923558a01c2d691e69697e650a85b",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "group-two-words",
+      "grammar": "TopRule = (<1.0>(alpha beta)<0.0>){intent='weighted_group'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "2f52f3d3ab71426c1ffb58b05e693de51e1adce6682997cf3941540259d667fe",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "weighted-ref",
+      "grammar": "SUB = (alpha beta); TopRule = (<1.0>$SUB<0.0>){intent='weighted_ref'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "70ce1e7e75dcfa0c3ad3d46f21b63462a73a1f399c18c0e6fd38a5054723078d",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "reset-after-word",
+      "grammar": "TopRule = (<1.0>alpha<0.0> beta){intent='reset'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "a2186da95e09e281d207186f354c5ada15b3aa3852921cf5b6152fc9660706cf",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "no-reset-two-words",
+      "grammar": "TopRule = (<1.0>alpha beta){intent='no_reset'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "b21296e2035e1f3410c275eec5edd58b339c3260da0c170c798e126976cbcc62",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "reset-after-group",
+      "grammar": "TopRule = (<1.0>(alpha)<0.0> beta){intent='reset_group'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "906aafe209adc5013ebd74ec54f2b0bab2cb5e1462cf4c0d28f8b08996228314",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "ref-internal-weight",
+      "grammar": "SUB = (<1.0>alpha); TopRule = ($SUB beta){intent='ref_internal'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "b9b02b3a4edc89b8f7330b4a55b7a8cc56f5c53f3305b9a2b75fe380562add99",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "ref-internal-reset",
+      "grammar": "SUB = (<1.0>alpha<0.0>); TopRule = ($SUB beta){intent='ref_reset'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "3000b3e3ead2f0af2a6d91f5ad8a54d7182fe989867fe877de882880b0864744",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "weighted-alt-plain",
+      "grammar": "TopRule = ((<1.0>alpha<0.0> beta){intent='weighted'}|(alpha beta){intent='plain'});",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "fe83d283946d313338332772c32eee7d273e7031290dfce81e8aae78a9b783fb",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "weighted-alt-reset",
+      "grammar": "TopRule = ((<1.0>alpha<0.0> beta){intent='weighted'}|(<0.0>alpha beta){intent='plain'});",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "c52aaa49ffc91a74400b4c2ac5984099604ec9a587b26e668d3850acb11134a5",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "fixed-tilde",
+      "grammar": "TopRule = (alpha~2 beta){intent='tilde'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "85255fea07ef23696b583325a1a217a38dd72e42fceafe5bf7224fc236bb1064",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "negative-reset",
+      "grammar": "TopRule = (<1.0>alpha<-1.0> beta){intent='negative'};",
+      "input": "alpha beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "bb1e45e71e3774f6cb0dd76b23769da86f3501008fe098ea2a6c5dfd6715a028",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "wildcard-internal-reset",
+      "grammar": "TopRule = (<2.0>$*<0.0> alpha){intent='wildcard_internal'};",
+      "input": "one alpha",
+      "source": "unchanged agent native control",
+      "grammarSha256": "500c2aa2bceda241a28fc63feafd9875c2c2f01ea33d25e2c13eda9c79627050",
+      "inputSha256": "7935afa54d6a4b765cdd8a22716213dbcf0cb5497c97748cd57c36b7b02a49eb"
+    },
+    {
+      "id": "wildcard-internal-override",
+      "grammar": "TopRule = (alpha <2.0>$*<3.0> beta){intent='wildcard_override'};",
+      "input": "alpha one beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "28c9f88d353cef696ac2305472b220414d25a99204b542a119f1a964d2b3f11e",
+      "inputSha256": "21abba6f4df3da708bb460f1bfe4e669b5ba6857929caed5fb8ba7f067e36e39"
+    },
+    {
+      "id": "wildcard-following-default",
+      "grammar": "TopRule = (<2.0>$* alpha){intent='wildcard_following'};",
+      "input": "one alpha",
+      "source": "unchanged agent native control",
+      "grammarSha256": "073f16bdb6e824bb79a7bd55773e78e37423a069adec3d87e0763b72bf6f576c",
+      "inputSha256": "7935afa54d6a4b765cdd8a22716213dbcf0cb5497c97748cd57c36b7b02a49eb"
+    },
+    {
+      "id": "bounded-wildcard-inherited",
+      "grammar": "TopRule = (<2.0>$w03 beta){intent='bounded_inherited'};",
+      "input": "one two beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "3158e7e436398cb3ebc77039e8cfde586dc481b63ac8af6cc45620e0c612ed48",
+      "inputSha256": "0cc0fc8fd09c6d5d9369f06e026ea503df08f37ec7c3bc61dbcb2c206392990a"
+    },
+    {
+      "id": "alt-state-leak",
+      "grammar": "TopRule = ((<1.0>alpha){intent='weighted'}|(beta){intent='plain'});",
+      "input": "beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "65999422833b284f73307c3cc327015523af3fea22cf7d91f01b1ef0577aa52d",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "alt-state-reset",
+      "grammar": "TopRule = ((<1.0>alpha<0.0>){intent='weighted'}|(beta){intent='plain'});",
+      "input": "beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "19ecfe1c4818a288ff185fb1d2ad97e2d628045d479778af9c81b65518931ea5",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "ref-state-leak",
+      "grammar": "SUB = (<1.0>alpha); TopRule = (($SUB)|beta){intent='ref_leak'};",
+      "input": "beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "d03d26f808a50f19103bf848dafe2fd0d330b1efdca6ec475f987d3d5f373b26",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "word-wildcard-inherits",
+      "grammar": "TopRule = (<2.0>$w beta){intent='word_inherits'};",
+      "input": "one beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "73d04217b810eb36e56dd02bb2df899f3919e3c436bf77a4f67bda880b4d9945",
+      "inputSha256": "8270ad39ea2a4af3ec5eee312ebf780a092d7a902dfbce3a710493d95c1afb0a"
+    },
+    {
+      "id": "word-wildcard-reset",
+      "grammar": "TopRule = (<2.0>$w<0.0> beta){intent='word_reset'};",
+      "input": "one beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "d82856ee9f9de37652616b41a899c928db4e00215a662e60346bfaebbfe5b79c",
+      "inputSha256": "8270ad39ea2a4af3ec5eee312ebf780a092d7a902dfbce3a710493d95c1afb0a"
+    },
+    {
+      "id": "word-wildcard-fraction",
+      "grammar": "TopRule = (<0.4>$w<0.0> beta){intent='word_fraction'};",
+      "input": "one beta",
+      "source": "unchanged agent native control",
+      "grammarSha256": "6a28b4d6221f1a96097e764585391b40a54513c1165ba6ac2162f8048cdc0882",
+      "inputSha256": "8270ad39ea2a4af3ec5eee312ebf780a092d7a902dfbce3a710493d95c1afb0a"
+    },
+    {
+      "id": "word-wildcard-only",
+      "grammar": "TopRule = (<2.0>$w){intent='word_only'};",
+      "input": "one two",
+      "source": "unchanged agent native control",
+      "grammarSha256": "44516376744f159046f38615537a6547c1986408c15f3f4b21f10fa606f1f012",
+      "inputSha256": "2dbb4a503f1515636b6a54e7f5b1a8ccfddcb62f0571c8b57a2879c360d00346"
+    },
+    {
+      "id": "root-word-empty-weighted",
+      "grammar": "TopRule = (<2.0>$w beta){intent='x'};",
+      "input": "beta",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "4e61590fe00dacdc4d8f2a208753f05801c2b3268ef4acbaf052fe653c5b3e5e",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "root-word-empty-reset",
+      "grammar": "TopRule = (<0.0>$w beta){intent='x'};",
+      "input": "beta",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "8b82a54e426b6204bcee3b757e5916aa4c1a18993cffe5f85bf70f61eee5034b",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "root-word-empty-default",
+      "grammar": "TopRule = ($w beta){intent='x'};",
+      "input": "beta",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "9ac71320a95fd13300a3d5513aaf2e1e4ad0999aec2255663672fef3187ad7e6",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "root-compete-wildcard",
+      "grammar": "TopRule = (($* alpha){intent='wild'}|(<1.0>one alpha<0.0>){intent='weighted'});",
+      "input": "one alpha",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "6ea8dcbdbd75cdebb94da908fa08923ec3bb1b2b417fed514a820efe6ed73c3d",
+      "inputSha256": "7935afa54d6a4b765cdd8a22716213dbcf0cb5497c97748cd57c36b7b02a49eb"
+    },
+    {
+      "id": "root-compete-reference",
+      "grammar": "SUB = (<1.0>alpha); TopRule = (($SUB beta){intent='weighted'}|(<0.0>alpha beta){intent='plain'});",
+      "input": "alpha beta",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "e3b2e7d797395bcf2d9d317bfed1615543ee2401afb5b622ff1d580100a1d0ea",
+      "inputSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248"
+    },
+    {
+      "id": "root-compete-alt-leak",
+      "grammar": "TopRule = ((<2.0>alpha){intent='unused'}|(beta){intent='carried'}|(<1.0>beta){intent='weighted'});",
+      "input": "beta",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "f28679cdaf6e647d651391cd9ddd86e224d4cd7ea9dcb09d045cba6b9ad1d3f5",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    },
+    {
+      "id": "root-compete-optional",
+      "grammar": "TopRule = ((?(<2.0>alpha) beta<0.0>){intent='optional'}|(<1.0>beta<0.0>){intent='weighted'});",
+      "input": "beta",
+      "source": "independent root competing-arm/cardinality control",
+      "grammarSha256": "d7a9e1ea0dc19696600f83cb10ec25ef9993d15010b379fd18c0093d8f9c69ac",
+      "inputSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "kind": "native",
+        "argv": [
+          "docker",
+          "run",
+          "--rm",
+          "--name",
+          "codex-root-explicit-weight-20260906",
+          "--network",
+          "none",
+          "-v",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906:/review:ro",
+          "-v",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/native:/out:rw",
+          "-v",
+          "/home/shell/work/phoenix/.parity/reviews/n08-native-scoring-execution-20260906/input/build:/native:ro",
+          "-e",
+          "LD_LIBRARY_PATH=/native/lib",
+          "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+          "node",
+          "/review/native-controller.cjs"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 25.8
+      },
+      {
+        "kind": "baseline",
+        "argv": [
+          "node",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/ast-controller.mjs",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/cases.json",
+          "/home/shell/work/phoenix/.parity/worktrees/n08-ast-family-root",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/baseline.json"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 0.065
+      },
+      {
+        "kind": "candidate",
+        "argv": [
+          "node",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/ast-controller.mjs",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/cases.json",
+          "/home/shell/work/phoenix/.parity/worktrees/n08-explicit-weight",
+          "/home/shell/work/phoenix/.parity/reviews/n08-explicit-weight-root-20260906/candidate.json"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 0.065
+      }
+    ],
+    "sourceStable": true,
+    "headStable": true
+  },
+  "reviewFindings": [
+    "Four selected-result/cardinality controls improve, with no newly failing previously passing controls in this 30-valid-case matrix. This matrix is not the full corpus.",
+    "Three independently added $w controls still accept zero words where the original native compiler/parser emits no parse: weighted, reset and default variants. Repair the reserved word minimum cardinality before final acceptance.",
+    "The original rejects the negative heuristic grammar; this invalid input is retained separately, not counted as a valid parser comparison.",
+    "Numeric heuristic scores, fractional quantization, factories and complete runtime behavior remain outside this selected-result claim."
+  ],
+  "evidenceHashes": {
+    "root-receipt.json": "6ab9bee6a7dca3ad202fd6cc9fcdc2a617a73f0a4189a7fe511b756bf0a26ba0",
+    "root-comparison.json": "ecfd52dc107569a3abb529db49e4f321ac1c3ed9aebfd15ab972c3b92ffb3aec",
+    "cases.json": "dce7cc4190d447be9eb96cf27ee7e975571a21e64244d74ad990280f489d4311",
+    "native-controller.cjs": "cb9ef8a31e1fed27b639d30936dc17bd9bb9586d497c6420fd1fb95fec64a0bf",
+    "ast-controller.mjs": "f426f7e94aaad34075bde0a428d32a2fe5c564edc1b205cb43ff6b594516f1ec",
+    "native/results.json": "ac2aa9219b043a1268a5e856fbaa9d9dd5b41fea1f916ab239d69ecd2fda99c6",
+    "baseline.json": "c407db750ae1ff93900513ad05c724b63031bf0498a3effbbc8eddc862586a99",
+    "candidate.json": "39899685656cc2360264c707d44c1123c8bbe5cc35fa68df115d98d8a3847ce5"
+  }
+}

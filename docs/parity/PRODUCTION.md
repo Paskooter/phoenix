@@ -27,6 +27,29 @@ The [smoke golden](../../packages/harness/resources/goldens/production-smoke/sou
 
 ## Complete baseline and reviewed integration
 
+The [latest complete comparison](evidence/2026-09-06/production/main-ec02766-full-compiled/review.json)
+executes all **20,534 fixtures** on frozen main `ec02766` with the explicit
+compiled-FST parser. It has **11 field differences across four cases**, zero
+trace invariants and **16 coverage-gap instances**: the same eight external
+answer cases on each side. Capture and cleanup completed successfully; the
+unchanged strict comparator returns exit 1.
+
+| Dimension | Latest compiled-profile agreement |
+|---|---:|
+| Parser HTTP response | 20,528 / 20,528 |
+| Selected skill or no-route result | 20,527 / 20,528 |
+| Complete action object | 20,433 / 20,434 |
+| Complete session state | 20,434 / 20,434 |
+| Analytics | 20,434 / 20,434 |
+| Provider request sequence | 83 / 83 |
+
+Three failing cases concern empty-name wildcard routing (H-03); one concerns
+fallback prompt selection for “are you a jedi” (S-03). The external answer
+cases remain Q-01 coverage obligations. Equal missing coverage does not count
+as verified behavior. The earlier default-profile baseline below remains
+historical evidence; this compiled run does not replace the separate default
+AST result.
+
 The [complete baseline](evidence/2026-09-06/production/main-057f67c-full-baseline/review.json)
 ran all **20,534 fixtures** against main `057f67c`. Its strict result is
 **49,155 field differences**, zero trace invariants and **97 coverage-gap
@@ -60,11 +83,14 @@ that case is explicitly excluded from the 51 exact controls.
 
 The explicit compiled profile separately [matches all 20,528 archived parser
 HTTP responses and 42 native multi-rule controls](evidence/2026-09-06/nlu-compiled-fst/integration-review.json).
-Default AST parsing retains 295 corpus differences. The complete 20,534-case
-production baseline above has not been projected forward or relabeled as a
-passing run. Full Report orchestration, Hub lifecycle and live providers remain
-separate acceptance tasks. The conventional gate runs its declared profile;
-the configured result does not establish a passing default-AST gate.
+The [subsequent default AST repair](evidence/2026-09-06/nlu-ast-ranking/root-review.json)
+reduces its full HTTP replay to **149 differences**, with no newly failing
+previously passing cases. The accepted combined tree passes **516 active unit
+tests** and both separately measured **43-case default and compiled smoke
+profiles**, each with zero differences, invariants or gaps. The default gate's
+runtime and source fingerprint are recorded in the latest complete review.
+Full Report orchestration, Hub lifecycle and live providers remain separate
+acceptance tasks.
 
 The integration evidence preserves an initial five-test OGG timeout run and a
 two-test isolated failure during VM disk I/O stalls, then an unchanged 34-test
@@ -155,7 +181,9 @@ validated the fix at `1926d64`: all 405 unit tests, six inventory tests and
 checklist checks passed. The 43-case capture completed without failures and
 returned the same 659 differences, zero invariants and one coverage gap. Root
 reproduced its comparison byte-for-byte and accepted V-03 infrastructure.
-The CI comparison remains red until its behavioral differences are repaired.
+Those historical hosted runs remain failed evidence. The latest local default
+smoke gate passes; a new hosted run must be inspected before claiming hosted
+acceptance for the current revision.
 Local workflow and coverage integration checks are recorded in the
 [root review](evidence/2026-09-06/coverage-review/review.json).
 
@@ -164,7 +192,7 @@ Local workflow and coverage integration checks are recorded in the
 Use a fresh output directory for every run.
 
 ```bash
-# Standard unit/tracker/strict smoke CI entry point; currently fails on Phoenix differences.
+# Standard unit/tracker/strict default smoke CI entry point.
 npm test
 
 # Reviewed smoke reference; no original installation needed.

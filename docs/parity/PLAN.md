@@ -93,15 +93,18 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **516 unit tests** and the configured
-compiled-FST strict **43-case smoke with zero differences, invariants or coverage
-gaps**. The default AST profile still has **149 corpus differences across 20,528 requests**, down from 295. The
+The latest accepted main checkpoint passes **516 unit tests** and both default
+and compiled-FST strict **43-case smoke profiles with zero differences,
+invariants or coverage gaps**. The default AST profile still has **149 corpus differences across 20,528 requests**, down from 295. The
 [accepted root review](evidence/2026-09-06/nlu-ast-ranking/root-review.json) records
 146 repaired cases, zero new failure IDs, and the remaining limits.
-The complete `057f67c` baseline has **49,155 field differences across 20,534
-cases**, zero invariants and 97 gap instances across both sides. Exact action
-objects agree in 20,170/20,434 comparisons. The complete baseline predates the
-latest parser, Settings, graph and Report transport repairs; all dimensions and limitations are retained in
+The [new complete compiled-profile comparison](evidence/2026-09-06/production/main-ec02766-full-compiled/review.json)
+on `ec02766` has **11 field differences across four of 20,534 cases**, zero
+invariants and 16 gap instances across the same eight unhosted external-answer
+cases. All 20,528 parser responses and all compared sessions, analytics and
+provider sequences agree. Three routing cases belong to H-03 and one fallback
+prompt case to S-03. The earlier default-profile `057f67c` baseline retains its
+49,155 differences; profiles and limitations remain explicit in
 [PRODUCTION.md](PRODUCTION.md). No complete product workstream is certified.
 
 Future long captures should use an isolated, fixed verification worktree so

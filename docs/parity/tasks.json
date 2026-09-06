@@ -609,7 +609,7 @@
       "phoenix": [
         "packages/gateway/src/intentRouter.js"
       ],
-      "finding": "P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree.",
+      "finding": "P10 reproduces a launch with no intent. The implementation adds skill-entity fallback and flattens the reference decision tree. The frozen ec02766 full compiled comparison exposes three empty GivenName wildcard cases: two incorrect decision weights and one erroneous route. Root is repairing these against the original Operator/Any implementation.",
       "acceptance": [
         "Match exact/NOT/wildcard/nested-entity matching, parent fallback, weights, registration ties and case behavior against original fixtures.",
         "An intentless or unregistered decision never launches merely because an entities.skill value names a skill; local-turn rule gating is preserved."
@@ -1156,7 +1156,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open.",
+      "finding": "The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1265,13 +1265,14 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max candidate; root acceptance",
-        "scope": "Explicit per-character weight and native base $w follow-up has bounded native controls; full source HTTP replay is running. Global last-equal-score proposal remains rejected. No whole-task credit.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review.json",
+        "scope": "Explicit per-character weights have 30 valid independent native controls: 23 baseline selected-result matches and 27 candidate matches, with three remaining zero-word $w false matches. Full HTTP replay is still running; cardinality repair is requested. Global last-equal-score proposal remains rejected. No whole-task credit.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-explicit-weight/root-review-pending.json",
         "candidates": [
           {
             "revision": "1aeec0125667c5d1a23cfcdb510a13985d6f416e",
             "worktree": ".parity/worktrees/n08-explicit-weight",
-            "state": "awaiting_review"
+            "state": "changes_requested",
+            "reason": "Three root native controls show mandatory $w falsely accepting zero words; preserve frozen full replay and repair in a follow-up."
           },
           {
             "revision": "1855df7996badc48c00cea8286c1e07e26d40ac5",
@@ -1699,7 +1700,7 @@
         "packages/skills/src/graph/mims/factories.js",
         "packages/skills/src/graph/mims/optIn.js"
       ],
-      "finding": "QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified.",
+      "finding": "QN/AN/MAN/MIM and opt-in implementations exist; original branch/action coverage remains unverified. The frozen ec02766 full compiled comparison retains one fallback prompt mismatch for chitchat:2250:0:base (are you a jedi). Original/candidate parser, route, session and analytics agree; selected prompt/ESML/auto-rule metadata differ. A Luna Max candidate is in progress.",
       "acceptance": [
         "Replay each factory's success, failure, no-input, no-match, escalation and terminal branches with frozen inputs.",
         "Verify repeat, thanks, cancel, wrong identity, unknown speaker, accept/decline and dialog referent changes through complete sessions."
@@ -2494,7 +2495,7 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max candidates; root acceptance",
-        "scope": "Combined isolated adapters passed 529 active unit tests before later fixes. Root independently replayed 40 Lasso controls with listener-validated Host fields. Review exposed malformed redirect settlement, informational timeout, Person redirect/body deadline and full error-envelope gaps; follow-ups remain unverified on the final combined tree. No network adapter is accepted yet.",
+        "scope": "Root combined review remains frozen at 28b28b1. Source controls expose post-timeout Lasso redirect requests that candidate cancels, plus Person legacy URL/error representation gaps. Hub friendly-ID transport has a separate candidate. Historical 529-unit/40-Lasso checks predate final repairs; no final network adapter is accepted.",
         "candidates": [
           {
             "revision": "754a7baf8c2e27cfd651de5787eaec8e1212b45a",
@@ -2505,6 +2506,17 @@
             "revision": "6798b426d1671b48e15ca3cf04f9780b35543c8b",
             "worktree": ".parity/worktrees/a06-person-redirect-error",
             "state": "awaiting_review"
+          },
+          {
+            "revision": "c11ce37f2bf7217e97760a42802d22d3ef9ffbec",
+            "state": "awaiting_review",
+            "scope": "Person legacy redirect URL and Boom helper follow-up; complete error matrix still needs root review."
+          },
+          {
+            "revision": "04ba2fa7979faa8147fea2010ddfe73ab0d46c7d",
+            "worktree": ".parity/worktrees/a06-hub",
+            "state": "awaiting_review",
+            "scope": "Hub/Account friendly-ID network adapter; unverified."
           }
         ]
       }
