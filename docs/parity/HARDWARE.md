@@ -2,7 +2,30 @@
 
 ## Native authentication verified on 2026-09-06
 
-The root-reviewed A-02 candidate on lead `5e626b8` completed the actual native signed `Account_20151111.CreateHubToken` request over TLS 1.2, then authenticated listen and proactive sockets with the issued token. Moth displayed its clock and spoke the time. [Evidence](evidence/2026-09-06/hardware/a02-native-auth-reviewed.json) records token-hash continuity and the root-viewed screenshot. Configuration, credentials and certificate trust were restored byte exactly. The current transport stack is loaded from `5e626b8`; main remains frozen at `057f67c` for the full production baseline. This does not close expiry/retry, full auth, or physical microphone/ring acceptance.
+The [first native authentication review](evidence/2026-09-06/hardware/a02-native-auth-reviewed.json)
+verified the real signed `Account_20151111.CreateHubToken` request over TLS 1.2,
+authenticated listen/proactive sockets and a rendered clock at `5e626b8`.
+
+The subsequent [cached-token rotation review](evidence/2026-09-06/hardware/h10-cache-rotation/review.json)
+tested the reviewed authentication and identity changes at `e0956e5`. Root
+changed only the temporary issuer and Hub secret while native Jetstream kept
+PID 1962. Two requests carrying the cached token received HTTP 401; the native
+client fetched one new token, then completed `/v1/listen` and `/v1/proactive`
+with that token. SDK clock turns succeeded before and after rotation, and root
+inspected both clock screenshots. Proactive requests used a valid explicit
+`SURPRISE` trigger through the original BE SDK. Natural proactive behavior,
+expiry, exact HTTP retry grouping, the account-backed extension and physical
+wake/microphone/ring acceptance remain open.
+
+Moth is restored to BE 11.0.1 and the reviewed transport stack at `5e626b8`.
+Root verified configuration, credentials and certificate trust byte-for-byte,
+temporary trust removal, `/usr/local` read-only state and Hub health. The
+authoritative private handoff is `.parity/robots/moth/20260906/current.json`;
+read its current receipt before acting on a process. At this checkpoint the
+restored Hub PID is 879351 and native Jetstream PID is 2101. The retained
+`057f67c` full production capture remains a historical baseline; main advances
+independently. Six failed preparation/trial attempts and the fourth attempt's
+manual restoration are retained in the rotation review.
 
 The user made Moth available on 2026-09-05 and authorized connecting it to
 Phoenix, testing on the robot, and iterating. This supersedes the earlier
@@ -119,10 +142,10 @@ captures real Opus and FLAC microphone frames. Phoenix incorrectly reports speec
 for both while independent decoded RMS remains below the speech threshold for
 every 20 ms frame. The restored LINEAR16 profile produces no SOS. The original
 LINEAR16 configuration and Phoenix override have been restored byte-for-byte.
-The current owned stack receipt is `native-audio/stack.json` under the private run
-directory; it records fresh source inputs and bounded optional audio capture.
-Raw recordings remain private. The decoder candidate must pass these native
-cases before integration and another robot comparison.
+That historical run's stack receipt is `native-audio/stack.json`; the current
+handoff is named at the top of this document. Raw recordings remain private.
+The later decoder/VAD repair and quiet-microphone checks above supersede this
+failing baseline for bounded audio acceptance.
 
 The original `smile` request also passes an individual
 [rendering check](evidence/2026-09-05/hardware/smile-rendering.json): Phoenix emits

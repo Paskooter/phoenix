@@ -381,7 +381,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root integrated bounded JWT/upgrade and CONTEXT identity repairs. All 1,965 source Node 8 JWT/auth/upgrade outcomes match both host Node 22 and deployment Node 20; the prior 105 diagnostics differences are resolved. All 187 expanded CONTEXT outcomes and mutations match source. Main passes 402 unit tests. Native cached-token 401 refetch/expiry and optional account-backed extension acceptance remain open; Moth still runs the prior reviewed transport-only stack.
+Root integrated bounded JWT/upgrade and CONTEXT identity repairs: all 1,965 auth outcomes match original Node 8 on host Node 22 and deployment Node 20; all 187 expanded CONTEXT cases match. Moth at e0956e5 recovered from server-secret rotation without a native restart: two cached-token HTTP 401 requests, one new signed TLS token issuance, fresh listen/proactive upgrades and two successful rendered SDK clock turns. Configuration, credentials and trust were restored byte exactly. Expiry, per-request retry grouping and the optional account-backed extension remain open; Moth now runs reviewed transport revision 5e626b8.
 
 Done when:
 
@@ -392,7 +392,7 @@ Done when:
 
 Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/utils/src/service/BaseService.ts); [Original Pegasus packages/hub/src/utils/MessagePreProcessor.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/MessagePreProcessor.ts); [Original Pegasus packages/hub/src/utils/MessageValidator.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/MessageValidator.ts); [Original Pegasus packages/hub-client/src/Client.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client/src/Client.ts).
 
-Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/preprocessor.js](../../packages/gateway/src/preprocessor.js); [packages/common/src/jwt.js](../../packages/common/src/jwt.js); [packages/gateway/test/hubAuth.test.js](../../packages/gateway/test/hubAuth.test.js).
+Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/preprocessor.js](../../packages/gateway/src/preprocessor.js); [packages/common/src/jwt.js](../../packages/common/src/jwt.js); [packages/gateway/test/hubAuth.test.js](../../packages/gateway/test/hubAuth.test.js); [docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json](../../docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json).
 
 Evidence: pending.
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / http_contract_repair.
 
-Candidate scope: Agent full replay reports 20,230/20,528 status/data matches, 14 fixes and no newly failing IDs. Root independently checked artifact hashes, denominators and expected values; integrated full repeat remains pending. Main still has the prior 20,216-match implementation.
+Candidate scope: Agent full replay reports 20,230/20,528 status/data matches and 14 fixes. Root independent fixed full production run has 20,229 exact parser matches, the same 298 semantic mismatch IDs and one unreproduced observation timeout. No new semantic mismatch IDs; native optional-class compiler probes remain pending before bounded integration.
 
 Candidate report: [docs/parity/candidates/N-08-followup.md](../../docs/parity/candidates/N-08-followup.md).
 

@@ -1,0 +1,169 @@
+{
+  "derivation": "CreateHubToken issuer rows selected from private JSONL; all hash-only Hub observer rows retained",
+  "phases": {
+    "initial": {
+      "issuer": [
+        {
+          "at": "2026-09-06T03:32:50.392Z",
+          "kind": "issuer-request",
+          "target": "Account_20151111.CreateHubToken",
+          "status": 200,
+          "method": "POST",
+          "path": "/",
+          "authorizationPresent": true,
+          "signedHeaderNames": "host;x-amz-content-sha256;x-amz-date",
+          "rawBodySha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "tlsEncrypted": true,
+          "tlsProtocol": "TLSv1.2",
+          "tlsCipher": "ECDHE-RSA-AES128-GCM-SHA256",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "jwtVerified": true
+        }
+      ],
+      "hub": [
+        {
+          "at": "2026-09-06T03:32:50.462Z",
+          "kind": "verify-observation",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "outcome": "accepted",
+          "error": null
+        },
+        {
+          "at": "2026-09-06T03:32:50.463Z",
+          "kind": "upgrade-result",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "accepted": true,
+          "status": 101
+        },
+        {
+          "at": "2026-09-06T03:32:50.466Z",
+          "kind": "connection-accepted",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6"
+        },
+        {
+          "at": "2026-09-06T03:33:15.666Z",
+          "kind": "verify-observation",
+          "path": "/v1/proactive",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "outcome": "accepted",
+          "error": null
+        },
+        {
+          "at": "2026-09-06T03:33:15.666Z",
+          "kind": "upgrade-result",
+          "path": "/v1/proactive",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "accepted": true,
+          "status": 101
+        },
+        {
+          "at": "2026-09-06T03:33:15.667Z",
+          "kind": "connection-accepted",
+          "path": "/v1/proactive",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6"
+        }
+      ]
+    },
+    "rotated": {
+      "issuer": [
+        {
+          "at": "2026-09-06T03:33:18.482Z",
+          "kind": "issuer-request",
+          "target": "Account_20151111.CreateHubToken",
+          "status": 200,
+          "method": "POST",
+          "path": "/",
+          "authorizationPresent": true,
+          "signedHeaderNames": "host;x-amz-content-sha256;x-amz-date",
+          "rawBodySha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "tlsEncrypted": true,
+          "tlsProtocol": "TLSv1.2",
+          "tlsCipher": "ECDHE-RSA-AES128-GCM-SHA256",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9",
+          "jwtVerified": true
+        }
+      ],
+      "hub": [
+        {
+          "at": "2026-09-06T03:33:18.395Z",
+          "kind": "verify-observation",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "outcome": "rejected",
+          "error": "JsonWebTokenError: invalid signature"
+        },
+        {
+          "at": "2026-09-06T03:33:18.396Z",
+          "kind": "upgrade-result",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "accepted": false,
+          "status": 401
+        },
+        {
+          "at": "2026-09-06T03:33:18.405Z",
+          "kind": "verify-observation",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "outcome": "rejected",
+          "error": "JsonWebTokenError: invalid signature"
+        },
+        {
+          "at": "2026-09-06T03:33:18.406Z",
+          "kind": "upgrade-result",
+          "path": "/v1/listen",
+          "tokenSha256": "5dd51c1f9b6a9acf242f495bcc729cb016dcf80182298239662e98b8dbd8abc6",
+          "accepted": false,
+          "status": 401
+        },
+        {
+          "at": "2026-09-06T03:33:18.492Z",
+          "kind": "verify-observation",
+          "path": "/v1/listen",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9",
+          "outcome": "accepted",
+          "error": null
+        },
+        {
+          "at": "2026-09-06T03:33:18.492Z",
+          "kind": "upgrade-result",
+          "path": "/v1/listen",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9",
+          "accepted": true,
+          "status": 101
+        },
+        {
+          "at": "2026-09-06T03:33:18.495Z",
+          "kind": "connection-accepted",
+          "path": "/v1/listen",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9"
+        },
+        {
+          "at": "2026-09-06T03:33:43.779Z",
+          "kind": "verify-observation",
+          "path": "/v1/proactive",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9",
+          "outcome": "accepted",
+          "error": null
+        },
+        {
+          "at": "2026-09-06T03:33:43.779Z",
+          "kind": "upgrade-result",
+          "path": "/v1/proactive",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9",
+          "accepted": true,
+          "status": 101
+        },
+        {
+          "at": "2026-09-06T03:33:43.781Z",
+          "kind": "connection-accepted",
+          "path": "/v1/proactive",
+          "tokenSha256": "8e719d8abf0f24ae73eb4d2d16aa858583bae20d72894de87bc8a1f8ad5ba7d9"
+        }
+      ]
+    }
+  }
+}

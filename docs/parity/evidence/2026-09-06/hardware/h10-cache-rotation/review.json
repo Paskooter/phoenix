@@ -1,0 +1,150 @@
+{
+  "date": "2026-09-06T03:40:46.929304+00:00",
+  "reviewer": "Codex root",
+  "result": "accepted-bounded-native-cache-recovery",
+  "taskStatus": "H-10 remains open",
+  "robot": "Moth",
+  "phoenixTrialRevision": "e0956e5026fd4545582cb635d4b0a2e676ae74ab",
+  "restoredRevision": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+  "source": {
+    "jetstreamRevision": "01ae81fc366ccd6e68ca66fa98f77f957dcdb1fb",
+    "Authentication.cpp": "6ab97185ea7caad3bdad0d4586a16f4dbd09543de3a499a2abb1b67349c6394a",
+    "ClientCloudConnection.cpp": "d7336b9e01c47dbf6d968368c560b2eaffb559be15ea4737184c27d438d97b4a",
+    "nativeJetstreamBinarySha256": "c3c138ff1d3599d7fe50bf9afdc036dfd7165897cf4481fadd54cbc236046f30",
+    "nativePocoNetLibrarySha256": "26600cf90703d4b06d3c45846f2b30d16e8615da1e1e9b3057a1b601d9298b49",
+    "beVersion": "11.0.1",
+    "beSlot": "phoenix-be-11-0-1-parity",
+    "orchestratorSha256": "000b8bc857c43c6c2b393ed073ce01830122087b095d66df70eab1d1b0606ff2",
+    "proactiveHelperSha256": "2011fbd58be6a058f0ba0a022da24127e5505d7727bde1e099aa22bebce7e95f",
+    "issuerObserverSha256": "38ad51e2a2ed9f44f836fb42710a826190af784c91696eaa2df845bac762fbac",
+    "hubObserverSha256": "0897a93409c9a013a7ddace748a4fa15a0334d39de48faa13368061bd57ba955"
+  },
+  "scenario": "Native signed TLS CreateHubToken, SDK clock and explicit native proactive trigger; rotate only the local issuer and Hub secret; repeat with unchanged Jetstream PID; restore reviewed transport and original native files.",
+  "commands": [
+    "H10_NATIVE_ROTATION_EXECUTE=YES PYTHONDONTWRITEBYTECODE=1 python3 .parity/reviews/h10-native-rotation-prep/trial.py --execute --output .parity/robots/moth/20260906/h10-native-rotation-root7",
+    "PYTHONDONTWRITEBYTECODE=1 python3 .parity/reviews/h10-native-rotation-prep/handoff.py --run .parity/robots/moth/20260906/h10-native-rotation-root7"
+  ],
+  "outcome": {
+    "trialExitCode": 0,
+    "initialTokenIssuances": 1,
+    "oldTokenHttp401ResponsesAfterRotation": 2,
+    "freshTokenIssuancesAfterRotation": 1,
+    "tokenHashesChanged": true,
+    "authenticatedPathsBeforeAndAfter": [
+      "/v1/listen",
+      "/v1/proactive"
+    ],
+    "nativeProcessIdUnchangedDuringRotation": 1962,
+    "clockTurnsSucceeded": 2,
+    "clockScreenshotsRootViewed": 2,
+    "nativeProactiveRequestsCompleted": 2,
+    "proactiveTrigger": {
+      "via": "original BE SDK triggerProactive",
+      "triggerSource": "SURPRISE",
+      "triggerData": {}
+    },
+    "issuerTlsProtocol": "TLSv1.2",
+    "hubTransport": "native WebSocket over owned SSH reverse tunnel"
+  },
+  "rollback": {
+    "configByteEquality": true,
+    "credentialByteEquality": true,
+    "trustBundleByteEquality": true,
+    "hashes": {
+      "configSha256": "0c9685794e6a7d093955957c8cc7c45d5d13f99fdac92b53b1752b17f3ea7485",
+      "credentialsSha256": "2c8fdf39bf084a3a11c20719864a3bbd5a6b06d18ca7a131c1828cd4732cb654",
+      "trustSha256": "fc06fb23208faaecc9f3eaebc7d713b1497a3a737046fa3bf59d7a8c5931ed41"
+    },
+    "usrLocalReadOnly": true,
+    "temporaryTrustMountRemoved": true,
+    "privateOptRemoved": true,
+    "ownedTrialChildrenRemaining": [],
+    "restoredHubHealthcheck": 200,
+    "restoredHubPid": 879351,
+    "restoredJetstreamPid": 2101,
+    "currentPointersUpdated": true
+  },
+  "earlierAttempts": [
+    {
+      "attempt": "root1",
+      "failure": "expected one Jetstream PID, found 0",
+      "cleanupErrors": [],
+      "configMutationPending": false,
+      "rollbackComplete": false,
+      "privateTrialSha256": "ee0d5e52e87312188d4b0eb3442ebc47492552d2044c7cce80cc7bdd856c701a"
+    },
+    {
+      "attempt": "root2",
+      "failure": "initial did not associate both native paths with one verified TLS token",
+      "cleanupErrors": [],
+      "configMutationPending": false,
+      "rollbackComplete": true,
+      "privateTrialSha256": "c61fd7eaae7926602644bca8f5cfade079e821a622792d628a607cdac0c1b35e"
+    },
+    {
+      "attempt": "root3",
+      "failure": "existing stack process has no readable command line",
+      "cleanupErrors": [],
+      "configMutationPending": false,
+      "rollbackComplete": false,
+      "privateTrialSha256": "5c2c96e73137db652538a68ae1156e578010f0f2aad0c7936140bd8193fb3530"
+    },
+    {
+      "attempt": "root4",
+      "failure": "owned child identity changed: initial/hub",
+      "cleanupErrors": [
+        "initial/hub stop: owned child identity changed: initial/hub",
+        "rollback: owned child is a zombie: restored",
+        "owned child remains: initial/hub"
+      ],
+      "configMutationPending": false,
+      "rollbackComplete": false,
+      "privateTrialSha256": "88c055adb62e6a3ee013f3cbd85891a076a4dcc12ae700f3a91c43a55cc8d62e",
+      "rootRecovery": "The exact owned hub PID was independently verified and stopped; the reviewed transport was relaunched. Root rechecked all original byte hashes and health before resuming.",
+      "rootRecoveryPrivateArtifactSha256": "617a1e77fa299acded7d061e9daac5d0d56dc0739f7ebb4c09f270173dcb8b52"
+    },
+    {
+      "attempt": "root5",
+      "failure": "restore-main checkout is dirty",
+      "cleanupErrors": [],
+      "configMutationPending": false,
+      "rollbackComplete": false,
+      "privateTrialSha256": "e2444743b17b831fd00ff8a83021505b5c4c29504ec0d64bea9b871dc081e475"
+    },
+    {
+      "attempt": "root6",
+      "failure": "initial did not associate both native paths with one verified TLS token",
+      "cleanupErrors": [],
+      "configMutationPending": false,
+      "rollbackComplete": true,
+      "privateTrialSha256": "688884ab69b048dd8b16eed2984ee4bfa1f82ff5a35c504fe54d32bed125e053"
+    }
+  ],
+  "interpretation": [
+    "The native process actually rejected a warm cached token, requested one new token, and completed listen/proactive exchanges plus a visible clock turn after the server-side rotation.",
+    "Two old-token 401 HTTP requests were observed before one token refetch. Per-request retry grouping was not recorded by this observer; the exact cause of the duplicate HTTP attempt remains open.",
+    "The explicit SURPRISE input exercises the original SDK/native path. It does not prove natural proactive opportunity detection."
+  ],
+  "limits": [
+    "Expiry and the account-backed revocation/unavailable-service extension remain open.",
+    "Physical wake-word, microphone speech, blue light ring, complete skills and release acceptance remain open.",
+    "Original credentials and native configuration were restored. The current Moth backend uses the prior reviewed transport-only revision, not the temporary authenticated trial profile.",
+    "Raw native events, credential mappings, keys and temporary certificates remain private."
+  ],
+  "documentation": [
+    "https://pvindex.org/confluence/display/SER/The+Jetstream+Service+API",
+    "https://pvindex.org/jira.jibo.com/browse/JIBO-10189.html"
+  ],
+  "privateArtifacts": {
+    "trial.json": "910f4293392d64a91b63c09e2e0709e433c049e3b5c71bc52b4a89a08b6d1204",
+    "initial-clock.json": "08dc1e3e164a0bfb9bdd67fed67f0505f49ca830adbce904161a04fff8805c6e",
+    "rotated-clock.json": "d0e92b7d537e28e197c4e14e2934f5f4c63ab830524d9dd1c479a3e9e1dda5da",
+    "initial-proactive.json": "dba3fed4bd35c3896866b8f5cd6827c9a4c3ed8a847809c10dd6f091cc381691",
+    "rotated-proactive.json": "6984a38d5bb8ea21c6ca94a45c929b86abb902ace6ffdd83fc721cede52f5c17"
+  },
+  "artifacts": {
+    "rotated-clock.png": "79ca673fe148cf7c7ab454dd4e81202a30c7a5d6f84283a7b2d313d7582d6050",
+    "initial-clock.png": "27da269dcfb57f059f2d172dee89735bc6c99bd24ea362298e98f254f09fef44",
+    "hash-only-observations.json": "92507216278f2f495ee9a8b7a6b355a307def1c51eb548b328b022af0cecd256"
+  }
+}

@@ -772,9 +772,10 @@
         "packages/gateway/src/index.js",
         "packages/gateway/src/preprocessor.js",
         "packages/common/src/jwt.js",
-        "packages/gateway/test/hubAuth.test.js"
+        "packages/gateway/test/hubAuth.test.js",
+        "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root integrated bounded JWT/upgrade and CONTEXT identity repairs. All 1,965 source Node 8 JWT/auth/upgrade outcomes match both host Node 22 and deployment Node 20; the prior 105 diagnostics differences are resolved. All 187 expanded CONTEXT outcomes and mutations match source. Main passes 402 unit tests. Native cached-token 401 refetch/expiry and optional account-backed extension acceptance remain open; Moth still runs the prior reviewed transport-only stack.",
+      "finding": "Root integrated bounded JWT/upgrade and CONTEXT identity repairs: all 1,965 auth outcomes match original Node 8 on host Node 22 and deployment Node 20; all 187 expanded CONTEXT cases match. Moth at e0956e5 recovered from server-secret rotation without a native restart: two cached-token HTTP 401 requests, one new signed TLS token issuance, fresh listen/proactive upgrades and two successful rendered SDK clock turns. Configuration, credentials and trust were restored byte exactly. Expiry, per-request retry grouping and the optional account-backed extension remain open; Moth now runs reviewed transport revision 5e626b8.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -794,8 +795,8 @@
       },
       "nextImplementation": {
         "state": "working",
-        "assignee": "Luna Max / capture_writer_repair",
-        "scope": "Offline preparation only for root-owned native cached-token 401 refetch/secret-rotation trial; no robot or live-service changes."
+        "assignee": "Codex root",
+        "scope": "Review the native double-401 HTTP sequence at the per-request/library boundary, verify expiry, and complete account-backed revocation/unavailable-service/latency acceptance. Successful cached-token refetch and real native clock/proactive exchanges are retained separately."
       },
       "implementationReviewHistory": [
         {
@@ -817,6 +818,15 @@
           "artifact": "docs/parity/candidates/H-10-identity.md",
           "reviewedBy": "Codex root",
           "reviewEvidence": "docs/parity/reviews/h10-identity-root/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "e0956e5026fd4545582cb635d4b0a2e676ae74ab",
+          "scope": "Real native cached-token invalidation/refetch and completed SDK clock/proactive exchanges during issuer/Hub secret rotation; two old-token HTTP rejections retained, full H-10 remains open.",
+          "artifact": "docs/parity/HARDWARE.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
         }
       ]
     },
@@ -1073,7 +1083,7 @@
       "implementationReview": {
         "state": "awaiting_review",
         "assignee": "Luna Max / http_contract_repair",
-        "scope": "Agent full replay reports 20,230/20,528 status/data matches, 14 fixes and no newly failing IDs. Root independently checked artifact hashes, denominators and expected values; integrated full repeat remains pending. Main still has the prior 20,216-match implementation.",
+        "scope": "Agent full replay reports 20,230/20,528 status/data matches and 14 fixes. Root independent fixed full production run has 20,229 exact parser matches, the same 298 semantic mismatch IDs and one unreproduced observation timeout. No new semantic mismatch IDs; native optional-class compiler probes remain pending before bounded integration.",
         "worktree": ".parity/worktrees/nlu-next",
         "baseRevision": "4b45dae17bdf186de108b903ec7ca50b15d0944d",
         "evidence": [
@@ -1101,12 +1111,11 @@
         }
       ],
       "nextImplementation": {
-        "state": "awaiting_review",
+        "state": "working",
         "assignee": "Luna Max / http_contract_repair",
-        "worktree": ".parity/worktrees/nlu-ranking",
-        "candidateRevision": "e657f21903f29a825c667775b36f1fc25d0282bb",
-        "scope": "Empirically inferred ranking candidate reports 63 of 298 remaining rows fixed and 309 selected prior matches retained. Arbitrary priority weighting and full regressions require root review; not integrated.",
-        "artifact": "docs/parity/candidates/N-08-ranking.md"
+        "worktree": ".parity/worktrees/nlu-path-score",
+        "baseRevision": "66e2abc331dc0707abbce0a9714674c3c3bf8a08",
+        "scope": "Replace unsupported token/priority scoring using the pinned native compiler/FST consumed-byte and path-cost algorithm. Independent native synthetic probes are running with capture_writer_repair. Frozen empirical ranking 9f5477 remains unaccepted."
       }
     },
     {
@@ -1990,7 +1999,7 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max / audio_encoding_repair",
-        "scope": "Complete an operation-level source/controller/consumer/test mapping from discovery candidate c4ad49d and independent MCP validation. Preserve 169 confirmed target-operation pairs as a lower bound, the possible Jot-prefix 170th pair, legacy Settings and proposed functional Jot/VoiceTraining ownership; root acceptance remains pending."
+        "scope": "Operation map 5b2fe96 covers 169 provisional target-operation pairs and is pending root review. Recover original Account/Admin and Loop controllers in a bounded follow-up; historical aliases, version-specific consumers and functional child ownership remain explicit."
       }
     },
     {
