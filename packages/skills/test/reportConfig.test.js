@@ -5,6 +5,7 @@ import { clearReportEnvCache, getReportEnv, reportLassoURL } from '../src/report
 import { LassoClient } from '../src/report/lassoClient.js';
 import { SettingsClient } from '../src/report/settingsClient.js';
 import { parseServiceArgs, parseServicePort, serviceHelp, start } from '../src/index.js';
+import { sourceJiboHeaders } from '../src/skillService.js';
 
 const ENV_KEYS = ['NET_lasso', 'NET_data', 'NET_settings', 'prefsFromConfig', 'ETCO_report_prefsFromConfig', 'PORT', 'ETCO_server_port'];
 
@@ -52,6 +53,28 @@ function peerServer() {
   });
   return { server, requests };
 }
+
+test('skill request decoration matches source JiboHeaders defaults and mutable forwarding', () => {
+  const defaults = sourceJiboHeaders({});
+  assert.deepEqual(defaults.toHeader(), {
+    'x-jibo-transid': 'unknown',
+    'x-jibo-robotid': 'unknown',
+    'x-jibo-logging-config': '{}',
+  });
+
+  const headers = sourceJiboHeaders({
+    'x-jibo-transid': 'trans-1',
+    'x-jibo-robotid': 'robot-1',
+    'x-jibo-logging-config': '{"report":"debug"}',
+  });
+  assert.deepEqual(headers.toHeader(), {
+    'x-jibo-transid': 'trans-1',
+    'x-jibo-robotid': 'robot-1',
+    'x-jibo-logging-config': '{"report":"debug"}',
+  });
+  headers.transID = 'trans-2';
+  assert.equal(headers.toHeader()['x-jibo-transid'], 'trans-2');
+});
 
 test('report environment preserves source defaults, precedence, and string values', async () => {
   await withEnv({}, async () => {
@@ -177,13 +200,28 @@ test('report service uses source variable names for a real local lasso exchange'
         },
       };
       const response = await fetch(`http://127.0.0.1:${report.address().port}/v1/main`, {
-        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-jibo-transid': 'trans-1',
+          'x-jibo-robotid': 'robot-1',
+          'x-jibo-logging-config': '{"report":"debug"}',
+          authorization: 'Bearer caller-credential-must-not-forward',
+        },
+        body: JSON.stringify(body),
       });
       const result = await response.json();
       assert.equal(response.status, 200);
       assert.equal(result.type, 'SKILL_ACTION');
       assert.equal(result.data.skill.id, 'report-skill');
-      assert.equal(requests.filter((request) => request.url.startsWith('/v1/dark_sky')).length, 2);
+      const darkSkyRequests = requests.filter((request) => request.url.startsWith('/v1/dark_sky'));
+      assert.equal(darkSkyRequests.length, 2);
+      for (const request of darkSkyRequests) {
+        assert.equal(request.headers['x-jibo-transid'], 'trans-1');
+        assert.equal(request.headers['x-jibo-robotid'], 'robot-1');
+        assert.equal(request.headers['x-jibo-logging-config'], '{"report":"debug"}');
+        assert.equal(request.headers.authorization, undefined);
+      }
     } finally {
       await close(report);
       await close(server);

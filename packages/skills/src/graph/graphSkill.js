@@ -102,6 +102,7 @@ export function createGraphSkill({ name, build }) {
       behaviors: { parallel: [], sequence: [] },
       local: {},
       log,
+      req: context.req,
     });
 
     let nodeResponse;

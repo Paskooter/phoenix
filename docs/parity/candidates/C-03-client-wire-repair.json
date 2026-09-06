@@ -1,0 +1,76 @@
+{
+  "status": "bounded-client-wire-candidate-unverified",
+  "base": "931ed0eed6b933c530c5166dc5d8588fee8718a6",
+  "branch": "codex/candidate-c03-client-wire-repair-20260906",
+  "scope": [
+    "packages/skills/src/skillService.js",
+    "packages/skills/src/graph/graphSkill.js",
+    "packages/skills/src/report/lassoClient.js",
+    "packages/skills/src/report/settingsClient.js",
+    "packages/skills/test/reportConfig.test.js",
+    "packages/skills/tools/c03-report-client-source.cjs",
+    "packages/skills/tools/c03-report-client-candidate.mjs"
+  ],
+  "source": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "runtime": "v8.9.4",
+    "pins": {
+      "interfacesServiceJs": "9e669b9e3d25464117f7a78245dd53a2a5b9076e8a9ddeaa47781cf07218440d",
+      "jiboHeadersJs": "c3d6bbbb08f16016395e1384cf82a8b0a1dbae91f7bd1a65db2fee71d421a972",
+      "baseServiceTs": "642572cf3f806303240c74e89eaada5aa447da39e75cd2ca8bdb54d8dc4297f6",
+      "baseSkillTs": "d5e70fafdafdd1e9ddd1a3f38ebe898283a95d7c478b91c260aed9dc9a288ed3",
+      "lassoClientJs": "38c2640d359d693228d422daa015d99007fdb3d8a4c1de34bd0de2e692dc1501",
+      "settingsClientJs": "bb2387cc3324347b9cce204279c20478271abc88295eb3a882b2ca867e8efbfb"
+    },
+    "clientReceipt": {
+      "path": ".parity/reviews/c03-client-wire-repair/source-node8/client.json",
+      "sha256": "e3aaf5b6c2f8b9b3ca5fe72545c89560860c5c6f3ea20eb3091d7247fb56b605"
+    }
+  },
+  "candidate": {
+    "clientReceipt": {
+      "path": ".parity/reviews/c03-client-wire-repair/candidate-client.json",
+      "sha256": "46c01ed9d4bbaed1eb0d43e54f14ad2a0e12eb8274ec2f932ae268e82b73fbf4"
+    },
+    "runtime": "v22.22.0"
+  },
+  "comparison": {
+    "path": ".parity/reviews/c03-client-wire-repair/client-comparison.json",
+    "sha256": "5214bb10f412f86125544393e68f543520f45cb361bcc738f4c05857788ae355",
+    "decodedDarkSkyEqual": true,
+    "decodedSettingsEqual": true,
+    "urlsEqual": true,
+    "bodiesEqual": true,
+    "semanticJiboAndSettingsHeadersEqual": true,
+    "wireEqual": false,
+    "remainingDifferences": [
+      "Source Axios User-Agent is axios/0.17.1; candidate Node 22 fetch User-Agent is node."
+    ]
+  },
+  "validation": {
+    "install": "npm ci --ignore-scripts --offline",
+    "workspaceResolution": {
+      "path": ".parity/reviews/c03-client-wire-repair/candidate-runtime-resolution.json",
+      "sha256": "0c27982cfaa6f945b2b82e1ac70765e665ba523ba39696c58551e9de71ee1594",
+      "npmLsProblems": []
+    },
+    "skillsSuite": {
+      "passed": 106,
+      "failed": 0,
+      "log": ".parity/reviews/c03-client-wire-repair/skills-unit.log",
+      "sha256": "7afa4034b9bb65ce55424d0d0e046935e6b0b5eed7770ac0aa8910bf5cb91bef"
+    },
+    "focusedReportConfig": {
+      "passed": 8,
+      "failed": 0,
+      "log": ".parity/reviews/c03-client-wire-repair/report-config-focused.log",
+      "sha256": "98fecba4274f7718cc3176b406ff469c29d7bc33a992bb9e3826ffefbe9b590f"
+    }
+  },
+  "limits": [
+    "Only the report skill request boundary is decorated; no shared common HTTP code was changed.",
+    "User-Agent remains runtime-generated and is not spoofed.",
+    "No live compose service, robot, provider, or full C-03 parity acceptance was run."
+  ]
+}

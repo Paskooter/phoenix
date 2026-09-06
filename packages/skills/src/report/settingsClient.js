@@ -31,7 +31,7 @@ export class SettingsClient {
 
     const accountId = getAccountFromLooper(data.runtime.loop, looperID);
     const loopId = data.runtime.loop.loopId;
-    const transId = data.trace && data.trace.transID;
+    const transId = data.req?.jibo?.transID || data.trace?.transID || data.trace?.transId;
 
     let settings;
     try {
@@ -57,7 +57,7 @@ export class SettingsClient {
     const res = await fetch(reportPeerURL(getReportEnv().NET_settings), {
       method: 'POST',
       headers: {
-        'content-type': 'application/json',
+        'content-type': 'application/json;charset=utf-8',
         'x-amz-credentials': JSON.stringify({ id: accountId }),
         'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
       },

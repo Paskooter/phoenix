@@ -14,6 +14,7 @@ if (!sourceRoot) {
 const { EnvVars } = require(path.join(sourceRoot, 'packages/report-skill/lib/EnvVars'));
 const { LassoClient } = require(path.join(sourceRoot, 'packages/report-skill/lib/LassoClient'));
 const { SettingsClient } = require(path.join(sourceRoot, 'packages/report-skill/lib/SettingsClient'));
+const { JiboHeaders } = require(path.join(sourceRoot, 'packages/utils/lib/service/JiboHeaders'));
 
 const requests = [];
 const server = http.createServer((request, response) => {
@@ -28,7 +29,10 @@ const server = http.createServer((request, response) => {
         'content-type': request.headers['content-type'],
         'x-amz-credentials': request.headers['x-amz-credentials'],
         'x-amz-target': request.headers['x-amz-target'],
-        'x-source-header': request.headers['x-source-header'],
+        'x-jibo-transid': request.headers['x-jibo-transid'],
+        'x-jibo-robotid': request.headers['x-jibo-robotid'],
+        'x-jibo-logging-config': request.headers['x-jibo-logging-config'],
+        'user-agent': request.headers['user-agent'],
       },
       body,
     });
@@ -60,10 +64,11 @@ const data = {
   },
   skill: { id: 'report-skill' },
   req: {
-    jibo: {
-      transID: 'trans-1',
-      toHeader() { return { 'x-source-header': 'source-fixture' }; },
-    },
+    jibo: new JiboHeaders({
+      'x-jibo-transid': 'trans-1',
+      'x-jibo-robotid': 'robot-1',
+      'x-jibo-logging-config': '{"report":"debug"}',
+    }),
   },
 };
 

@@ -9,9 +9,31 @@
 import { createService } from '@phoenix/common';
 import { newMsgId, now, SkillResponseType } from '@phoenix/contracts';
 
+// Pegasus BaseService decorates each incoming skill request with
+// `req.jibo = new JiboHeaders(req.headers)`. Keep the same three trace headers
+// and defaults at the skills boundary without copying authentication or other
+// caller headers into downstream provider requests.
+export function sourceJiboHeaders(headers = {}) {
+  const values = {
+    transID: headers['x-jibo-transid'] || 'unknown',
+    robotID: headers['x-jibo-robotid'] || 'unknown',
+    loggingConfig: headers['x-jibo-logging-config'] || '{}',
+  };
+  return {
+    ...values,
+    toHeader() {
+      return {
+        'x-jibo-transid': this.transID,
+        ...(this.robotID ? { 'x-jibo-robotid': this.robotID } : {}),
+        ...(this.loggingConfig ? { 'x-jibo-logging-config': this.loggingConfig } : {}),
+      };
+    },
+  };
+}
+
 /** Wrap a skill handler into the source error-enveloping route handler. */
 export function skillRoute(skillId, handler) {
-  return async ({ body, trace, log }) => {
+  return async ({ body, trace, log, req }) => {
     // BaseSkill starts its timer immediately before invoking the skill and
     // overwrites any handler-supplied timings field after the awaited result.
     // Keep this assignment inside the try block: a handler that resolves
@@ -19,7 +41,11 @@ export function skillRoute(skillId, handler) {
     // assigning `timings` fails.
     const startTime = Date.now();
     try {
-      const response = await handler(body, { trace, log });
+      const response = await handler(body, {
+        trace,
+        log,
+        req: { jibo: sourceJiboHeaders(req && req.headers), log },
+      });
       setResponseTimings(response, Date.now() - startTime);
       return response;
     } catch (err) {

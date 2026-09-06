@@ -8,6 +8,10 @@ import { reportLassoURL } from './env.js';
 
 const msToSeconds = (ms) => ms / 1000;
 
+function requestHeaders(data) {
+  return data?.req?.jibo?.toHeader ? data.req.jibo.toHeader() : {};
+}
+
 // interfaces/src/personalreport/apnews.ts CATEGORIES
 export const NEWS_CATEGORIES = Object.freeze({
   42200: 'business', 42201: 'entertainment', 42202: 'international', 42203: 'health',
@@ -39,10 +43,10 @@ export class LassoClient {
     if (utc) params.set('secondsSinceEpoch', String(Math.round(msToSeconds(utc))));
     const url = `${lassoBase()}/v1/dark_sky?${params}`;
     if (prefetch) {
-      fetch(url, { method: 'HEAD' }).catch(() => {});
+      fetch(url, { method: 'HEAD', headers: requestHeaders(data) }).catch(() => {});
       return undefined;
     }
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: requestHeaders(data) });
     if (!res.ok) throw new Error(`dark_sky ${res.status}`);
     return extractResponseData(await res.json(), 'DarkSky');
   }
@@ -54,7 +58,7 @@ export class LassoClient {
       'destination[lat]': commutePrefs.destination.lat, 'destination[lon]': commutePrefs.destination.lng,
       mode: commutePrefs.mode,
     });
-    const res = await fetch(`${lassoBase()}/v1/google_maps?${params}`);
+    const res = await fetch(`${lassoBase()}/v1/google_maps?${params}`, { headers: requestHeaders(data) });
     if (!res.ok) throw new Error(`google_maps ${res.status}`);
     return extractResponseData(await res.json(), 'Google Maps');
   }
@@ -70,7 +74,7 @@ export class LassoClient {
     return Promise.all(baseNewsItems.map(async (newsBase) => {
       const { sourceID } = newsBase.category;
       try {
-        const res = await fetch(`${lassoBase()}/v1/ap_news?sourceID=${sourceID}`);
+        const res = await fetch(`${lassoBase()}/v1/ap_news?sourceID=${sourceID}`, { headers: requestHeaders(data) });
         if (!res.ok) throw new Error(`ap_news ${res.status}`);
         const newsXML = extractResponseData(await res.json(), 'AP News');
         newsBase.data = parseXml(newsXML);
@@ -89,7 +93,7 @@ export class LassoClient {
       calendar,
       endDate,
     });
-    const res = await fetch(`${lassoBase()}/v1/${serviceName}_calendar?${params}`);
+    const res = await fetch(`${lassoBase()}/v1/${serviceName}_calendar?${params}`, { headers: requestHeaders(data) });
     if (!res.ok) throw new Error(`${serviceName}_calendar ${res.status}`);
     return extractResponseData(await res.json(), `${serviceName} calendar`);
   }

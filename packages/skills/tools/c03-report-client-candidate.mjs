@@ -19,7 +19,10 @@ const server = http.createServer((request, response) => {
         'content-type': request.headers['content-type'],
         'x-amz-credentials': request.headers['x-amz-credentials'],
         'x-amz-target': request.headers['x-amz-target'],
-        'x-source-header': request.headers['x-source-header'],
+        'x-jibo-transid': request.headers['x-jibo-transid'],
+        'x-jibo-robotid': request.headers['x-jibo-robotid'],
+        'x-jibo-logging-config': request.headers['x-jibo-logging-config'],
+        'user-agent': request.headers['user-agent'],
       },
       body: Buffer.concat(chunks).toString('utf8'),
     });
@@ -41,6 +44,20 @@ const data = {
     loop: { loopId: 'loop-1', users: [{ id: 'speaker-1', accountId: 'account-1' }] },
   },
   skill: { id: 'report-skill' },
+  req: {
+    jibo: {
+      transID: 'trans-1',
+      robotID: 'robot-1',
+      loggingConfig: '{"report":"debug"}',
+      toHeader() {
+        return {
+          'x-jibo-transid': this.transID,
+          'x-jibo-robotid': this.robotID,
+          'x-jibo-logging-config': this.loggingConfig,
+        };
+      },
+    },
+  },
 };
 
 const listen = () => new Promise((resolve, reject) => {
