@@ -1,6 +1,8 @@
 # A-06 Settings transport clean-main integration candidate
 
-Status: bounded candidate, awaiting root review. This revision covers the recovered
+Root accepted the bounded slice in `16d4db2` after request-ownership and route-isolation repairs. See the [integration review](../evidence/2026-09-06/service-integration/review.json) for 448-unit confirmation, 78 source TCP matches, original Report-client controls and remaining limits. Earlier candidate observations below retain their original scope; full task acceptance is open.
+
+Original candidate status: awaiting root review (superseded by the acceptance above). This revision covers the recovered
 Settings listener boundary and the explicit public adapter; it does not close A-06 or
 claim a live security-gateway/API-gateway deployment.
 

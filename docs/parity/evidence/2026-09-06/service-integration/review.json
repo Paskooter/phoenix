@@ -1,0 +1,104 @@
+{
+  "status": "accepted bounded Report configuration/client and Settings getter/transport slices",
+  "integratedRevision": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
+  "reviewedBy": "Codex root",
+  "sourceRevisions": {
+    "Pegasus": "5c0a7390539663ba749d360de348a428c088505c",
+    "Settings": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830"
+  },
+  "scope": [
+    "Source report environment names/defaults/cache/aliases and generic minimist port parsing.",
+    "Source Jibo trace forwarding and Settings request charset; preserve the original HTTP request object through skill handlers.",
+    "GetSettings/GetDataForSettings validation, view traversal and provider-error projection through an explicit internal listener, with local/network provider adapters.",
+    "Source target/content-type/CORS framing for the preserved 78-case boundary; public authentication remains a separate required boundary."
+  ],
+  "rootCorrections": [
+    "Preserve actual HTTP request identity instead of constructing a partial request object.",
+    "Restrict Settings JSON parser selection to POST /; three unrelated-route controls reproduced the leak before repair and pass afterward."
+  ],
+  "verification": {
+    "unit": {
+      "firstRun": {
+        "passed": 447,
+        "failed": 1,
+        "failure": "Unchanged audio fixture exceeded its existing 3000 ms observation bound."
+      },
+      "isolatedFailureCheck": {
+        "passed": 1,
+        "deadlineChanged": false
+      },
+      "fullConfirmation": {
+        "passed": 448,
+        "failed": 0,
+        "skipped": 0,
+        "deadlinesChanged": false,
+        "sourceStable": true
+      }
+    },
+    "settingsTCP": {
+      "cases": 78,
+      "statusRawBodyAndHeadersMatched": 78,
+      "providerCallsMatched": 78,
+      "excludedHeaders": [
+        "Date"
+      ],
+      "otherNormalization": false
+    },
+    "strictProduction": {
+      "cases": 43,
+      "baselineDifferences": 659,
+      "candidateDifferences": 499,
+      "removedDifferenceRecords": 160,
+      "addedDifferenceRecords": 0,
+      "invariants": 0,
+      "coverageGaps": 1,
+      "existingCoverageGap": "boundary:loop-full-name routes to the unhosted answer service in this default-AST fixture profile."
+    },
+    "originalReportClientToSettings": {
+      "originalRuntime": "Exact extracted Node 8.9.4 executable on host; separately qualified from pinned Docker",
+      "candidateRuntime": "Node 22.22.0",
+      "listener": "Actual integrated internal Settings listener with fixed Account/Hub/Person/Lasso seams",
+      "requestMethodUrlBodyAndRequiredHeadersMatch": true,
+      "responseStatus": 200,
+      "responseBytesAndDecodedDataMatch": true,
+      "providerCallsMatch": true,
+      "fullRawWireMatch": false,
+      "remainingRuntimeHeaders": [
+        "Accept",
+        "User-Agent",
+        "fetch defaults",
+        "Connection; response connection header"
+      ]
+    }
+  },
+  "setupCorrection": "First isolated npm ci exited 143 without output; no tests from that incomplete setup were accepted. A recorded fresh offline install exited 0 and all workspace links resolved inside the integration tree.",
+  "limits": [
+    "Full C-03 and A-06 remain open; no checklist completion credit.",
+    "CLI setup logging/error wording and five-second shutdown follow-up e984d42 is a separate unreviewed candidate.",
+    "Update/Delete follow-up 6c4b8fc, broader Account peer persistence, deployed provider/Mongo behavior and public SigV4/gateway wiring remain unverified.",
+    "No Settings or Report service deployment on Moth is claimed by this integration."
+  ],
+  "privateEvidenceHashes": {
+    "workspace-install-first-attempt.json": "27d194ceb836c887b2651b205326b622a0fff14c102ac30eab0c2d8f3f18ac71",
+    "workspace-install-receipt.json": "eca0de07d8d6629000c14c67e9427332b5abe4299605abce8184b14f40a95126",
+    "full-unit.log": "74241f601dc7fd7cc4fea4698029cca2eec83e909f2409911afe74b24305d659",
+    "full-unit-receipt.json": "585692e1e3f947f9214e4fa3237952e872214949cf4328e66bd1bb4800a82b33",
+    "asr-timeout-isolated.log": "c8aadefa3d0f58a0a4248ee10c708873d8e40fa10da16ffd528c231441c0907d",
+    "asr-timeout-isolated.json": "890a1a2d0152f26bf28f88e321d32288c784f6d68ccd82efee6f5583793807cf",
+    "full-unit-confirmation.log": "bd445473e827f2174b8a8aa8cc1905cb5966f8eee34638b8487c28967025aef9",
+    "full-unit-confirmation-receipt.json": "9e75910c73bfd116dbdc1e823007a5e60d305a0cfd44cbfca6f599b9f4f30ae6",
+    "parser-scope-before.json": "2b9fd13922d301ce0a2d5b533e3f3626123fdd3db41699b284b01c708fcb1748",
+    "parser-scope-after.json": "993135498fc1e3165d6b68f938bf8aa6515afbd38d4cd0f5321fa064f43d8100",
+    "scope-receipt.json": "05a7b8875f3ef3b067d9900a5b62db84f92db2ef23cd5bc7ebbbbc80240a573f",
+    "settings/candidate-internal-tcp.json": "545bcfe5d194a109876dd34add31602758e83224a06170c62d6171b0f42e926a",
+    "settings/comparison.json": "501cf12e80f0fda2657caaffecc107753b6c8193ebcee444d13c6e019f2fbb7d",
+    "settings-receipt.json": "9644c54246a0d935866273de763d334a649a36ba4437cea54a151f79a5de5cbd",
+    "production/run.json": "a3dbed0278770ef14b3dc24eb3bf2f34981cbaac5eea23069e07af76feeded43",
+    "production/comparison.json": "092821ce7d156ad014c1adfcd2e64290038035ed9032aed5c9581eab993b09f5",
+    "strict-regression-review.json": "1c86b3989bd6b4c31e354a5b363d003ea0c13a29dacbb2c50ad98ecd4e8076d4"
+  },
+  "sourceClientEvidenceHashes": {
+    "settings-client-differential.json": "b31009c871171856a87cb2eb5beca1150256201024d24578c1dc0a82267dbfd8",
+    "receipt.json": "2cbb8f6b5203c70a1b1e827443090de925e1a1a4dbfc69037e728e0ff9d95f02"
+  }
+}

@@ -463,7 +463,7 @@
         "packages/skills/src/report/lassoClient.js",
         "packages/common/src/env.js"
       ],
-      "finding": "Root accepted the registry/configuration slice: complete manifests and source URL composition, validation/startup failure, original skill-list routes, source defaults and explicit deployment profiles. The integrated comparison matches 161/161 checks and 420 unit tests pass. Report NET_lasso/prefsFromConfig, other required variables and CLI behavior remain open.",
+      "finding": "Registry/configuration slice remains accepted. Root integrated report source environment defaults/cache/aliases, generic minimist port parsing and source client headers while preserving actual request ownership. All 448 integrated unit tests pass on confirmation; strict smoke removes 160 differences with none added. Common CLI runner follow-up and deployed provider compatibility remain open.",
       "acceptance": [
         "Load unmodified reference registries including settings metadata, paths, versions and URL composition; reject invalid configurations as the reference does.",
         "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.",
@@ -472,23 +472,34 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Codex root with Luna Max / audio_encoding_repair",
-        "scope": "Bounded source registry, gateway config and robot-specific HTTP skill lists, plus explicit per-skill deployment dispatch. Source/resources independently byte-checked, 161 differential checks match, 16 negative controls reject altered input, 420 integrated unit tests pass. Full C-03 remains open.",
-        "baseRevision": "c28f9e57882cff86c79d6fea6b09118edec0ee7b",
-        "candidateRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c",
-        "artifact": "docs/parity/candidates/C-03-registry.md",
+        "assignee": "Codex root with Luna Max candidates",
+        "candidateRevision": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
         "reviewedBy": "Codex root",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/gateway-registry/review.json"
+        "scope": "Bounded report configuration, generic CLI port parsing and client trace/Settings headers, including root request-identity repair; full C-03 remains open. Integrated 448-unit confirmation, source-client and strict regression checks pass their documented boundaries.",
+        "artifact": "docs/parity/candidates/C-03-client-wire-repair.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json"
       },
       "nextImplementation": {
-        "state": "changes_requested",
+        "state": "awaiting_review",
         "assignee": "Luna Max / audio_encoding_repair; root acceptance",
-        "scope": "Fresh main-based candidate repairs report configuration, generic source CLI parsing, Jibo trace forwarding and Settings charset. Agent reports428 unit passes and local original/client matches for the tested data/headers, with runtime User-Agent differences preserved. Root found reconstructed request ownership and is repairing it in an isolated review; actual executable help/stderr/shutdown controls remain pending. No full C-03 acceptance.",
-        "baseRevision": "25430c15a1a66837fe3025bf6e08279bacea8ae8",
-        "candidateRevision": "082d58651315a285b966399b7b227916d529975f",
-        "worktree": ".parity/worktrees/c03-client-wire-repair",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/gateway-registry/report-cli-review.json"
-      }
+        "candidateRevision": "e984d4256bc11cc34cd5757142ba05a50d64456d",
+        "baseRevision": "082d58651315a285b966399b7b227916d529975f",
+        "worktree": ".parity/worktrees/c03-cli-followup",
+        "scope": "Source no-Promise/synchronous/rejected startup handling and five-second status 1 shutdown. Agent reports 430 unit passes and actual host process timing controls. Source setup logging/NewRelic and runtime error wording remain separate differences; not integrated.",
+        "artifact": "docs/parity/candidates/C-03-cli-followup.md"
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max / audio_encoding_repair",
+          "scope": "Bounded source registry, gateway config and robot-specific HTTP skill lists, plus explicit per-skill deployment dispatch. Source/resources independently byte-checked, 161 differential checks match, 16 negative controls reject altered input, 420 integrated unit tests pass. Full C-03 remains open.",
+          "baseRevision": "c28f9e57882cff86c79d6fea6b09118edec0ee7b",
+          "candidateRevision": "b7c1245b4ad43039151d29d7339ab3edf2b3c84c",
+          "artifact": "docs/parity/candidates/C-03-registry.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/gateway-registry/review.json"
+        }
+      ]
     },
     {
       "id": "H-01",
@@ -2291,7 +2302,7 @@
         "packages/account/src/settingsFace.js",
         "packages/account/src/settingsData.js"
       ],
-      "finding": "Root original Node8 TCP review matches all 51 earlier cases; 27 added edge cases expose 18 differences. Isolated credential repair 32f382f fixes 4 with zero new failures (64/78 exact status/raw-body/header/provider matches; 14 focused tests pass). Transport separation and Account peer prerequisites remain under review; main retains its earlier Settings implementation.",
+      "finding": "Root integrated Settings getter/view/provider-seam/internal-listener behavior and restricted its JSON parser selection to the intended Account endpoint. All 78 source TCP cases and provider traces match; the original Report client reads byte-identical preferences from the actual listener with fixed providers. Update/Delete, live providers/Mongo and public authentication remain open.",
       "acceptance": [
         "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
@@ -2299,16 +2310,37 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "changes_requested",
+        "state": "accepted",
         "assignee": "Codex root with Luna Max candidates",
-        "scope": "Root credential fix remains frozen. Settings transport candidate dc7d8ca independently matches all78 preserved original TCP status/raw-body/header/provider controls with Date excluded;81 Account/common units pass. Root is reviewing fresh main-based integration to avoid importing old branch changes. Account peer6590b89, public authentication wiring, provider/update/delete and full A06 acceptance remain open.",
-        "candidateRevision": "32f382f066ef6eefa0adefb84a0f13dc59947b99",
-        "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152",
-        "worktree": ".parity/worktrees/a06-review-root",
-        "artifact": "docs/parity/candidates/A-06-root-review.md",
+        "candidateRevision": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
         "reviewedBy": "Codex root",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/settings-root/credential-repair-freeze.json",
-        "transportCandidateRevision": "dc7d8ca28cd932697a4c7ba4a177eca3831e9710"
+        "scope": "Bounded Settings getter/controller/provider-seam/internal-transport slice with root POST / parser isolation. All 78 preserved original TCP status/raw-body/header/provider cases match after excluding Date only. Full A-06 and deployed providers/public authentication remain open.",
+        "artifact": "docs/parity/candidates/A-06-transport-review-20260906.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/review.json",
+        "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152"
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "changes_requested",
+          "assignee": "Codex root with Luna Max candidates",
+          "scope": "Root credential fix remains frozen. Settings transport candidate dc7d8ca independently matches all 78 preserved original TCP status/raw-body/header/provider controls with Date excluded;81 Account/common units pass. Root is reviewing fresh main-based integration to avoid importing old branch changes. Account peer6590b89, public authentication wiring, provider/update/delete and full A06 acceptance remain open.",
+          "candidateRevision": "32f382f066ef6eefa0adefb84a0f13dc59947b99",
+          "prerequisiteRevision": "6590b89259b574d85d28bcb5e659cea5d73d1152",
+          "worktree": ".parity/worktrees/a06-review-root",
+          "artifact": "docs/parity/candidates/A-06-root-review.md",
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/settings-root/credential-repair-freeze.json",
+          "transportCandidateRevision": "dc7d8ca28cd932697a4c7ba4a177eca3831e9710"
+        }
+      ],
+      "nextImplementation": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / http_contract_repair; root acceptance",
+        "candidateRevision": "6c4b8fc995aa8149406bd650736b8820ff4e382a",
+        "baseRevision": "aaa3a064c221f9b0ca6156ecdc91af1c63dbde87",
+        "worktree": ".parity/worktrees/a06-update-delete-candidate",
+        "scope": "Source UpdateSettings/DeleteSettings handler and provider persistence follow-up. Agent reports 25 differential controls and preservation of 78 prior TCP cases. Root acceptance, current-main parser-scope fix and live peer/Mongo validation remain pending.",
+        "artifact": "docs/parity/candidates/A-06-update-delete-20260906.md"
       }
     },
     {

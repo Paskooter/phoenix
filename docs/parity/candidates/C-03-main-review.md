@@ -1,6 +1,8 @@
 # C-03 main integration review
 
-Status: bounded integration candidate awaiting root review. C-03 remains open.
+Root accepted the bounded slice in `16d4db2` after request-ownership and route-isolation repairs. See the [integration review](../evidence/2026-09-06/service-integration/review.json) for 448-unit confirmation, 78 source TCP matches, original Report-client controls and remaining limits. Earlier candidate observations below retain their original scope; full task acceptance is open.
+
+Original candidate status: awaiting root review (superseded by the acceptance above). C-03 remains open.
 
 This candidate starts from main `25430c15a1a66837fe3025bf6e08279bacea8ae8` in
 `codex/candidate-c03-main-review-20260906` and imports only the report environment/cache,

@@ -1,6 +1,8 @@
 # C-03 report client wire repair
 
-Status: bounded candidate awaiting root review. The preceding `c03-main-review` worktree is
+Root accepted the bounded slice in `16d4db2` after request-ownership and route-isolation repairs. See the [integration review](../evidence/2026-09-06/service-integration/review.json) for 448-unit confirmation, 78 source TCP matches, original Report-client controls and remaining limits. Earlier candidate observations below retain their original scope; full task acceptance is open.
+
+Original candidate status: awaiting root review (superseded by the acceptance above). The preceding `c03-main-review` worktree is
 unchanged.
 
 This candidate starts from `931ed0eed6b933c530c5166dc5d8588fee8718a6` in the fresh worktree

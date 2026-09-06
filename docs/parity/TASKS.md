@@ -254,7 +254,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-Root accepted the registry/configuration slice: complete manifests and source URL composition, validation/startup failure, original skill-list routes, source defaults and explicit deployment profiles. The integrated comparison matches 161/161 checks and 420 unit tests pass. Report NET_lasso/prefsFromConfig, other required variables and CLI behavior remain open.
+Registry/configuration slice remains accepted. Root integrated report source environment defaults/cache/aliases, generic minimist port parsing and source client headers while preserving actual request ownership. All 448 integrated unit tests pass on confirmation; strict smoke removes 160 differences with none added. Common CLI runner follow-up and deployed provider compatibility remain open.
 
 Done when:
 
@@ -268,13 +268,13 @@ Phoenix: [packages/gateway/src/config.js](../../packages/gateway/src/config.js);
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root with Luna Max / audio_encoding_repair.
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
-Candidate scope: Bounded source registry, gateway config and robot-specific HTTP skill lists, plus explicit per-skill deployment dispatch. Source/resources independently byte-checked, 161 differential checks match, 16 negative controls reject altered input, 420 integrated unit tests pass. Full C-03 remains open.
+Candidate scope: Bounded report configuration, generic CLI port parsing and client trace/Settings headers, including root request-identity repair; full C-03 remains open. Integrated 448-unit confirmation, source-client and strict regression checks pass their documented boundaries.
 
-Candidate report: [docs/parity/candidates/C-03-registry.md](../../docs/parity/candidates/C-03-registry.md).
+Candidate report: [docs/parity/candidates/C-03-client-wire-repair.md](../../docs/parity/candidates/C-03-client-wire-repair.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/gateway-registry/review.json](../../docs/parity/evidence/2026-09-06/gateway-registry/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/review.json](../../docs/parity/evidence/2026-09-06/service-integration/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-01 — Restore the robot-specific skill-list endpoints
 
@@ -897,7 +897,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-Root original Node8 TCP review matches all 51 earlier cases; 27 added edge cases expose 18 differences. Isolated credential repair 32f382f fixes 4 with zero new failures (64/78 exact status/raw-body/header/provider matches; 14 focused tests pass). Transport separation and Account peer prerequisites remain under review; main retains its earlier Settings implementation.
+Root integrated Settings getter/view/provider-seam/internal-listener behavior and restricted its JSON parser selection to the intended Account endpoint. All 78 source TCP cases and provider traces match; the original Report client reads byte-identical preferences from the actual listener with fixed providers. Update/Delete, live providers/Mongo and public authentication remain open.
 
 Done when:
 
@@ -911,13 +911,13 @@ Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/setti
 
 Evidence: pending.
 
-- [x] Candidate implementation — **changes_requested**; Codex root with Luna Max candidates.
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
-Candidate scope: Root credential fix remains frozen. Settings transport candidate dc7d8ca independently matches all78 preserved original TCP status/raw-body/header/provider controls with Date excluded;81 Account/common units pass. Root is reviewing fresh main-based integration to avoid importing old branch changes. Account peer6590b89, public authentication wiring, provider/update/delete and full A06 acceptance remain open.
+Candidate scope: Bounded Settings getter/controller/provider-seam/internal-transport slice with root POST / parser isolation. All 78 preserved original TCP status/raw-body/header/provider cases match after excluding Date only. Full A-06 and deployed providers/public authentication remain open.
 
-Candidate report: [docs/parity/candidates/A-06-root-review.md](../../docs/parity/candidates/A-06-root-review.md).
+Candidate report: [docs/parity/candidates/A-06-transport-review-20260906.md](../../docs/parity/candidates/A-06-transport-review-20260906.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/review.json](../../docs/parity/evidence/2026-09-06/service-integration/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 3. Verify complete skill output and interactions
 
