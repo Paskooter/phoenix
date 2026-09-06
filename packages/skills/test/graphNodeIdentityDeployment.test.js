@@ -55,6 +55,25 @@ test('selected report host allocates the source standalone graph from zero', asy
   }
 });
 
+test('PHOENIX_SKILL_ID selects the standalone report graph at /v1/main', async () => {
+  const oldSkillID = process.env.PHOENIX_SKILL_ID;
+  const oldPrefs = process.env.ETCO_report_prefsFromConfig;
+  process.env.PHOENIX_SKILL_ID = 'report-skill';
+  process.env.ETCO_report_prefsFromConfig = 'true';
+  const server = await start(0);
+  try {
+    const result = await post(server);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.data.skill.session.nodeID, 31);
+  } finally {
+    await close(server);
+    if (oldSkillID === undefined) delete process.env.PHOENIX_SKILL_ID;
+    else process.env.PHOENIX_SKILL_ID = oldSkillID;
+    if (oldPrefs === undefined) delete process.env.ETCO_report_prefsFromConfig;
+    else process.env.ETCO_report_prefsFromConfig = oldPrefs;
+  }
+});
+
 test('combined host allocates chitchat before report in one manager', async () => {
   const oldPrefs = process.env.ETCO_report_prefsFromConfig;
   process.env.ETCO_report_prefsFromConfig = 'true';
