@@ -150,7 +150,7 @@ function rawUpgrade(port, path, authorization) {
 }
 
 async function upgradeResults() {
-  const gateway = createGateway({
+  const gateway = await createGateway({
     hubTokenSecret: cases.secret,
     disableAuth: false,
     accountUrl: '',

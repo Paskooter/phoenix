@@ -21,7 +21,7 @@ const adapter = {
     const { createSkillService } = await moduleAt('packages/skills/src/skillService.js');
     const { chitchatSkill } = await moduleAt('packages/skills/src/chitchatSkill.js');
     const { reportSkill } = await moduleAt('packages/skills/src/reportSkill.js');
-    const servers = [], skillPorts = {}, configs = loadRegistry({}), router = new IntentRouter(configs);
+    const servers = [], skillPorts = {}, configs = await loadRegistry({}), router = new IntentRouter(configs);
     // The public client methods execute the production request builders. Only
     // their final transport seam is replaced; the shared driver captures the
     // emitted request and sends those exact bytes to the real skill service.

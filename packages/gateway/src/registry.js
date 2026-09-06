@@ -1,45 +1,46 @@
-// Skill registry loader. Reads resources/skills/skills-local.json + the referenced manifests
-// (vendored from the reference hub/{be-skills,pegasus-skills}) and produces the registry the
-// IntentRouter + SkillConfigManager consume.
-//
-// - be-skills: onRobot:true, no URL — the hub returns a final LISTEN with match.onRobot=true and
-//   the robot runs them locally. Their launch intents are gated on an entity `skill == <id>`.
-// - cloud skills (answer/report/chitchat): routed to the Phoenix skills service (all hosted there
-//   for now; only answer-skill is implemented).
-
-import { readFileSync } from 'node:fs';
+// SkillUtils + ConfigFileParser, Pegasus 5c0a739. Preserve the complete manifest
+// and fail startup on an unreadable/invalid index or manifest.
+import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { legacyJsonError } from '@phoenix/common';
+import { deepFreeze, legacyConfigError, validateSkillsIndex } from './skillConfigValidation.js';
 
 const DEFAULT_RES = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'skills');
 
+async function readJSON(path) {
+  const content = await readFile(path, 'utf8');
+  try { return JSON.parse(content); }
+  catch (error) { throw new Error(`Error when parsing '${path}': ${legacyJsonError(content, error.message)}`); }
+}
+
+function cleanPathElement(pathElement = '') {
+  if (pathElement.startsWith('/')) pathElement = pathElement.slice(1);
+  if (pathElement.endsWith('/')) pathElement = pathElement.slice(0, -1);
+  return pathElement;
+}
+
 /**
- * @param {{ skillsBase?: string, resourcesDir?: string }} opts
- * @returns {Array<{id:string, onRobot:boolean, URL?:string, intents:Array}>}
+ * rootPath supports an unchanged Pegasus hub package: index files live in
+ * rootPath/resources/skills and manifest paths are relative to rootPath.
+ * Phoenix's bundled deployment keeps manifests beside its index instead.
+ * skillsBase is the explicit Phoenix single-service routing adapter; omitting
+ * it preserves each entry's baseURL/basePath/v1/main exactly as Pegasus does.
  */
-export function loadRegistry({ skillsBase = '', resourcesDir = DEFAULT_RES } = {}) {
-  const base = skillsBase.replace(/\/$/, '');
-  // Reference: ETCO_hub_skillsConfig selects the registry index (skills-local.json in compose).
-  const indexFile = process.env.ETCO_hub_skillsConfig || 'skills-local.json';
-  const index = JSON.parse(readFileSync(join(resourcesDir, indexFile), 'utf8'));
-  const out = [];
-  for (const entry of index.skills || []) {
-    let manifest;
-    try {
-      manifest = JSON.parse(readFileSync(join(resourcesDir, entry.configPath), 'utf8'));
-    } catch {
-      continue; // skip manifests we couldn't read
-    }
-    const onRobot = !!manifest.onRobot || !entry.baseURL;
-    const cfg = { id: manifest.id, onRobot, intents: manifest.intents || [] };
-    if (manifest.proactives) cfg.proactives = manifest.proactives;
-    if (manifest.IHQueries) cfg.IHQueries = manifest.IHQueries;
-    if (!onRobot) {
-      // Cloud skills are hosted by the Phoenix skills service, each at /v1/<id>/main.
-      const host = base || (entry.baseURL || '').replace(/\/$/, '');
-      cfg.URL = `${host}/v1/${manifest.id}/main`;
-    }
-    out.push(cfg);
-  }
-  return out;
+export async function loadRegistry({ skillsBase = '', rootPath, resourcesDir, env = process.env, indexFile = env.ETCO_hub_skillsConfig || 'skills-local.json' } = {}) {
+  const indexDir = resourcesDir || (rootPath ? join(rootPath, 'resources', 'skills') : DEFAULT_RES);
+  const manifestRoot = rootPath || indexDir;
+  const index = await readJSON(join(indexDir, indexFile));
+  validateSkillsIndex(index);
+  try {
+    const skills = await Promise.all(index.skills.map(async entry => {
+      const config = await readJSON(join(manifestRoot, entry.configPath));
+      config.URL = entry.baseURL
+        ? [cleanPathElement(entry.baseURL), cleanPathElement(config.basePath), 'v1', 'main'].filter(Boolean).join('/')
+        : '';
+      if (skillsBase && entry.baseURL) config.URL = `${skillsBase.replace(/\/$/, '')}/v1/${config.id}/main`;
+      return config;
+    }));
+    return deepFreeze(skills);
+  } catch (error) { throw legacyConfigError(error); }
 }

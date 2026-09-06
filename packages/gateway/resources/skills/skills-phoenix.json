@@ -1,12 +1,8 @@
 {
     "skills": [
         {
-            "baseURL": "http://docker.for.mac.localhost:9002",
-            "configPath": "external-skills/answer_manifest.json"
-        },
-        {
-            "baseURL": "http://docker.for.mac.localhost:9002",
-            "configPath": "external-skills/news_manifest.json"
+            "baseURL": "http://answer-skill:8080",
+            "configPath": "pegasus-skills/answer_skill_manifest.json"
         },
         {
             "baseURL": "http://report-skill:8080",
@@ -15,6 +11,10 @@
         {
             "baseURL": "http://chitchat-skill:8080",
             "configPath": "pegasus-skills/chitchat_skill_manifest.json"
+        },
+        {
+            "baseURL": "http://color-skill:8080",
+            "configPath": "pegasus-skills/color_skill_manifest.json"
         },
         {
             "configPath": "be-skills/circuit_saver_manifest.json"
@@ -72,5 +72,6 @@
         "hub": "is on port 9000",
         "history_service": "is on port 9006",
         "lasso": "is on port 9007"
-    }
+    },
+    "_comment_2026": "Removed external GQA answer + AP-news skill entries (originally docker.for.mac.localhost:9002, hosted services not in this monorepo)."
 }

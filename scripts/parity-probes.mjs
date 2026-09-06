@@ -48,7 +48,7 @@ try {
     { unknownRule: await parse('tell me a joke', ['audit/nonexistent']), launchRule: await parse('tell me a joke', ['launch']) },
     'pegasus/packages/parser/src/robustparser/RobustParserClient.ts: handleNLU filters request.rules');
 
-  gateway = createGateway({ skills: [{ id: 'audit-skill', onRobot: true, intents: [], settings: { audit: true } }],
+  gateway = await createGateway({ skills: [{ id: 'audit-skill', URL: '', onRobot: true, intents: [], settings: { view: { type: 'group', index: 0 }, audit: true } }],
     disableAuth: true, parserURL: 'http://127.0.0.1:1', historyURL: 'http://127.0.0.1:1', recordLaunchHistory: false });
   const hub = await gateway.service.listen(0); servers.push(hub);
   const lists = {};

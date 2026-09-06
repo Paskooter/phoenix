@@ -7,6 +7,7 @@
 
 import { message, SkillRequestType, ResponseType } from '@phoenix/contracts';
 import { writeTrace } from '@phoenix/common';
+import { deepFreeze, legacyConfigError, validateSkillConfig } from './skillConfigValidation.js';
 
 export const SkillRequestError = Object.freeze({
   SKILL_NOT_FOUND: 'SKILL_NOT_FOUND',
@@ -14,11 +15,27 @@ export const SkillRequestError = Object.freeze({
 });
 
 export class SkillConfigManager {
-  constructor(skillConfigs) {
+  constructor(configs) {
     this.configs = new Map();
-    for (const c of skillConfigs) this.configs.set(c.id.toLowerCase(), c);
+    try { configs.forEach(entry => this.addSkillConfig(entry)); }
+    catch (error) { throw legacyConfigError(error); }
   }
-  get(id) { return this.configs.get(String(id).toLowerCase()); }
+  addSkillConfig(entry) {
+    try {
+      const config = deepFreeze(entry);
+      validateSkillConfig(config);
+      this.configs.set(config.id.toLowerCase(), config);
+    } catch (error) { throw legacyConfigError(error); }
+  }
+  getSkillConfig(id) {
+    try { return this.configs.get(id.toLowerCase()); }
+    catch (error) { throw legacyConfigError(error); }
+  }
+  getSkillConfigs() { return Array.from(this.configs.values()); }
+  getProactiveSkillConfigs() {
+    return this.getSkillConfigs().filter(config => !!config.proactives).map(config => ({ skillID: config.id, proactives: config.proactives, IHQueries: config.IHQueries }));
+  }
+  get(id) { return this.getSkillConfig(id); }
   isOnRobotSkill(id) { const c = this.get(id); return !!(c && c.onRobot); }
 }
 

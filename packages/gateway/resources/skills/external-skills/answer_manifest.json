@@ -1,0 +1,168 @@
+{
+    "id": "answer",
+    "basePath": "/answer_skill",
+    "intents": [
+        {
+            "name": "doesJiboKnowPersonThing",
+            "memo": {
+                "type": "generic"
+            }
+        },
+        {
+            "name": "gqa",
+            "memo": {
+                "type": "generic"
+            }
+        },
+        {
+            "name": "generalHowQuestions",
+            "memo": {
+                "type": "how"
+            }
+        },
+        {
+            "name": "generalQuestions",
+            "memo": {
+                "type": "generic"
+            }
+        },
+        {
+            "name": "generalWhatQuestions",
+            "memo": {
+                "type": "what"
+            }
+        },
+        {
+            "name": "generalWhenQuestions",
+            "memo": {
+                "type": "when"
+            }
+        },
+        {
+            "name": "generalWhereQuestions",
+            "memo": {
+                "type": "where"
+            }
+        },
+        {
+            "name": "generalWhoQuestions",
+            "memo": {
+                "type": "who"
+            }
+        },
+        {
+            "name": "generalWhyQuestions",
+            "memo": {
+                "type": "why"
+            }
+        },
+        {
+            "name": "requestTellAboutThing",
+            "memo": {
+                "type": "generic"
+            }
+        },
+        {
+            "name": "requestWeather",
+            "memo": {
+                "type": "generic"
+            }
+        },
+        {
+            "name": "howDescriptorIsUnknown",
+            "memo": {
+                "type": "how"
+            }
+        },
+        {
+            "name": "howDescriptorIsPerson",
+            "memo": {
+                "type": "how"
+            }
+        },
+        {
+            "name": "isUnknownDescriptor",
+            "memo": {
+                "type": "generic"
+            }
+        },
+        {
+            "name": "whyIsUnknownDescriptor",
+            "memo": {
+                "type": "why"
+            }
+        },
+        {
+            "name": "whenIsBirthday",
+            "memo": {
+                "type": "when"
+            }
+        },
+        {
+            "name": "whoIsPerson",
+            "entities": [
+                {
+                  "name": "given-name",
+                  "value": "*"
+                }
+            ],
+            "memo": {
+                "type": "who"
+            }
+        },
+        {
+            "name": "whoIsPerson",
+            "entities": [
+                {
+                  "name": "last-name",
+                  "value": "*"
+                }
+            ],
+            "memo": {
+                "type": "who"
+            }
+        },
+        {
+            "name": "whoIsPerson",
+            "memo": {
+                "type": "who"
+            }
+        },
+        {
+            "name": "whereIsPerson",
+            "memo": {
+                "type": "where"
+            }
+        },
+        {
+            "name": "whereIsPerson",
+            "entities": [
+                {
+                  "name": "given-name",
+                  "value": "*"
+                }
+            ],
+            "memo": {
+                "type": "where"
+            }
+        },
+        {
+            "name": "whereIsPerson",
+            "entities": [
+                {
+                  "name": "last-name",
+                  "value": "*"
+                }
+            ],
+            "memo": {
+                "type": "where"
+            }
+        },
+        {
+            "name": "whereIsThing",
+            "memo": {
+                "type": "where"
+            }
+        }
+    ]
+}

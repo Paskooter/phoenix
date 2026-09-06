@@ -28,9 +28,9 @@ export function buildComponents(config) {
   const skillConfigManager = new SkillConfigManager(config.skills);
   return {
     config,
-    skills: config.skills, // raw registry (carries proactives/IHQueries)
+    skills: skillConfigManager.getSkillConfigs(),
     parser: new ParserClient(config.parserURL),
-    intentRouter: new IntentRouter(config.skills),
+    intentRouter: new IntentRouter(skillConfigManager.getSkillConfigs()),
     skillConfigManager,
     skillClient: new SkillClient(skillConfigManager),
     historyClient: new HistoryClient(config.historyURL),
@@ -74,13 +74,22 @@ export async function verifyAgainstAccount(auth, accountUrl, log) {
 }
 
 /** Create (but do not start) the gateway. Returns { service, wss, components }. */
-export function createGateway(config = loadConfig()) {
+export async function createGateway(config = loadConfig()) {
+  config = await config;
   const log = logger('gateway');
   const components = buildComponents(config);
+  const settingsSkills = config.skills.filter(skill => !!skill.settings);
+  const listSkills = () => ({ skills: config.skills });
+  const listSettingsSkills = () => ({ skills: settingsSkills });
 
   const service = createService({
     name: 'gateway',
     routes: {
+      'GET /skills/:robotId': listSkills,
+      'GET /skills/settings/:robotId': listSettingsSkills,
+      'GET /v1/skills/:robotId': listSkills,
+      'GET /v1/skills/settings/:robotId': listSettingsSkills,
+      // Phoenix's no-ID discovery aliases are deployment extensions.
       'GET /v1/skills': () => ({ skills: config.skills.map((s) => ({ id: s.id, intents: s.intents })) }),
       'GET /skills': () => ({ skills: config.skills.map((s) => ({ id: s.id, intents: s.intents })) }),
     },
@@ -142,7 +151,7 @@ export function createGateway(config = loadConfig()) {
 }
 
 export async function start(port = Number(process.env.PORT) || DefaultPort.gateway, config = loadConfig()) {
-  const gw = createGateway(config);
+  const gw = await createGateway(config);
   await gw.service.listen(port);
   return gw;
 }

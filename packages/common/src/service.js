@@ -199,7 +199,7 @@ function errorMessage(error, req) {
   return message;
 }
 
-function legacyJsonError(raw, message) {
+export function legacyJsonError(raw, message) {
   if (message === 'Unexpected end of JSON input') return message;
 
   // Node 8 reported the offending token and UTF-16 position. Newer V8 releases

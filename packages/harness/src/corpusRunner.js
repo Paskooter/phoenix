@@ -35,7 +35,7 @@ const OUT = arg('out', '/tmp/phx-corpus-report.json');
 export async function runCorpus({ limit = LIMIT, offset = OFFSET, log = console.error } = {}) {
   const tests = JSON.parse(readFileSync(MANIFEST, 'utf8')).tests;
   const slice = tests.slice(offset, limit ? offset + limit : undefined);
-  const registry = loadRegistry({});       // returns the skill-config array directly
+  const registry = await loadRegistry({});
   const router = new IntentRouter(registry);
 
   const stats = { entries: 0, utterances: 0, d3Intent: 0, d4Mim: 0, noMatchOk: 0, noMatchTotal: 0 };

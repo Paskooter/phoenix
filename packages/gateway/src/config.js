@@ -1,69 +1,45 @@
 // Gateway configuration + skill registry.
 //
 // Mirrors HubConfig (HubConfigProvider.ts) and SkillConfigManager (config/SkillConfigManager.ts).
-// Peers are discovered via NET_<svc> (defaulting to local dev ports so the gateway boots
-// standalone); the skill registry maps intents -> skill URLs the IR routes to.
+// Source NET_<svc> values are authorities prefixed with http://. Phoenix URL
+// aliases and the shared skill host remain explicit deployment adapters.
 
-import { net, etco, boolEnv } from '@phoenix/common';
-import { DefaultPort } from '@phoenix/contracts';
 import { loadRegistry } from './registry.js';
 
 /**
  * Build the gateway runtime config from the environment.
  * @param {NodeJS.ProcessEnv} [env]
  */
-export function loadConfig(env = process.env) {
-  // NET_skills (single-host dev mode) overrides every cloud skill's baseURL. When a registry
-  // index is selected explicitly (ETCO_hub_skillsConfig — the compose contract), default to the
-  // per-skill baseURLs from that index instead, like the reference hub.
-  const skillsBase = (env.ETCO_hub_skillsConfig && !env.NET_skills)
-    ? '' // per-skill baseURLs from the selected registry index
-    : net('skills', { required: false, default: env.ETCO_hub_skillsUrl || `localhost:${DefaultPort.skills}` });
-  let skills;
-  try {
-    skills = loadRegistry({ skillsBase }); // full vendored registry (be-skills + cloud)
-    if (!skills.length) throw new Error('empty registry');
-  } catch {
-    skills = defaultSkillRegistry(skillsBase); // fallback: answer-skill only
-  }
+export async function loadConfig(env = process.env, registryOptions = {}) {
+  // Resolve the supplied environment consistently; reading process.env here
+  // used to make embedded callers silently select a different registry/peer.
+  const peer = (name, fallback) => {
+    const value = env[`NET_${name}`] || fallback;
+    return /^https?:\/\//.test(value) ? value : `http://${value}`;
+  };
+  const sourcePeer = (name, fallback, alias) => env[`NET_${name}`]
+    ? `http://${env[`NET_${name}`]}`
+    : alias && env[alias] ? peer(name, env[alias]) : `http://${fallback}`;
+  // A shared Phoenix skill host is an explicit deployment adapter. Without
+  // that override, use the original index and each entry's complete URL.
+  const skillsBase = (env.NET_skills || env.ETCO_hub_skillsUrl)
+    ? peer('skills', env.ETCO_hub_skillsUrl)
+    : '';
+  const indexFile = env.ETCO_hub_skillsConfig || (skillsBase ? 'skills-phoenix.json' : 'skills-local.json');
+  const skills = await loadRegistry({ ...registryOptions, skillsBase, env, indexFile });
   return {
     hubTokenSecret: env.ETCO_server_hubTokenSecret || '',
-    disableAuth: boolEnv(env.ETCO_hub_disableAuth, false),
+    disableAuth: env.ETCO_hub_disableAuth === 'true',
     // Optional per-robot validation: after the JWT signature checks out, confirm the token's
     // accessKeyId claim still maps to a live account (account service GET /api/verify). Unset
     // (the default) = shared-secret-only, i.e. any validly-signed token is accepted.
     accountUrl: (env.ETCO_hub_accountUrl || '').replace(/\/$/, ''),
-    asrProvider: etco('server', 'asrProvider', 'none'), // 'none' until M8; 'parakeet' later
-    parserURL: net('parser', { required: false, default: env.ETCO_hub_parserUrl || `localhost:${DefaultPort.nlu}` }),
-    historyURL: net('history', { required: false, default: env.ETCO_hub_historyUrl || `localhost:${DefaultPort.history}` }),
-    recordLaunchHistory: boolEnv(env.ETCO_hub_recordLaunchHistory, false),
+    asrProvider: env.ETCO_server_asrProvider || 'none',
+    parserURL: sourcePeer('parser', 'docker.for.mac.localhost:9005', 'ETCO_hub_parserUrl'),
+    historyURL: sourcePeer('history', 'docker.for.mac.localhost:9006', 'ETCO_hub_historyUrl'),
+    settingsURL: sourcePeer('settings', 'settings.jibo.aws'),
+    recordSpeechHistory: env.ETCO_hub_recordSpeechHistory === 'true',
+    recordLaunchHistory: (env.ETCO_hub_recordLaunchHistory || 'true') === 'true',
     skills,
   };
-}
-
-// Default skill registry. The answer-skill intents are copied verbatim from the reference
-// manifest (hub/pegasus-skills/answer_skill_manifest.json); URL = baseURL + /v1/main
-// (SkillUtils.preprocessManifest). On-robot skills carry onRobot:true and no URL.
-function defaultSkillRegistry(skillsBase) {
-  const base = skillsBase.replace(/\/$/, '');
-  return [
-    {
-      id: 'answer-skill',
-      URL: `${base}/v1/main`,
-      onRobot: false,
-      intents: [
-        { name: 'doesJiboKnowPersonThing', memo: { type: 'generic' } },
-        { name: 'gqa', memo: { type: 'generic' } },
-        { name: 'generalHowQuestions', memo: { type: 'how' } },
-        { name: 'generalQuestions', memo: { type: 'generic' } },
-        { name: 'generalWhatQuestions', memo: { type: 'what' } },
-        { name: 'generalWhenQuestions', memo: { type: 'when' } },
-        { name: 'generalWhereQuestions', memo: { type: 'where' } },
-        { name: 'generalWhoQuestions', memo: { type: 'who' } },
-        { name: 'generalWhyQuestions', memo: { type: 'why' } },
-        { name: 'requestTellAboutThing', memo: { type: 'generic' } },
-        { name: 'answerQuestion', memo: { type: 'generic' } },
-      ],
-    },
-  ];
 }

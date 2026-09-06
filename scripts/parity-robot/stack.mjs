@@ -80,7 +80,7 @@ try {
   services.push(await history.start(base + 6));
   services.push(await data.start(base + 7));
   services.push(await skills.start(base + 3));
-  const config = loadConfig();
+  const config = await loadConfig();
   // Initial transport-only profile, explicitly not authentication acceptance.
   config.disableAuth = process.env.PHOENIX_ROBOT_AUTH !== 'true';
   const gw = await gateway.start(base, config);

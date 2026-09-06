@@ -26,7 +26,7 @@ function gatewayConfig(overrides = {}) {
 }
 
 async function withGateway(config, callback) {
-  const gateway = createGateway(config);
+  const gateway = await createGateway(config);
   await gateway.service.listen(0);
   const port = gateway.service.server.address().port;
   try {

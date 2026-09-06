@@ -1,0 +1,5 @@
+{
+    "id": "news",
+    "basePath": "/news_skill",
+    "intents": []
+}

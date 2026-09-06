@@ -22,7 +22,7 @@ await driver.run({
     // Phoenix currently has no equivalent. Do not add authentication in this
     // adapter and accidentally hide that missing production behavior.
     const base = createService({ name: 'fixture', routes });
-    const hub = createGateway({ disableAuth: false, hubTokenSecret: config.secret, accountUrl: '', skills: config.skills,
+    const hub = await createGateway({ disableAuth: false, hubTokenSecret: config.secret, accountUrl: '', skills: config.skills,
       parserURL: config.peerURL, historyURL: config.peerURL, recordLaunchHistory: true });
     await base.listen(0); await hub.service.listen(0);
     return { basePort: base.server.address().port, hubPort: hub.service.server.address().port,
