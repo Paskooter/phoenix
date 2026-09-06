@@ -133,11 +133,16 @@ review:
   that nonterminating observation separately rather than weakening the
   comparator.
 
-The follow-up focused suite passes 8/8 locally, including the delayed-body,
+The follow-up focused suite passes 10/10 locally, including the delayed-body,
 header-mutation, assertion-name, shadowing-property, timeout-string, and finite
-`maxredirects="0"` controls. The prior 24/24 comparison remains a preserved
-record; its comparator did not include `error.name` and therefore did not prove
-that field.
+`maxredirects="0"` controls. A fresh full-field source/candidate capture of six
+boundary rows passes 6/6 after normalizing only the ephemeral loopback Host
+port; the finite string-zero 302-to-200 row passes 1/1. A separate bounded
+500ms loop control leaves both runtimes unsettled while recording repeated 302
+responses (source 1,072 requests; candidate 939), so it is retained as an
+explicit nontermination observation rather than folded into the finite result.
+The prior 24/24 comparison remains a preserved record; its comparator did not
+include `error.name` and therefore did not prove that field.
 
 Remaining scope is live Lasso deployment, Mongo persistence, provider-side
 credential validation, TLS/registry configuration, and OAuth authorization or
