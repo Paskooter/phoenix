@@ -1,16 +1,16 @@
 # S-08 candidate: Personal Report results analytics
 
-Status: **bounded candidate; unverified pending root review**
+Status: **integration candidate; unverified pending root review**
 
 Owner: Luna Max
-Base: `7ae5fbc7793c88113fc41b7bd3fcb17bfef9081d`
+Base: `26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3`
 Reference revision: `5c0a7390539663ba749d360de348a428c088505c`
 Audit date: 2026-09-06
 
 ## Observed difference
 
-The strict production comparison at
-`.parity/reviews/n08-integration-root/production/comparison.json` records nine
+The reviewed root production comparison at
+`.parity/reviews/service-wave-root/production/comparison.json` records nine
 repeated Report analytics differences. Phoenix emitted four boolean category
 properties (`weather`, `calendar`, `commute`, and `news`) while the original
 emitted the three source properties `details`, `service_details`, and
@@ -52,25 +52,41 @@ node packages/skills/tools/s08-report-analytics-source-differential.mjs \
 ```
 
 The source path and SHA are recorded in the generated output and the private
-review evidence under `.parity/reviews/s08-report-analytics-20260906/`.
+review evidence under
+`.parity/reviews/s08-report-analytics-integration-20260906/`.
 
-The isolated production run reused the hash-pinned 43-case golden and the
-compiled-FST profile. Its exact capture is in
-`production-after/` under that private directory. The baseline comparison
-had 488 differences, including 63 report analytics differences. After this
-change the candidate had 423 total differences, zero report analytics
-differences, zero invariants, and zero coverage gaps. The complete 11
-source/candidate Report analytics records were byte/key-order equal; the
-remaining differences are shared response/header framing, session, provider
-requests, skill-request, and other runtime fields outside this candidate.
+The fresh integration capture reused the hash-pinned 43-case golden and the
+compiled-FST profile from
+`.parity/reviews/service-wave-root/verify.py`:
+
+```text
+PHOENIX_NLU_COMPILED_FST_SHA256=2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a
+```
+
+The exact capture is in `production/` under the private integration evidence.
+Root's reviewed comparison had 440 differences, including 63 Report
+analytics differences. The integration candidate has 375 differences, zero
+Report analytics differences, zero invariants, and zero coverage gaps. All
+375 remaining difference paths are shared with root; 65 root paths disappear
+(63 analytics properties and two response content-length paths), with no new
+paths. Of the shared records, 368 are byte-identical and seven content-length
+records change because the corrected analytics object has a different size.
+The complete 11 source/candidate Report analytics records are byte/key-order
+equal. Full path and record details are in
+`comparison-diff-report.json` in the private evidence.
+
+The integration workspace fingerprint is stable before and after capture;
+all `@phoenix/*` links resolve inside this worktree. The compiled profile,
+source tree hash, commands, and exit statuses are recorded in `run.json`,
+`workspace-before.json`, and `workspace-after.json`.
 
 ## Validation and limits
 
 Focused builder tests cover full-report success/failure, single-category
 selection, configured state, an empty selection, and one real report graph
-response through the local Lasso peer. The full isolated unit run completed
-with 487 tests, 484 passing, zero failures, and three skips; the focused S-08
-file has four passing tests.
+response through the local Lasso peer. The integration worktree's complete
+skills suite passed 116/116 tests with zero skips or failures; the focused
+S-08 file has four passing tests.
 The source differential is a builder control, not a complete original service
 execution. Provider HTTP behavior, Settings/Lasso deployment, report
 views/news payloads, graph session differences, and the remaining strict
