@@ -71,8 +71,8 @@ export class SkillFacade {
  *   build(gm, skill) registers nodes/sub-graphs and returns the initial node OR a finalized Graph.
  * @returns {(request:object)=>Promise<object>} a skill handler for createSkillsService
  */
-export function createGraphSkill({ name, build }) {
-  const gm = new GraphManager();
+export function createGraphSkill({ name, build, graphManager }) {
+  const gm = graphManager || new GraphManager();
   const facade = new SkillFacade(name);
   const initial = build(gm, facade);
 

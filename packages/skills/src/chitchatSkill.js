@@ -13,6 +13,7 @@
 
 import { join } from 'node:path';
 import { createGraphSkill } from './graph/graphSkill.js';
+import { sharedGraphManager } from './graph/graphManager.js';
 import { Graph } from './graph/graph.js';
 import { NoOpNode, DefaultNode, DefaultTransition } from './graph/nodes.js';
 import { ANFactory, ANFactoryTransition } from './graph/mims/factories.js';
@@ -142,9 +143,10 @@ class ProcessQueryNode extends NoOpNode {
 const SkillTransition = Object.freeze({ Done: 'Done' });
 
 /** Build a chitchat handler; rng is injectable for deterministic tests. */
-export function createChitchatSkill({ rng = Math.random } = {}) {
+export function createChitchatSkill({ rng = Math.random, graphManager } = {}) {
   return createGraphSkill({
     name: 'chitchat-skill',
+    graphManager,
     build: (gm, facade) => {
       const g = new Graph(gm, 'Chitchat Skill', Object.values(SkillTransition));
 
@@ -177,7 +179,7 @@ export function createChitchatSkill({ rng = Math.random } = {}) {
   });
 }
 
-export const chitchatSkill = createChitchatSkill();
+export const chitchatSkill = createChitchatSkill({ graphManager: sharedGraphManager });
 
 /**
  * Reference ProcessQueryNode.resolveSemiSpecificMim: pick the semi-specific

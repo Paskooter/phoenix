@@ -10,8 +10,8 @@ import { basename } from 'node:path';
 import { createSkillsService, createSkillService } from './skillService.js';
 import minimist from './vendor/minimist.cjs';
 import { answerSkill } from './answerSkill.js';
-import { reportSkill } from './reportSkill.js';
 import { chitchatSkill } from './chitchatSkill.js';
+import { reportSkill } from './reportSkill.js';
 import { colorSkill } from './colorSkill.js';
 import { exampleSkill } from './exampleSkill.js';
 import { templateSkill } from './templateSkill.js';
@@ -38,8 +38,8 @@ export { templateSkill } from './templateSkill.js';
 
 export const SKILLS = [
   { id: 'answer-skill', handler: answerSkill },
-  { id: 'report-skill', handler: reportSkill },
   { id: 'chitchat-skill', handler: chitchatSkill },
+  { id: 'report-skill', handler: reportSkill },
   { id: 'color-skill', handler: colorSkill },
   { id: 'example-skill', handler: exampleSkill },
   { id: 'template-skill', handler: templateSkill },

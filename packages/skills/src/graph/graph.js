@@ -3,8 +3,9 @@
 // every declared transition either to another Node or to one of the graph's named exit
 // transitions; addSubGraph splices a finalized child graph in by connecting ITS exit transitions
 // to parent nodes. finalize() validates: every dangling transition has an exit, every node is
-// reachable, every exit transition is connected. Unlike the reference (process-singleton
-// GraphManager) the owning GraphManager is passed in — Phoenix hosts many skills per process.
+// reachable, every exit transition is connected. The owning GraphManager is
+// passed in so a host can select source-compatible shared allocation or an
+// isolated deployment scope.
 
 export class TransitionContainer {
   constructor(transition, destination = null, exitTransition = null) {

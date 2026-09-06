@@ -1,7 +1,8 @@
-// GraphManager — port of baseskill/graph/GraphManager.ts, but PER GraphSkill INSTANCE rather
-// than a process singleton (the reference runs one skill per process; Phoenix hosts many in one
-// process, so each skill owns its own node-ID space). Node IDs are global+sequential within a
-// skill and are the wire format of session.nodeID.
+// GraphManager — port of baseskill/graph/GraphManager.ts. A manager owns the
+// node-ID space used by a graph host; source-compatible co-hosted skills share
+// one manager, while independently deployed/custom skills may create a local
+// manager. Node IDs are sequential within that host and are the wire format of
+// session.nodeID.
 
 import { newMsgId } from '@phoenix/contracts';
 
@@ -67,3 +68,10 @@ export class GraphManager {
     return this.enterNode(data);
   }
 }
+
+// The original Pegasus host keeps one GraphManager for every co-hosted cloud
+// skill process. Built-in skills that share a Phoenix process opt into this
+// instance explicitly; createGraphSkill callers keep the isolated manager
+// default so direct skill tests and separately deployed skills do not inherit
+// another process's graph IDs.
+export const sharedGraphManager = new GraphManager();

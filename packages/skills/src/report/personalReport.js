@@ -10,6 +10,7 @@
 // final:true.
 
 import { createGraphSkill } from '../graph/graphSkill.js';
+import { sharedGraphManager } from '../graph/graphManager.js';
 import { Graph } from '../graph/graph.js';
 import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { MANFactory, MANFactoryTransition } from '../graph/mims/factories.js';
@@ -142,4 +143,4 @@ function buildPersonalReport(gm, facade) {
   return g;
 }
 
-export const reportSkill = createGraphSkill({ name: 'report-skill', build: buildPersonalReport });
+export const reportSkill = createGraphSkill({ name: 'report-skill', graphManager: sharedGraphManager, build: buildPersonalReport });
