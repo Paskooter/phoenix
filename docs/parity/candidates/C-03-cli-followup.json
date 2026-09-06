@@ -1,0 +1,133 @@
+{
+  "status": "bounded-cli-followup-unverified",
+  "task": "C-03",
+  "base": "082d58651315a285b966399b7b227916d529975f",
+  "branch": "codex/candidate-c03-cli-followup-20260906",
+  "worktree": ".parity/worktrees/c03-cli-followup",
+  "scope": [
+    "packages/skills/src/index.js",
+    "packages/skills/test/reportConfig.test.js",
+    "packages/skills/tools/c03-cli-exec-probe.cjs",
+    "docs/parity/candidates/C-03-cli-followup.md",
+    "docs/parity/candidates/C-03-cli-followup.json"
+  ],
+  "implementation": {
+    "wrapper": "runService mirrors the source common runner's missing/rejected/synchronous startup error path and schedules exit(1) after 5000 ms.",
+    "entrypoint": "The executable help and startup branches use runService; report-skill selects the source PersonalReportSkill namespace through PHOENIX_SKILL_ID.",
+    "usage": "serviceHelp continues to derive the basename from the invoked program path.",
+    "unchanged": [
+      "start()",
+      "parseServiceArgs()",
+      "parseServicePort()",
+      "programmatic service defaults"
+    ],
+    "shutdownMs": 5000
+  },
+  "source": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "entrypoint": {
+      "path": ".parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/scripts/run-service.js",
+      "sha256": "14a9c8d3c0321341e4e0294e716b53d7ff309b82ec428b87d164cc70180ee2c2"
+    },
+    "commonRunner": {
+      "path": ".parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/utils/common/run-service.js",
+      "sha256": "8910c26fc57f4c9a241c68f05c09f083470551e09f6d7dc8b2660759e36ddac1"
+    },
+    "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "nodeExecutable": {
+      "path": ".parity/reviews/n08-original-multirule-20260906/perf-diagnosis/node-v8.9.4-extracted",
+      "sha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d",
+      "version": "v8.9.4",
+      "execution": "host process; bytes match the pinned Node 8 evidence, not Docker execution"
+    },
+    "observedContract": [
+      "The report entrypoint prints help and returns undefined.",
+      "The common runner logs the missing Promise error and exits with status 1 after a 5000 ms timer.",
+      "The common runner calls init-newrelic before the starter; source setup and logger output are retained as an explicit boundary.",
+      "parseInt(argv.p || argv.port || ETCO_server_port || '8080') passes NaN to the source service for --port notaport; the rejected listen promise reaches the same delayed error path."
+    ]
+  },
+  "processEvidence": {
+    "comparison": {
+      "path": ".parity/reviews/c03-cli-followup-082d586-20260906/cli-process-comparison.json",
+      "sha256": "ca5382dd189a8a935dc51cf0b74a7e003de12b5ff007c4893f91154c9f9748a1"
+    },
+    "help": {
+      "source": {
+        "path": ".parity/reviews/c03-cli-followup-082d586-20260906/source-node8-help.json",
+        "sha256": "a08ee751356fcf474c1afa5d0b0957db15a0c7a312e7eccee6ae3db466b3fc28",
+        "status": 1,
+        "elapsedMs": 7579.789816,
+        "timedOut": false
+      },
+      "candidate": {
+        "path": ".parity/reviews/c03-cli-followup-082d586-20260906/candidate-node22-help.json",
+        "sha256": "65cf73d4ab920265e95d11908868e1f73740717a7d463ecc34c40a039abf8eeb",
+        "status": 1,
+        "elapsedMs": 5138.84064,
+        "timedOut": false
+      },
+      "statusEqual": true,
+      "errorLineEqual": true,
+      "differences": [
+        "Source output includes the Jibo local logging-config line and NewRelic warning; the candidate deliberately does not reproduce those setup paths.",
+        "Source usage is run-service.js and candidate usage is index.js because each derives its actual invoked basename."
+      ]
+    },
+    "invalidPort": {
+      "source": {
+        "path": ".parity/reviews/c03-cli-followup-082d586-20260906/source-node8-invalid-port.json",
+        "sha256": "3f160c6c9c56a07718f947d201f2cdbcac9a1053d1645a351912ed2f58701b97",
+        "status": 1,
+        "elapsedMs": 5315.237079,
+        "timedOut": false
+      },
+      "candidate": {
+        "path": ".parity/reviews/c03-cli-followup-082d586-20260906/candidate-node22-invalid-port.json",
+        "sha256": "909a4953bbddf54a9c479ab3f5ed7e24bebce14f2959fe3538ae85577f8cc7d8",
+        "status": 1,
+        "elapsedMs": 5129.225202,
+        "timedOut": false
+      },
+      "statusEqual": true,
+      "errorTextEqual": false,
+      "differences": [
+        "Source Node 8 emits RangeError: port argument must be >= 0 and < 65536 with the source stack.",
+        "Candidate Node 22 emits its current net validation wording for NaN; this remains a runtime/error-wire difference."
+      ]
+    }
+  },
+  "validation": {
+    "focusedReportConfig": {
+      "command": "node --test packages/skills/test/reportConfig.test.js",
+      "passed": 10,
+      "failed": 0,
+      "log": ".parity/reviews/c03-cli-followup-082d586-20260906/focused-test.log",
+      "sha256": "66adf9fd8b5b72a12073f1c17742b00a9deddb4c0ce6d2b5b04a8d7e11c94e51"
+    },
+    "repositoryUnit": {
+      "command": "npm run test:unit",
+      "passed": 430,
+      "failed": 0,
+      "log": ".parity/reviews/c03-cli-followup-082d586-20260906/repository-unit.log",
+      "sha256": "513b26bb229b50aa468d22079812a75d4627618c3ccf881b8a637d35d5a62184"
+    },
+    "syntax": [
+      "git diff --check",
+      "node --check packages/skills/src/index.js",
+      "node --check packages/skills/tools/c03-cli-exec-probe.cjs"
+    ],
+    "workspaceResolution": {
+      "path": ".parity/reviews/c03-cli-followup-082d586-20260906/workspace-resolution.json",
+      "workspaceLinksInsideWorktree": true,
+      "setup": "Copied node_modules from the frozen 082d586 candidate after its successful offline install; @phoenix/common and @phoenix/skills resolve to this worktree. No shared lockfile was changed."
+    }
+  },
+  "limits": [
+    "This is a candidate, not root-accepted C-03 parity.",
+    "The candidate does not reproduce source init-newrelic, Jibo local logging-config writes, or source warning output; those setup differences remain explicit.",
+    "Invalid-port status and the delayed error path match, but Node 8 versus Node 22 error text/stack does not; no invented normalization was added.",
+    "The earlier Docker source attempts are retained as infrastructure-timeout receipts; process timing in this report comes from the cached host Node 8 executable and the candidate host probe, not Docker wall time.",
+    "No compose, live service, robot, main, tracker, or integration changes were made."
+  ]
+}

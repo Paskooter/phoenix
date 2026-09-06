@@ -4,7 +4,7 @@ import http from 'node:http';
 import { clearReportEnvCache, getReportEnv, reportLassoURL } from '../src/report/env.js';
 import { LassoClient } from '../src/report/lassoClient.js';
 import { SettingsClient } from '../src/report/settingsClient.js';
-import { parseServiceArgs, parseServicePort, serviceHelp, start } from '../src/index.js';
+import { parseServiceArgs, parseServicePort, runService, serviceHelp, start, RUN_SERVICE_SHUTDOWN_MS } from '../src/index.js';
 import { sourceJiboHeaders } from '../src/skillService.js';
 
 const ENV_KEYS = ['NET_lasso', 'NET_data', 'NET_settings', 'prefsFromConfig', 'ETCO_report_prefsFromConfig', 'PORT', 'ETCO_server_port'];
@@ -295,4 +295,38 @@ test('service CLI keeps generic pinned minimist behavior before port selection',
   assert.equal({}.polluted, undefined);
   assert.equal(serviceHelp('/opt/report-skill/run-service.js'),
     'Usage: run-service.js [options]\n  Options:\n  --port, -p: [default: 8080] Port of service');
+});
+
+test('executable service wrapper logs and delays a missing Promise without changing programmatic start', () => {
+  const errors = [];
+  const delays = [];
+  const exits = [];
+  runService('PersonalReportSkill', () => undefined, {
+    reportError: (error) => errors.push(error),
+    scheduleExit: (callback, delay) => { delays.push(delay); callback(); },
+    exit: (status) => exits.push(status),
+  });
+
+  assert.deepEqual(errors, ["Service didn't return promise"]);
+  assert.deepEqual(delays, [RUN_SERVICE_SHUTDOWN_MS]);
+  assert.deepEqual(exits, [1]);
+});
+
+test('executable service wrapper routes synchronous and rejected startup errors through the same shutdown', async () => {
+  const seen = [];
+  const options = {
+    reportError: (error) => seen.push(error),
+    scheduleExit: (callback, delay) => { seen.push(delay); callback(); },
+    exit: (status) => seen.push(status),
+  };
+  runService('Skills', () => { throw new Error('sync startup failure'); }, options);
+  runService('Skills', () => Promise.reject(new Error('async startup failure')), options);
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(seen[0].message, 'sync startup failure');
+  assert.equal(seen[1], RUN_SERVICE_SHUTDOWN_MS);
+  assert.equal(seen[2], 1);
+  assert.equal(seen[3].message, 'async startup failure');
+  assert.equal(seen[4], RUN_SERVICE_SHUTDOWN_MS);
+  assert.equal(seen[5], 1);
 });

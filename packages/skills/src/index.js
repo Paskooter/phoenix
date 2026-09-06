@@ -71,6 +71,43 @@ export function serviceHelp(program = 'run-service.js') {
   return `Usage: ${basename(program)} [options]\n  Options:\n  --port, -p: [default: 8080] Port of service`;
 }
 
+export const RUN_SERVICE_SHUTDOWN_MS = 5000;
+
+function serviceErrorMessage(error) {
+  if (typeof error === 'string') return error;
+  if (error && typeof error.message === 'string') return error.message;
+  return String(error);
+}
+
+/**
+ * Run the executable service through the source common-runner contract.
+ * Programmatic callers use start() directly; this wrapper is only for the
+ * process entrypoint, where a missing/rejected service promise must be logged
+ * and allowed to flush for the source five-second shutdown interval.
+ *
+ * Hooks keep the synchronous contract testable without sleeping or exiting the
+ * test process. They are not used by the executable path.
+ */
+export function runService(serviceName, serviceStarter, {
+  shutdownMs = RUN_SERVICE_SHUTDOWN_MS,
+  reportError = (error) => console.error(`[error] H.${serviceName}.RunService ${serviceErrorMessage(error)}`),
+  scheduleExit = (callback, delay) => setTimeout(callback, delay),
+  exit = (status) => process.exit(status),
+} = {}) {
+  const handleError = (error) => {
+    reportError(error);
+    scheduleExit(() => exit(1), shutdownMs);
+  };
+
+  try {
+    const promise = serviceStarter();
+    if (promise && typeof promise.catch === 'function') promise.catch(handleError);
+    else handleError("Service didn't return promise");
+  } catch (error) {
+    handleError(error);
+  }
+}
+
 export function start(port = defaultPort(), { skillId = process.env.PHOENIX_SKILL_ID } = {}) {
   if (skillId) {
     const selected = SKILLS.find((skill) => skill.id === skillId);
@@ -82,12 +119,13 @@ export function start(port = defaultPort(), { skillId = process.env.PHOENIX_SKIL
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const argv = parseServiceArgs();
+  const executableServiceName = process.env.PHOENIX_SKILL_ID === 'report-skill'
+    ? 'PersonalReportSkill'
+    : 'Skills';
   if (argv.h || argv.help) {
     console.log(serviceHelp(process.argv[1]));
-    // The historical common run-service wrapper treats a help return with no
-    // service promise as an error and exits 1 after printing the usage text.
-    process.exitCode = 1;
+    runService(executableServiceName, () => undefined);
   } else {
-    start(parseServicePort()).catch((e) => { console.error(e); process.exit(1); });
+    runService(executableServiceName, () => start(parseServicePort()));
   }
 }
