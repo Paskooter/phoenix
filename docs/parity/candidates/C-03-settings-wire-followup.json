@@ -1,9 +1,9 @@
 {
-  "status": "bounded-settings-wire-followup-unverified",
+  "status": "bounded-settings-transport-followup-unverified",
   "task": "C-03",
-  "base": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
-  "branch": "codex/candidate-c03-settings-wire-20260906",
-  "worktree": ".parity/worktrees/c03-settings-wire",
+  "base": "61f6b1c449d441e3d2abb5d3b0ef81c9ed428a59",
+  "branch": "codex/candidate-c03-settings-wire-followup-20260906",
+  "worktree": ".parity/worktrees/c03-settings-wire-followup",
   "scope": [
     "packages/skills/src/report/settingsClient.js",
     "packages/skills/test/reportConfig.test.js",
@@ -11,22 +11,22 @@
     "docs/parity/candidates/C-03-settings-wire-followup.json"
   ],
   "implementation": {
-    "change": "Replace the SettingsClient-only global fetch call with a private node:http/node:https POST helper.",
-    "sourceControlledHeaders": {
-      "Accept": "application/json, text/plain, */*",
-      "Content-Type": "application/json;charset=utf-8",
-      "User-Agent": "axios/0.17.1",
-      "Connection": "close",
-      "x-amz-credentials": "JSON object containing the account id",
-      "x-amz-target": "Settings_20160801.GetSettings",
-      "Content-Length": "UTF-8 byte length of the exact JSON body",
-      "Host": "target host"
+    "change": "Extend the SettingsClient-only node:http/node:https helper with pinned Axios 0.17.1 redirect, decompression, response-transform, rejection, and truncated-response behavior.",
+    "redirects": {
+      "maxRedirects": 21,
+      "301_302_303": "POST becomes GET; body, Content-Type, and Content-Length are removed; source-controlled credentials/target/Accept/User-Agent/Host/Connection remain.",
+      "307": "POST, body, entity headers, and source-controlled headers are preserved."
     },
-    "preserved": [
+    "response": {
+      "contentEncoding": ["gzip", "compress", "deflate"],
+      "jsonTransform": "JSON.parse when possible; malformed and empty strings remain strings, matching Axios 0.17.1.",
+      "non2xx": "Rejects with Request failed with status code N and response.status/headers/data fields.",
+      "truncated": "Resolves bytes received at the source Node 8 Axios response boundary."
+    },
+    "unchanged": [
+      "Settings-only source-controlled initial request headers and order",
       "NET_settings resolution and source URL construction",
-      "account/loop/transId validation",
-      "getView:false and skills:report-skill body fields",
-      "status rejection and decoded JSON return shape",
+      "account/loop/transId validation and GetSettings body fields",
       "all other Phoenix HTTP clients"
     ]
   },
@@ -34,66 +34,116 @@
     "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
     "referencePath": ".parity/reference/5c0a7390539663ba749d360de348a428c088505c",
     "settingsClientSha256": "bb2387cc3324347b9cce204279c20478271abc88295eb3a882b2ca867e8efbfb",
+    "axiosPackageJsonSha256": "c4da53715686c72861c8876808bb4c3832a93e39eb260b609ea4a0be567ba1e0",
     "axiosVersion": "0.17.1",
     "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
     "nodeExecutableSha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d",
     "execution": "Exact extracted Node 8.9.4 host executable; not Docker."
   },
-  "listener": {
-    "integrationHead": "16d4db2ac7a3c4bba50ac14e654b21d362053d9c",
-    "implementation": "createSettingsInternalService from the frozen integration worktree",
-    "providerSeams": [
-      "Account membership",
-      "Hub skill configs",
-      "Person account/loop properties",
-      "Lasso credentials"
-    ],
-    "scope": "Fixed local seams exercise the actual internal Settings route/controller; deployed provider services are not exercised."
+  "candidate": {
+    "runtime": "Node 22.22.0",
+    "settingsClientSha256": "912e9de7c54ee2edf8caf2c8f1e8c752a83e94ba028a74ad153701bc4428f428",
+    "reportConfigTestSha256": "5ca1f73ef53cca7ab74501fe87cf246f5744e77a470242dc96b360922157f905",
+    "workspaceResolution": "Candidate-local node_modules; @phoenix/common and @phoenix/contracts resolve under this worktree."
+  },
+  "fixture": {
+    "peer": "Separate loopback HTTP server for source and candidate",
+    "providerMode": "Synthetic settings JSON; no deployed provider services",
+    "adultData": {
+      "birthdate": 631152000000,
+      "locationIso": "2026-09-06T12:00:00.000Z",
+      "speakerId": "speaker-1",
+      "accountId": "account-1",
+      "loopId": "loop-1",
+      "transId": "trans-1"
+    },
+    "modes": ["direct", "caller"],
+    "scenarios": [
+      "redirect-301",
+      "redirect-302",
+      "redirect-303",
+      "redirect-307",
+      "gzip",
+      "deflate",
+      "invalid-json",
+      "empty-json",
+      "status-400",
+      "status-500",
+      "truncated Content-Length=100"
+    ]
   },
   "differential": {
-    "evidence": ".parity/reviews/c03-settings-wire-16d4db2-20260906/settings-client-differential.json",
-    "request": {
-      "methodUrlBodyEqual": true,
-      "rawHeadersEqual": true,
-      "normalizedHeaderDifferences": [],
-      "targetEqual": true,
-      "credentialsEqual": true,
-      "transIdEqual": true,
-      "getViewFalseEqual": true,
-      "skillSelectorEqual": true
+    "evidenceDirectory": ".parity/reviews/c03-settings-wire-followup-20260906",
+    "rawReceipt": "response-controls.json",
+    "rawReceiptSha256": "c7492bf435f00a39557242836ca9ee782635904ae77c0617d649e99b051ec407",
+    "normalizedReceipt": "normalized-comparison.json",
+    "normalizedReceiptSha256": "d636e8172cc009ee02e4df1c88c86ee78c088dbf4e68613445d4c3e7ea89e8ec",
+    "cases": 22,
+    "parsedOutcomeEqualIgnoringRuntimeStackAndDynamicDates": 22,
+    "requestSequenceEqualAfterReplacingOnlyFixtureHost": 22,
+    "callerCasesWithActualSettingsRequest": {
+      "source": 11,
+      "candidate": 11
     },
-    "response": {
-      "sourceStatus": 200,
-      "candidateStatus": 200,
-      "rawHeadersEqual": true,
-      "bodyBytesEqual": true,
-      "decodedReturnShapeEqual": true
+    "ordinaryRequest": {
+      "initialMethod": "POST",
+      "initialBodyBytes": 79,
+      "initialHeadersAndOrderEqual": true,
+      "target": "Settings_20160801.GetSettings",
+      "credentials": "{\"id\":\"account-1\"}",
+      "getView": false,
+      "skillSelector": "report-skill"
+    }
+  },
+  "baselineDistinction": {
+    "oldFetch": {
+      "receipt": "response-controls-old-fetch.json",
+      "receiptSha256": "698b6d33be3189a48ddeee63913f45889f8ddf907574016472a26091fed1f2d7",
+      "sourceMatchedValidRedirectAndEncoding": true,
+      "preExistingDifferences": [
+        "Malformed JSON and empty JSON used fetch res.json rejection instead of Axios's raw-string transform.",
+        "4xx/5xx used the Phoenix Settings service error instead of Axios response status/data rejection fields.",
+        "Truncated body produced fetch TypeError terminated instead of the source partial response boundary."
+      ]
+    },
+    "privateHelperAtBase61f6": {
+      "receipt": "response-controls-before-transport-repair.json",
+      "redirectCasesFailed": 8,
+      "encodedCasesFailed": 4,
+      "regressionsRepaired": [
+        "301/302/303/307 follow-redirect method, body, and header handling",
+        "gzip and deflate response decoding"
+      ]
     }
   },
   "validation": {
-    "focusedReportConfig": {
-      "command": "node --test packages/skills/test/reportConfig.test.js",
-      "passed": 8,
-      "failed": 0,
-      "log": ".parity/reviews/c03-settings-wire-16d4db2-20260906/focused.log"
-    },
-    "repositoryUnit": {
-      "command": "npm run test:unit",
-      "passed": 448,
-      "failed": 0,
-      "log": ".parity/reviews/c03-settings-wire-16d4db2-20260906/repository-unit.log"
-    },
     "syntax": [
       "node --check packages/skills/src/report/settingsClient.js",
       "git diff --check"
     ],
-    "workspaceResolution": "Copied the independently installed frozen integration node_modules; @phoenix/common, @phoenix/skills, and @phoenix/contracts resolve inside this candidate worktree."
+    "focusedReportConfig": {
+      "command": "node --test packages/skills/test/reportConfig.test.js",
+      "passed": 10,
+      "failed": 0,
+      "log": ".parity/reviews/c03-settings-wire-followup-20260906/focused.log",
+      "logSha256": "a14500d1b37633244edddf12a14a8596bf64a8978325ade1cbc805c19c1bb30d"
+    },
+    "repositoryUnit": {
+      "command": "npm run test:unit",
+      "passed": 450,
+      "failed": 0,
+      "log": ".parity/reviews/c03-settings-wire-followup-20260906/unit.log",
+      "logSha256": "269cc6cbe47a57e1af808108cf844615c7e7f3348522f7d441a7594d46c5adf4"
+    },
+    "controlsCommand": "timeout 240s node .parity/reviews/c03-settings-wire-followup-20260906/run-controls.mjs",
+    "workspaceResolution": "Local candidate node_modules copied from the independently installed candidate; no package or shared lockfile changes."
   },
   "limits": [
     "Candidate remains unverified pending root review.",
-    "Source and candidate use different host runtimes (Node 8.9.4 versus Node 22.22.0); the successful local request had byte-identical headers, body, status, and response in this run.",
-    "Only the successful legacy GetSettings request was compared; redirect, DNS, TLS, non-2xx, malformed response, and retry behavior remain outside this bounded wire repair.",
-    "Provider seams are synthetic fixed functions behind the actual internal Settings listener; no deployed Account, Hub, Person, or Lasso service was started.",
-    "No main, robot, golden, comparator, shared lockfile, or unrelated client changes were made."
+    "Source and candidate use host Node 8.9.4 and Node 22.22.0 respectively; source image pin is provenance only for this control.",
+    "Controls use same-origin loopback redirects; cross-origin redirect credential policy, redirect loops beyond the 21-hop bound, DNS/TLS failures, timeouts, and retries remain unverified.",
+    "Provider seams are synthetic fixed functions behind a local peer; no deployed Account, Hub, Person, or Lasso service was started.",
+    "Raw response date values and runtime-specific stack text are expected to differ and are retained in the unnormalized receipt.",
+    "No main, robot, golden, comparator, shared lockfile, global HTTP client, or live service changes were made."
   ]
 }

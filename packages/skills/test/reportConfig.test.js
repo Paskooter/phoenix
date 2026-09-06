@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import zlib from 'node:zlib';
 import { clearReportEnvCache, getReportEnv, reportLassoURL } from '../src/report/env.js';
 import { LassoClient } from '../src/report/lassoClient.js';
 import { SettingsClient } from '../src/report/settingsClient.js';
@@ -176,6 +177,83 @@ test('source NET_lasso and NET_settings names drive local peer HTTP exchange', a
       assert.equal(settingsRequest.headers['sec-fetch-mode'], undefined);
       assert.deepEqual(JSON.parse(settingsRequest.body), {
         loopId: 'loop-1', transId: 'trans-1', getView: false, skills: 'report-skill',
+      });
+    } finally {
+      await close(server);
+    }
+  });
+});
+
+test('SettingsClient follows source redirects and decodes compressed responses', async () => {
+  await withEnv({ prefsFromConfig: 'false' }, async () => {
+    const requests = [];
+    const settings = [{ skillId: 'report-skill', data: { weatherEnabled: { value: true } } }];
+    const server = http.createServer(async (request, response) => {
+      const chunks = [];
+      for await (const chunk of request) chunks.push(chunk);
+      const body = Buffer.concat(chunks).toString('utf8');
+      requests.push({ method: request.method, url: request.url, body });
+      const match = request.url.match(/^\/redirect\/(301|302|303|307)$/);
+      if (match) {
+        response.writeHead(Number(match[1]), { Location: `/final/${match[1]}` });
+        response.end();
+        return;
+      }
+      const code = Number(request.url.split('/').pop());
+      const raw = Buffer.from(JSON.stringify(settings));
+      const encoded = code === 301 ? zlib.gzipSync(raw) : code === 307 ? zlib.deflateSync(raw) : raw;
+      response.writeHead(200, code === 301 ? { 'content-encoding': 'gzip' } : code === 307 ? { 'content-encoding': 'deflate' } : {});
+      response.end(encoded);
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    process.env.NET_settings = `127.0.0.1:${port}`;
+    try {
+      const requestBody = { loopId: 'loop-1', transId: 'trans-1', getView: false, skills: 'report-skill' };
+      for (const code of [301, 302, 303, 307]) {
+        process.env.NET_settings = `127.0.0.1:${port}/redirect/${code}`;
+        clearReportEnvCache();
+        const result = await SettingsClient.getSettings('account-1', 'loop-1', 'trans-1');
+        assert.deepEqual(result, settings);
+        const pair = requests.splice(0, 2);
+        assert.equal(pair.length, 2);
+        assert.equal(pair[0].url, `/redirect/${code}`);
+        assert.equal(pair[0].method, 'POST');
+        assert.deepEqual(JSON.parse(pair[0].body), requestBody);
+        assert.equal(pair[1].url, `/final/${code}`);
+        assert.equal(pair[1].method, code === 307 ? 'POST' : 'GET');
+        assert.equal(pair[1].body, code === 307 ? pair[0].body : '');
+      }
+    } finally {
+      await close(server);
+    }
+  });
+});
+
+test('SettingsClient keeps Axios response transforms and rejection data', async () => {
+  await withEnv({ prefsFromConfig: 'false' }, async () => {
+    const server = http.createServer((request, response) => {
+      if (request.url === '/invalid') return response.end('{not-json');
+      if (request.url === '/empty') return response.end();
+      response.writeHead(400, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ error: 'fixture', status: 400 }));
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    process.env.NET_settings = `127.0.0.1:${port}`;
+    try {
+      const run = (path) => {
+        process.env.NET_settings = `127.0.0.1:${port}${path}`;
+        clearReportEnvCache();
+        return SettingsClient.getSettings('account-1', 'loop-1', 'trans-1');
+      };
+      assert.equal(await run('/invalid'), '{not-json');
+      assert.equal(await run('/empty'), '');
+      await assert.rejects(run('/status'), (error) => {
+        assert.equal(error.message, 'Request failed with status code 400');
+        assert.equal(error.response.status, 400);
+        assert.deepEqual(error.response.data, { error: 'fixture', status: 400 });
+        return true;
       });
     } finally {
       await close(server);

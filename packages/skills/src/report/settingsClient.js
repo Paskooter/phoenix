@@ -6,6 +6,7 @@
 
 import http from 'node:http';
 import https from 'node:https';
+import zlib from 'node:zlib';
 import { getJSON, getAccountFromLooper, speakerIsAdult } from './utils.js';
 import { getReportEnv, reportPeerURL } from './env.js';
 
@@ -16,6 +17,7 @@ const NO_AUTH = 'no-auth-provided';
 // adapter. Keep them at this client boundary; they are not shared HTTP defaults.
 const SETTINGS_ACCEPT = 'application/json, text/plain, */*';
 const SETTINGS_USER_AGENT = 'axios/0.17.1';
+const MAX_SETTINGS_REDIRECTS = 21;
 
 const CommuteModeNames = ['driving', 'walking', 'bicycling', 'transit'];
 
@@ -45,7 +47,7 @@ export class SettingsClient {
       const prSettings = res && res.find((skill) => skill.skillId === 'report-skill');
       settings = prSettings && prSettings.data;
     } catch (err) {
-      err.message = `Error getting Settings data: ${err.code || ''}, ${err.message}`;
+      err.message = `Error getting Settings data: ${err.code}, ${err.message}`;
       throw err;
     }
     try {
@@ -62,8 +64,17 @@ export class SettingsClient {
     }
     const body = JSON.stringify({ loopId, transId, getView: false, skills: 'report-skill' });
     const res = await requestSettings(reportPeerURL(getReportEnv().NET_settings), body, accountId);
-    if (res.statusCode < 200 || res.statusCode >= 300) throw new Error(`Settings service ${res.statusCode}`);
-    return JSON.parse(res.body);
+    const data = transformSettingsResponse(res.body);
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      const error = new Error(`Request failed with status code ${res.statusCode}`);
+      error.response = {
+        status: res.statusCode,
+        headers: res.headers,
+        data,
+      };
+      throw error;
+    }
+    return data;
   }
 
   static convertSettingsToPrefs(settings) {
@@ -150,16 +161,30 @@ export class SettingsClient {
  * are absent from or differ from the source request. This helper is private to
  * SettingsClient so other Phoenix HTTP clients keep their existing behavior.
  */
-function requestSettings(peer, body, accountId) {
+function transformSettingsResponse(body) {
+  // This is Axios 0.17.1's default transformResponse: malformed and empty
+  // strings remain strings after the JSON parse attempt.
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return body;
+    }
+  }
+  return body;
+}
+
+function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POST') {
   const target = new URL(peer);
   const transport = target.protocol === 'https:' ? https : http;
+  const hasBody = method !== 'GET' && method !== 'HEAD';
   const headers = {
     Accept: SETTINGS_ACCEPT,
-    'Content-Type': 'application/json;charset=utf-8',
+    ...(hasBody ? { 'Content-Type': 'application/json;charset=utf-8' } : {}),
     'x-amz-credentials': JSON.stringify({ id: accountId }),
     'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
     'User-Agent': SETTINGS_USER_AGENT,
-    'Content-Length': Buffer.byteLength(body),
+    ...(hasBody ? { 'Content-Length': Buffer.byteLength(body) } : {}),
     Host: target.host,
     Connection: 'close',
   };
@@ -170,20 +195,61 @@ function requestSettings(peer, body, accountId) {
       hostname: target.hostname,
       port: target.port || undefined,
       path: `${target.pathname}${target.search}`,
-      method: 'POST',
+      method,
       headers,
       agent: false,
     }, (response) => {
       const chunks = [];
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        const location = response.headers.location;
+        if (location && response.statusCode >= 300 && response.statusCode < 400) {
+          if (redirectCount >= MAX_SETTINGS_REDIRECTS) {
+            reject(new Error('Max redirects exceeded.'));
+            return;
+          }
+          const nextMethod = response.statusCode === 307 ? method : 'GET';
+          const nextBody = nextMethod === 'POST' ? body : '';
+          requestSettings(new URL(location, target).toString(), nextBody, accountId,
+            redirectCount + 1, nextMethod).then(resolve, reject);
+          return;
+        }
+
+        let responseBody = Buffer.concat(chunks);
+        try {
+          switch (response.headers['content-encoding']) {
+            case 'gzip':
+            case 'compress':
+            case 'deflate':
+              responseBody = zlib.unzipSync(responseBody);
+              delete response.headers['content-encoding'];
+              break;
+            default:
+              break;
+          }
+        } catch (error) {
+          reject(error);
+          return;
+        }
+        resolve({
+          statusCode: response.statusCode,
+          headers: response.headers,
+          body: responseBody.toString('utf8'),
+        });
+      };
       response.on('data', (chunk) => chunks.push(chunk));
-      response.on('end', () => resolve({
-        statusCode: response.statusCode,
-        headers: response.headers,
-        body: Buffer.concat(chunks).toString('utf8'),
-      }));
-      response.on('error', reject);
+      response.on('end', finish);
+      // Node 8 Axios resolves a response whose declared Content-Length is
+      // truncated with the bytes received so far. Preserve that source
+      // response-transform boundary; request-level errors still reject.
+      response.on('aborted', finish);
+      response.on('error', (error) => {
+        if (!settled) reject(error);
+      });
     });
     request.on('error', reject);
-    request.end(body);
+    request.end(hasBody ? body : undefined);
   });
 }
