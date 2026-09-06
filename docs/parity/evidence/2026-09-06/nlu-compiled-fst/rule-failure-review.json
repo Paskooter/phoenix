@@ -1,5 +1,5 @@
 {
-  "status": "root reviewed parser boundary; original multiple-rule HTTP capture and Moth trial pending",
+  "status": "Historical root checkpoint before original multi-rule capture and Moth deployment; see integration-review.json for current accepted scope",
   "rootCandidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
   "previousCandidateRevision": "41b46966e2998c2c753d4defbdfeb1aaccbaade7",
   "integratedIntoMain": false,
@@ -97,5 +97,6 @@
     ".parity/reviews/n08-mixed-boundary-20260906/source-wrapper-control.json": "40f8bae4e3b1013d1ad80cfb624eb758a882e07d253ef6dfccf960474c28cac5",
     ".parity/reviews/n08-original-multirule-20260906/attempt-6-reference.json.gz": "8b65fb56e9ede3eb157d6882367203aa105cdc9c9784a455e0f35d4c061a2913",
     ".parity/reviews/n08-original-multirule-20260906/attempt-6-postflight.json": "e71828f59bc35ab1be28be2f1a2122b172f63d2f86581905d4248de71edbe371"
-  }
+  },
+  "supersededBy": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json"
 }

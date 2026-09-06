@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-Default main remains 20,233/20,528 archived HTTP status/data matches. Root candidate866a384 runs all98 pinned public graphs and continues after an individual native rule failure. It matches20,528/20,528 corpus responses with449 unit/64 configured tests passing; strict smoke retains the same648 differences. A new42-case candidate capture completed, but original attempts failed the all98-load setup before any cases. Moth remains on the restored backend; no new deployment or full-task acceptance.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. Strict complete-server smoke has 488 remaining differences, 11 removed with none added. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
 
 Done when:
 
@@ -690,13 +690,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root.
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
-Candidate scope: General native optional-code-point/group behavior integrated after root source/native review and full 20,528-request status/data replay: 20,233 matches, 17 fixes, zero new mismatch IDs. All 414 integrated-main unit tests pass. Strict smoke remains 659 differences; complete N-08 remains open.
+Candidate scope: Bounded explicit compiled profile for all 98 public graphs and 16 pinned factory files (15 FSTs), with source scoring/ties/winner rejection and per-rule failures. Root combined 477-unit/64 configured/full 20,528 HTTP and 42 strict multi-rule checks pass; strict production retains 488 differences, 11 removed with none added. Moth clock/joke and same-job timer create/cancel verified through actual client text injection. Full N-08 and microphone/physical ring acceptance remain open.
 
-Candidate report: [docs/parity/candidates/N-08-followup.md](../../docs/parity/candidates/N-08-followup.md).
+Candidate report: [docs/parity/candidates/N-08-compiled-fst.md](../../docs/parity/candidates/N-08-compiled-fst.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json](../../docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json](../../docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

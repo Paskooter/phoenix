@@ -40,19 +40,15 @@ traces `?` through the original compiler and confirms its behavior with the
 native binaries. That review rejected a duplicate-character special case and
 replaced it with the general code-point/group rule. The replacement is
 integrated after root review: it fixes 17 previous differences with no newly
-failing IDs across the 20,528-request HTTP status/data replay. The remaining
-295 differences keep full NLU parity open.
+failing IDs across the 20,528-request HTTP status/data replay. The default AST profile retains 295 differences.
 
-Source recovery does not close N-02 or N-08. Compiled-path ordering, complete
-grammar/factory behavior and full corpus agreement remain open and are tracked
-in the [checklist](TASKS.md).
+The [compiled-profile integration](evidence/2026-09-06/nlu-compiled-fst/integration-review.json) now executes all 98 pinned public graphs with source scoring and tie rules. It matches all 20,528 archived HTTP parser responses and all 42 [original native multi-rule HTTP/routing cases](evidence/2026-09-06/nlu-compiled-fst/multirule-http-review.json). The latter original capture uses the exact extracted Node 8 executable on the host in an isolated network namespace; it is not a replacement for pinned Docker goldens.
 
-The compiled launch candidate now matches all 20,528 archived HTTP parser
-responses, but it remains withheld after a real Moth request exposed incompatible
-scoring between compiled launch and AST named rules. The
-[combined review](candidates/N-08-compiled-fst.md) records the successful source
-controls, failed robot request and verified rollback. This is why a corpus pass
-alone does not close parser parity.
+This profile is selected with `PHOENIX_NLU_RUNTIME=compiled-fst` and requires the verified launch graph, public-rule directory, factory directory and approved launch hash. The parser validates and snapshots those artifacts before execution. The default AST runtime remains available.
+
+An earlier launch-only candidate failed on Moth because it compared native scores with AST priority scores. That failure and rollback remain recorded in the [candidate history](candidates/N-08-compiled-fst.md). The repaired all-rule profile uses one scoring scale and is now running on Moth. The [real-client trial](evidence/2026-09-06/nlu-compiled-fst/moth-multirule-review.json) verifies clock display/TTS, joke TTS and a persistent timer's creation and cancellation. Microphone wake-up and physical ring illumination remain unverified.
+
+Source recovery and these bounded checks do not close N-02 or N-08. The complete server smoke comparison retains 488 differences, and grammar compilation, broader factory behavior and native build reproduction remain tracked in the [checklist](TASKS.md).
 
 The service callsite is additionally recovered at
 [`ConvTech/jibo-nlu-service@5d6755a`](https://pvindex.org/gitea/ConvTech/jibo-nlu-service/src/commit/5d6755a5116694e2801438f358b862109cd16ba5).

@@ -1109,7 +1109,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "Default main remains 20,233/20,528 archived HTTP status/data matches. Root candidate866a384 runs all98 pinned public graphs and continues after an individual native rule failure. It matches20,528/20,528 corpus responses with449 unit/64 configured tests passing; strict smoke retains the same648 differences. A new42-case candidate capture completed, but original attempts failed the all98-load setup before any cases. Moth remains on the restored backend; no new deployment or full-task acceptance.",
+      "finding": "The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. Strict complete-server smoke has 488 remaining differences, 11 removed with none added. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1118,17 +1118,15 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Codex root",
-        "scope": "General native optional-code-point/group behavior integrated after root source/native review and full 20,528-request status/data replay: 20,233 matches, 17 fixes, zero new mismatch IDs. All 414 integrated-main unit tests pass. Strict smoke remains 659 differences; complete N-08 remains open.",
-        "worktree": ".parity/worktrees/nlu-optional-root",
-        "baseRevision": "7330e6673de5785de599c44b782eaccd12435200",
-        "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
-        "artifact": "docs/parity/candidates/N-08-followup.md",
-        "evidence": [
-          "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json"
-        ],
+        "assignee": "Codex root with Luna Max candidates",
+        "scope": "Bounded explicit compiled profile for all 98 public graphs and 16 pinned factory files (15 FSTs), with source scoring/ties/winner rejection and per-rule failures. Root combined 477-unit/64 configured/full 20,528 HTTP and 42 strict multi-rule checks pass; strict production retains 488 differences, 11 removed with none added. Moth clock/joke and same-job timer create/cancel verified through actual client text injection. Full N-08 and microphone/physical ring acceptance remain open.",
+        "baseRevision": "20bbfaad61a9360c5bd09906b068e7b181424ddf",
+        "candidateRevision": "535c852079ad8cb139352b342ba2f2ffe7dc3183",
+        "reviewedCandidateRevision": "7521aca05c9a73e1a1449c94cc4daa728cff107b",
         "reviewedBy": "Codex root",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json"
+        "worktree": ".parity/worktrees/n08-integration-root",
+        "artifact": "docs/parity/candidates/N-08-compiled-fst.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/integration-review.json"
       },
       "implementationReviewHistory": [
         {
@@ -1161,19 +1159,35 @@
           "reviewedBy": "Codex root",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json",
           "reviewFinding": "Native code-point/group semantics disprove the duplicate-boundary mechanism. Replace with general atom handling; full historic capture also contains one unresolved observation timeout."
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "scope": "General native optional-code-point/group behavior integrated after root source/native review and full 20,528-request status/data replay: 20,233 matches, 17 fixes, zero new mismatch IDs. All 414 integrated-main unit tests pass. Strict smoke remains 659 differences; complete N-08 remains open.",
+          "worktree": ".parity/worktrees/nlu-optional-root",
+          "baseRevision": "7330e6673de5785de599c44b782eaccd12435200",
+          "candidateRevision": "63bbddd63bcf72cefa601a4f8929efc1cc196df5",
+          "artifact": "docs/parity/candidates/N-08-followup.md",
+          "evidence": [
+            "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json"
+          ],
+          "reviewedBy": "Codex root",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-optional-atoms/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; original-service fixtures by capture_writer_repair; root acceptance",
+          "worktree": ".parity/worktrees/n08-mixed-root",
+          "baseRevision": "3aff56d3fa4b69b851e0bdbcf40e9de7e9fe494a",
+          "candidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
+          "scope": "Source-scored selection across all requested compiled public graphs, startup snapshots and per-rule failure handling, with unchanged default AST behavior. Root corpus, unit and strict comparisons are recorded. Original42-case HTTP expectations and new Moth trial remain pending. Not integrated or deployed; no full-task credit.",
+          "artifact": "docs/parity/candidates/N-08-compiled-fst.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/rule-failure-review.json",
+          "repairWorktree": ".parity/worktrees/n08-mixed-score",
+          "reviewedBy": "Codex root",
+          "reviewFinding": "All98-rule candidate 866a384 passed original 42-case strict HTTP/routing comparison and was verified on Moth before combined integration."
         }
-      ],
-      "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / audio_encoding_repair; original-service fixtures by capture_writer_repair; root acceptance",
-        "worktree": ".parity/worktrees/n08-mixed-root",
-        "baseRevision": "3aff56d3fa4b69b851e0bdbcf40e9de7e9fe494a",
-        "candidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
-        "scope": "Source-scored selection across all requested compiled public graphs, startup snapshots and per-rule failure handling, with unchanged default AST behavior. Root corpus, unit and strict comparisons are recorded. Original42-case HTTP expectations and new Moth trial remain pending. Not integrated or deployed; no full-task credit.",
-        "artifact": "docs/parity/candidates/N-08-compiled-fst.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/nlu-compiled-fst/rule-failure-review.json",
-        "repairWorktree": ".parity/worktrees/n08-mixed-score"
-      }
+      ]
     },
     {
       "id": "I-01",
@@ -1530,7 +1544,13 @@
           "reviewedBy": "Codex root",
           "reviewEvidence": "docs/parity/reviews/s01-request-root/review.json"
         }
-      ]
+      ],
+      "nextImplementation": {
+        "state": "in_progress",
+        "assignee": "Luna Max / capture_writer_repair; root acceptance",
+        "baseRevision": "20bbfaad61a9360c5bd09906b068e7b181424ddf",
+        "scope": "Resolve source graph/session allocation identity and trace node IDs from the existing strict capture; 129 trace and 11 session nodeID differences. Isolated candidate in progress; no full-task acceptance."
+      }
     },
     {
       "id": "S-02",

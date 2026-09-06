@@ -1,0 +1,111 @@
+{
+  "status": "Root accepted the bounded 42-case original native HTTP and routing comparison",
+  "candidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "runtimeQualification": "host Node 8.9.4 in an unprivileged isolated network namespace; not pinned-Docker equivalence and not a golden replacement",
+  "originalRuntime": {
+    "version": "v8.9.4",
+    "executableSha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d",
+    "extractedFromImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "nativeBinarySha256": "c89487321aeea14dba3e6408e61050f007a9a052b5e2c27283cf58f0e8a1fd54"
+  },
+  "sourceControl": {
+    "all98NativeGraphsLoaded": true,
+    "parseResponses": 139,
+    "caseCount": 42,
+    "caseFailures": 0,
+    "lateEffects": 0,
+    "hashesStable": true,
+    "performanceCounts": {
+      "COMPILE_COMPLETE": 98,
+      "COMPILE_RECEIVED": 98,
+      "PARSE_FROM_URI_COMPLETE": 139,
+      "PARSE_FROM_URI_RECEIVED": 139
+    }
+  },
+  "schemaCorrection": {
+    "previousSchema": 1,
+    "requiredSchema": 2,
+    "onlyChangedInputKey": "schemaVersion",
+    "caseInputsAndDeadlinesUnchanged": true,
+    "freshOriginalAndCandidateCaptures": true,
+    "oldCaptureEdited": false,
+    "oldStrictResult": "0 differences, 2 schema invariant failures; retained as rejected evidence"
+  },
+  "comparison": {
+    "pass": true,
+    "cases": 42,
+    "differences": 0,
+    "invariantFailures": 0,
+    "coverageGaps": 0,
+    "groups": {
+      "launch-global-pair": 14,
+      "local-timer-four-way": 7,
+      "alarm-five-way": 8,
+      "order-and-tie-controls": 13
+    },
+    "dimensions": {
+      "parserHttp": {
+        "compared": 42,
+        "agreement": 42,
+        "differences": 0,
+        "invalid": 0
+      },
+      "intent": {
+        "compared": 42,
+        "agreement": 42,
+        "differences": 0,
+        "invalid": 0
+      },
+      "entities": {
+        "compared": 42,
+        "agreement": 42,
+        "differences": 0,
+        "invalid": 0
+      },
+      "rules": {
+        "compared": 42,
+        "agreement": 42,
+        "differences": 0,
+        "invalid": 0
+      },
+      "selectedSkill": {
+        "compared": 42,
+        "agreement": 42,
+        "differences": 0,
+        "invalid": 0
+      },
+      "memo": {
+        "compared": 15,
+        "agreement": 15,
+        "differences": 0,
+        "invalid": 0
+      },
+      "noMatch": {
+        "compared": 2,
+        "agreement": 2,
+        "differences": 0,
+        "invalid": 0
+      }
+    },
+    "comparatorChanged": false
+  },
+  "earlierFailures": "Native startup/load failures, the image-reference typo and schema rejection are preserved separately. Successful host-namespace execution does not establish the trigger of the earlier Docker failures.",
+  "limits": [
+    "No replacement of pinned Docker goldens.",
+    "Actions are disabled in this matrix; parser HTTP, rules and selected skill/memo are covered.",
+    "Source and archived binary are separately pinned; a reproducible source-to-binary build is not established.",
+    "Full N-08, natural microphone wake-up and physical ring behavior remain open."
+  ],
+  "evidenceHashes": {
+    ".parity/reviews/n08-original-multirule-v2-20260906/suite.json": "2c958166863314ef96e1b4d2f8a6b3eceb8728f1a6939af10c7418d0b6d60ac8",
+    ".parity/reviews/n08-original-multirule-v2-20260906/runtime-provenance-v2.json": "6b89177f88a86bbe5fa46d9a6348a5f62a94d2e2f39441373d5b6db3909cf883",
+    ".parity/reviews/n08-original-multirule-v2-20260906/attempt-host-netns-v2-receipt.json": "db8ba2e1a823fb85c1c42a77b18c7004b74977850a1eaf9d440db3eeb7b31ea3",
+    ".parity/reviews/n08-original-multirule-v2-20260906/attempt-host-netns-v2-reference.json.gz": "4f9c64a3e4f761ad603474f99cd80f7a81883af5be01fb1da9d449e7b79cb3e4",
+    ".parity/reviews/n08-original-multirule-v2-20260906/attempt-host-netns-v2-postflight.json": "7ba9e66b57be215bb627a44424892afa21ae2fe8059a5ee9e62d6b8d36b28a6e",
+    ".parity/reviews/n08-mixed-root/multirule-candidate-v2/receipt.json": "85da269b76b0838f3134232d82d5ddf1ea764b0f8eaff1ea00fb2872ebefaa17",
+    ".parity/reviews/n08-mixed-root/multirule-candidate-v2/candidate.json.gz": "2f8dfe167082dc491c87f79df61ae2f833e808ec5ace5cd6ae1db03f854c2033",
+    ".parity/reviews/n08-mixed-root/multirule-v2-strict-comparison.json": "eba4f64f7cdfec18296f07036e956c61d71b9543a1cae23c880c9c1d3d137bab"
+  }
+}

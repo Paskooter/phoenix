@@ -1,0 +1,89 @@
+{
+  "status": "Root verified bounded real-client clock, joke and timer lifecycle on Moth",
+  "backendBundleRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+  "transportBaseRevision": "5e626b8922ed6b7328c1757306dc1d2eb8f56cb0",
+  "integratedNluRevision": "535c852079ad8cb139352b342ba2f2ffe7dc3183",
+  "allNluFilesEqualIntegration": true,
+  "client": "BE11.0.1 with existing native Jetstream service",
+  "method": "ASR text injection through the actual BE/Jetstream request APIs; real server, robot execution and display observations",
+  "checks": {
+    "clock": {
+      "intent": "askForTime",
+      "skill": "@be/clock",
+      "ttsActive": true,
+      "analogClockScreenObserved": true,
+      "returnedIdle": true
+    },
+    "joke": {
+      "intent": "requestTellJiboContent",
+      "cloudSkill": "chitchat-skill",
+      "ttsActive": true,
+      "returnedIdle": true,
+      "specialJokeGraphicClaimed": false
+    },
+    "timer": {
+      "globalSetIntent": "start",
+      "durationFollowupRule": "clock/timer_set_value",
+      "durationFollowupText": "five minutes",
+      "durationMilliseconds": 300000,
+      "persistentRecordCreated": true,
+      "sameSchedulerJobListedDuringTimer": true,
+      "cancellationIntent": "stop",
+      "cancellationSkill": "@be/clock",
+      "sameJobRemovalAcknowledged": true,
+      "jobAbsentAfterCancellation": true,
+      "finalStoredTimer": {
+        "endTime": null,
+        "length": null
+      },
+      "observerForwardsOriginalCalls": true,
+      "observerRestored": true,
+      "standalonePostSetScreenshot": "Idle eye; not a countdown display acceptance."
+    },
+    "listeningSdk": {
+      "blueSetLEDColorForwarded": true,
+      "value": [
+        0.05,
+        0.73,
+        0.94
+      ],
+      "originalEyeTransitionForwarded": true,
+      "physicalLightEmissionAccepted": false
+    }
+  },
+  "postflight": {
+    "nativeJetstreamProcessUnchanged": true,
+    "nativeConfigurationHashUnchanged": true,
+    "backendProcessUnchanged": true,
+    "serviceHealthChecksPassed": 5,
+    "temporaryObserversRestored": true
+  },
+  "limits": [
+    "Microphone wake-up and physical blue-ring illumination remain unverified.",
+    "Timer expiry, alarm behavior, reboot restoration and all clock GUI states are separate checks.",
+    "This diagnostic transport profile does not establish public authentication or full provider compatibility.",
+    "Full Phoenix/BE/Jetstream parity is not claimed."
+  ],
+  "evidenceHashes": {
+    "deployment.json": "96a3b9483757cc7609e75daa731e16129be30ac8c5991fff4104c67fe9350be2",
+    "clock.json": "73c3c1bb07a991de2fbed3d0270024cd36b71b6e0311da4fb1d53697d9939c4b",
+    "joke.json": "af662be9933a0b321b263693779c71a0c461b18f581331c7b24b40afb02c5d66",
+    "clock-view-2.png": "5545e3b39386ce18fca7ba8a71878bf9da3e406031cd4fb012a1fea8bf50a128",
+    "timer-lifecycle-set.json": "053bf9541022590821bfd51290515ec9d30aab3a880beeea67b85bc35e6bacea",
+    "timer-lifecycle-cancel.json": "3d39d6805d29e8b4834d46762f434843078991a87bed7f5d618f7b9a369d1854",
+    "timer-lifecycle-immediate-before.json": "2d0e16587ac4f92d7f6f5b11863d6e408569388bc39174266f49b6d8747805ab",
+    "timer-lifecycle-created.json": "af53642e972039e6e2025c3bb1e80848b67b6e2a4db10d8a4b7b0605f05cbcc6",
+    "timer-lifecycle-running.json": "5ae75986accd3a1fdf77a21cf0eca463ee7bbd036541db4b3c0402a3c4e742d3",
+    "timer-lifecycle-cancelled.json": "93ebfc5ab863311766663ec5cb6fdeaeefb57e1ce75eed98825c863e75cf06dd",
+    "timer-lifecycle-receipt.json": "4da6c1c8c07012bbd623dc95004ac8af779d9bd8d5cc1eeb40f34a51bf7c7a87",
+    "lifecycle-postflight.json": "e95068b114937394fd3ddc9b6ed7a45e007feb74c005739cb706fa3b5ab4b2b1",
+    "lifecycle-healthcheck.json": "8856b49d7d19a543af38b8c647bcb6af96e96bd97b9588f008ef1514238e9d71"
+  },
+  "sourceEvidenceHashes": {
+    "provenance.json": "05867409200dcb322639a4c3acff5924d051d9a711aa5223e16af4cc59ca8f9f",
+    "README.md": "4914bb0fc3f76e97fbedba1d1598907f6a9e62584d2c2b15e38088700d433605",
+    "timer-state-expression.js": "fa3ec77dc9c97f3b8083f4214350a26597ebe8df5b34c8bd3b55c6638e19f76f",
+    "scheduler-list-expression.js": "bb3180927dbbfcf3216940016a8363b6eec3adcc0c9fdd87565614cce0d67d1e",
+    "scheduler-forwarding-wrapper.js": "339f8c2018b0aa9210c96a9a8ca4862751dabe4cdbececd02907297b65f25865"
+  }
+}

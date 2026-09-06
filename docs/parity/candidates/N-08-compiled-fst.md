@@ -1,5 +1,7 @@
 # Compiled NLU profile — root review
 
+Current root status: the all-rule compiled profile is integrated in `535c852` after the [combined review](../evidence/2026-09-06/nlu-compiled-fst/integration-review.json). It matches all 20,528 archived parser responses and all 42 strict original multi-rule cases. [Moth's real-client trial](../evidence/2026-09-06/nlu-compiled-fst/moth-multirule-review.json) verifies clock display/TTS, joke TTS and timer creation/cancellation. Full N-08 remains open. Earlier candidate failures and rollback observations below are historical and retain their original scope.
+
 Status: repaired candidate `866a384` awaits original multiple-rule HTTP controls
 and a new Moth trial. It is isolated and has not been deployed or integrated.
 The earlier `e586360` regression and verified rollback remain recorded below.

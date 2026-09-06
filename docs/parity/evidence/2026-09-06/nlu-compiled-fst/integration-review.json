@@ -1,0 +1,94 @@
+{
+  "status": "Root accepted bounded compiled-profile integration; full N-08 remains open",
+  "integratedRevision": "535c852079ad8cb139352b342ba2f2ffe7dc3183",
+  "reviewedCandidateRevision": "7521aca05c9a73e1a1449c94cc4daa728cff107b",
+  "parserCandidateRevision": "866a384e4a82ab31a15a981a59da0baaad52c23d",
+  "reviewedBy": "Codex root",
+  "scope": [
+    "Read and execute all 98 verified archived public-rule FST graphs and 16 pinned factory files (15 FSTs) in JavaScript.",
+    "Preserve native byte scores, source tie arbitration, winner validation and per-rule failure handling.",
+    "Verify every graph before use and execute the verified startup snapshot.",
+    "Enable the compiled runtime explicitly; default AST behavior remains available."
+  ],
+  "verification": {
+    "defaultUnit": {
+      "passed": 477,
+      "failed": 0,
+      "skipped": 3,
+      "skips": "Require the compiled profile; all are exercised by the separate configured suite."
+    },
+    "configuredNlu": {
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullParserHttp": {
+      "cases": 20528,
+      "matches": 20528,
+      "differences": 0,
+      "scope": "HTTP status and complete decoded parser data",
+      "inputFileSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d"
+    },
+    "strictMultipleRule": {
+      "cases": 42,
+      "passed": 42,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "sourceExecution": "Exact extracted Node 8.9.4 on host in an unprivileged network namespace; not pinned-Docker equivalence",
+      "actionsEnabled": false,
+      "review": "multirule-http-review.json"
+    },
+    "strictProduction": {
+      "cases": 43,
+      "differences": 488,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "gatePass": false,
+      "exitCode": 1,
+      "exitMeaning": "Expected mismatch exit from the unchanged comparator; capture completed successfully.",
+      "versusPriorMain": {
+        "differencesBefore": 499,
+        "removed": 11,
+        "added": 0
+      },
+      "versusPriorCompiled": {
+        "differencesBefore": 648,
+        "removed": 160,
+        "added": 0
+      }
+    },
+    "sourceStable": true,
+    "integratedProductAndHarnessFilesEqualReviewedCandidate": true,
+    "workspaceLinksLocal": true
+  },
+  "deployment": {
+    "mothParserFilesEqualReviewedIntegration": true,
+    "bundleRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+    "review": "moth-multirule-review.json"
+  },
+  "limits": [
+    "The compiled runtime requires separately recovered, hash-pinned graph artifacts; it is an explicit deployment profile.",
+    "The default AST profile still has 295 archived parser differences.",
+    "The 43-case complete server comparison retains 488 differences in request framing, Report sessions, analytics and other behavior.",
+    "Native source and binary provenance are separate pins; exact source-to-binary reproduction remains unverified.",
+    "Natural microphone wake-up and physical ring illumination have not been accepted.",
+    "No full checklist task is marked complete by this bounded integration."
+  ],
+  "evidenceHashes": {
+    "workspace-install-receipt.json": "571db479ca72ca034307bfd36fc5afc97854daf536648fbd0b86ed4b11619c52",
+    "full-unit.log": "785136df57f3d34fb8e3204ee3a9dd8f32cc726fad6166853afb23edec3dc9f3",
+    "full-unit-receipt.json": "33e3a46e6ce218d7175e6603fab624603e5b352358325e9a3a4e9b0c2fef1574",
+    "configured-nlu.log": "5c6b001d9ee077e9983f56ac1e452a577e0839ad7aacdb13b3f3833f5367b9ec",
+    "configured-nlu-receipt.json": "89a18b6f9896985840ff91e1daec729ad231005587b30ace172b336937401bff",
+    "full-http.json": "79316291712aee7564f0262c005b5ed83c460042f24e1a5749eed7a4eec4a304",
+    "full-http-receipt.json": "59b014d1ae06947fe684f2cfc36f03ea371d0c989fac2685558cd4075c49625b",
+    "production/run.json": "ccf2ee246974b301f9980a5951d7e4f06d87af21bc65f300a997d713e3beb4ba",
+    "production/comparison.json": "a6a4d89e285b19aec91c28b410c99d087bbc34a1a5ae24806d7b959294b4fa27",
+    "strict-receipt.json": "26bea5f4364e19052d6dc969e76d01307aa81090cde2ad10b71e58d731e303cc",
+    "strict-regression-review.json": "c8595718b270dfa37cf77e2bccecfce87886692bcdac93de774b7f79107c80c2",
+    "multirule-candidate-v2/receipt.json": "bbcd764820f1888628970bb02b6bc8d4c827d06a005db29526b515b43a9fc679",
+    "multirule-candidate-v2/candidate.json.gz": "fe33f9a0f45fd9f8371293bb0cab07722f5a581faafd2d028020b5d6a34559d1",
+    "multirule-v2-strict-comparison.json": "eba4f64f7cdfec18296f07036e956c61d71b9543a1cae23c880c9c1d3d137bab"
+  }
+}
