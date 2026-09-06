@@ -254,7 +254,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-02.
 
-Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; strict complete-server smoke has 440 differences. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
+Registry/configuration, skills CLI shutdown and SettingsClient transport slices are integrated after root review. Fresh 36 source-client controls and 482 unit tests pass; its strict complete-server smoke had 440 differences; later accepted Report analytics work reduces the current total to 375. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
 
 Done when:
 
@@ -676,7 +676,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); accepted SettingsClient work now reduces the current total to 440. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
+The explicit compiled profile is integrated and matches all 20,528 archived HTTP status/data responses and all 42 original native multi-rule HTTP/routing cases. Combined 477 unit and 64 configured tests pass. At NLU integration, strict complete-server smoke had 488 differences (11 removed, none added); later accepted SettingsClient and Report analytics work reduces the current total to 375. Moth runs equivalent parser code; clock display/TTS, joke TTS, five-minute timer persistence and same-job cancellation and a short timer expiry are verified through real-client text injection. Default AST retains 295 corpus differences; full N-08, microphone wake-up and physical ring acceptance remain open.
 
 Done when:
 
@@ -1087,7 +1087,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-03, S-05, H-05, C-03.
 
-The report graph exists; settings, local identity and data-service integration gaps prevent full parity claims.
+Root accepted the source Personal Report Results analytics builder and GetDataNode integration: 5 original compiled-builder controls and 486 unit tests pass. Current strict complete-server smoke has 375 differences, with 65 failing fields resolved and none introduced by this slice. Report orchestration, preferences/identity, provider ordering and deployment remain open.
 
 Done when:
 
@@ -1099,6 +1099,14 @@ Source: [Original Pegasus packages/report-skill/src/PersonalReport.ts](https://p
 Phoenix: [packages/skills/src/report/personalReport.js](../../packages/skills/src/report/personalReport.js); [packages/skills/src/report/nodes.js](../../packages/skills/src/report/nodes.js); [packages/skills/src/report/userId.js](../../packages/skills/src/report/userId.js); [packages/skills/src/report/settingsClient.js](../../packages/skills/src/report/settingsClient.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
+
+Candidate scope: Bounded Report Results analytics fields, category order and provider status. Root source5/unit486/strict43 checks pass their documented boundaries; whole server comparison retains 375 differences. Full S-08 remains open.
+
+Candidate report: [docs/parity/candidates/S-08-report-analytics.md](../../docs/parity/candidates/S-08-report-analytics.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/report-analytics-review.json](../../docs/parity/evidence/2026-09-06/service-integration/report-analytics-review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-09 — Verify report weather language and condition tables
 

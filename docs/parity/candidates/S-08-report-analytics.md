@@ -1,6 +1,12 @@
 # S-08 candidate: Personal Report results analytics
 
-Status: **integration candidate; unverified pending root review**
+Status: **bounded analytics slice accepted by root; full S-08 remains open**
+
+Root independently verified 486 unit passes, five original compiled-builder
+controls and a fresh strict43 capture with 375 differences. The
+[root review](../evidence/2026-09-06/service-integration/report-analytics-review.json)
+records runtime limits and all seven changed content-length failures. The
+agent evidence below retains its original scope.
 
 Owner: Luna Max
 Base: `26f4b1f4807e3b7ceb80a27e2ee7f07d04bb11e3`
@@ -90,6 +96,5 @@ S-08 file has four passing tests.
 The source differential is a builder control, not a complete original service
 execution. Provider HTTP behavior, Settings/Lasso deployment, report
 views/news payloads, graph session differences, and the remaining strict
-production differences remain outside this candidate. Root must rerun the
-integrated production capture and review whether those provider/session
-differences are independently owned.
+production differences remain outside this candidate. Root has completed the independent integration checks linked above. Remaining
+Report provider ordering and graph lifecycle work continues in separate candidates.

@@ -1,0 +1,66 @@
+{
+  "status": "Root accepted bounded Personal Report Results analytics compatibility",
+  "integratedRevision": "a22ff9ae051cacd4977e6502eb73d94c47e31120",
+  "reviewedCandidateRevision": "1e080a2993befa5f8e4f1cc06931d9b38d181242",
+  "candidateInputRevision": "06b1213b932264610b8f02a2696096f3851c40a8",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "scope": [
+    "Emit source details, service_details and config_state fields in category/key order.",
+    "Use the original active-category and provider-result truthiness rules through GetDataNode."
+  ],
+  "verification": {
+    "unit": {
+      "passed": 486,
+      "failed": 0,
+      "skipped": 3
+    },
+    "sourceBuilderControls": {
+      "cases": 5,
+      "matched": 5,
+      "runtime": "v22.22.0",
+      "scope": "Original TS2.5.3-emitted Analytics.js loaded in host Node22; not original full Node8 process",
+      "propertyKeyOrderCompared": true
+    },
+    "strictProduction": {
+      "cases": 43,
+      "baselineDifferences": 440,
+      "candidateDifferences": 375,
+      "resolvedFailingPaths": 65,
+      "newFailingPaths": 0,
+      "changedExistingFailingPaths": 7,
+      "removedDifferenceRecords": 72,
+      "addedDifferenceRecords": 7,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "gatePass": false,
+      "changedRecords": "Seven existing response content-length failures changed with the corrected analytics payload; all remain literal strict differences."
+    },
+    "integratedFilesEqualReviewedCandidate": true,
+    "sourceStable": true,
+    "workspaceLinksLocal": true
+  },
+  "sourceFiles": {
+    "packages/report-skill/src/Analytics.ts": "79eab22f7b4464aa8df2f6cdad47d7bb1d1d7aac247bdcb510d3a14cdd0a81e5",
+    "packages/report-skill/src/nodes/GetDataNode.ts": "839a8c17e559d02b2b7e02ed7e0d338904c61deca4eca3ec5f4f1532d0837bbd",
+    "packages/report-skill/lib/Analytics.js": "e846f7139299713f1842d28041438f3ef10f3310dc72c67aaefa9ca3e5e66d39",
+    "packages/report-skill/lib/nodes/GetDataNode.js": "11e4e183688b1ccd55d3eb47e46d69f9eae5db9b13e23d115eddbb7546aa118f"
+  },
+  "limits": [
+    "Full S-08 and full server parity remain open.",
+    "These five controls execute the original compiled builder in host Node22; they do not claim original Node8 process or Mongo/provider behavior.",
+    "Live providers, Report request ordering and deployed real-robot Report behavior remain unverified.",
+    "No golden, original capture, fixture, driver or strict comparator was weakened or changed for acceptance."
+  ],
+  "evidenceHashes": {
+    "workspace-install-receipt.json": "135236975e80843636f167e6d88b8525946a9b691637c45da5e3012b8a3d268f",
+    "full-unit.log": "17e41d952a62af7f75617c049f00d6e49ec7fd45b22d311f36eec5559e7ed141",
+    "full-unit-receipt.json": "ba12716d57b89f0b096baa0c5ee48b23b7738ae8746dd68e8caf479358b1f0a7",
+    "analytics.log": "02186a74fa305c0646c3efb0f381f2f4cc493ad021fae061df4e1e9bee1ec96b",
+    "analytics-receipt.json": "e8618ad1b8840c772043e56ba33585cf67f783c9421caa2f6665663908d02ef2",
+    "source-review.json": "3a31124afde4125b849eff791777c447bfbdbf69d48c94f01434cb5ae0b7f140",
+    "production/run.json": "7a7bead5126046af68af8ee79394880daca0f181fc35b9892a6cdf56eca1db2c",
+    "production/comparison.json": "5d17fb2f3c6b6c945bc51f5ef5ad59d5d687a144f96f6a319a50194bdd6d1d11",
+    "strict-receipt.json": "763a426fed82707e7f2f9c924ebb44ac1115c5b80f8c3dbf19727353bb51a364",
+    "strict-regression-review.json": "a11fa6d1458f0609dbf77e08915271442ed82480f792c3aa5c88e2b7e9d5ee2c"
+  }
+}
