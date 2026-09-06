@@ -45,6 +45,18 @@ function providers(address) {
   return createSettingsProviders({ store: {}, env: { NET_settings_lasso: address } }).lasso;
 }
 
+async function withProcessEnv(name, value, callback) {
+  const previous = process.env[name];
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+  try {
+    return await callback();
+  } finally {
+    if (previous === undefined) delete process.env[name];
+    else process.env[name] = previous;
+  }
+}
+
 const context = {
   loopId: 'loop-1',
   userId: 'account-1',
@@ -180,15 +192,21 @@ test('network Lasso validates required source fields before making a request', a
     const base = { skillId: 'skill-1', serviceName: 'google', serviceAccountName: 'calendar', scopes: ['read'] };
     await assert.rejects(
       () => lasso.getCredential(context, { ...base, skillId: undefined }),
-      (error) => error.message === 'Missing skillId in lasso credentials get request',
+      (error) => error.name === 'AssertionError [ERR_ASSERTION]'
+        && error.code === 'ERR_ASSERTION'
+        && error.message === 'Missing skillId in lasso credentials get request',
     );
     await assert.rejects(
       () => lasso.createUpdateCredential(context, base),
-      (error) => error.message === 'Missing authCode in lasso value',
+      (error) => error.name === 'AssertionError [ERR_ASSERTION]'
+        && error.code === 'ERR_ASSERTION'
+        && error.message === 'Missing authCode in lasso value',
     );
     await assert.rejects(
       () => lasso.deleteCredential(context, { ...base, serviceName: undefined }),
-      (error) => error.message === 'Missing serviceName in lasso credentials delete request',
+      (error) => error.name === 'AssertionError [ERR_ASSERTION]'
+        && error.code === 'ERR_ASSERTION'
+        && error.message === 'Missing serviceName in lasso credentials delete request',
     );
     await assert.rejects(
       () => lasso.getCredential({ ...context, transactionId: undefined }, base),
@@ -197,6 +215,112 @@ test('network Lasso validates required source fields before making a request', a
     assert.equal(peer.requests.length, 0);
   } finally {
     await closePeer(peer);
+  }
+});
+
+test('network Lasso preserves source assertion names and rejects a shadowing hasOwnProperty', async () => {
+  const peer = await listenPeer(() => ({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ hasOwnProperty: null, credentialExists: true }),
+  }));
+  try {
+    const lasso = providers(peer.address);
+    const base = { skillId: 'skill-1', serviceName: 'google', serviceAccountName: 'calendar', scopes: ['read'] };
+    await assert.rejects(
+      () => lasso.getCredential(context, { ...base, skillId: undefined }),
+      (error) => error.name === 'AssertionError [ERR_ASSERTION]'
+        && error.code === 'ERR_ASSERTION'
+        && error.message === 'Missing skillId in lasso credentials get request',
+    );
+    await assert.rejects(
+      () => lasso.getCredential(context, base),
+      (error) => error.message === 'Failed to get google calendar credentials',
+    );
+  } finally {
+    await closePeer(peer);
+  }
+});
+
+test('network Lasso accepts string timeout configuration and does not time out the response body', async () => {
+  const delayedServer = http.createServer((req, res) => {
+    req.resume();
+    req.once('end', () => {
+      res.writeHead(200, { 'content-type': 'application/json', connection: 'close' });
+      res.flushHeaders();
+      setTimeout(() => res.end(JSON.stringify({ credentialExists: true })), 60);
+    });
+  });
+  await new Promise((resolve) => delayedServer.listen(0, '127.0.0.1', resolve));
+  try {
+    await withProcessEnv('ETCO_server_http_timeout', '25', async () => {
+      const lasso = providers(`127.0.0.1:${delayedServer.address().port}`);
+      const value = await lasso.getCredential(context, {
+        skillId: 'skill-timeout', serviceName: 'google', serviceAccountName: 'calendar', scopes: [],
+      });
+      assert.deepEqual(value, { credentialExists: true });
+    });
+  } finally {
+    await new Promise((resolve) => delayedServer.close(resolve));
+  }
+});
+
+test('network Lasso snapshots transaction headers across redirects', async () => {
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    requests.push({ method: req.method, url: req.url, transactionId: req.headers['x-jibo-transid'] });
+    req.resume();
+    req.once('end', () => {
+      if (requests.length === 1) {
+        context.transactionId = 'tx-after-redirect';
+        res.writeHead(307, { location: '/v1/credential?redirected=1', connection: 'close' });
+        res.end();
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'application/json', connection: 'close' });
+      res.end(JSON.stringify({ credentialExists: true }));
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const originalTransactionId = context.transactionId;
+  try {
+    context.transactionId = 'tx-before-redirect';
+    const lasso = providers(`127.0.0.1:${server.address().port}`);
+    const value = await lasso.getCredential(context, {
+      skillId: 'skill-redirect', serviceName: 'google', serviceAccountName: 'calendar', scopes: [],
+    });
+    assert.deepEqual(value, { credentialExists: true });
+    assert.deepEqual(requests.map((request) => request.transactionId), ['tx-before-redirect', 'tx-before-redirect']);
+  } finally {
+    context.transactionId = originalTransactionId;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('network Lasso treats maxredirects string zero as one bounded rejection', async () => {
+  let requests = 0;
+  const server = http.createServer((req, res) => {
+    requests += 1;
+    req.resume();
+    req.once('end', () => {
+      res.writeHead(307, { location: '/v1/credential', connection: 'close' });
+      res.end();
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    await withProcessEnv('ETCO_server_http_maxredirects', '0', async () => {
+      const lasso = providers(`127.0.0.1:${server.address().port}`);
+      await assert.rejects(
+        () => lasso.getCredential(context, {
+          skillId: 'skill-limit', serviceName: 'google', serviceAccountName: 'calendar', scopes: [],
+        }),
+        (error) => error.message === 'Failed to get google calendar credentials',
+      );
+    });
+    assert.equal(requests, 1);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
   }
 });
 

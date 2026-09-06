@@ -112,6 +112,33 @@ the status-bearing error envelope control matches the source. This avoids
 propagating a peer-induced process crash while leaving the source behavior
 visible for root review.
 
+## Follow-up review repairs
+
+The isolated follow-up from `0e4a4398abdcc03579cab62aef92a9e79643b41f`
+keeps the original evidence unchanged and repairs five boundaries found during
+review:
+
+- numeric environment timeout strings are converted before entering Node's
+  `http.request`, and the request timer is cleared when final headers arrive,
+  matching Wreck's request/read lifecycle;
+- source assertion names are retained as `AssertionError [ERR_ASSERTION]`;
+- GET uses the source `response.hasOwnProperty` call, including its malformed
+  own-property failure behavior;
+- redirect requests carry the initial header snapshot even if the caller
+  mutates the context while the redirect is in flight;
+- redirect limits are normalized to a bounded numeric setting. Wreck 12.6.2's
+  raw environment string `"0"` falls through its strict `redirects === 0`
+  check and can recurse without a terminal bound (`wreck/lib/index.js:195-220`).
+  The candidate deliberately rejects the first redirect for numeric zero; the
+  pinned source control must retain that original fatal/non-terminating result
+  as a disclosed source divergence rather than weakening the comparator.
+
+The follow-up focused suite passes 8/8 locally, including the delayed-body,
+header-mutation, assertion-name, shadowing-property, timeout-string, and
+`maxredirects="0"` controls. The prior 24/24 comparison remains a preserved
+record; its comparator did not include `error.name` and therefore did not prove
+that field.
+
 Remaining scope is live Lasso deployment, Mongo persistence, provider-side
 credential validation, TLS/registry configuration, and OAuth authorization or
 token exchange. These controls establish the Settings outbound client boundary

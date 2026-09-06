@@ -6,7 +6,7 @@
 // the account store/data store seams explicitly. The Settings controller remains the one
 // implementation of validation, view traversal and error projection in both cases.
 
-import assert from 'node:assert/strict';
+import { AssertionError } from 'node:assert';
 import http from 'node:http';
 import https from 'node:https';
 
@@ -18,11 +18,23 @@ const lassoHttpAgent = new http.Agent({ keepAlive: true, maxSockets: Infinity })
 const lassoHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: Infinity });
 
 function lassoRequestTimeout() {
-  return process.env.ETCO_server_http_timeout || 60000;
+  const configured = process.env.ETCO_server_http_timeout;
+  if (!configured) return 60000;
+  // Wreck passes the environment string to setTimeout, which coerces numeric
+  // strings and clamps zero/invalid values to its minimum timer delay. The
+  // native Node request API requires a finite number instead.
+  const timeout = Number(configured);
+  return Number.isFinite(timeout) && timeout > 0 ? timeout : 1;
 }
 
 function lassoRedirectLimit() {
-  return process.env.ETCO_server_http_maxredirects || 3;
+  const configured = process.env.ETCO_server_http_maxredirects;
+  if (!configured) return 3;
+  const redirects = Number(configured);
+  // A numeric zero is the intended Wreck setting. Wreck's raw string "0"
+  // falls through its strict zero check and can recurse without a bound;
+  // normalize it before the bounded native implementation sees it.
+  return Number.isFinite(redirects) && redirects >= 0 ? redirects : 0;
 }
 
 function baseUrl(raw) {
@@ -101,6 +113,15 @@ function lassoHeaders(context) {
   };
 }
 
+function sourceAssert(condition, message) {
+  if (condition) return;
+  const error = new AssertionError({ actual: condition, expected: true, operator: '==', message });
+  // Node 8's assert module includes the error code in the observable name.
+  // Keep this translation local to the source assertion boundary.
+  error.name = 'AssertionError [ERR_ASSERTION]';
+  throw error;
+}
+
 function parseLassoResponse(response) {
   if (Buffer.isBuffer(response)) throw new Error(response.toString());
   if (typeof response === 'object') return response;
@@ -115,12 +136,14 @@ function lassoResponsePayload(response, chunks) {
   return JSON.parse(buffer.toString());
 }
 
-function lassoRequest(base, method, path, context, payload, redirectsLeft) {
+function lassoRequest(base, method, path, context, payload, redirectsLeft, headerSnapshot) {
   if (redirectsLeft === undefined) redirectsLeft = lassoRedirectLimit();
   const url = new URL(path, base);
   const body = payload === undefined ? null : JSON.stringify(payload);
-  const headers = lassoHeaders(context);
-  if (body !== null) headers['content-length'] = Buffer.byteLength(body);
+  const headers = headerSnapshot || lassoHeaders(context);
+  if (body !== null && headers['content-length'] === undefined) {
+    headers['content-length'] = Buffer.byteLength(body);
+  }
   const client = url.protocol === 'https:' ? https : http;
   const agent = url.protocol === 'https:' ? lassoHttpsAgent : lassoHttpAgent;
   return new Promise((resolve, reject) => {
@@ -144,6 +167,10 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft) {
         timeout: lassoRequestTimeout(),
       }, (response) => {
         const redirect = [301, 302, 307, 308].includes(response.statusCode);
+        // BaseClient/Wreck clears its request timer when final response
+        // headers arrive; Wreck.read then has no body timeout. Disable the
+        // native request timer at the same boundary.
+        if (!redirect) request.setTimeout(0);
         if (redirect) {
           const location = response.headers.location;
           if (!location || redirectsLeft <= 0) {
@@ -153,7 +180,7 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft) {
           }
           const redirectUrl = new URL(location, url);
           response.resume();
-          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1)
+          lassoRequest(redirectUrl.href, method, '', context, payload, redirectsLeft - 1, headers)
             .then((value) => finish(null, value), (error) => finish(error));
           return;
         }
@@ -196,10 +223,10 @@ function lassoRequest(base, method, path, context, payload, redirectsLeft) {
 }
 
 function checkLassoRequiredProperties(data, requestType) {
-  assert(data.skillId, `Missing skillId in lasso credentials ${requestType} request`);
-  assert(data.serviceName, `Missing serviceName in lasso credentials ${requestType} request`);
-  assert(data.serviceAccountName, `Missing serviceAccountName in lasso credentials ${requestType} request`);
-  assert(data.scopes, `Missing scopes in lasso credentials ${requestType} request`);
+  sourceAssert(data.skillId, `Missing skillId in lasso credentials ${requestType} request`);
+  sourceAssert(data.serviceName, `Missing serviceName in lasso credentials ${requestType} request`);
+  sourceAssert(data.serviceAccountName, `Missing serviceAccountName in lasso credentials ${requestType} request`);
+  sourceAssert(data.scopes, `Missing scopes in lasso credentials ${requestType} request`);
 }
 
 function localAccount(store) {
@@ -552,7 +579,7 @@ function networkLasso(_fetchImpl, base) {
         // Match Lasso.getCredential: parseLassoResponse, assert non-empty, assert
         // credentialExists, then wrap every failure in its operation-specific error.
         if (!response) throw new Error('Lasso returned an empty response');
-        if (!Object.prototype.hasOwnProperty.call(response, 'credentialExists')) {
+        if (!response.hasOwnProperty('credentialExists')) {
           throw new Error('Lasso returned invalid response: credentialExists is missing');
         }
         return response;
@@ -562,7 +589,7 @@ function networkLasso(_fetchImpl, base) {
     },
     async createUpdateCredential(context, credential) {
       checkLassoRequiredProperties(credential, 'save');
-      assert(credential.authCode, 'Missing authCode in lasso value');
+      sourceAssert(credential.authCode, 'Missing authCode in lasso value');
       const payload = {
         skillId: credential.skillId,
         accountId: context.userId,
