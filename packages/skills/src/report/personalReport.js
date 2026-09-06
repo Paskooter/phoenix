@@ -143,4 +143,24 @@ function buildPersonalReport(gm, facade) {
   return g;
 }
 
-export const reportSkill = createGraphSkill({ name: 'report-skill', graphManager: sharedGraphManager, build: buildPersonalReport });
+/** Build a report handler for one service host's graph-ID space. */
+export function createReportSkill({ graphManager } = {}) {
+  return createGraphSkill({ name: 'report-skill', graphManager, build: buildPersonalReport });
+}
+
+// Direct module imports retain the old handler shape, while construction is
+// deferred so a selected standalone report service does not first import and
+// allocate the co-hosted chitchat graph.
+let defaultReportSkill;
+
+export function getReportSkill({ graphManager = sharedGraphManager } = {}) {
+  if (graphManager === sharedGraphManager) {
+    if (!defaultReportSkill) defaultReportSkill = createReportSkill({ graphManager });
+    return defaultReportSkill;
+  }
+  return createReportSkill({ graphManager });
+}
+
+export async function reportSkill(...args) {
+  return getReportSkill()(...args);
+}

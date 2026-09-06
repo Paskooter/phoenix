@@ -179,7 +179,23 @@ export function createChitchatSkill({ rng = Math.random, graphManager } = {}) {
   });
 }
 
-export const chitchatSkill = createChitchatSkill({ graphManager: sharedGraphManager });
+// Keep the historical named handler export for callers that import the module
+// directly, but defer graph construction until the handler is actually used.
+// The service entrypoint can therefore choose a host-local manager before any
+// graph nodes are allocated (a standalone chitchat process must start at 0).
+let defaultChitchatSkill;
+
+export function getChitchatSkill({ graphManager = sharedGraphManager, rng = Math.random } = {}) {
+  if (graphManager === sharedGraphManager && rng === Math.random) {
+    if (!defaultChitchatSkill) defaultChitchatSkill = createChitchatSkill({ graphManager, rng });
+    return defaultChitchatSkill;
+  }
+  return createChitchatSkill({ graphManager, rng });
+}
+
+export async function chitchatSkill(...args) {
+  return getChitchatSkill()(...args);
+}
 
 /**
  * Reference ProcessQueryNode.resolveSemiSpecificMim: pick the semi-specific

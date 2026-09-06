@@ -9,9 +9,10 @@ import { DefaultPort } from '@phoenix/contracts';
 import { basename } from 'node:path';
 import { createSkillsService, createSkillService } from './skillService.js';
 import minimist from './vendor/minimist.cjs';
+import { GraphManager } from './graph/graphManager.js';
 import { answerSkill } from './answerSkill.js';
-import { chitchatSkill } from './chitchatSkill.js';
-import { reportSkill } from './reportSkill.js';
+import { getChitchatSkill } from './chitchatSkill.js';
+import { getReportSkill } from './reportSkill.js';
 import { colorSkill } from './colorSkill.js';
 import { exampleSkill } from './exampleSkill.js';
 import { templateSkill } from './templateSkill.js';
@@ -30,20 +31,43 @@ export { GraphManager } from './graph/graphManager.js';
 export { generateSlim, generateSlimSequence, generateSlimFromMim, generateDisplay, weightedSample, newMimState, MimTypes, PromptCategory, PromptSubCategory } from './graph/mims/slimmer.js';
 export { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 export { answerSkill } from './answerSkill.js';
-export { reportSkill } from './reportSkill.js';
-export { chitchatSkill } from './chitchatSkill.js';
+export { createReportSkill, getReportSkill, reportSkill } from './reportSkill.js';
+export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';
 export { exampleSkill } from './exampleSkill.js';
 export { templateSkill } from './templateSkill.js';
 
+// Compatibility descriptors retain the historical named handlers. The service
+// entrypoint below uses createBuiltinSkills so graph construction is scoped to
+// the selected host and ordered chitchat -> report for a combined host.
 export const SKILLS = [
   { id: 'answer-skill', handler: answerSkill },
-  { id: 'chitchat-skill', handler: chitchatSkill },
-  { id: 'report-skill', handler: reportSkill },
+  { id: 'chitchat-skill', handler: (...args) => getChitchatSkill()(...args) },
+  { id: 'report-skill', handler: (...args) => getReportSkill()(...args) },
   { id: 'color-skill', handler: colorSkill },
   { id: 'example-skill', handler: exampleSkill },
   { id: 'template-skill', handler: templateSkill },
 ];
+
+const SKILL_IDS = new Set(SKILLS.map((skill) => skill.id));
+
+/** Construct only the handlers hosted by this process, in source order. */
+export function createBuiltinSkills({ graphManager = new GraphManager() } = {}) {
+  return [
+    { id: 'answer-skill', handler: answerSkill },
+    { id: 'chitchat-skill', handler: getChitchatSkill({ graphManager }) },
+    { id: 'report-skill', handler: getReportSkill({ graphManager }) },
+    { id: 'color-skill', handler: colorSkill },
+    { id: 'example-skill', handler: exampleSkill },
+    { id: 'template-skill', handler: templateSkill },
+  ];
+}
+
+function createSelectedSkill(skillId) {
+  if (skillId === 'chitchat-skill') return { id: skillId, handler: getChitchatSkill({ graphManager: new GraphManager() }) };
+  if (skillId === 'report-skill') return { id: skillId, handler: getReportSkill({ graphManager: new GraphManager() }) };
+  return SKILLS.find((skill) => skill.id === skillId);
+}
 
 function defaultPort() {
   const configured = process.env.PORT || process.env.ETCO_server_port;
@@ -115,11 +139,11 @@ export function runService(serviceName, serviceStarter, {
 
 export function start(port = defaultPort(), { skillId = process.env.PHOENIX_SKILL_ID } = {}) {
   if (skillId) {
-    const selected = SKILLS.find((skill) => skill.id === skillId);
-    if (!selected) throw new Error(`Unknown PHOENIX_SKILL_ID '${skillId}'`);
+    if (!SKILL_IDS.has(skillId)) throw new Error(`Unknown PHOENIX_SKILL_ID '${skillId}'`);
+    const selected = createSelectedSkill(skillId);
     return createSkillService({ name: selected.id, skillId: selected.id, handler: selected.handler }).listen(port);
   }
-  return createSkillsService({ name: 'skills', skills: SKILLS, defaultId: 'answer-skill' }).listen(port);
+  return createSkillsService({ name: 'skills', skills: createBuiltinSkills(), defaultId: 'answer-skill' }).listen(port);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

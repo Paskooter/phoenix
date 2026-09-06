@@ -19,8 +19,15 @@ const adapter = {
     const { IntentRouter } = await moduleAt('packages/gateway/src/intentRouter.js');
     const { SkillClient, SkillConfigManager } = await moduleAt('packages/gateway/src/skillClient.js');
     const { createSkillService } = await moduleAt('packages/skills/src/skillService.js');
-    const { chitchatSkill } = await moduleAt('packages/skills/src/chitchatSkill.js');
-    const { reportSkill } = await moduleAt('packages/skills/src/reportSkill.js');
+    const { GraphManager } = await moduleAt('packages/skills/src/graph/graphManager.js');
+    const { getChitchatSkill } = await moduleAt('packages/skills/src/chitchatSkill.js');
+    const { getReportSkill } = await moduleAt('packages/skills/src/reportSkill.js');
+    // The source adapter constructs co-hosted cloud skills in this order on
+    // one GraphManager. Standalone service entrypoints use their own manager;
+    // this adapter represents the combined production host explicitly.
+    const graphManager = new GraphManager();
+    const chitchatSkill = getChitchatSkill({ graphManager });
+    const reportSkill = getReportSkill({ graphManager });
     const servers = [], skillPorts = {}, configs = await loadRegistry({}), router = new IntentRouter(configs);
     // The public client methods execute the production request builders. Only
     // their final transport seam is replaced; the shared driver captures the
