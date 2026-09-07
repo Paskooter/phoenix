@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { newJcpId } from './jcpId.js';
-import { skillRoute } from './skillService.js';
+import { gqaBannedWordPresent } from './gqaBannedWords.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_VERSION = '5.2.15';
@@ -21,6 +21,7 @@ export const GQA_VERSION = '5.2.15';
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const MIM_DIR = join(MODULE_DIR, '../resources/mims/gqa');
 const MIM_NAMES = [
+  'GQA_banned_word',
   'GQA_error',
   'GQA_no_answer_generic',
   'GQA_no_answer_how',
@@ -366,8 +367,21 @@ const SOURCE_PROVIDER_PLAN = Object.freeze([
   ]),
 ]);
 
+function sourceTruthy(value) {
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === 'object') return Object.keys(value).length > 0;
+  return Boolean(value);
+}
+
 function hasGqaPayload(output) {
-  return Boolean(output && output.response && output.response.payload);
+  // Python's output.get('response', {}).get('payload') distinguishes an
+  // absent response from an explicitly null/non-mapping response. The latter
+  // escapes the source route as an HTTP500 instead of a no-answer response.
+  const response = Object.prototype.hasOwnProperty.call(output, 'response') ? output.response : {};
+  if (response === null || typeof response !== 'object' || Array.isArray(response)) {
+    throw new TypeError('GQA provider response must be a mapping');
+  }
+  return sourceTruthy(response.payload);
 }
 
 /**
@@ -544,10 +558,16 @@ export function createGqaAnswerSkill({ provider = async () => ({}), providers, r
       slim = buildGqaSlimFromMim('GQA_error', undefined, { rng, idFactory });
     } else if (gqaPiiFilter(queryText)) {
       slim = buildGqaSlimFromMim('GQA_pii_filter', undefined, { rng, idFactory });
+    } else if (gqaBannedWordPresent(queryText)) {
+      slim = buildGqaSlimFromMim('GQA_banned_word', undefined, { rng, idFactory });
     } else {
       try {
         output = normalizeProviderOutput(await invokeProvider(context));
       } catch (error) {
+        // Individual adapters are caught by the pipeline's worker boundary.
+        // A rejected pipeline is an orchestration/result-shape failure and
+        // the original Flask route exposes it as HTTP500.
+        if (providers) throw error;
         // GqaParallelQuery catches each provider exception, records it in its
         // private service log, and continues to the next provider. If every
         // provider fails, its returned output has no `message` field; source
@@ -559,17 +579,22 @@ export function createGqaAnswerSkill({ provider = async () => ({}), providers, r
     }
 
     if (!slim) {
-      if (output.message) {
+      if (sourceTruthy(output.message)) {
         slim = buildGqaSlimFromMim('GQA_error', undefined, { rng, idFactory });
-      } else if (output.response && output.response.payload) {
-        if (typeof output.response.payload !== 'string') {
-          throw new TypeError('GQA provider payload must be a string');
-        }
-        if (typeof output.source !== 'string') {
+      } else if (hasGqaPayload(output)) {
+        if (!Object.prototype.hasOwnProperty.call(output, 'source')) {
           throw new Error('GQA provider success is missing source');
         }
         let answer = output.response.payload;
-        if (!answer.endsWith('.')) answer += '.';
+        if (typeof answer === 'string') {
+          if (!answer.endsWith('.')) answer += '.';
+        } else if (Array.isArray(answer)) {
+          // Source list += '.' appends one element; preserve the JSON value
+          // instead of silently stringifying it at this boundary.
+          if (answer[answer.length - 1] !== '.') answer = [...answer, '.'];
+        } else {
+          throw new TypeError('GQA provider payload is not subscriptable');
+        }
         slim = buildGqaSlimFromText(answer, output.source, idFactory);
         output = { ...output, response: { ...output.response, payload: answer } };
       } else {
@@ -595,9 +620,8 @@ export const gqaAnswerSkill = createGqaAnswerSkill();
 // The recovered Flask route rejects a request before invoking gqa_pegasus when
 // X-JIBO-transID is absent.  Keep this boundary in a GQA-owned adapter so the
 // common skillRoute can continue to serve the other source services unchanged.
-// This HTML is the body observed from the source route under the host Flask
-// 3.1.3 control; status/message are source-backed while the historical Flask
-// 0.12.2 renderer remains an explicit runtime qualification.
+// The diagnostic HTML renderer may differ from Flask 0.12.2; the source
+// status, media type and client-visible failure path are preserved.
 export const GQA_MISSING_TRANSID_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Missing X-JIBO-transID header</p>\n';
 export const GQA_BAD_REQUEST_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Bad Request</p>\n';
 
@@ -728,9 +752,9 @@ function hasEmptyJsonEntity(request) {
 }
 
 /**
- * Create the source GQA HTTP boundary around the common skill route.
+ * Create the source GQA HTTP boundary, including its failure status and body.
  *
- * The adapter performs only the source-specific transID check and mutation:
+ * The adapter applies the source-specific validation and transID mutation:
  * source gqa_pegasus stores the first Flask header value as a one-element
  * `request_data.transID` list before reading the rest of the body.  A service
  * route receives the Express response object and can therefore preserve the
@@ -739,7 +763,6 @@ function hasEmptyJsonEntity(request) {
  */
 export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkill } = {}) {
   if (typeof handler !== 'function') throw new TypeError('GQA HTTP handler must be a function');
-  const sourceRoute = skillRoute(skillId, handler);
   const gqaHttpRoute = async function gqaHttpRoute(context = {}) {
     const request = context.req || {};
     if (hasEmptyJsonEntity(request)) {
@@ -775,7 +798,15 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
     } catch (error) {
       return respondGqaSourceError(context, 500, error);
     }
-    return sourceRoute(context);
+    try {
+      // GQA is a Flask service, not a BaseSkill endpoint. Its response already
+      // contains provider timings; its uncaught failures use the source HTTP
+      // error handler. The generic skill wrapper changes both contracts.
+      return await handler(context.body, { trace: context.trace, log: context.log, req: request });
+    } catch (error) {
+      context.log?.error?.('GQA handler failed', { error });
+      return respondGqaSourceError(context, 500, error);
+    }
   };
   // The source Flask request.json accepts top-level null/arrays/primitives and
   // reaches its own 500 branch.  Common services stay strict by default; this

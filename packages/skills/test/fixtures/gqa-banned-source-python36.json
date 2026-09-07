@@ -1,0 +1,1899 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "sourceSha256": "bda108dca939474af580db1dd787e83e25b88551d10611d3e85d3fd585f40871",
+  "runtime": "3.6.15 (default, Dec 21 2021, 12:28:02) \n[GCC 8.3.0]",
+  "rows": [
+    {
+      "input": "",
+      "expected": false
+    },
+    {
+      "input": "assume",
+      "expected": false
+    },
+    {
+      "input": "arsenal",
+      "expected": false
+    },
+    {
+      "input": "muffin",
+      "expected": false
+    },
+    {
+      "input": "municipality",
+      "expected": false
+    },
+    {
+      "input": "Scunthorpe, Lincolnshire",
+      "expected": false
+    },
+    {
+      "input": "Alan Cumming",
+      "expected": false
+    },
+    {
+      "input": "please WANK",
+      "expected": true
+    },
+    {
+      "input": "wankwank",
+      "expected": true
+    },
+    {
+      "input": "wank\u00b2",
+      "expected": false
+    },
+    {
+      "input": "\u00b2wank",
+      "expected": false
+    },
+    {
+      "input": "\u00e9wank",
+      "expected": false
+    },
+    {
+      "input": "wank\u00e9",
+      "expected": false
+    },
+    {
+      "input": "_wank",
+      "expected": false
+    },
+    {
+      "input": "wank_",
+      "expected": false
+    },
+    {
+      "input": "wank-wank",
+      "expected": true
+    },
+    {
+      "input": "coke",
+      "expected": false
+    },
+    {
+      "input": "debugger",
+      "expected": false
+    },
+    {
+      "input": "a debugger and wank",
+      "expected": true
+    },
+    {
+      "input": "shittah",
+      "expected": false
+    },
+    {
+      "input": "boobies",
+      "expected": true
+    },
+    {
+      "input": "booooobies",
+      "expected": true
+    },
+    {
+      "input": "a\u0301wank",
+      "expected": true
+    },
+    {
+      "input": "4r5e",
+      "expected": true
+    },
+    {
+      "input": "5h1t",
+      "expected": true
+    },
+    {
+      "input": "5hit",
+      "expected": true
+    },
+    {
+      "input": "a55",
+      "expected": true
+    },
+    {
+      "input": "ar5e",
+      "expected": true
+    },
+    {
+      "input": "arrse",
+      "expected": true
+    },
+    {
+      "input": "assfukka",
+      "expected": true
+    },
+    {
+      "input": "asshole",
+      "expected": true
+    },
+    {
+      "input": "assholes",
+      "expected": true
+    },
+    {
+      "input": "asswhole",
+      "expected": true
+    },
+    {
+      "input": "a_s_s",
+      "expected": true
+    },
+    {
+      "input": "b!tch",
+      "expected": true
+    },
+    {
+      "input": "b00bs",
+      "expected": true
+    },
+    {
+      "input": "b17ch",
+      "expected": true
+    },
+    {
+      "input": "b1tch",
+      "expected": true
+    },
+    {
+      "input": "ballbag",
+      "expected": true
+    },
+    {
+      "input": "ballsack",
+      "expected": true
+    },
+    {
+      "input": "beastiality",
+      "expected": true
+    },
+    {
+      "input": "bellend",
+      "expected": true
+    },
+    {
+      "input": "bestiality",
+      "expected": true
+    },
+    {
+      "input": "bi+ch",
+      "expected": true
+    },
+    {
+      "input": "biatch",
+      "expected": true
+    },
+    {
+      "input": "bitcher",
+      "expected": true
+    },
+    {
+      "input": "bitchers",
+      "expected": true
+    },
+    {
+      "input": "bitchin",
+      "expected": true
+    },
+    {
+      "input": "bitching",
+      "expected": true
+    },
+    {
+      "input": "blow job",
+      "expected": true
+    },
+    {
+      "input": "blowjob",
+      "expected": true
+    },
+    {
+      "input": "boiolas",
+      "expected": true
+    },
+    {
+      "input": "bollock",
+      "expected": true
+    },
+    {
+      "input": "bollok",
+      "expected": true
+    },
+    {
+      "input": "boner",
+      "expected": true
+    },
+    {
+      "input": "buceta",
+      "expected": true
+    },
+    {
+      "input": "bugger",
+      "expected": true
+    },
+    {
+      "input": "butthole",
+      "expected": true
+    },
+    {
+      "input": "buttmuch",
+      "expected": true
+    },
+    {
+      "input": "buttplug",
+      "expected": true
+    },
+    {
+      "input": "c0ck",
+      "expected": true
+    },
+    {
+      "input": "carpet muncher",
+      "expected": true
+    },
+    {
+      "input": "cawk",
+      "expected": true
+    },
+    {
+      "input": "cl1t",
+      "expected": true
+    },
+    {
+      "input": "clits",
+      "expected": true
+    },
+    {
+      "input": "cnut",
+      "expected": true
+    },
+    {
+      "input": "cock-sucker",
+      "expected": true
+    },
+    {
+      "input": "cockface",
+      "expected": true
+    },
+    {
+      "input": "cockhead",
+      "expected": true
+    },
+    {
+      "input": "cockmunch",
+      "expected": true
+    },
+    {
+      "input": "cockmuncher",
+      "expected": true
+    },
+    {
+      "input": "cocksuck",
+      "expected": true
+    },
+    {
+      "input": "cocksuka",
+      "expected": true
+    },
+    {
+      "input": "cocksukka",
+      "expected": true
+    },
+    {
+      "input": "cok",
+      "expected": true
+    },
+    {
+      "input": "cummer",
+      "expected": true
+    },
+    {
+      "input": "cumming",
+      "expected": true
+    },
+    {
+      "input": "cumshot",
+      "expected": true
+    },
+    {
+      "input": "cunilingus",
+      "expected": true
+    },
+    {
+      "input": "cunillingus",
+      "expected": true
+    },
+    {
+      "input": "cunnilingus",
+      "expected": true
+    },
+    {
+      "input": "cuntlick",
+      "expected": true
+    },
+    {
+      "input": "cyberfuc",
+      "expected": true
+    },
+    {
+      "input": "d1ck",
+      "expected": true
+    },
+    {
+      "input": "dickhead",
+      "expected": true
+    },
+    {
+      "input": "dildo",
+      "expected": true
+    },
+    {
+      "input": "dlck",
+      "expected": true
+    },
+    {
+      "input": "donkeyribber",
+      "expected": true
+    },
+    {
+      "input": "doosh",
+      "expected": true
+    },
+    {
+      "input": "ejakulate",
+      "expected": true
+    },
+    {
+      "input": "f u c k",
+      "expected": true
+    },
+    {
+      "input": "f4nny",
+      "expected": true
+    },
+    {
+      "input": "fagging",
+      "expected": true
+    },
+    {
+      "input": "faggitt",
+      "expected": true
+    },
+    {
+      "input": "faggot",
+      "expected": true
+    },
+    {
+      "input": "faggs",
+      "expected": true
+    },
+    {
+      "input": "fagot",
+      "expected": true
+    },
+    {
+      "input": "fags",
+      "expected": true
+    },
+    {
+      "input": "fannyflaps",
+      "expected": true
+    },
+    {
+      "input": "fannyfucker",
+      "expected": true
+    },
+    {
+      "input": "fanyy",
+      "expected": true
+    },
+    {
+      "input": "fatass",
+      "expected": true
+    },
+    {
+      "input": "fcuk",
+      "expected": true
+    },
+    {
+      "input": "fecker",
+      "expected": true
+    },
+    {
+      "input": "felching",
+      "expected": true
+    },
+    {
+      "input": "fellate",
+      "expected": true
+    },
+    {
+      "input": "fellatio",
+      "expected": true
+    },
+    {
+      "input": "fook",
+      "expected": true
+    },
+    {
+      "input": "fuck",
+      "expected": true
+    },
+    {
+      "input": "fudge packer",
+      "expected": true
+    },
+    {
+      "input": "fudgepacker",
+      "expected": true
+    },
+    {
+      "input": "fuk",
+      "expected": true
+    },
+    {
+      "input": "fux",
+      "expected": true
+    },
+    {
+      "input": "f_u_c_k",
+      "expected": true
+    },
+    {
+      "input": "gangbang",
+      "expected": true
+    },
+    {
+      "input": "gaylord",
+      "expected": true
+    },
+    {
+      "input": "gaysex",
+      "expected": true
+    },
+    {
+      "input": "goatse",
+      "expected": true
+    },
+    {
+      "input": "god-dam",
+      "expected": true
+    },
+    {
+      "input": "goddamn",
+      "expected": true
+    },
+    {
+      "input": "hardcoresex",
+      "expected": true
+    },
+    {
+      "input": "hoare",
+      "expected": true
+    },
+    {
+      "input": "hotsex",
+      "expected": true
+    },
+    {
+      "input": "jack-off",
+      "expected": true
+    },
+    {
+      "input": "jackoff",
+      "expected": true
+    },
+    {
+      "input": "jerk-off",
+      "expected": true
+    },
+    {
+      "input": "jism",
+      "expected": true
+    },
+    {
+      "input": "jiz",
+      "expected": true
+    },
+    {
+      "input": "jizm",
+      "expected": true
+    },
+    {
+      "input": "kawk",
+      "expected": true
+    },
+    {
+      "input": "knobead",
+      "expected": true
+    },
+    {
+      "input": "knobed",
+      "expected": true
+    },
+    {
+      "input": "knobend",
+      "expected": true
+    },
+    {
+      "input": "knobhead",
+      "expected": true
+    },
+    {
+      "input": "knobjocky",
+      "expected": true
+    },
+    {
+      "input": "knobjokey",
+      "expected": true
+    },
+    {
+      "input": "kock",
+      "expected": true
+    },
+    {
+      "input": "kondum",
+      "expected": true
+    },
+    {
+      "input": "kondums",
+      "expected": true
+    },
+    {
+      "input": "kummer",
+      "expected": true
+    },
+    {
+      "input": "kumming",
+      "expected": true
+    },
+    {
+      "input": "kums",
+      "expected": true
+    },
+    {
+      "input": "kunilingus",
+      "expected": true
+    },
+    {
+      "input": "l3i+ch",
+      "expected": true
+    },
+    {
+      "input": "l3itch",
+      "expected": true
+    },
+    {
+      "input": "m0f0",
+      "expected": true
+    },
+    {
+      "input": "m0fo",
+      "expected": true
+    },
+    {
+      "input": "m45terbate",
+      "expected": true
+    },
+    {
+      "input": "ma5terb8",
+      "expected": true
+    },
+    {
+      "input": "ma5terbate",
+      "expected": true
+    },
+    {
+      "input": "master-bate",
+      "expected": true
+    },
+    {
+      "input": "masterb8",
+      "expected": true
+    },
+    {
+      "input": "masterbat",
+      "expected": true
+    },
+    {
+      "input": "masturbate",
+      "expected": true
+    },
+    {
+      "input": "mo-fo",
+      "expected": true
+    },
+    {
+      "input": "mof0",
+      "expected": true
+    },
+    {
+      "input": "n1gga",
+      "expected": true
+    },
+    {
+      "input": "n1gger",
+      "expected": true
+    },
+    {
+      "input": "nigg3r",
+      "expected": true
+    },
+    {
+      "input": "nigg4h",
+      "expected": true
+    },
+    {
+      "input": "nigga",
+      "expected": true
+    },
+    {
+      "input": "nigger",
+      "expected": true
+    },
+    {
+      "input": "nob jokey",
+      "expected": true
+    },
+    {
+      "input": "nobhead",
+      "expected": true
+    },
+    {
+      "input": "nobjocky",
+      "expected": true
+    },
+    {
+      "input": "nobjokey",
+      "expected": true
+    },
+    {
+      "input": "numbnuts",
+      "expected": true
+    },
+    {
+      "input": "nutsack",
+      "expected": true
+    },
+    {
+      "input": "p0rn",
+      "expected": true
+    },
+    {
+      "input": "penisfucker",
+      "expected": true
+    },
+    {
+      "input": "phonesex",
+      "expected": true
+    },
+    {
+      "input": "phuck",
+      "expected": true
+    },
+    {
+      "input": "phuked",
+      "expected": true
+    },
+    {
+      "input": "phuking",
+      "expected": true
+    },
+    {
+      "input": "phukked",
+      "expected": true
+    },
+    {
+      "input": "phukking",
+      "expected": true
+    },
+    {
+      "input": "phuks",
+      "expected": true
+    },
+    {
+      "input": "phuq",
+      "expected": true
+    },
+    {
+      "input": "pigfucker",
+      "expected": true
+    },
+    {
+      "input": "pimpis",
+      "expected": true
+    },
+    {
+      "input": "pisser",
+      "expected": true
+    },
+    {
+      "input": "pisses",
+      "expected": true
+    },
+    {
+      "input": "pissflaps",
+      "expected": true
+    },
+    {
+      "input": "pissin",
+      "expected": true
+    },
+    {
+      "input": "pissoff",
+      "expected": true
+    },
+    {
+      "input": "pusse",
+      "expected": true
+    },
+    {
+      "input": "pussi",
+      "expected": true
+    },
+    {
+      "input": "pussys",
+      "expected": true
+    },
+    {
+      "input": "rimjaw",
+      "expected": true
+    },
+    {
+      "input": "schlong",
+      "expected": true
+    },
+    {
+      "input": "scroat",
+      "expected": true
+    },
+    {
+      "input": "scrote",
+      "expected": true
+    },
+    {
+      "input": "sh!+",
+      "expected": true
+    },
+    {
+      "input": "sh!t",
+      "expected": true
+    },
+    {
+      "input": "sh1t",
+      "expected": true
+    },
+    {
+      "input": "shagger",
+      "expected": true
+    },
+    {
+      "input": "shaggin",
+      "expected": true
+    },
+    {
+      "input": "shagging",
+      "expected": true
+    },
+    {
+      "input": "shemale",
+      "expected": true
+    },
+    {
+      "input": "shit",
+      "expected": true
+    },
+    {
+      "input": "shi+",
+      "expected": true
+    },
+    {
+      "input": "skank",
+      "expected": true
+    },
+    {
+      "input": "slut",
+      "expected": true
+    },
+    {
+      "input": "smegma",
+      "expected": true
+    },
+    {
+      "input": "son-of-a-bitch",
+      "expected": true
+    },
+    {
+      "input": "s_h_i_t",
+      "expected": true
+    },
+    {
+      "input": "t1tt1e5",
+      "expected": true
+    },
+    {
+      "input": "t1tties",
+      "expected": true
+    },
+    {
+      "input": "titfuck",
+      "expected": true
+    },
+    {
+      "input": "tittie5",
+      "expected": true
+    },
+    {
+      "input": "tittiefucker",
+      "expected": true
+    },
+    {
+      "input": "titties",
+      "expected": true
+    },
+    {
+      "input": "tittyfuck",
+      "expected": true
+    },
+    {
+      "input": "tittywank",
+      "expected": true
+    },
+    {
+      "input": "titwank",
+      "expected": true
+    },
+    {
+      "input": "tw4t",
+      "expected": true
+    },
+    {
+      "input": "twathead",
+      "expected": true
+    },
+    {
+      "input": "twatty",
+      "expected": true
+    },
+    {
+      "input": "twunt",
+      "expected": true
+    },
+    {
+      "input": "twunter",
+      "expected": true
+    },
+    {
+      "input": "v14gra",
+      "expected": true
+    },
+    {
+      "input": "v1gra",
+      "expected": true
+    },
+    {
+      "input": "w00se",
+      "expected": true
+    },
+    {
+      "input": "wanker",
+      "expected": true
+    },
+    {
+      "input": "whoar",
+      "expected": true
+    },
+    {
+      "input": "whore",
+      "expected": true
+    },
+    {
+      "input": "arse",
+      "expected": true
+    },
+    {
+      "input": "arsearse",
+      "expected": true
+    },
+    {
+      "input": "alphaarse",
+      "expected": false
+    },
+    {
+      "input": "arsebeta",
+      "expected": false
+    },
+    {
+      "input": "boobiesboobies",
+      "expected": true
+    },
+    {
+      "input": "alphaboobies",
+      "expected": false
+    },
+    {
+      "input": "boobiesbeta",
+      "expected": false
+    },
+    {
+      "input": "cipa",
+      "expected": true
+    },
+    {
+      "input": "cipacipa",
+      "expected": true
+    },
+    {
+      "input": "alphacipa",
+      "expected": false
+    },
+    {
+      "input": "cipabeta",
+      "expected": false
+    },
+    {
+      "input": "clit",
+      "expected": true
+    },
+    {
+      "input": "clitclit",
+      "expected": true
+    },
+    {
+      "input": "alphaclit",
+      "expected": false
+    },
+    {
+      "input": "clitbeta",
+      "expected": false
+    },
+    {
+      "input": "coon",
+      "expected": true
+    },
+    {
+      "input": "cooncoon",
+      "expected": true
+    },
+    {
+      "input": "alphacoon",
+      "expected": false
+    },
+    {
+      "input": "coonbeta",
+      "expected": false
+    },
+    {
+      "input": "cox",
+      "expected": true
+    },
+    {
+      "input": "coxcox",
+      "expected": true
+    },
+    {
+      "input": "alphacox",
+      "expected": false
+    },
+    {
+      "input": "coxbeta",
+      "expected": false
+    },
+    {
+      "input": "cum",
+      "expected": true
+    },
+    {
+      "input": "cumcum",
+      "expected": true
+    },
+    {
+      "input": "alphacum",
+      "expected": false
+    },
+    {
+      "input": "cumbeta",
+      "expected": false
+    },
+    {
+      "input": "cums",
+      "expected": true
+    },
+    {
+      "input": "cumscums",
+      "expected": true
+    },
+    {
+      "input": "alphacums",
+      "expected": false
+    },
+    {
+      "input": "cumsbeta",
+      "expected": false
+    },
+    {
+      "input": "cunt",
+      "expected": true
+    },
+    {
+      "input": "cuntcunt",
+      "expected": true
+    },
+    {
+      "input": "alphacunt",
+      "expected": false
+    },
+    {
+      "input": "cuntbeta",
+      "expected": false
+    },
+    {
+      "input": "cunts",
+      "expected": true
+    },
+    {
+      "input": "cuntscunts",
+      "expected": true
+    },
+    {
+      "input": "alphacunts",
+      "expected": false
+    },
+    {
+      "input": "cuntsbeta",
+      "expected": false
+    },
+    {
+      "input": "doggin",
+      "expected": true
+    },
+    {
+      "input": "doggindoggin",
+      "expected": true
+    },
+    {
+      "input": "alphadoggin",
+      "expected": false
+    },
+    {
+      "input": "dogginbeta",
+      "expected": false
+    },
+    {
+      "input": "duche",
+      "expected": true
+    },
+    {
+      "input": "ducheduche",
+      "expected": true
+    },
+    {
+      "input": "alphaduche",
+      "expected": false
+    },
+    {
+      "input": "duchebeta",
+      "expected": false
+    },
+    {
+      "input": "fag",
+      "expected": true
+    },
+    {
+      "input": "fagfag",
+      "expected": true
+    },
+    {
+      "input": "alphafag",
+      "expected": false
+    },
+    {
+      "input": "fagbeta",
+      "expected": false
+    },
+    {
+      "input": "feck",
+      "expected": true
+    },
+    {
+      "input": "feckfeck",
+      "expected": true
+    },
+    {
+      "input": "alphafeck",
+      "expected": false
+    },
+    {
+      "input": "feckbeta",
+      "expected": false
+    },
+    {
+      "input": "heshe",
+      "expected": true
+    },
+    {
+      "input": "hesheheshe",
+      "expected": true
+    },
+    {
+      "input": "alphaheshe",
+      "expected": false
+    },
+    {
+      "input": "heshebeta",
+      "expected": false
+    },
+    {
+      "input": "hoar",
+      "expected": true
+    },
+    {
+      "input": "hoarhoar",
+      "expected": true
+    },
+    {
+      "input": "alphahoar",
+      "expected": false
+    },
+    {
+      "input": "hoarbeta",
+      "expected": false
+    },
+    {
+      "input": "hoer",
+      "expected": true
+    },
+    {
+      "input": "hoerhoer",
+      "expected": true
+    },
+    {
+      "input": "alphahoer",
+      "expected": false
+    },
+    {
+      "input": "hoerbeta",
+      "expected": false
+    },
+    {
+      "input": "hore",
+      "expected": true
+    },
+    {
+      "input": "horehore",
+      "expected": true
+    },
+    {
+      "input": "alphahore",
+      "expected": false
+    },
+    {
+      "input": "horebeta",
+      "expected": false
+    },
+    {
+      "input": "jap",
+      "expected": true
+    },
+    {
+      "input": "japjap",
+      "expected": true
+    },
+    {
+      "input": "alphajap",
+      "expected": false
+    },
+    {
+      "input": "japbeta",
+      "expected": false
+    },
+    {
+      "input": "kum",
+      "expected": true
+    },
+    {
+      "input": "kumkum",
+      "expected": true
+    },
+    {
+      "input": "alphakum",
+      "expected": false
+    },
+    {
+      "input": "kumbeta",
+      "expected": false
+    },
+    {
+      "input": "mofo",
+      "expected": true
+    },
+    {
+      "input": "mofomofo",
+      "expected": true
+    },
+    {
+      "input": "alphamofo",
+      "expected": false
+    },
+    {
+      "input": "mofobeta",
+      "expected": false
+    },
+    {
+      "input": "muff",
+      "expected": true
+    },
+    {
+      "input": "muffmuff",
+      "expected": true
+    },
+    {
+      "input": "alphamuff",
+      "expected": false
+    },
+    {
+      "input": "muffbeta",
+      "expected": false
+    },
+    {
+      "input": "pecker",
+      "expected": true
+    },
+    {
+      "input": "peckerpecker",
+      "expected": true
+    },
+    {
+      "input": "alphapecker",
+      "expected": false
+    },
+    {
+      "input": "peckerbeta",
+      "expected": false
+    },
+    {
+      "input": "phuk",
+      "expected": true
+    },
+    {
+      "input": "phukphuk",
+      "expected": true
+    },
+    {
+      "input": "alphaphuk",
+      "expected": false
+    },
+    {
+      "input": "phukbeta",
+      "expected": false
+    },
+    {
+      "input": "pron",
+      "expected": true
+    },
+    {
+      "input": "pronpron",
+      "expected": true
+    },
+    {
+      "input": "alphapron",
+      "expected": false
+    },
+    {
+      "input": "pronbeta",
+      "expected": false
+    },
+    {
+      "input": "pube",
+      "expected": true
+    },
+    {
+      "input": "pubepube",
+      "expected": true
+    },
+    {
+      "input": "alphapube",
+      "expected": false
+    },
+    {
+      "input": "pubebeta",
+      "expected": false
+    },
+    {
+      "input": "teez",
+      "expected": true
+    },
+    {
+      "input": "teezteez",
+      "expected": true
+    },
+    {
+      "input": "alphateez",
+      "expected": false
+    },
+    {
+      "input": "teezbeta",
+      "expected": false
+    },
+    {
+      "input": "tits",
+      "expected": true
+    },
+    {
+      "input": "titstits",
+      "expected": true
+    },
+    {
+      "input": "alphatits",
+      "expected": false
+    },
+    {
+      "input": "titsbeta",
+      "expected": false
+    },
+    {
+      "input": "titt",
+      "expected": true
+    },
+    {
+      "input": "titttitt",
+      "expected": true
+    },
+    {
+      "input": "alphatitt",
+      "expected": false
+    },
+    {
+      "input": "tittbeta",
+      "expected": false
+    },
+    {
+      "input": "twat",
+      "expected": true
+    },
+    {
+      "input": "twattwat",
+      "expected": true
+    },
+    {
+      "input": "alphatwat",
+      "expected": false
+    },
+    {
+      "input": "twatbeta",
+      "expected": false
+    },
+    {
+      "input": "wank",
+      "expected": true
+    },
+    {
+      "input": "alphawank",
+      "expected": false
+    },
+    {
+      "input": "wankbeta",
+      "expected": false
+    },
+    {
+      "input": "wanky",
+      "expected": true
+    },
+    {
+      "input": "wankywanky",
+      "expected": true
+    },
+    {
+      "input": "alphawanky",
+      "expected": false
+    },
+    {
+      "input": "wankybeta",
+      "expected": false
+    },
+    {
+      "input": "alan cumming",
+      "expected": false
+    },
+    {
+      "input": "ALAN CUMMING",
+      "expected": false
+    },
+    {
+      "input": "bycoket",
+      "expected": false
+    },
+    {
+      "input": "BYCOKET",
+      "expected": false
+    },
+    {
+      "input": "bycokets",
+      "expected": false
+    },
+    {
+      "input": "BYCOKETS",
+      "expected": false
+    },
+    {
+      "input": "COKE",
+      "expected": false
+    },
+    {
+      "input": "cokes",
+      "expected": false
+    },
+    {
+      "input": "COKES",
+      "expected": false
+    },
+    {
+      "input": "cokernut",
+      "expected": false
+    },
+    {
+      "input": "COKERNUT",
+      "expected": false
+    },
+    {
+      "input": "cokernuts",
+      "expected": false
+    },
+    {
+      "input": "COKERNUTS",
+      "expected": false
+    },
+    {
+      "input": "cokuloris",
+      "expected": false
+    },
+    {
+      "input": "COKULORIS",
+      "expected": false
+    },
+    {
+      "input": "cokulorises",
+      "expected": false
+    },
+    {
+      "input": "COKULORISES",
+      "expected": false
+    },
+    {
+      "input": "contrafagotto",
+      "expected": false
+    },
+    {
+      "input": "CONTRAFAGOTTO",
+      "expected": false
+    },
+    {
+      "input": "contrafagottos",
+      "expected": false
+    },
+    {
+      "input": "CONTRAFAGOTTOS",
+      "expected": false
+    },
+    {
+      "input": "cummerbund",
+      "expected": false
+    },
+    {
+      "input": "CUMMERBUND",
+      "expected": false
+    },
+    {
+      "input": "cummerbunds",
+      "expected": false
+    },
+    {
+      "input": "CUMMERBUNDS",
+      "expected": false
+    },
+    {
+      "input": "cummington",
+      "expected": false
+    },
+    {
+      "input": "CUMMINGTON",
+      "expected": false
+    },
+    {
+      "input": "cummingtonite",
+      "expected": false
+    },
+    {
+      "input": "CUMMINGTONITE",
+      "expected": false
+    },
+    {
+      "input": "deboner",
+      "expected": false
+    },
+    {
+      "input": "DEBONER",
+      "expected": false
+    },
+    {
+      "input": "deboners",
+      "expected": false
+    },
+    {
+      "input": "DEBONERS",
+      "expected": false
+    },
+    {
+      "input": "DEBUGGER",
+      "expected": false
+    },
+    {
+      "input": "debuggers",
+      "expected": false
+    },
+    {
+      "input": "DEBUGGERS",
+      "expected": false
+    },
+    {
+      "input": "decoke",
+      "expected": false
+    },
+    {
+      "input": "DECOKE",
+      "expected": false
+    },
+    {
+      "input": "decoked",
+      "expected": false
+    },
+    {
+      "input": "DECOKED",
+      "expected": false
+    },
+    {
+      "input": "decokes",
+      "expected": false
+    },
+    {
+      "input": "DECOKES",
+      "expected": false
+    },
+    {
+      "input": "decoking",
+      "expected": false
+    },
+    {
+      "input": "DECOKING",
+      "expected": false
+    },
+    {
+      "input": "fagotto",
+      "expected": false
+    },
+    {
+      "input": "FAGOTTO",
+      "expected": false
+    },
+    {
+      "input": "fagotti",
+      "expected": false
+    },
+    {
+      "input": "FAGOTTI",
+      "expected": false
+    },
+    {
+      "input": "fagottist",
+      "expected": false
+    },
+    {
+      "input": "FAGOTTIST",
+      "expected": false
+    },
+    {
+      "input": "fagottists",
+      "expected": false
+    },
+    {
+      "input": "FAGOTTISTS",
+      "expected": false
+    },
+    {
+      "input": "glucokinase",
+      "expected": false
+    },
+    {
+      "input": "GLUCOKINASE",
+      "expected": false
+    },
+    {
+      "input": "glucokinases",
+      "expected": false
+    },
+    {
+      "input": "GLUCOKINASES",
+      "expected": false
+    },
+    {
+      "input": "hokums",
+      "expected": false
+    },
+    {
+      "input": "HOKUMS",
+      "expected": false
+    },
+    {
+      "input": "humbugger",
+      "expected": false
+    },
+    {
+      "input": "HUMBUGGER",
+      "expected": false
+    },
+    {
+      "input": "humbuggeries",
+      "expected": false
+    },
+    {
+      "input": "HUMBUGGERIES",
+      "expected": false
+    },
+    {
+      "input": "humbuggers",
+      "expected": false
+    },
+    {
+      "input": "HUMBUGGERS",
+      "expected": false
+    },
+    {
+      "input": "humbuggery",
+      "expected": false
+    },
+    {
+      "input": "HUMBUGGERY",
+      "expected": false
+    },
+    {
+      "input": "kokum",
+      "expected": false
+    },
+    {
+      "input": "KOKUM",
+      "expected": false
+    },
+    {
+      "input": "kokums",
+      "expected": false
+    },
+    {
+      "input": "KOKUMS",
+      "expected": false
+    },
+    {
+      "input": "kummerbund",
+      "expected": false
+    },
+    {
+      "input": "KUMMERBUND",
+      "expected": false
+    },
+    {
+      "input": "kummerbunds",
+      "expected": false
+    },
+    {
+      "input": "KUMMERBUNDS",
+      "expected": false
+    },
+    {
+      "input": "mishit",
+      "expected": false
+    },
+    {
+      "input": "MISHIT",
+      "expected": false
+    },
+    {
+      "input": "mishits",
+      "expected": false
+    },
+    {
+      "input": "MISHITS",
+      "expected": false
+    },
+    {
+      "input": "mishitting",
+      "expected": false
+    },
+    {
+      "input": "MISHITTING",
+      "expected": false
+    },
+    {
+      "input": "noncoking",
+      "expected": false
+    },
+    {
+      "input": "NONCOKING",
+      "expected": false
+    },
+    {
+      "input": "oakums",
+      "expected": false
+    },
+    {
+      "input": "OAKUMS",
+      "expected": false
+    },
+    {
+      "input": "pharmacokinetic",
+      "expected": false
+    },
+    {
+      "input": "PHARMACOKINETIC",
+      "expected": false
+    },
+    {
+      "input": "pharmacokinetics",
+      "expected": false
+    },
+    {
+      "input": "PHARMACOKINETICS",
+      "expected": false
+    },
+    {
+      "input": "scummer",
+      "expected": false
+    },
+    {
+      "input": "SCUMMER",
+      "expected": false
+    },
+    {
+      "input": "scummers",
+      "expected": false
+    },
+    {
+      "input": "SCUMMERS",
+      "expected": false
+    },
+    {
+      "input": "scumming",
+      "expected": false
+    },
+    {
+      "input": "SCUMMING",
+      "expected": false
+    },
+    {
+      "input": "shaginess",
+      "expected": false
+    },
+    {
+      "input": "SHAGINESS",
+      "expected": false
+    },
+    {
+      "input": "shaginesses",
+      "expected": false
+    },
+    {
+      "input": "SHAGINESSES",
+      "expected": false
+    },
+    {
+      "input": "SHITTAH",
+      "expected": false
+    },
+    {
+      "input": "shittim",
+      "expected": false
+    },
+    {
+      "input": "SHITTIM",
+      "expected": false
+    },
+    {
+      "input": "shittimwood",
+      "expected": false
+    },
+    {
+      "input": "SHITTIMWOOD",
+      "expected": false
+    },
+    {
+      "input": "shittimwoods",
+      "expected": false
+    },
+    {
+      "input": "SHITTIMWOODS",
+      "expected": false
+    },
+    {
+      "input": "shitzu",
+      "expected": false
+    },
+    {
+      "input": "SHITZU",
+      "expected": false
+    },
+    {
+      "input": "shitzus",
+      "expected": false
+    },
+    {
+      "input": "SHITZUS",
+      "expected": false
+    },
+    {
+      "input": "sourpuss",
+      "expected": false
+    },
+    {
+      "input": "SOURPUSS",
+      "expected": false
+    },
+    {
+      "input": "stickums",
+      "expected": false
+    },
+    {
+      "input": "STICKUMS",
+      "expected": false
+    },
+    {
+      "input": "swarajism",
+      "expected": false
+    },
+    {
+      "input": "SWARAJISM",
+      "expected": false
+    },
+    {
+      "input": "trankums",
+      "expected": false
+    },
+    {
+      "input": "TRANKUMS",
+      "expected": false
+    },
+    {
+      "input": "trinkum",
+      "expected": false
+    },
+    {
+      "input": "TRINKUM",
+      "expected": false
+    },
+    {
+      "input": "trinkums",
+      "expected": false
+    },
+    {
+      "input": "TRINKUMS",
+      "expected": false
+    }
+  ]
+}

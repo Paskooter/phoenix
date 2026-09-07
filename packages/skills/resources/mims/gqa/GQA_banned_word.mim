@@ -1,0 +1,57 @@
+{
+	"prompts": [
+		{
+			"prompt": "So, that's on my list of <duration stretch='1.2'><pitch mult='1.1'>bad words</pitch></duration>, I just can't talk about that stuff out loud.<break size='0.3'/> Sorry, I know that makes you want to hear it even more, but I can't do it.",
+			"media": "TTS",
+			"prompt_id": "GQA_banned_word_01",
+			"weight": 0.2,
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": ""
+		},
+		{
+			"prompt": "Um, sorry, but I've heard that's a <duration stretch='1.2'><pitch mult='1.1'>bad word</pitch></duration>, so I'm not really allowed to talk about it.",
+			"media": "TTS",
+			"prompt_id": "GQA_banned_word_02",
+			"weight": 1,
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": ""
+		},
+		{
+			"prompt": "Um, it seems we've entered into <duration stretch='1.2'><pitch mult='1.1'>bad word</pitch></duration> territory, I can't talk about stuff like that.<break size='0.3'/> I guess we'll have to find something else to talk about.",
+			"media": "TTS",
+			"prompt_id": "GQA_banned_word_03",
+			"weight": 1,
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": ""
+		},
+		{
+			"prompt": "Um, it turns out your request is on my list of <duration stretch='1.2'><pitch mult='1.1'>bad words</pitch></duration> that I don't like to talk about. Sorry about that, I'm just trying to do what's right.",
+			"media": "TTS",
+			"prompt_id": "GQA_banned_word_04",
+			"weight": 1,
+			"prompt_category": "Entry-Core",
+			"prompt_sub_category": "AN",
+			"index": 1,
+			"condition": ""
+		}
+	],
+	"mim_type": "announcement",
+	"rule_name": "",
+	"gui": null,
+	"timeout": 6,
+	"no_matches_for_gui": 0,
+	"no_inputs_for_gui": 0,
+	"barge_in": true,
+	"parse_all_asr": false,
+	"thanks_handling": "ignore",
+	"parse_launch": false,
+	"hint_phrases": "",
+	"fast_eos_array": "",
+	"notes": ""
+}

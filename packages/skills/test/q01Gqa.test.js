@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { request as httpRequest } from 'node:http';
+import { readFileSync } from 'node:fs';
 import { createService } from '@phoenix/common';
-import { skillRoute } from '../src/skillService.js';
+import { gqaBannedWordPresent } from '../src/gqaBannedWords.js';
 import {
   buildGqaSlimFromMim,
   buildGqaSlimFromText,
@@ -50,6 +51,98 @@ function clockFactory(values) {
   const remaining = [...values];
   return () => remaining.shift();
 }
+
+test('Q-01 blocked-term matching agrees with 473 original Python 3.6 results', () => {
+  // Captured by executing banned_words.py from srv-gqa-ws@ebe1a7d in the
+  // pinned Python 3.6.15 runtime, independently of the JavaScript matcher.
+  const reference = JSON.parse(readFileSync(new URL('./fixtures/gqa-banned-source-python36.json', import.meta.url), 'utf8'));
+  assert.equal(reference.rows.length, 473);
+  for (const row of reference.rows) {
+    assert.equal(gqaBannedWordPresent(row.input), row.expected, JSON.stringify(row.input));
+  }
+});
+
+test('Q-01 blocked-term response follows IP and PII checks and suppresses provider calls', async () => {
+  let calls = 0;
+  const handler = createGqaAnswerSkill({
+    rng: () => 0,
+    provider: async () => { calls += 1; return {}; },
+  });
+  const blocked = sourceRequest({ text: 'what is fuck' });
+  const missingIp = sourceRequest({ text: 'what is fuck' });
+  missingIp.data.general.remoteAddress = '';
+  const pii = sourceRequest({ text: 'fuck fixture@example.com' });
+  for (const [request, prompt] of [
+    [blocked, 'GQA_banned_word_01'],
+    [missingIp, 'GQA_error_01'],
+    [pii, 'GQA_pii_filter_AN_01'],
+  ]) {
+    const response = await handler(request);
+    assert.equal(response.data.action.config.jcp.config.play.meta.prompt_id, prompt);
+    assert.equal(response.data.final, true);
+    assert.equal(response.data.fireAndForget, true);
+    assert.deepEqual(response.data.analytics.answer[1].properties, { success: false });
+  }
+  assert.equal(calls, 0);
+});
+
+test('Q-01 provider result shapes retain original HTTP status and action selection', async () => {
+  // These eight result objects were passed through the original Flask 0.12.2
+  // gqa_pegasus/choose_slim/500-handler boundary in Python 3.6.15. The odd
+  // array payload is source behavior; this test does not claim it is playable.
+  const cases = [
+    { output: { source: 'Wikipedia', response: { payload: 'Control answer' } }, status: 200, esml: 'Control answer.', prompt: 'Wikipedia' },
+    { output: {}, status: 200, prompt: 'GQA_no_answer_what_01' },
+    { output: { message: 'fixture service error' }, status: 200, prompt: 'GQA_error_01' },
+    { output: { source: 'Wikipedia', response: { payload: 42 } }, status: 500 },
+    { output: { source: 'Wikipedia', response: { payload: { value: 'control' } } }, status: 500 },
+    { output: { source: 'Wikipedia', response: { payload: ['control'] } }, status: 200, esml: ['control', '.'], prompt: 'Wikipedia' },
+    { output: { response: { payload: 'Control answer.' } }, status: 500 },
+    { output: { response: null }, status: 500 },
+  ];
+  const handler = createGqaAnswerSkill({
+    rng: () => 0,
+    provider: async ({ request }) => structuredClone(cases[request.msgID].output),
+  });
+  const service = createService({
+    name: 'q01-gqa-provider-result-boundary',
+    routes: { 'POST /answer_skill/v1/main': createGqaHttpRoute({ handler }) },
+  });
+  const server = await service.listen(0);
+  try {
+    for (const [index, control] of cases.entries()) {
+      const request = sourceRequest();
+      request.msgID = String(index);
+      const response = await fetch(`http://127.0.0.1:${server.address().port}/answer_skill/v1/main`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-jibo-transid': 'fixture-trans' },
+        body: JSON.stringify(request),
+      });
+      assert.equal(response.status, control.status, `provider result ${index}`);
+      const body = JSON.parse(await response.text());
+      if (control.status === 500) {
+        assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+        assert.deepEqual(Object.keys(body).sort(), ['message', 'stacktrace', 'version']);
+        assert.equal(body.version, '5.2.15');
+        assert.equal(typeof body.message, 'string');
+        assert.equal(typeof body.stacktrace, 'string');
+        continue;
+      }
+      assert.equal(body.type, 'SKILL_ACTION');
+      assert.deepEqual(body.data.skill, { id: 'answer', version: '5.2.15' });
+      assert.equal(body.data.final, true);
+      assert.equal(body.data.fireAndForget, true);
+      const play = body.data.action.config.jcp.config.play;
+      assert.equal(play.meta.prompt_id, control.prompt);
+      if (Object.hasOwn(control, 'esml')) assert.deepEqual(play.esml, control.esml);
+      assert.equal(typeof body.timings.total, 'number');
+      assert.equal(typeof body.timings.initialization_part, 'number');
+      assert.equal(typeof body.timings.finalization_part, 'number');
+    }
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
 
 test('Q-01 success follows source SLIM, analytics and provider context contract', async () => {
   const seen = [];
@@ -281,6 +374,7 @@ test('Q-01 exposes the source scripted question mapping and full MIM inventories
   assert.equal(getGqaQuestionType(sourceRequest({ intent: 'scripted', mimId: 'unknown' })), 'generic');
   assert.equal(cleanGqaInput('Hey Jibo, what is a fixture?'), 'what is a fixture');
   assert.equal(gqaMimPromptIds('GQA_error').length, 9);
+  assert.equal(gqaMimPromptIds('GQA_banned_word').length, 4);
   assert.equal(gqaMimPromptIds('GQA_no_answer_generic').length, 24);
   assert.equal(gqaMimPromptIds('GQA_no_answer_how').length, 4);
   assert.equal(gqaMimPromptIds('GQA_no_answer_what').length, 3);
@@ -292,8 +386,8 @@ test('Q-01 exposes the source scripted question mapping and full MIM inventories
 });
 
 test('Q-01 source provider failures remain a normal SKILL_ACTION through the HTTP skill route', async () => {
-  const route = skillRoute('answer', createGqaAnswerSkill({ rng: () => 0, idFactory: idFactory(), messageId: () => 'response-id' }));
-  const response = await route({ body: sourceRequest(), trace: {}, log: { error() {} } });
+  const route = createGqaHttpRoute({ handler: createGqaAnswerSkill({ rng: () => 0, idFactory: idFactory(), messageId: () => 'response-id' }) });
+  const response = await route({ body: sourceRequest(), req: { headers: { 'x-jibo-transid': 'fixture-trans' } }, trace: {}, log: { error() {} } });
   assert.equal(response.type, 'SKILL_ACTION');
   assert.equal(response.data.skill.id, 'answer');
   assert.equal(response.data.action.config.jcp.config.play.meta.prompt_id, 'GQA_no_answer_what_01');
@@ -348,12 +442,12 @@ test('Q-01 GQA HTTP adapter rejects missing transID before the handler with sour
   assert.equal(state.body, GQA_MISSING_TRANSID_HTML);
 });
 
-test('Q-01 GQA HTTP adapter preserves the first duplicate/empty transID and uses common timing wrapper', async () => {
+test('Q-01 GQA HTTP adapter preserves the first duplicate/empty transID and handler timings', async () => {
   let seen;
   const route = createGqaHttpRoute({
     handler: async (body) => {
       seen = body;
-      return { type: 'SKILL_ACTION', data: {} };
+      return { type: 'SKILL_ACTION', data: {}, timings: { total: 12, bing: 0.007, initialization_part: 0.001, finalization_part: 0.004 } };
     },
   });
   const body = sourceRequest();
@@ -366,7 +460,7 @@ test('Q-01 GQA HTTP adapter preserves the first duplicate/empty transID and uses
   assert.equal(seen, body);
   assert.deepEqual(seen.transID, ['first-transID']);
   assert.equal(response.type, 'SKILL_ACTION');
-  assert.equal(typeof response.timings.total, 'number');
+  assert.deepEqual(response.timings, { total: 12, bing: 0.007, initialization_part: 0.001, finalization_part: 0.004 });
 
   const emptyHeaderBody = sourceRequest();
   const emptyResponse = await route({
