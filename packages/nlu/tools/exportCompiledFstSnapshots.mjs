@@ -1,0 +1,299 @@
+#!/usr/bin/env node
+
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { gzipSync } from 'node:zlib';
+import { VectorStandardFst } from '../src/compiledFst.js';
+import {
+  FST_SNAPSHOT_HASH_ANCHOR_SCHEMA,
+  FST_SNAPSHOT_HASH_ANCHOR_VERSION,
+  FST_SNAPSHOT_SCHEMA,
+  FST_SNAPSHOT_VERSION,
+  serializeFstSnapshot,
+  stringifyFstSnapshot,
+} from '../src/compiledFstSnapshot.js';
+import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from '../src/compiledFstProfile.js';
+
+function usage() {
+  console.error('usage: exportCompiledFstSnapshots.mjs --inventory FILE --rules-dir DIR --factory-dir DIR --output DIR [--gzip] [--anchor-output FILE]');
+  process.exitCode = 2;
+}
+
+function args(argv) {
+  const result = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value === '--help') usage();
+    if (value === '--gzip') {
+      result.gzip = true;
+      continue;
+    }
+    if (!value.startsWith('--') || index + 1 >= argv.length) usage();
+    result[value.slice(2)] = argv[++index];
+  }
+  if (!result.inventory || !result['rules-dir'] || !result['factory-dir'] || !result.output) usage();
+  return result;
+}
+
+function sha256(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
+function manifestHash(entries, names, sourceField = 'sourceSha256', pathField = 'sourcePath') {
+  const hash = createHash('sha256');
+  for (const name of names) {
+    const entry = entries[name];
+    hash.update(name);
+    hash.update('\0');
+    if (pathField) {
+      hash.update(entry[pathField]);
+      hash.update('\0');
+    }
+    hash.update(Buffer.from(entry[sourceField], 'hex'));
+  }
+  return hash.digest('hex');
+}
+
+function writeJson(path, value, { gzip = false } = {}) {
+  const bytes = Buffer.from(JSON.stringify(value) + '\n');
+  const stored = gzip ? gzipSync(bytes, { level: 9, mtime: 0 }) : bytes;
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, stored);
+  return {
+    path,
+    sha256: sha256(bytes),
+    bytes: bytes.length,
+    storedSha256: sha256(stored),
+    storedBytes: stored.length,
+  };
+}
+
+const options = args(process.argv.slice(2));
+const inventoryPath = resolve(options.inventory);
+const rulesDir = resolve(options['rules-dir']);
+const factoryDir = resolve(options['factory-dir']);
+const outputDir = resolve(options.output);
+const compression = options.gzip ? 'gzip' : 'json';
+const anchorOutput = options['anchor-output'] ? resolve(options['anchor-output']) : null;
+const inventoryBytes = readFileSync(inventoryPath);
+const inventorySha256 = sha256(inventoryBytes);
+const inventory = JSON.parse(inventoryBytes.toString('utf8'));
+if (inventory.referenceRevision !== COMPILED_FST_PROFILE.referenceRevision) {
+  throw new Error(`inventory reference revision mismatch: ${inventory.referenceRevision}`);
+}
+if (inventorySha256 !== COMPILED_FST_PROFILE.approvedInventorySha256) {
+  throw new Error(`inventory hash mismatch: ${inventorySha256}`);
+}
+
+const graphs = {};
+for (const [name, entry] of Object.entries(inventory.publicRules || {})) {
+  const sourcePath = entry.compiledPath;
+  const sourceFile = join(rulesDir, sourcePath);
+  const sourceBytes = readFileSync(sourceFile);
+  const sourceSha256 = sha256(sourceBytes);
+  if (sourceSha256 !== entry.sha256) throw new Error(`graph source hash mismatch: ${name}`);
+  const fst = VectorStandardFst.fromFile(sourceFile);
+  const snapshot = serializeFstSnapshot(fst, {
+    sourcePath,
+    sourceSha256,
+    sourceBytes: sourceBytes.length,
+  });
+  const outputPath = `graphs/${sourcePath.replace(/\.fst$/, compression === 'gzip' ? '.json.gz' : '.json')}`;
+  const written = writeJson(join(outputDir, outputPath), JSON.parse(stringifyFstSnapshot(snapshot)), { gzip: compression === 'gzip' });
+  graphs[name] = {
+    path: outputPath,
+    sourcePath,
+    sourceSha256,
+    sourceBytes: sourceBytes.length,
+    snapshotSha256: written.sha256,
+    snapshotBytes: written.bytes,
+  };
+  if (compression === 'gzip') {
+    graphs[name].compression = compression;
+    graphs[name].storedSha256 = written.storedSha256;
+    graphs[name].storedBytes = written.storedBytes;
+  }
+  process.stdout.write(`graph ${name} ${sourceBytes.length} -> ${written.bytes}\n`);
+}
+
+const factories = {};
+const factoryFiles = {};
+for (const [fileName, expectedSourceSha256] of Object.entries(COMPILED_FST_PROFILE.factoryFiles).sort(([left], [right]) => left.localeCompare(right))) {
+  const name = fileName.replace(/\.fst$/, '');
+  const inventoryEntry = inventory.factoryDependencies?.[name];
+  const sourcePath = inventoryEntry?.referencePath || `build/data/en-us/factory_rules/${fileName}`;
+  // The caller's factory directory is the directory containing the basename
+  // files. Keep the source label from the pinned inventory while resolving the
+  // actual input from that directory.
+  const factoryFile = join(factoryDir, fileName);
+  const sourceBytes = readFileSync(factoryFile);
+  const sourceSha256 = sha256(sourceBytes);
+  if (sourceSha256 !== expectedSourceSha256) throw new Error(`factory source hash mismatch: ${name}`);
+  const fileEntry = {
+    sourcePath,
+    sourceSha256,
+    sourceBytes: sourceBytes.length,
+    kind: fileName.endsWith('.fst') ? 'fst' : 'auxiliary',
+  };
+  factoryFiles[fileName] = fileEntry;
+  if (fileName.endsWith('.fst')) {
+    const fst = VectorStandardFst.fromFile(factoryFile);
+    const snapshot = serializeFstSnapshot(fst, {
+      sourcePath,
+      sourceSha256,
+      sourceBytes: sourceBytes.length,
+    });
+    const outputPath = `factories/${name}${compression === 'gzip' ? '.json.gz' : '.json'}`;
+    const written = writeJson(join(outputDir, outputPath), JSON.parse(stringifyFstSnapshot(snapshot)), { gzip: compression === 'gzip' });
+    factories[name] = {
+      kind: 'fst',
+      path: outputPath,
+      sourcePath,
+      sourceSha256,
+      sourceBytes: sourceBytes.length,
+      snapshotSha256: written.sha256,
+      snapshotBytes: written.bytes,
+    };
+    if (compression === 'gzip') {
+      factories[name].compression = compression;
+      factories[name].storedSha256 = written.storedSha256;
+      factories[name].storedBytes = written.storedBytes;
+    }
+    process.stdout.write(`factory ${name} ${sourceBytes.length} -> ${written.bytes}\n`);
+  } else {
+    process.stdout.write(`factory auxiliary ${fileName} ${sourceBytes.length}\n`);
+  }
+}
+
+const graphNames = Object.keys(graphs);
+const factoryNames = Object.keys(factories).sort();
+const ruleManifestSha256 = manifestHash(graphs, graphNames, 'sourceSha256', 'sourcePath');
+const factoryManifestSha256 = (() => {
+  const hash = createHash('sha256');
+  for (const name of Object.keys(factoryFiles).sort()) {
+    hash.update(name);
+    hash.update('\0');
+    hash.update(Buffer.from(factoryFiles[name].sourceSha256, 'hex'));
+  }
+  return hash.digest('hex');
+})();
+if (factoryManifestSha256 !== COMPILED_FST_PROFILE.factoryManifestSha256) {
+  throw new Error(`factory manifest hash mismatch: ${factoryManifestSha256}`);
+}
+if (graphs.launch?.sourceSha256 !== COMPILED_FST_PROFILE.approvedLaunchSha256) {
+  throw new Error('launch graph is not the approved profile artifact');
+}
+
+// This small hash-only document is intended to be committed with the runtime.
+// It is generated from the verified source artifacts, while the large decoded
+// graph data remains an independently provisioned deployment artifact. The
+// loader uses this document as its trusted decoded-byte anchor rather than
+// trusting snapshot hashes supplied by the profile it is loading.
+const anchorGraphs = Object.fromEntries(Object.keys(graphs).sort().map(name => {
+  const entry = graphs[name];
+  return [name, {
+    sourcePath: entry.sourcePath,
+    sourceSha256: entry.sourceSha256,
+    sourceBytes: entry.sourceBytes,
+    snapshotSha256: entry.snapshotSha256,
+    snapshotBytes: entry.snapshotBytes,
+  }];
+}));
+const anchorFactories = Object.fromEntries(Object.keys(factories).sort().map(name => {
+  const entry = factories[name];
+  return [name, {
+    kind: entry.kind,
+    sourcePath: entry.sourcePath,
+    sourceSha256: entry.sourceSha256,
+    sourceBytes: entry.sourceBytes,
+    snapshotSha256: entry.snapshotSha256,
+    snapshotBytes: entry.snapshotBytes,
+  }];
+}));
+const anchorFactoryFiles = Object.fromEntries(Object.keys(factoryFiles).sort().map(fileName => {
+  const entry = factoryFiles[fileName];
+  return [fileName, {
+    kind: entry.kind,
+    sourcePath: entry.sourcePath,
+    sourceSha256: entry.sourceSha256,
+    sourceBytes: entry.sourceBytes,
+  }];
+}));
+const anchor = {
+  schema: FST_SNAPSHOT_HASH_ANCHOR_SCHEMA,
+  version: FST_SNAPSHOT_HASH_ANCHOR_VERSION,
+  format: {
+    schema: FST_SNAPSHOT_SCHEMA,
+    version: FST_SNAPSHOT_VERSION,
+    canonicalEncoding: 'UTF-8 JSON bytes produced by stringifyFstSnapshot, including the final newline',
+    digest: 'sha256',
+  },
+  profile: {
+    runtime: COMPILED_FST_PROFILE.runtime,
+    approvedLaunchSha256: COMPILED_FST_PROFILE.approvedLaunchSha256,
+    approvedInventorySha256: COMPILED_FST_PROFILE.approvedInventorySha256,
+    sourceRevision: COMPILED_FST_PROFILE.sourceRevision,
+    referenceRevision: COMPILED_FST_PROFILE.referenceRevision,
+    sourceRuntime: COMPILED_FST_PROFILE.sourceRuntime,
+    nativeParserSha256: COMPILED_FST_PROFILE.nativeParserSha256,
+    factoryManifestSha256,
+    ruleManifestSha256,
+  },
+  inventory: {
+    referenceRevision: inventory.referenceRevision,
+    sha256: inventorySha256,
+    publicRuleCount: graphNames.length,
+    factoryCount: factoryNames.length,
+  },
+  ruleManifestSha256,
+  factoryManifestSha256,
+  graphs: anchorGraphs,
+  factories: anchorFactories,
+  factoryFiles: anchorFactoryFiles,
+};
+const anchorWritten = anchorOutput ? writeJson(anchorOutput, anchor) : null;
+if (anchorWritten && anchorWritten.sha256 !== COMPILED_FST_PROFILE.decodedHashAnchorSha256) {
+  throw new Error(`decoded hash anchor mismatch: ${anchorWritten.sha256}`);
+}
+
+const manifest = {
+  schema: FST_PROFILE_SCHEMA,
+  version: FST_PROFILE_VERSION,
+  kind: 'compiled-fst-profile',
+  format: { schema: FST_SNAPSHOT_SCHEMA, version: FST_SNAPSHOT_VERSION, storage: compression },
+  profile: {
+    runtime: COMPILED_FST_PROFILE.runtime,
+    approvedLaunchSha256: COMPILED_FST_PROFILE.approvedLaunchSha256,
+    approvedInventorySha256: COMPILED_FST_PROFILE.approvedInventorySha256,
+    sourceRevision: COMPILED_FST_PROFILE.sourceRevision,
+    referenceRevision: COMPILED_FST_PROFILE.referenceRevision,
+    sourceRuntime: COMPILED_FST_PROFILE.sourceRuntime,
+    nativeParserSha256: COMPILED_FST_PROFILE.nativeParserSha256,
+    factoryManifestSha256,
+    ruleManifestSha256,
+    ...(anchorWritten ? { decodedHashAnchorSha256: anchorWritten.sha256 } : {}),
+  },
+  inventory: {
+    referenceRevision: inventory.referenceRevision,
+    sha256: inventorySha256,
+    publicRuleCount: graphNames.length,
+    factoryCount: factoryNames.length,
+  },
+  ruleManifestSha256,
+  factoryManifestSha256,
+  graphs,
+  factories,
+  factoryFiles,
+};
+const manifestPath = join(outputDir, 'profile.json');
+const manifestWritten = writeJson(manifestPath, manifest);
+process.stdout.write(JSON.stringify({
+  manifest: manifestPath,
+  manifestSha256: manifestWritten.sha256,
+  graphCount: graphNames.length,
+  factoryCount: factoryNames.length,
+  ruleManifestSha256,
+  factoryManifestSha256,
+  ...(anchorWritten ? { decodedHashAnchor: anchorOutput, decodedHashAnchorSha256: anchorWritten.sha256 } : {}),
+}) + '\n');
