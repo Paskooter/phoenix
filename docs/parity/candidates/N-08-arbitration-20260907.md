@@ -1,3 +1,5 @@
+> Historical candidate report. The bounded change is now accepted after the [root full replay and integration review](N-08-arbitration-root-20260907.md). The original submission and its limitations below are retained.
+
 # N-08 cross-skill arbitration and factory correction
 
 Status: candidate unverified; pending root review.

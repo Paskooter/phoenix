@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **614 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **620 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -108,9 +108,10 @@ redirect requests. The [Settings Person review](evidence/2026-09-07/settings-per
 accepts 26 full service-boundary controls, 37 transport controls and seven
 original robot error-extractor controls. Hub transport and full A-06 remain open.
 The prior compiled-FST strict 43-case smoke also passed. The default AST
-profile now has **68 differences across 20,528 requests**, down from 149. The
-[accepted native-operator review](evidence/2026-09-07/nlu-native-operators/review.json)
-records 81 repaired cases, zero new failure IDs, and two changed residual outputs.
+profile now has **57 differences across 20,528 requests**, down from 149. The
+[accepted factory/arbitration review](evidence/2026-09-07/nlu-arbitration/review.json)
+records the latest 11 repairs, zero new failure IDs and unchanged residual outputs;
+92 earlier failing cases are now repaired in total.
 The [new complete compiled-profile comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
 on frozen `ef0457f` has **zero field differences across 20,534 cases**, zero
 invariants and 16 gap instances across the same eight unhosted external-answer
@@ -136,10 +137,11 @@ The [earlier explicit-weight candidate review](evidence/2026-09-07/nlu-explicit-
 retains the rejected 176-difference run and its 60 new failures. The final native
 operator repair removes all 60 of those regressions and passes the full frozen
 HTTP replay. Twenty-five executable native semantic controls agree; three native
-runtime failures remain qualified. The next factory/arbitration candidate is
-undergoing its own full replay. Focused results do not replace the accepted
-68-difference count. A proposed hand-written rule-pair tie table was rejected;
-future changes must reproduce general source semantics.
+runtime failures remain qualified. The subsequent factory/arbitration repair
+has completed its independent full replay and integration checks with 57
+remaining differences. Portable JSON graph data is a separate unverified
+candidate. A proposed hand-written rule-pair tie table was rejected; future
+changes must reproduce general source semantics.
 
 The [H-04 launch review](evidence/2026-09-07/skill-launch/review.json) accepts
 bounded older-release mediation and launch/update/redirect history behavior.

@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile retains its separately verified full-source result. The default AST parser now matches 20,460/20,528 original HTTP status/data cases: 68 residual differences, 81 previous failures repaired, zero newly failing IDs, and two changed residual outputs. Root verified unchanged runtime/resource bytes in the integrated tree and the full unit/strict 43-case smoke checks. The factory/arbitration followup remains unverified while its own full replay runs. Native score/tie approximation, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.
+The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. The compiled profile retains its separate full-source result. Portable graph data, remaining native score/tie differences, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.
 
 Done when:
 
@@ -709,11 +709,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Bounded native grammar operators, explicit weighting and wildcard cardinality. 20,460/20,528 matches, 68 differences, 81 repairs, zero new failure IDs; 25 valid native semantic controls and three qualified native failures; 588 integrated unit tests and strict 43-case smoke pass. Full N-08 remains open.
+Candidate scope: Bounded first-name membership and supplied-score arbitration. Full default AST replay: 20,471/20,528 matches, 57 differences, 11 repairs, zero newly failing IDs or changed residuals. Root native membership and 13 original Node 8 selection controls agree; 620 integrated units and strict 43-case smoke pass. Full N-08 remains open.
 
-Candidate report: [docs/parity/candidates/N-08-native-operators-root-20260907.md](../../docs/parity/candidates/N-08-native-operators-root-20260907.md).
+Candidate report: [docs/parity/candidates/N-08-arbitration-root-20260907.md](../../docs/parity/candidates/N-08-arbitration-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-native-operators/review.json](../../docs/parity/evidence/2026-09-07/nlu-native-operators/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-arbitration/review.json](../../docs/parity/evidence/2026-09-07/nlu-arbitration/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

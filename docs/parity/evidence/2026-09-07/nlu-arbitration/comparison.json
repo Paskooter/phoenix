@@ -1,0 +1,57 @@
+{
+  "cases": 20528,
+  "baselineMatches": 20460,
+  "candidateMatches": 20471,
+  "baselineDifferences": 68,
+  "candidateDifferences": 57,
+  "fixedCount": 11,
+  "newFailureCount": 0,
+  "sharedDifferenceCount": 57,
+  "changedResidualCount": 0,
+  "changedExpectedCount": 0,
+  "fixedIds": [
+    "chitchat:3118:3:base",
+    "chitchat:3118:4:base",
+    "chitchat:3118:5:base",
+    "chitchat:4528:3:base",
+    "chitchat:4528:4:base",
+    "hub-client:1249:13:base",
+    "hub-client:1249:15:base",
+    "hub-client:1249:16:base",
+    "hub-client:220:1:base",
+    "hub-client:220:3:base",
+    "hub-client:220:4:base"
+  ],
+  "newFailureIds": [],
+  "changedResidualIds": [],
+  "changedExpectedIds": [],
+  "versus149Baseline": {
+    "fixedCount": 92,
+    "newFailureCount": 0
+  },
+  "groups": {
+    "boundary": {
+      "cases": 21,
+      "matches": 21
+    },
+    "chitchat": {
+      "cases": 11432,
+      "matches": 11401
+    },
+    "hub-client": {
+      "cases": 9002,
+      "matches": 8976
+    },
+    "report": {
+      "cases": 73,
+      "matches": 73
+    }
+  },
+  "referenceSha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+  "scope": "HTTP status and complete parser data only; no new full-production or robot acceptance",
+  "rawReportSha256": {
+    "baseline68": "a7118964155d7aa02244372783efeb917eaa8e43b6a5ef6f43dd0ac812f70e9c",
+    "baseline149": "ec4058c8e42b1fdaab10fadbdda9efb157fb56641c0d9a998558fa03f5fbde48",
+    "candidate": "0405eb0811c3e232ed971c5eb5d2372066e029dadac893e17ded5b9e731c3197"
+  }
+}

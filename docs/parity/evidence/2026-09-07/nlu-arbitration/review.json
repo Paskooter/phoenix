@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded implementation; full N-08 remains in progress",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "replayedCandidateRevision": "e3965821155ccaf159d43a7c9ccffd85700220da",
+  "reviewedIntegratedRevision": "b42c0a8eaf56b5319b7b9faedf9d19d952a3b0cb",
+  "profile": "default AST, LLM disabled",
+  "scope": "HTTP status and complete parser data only; no new full-production or robot acceptance",
+  "cases": 20528,
+  "matches": 20471,
+  "differences": 57,
+  "priorDifferences": 68,
+  "repairedCases": 11,
+  "newFailureIds": 0,
+  "sharedResiduals": 57,
+  "changedResidualOutputs": 0,
+  "changedExpectedOutputs": 0,
+  "versus149Baseline": {
+    "fixedCount": 92,
+    "newFailureCount": 0
+  },
+  "groups": {
+    "boundary": {
+      "cases": 21,
+      "matches": 21
+    },
+    "chitchat": {
+      "cases": 11432,
+      "matches": 11401
+    },
+    "hub-client": {
+      "cases": 9002,
+      "matches": 8976
+    },
+    "report": {
+      "cases": 73,
+      "matches": 73
+    }
+  },
+  "fullExecution": {
+    "startUtc": "2026-09-07T03:02:24.841349+00:00",
+    "endUtc": "2026-09-07T03:48:27.077896+00:00",
+    "returncode": 0,
+    "durationSeconds": 2762.237,
+    "timedOut": false,
+    "termSent": false,
+    "killSent": false,
+    "budgetSeconds": 7200,
+    "runnerSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e",
+    "sourceInputSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+    "outputSha256": "0405eb0811c3e232ed971c5eb5d2372066e029dadac893e17ded5b9e731c3197",
+    "reconciliationSha256": "906e866deae442a2e086fef1c604be17349af003adae1c1fc16162e4b9000272",
+    "preflightPostflightStable": true
+  },
+  "arbitration": {
+    "cases": 13,
+    "matches": 13,
+    "sourceRuntime": "v8.9.4",
+    "candidateRuntime": "v22.22.0",
+    "sourceModule": "Pegasus RobustParserClient.getBestResult; actual Node8 module, not native C++ score generation",
+    "scope": "Selection of supplied finite scores, response order and known lower-priority rules; does not prove AST score equivalence or arbitrary nonfinite inputs",
+    "sourceSha256": "24531178b0a0eb27433efbe0dd28611f51732654997c417ac87db9ee83249b92",
+    "candidateSha256": "38ba97394dd2dfd7e77ce1763d8c6559b94a2cfbbac3de97569219331cfec4a4"
+  },
+  "factoryMembership": {
+    "candidateEntries": 6007,
+    "acceptedCandidateEntries": 6007,
+    "extraRejectedControl": "my",
+    "cases": 6008,
+    "sourceFstSha256": "3fb01bdf8c39aa4bbf1d7eaa2e74da880faeb30b714db506fd62b4eb624b2056",
+    "nativeBinarySha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "candidateListSha256": "baffd024ff6c002de92531255def1d0125479123220c239eda76438ae9e98e69",
+    "nativeOutputSha256": "067ce8b97da0439f79d74e8557339666c46c6ce112daf0c32c4e69703e10907e",
+    "executionSha256": "fd7fffd5a646fbbb79633e859a5dc39462795bef1337ed56bf198f3c3e5eefc8",
+    "qualification": "Actual archived parse binary on host with archived LD_LIBRARY_PATH; checks acceptance of each candidate entry and rejection of removed my, not exhaustive factory language equality. Prior agent receipt claimed a different parse hash and remains preserved; this fresh root control is the acceptance basis."
+  },
+  "integration": {
+    "nluRuntimeAndResourceBytesEqualToReplayedCandidate": true,
+    "retainedMainWildcardRegressions": true,
+    "trackedFilesStable": 5108,
+    "ownWorkspaceLinksVerified": true,
+    "unit": {
+      "tests": 623,
+      "pass": 620,
+      "fail": 0,
+      "skipped": 3
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "result": "match",
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "npmTestExitCode": 0,
+    "npmTestSeconds": 161.09900750406086,
+    "executionSha256": "9e3fb7613658fca1f4e76504818fbd07d17fc7754489d2321717a27ce9dadc9c"
+  },
+  "retainedFailedAttempt": {
+    "controllerExitCode": 1,
+    "reason": "Initial controller decoded the two original-module startup log lines plus JSON as one JSON value. Both child commands exited 0, but comparison was not accepted and npm test did not run.",
+    "correctedRun": "Fresh source/candidate execution validates those two known log lines, decodes the final complete JSON object and preserves raw output. No parser data or response normalization.",
+    "receiptSha256": "2e0c247d0a2e67513c7a3e11f4e6ff8a79a08cd898d4a666e9e12ebb6bb8223b"
+  },
+  "remaining": [
+    "57 default AST status/data mismatches; native graph score and within-graph tie behavior remain partly approximated",
+    "Finite supplied-score selection controls do not establish numeric AST-score equivalence or arbitrary nonfinite input parity",
+    "Portable JSON graph profile is an isolated unverified candidate; no default parser switch",
+    "Full N-08, persistent current-main robot deployment, microphone and physical ring acceptance"
+  ]
+}

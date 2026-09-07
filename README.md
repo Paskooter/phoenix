@@ -18,9 +18,9 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   session and analytics fields now agree.
   **H-03 intent routing is verified**, including the original decision tree and tie ordering.
   Both default and compiled **43-case smoke profiles pass**. The default AST parser
-  separately retains **68 differences across 20,528 requests**, down from 149, with no newly failing cases.
-  The [native-operator review](docs/parity/evidence/2026-09-07/nlu-native-operators/review.json)
-  records 81 repaired cases and the remaining limits. The
+  separately retains **57 differences across 20,528 requests**, down from 149, with no newly failing cases.
+  The [factory and arbitration review](docs/parity/evidence/2026-09-07/nlu-arbitration/review.json)
+  records the latest 11 repairs, bringing the total to 92, and the remaining limits. The
   [earlier regression](docs/parity/evidence/2026-09-07/nlu-explicit-weight/review.json) remains documented.
   [Production comparisons](docs/parity/PRODUCTION.md) record exact scope and evidence.
   Follow the [execution plan](docs/parity/PLAN.md) and [verified task checklist](docs/parity/TASKS.md).
@@ -353,7 +353,7 @@ Then:
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 614 unit tests and all 43 smoke cases. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
+The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 620 unit tests and all 43 smoke cases. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
 
 Current regression checks and progress tracking:
 

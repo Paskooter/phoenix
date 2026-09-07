@@ -6,4 +6,4 @@ The changes restore persistent explicit per-character heuristics, mandatory base
 
 The integrated tree passes 588 unit tests with 3 skips and no failures, plus all 43 strict smoke cases with zero differences/invariants/gaps. Merge resolution kept the complete fully replayed matcher and the accepted historical main report; existing main wildcard regressions were retained.
 
-[Public review](../evidence/2026-09-07/nlu-native-operators/review.json). Full N-08 and physical deployment acceptance remain open. The e396 factory/arbitration candidate is undergoing a separate full replay. The ef62 hand-written rule-pair exception is rejected despite its focused matches.
+[Public review](../evidence/2026-09-07/nlu-native-operators/review.json). Full N-08 and physical deployment acceptance remain open. The subsequent [factory/arbitration repair](N-08-arbitration-root-20260907.md) is now separately accepted with 57 full-replay differences. The ef62 hand-written rule-pair exception is rejected despite its focused matches.

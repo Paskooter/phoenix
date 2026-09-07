@@ -58,7 +58,8 @@
   "nextCandidate": {
     "revision": "e3965821155ccaf159d43a7c9ccffd85700220da",
     "scope": "Factory membership and general score/order/loser arbitration",
-    "state": "full replay running; unverified"
+    "state": "subsequently accepted after independent full replay and integration",
+    "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-arbitration/review.json"
   },
   "rejectedApproach": {
     "revision": "ef62f6dda5cf26df5aef16f86a130400a8708fda",
