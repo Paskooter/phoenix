@@ -147,16 +147,14 @@ export function tokenize(text) {
     .split(/\s+/)
     .filter(Boolean);
 }
-// Rule-literal normalization is grammar-specific: punctuation used by the
-// optional character-class spellings is removed from rule arcs. Input
-// tokenization above deliberately leaves source punctuation intact, including
-// apostrophes whose presence is source-observable.
+// The public parser lowercases input but otherwise preserves each
+// whitespace-delimited token. The native FST compiler likewise emits every
+// byte of a rule word, so punctuation in an ordinary rule literal is
+// source-visible (for example, `c.e.s.`). Character-class operators are
+// interpreted by expandCharClass below; their emitted variants are matched
+// with this same literal comparison.
 function _norm(s) {
-  // The source grammar spells abbreviations inside character classes as
-  // `u?.s?.`/`b?.e?.t?.`; normalize those optional punctuation marks on rule
-  // arcs so source-backed event and entity vocabularies remain usable for
-  // ordinary ASR text ("us", "bet").
-  return String(s).toLowerCase().replace(/[.,!?;:]+/g, '');
+  return String(s).toLowerCase();
 }
 
 // Apply tag specs (from a node's .tags) against a sub-match's subFields,
