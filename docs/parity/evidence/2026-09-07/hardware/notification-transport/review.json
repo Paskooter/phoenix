@@ -14,7 +14,7 @@
   ],
   "sourceBehavior": "Notification.connect resolves its independent wsendpoint and mints a token, then appends /<token>. Inner reconnect reuses that URL after 10 seconds. Source local profile uses ws://localhost:8090; global SSL uses wss://<region>-socket.jibo.com.",
   "limits": [
-    "The HTTPS probe did not invoke the Notification client or test a Notification WSS handshake. Browser and Node TLS trust are separate; do not infer the active Notification constructor from the current global alone.",
+    "The BE HTTPS probe did not test the native Notification path. The active native TLS and hostname construction still require source verification.",
     "Two read-only CDP scope-inspection attempts could not retrieve function internalProperties. Debugger/object-group cleanup executed; neither attempt resolved the constructor.",
     "No backend deployment, robot configuration, certificate, credentials or household state was changed. Native process/configuration and supervised backend/tunnel remained at their prior checkpoint; BE observed idle.",
     "Authenticated notification bridge accepted on main has not yet been deployed to Moth. Full Notification, household/bootstrap and reboot acceptance remain open."
@@ -47,7 +47,54 @@
     {
       "path": ".parity/reviews/moth-notification-readonly-root-20260907/scope-debugger.stderr",
       "sha256": "fc27d5abd5f9b79968c571935e48be946874aa5765a67e7e74bef71a0213fe53"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/native-path-finding.md",
+      "sha256": "b209b1da75b89ca6db73fdbcbca9c79335b205049f7c70805f94e742923b6c21"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/native-server-config-summary.json",
+      "sha256": "abe807e5e00d4773ddc2c125cf24e2fc6065146cc631e99554a4cf6748400113"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/process-network-native.json",
+      "sha256": "c4857b427c5fe50231560f497f083ff6ea36997b1f2e8a0ea260012bcfcf22ce"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/native-notification-status.js",
+      "sha256": "22ac65f18cfa5f5acb57cc04108ec3e85b7e0281ad522463b14c5d6981ccc6cc"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/native-notification-status.json",
+      "sha256": "8cc07a5aa2f1ad014bc9c5e3b01abf0c8ae33b930139dca537019234d075221c"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/server-service-doc.json",
+      "sha256": "642a1cf856363d9f58d364ad5cdef48635081db69a3dc66b4e7ee49f04155ce0"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/installed-skills-service-manager.js",
+      "sha256": "88daae19883921238efbf2a56dd8e8670b89bec95d967953ab060b74db1b4e38"
     }
   ],
-  "fullyVerifiedTask": false
+  "fullyVerifiedTask": false,
+  "currentFinding": "Native jibo-server-service owns the production Notification path. Three consecutive status frames report disconnected. Trace its NotificationSubsystem configuration and source before changing deployment; BE HTTPS trust is an ancillary observation.",
+  "nativeService": {
+    "executable": "/usr/local/bin/jibo-server-service",
+    "port": 8888,
+    "configurationSha256": "42f7b9d8ba90825efe79944b22a79f55e8e7cd916c4f556d16ca4a1a9acf7cbc",
+    "notificationConfig": {
+      "refreshInterval": 15000,
+      "serverURLSuffix": "-socket.jibo.com"
+    },
+    "statusPath": "/server/notifications/status",
+    "observedStatuses": [
+      2,
+      2,
+      2
+    ],
+    "statusMeaning": "Disconnected per original platform documentation",
+    "documentation": "https://pvindex.org/confluence/display/ENG/Server+Service"
+  },
+  "supersededHypothesis": "The JavaScript Notification client examined earlier is not established as the active robot transport. The SSM ServerService source examined by root is its simulator counterpart; the robot runs the native server service. Do not attribute the native failure to the BE Node HTTPS probe."
 }
