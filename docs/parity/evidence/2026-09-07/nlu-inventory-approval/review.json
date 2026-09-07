@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted startup repair; complete N-08 remains in progress",
+  "reviewedBy": "Codex root",
+  "baselineRevision": "9304139b2de3c08980a4ca0af5b4bd98b230c102",
+  "reviewedRevision": "3108820f1c50b57d9d0b9734723d0d8e1caac2ba",
+  "problem": "The accepted first-name factory correction changed the inventory digest, but the optional compiled runtime and production harness retained the previous approval. Configured startup failed; the default test profile skipped the artifact-dependent checks.",
+  "change": "One tracked approval manifest is shared by JavaScript runtime and Python harness. An always-run guard validates the shipped inventory even without private compiled artifacts.",
+  "inventory": {
+    "priorSha256": "4377949617eb3169f1466ddb2844f2f5f9948f43e1942a2e35f38c3664dc4aa5",
+    "approvedSha256": "7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4",
+    "approvalManifestSha256": "7090d1b869562601ff5a0e2ab4af298b3678e6faaaaba148d6b90ec5c4f7a50a",
+    "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "publicGraphs": 98,
+    "factoryGraphs": 15,
+    "graphFactoryAndParserBehaviorDataChanged": false
+  },
+  "retainedFailures": [
+    {
+      "revision": "9304139b2de3c08980a4ca0af5b4bd98b230c102",
+      "phase": "Configured runtime startup",
+      "exitCode": 1,
+      "seconds": 0.09775318810716271,
+      "reason": "Runtime rejected the shipped inventory hash.",
+      "receiptSha256": "2ec1455b027c8c1fc334f803b11ce5aaef46889454534f3c6b07d0baaa6f7cb1",
+      "stderrSha256": "312a02ec46425b6535ba49f388abd55772f3ec1d5e50632f77e36554e52f95de"
+    },
+    {
+      "revision": "a190d17a973524148480ec89ec1b199f7c36c9e2",
+      "phase": "Compiled production-harness preflight after runtime-only approval repair",
+      "exitCode": 1,
+      "seconds": 0.1652053901925683,
+      "reason": "Harness retained its own stale approval; configured runtime tests and default npm test passed. This failed run is not accepted.",
+      "receiptSha256": "46a81e5d20cab9a8243c2ff7fef729598fa1e37390e78c3f0c33c5552ce12a0e",
+      "stderrSha256": "c3c35b625200fd61e71a05d100585a4512fb9a843da00dcae427763277374b1d"
+    }
+  ],
+  "verification": {
+    "configuredTests": {
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "unitTests": {
+      "tests": 636,
+      "passed": 633,
+      "failed": 0,
+      "skipped": 3
+    },
+    "defaultStrict43": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "runSha256": "4b1dec902f6e41232a79c737290c94fb9af6de1566c572e8980c46165e9b1e0d",
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+      "candidateSha256": "b6eb830ed990464c2a86235d902ee9aaddd1518dbb75226f2bc81ea1c338380f"
+    },
+    "compiledStrict43": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "runSha256": "bd317412b9deacec7fca5fa93a9a9f4f27b90d6896d93b8974605f51511d92a7",
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+      "candidateSha256": "dd089c159c0a86e4369649dc259699271996036ea2757acedc65f9c011e049ff"
+    },
+    "commands": [
+      {
+        "label": "configured",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 4.677184171043336,
+        "budgetSeconds": 600
+      },
+      {
+        "label": "npm-test",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 52.10099026700482,
+        "budgetSeconds": 600
+      },
+      {
+        "label": "strict43-compiled",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 24.093120171222836,
+        "budgetSeconds": 900
+      }
+    ],
+    "trackedFilesStable": 5178,
+    "headAndWorkspaceStable": true,
+    "ownWorkspaceLinksVerified": true,
+    "executionSha256": "f43eb6cbe6acb03cefec8b3b038dd9ea216e1f1b70862cfee2b8ad8a5f7d1f4a",
+    "configuredLogSha256": "8e2323677cc0570efceac9c3eba1afe4ac9dab14fbd45220a87eef8c27016a1c",
+    "npmTestLogSha256": "cf66d8e42fe4579f35ae57a45874e4957f7bf79adac74f9b93d2a7d67729d78e"
+  },
+  "limits": [
+    "No new full-corpus or robot run. The accepted default AST 57-difference replay remains unchanged; compiled full-production results retain their separately recorded runtime and external-provider gaps.",
+    "No default parser switch, portable graph acceptance, or whole-task completion credit."
+  ]
+}

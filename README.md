@@ -17,7 +17,8 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   sides**, so the complete gate still fails. All captured parser, routing, action,
   session and analytics fields now agree.
   **H-03 intent routing is verified**, including the original decision tree and tie ordering.
-  Both default and compiled **43-case smoke profiles pass**. The default AST parser
+  Both default and compiled **43-case smoke profiles pass** after the
+  [compiled inventory startup repair](docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json). The default AST parser
   separately retains **57 differences across 20,528 requests**, down from 149, with no newly failing cases.
   The [factory and arbitration review](docs/parity/evidence/2026-09-07/nlu-arbitration/review.json)
   records the latest 11 repairs, bringing the total to 92, and the remaining limits. The
@@ -353,7 +354,7 @@ Then:
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 632 unit tests and all 43 smoke cases. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
+The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 633 unit tests and all 43 smoke cases. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
 
 Current regression checks and progress tracking:
 

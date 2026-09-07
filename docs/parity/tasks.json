@@ -1237,7 +1237,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. The compiled profile retains its separate full-source result. Portable graph data, remaining native score/tie differences, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.",
+      "finding": "The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. Portable graph data, remaining native score/tie differences, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1246,13 +1246,12 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / audio_encoding_repair; Codex root",
-        "candidateRevision": "e3965821155ccaf159d43a7c9ccffd85700220da",
-        "reviewedCandidateRevision": "b42c0a8eaf56b5319b7b9faedf9d19d952a3b0cb",
+        "assignee": "Codex root",
+        "candidateRevision": "3108820f1c50b57d9d0b9734723d0d8e1caac2ba",
         "reviewedBy": "Codex root",
-        "scope": "Bounded first-name membership and supplied-score arbitration. Full default AST replay: 20,471/20,528 matches, 57 differences, 11 repairs, zero newly failing IDs or changed residuals. Root native membership and 13 original Node 8 selection controls agree; 620 integrated units and strict 43-case smoke pass. Full N-08 remains open.",
-        "artifact": "docs/parity/candidates/N-08-arbitration-root-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-arbitration/review.json"
+        "scope": "Repair the optional compiled-profile startup regression caused by a stale inventory approval in runtime and harness. Shared approval and always-run guard; 633 units, nine configured checks and both strict 43-case profiles pass. No new full-corpus or robot acceptance.",
+        "artifact": "docs/parity/candidates/N-08-inventory-approval-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -1376,6 +1375,16 @@
           "scope": "Bounded native grammar operators, explicit weighting and wildcard cardinality. 20,460/20,528 matches, 68 differences, 81 repairs, zero new failure IDs; 25 valid native semantic controls and three qualified native failures; 588 integrated unit tests and strict 43-case smoke pass. Full N-08 remains open.",
           "artifact": "docs/parity/candidates/N-08-native-operators-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-native-operators/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; Codex root",
+          "candidateRevision": "e3965821155ccaf159d43a7c9ccffd85700220da",
+          "reviewedCandidateRevision": "b42c0a8eaf56b5319b7b9faedf9d19d952a3b0cb",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded first-name membership and supplied-score arbitration. Full default AST replay: 20,471/20,528 matches, 57 differences, 11 repairs, zero newly failing IDs or changed residuals. Root native membership and 13 original Node 8 selection controls agree; 620 integrated units and strict 43-case smoke pass. Full N-08 remains open.",
+          "artifact": "docs/parity/candidates/N-08-arbitration-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-arbitration/review.json"
         }
       ],
       "deploymentReview": {
@@ -1404,9 +1413,9 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max / audio_encoding_repair; root acceptance",
-        "candidateRevision": "39452deddf50a00a7776e8a02bc54ceec431b6bb",
-        "worktree": ".parity/worktrees/n08-fst-json-gzip-20260907",
-        "scope": "Portable canonical JSON graph data with optional gzip storage: fixed external provenance hashes and strict production harness support are in progress. Binary-to-JSON implementation comparisons are not independent original-service parity evidence. No default switch or whole-task credit."
+        "candidateRevision": "51817b983dd711799ec0b6c425b853528cf48ca2",
+        "worktree": ".parity/worktrees/n08-fst-json-anchor-inventory-20260907",
+        "scope": "Frozen portable canonical JSON/gzip graph candidate with an independently pinned decoded-data anchor and shared inventory approval. Agent reports strict43 passing; root review and full corpus replay pending. Binary-to-JSON implementation comparisons are not independent original-service parity evidence. No default switch or whole-task credit."
       }
     },
     {

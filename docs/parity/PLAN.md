@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **632 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **633 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -109,7 +109,9 @@ accepts 26 full service-boundary controls, 37 transport controls and seven
 original robot error-extractor controls. The [Settings Hub review](evidence/2026-09-07/settings-hub/review.json)
 adds 40 payload/wire, 11 redirect/deadline and eight complete service-response
 controls; every following valid request succeeds. Full A-06 remains open.
-The prior compiled-FST strict 43-case smoke also passed. The default AST
+The [compiled inventory approval repair](evidence/2026-09-07/nlu-inventory-approval/review.json)
+restores configured startup after the first-name inventory changed; nine configured
+checks and both default and compiled strict 43-case profiles pass. The default AST
 profile now has **57 differences across 20,528 requests**, down from 149. The
 [accepted factory/arbitration review](evidence/2026-09-07/nlu-arbitration/review.json)
 records the latest 11 repairs, zero new failure IDs and unchanged residual outputs;
