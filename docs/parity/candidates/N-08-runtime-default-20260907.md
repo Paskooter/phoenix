@@ -8,6 +8,7 @@ Source revision: hashbrown/Pegasus `5c0a7390539663ba749d360de348a428c088505c`.
 Native service: ConvTech/jibo-nlu-service `5d6755a5116694e2801438f358b862109cd16ba5`.
 Native library: ConvTech/jibo-nlu `91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e`.
 Phoenix worktree head before this implementation: `c04e705`.
+Implementation commit: `e1f0fc5ab4c4896b6aae8c6ab3043167b8f521d5`.
 
 Private receipts live under
 `.parity/reviews/n08-runtime-default-20260907/` (gitignored).
