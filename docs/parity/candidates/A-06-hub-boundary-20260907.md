@@ -103,7 +103,14 @@ node --test packages/account/test/settingsHubTransport.test.js       # 6 passed
 node --test packages/account/test/settingsProviders.test.js          # 2 passed
 node --test packages/account/test/settingsPersonNetwork.test.js       # 15 passed
 node --test packages/account/test/settingsLassoNetwork.test.js        # 13 passed
+node --check packages/account/src/settingsProviders.js && node --test packages/account/test/settings*.test.js
+                                                                       # 74 passed
 ```
+
+The six focused files total 42 passing tests; the broader Settings glob adds
+the remaining Account and internal-transport coverage. The full run also
+rechecked accepted Person/Lasso and local persistence behavior after this
+Hub-only change.
 
 The candidate is frozen pending root review. Full production App registry and
 live Hub deployment authentication remain outside this bounded control.
