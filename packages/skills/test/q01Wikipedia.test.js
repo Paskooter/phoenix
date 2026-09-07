@@ -77,9 +77,11 @@ test('Q-01 Wikipedia adapter follows source success request and result contract'
     assert.equal(requests.length, 1);
     const requestUrl = new URL(requests[0].url, endpoint);
     assert.equal(requests[0].method, 'GET');
+    assert.equal(requests[0].url, '/w/api.php?prop=info%7Cpageprops%7Cextracts%7Ccategories&cllimit=max&explaintext=&exintro=&list=allcategories&inprop=url&ppprop=disambiguation&redirects=&titles=John+Henry+Brooke&format=json&action=query');
     assert.equal(requestUrl.searchParams.get('prop'), 'info|pageprops|extracts|categories');
     assert.equal(requestUrl.searchParams.get('ppprop'), 'disambiguation');
     assert.equal(requestUrl.searchParams.get('titles'), 'John Henry Brooke');
+    assert.equal(requestUrl.searchParams.get('list'), 'allcategories');
     assert.equal(requestUrl.searchParams.get('format'), 'json');
     assert.equal(requests[0].headers['user-agent'], 'q01-fixture');
   });
@@ -108,6 +110,34 @@ test('Q-01 Wikipedia missing page is a no-result source message', async () => {
   });
 });
 
+test('Q-01 Wikipedia preserves source first-page category continuation behavior', async () => {
+  await withFixtureServer((_request, response) => {
+    const body = page({
+      title: 'Continuity Article',
+      extract: 'Continuity Article is a controlled article.',
+      categories: [],
+    });
+    // The pinned Python dependency requests categories in the combined page
+    // query and does not consume a top-level continuation from that response.
+    // Keep this response deliberately shaped like a later blacklisted page so
+    // a candidate that silently follows it would change the source result.
+    body.continue = {
+      clcontinue: 'Continuity Article|later',
+      continue: '-||categories',
+    };
+    sendJson(response, 200, body);
+  }, async ({ endpoint, requests }) => {
+    const provider = createWikipediaProvider({ endpoint });
+    const output = await provider({ queryText: 'what is Continuity Article', questionType: 'what' });
+    assert.equal(output.response.payload, 'Continuity Article is a controlled article.');
+    assert.equal(output.message, undefined);
+    assert.equal(requests.length, 1);
+    const requestUrl = new URL(requests[0].url, endpoint);
+    assert.equal(requestUrl.searchParams.get('cllimit'), 'max');
+    assert.equal(requestUrl.searchParams.get('list'), 'allcategories');
+  });
+});
+
 test('Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages', async () => {
   await withFixtureServer((request, response) => {
     const query = new URL(request.url, 'http://fixture.invalid');
@@ -115,7 +145,7 @@ test('Q-01 Wikipedia disambiguation follows revision options and skips disambigu
     const prop = query.searchParams.get('prop');
     if (prop === 'revisions') {
       sendJson(response, 200, {
-        query: { pages: { '1': { revisions: [{ '*': '<ul><li><a>Mercury (planet)</a></li><li><a>Mercury (disambiguation)</a></li></ul>' }] } } },
+        query: { pages: { '1': { revisions: [{ '*': '<ul><li class="tocsection-1"><a>TOC-only label</a></li><li><a>Mercury <span>(planet)</span> &amp; family</a></li><li><div><a>Mercury (disambiguation)</a></div></li></ul>' }] } } },
       });
       return;
     }
@@ -125,16 +155,19 @@ test('Q-01 Wikipedia disambiguation follows revision options and skips disambigu
     }
     sendJson(response, 200, page({
       title,
-      extract: 'Mercury planet is the smallest planet in the Solar System.',
+      extract: 'Mercury (planet) & family is the smallest planet in the Solar System.',
     }));
   }, async ({ endpoint, requests }) => {
     const provider = createWikipediaProvider({ endpoint, random: () => 0 });
     const output = await provider({ queryText: 'what is Mercury', questionType: 'what' });
     assert.equal(output.message, undefined);
-    assert.equal(output.response.payload, "I found a few things. Here's one of them.  Mercury planet is the smallest planet in the Solar System.");
+    assert.equal(output.response.payload, "I found a few things. Here's one of them.  Mercury & family is the smallest planet in the Solar System.");
     assert.deepEqual(requests.map(({ url }) => new URL(url, endpoint).searchParams.get('prop')), [
       'info|pageprops|extracts|categories', 'revisions', 'info|pageprops|extracts|categories',
     ]);
+    assert.equal(new URL(requests[0].url, endpoint).searchParams.get('list'), 'allcategories');
+    assert.equal(new URL(requests[2].url, endpoint).searchParams.get('list'), 'allcategories');
+    assert.equal(new URL(requests[2].url, endpoint).searchParams.get('titles'), 'Mercury (planet) & family');
   });
 });
 

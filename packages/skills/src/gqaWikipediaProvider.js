@@ -76,15 +76,16 @@ const DISAMBIGUATE_1 = Object.freeze([
 
 const PAGE_PARAMS = Object.freeze([
   ['prop', 'info|pageprops|extracts|categories'],
-  ['inprop', 'url'],
-  ['ppprop', 'disambiguation'],
+  ['cllimit', 'max'],
   ['explaintext', ''],
   ['exintro', ''],
-  ['titles', ''],
+  ['list', 'allcategories'],
+  ['inprop', 'url'],
+  ['ppprop', 'disambiguation'],
   ['redirects', ''],
+  ['titles', ''],
   ['format', 'json'],
   ['action', 'query'],
-  ['cllimit', 'max'],
 ]);
 
 function normalizeWikiName(value) {
@@ -387,19 +388,39 @@ function pageFromBody(body, query) {
 function stripHtml(value) {
   return String(value)
     .replace(/<[^>]*>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&quot;/g, '"');
+    .replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/giu, (entity, value) => {
+      if (value.toLowerCase() === 'amp') return '&';
+      if (value.toLowerCase() === 'lt') return '<';
+      if (value.toLowerCase() === 'gt') return '>';
+      if (value.toLowerCase() === 'quot') return '"';
+      if (value.toLowerCase() === 'apos') return "'";
+      if (value.toLowerCase() === 'nbsp') return '\u00a0';
+      const codePoint = value[0].toLowerCase() === '#'
+        ? (value[1].toLowerCase() === 'x'
+          ? Number.parseInt(value.slice(2), 16)
+          : Number.parseInt(value.slice(1), 10))
+        : Number.NaN;
+      return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
+        ? String.fromCodePoint(codePoint)
+        : entity;
+    });
 }
 
 function optionsFromRevisionHtml(html) {
   const options = [];
-  const pattern = /<li\b[^>]*>[\s\S]*?<a\b[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/li>/gi;
+  // The pinned Python dependency uses BeautifulSoup.find_all('li'), skips
+  // every li whose class string contains "tocsection", then reads the first
+  // descendant anchor's text. Keep the same ordering and filtering for the
+  // revision HTML path without adding an HTML dependency to the skill bundle.
+  const pattern = /<li\b([^>]*)>([\s\S]*?)<\/li>/gi;
   let match;
   while ((match = pattern.exec(String(html))) !== null) {
-    const title = normalizeWhitespace(stripHtml(match[1]));
+    const classMatch = match[1].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/iu);
+    const classes = classMatch ? (classMatch[1] ?? classMatch[2] ?? classMatch[3] ?? '') : '';
+    if (classes.replace(/\s+/gu, '').toLowerCase().includes('tocsection')) continue;
+    const anchor = match[2].match(/<a\b[^>]*>([\s\S]*?)<\/a>/iu);
+    if (!anchor) continue;
+    const title = normalizeWhitespace(stripHtml(anchor[1]));
     if (title) options.push(title);
   }
   return options;
