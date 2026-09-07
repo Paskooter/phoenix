@@ -60,14 +60,15 @@ export function classicRoutes(hub, extra = []) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [] } = {}) {
+export function createClassicEntrypoint({ extra = [], tls } = {}) {
   const hub = new NotificationHub();
   const backups = new BackupStore();
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
-  const baseFor = (req) => process.env.ETCO_classic_publicUrl || `http://${(req.headers && req.headers.host) || 'localhost'}`;
+  const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
   const service = createService({
     name: 'classic',
+    tls,
     // The Hapi-backed Account boundary validates primitive JSON values after
     // parsing. All other Classic routes retain Pegasus's strict parser.
     jsonStrict: (req) => !isCreateHubTokenTarget(req),

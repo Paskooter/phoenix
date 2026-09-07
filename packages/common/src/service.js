@@ -4,6 +4,7 @@
 // limits, charset/encoding checks, and conditional ETag behavior as the source.
 
 import http from 'node:http';
+import https from 'node:https';
 import { createHash } from 'node:crypto';
 import express from 'express';
 import bodyParser from 'body-parser';
@@ -26,9 +27,10 @@ function captureRawBody(req, _res, buffer) {
  *   routes?: Record<string, (ctx: any) => any>,
  *   onUpgrade?: (req: import('node:http').IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void,
  *   jsonStrict?: boolean | ((req: import('node:http').IncomingMessage) => boolean),
+ *   tls?: import('node:https').ServerOptions,
  * }} opts
  */
-export function createService({ name, routes = {}, onUpgrade, jsonStrict = true } = {}) {
+export function createService({ name, routes = {}, onUpgrade, jsonStrict = true, tls } = {}) {
   const log = logger(name);
   const app = express();
   const urlencoded = bodyParser.urlencoded({ extended: true, verify: captureRawBody });
@@ -107,7 +109,7 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true 
     return sendJson(res, status, serviceError(errorMessage(error, req)));
   });
 
-  const server = http.createServer(app);
+  const server = tls ? https.createServer(tls, app) : http.createServer(app);
   if (onUpgrade) server.on('upgrade', onUpgrade);
 
   return {

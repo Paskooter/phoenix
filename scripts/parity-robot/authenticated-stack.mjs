@@ -3,8 +3,6 @@
 import { readFileSync, statSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createServer as createTlsServer } from 'node:tls';
-import { connect } from 'node:net';
 import { execFileSync } from 'node:child_process';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -58,7 +56,6 @@ export async function startAuthenticatedRobotStack({
   if ((statSync(directory).mode & 0o077) !== 0) throw new Error('runDir must be private (0700)');
   const endpoints = {};
   const servers = [];
-  const sockets = new Set();
   let gateway;
   let classic;
   let stopping;
@@ -69,7 +66,6 @@ export async function startAuthenticatedRobotStack({
         for (const socket of wss?.clients || []) socket.terminate();
         wss?.close();
       }
-      for (const socket of sockets) socket.destroy();
       await Promise.allSettled(servers.map(closeServer));
     })();
     return stopping;
@@ -113,31 +109,13 @@ export async function startAuthenticatedRobotStack({
     process.env.NET_account = `127.0.0.1:${endpoints.account}`;
 
     const { createClassicEntrypoint } = await import('../../packages/classic/src/index.js');
-    classic = createClassicEntrypoint();
+    classic = createClassicEntrypoint({ tls: tlsOptions });
     servers.push(classic.server);
-    await listen(classic.server, 0);
-    endpoints.classic = classic.server.address().port;
-    // TLS forwards the complete HTTP/WebSocket byte stream to the original
-    // Classic server. Wrapping only classic.app would lose its upgrade listener.
-    const tls = createTlsServer(tlsOptions, client => {
-      const upstream = connect(endpoints.classic, '127.0.0.1');
-      for (const socket of [client, upstream]) {
-        sockets.add(socket);
-        socket.once('close', () => sockets.delete(socket));
-      }
-      const closePair = () => { client.destroy(); upstream.destroy(); };
-      client.on('error', closePair); upstream.on('error', closePair);
-      client.once('close', () => upstream.destroy());
-      upstream.once('close', hadError => {
-        if (hadError || !upstream.readableEnded) client.destroy();
-      });
-      client.pipe(upstream); upstream.pipe(client);
-    });
-    // Handshake failures belong to their connection; they do not stop the stack.
-    tls.on('tlsClientError', (_error, socket) => socket.destroy());
-    servers.push(tls);
-    await listen(tls, tlsPort, entrypointHost);
-    endpoints.entrypointTls = tls.address().port;
+    // Use the same TLS server for HTTP and notification upgrades. Wrapping only
+    // classic.app in a second server would leave its upgrade listener behind.
+    classic.server.on('tlsClientError', (_error, socket) => socket.destroy());
+    await listen(classic.server, tlsPort, entrypointHost);
+    endpoints.entrypointTls = classic.server.address().port;
 
     const { createGateway } = await import('../../packages/gateway/src/index.js');
     const { loadConfig } = await import('../../packages/gateway/src/config.js');
@@ -160,7 +138,7 @@ export async function startAuthenticatedRobotStack({
     const temporary = resolve(directory, 'authenticated-stack.json.tmp');
     writeFileSync(temporary, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600 });
     renameSync(temporary, resolve(directory, 'authenticated-stack.json'));
-    return { receipt, stop };
+    return { receipt, stop, services: { account, classic, gateway } };
   } catch (error) {
     await stop();
     throw error;
