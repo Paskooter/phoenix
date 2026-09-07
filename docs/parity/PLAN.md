@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **675 unit tests**, with seven explicit skips, and the default
+The latest accepted tree, integrated unchanged on main, passes **677 unit tests**, with seven explicit skips, and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout

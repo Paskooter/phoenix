@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word controls match 19/21; two apostrophe cases are separate unverified work. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 675 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.
+The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word/apostrophe controls now match 21/21 after preserving apostrophes; the full corpus retains the same 52 residuals. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 677 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.
 
 Done when:
 
@@ -707,13 +707,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root deployment corrections.
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Complete approved JSON/gzip bundle installer. Root preserves native/binary configuration and uses an explicit read-only Compose overlay. All 114 installed files, four configured installer checks, nine binary checks and actual Node 20 native/Compose parser probes pass. The combined suite has 675 passes, seven skips and a passing strict 43-case smoke. Persistent rollout remains open.
+Candidate scope: Preserve apostrophes in default AST input tokens and grammar literals. Root original Node 8 preparation and native/compiler checks pass: 21/21 native controls, up from 19. The completed 20,528-request HTTP replay retains 20,476 matches and the same 52 residuals; root reconciled all outputs and exact package identity. Root verification passes 677 unit tests, with seven skips, and all 43 strict smoke cases. Full N-08 remains open.
 
-Candidate report: [docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md](../../docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md).
+Candidate report: [docs/parity/candidates/N-08-apostrophe-root-20260907.md](../../docs/parity/candidates/N-08-apostrophe-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json](../../docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-apostrophes/review.json](../../docs/parity/evidence/2026-09-07/nlu-apostrophes/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded apostrophe token/literal repair; N-08 remains open",
+  "reviewedBy": "Codex root",
+  "integrationRevision": "c720c4655f0bbb30a8daadb51c61984a2951c36e",
+  "implementationRevision": "efc6942db838abcd352d213f83f573f4a247ad35",
+  "behavior": "Preserve straight and curly apostrophes in input tokens and grammar literals. The source distinguishes explicit apostrophe arcs from absent apostrophes; removing them creates false matches. Other punctuation normalization remains outside this acceptance.",
+  "publicSourceBoundary": {
+    "pegasusRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "handlerSha256": "dc577c81cf61ce0ecd19c74ada04f6a0fda2521a8834982aff0c2432730fe70e",
+    "clientSha256": "2c4b7c1544d82c4e42863cdacf06226fb31f5ba6745827bf165124e3a22b0906",
+    "rootNode8Cases": 6,
+    "exitCode": 0,
+    "matchesPriorSourceOutput": true,
+    "outputSha256": "b543165ffd5b47f6d370fca8215d96a5e98a2d78bc0c186de5a9261e8b3e1f20",
+    "executionSha256": "d99ab51c403e993f26f5e82f8f02242c1253fcfd22be7550d51917018d0f0479",
+    "qualification": "Unchanged original handler/client executed under Node 8.9.4 with framework/Axios recording seams; not a full original Hapi/TCP deployment."
+  },
+  "nativeControls": {
+    "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "compilerSha256": "ed5c9868c772b8fcb370e995cc0617906562fd192809b9590e0f313699e87ba3",
+    "parserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "grammarsRegenerated": 8,
+    "graphAndParserBytesMatchPrior": true,
+    "cases": 21,
+    "baselineMatches": 19,
+    "candidateMatches": 21,
+    "comparisonSha256": "6e6b03616fba393b2521527fb4026315a9ee9bacf5bd122ef3b258573b984c64",
+    "qualification": "Root reran archived host compiler/parser with archived libraries; no compiler rebuild."
+  },
+  "focusedHttp": {
+    "cases": 209,
+    "matches": 157,
+    "errors": 0,
+    "statusChanges": 0,
+    "dataChanges": 0,
+    "newFailures": 0,
+    "allResponseStatuses": 200,
+    "baseline": "n08-class-integration-root-20260907/candidate-209.json",
+    "reconciliationSha256": "37a0252ee34c5018b7a8cfa3aa098b5f2838e8cf8ed107da818718b095039303"
+  },
+  "fullHttp": {
+    "candidateReplayHead": "2e9f512921c1da2d6ee891cfa6f6ada87b54a2c1",
+    "integrationHead": "c720c4655f0bbb30a8daadb51c61984a2951c36e",
+    "packageTrees": {
+      "2e9f512921c1da2d6ee891cfa6f6ada87b54a2c1": "b8e1fe74bd73c020141dc5ceeb6048387304ac07",
+      "aeb57f956ee89f3b32619ae435c2a5cab4f3f842": "b8e1fe74bd73c020141dc5ceeb6048387304ac07",
+      "c720c4655f0bbb30a8daadb51c61984a2951c36e": "b8e1fe74bd73c020141dc5ceeb6048387304ac07"
+    },
+    "allApplicationPackageBytesEqual": true,
+    "agentExecutionExitCode": 0,
+    "agentExecutionSeconds": 2889,
+    "agentExecutionSha256": "21a5c70c0d2d450e9a15eb363fced887700439de0a2c13744082f50f7b50c2c3",
+    "agentInputAndDriverAndOutputHashesVerified": true,
+    "cases": 20528,
+    "matches": 20476,
+    "differences": 52,
+    "fullDifferenceRecordsEqualRootClassOnly": true,
+    "newOrChangedResiduals": 0,
+    "candidateOutputSha256": "57bd7b684f5ba9a8134c3386e92fe312ab578500532b745fe6481e6c2f3bebd8",
+    "rootClassOutputSha256": "6f10a4b3df2aa1ef87c9a0cd64787e215b68f72f9d542a7af164b768e84c2a74",
+    "scope": "Full replay executed by Luna. Root independently verified terminal receipt, input/driver/output hashes, every ordered residual record and identical application package trees, then reran native/compiler controls, focused HTTP and the full npm test command."
+  },
+  "integration": {
+    "unitPassed": 677,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictSmokeCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictCoverageGaps": 0,
+    "strictComparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3",
+    "executionSha256": "b5b17ec2c567f2acc03d5faf0e42d8ef95680cdd01e91e4f02dfe74c4ec34111",
+    "npmTestExitCode": 0,
+    "frozenStateStable": true,
+    "npmTestSeconds": 27.41091238707304
+  },
+  "remaining": [
+    "52 default AST status/data differences; this focused repair adds no full-corpus matches.",
+    "Portable 20,534-case production profile remains separately pinned, with 16 gaps across eight unhosted external cases and actual gate exit 1.",
+    "No default parser switch, persistent rollout, microphone recognition or physical-ring acceptance."
+  ]
+}

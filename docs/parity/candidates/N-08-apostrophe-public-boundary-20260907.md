@@ -1,6 +1,10 @@
 # N-08 default-AST public apostrophe boundary
 
-Status: **candidate unverified; pending root review**
+Status: **historical candidate report; bounded repair subsequently root accepted**
+
+See the [root integration review](N-08-apostrophe-root-20260907.md) for current
+acceptance, combined class-word behavior and completed full replay. The
+measurements below describe the earlier standalone candidate.
 
 This bounded follow-up starts at frozen deployment candidate
 `f68f88a614c069d6f32ee225c59146037408adbf` in

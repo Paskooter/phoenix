@@ -10,7 +10,7 @@ and no newly failing cases or changed shared residuals.
 
 The [installer and deployment review](evidence/2026-09-07/nlu-snapshot-deployment/review.json)
 accepts the provisioned bundle on native and Compose launch paths. The combined
-`939c670` tree passes 675 unit tests, seven skips and default strict43 with zero
+`c720c46` tree, including the [apostrophe repair](evidence/2026-09-07/nlu-apostrophes/review.json), passes 677 unit tests, seven skips and default strict43 with zero
 differences/invariants/gaps. Prior compiled/snapshot strict43 results remain
 separately pinned. A [temporary authenticated Moth trial](evidence/2026-09-07/hardware/portable-snapshot/review.json)
 passed clock rendering, joke playback calls and rollback. Persistent deployment,
