@@ -87,6 +87,7 @@ export class LoopUpdatedOutbox {
     this.publisher = typeof publisher === 'function' ? publisher : null;
     this.clock = clock;
     this.draining = null;
+    this.drainRequested = false;
   }
 
   /** Return pending rows in persisted insertion order. */
@@ -135,14 +136,21 @@ export class LoopUpdatedOutbox {
     this._commitOutbox(() => {
       this.store.notificationOutbox.set(entry._id, entry);
     });
-    void this.drain();
+    this._startDrain();
     return { ...entry, notification: { ...entry.notification, payload: { ...entry.notification.payload } } };
   }
 
   /** Drain once; failed publication retains the row for retry/recovery. */
   drain() {
     if (!this.publisher) return Promise.resolve({ published: 0, retained: this.pending().length });
-    if (this.draining) return this.draining;
+    if (this.draining) {
+      // A drain iterates a snapshot. A producer can append another event
+      // while the current publisher is awaiting its bridge; remember that
+      // mutation so the newly committed row gets one follow-up pass after
+      // the current drain settles.
+      this.drainRequested = true;
+      return this.draining;
+    }
     this.draining = (async () => {
       let published = 0;
       for (const entry of this.pending()) {
@@ -185,8 +193,23 @@ export class LoopUpdatedOutbox {
       return { published, retained: this.store.notificationOutbox.size };
     })().finally(() => {
       this.draining = null;
+      if (this.drainRequested) {
+        // Only a producer/recovery call made while the previous pass was
+        // active requests this pass. A failed publisher by itself does not
+        // spin a tight retry loop.
+        this.drainRequested = false;
+        queueMicrotask(() => this._startDrain());
+      }
     });
     return this.draining;
+  }
+
+  _startDrain() {
+    try {
+      void this.drain().catch(() => {});
+    } catch {
+      // The outbox row remains durable for an explicit recovery call.
+    }
   }
 
   /** Retry pending rows after account-service/repository restart. */
