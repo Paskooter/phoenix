@@ -308,7 +308,7 @@ export class ListenTransaction {
     this._gotoState(State.DONE);
   }
 
-  async _onSkillMatch(skillID, context, memo = null, isUpdate) {
+  async _onSkillMatch(skillID, context, memo = null, isUpdate = false) {
     const onRobot = this.components.skillConfigManager.isOnRobotSkill(skillID);
     const matchData = { skillID, launch: !isUpdate, onRobot };
     if (onRobot) {
@@ -325,12 +325,16 @@ export class ListenTransaction {
     );
     if (skillOutput === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the skill response from '${skillID}'`);
 
+    // The reference records each successful request as it completes. This is
+    // deliberately before redirect handling: the initial skill launch remains
+    // in history even when it asks the hub to launch another skill.
+    if (!skillOutput.error) this._record(skillID, context, skillOutput.response);
+
     if (skillOutput.response && isRedirect(skillOutput.response)) {
       skillOutput = await this._handleRedirect(skillOutput.response, context);
     }
     this.timings.skill = now() - t0;
     this._emitSkillResult(skillOutput, true);
-    this._record(skillID, context, skillOutput && skillOutput.response);
   }
 
   // Fire-and-forget skill-launch history record (TransactionHandler.recordSkillLaunch).
@@ -339,7 +343,10 @@ export class ListenTransaction {
     const general = (context.data && context.data.general) || {};
     const runtime = (context.data && context.data.runtime) || {};
     const perception = runtime.perception || {};
-    const personIDs = [...new Set([...((perception.peoplePresent || []).map((p) => p.id)), perception.speaker].filter((x) => x && x !== 'UNKNOWN'))];
+    // TransactionHelper.getPersonIDs in the reference intentionally uses the
+    // speaker only. UNKNOWN is a history-query sentinel when no speaker was
+    // identified; peoplePresent is not folded into launch identity.
+    const personIDs = perception.speaker ? [perception.speaker] : ['UNKNOWN'];
     const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
     this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace);
   }
@@ -347,10 +354,18 @@ export class ListenTransaction {
   async _handleRedirect(redirect, context) {
     this._emitSkillRedirectNotification(redirect.data);
     const out = await withTimeout(
-      this.components.skillClient.launch(redirect.data.skillID, { context: context.data, nlu: redirect.data.nlu, asr: redirect.data.asr, memo: redirect.data.memo }, this.trace),
+      // TransactionHelper's redirect launch omits ASR. The redirect NLU and
+      // memo are supplied by the redirect notification instead.
+      this.components.skillClient.launch(redirect.data.skillID, { context: context.data, nlu: redirect.data.nlu, memo: redirect.data.memo }, this.trace),
       Timeouts.skill,
     );
     if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout while waiting for the redirect skill response`);
+    // A successful redirected launch gets its own history row and session.
+    // Errors are emitted to the client but must not look like successful
+    // launches in history. The source performs this before checking for a
+    // second redirect, so a successful second redirect is also recorded before
+    // the transaction rejects as too many redirects.
+    if (!out.error) this._record(redirect.data.skillID, context, out.response);
     if (out.response && isRedirect(out.response)) throw new Error('Too many redirects');
     return out;
   }
