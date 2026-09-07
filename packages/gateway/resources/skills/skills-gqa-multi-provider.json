@@ -1,0 +1,13 @@
+{
+    "skills": [
+        {
+            "baseURL": "http://localhost:9013",
+            "configPath": "external-skills/answer_manifest.json"
+        }
+    ],
+    "notes for humans": {
+        "profile": "Explicit Q-01 Bing/Wikipedia/Wolfram Alpha answer service",
+        "service": "Start packages/skills/src/index.js with PHOENIX_GQA_PROFILE=multi-provider on port 9013",
+        "providers": "Configure ETCO_gqa_bingApi, ETCO_gqa_wikiApi and ETCO_gqa_wolframApi explicitly; keys and account/attribution seams remain deployment configuration"
+    }
+}

@@ -20,6 +20,10 @@ import {
   GQA_WIKIPEDIA_PROFILE,
   startGqaWikipediaService,
 } from './gqaWikipediaService.js';
+import {
+  GQA_MULTI_PROVIDER_PROFILE,
+  startGqaMultiProviderService,
+} from './gqaMultiProviderService.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
@@ -97,6 +101,16 @@ export {
   GQA_WIKIPEDIA_PROFILE,
   GQA_WIKIPEDIA_SKILL_ID,
 } from './gqaWikipediaService.js';
+export {
+  createGqaMultiProviderProfile,
+  createGqaMultiProviderService,
+  readGqaMultiProviderProfileConfig,
+  startGqaMultiProviderService,
+  GQA_MULTI_PROVIDER_BASE_PATH,
+  GQA_MULTI_PROVIDER_PROFILE,
+  GQA_MULTI_PROVIDER_SKILL_ID,
+  GQA_MULTI_PROVIDER_TIMEOUTS,
+} from './gqaMultiProviderService.js';
 
 // Compatibility descriptors retain the historical named handlers. A caller
 // that passes SKILLS directly to createSkillsService still represents one
@@ -212,6 +226,8 @@ export function runService(serviceName, serviceStarter, {
 export function start(port = defaultPort(), {
   skillId = process.env.PHOENIX_SKILL_ID,
   gqaProfile = process.env.PHOENIX_GQA_PROFILE,
+  gqaEnvironment = process.env,
+  gqaConfig = {},
   gqaEndpoint = process.env.ETCO_gqa_wikiApi,
   gqaTimeoutMs = process.env.ETCO_gqa_wikiTimeoutMs,
 } = {}) {
@@ -222,6 +238,15 @@ export function start(port = defaultPort(), {
     return startGqaWikipediaService(port, {
       endpoint: gqaEndpoint,
       timeoutMs: gqaTimeoutMs,
+    });
+  }
+  if (gqaProfile === GQA_MULTI_PROVIDER_PROFILE) {
+    if (skillId && skillId !== 'answer' && skillId !== 'answer-skill') {
+      throw new Error(`GQA multi-provider profile cannot serve PHOENIX_SKILL_ID '${skillId}'`);
+    }
+    return startGqaMultiProviderService(port, {
+      env: gqaEnvironment,
+      ...gqaConfig,
     });
   }
   if (skillId) {
