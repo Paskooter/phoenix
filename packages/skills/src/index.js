@@ -50,6 +50,13 @@ export {
   GQA_SOURCE_REVISION,
   GQA_VERSION,
 } from './gqaAnswerSkill.js';
+export {
+  createWikipediaProvider,
+  wikipediaProviderContract,
+  WIKIPEDIA_SOURCE_API,
+  WIKIPEDIA_SOURCE_REVISION,
+  WIKIPEDIA_SOURCE_USER_AGENT,
+} from './gqaWikipediaProvider.js';
 export { createReportSkill, getReportSkill, reportSkill } from './reportSkill.js';
 export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';
