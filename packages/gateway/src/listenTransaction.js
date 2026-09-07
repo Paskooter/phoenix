@@ -80,13 +80,22 @@ export class ListenTransaction {
     this.redirectCount = 0;
 
     this._handle = defer();
-    // whole-transaction timeout (60s)
-    this._txTimer = setTimeout(() => this.reject(new HubError(HubErrorCode.INTERNAL, `Maximum transaction time of ${Timeouts.transaction} exceeded`)), Timeouts.transaction);
+    // The reference TransactionHandler wraps its internal ExtPromise with a
+    // timeout promise. A timeout rejects the outer handle promise but does not
+    // call reject(), stop the state machine, or add a HubError code; an
+    // in-flight skill may still complete and resolve the internal transaction.
+    // Keep those two settlement layers separate here as well.
+    this._timeout = defer();
+    this._done = Promise.race([this._handle.promise, this._timeout.promise]);
+    this._txTimer = setTimeout(() => {
+      this._txTimer = null;
+      this._timeout.reject(new Error(`Maximum transaction time of ${Timeouts.transaction} exceeded`));
+    }, Timeouts.transaction);
     this._txTimer.unref?.();
   }
 
   /** Resolves when the transaction completes (success or failure handled internally). */
-  get done() { return this._handle.promise; }
+  get done() { return this._done; }
 
   // --- message intake -------------------------------------------------------
 
