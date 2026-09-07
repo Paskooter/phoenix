@@ -715,11 +715,20 @@ function sourceHubRequest(uri, headers, redirectsLeft, state, trace) {
         state.timer = null;
       }
       sourceHubRead(response).then((payload) => {
-        if (payload && payload.error) {
-          finish(sourceBoomFromPayload(payload));
-          return;
+        // Boom 5.1.0 asserts when a remote error omits or supplies an invalid
+        // statusCode. The source callback throws at this point; its Hapi
+        // request domain turns that throw into one 500 response. Keep the
+        // equivalent boundary in a Promise rejection so the Settings listener
+        // can perform the same request-scoped conversion and remain alive.
+        try {
+          if (payload && payload.error) {
+            finish(sourceBoomFromPayload(payload));
+            return;
+          }
+          finish(null, payload);
+        } catch (error) {
+          finish(error);
         }
-        finish(null, payload);
       }, (error) => finish(error));
     });
     let settled = false;
