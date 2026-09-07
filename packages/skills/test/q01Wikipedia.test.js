@@ -8,6 +8,10 @@ import {
   WIKIPEDIA_SOURCE_REVISION,
   WIKIPEDIA_SOURCE_USER_AGENT,
 } from '../src/index.js';
+import {
+  firstSentence,
+  removeInitialStopWords,
+} from '../src/gqaWikipediaProvider.js';
 
 function page({ title, extract, categories = [], pageprops, missing } = {}) {
   const value = { title, extract, categories: categories.map((item) => ({ title: `Category:${item}` })) };
@@ -210,4 +214,83 @@ test('Q-01 Wikipedia exports identify the source pin and official endpoint', () 
   assert.equal(WIKIPEDIA_SOURCE_REVISION, 'ebe1a7d38f511570060c1fbf61bec89d58419b26');
   assert.equal(WIKIPEDIA_SOURCE_API, 'https://en.wikipedia.org/w/api.php');
   assert.equal(WIKIPEDIA_SOURCE_USER_AGENT, 'wikipedia (https://github.com/goldsmith/Wikipedia/)');
+});
+
+test('Q-01 lexical preprocessing follows the pinned NLTK source vectors', () => {
+  const cases = [
+    {
+      id: 'ordinary',
+      query: 'what is the Catcher in the Rye',
+      summary: 'The Catcher in the Rye is a coming-of-age novel. It was published in 1951.',
+      strictQuery: 'Catcher in the Rye',
+      sentence: 'The Catcher in the Rye is a coming-of-age novel.',
+    },
+    {
+      id: 'expanded stopwords',
+      query: 'what is about the moon',
+      summary: "The Moon is Earth's only natural satellite. It is bright.",
+      strictQuery: 'moon',
+      sentence: "The Moon is Earth's only natural satellite.",
+    },
+    {
+      id: 'contraction',
+      query: "what's an apple",
+      summary: 'An apple is a fruit. It grows on trees.',
+      strictQuery: 'apple',
+      sentence: 'An apple is a fruit.',
+    },
+    {
+      id: 'title abbreviation and initials',
+      query: 'who is Dr. A. P. J. Abdul Kalam',
+      summary: 'Dr. A. P. J. Abdul Kalam was an Indian aerospace scientist. He served as president.',
+      strictQuery: 'Dr. A. P. J. Abdul Kalam',
+      sentence: 'Dr. A. P. J. Abdul Kalam was an Indian aerospace scientist.',
+    },
+    {
+      id: 'initialism',
+      query: 'what is U.S. history',
+      summary: 'U.S. history includes many events. The country was founded in 1776.',
+      strictQuery: 'U.S. history',
+      sentence: 'U.S. history includes many events.',
+    },
+    {
+      id: 'decimal',
+      query: 'what is pi',
+      summary: 'The value was 3.14. Next sentence starts here.',
+      strictQuery: 'pi',
+      sentence: 'The value was 3.14.',
+    },
+    {
+      id: 'nested parentheses',
+      query: 'what is a test',
+      summary: 'A test (an aside (nested detail)) is an experiment. Next sentence.',
+      strictQuery: 'test',
+      sentence: 'A test is an experiment.',
+    },
+    {
+      id: 'unicode',
+      query: 'who is Beyoncé',
+      summary: 'Beyoncé is a singer and songwriter. She performs worldwide.',
+      strictQuery: 'Beyoncé',
+      sentence: 'Beyoncé is a singer and songwriter.',
+    },
+    {
+      id: 'quote boundary',
+      query: 'what happened',
+      summary: 'Hello! "Next sentence."',
+      strictQuery: 'happened',
+      sentence: 'Hello!',
+    },
+    {
+      id: 'ellipsis',
+      query: 'what happened',
+      summary: 'Wait... maybe this is one thought. Next sentence.',
+      strictQuery: 'happened',
+      sentence: 'Wait... maybe this is one thought.',
+    },
+  ];
+  for (const entry of cases) {
+    assert.equal(removeInitialStopWords(entry.query), entry.strictQuery, entry.id);
+    assert.equal(firstSentence(entry.summary), entry.sentence, entry.id);
+  }
 });

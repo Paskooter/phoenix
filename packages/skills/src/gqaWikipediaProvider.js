@@ -17,16 +17,42 @@ export const WIKIPEDIA_SOURCE_USER_AGENT = 'wikipedia (https://github.com/goldsm
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const BLACKLIST_PATH = join(MODULE_DIR, '../resources/gqa/wikipedia_blacklist_complete.json');
+const STOP_WORDS_PATH = join(MODULE_DIR, '../resources/gqa/wikipedia_stopwords_english.txt');
+const PUNKT_PARAMS_PATH = join(MODULE_DIR, '../resources/gqa/wikipedia_punkt_english.json');
 const BLACKLIST = JSON.parse(readFileSync(BLACKLIST_PATH, 'utf8'));
 
-// This list follows the stopword seam used by the recovered source fixture.
-// The historical service obtains it from NLTK; keeping the fixture's stable
-// words local avoids adding an unpinned Python/NLTK dependency to Phoenix.
-const STOP_WORDS = new Set([
-  'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'how',
-  'i', 'in', 'is', 'it', 'of', 'on', 'or', 'that', 'the', 'this', 'to',
-  'was', 'what', 'when', 'where', 'which', 'who', 'with',
-]);
+// The recovered service loads stopwords.words('english') from NLTK for every
+// call.  Keep the source corpus as data rather than reducing it to a fixture
+// list: in particular, words such as "about", "been", and "their" affect the
+// strict Wikipedia title sent to the API.
+const STOP_WORDS = new Set(
+  readFileSync(STOP_WORDS_PATH, 'utf8')
+    .split(/\r?\n/u)
+    .map((word) => word.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+// NLTK's Punkt model is data, not a collection of article-specific rules.
+// The small JavaScript interpreter below uses the same trained abbreviation,
+// collocation, sentence-starter, and orthographic-context tables.  This keeps
+// first-sentence extraction independent of a Python child process while
+// retaining the source model's general behavior.
+const PUNKT_PARAMS = JSON.parse(readFileSync(PUNKT_PARAMS_PATH, 'utf8'));
+const PUNKT_ABBREVIATIONS = new Set(PUNKT_PARAMS.abbrev_types);
+const PUNKT_SENT_STARTERS = new Set(PUNKT_PARAMS.sent_starters);
+const PUNKT_COLLOCATIONS = new Set(
+  PUNKT_PARAMS.collocations.map(([first, second]) => `${first}\u0000${second}`),
+);
+const PUNKT_ORTHO_CONTEXT = PUNKT_PARAMS.ortho_context;
+
+const ORTHO_MID_UC = 1 << 2;
+const ORTHO_BEG_LC = 1 << 4;
+const ORTHO_MID_LC = 1 << 5;
+const ORTHO_UC = (1 << 1) | ORTHO_MID_UC | (1 << 3);
+const ORTHO_LC = ORTHO_BEG_LC | ORTHO_MID_LC | (1 << 6);
+const PUNKT_PUNCTUATION = new Set([';', ':', ',', '.', '!', '?']);
+const SENTENCE_CLOSERS = new Set(['"', "'", ')', ']', '}']);
+const PUNKT_TOKEN_SEPARATORS = new Set(['?', '!', ';', ':', ',', '"', "'", '(', ')', '[', ']', '{', '}', '*', '@']);
 
 const QUESTION_WORDS = Object.freeze([
   'what', 'where', 'when', 'who', 'waddya', 'watcha', 'whadaya', 'whadda',
@@ -72,7 +98,7 @@ function normalizeWhitespace(value) {
   return String(value).trim().replace(/\s+/g, ' ');
 }
 
-function removeInitialStopWords(value) {
+export function removeInitialStopWords(value) {
   const words = normalizeWhitespace(value).split(' ').filter(Boolean);
   while (words.length > 0) {
     const word = words[0];
@@ -109,13 +135,158 @@ function cleanParentheses(value) {
   return result;
 }
 
-function firstSentence(value) {
+function punktTokens(text) {
+  // Punkt's English tokenizer keeps periods inside a word (Dr., U.S., 3.14.)
+  // and separates the other punctuation which can surround a boundary.  The
+  // source regex is intentionally represented as a scanner here so Unicode
+  // letters and code points remain intact in the original text slice.
+  const tokens = [];
+  let index = 0;
+  while (index < text.length) {
+    if (/\s/u.test(text[index])) {
+      index += 1;
+      continue;
+    }
+    const start = index;
+    if (PUNKT_TOKEN_SEPARATORS.has(text[index])) {
+      index += 1;
+    } else {
+      while (index < text.length && !/\s/u.test(text[index]) && !PUNKT_TOKEN_SEPARATORS.has(text[index])) {
+        index += 1;
+      }
+    }
+    tokens.push({ text: text.slice(start, index), start, end: index });
+  }
+  return tokens;
+}
+
+function punktType(token) {
+  const text = token.text;
+  if (/^-?[.,]?\d[\d,.-]*\.?$/u.test(text)) return '##number##';
+  return text.toLowerCase();
+}
+
+function punktTypeNoPeriod(token) {
+  const type = punktType(token);
+  return type.length > 1 && type.endsWith('.') ? type.slice(0, -1) : type;
+}
+
+function punktTypeNoSentencePeriod(token) {
+  return token.sentbreak ? punktTypeNoPeriod(token) : punktType(token);
+}
+
+function punktIsInitial(token) {
+  return /^\p{L}\.$/u.test(token.text);
+}
+
+function punktIsNumber(token) {
+  return /^-?[.,]?\d[\d,.-]*\.?$/u.test(token.text);
+}
+
+function punktFirstCase(token) {
+  const first = [...token.text][0] || '';
+  if (/^\p{Ll}$/u.test(first)) return 'lower';
+  if (/^\p{Lu}$/u.test(first)) return 'upper';
+  return 'none';
+}
+
+function punktOrthographicHeuristic(token) {
+  // This mirrors PunktSentenceTokenizer._ortho_heuristic.  Punctuation never
+  // starts a sentence, even if a model entry happens to exist for its type.
+  if (PUNKT_PUNCTUATION.has(token.text)) return false;
+  const context = Number(PUNKT_ORTHO_CONTEXT[punktTypeNoSentencePeriod(token)] || 0);
+  const firstCase = punktFirstCase(token);
+  if (firstCase === 'upper' && (context & ORTHO_LC) && !(context & ORTHO_MID_UC)) return true;
+  if (firstCase === 'lower' && ((context & ORTHO_UC) || !(context & ORTHO_BEG_LC))) return false;
+  return 'unknown';
+}
+
+function punktFirstPass(tokens) {
+  for (const token of tokens) {
+    token.periodFinal = token.text.endsWith('.');
+    token.ellipsis = /\.\.+$/u.test(token.text);
+    token.abbr = false;
+    token.sentbreak = false;
+    if (token.text === '?' || token.text === '!') {
+      token.sentbreak = true;
+    } else if (token.ellipsis) {
+      // Ellipses are reclassified by the second pass when the next token is
+      // a likely sentence starter.
+    } else if (token.periodFinal) {
+      const type = punktTypeNoPeriod(token);
+      const finalHyphenPart = type.split('-').slice(-1)[0];
+      if (PUNKT_ABBREVIATIONS.has(type) || PUNKT_ABBREVIATIONS.has(finalHyphenPart)) {
+        token.abbr = true;
+      } else {
+        token.sentbreak = true;
+      }
+    }
+  }
+}
+
+function punktSecondPass(tokens) {
+  for (let index = 0; index + 1 < tokens.length; index += 1) {
+    const current = tokens[index];
+    const next = tokens[index + 1];
+    if (!current.periodFinal) continue;
+    const type = punktTypeNoPeriod(current);
+    const nextType = punktTypeNoSentencePeriod(next);
+    if (PUNKT_COLLOCATIONS.has(`${type}\u0000${nextType}`)) {
+      current.sentbreak = false;
+      current.abbr = true;
+      continue;
+    }
+
+    const initial = punktIsInitial(current);
+    if ((current.abbr || current.ellipsis) && !initial) {
+      const sentenceStarter = punktOrthographicHeuristic(next);
+      if (sentenceStarter === true) {
+        current.sentbreak = true;
+        continue;
+      }
+      if (/^\p{Lu}/u.test(next.text) && PUNKT_SENT_STARTERS.has(nextType)) {
+        current.sentbreak = true;
+        continue;
+      }
+    }
+
+    if (initial || punktIsNumber(current)) {
+      const sentenceStarter = punktOrthographicHeuristic(next);
+      if (sentenceStarter === false) {
+        current.sentbreak = false;
+        current.abbr = true;
+        continue;
+      }
+      if (sentenceStarter === 'unknown' && initial && /^\p{Lu}/u.test(next.text)) {
+        const nextContext = Number(PUNKT_ORTHO_CONTEXT[nextType] || 0);
+        if (!(nextContext & ORTHO_LC)) {
+          current.sentbreak = false;
+          current.abbr = true;
+        }
+      }
+    }
+  }
+}
+
+function sentenceBoundaryEnd(text, token) {
+  let end = token.end;
+  let cursor = end;
+  while (cursor < text.length && SENTENCE_CLOSERS.has(text[cursor])) cursor += 1;
+  if (cursor > end && (cursor === text.length || /\s/u.test(text[cursor]) || text.startsWith('--', cursor))) {
+    end = cursor;
+  }
+  return end;
+}
+
+export function firstSentence(value) {
   const text = normalizeWhitespace(cleanParentheses(value));
   if (!text) return '';
-  // This is intentionally small and deterministic for the source's first
-  // sentence boundary.  Punkt remains a named historical dependency seam;
-  // common prose punctuation has the same boundary used by the fixture.
-  return text.split(/(?<=[.!?])\s+/u)[0];
+  const tokens = punktTokens(text);
+  punktFirstPass(tokens);
+  punktSecondPass(tokens);
+  const boundary = tokens.find((token) => token.sentbreak);
+  if (!boundary) return text;
+  return text.slice(0, sentenceBoundaryEnd(text, boundary)).trim();
 }
 
 function sourceMessage(query, detail) {
