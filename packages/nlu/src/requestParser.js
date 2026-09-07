@@ -160,8 +160,13 @@ function unsupportedDependencies(name, state) {
 function matchNamedRule(name, text, state) {
   const entry = state.rules.get(name);
   if (!entry) throw new Error(`Missing loaded NLU rule: ${name}`);
+  // The matcher compiles the source heuristic/reference tree behind a WeakMap
+  // keyed by the rule map. Keep this merged map stable for the lifetime of the
+  // loaded inventory; rebuilding it for every request defeats that cache and
+  // turns the 20k parser replay into repeated AST cloning and GC work.
+  if (!entry.matchRules) entry.matchRules = Object.assign({}, state.factoryRules, entry.ast.rules);
   const ctx = {
-    rules: Object.assign({}, state.factoryRules, entry.ast.rules),
+    rules: entry.matchRules,
     eq: isEquivalentWordsEnabled(entry.ast) ? state.eq : null,
     factoryWords: state.factoryWords,
     strictFactories: true,

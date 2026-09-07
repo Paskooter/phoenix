@@ -26,17 +26,103 @@
 import { eqEquals } from './eqWords.js';
 
 const EMPTY = Object.freeze({});
+const COMPILED_WEIGHT_CACHE = new WeakMap();
 
-// This AST rank is a proxy, not the native numeric score. The native compiler
-// weights every consumed wildcard byte, including each appended separator;
-// <0.0> resets the weight after the complete wildcard. For ordinary unweighted
-// full parses, literal-token specificity minus non-space wildcard bytes equals
-// total input tokens minus (wildcard bytes + wildcard token count), preserving
-// native winner ordering up to an input-constant offset when costs differ.
-// Explicit weights, native graph tie order, factory FST weights and tokenizer
-// normalization still need their own compatibility work.
+// The native compiler's result_fst score is input-string byte length minus the
+// accumulated arc heuristic. The compiler's generated `$*` factory surrounds
+// its repeated `$w` with <1.0> and <0.0>, so the active heuristic applies to
+// every byte in each repeated word, including its appended separator, until
+// the reset marker. Explicit `<N>` markers use the same persistent state.
+// Literal specificity remains the existing grammar-word unit in this slice
+// because changing all literal path widths also changes established
+// holiday/entity arbitration.
 function utf8Bytes(value) {
   return Buffer.byteLength(String(value), 'utf8');
+}
+
+// Speech tokenization discards the separator that the native FST retains as a
+// SPACE_WS arc after every ordinary word. Include that byte when a literal is
+// under an explicit per-character heuristic. It is zero at the default
+// heuristic and therefore preserves the existing unweighted path scores.
+function sourceWordCost(token, heuristic) {
+  return heuristic * (utf8Bytes(token) + 1);
+}
+
+// The native compiler flattens referenced rules and walks alternatives in
+// source order through one rule_cmp instance. Its heuristic-per-character
+// register therefore survives an alternative/reference boundary. Lower that
+// compile-order state once per match tree so the runtime matcher does not
+// accidentally make the state path-local. Each static reference occurrence is
+// cloned because the native compiler expands each occurrence independently.
+function compileHeuristicTree(node, rules, state, stack = new Set()) {
+  const input = state.value;
+  const copy = Object.assign({}, node, {
+    __heuristicIn: input,
+    __heuristicOut: input,
+    __heuristicExplicit: state.explicit,
+  });
+  switch (node.type) {
+    case 'heuristic':
+      state.value = node.value;
+      state.explicit = true;
+      copy.__heuristicOut = state.value;
+      copy.__heuristicExplicit = true;
+      return copy;
+    case 'lit':
+    case 'class':
+      copy.__charHeuristic = input;
+      return copy;
+    case 'star':
+      // `$*`, `$wNN`, and the native zero-to-three factory are generated with
+      // their own <1.0> body and <0.0> reset, regardless of the surrounding
+      // compiler register.
+      state.value = 0;
+      state.explicit = true;
+      copy.__charHeuristic = 1;
+      copy.__heuristicOut = 0;
+      copy.__heuristicExplicit = true;
+      return copy;
+    case 'opt':
+      copy.item = compileHeuristicTree(node.item, rules, state, stack);
+      copy.__heuristicOut = state.value;
+      return copy;
+    case 'plus':
+      copy.item = compileHeuristicTree(node.item, rules, state, stack);
+      copy.__heuristicOut = state.value;
+      return copy;
+    case 'seq':
+      copy.items = node.items.map((item) => compileHeuristicTree(item, rules, state, stack));
+      copy.__heuristicOut = state.value;
+      return copy;
+    case 'alt':
+      copy.alts = node.alts.map((item) => compileHeuristicTree(item, rules, state, stack));
+      copy.__heuristicOut = state.value;
+      return copy;
+    case 'ref':
+      if (!node.prefix && rules[node.name] && !stack.has(node.name)) {
+        const nestedStack = new Set(stack);
+        nestedStack.add(node.name);
+        copy.__compiledTarget = compileHeuristicTree(rules[node.name], rules, state, nestedStack);
+        copy.__heuristicOut = state.value;
+      }
+      return copy;
+    default:
+      return copy;
+  }
+}
+
+function compiledHeuristicTree(node, rules) {
+  let byRules = COMPILED_WEIGHT_CACHE.get(node);
+  if (!byRules) {
+    byRules = new WeakMap();
+    COMPILED_WEIGHT_CACHE.set(node, byRules);
+  }
+  let compiled = byRules.get(rules);
+  if (!compiled) {
+    compiled = compileHeuristicTree(node, rules, { value: 0, explicit: false });
+    byRules.set(rules, compiled);
+  }
+  return compiled;
 }
 
 function sourceWildcardCost(tokens, start, count, prefix) {
@@ -106,11 +192,32 @@ function applyTags(tags, prevEntities, prevSubFields, subFields, parsedText) {
 
 // Generator: yield {end, entities, subFields} for each successful match
 // of `node` starting at `start` in `ctx.tokens`. Recursive via rule refs.
-function* match(node, start, ctx, depth) {
+function* match(node, start, ctx, depth, charHeuristic = 0) {
   if (depth > (ctx.maxDepth || 200)) return;
   const { tokens } = ctx;
+  const compiled = Object.prototype.hasOwnProperty.call(node, '__heuristicIn');
+  const effectiveHeuristic = compiled
+    ? (node.__charHeuristic ?? node.__heuristicIn)
+    : charHeuristic;
+  const effectiveExit = compiled ? node.__heuristicOut : null;
+  const effectiveExplicit = compiled ? Boolean(node.__heuristicExplicit) : false;
 
   switch (node.type) {
+    case 'heuristic': {
+      // `<N>` is an epsilon state transition in the native compiler. It
+      // changes the heuristic attached to subsequent character arcs and
+      // consumes no input of its own.
+      const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, '');
+      yield {
+        end: start,
+        entities: tagged.entities,
+        subFields: tagged.subFields,
+        specificity: 0,
+        cost: node.cost || 0,
+        charHeuristic: effectiveExit ?? node.value,
+      };
+      return;
+    }
     case 'lit': {
       // Lowercased + apostrophe-stripped equality (see tokenize/_norm).
       // Keep literal specificity at one grammar-word unit. Wildcard arc costs
@@ -118,7 +225,14 @@ function* match(node, start, ctx, depth) {
       if (start < tokens.length && (tokens[start] === _norm(node.word) || eqEquals(ctx.eq, tokens[start], _norm(node.word)))) {
         const ent = freshEnts(EMPTY); const sub = freshEnts(EMPTY);
         const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokens[start]);
-        yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1, cost: node.cost || 0 };
+        yield {
+          end: start + 1,
+          entities: tagged.entities,
+          subFields: tagged.subFields,
+          specificity: 1,
+          cost: (node.cost || 0) + sourceWordCost(tokens[start], effectiveHeuristic),
+          charHeuristic: effectiveExit ?? charHeuristic,
+        };
       }
       return;
     }
@@ -129,7 +243,14 @@ function* match(node, start, ctx, depth) {
       for (const v of variants) {
         if (start < tokens.length && (tokens[start] === _norm(v) || eqEquals(ctx.eq, tokens[start], _norm(v)))) {
           const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
-          yield { end: start + 1, entities: tagged.entities, subFields: tagged.subFields, specificity: 1, cost: node.cost || 0 };
+          yield {
+            end: start + 1,
+            entities: tagged.entities,
+            subFields: tagged.subFields,
+            specificity: 1,
+            cost: (node.cost || 0) + sourceWordCost(tokens[start], effectiveHeuristic),
+            charHeuristic: effectiveExit ?? charHeuristic,
+          };
         }
       }
       return;
@@ -143,26 +264,112 @@ function* match(node, start, ctx, depth) {
       // specificity: 0 — star matches don't count, so longest-match across
       // skills picks the rule that's filled with literal content, not the one
       // that wraps a single literal in `$* X $*`.
-      // Account for wildcard byte lengths in the AST rank. The separator
-      // contribution is represented indirectly by lost literal specificity;
-      // see the restricted rank relation above. This does not model arbitrary
-      // explicit arc weights or the native graph's equal-cost path ordering.
+      // The compiler's wildcard factory assigns heuristic 1.0 to every byte in
+      // its repeated `$w`, including the appended separator, and resets only
+      // after the repeated body. This token-level adapter retains the earlier
+      // non-space-byte cost for wildcard ranking; explicit literal markers use
+      // sourceWordCost below, including their separator byte.
       const maxN = (typeof node.max === 'number') ? node.max : (tokens.length - start);
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
         const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens.slice(start, start + n).join(' '));
-        yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + sourceWildcardCost(tokens, start, n, ctx.wildcardPrefix) };
+        yield {
+          end: start + n,
+          entities: tagged.entities,
+          subFields: tagged.subFields,
+          specificity: 0,
+          cost: (node.cost || 0) + sourceWildcardCost(tokens, start, n, ctx.wildcardPrefix),
+          // `$*`, `$wNN`, and the native zero-to-three factory are generated
+          // rules with their own <1.0>/<0.0> markers. Do not leak a caller's
+          // explicit state through them: each factory resets to zero after its
+          // repeated wildcard body.
+          charHeuristic: effectiveExit ?? 0,
+        };
       }
       return;
     }
     case 'opt': {
       // Try zero-match first, then a real match. (Zero-match keeps parent
-      // pos at `start` with no entity updates.)
-      yield { end: start, entities: EMPTY, subFields: EMPTY, specificity: 0, cost: 0 };
-      for (const m of match(node.item, start, ctx, depth + 1)) {
+      // pos at `start`; tags attached to the optional group still run on
+      // this epsilon path, just as the native FST action on `(?X){...}` does
+      // when X is absent.)
+      const zeroTagged = applyTags(node.tags, EMPTY, EMPTY, EMPTY, '');
+      yield {
+        end: start,
+        entities: zeroTagged.entities,
+        subFields: zeroTagged.subFields,
+        specificity: 0,
+        cost: 0,
+        charHeuristic: effectiveExit ?? charHeuristic,
+      };
+      for (const m of match(node.item, start, ctx, depth + 1, effectiveHeuristic)) {
         const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
-        yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
+        yield {
+          end: m.end,
+          entities: tagged.entities,
+          subFields: tagged.subFields,
+          specificity: m.specificity || 0,
+          cost: (m.cost || 0) + (node.cost || 0),
+          charHeuristic: effectiveExit ?? m.charHeuristic,
+        };
       }
+      return;
+    }
+    case 'plus': {
+      // Native `+X` is PLUS_KLEENE: one or more repetitions of X. The
+      // repeated item normally makes progress. Native PLUS_KLEENE also
+      // permits one epsilon repetition when X itself is nullable (`+?a`,
+      // `+$*`); recurse only through progress-making matches so that this
+      // source-valid case cannot create a zero-progress loop.
+      function* repeat(pos, ents, subs, specSoFar, costSoFar, currentHeuristic, count) {
+        if (count > 0) {
+          const tagged = applyTags(node.tags, ents, subs, subs, tokens.slice(start, pos).join(' '));
+          yield {
+            end: pos,
+            entities: tagged.entities,
+            subFields: tagged.subFields,
+            specificity: specSoFar,
+            cost: costSoFar + (node.cost || 0),
+            charHeuristic: effectiveExit ?? currentHeuristic,
+          };
+        }
+        // Once one repetition has been emitted at end-of-input, no further
+        // progress is possible. At count zero we still inspect the operand so
+        // a nullable item can contribute its one permitted epsilon repeat.
+        if (count > 0 && pos >= tokens.length) return;
+        for (const m of match(node.item, pos, ctx, depth + 1, currentHeuristic)) {
+          if (m.end < pos) continue;
+          if (m.end === pos) {
+            // PLUS_KLEENE's lower bound is satisfied by exactly one empty
+            // operand match. Do not recurse with the same position. This
+            // preserves outer tags/entities for `(+?a){...}` and
+            // `(+ $*){...}` while preventing infinite nullable recursion.
+            if (count !== 0) continue;
+            const nextEnts = mergeObj(ents, m.entities);
+            const nextSubs = mergeObj(subs, m.subFields);
+            const tagged = applyTags(node.tags, nextEnts, nextSubs, nextSubs, tokens.slice(start, pos).join(' '));
+            yield {
+              end: pos,
+              entities: tagged.entities,
+              subFields: tagged.subFields,
+              specificity: specSoFar + (m.specificity || 0),
+              cost: costSoFar + (m.cost || 0) + (node.cost || 0),
+              charHeuristic: effectiveExit ?? m.charHeuristic,
+            };
+            continue;
+          }
+          yield* repeat(
+            m.end,
+            mergeObj(ents, m.entities),
+            mergeObj(subs, m.subFields),
+            specSoFar + (m.specificity || 0),
+            costSoFar + (m.cost || 0),
+            m.charHeuristic,
+            count + 1,
+          );
+        }
+      }
+      yield* repeat(start, EMPTY, EMPTY, 0, 0, effectiveHeuristic, 0);
       return;
     }
     case 'seq': {
@@ -171,18 +378,32 @@ function* match(node, start, ctx, depth) {
       // by the parser) AFTER the full sequence has matched, with visibility
       // into all accumulated subFields — that's how `{intent=Sub._field}`
       // group tags work in the cloud's compiler.
-      for (const m of matchSeq(node.items, 0, start, EMPTY, EMPTY, 0, ctx, depth)) {
+      for (const m of matchSeq(node.items, 0, start, EMPTY, EMPTY, 0, ctx, depth, effectiveHeuristic)) {
         const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
-        yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
+        yield {
+          end: m.end,
+          entities: tagged.entities,
+          subFields: tagged.subFields,
+          specificity: m.specificity || 0,
+          cost: (m.cost || 0) + (node.cost || 0),
+          charHeuristic: effectiveExit ?? m.charHeuristic,
+        };
       }
       return;
     }
     case 'alt': {
       // Try each alternative in order; yield matches from each.
       for (const a of node.alts) {
-        for (const m of match(a, start, ctx, depth + 1)) {
+        for (const m of match(a, start, ctx, depth + 1, effectiveHeuristic)) {
           const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
-          yield { end: m.end, entities: tagged.entities, subFields: tagged.subFields, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
+          yield {
+            end: m.end,
+            entities: tagged.entities,
+            subFields: tagged.subFields,
+            specificity: m.specificity || 0,
+            cost: (m.cost || 0) + (node.cost || 0),
+            charHeuristic: effectiveExit ?? m.charHeuristic,
+          };
         }
       }
       return;
@@ -197,7 +418,7 @@ function* match(node, start, ctx, depth) {
       } else if (node.prefix === 'handle') {
         target = ctx.handleHook ? ctx.handleHook(node.name) : null;
       } else {
-        target = ctx.rules[node.name];
+        target = node.__compiledTarget || ctx.rules[node.name];
       }
       if (!target && node.prefix === 'factory' && ctx.factoryWords && ctx.factoryWords.has(node.name)) {
         // Word-list factory (extracted reference vocab): match ONLY listed
@@ -216,7 +437,14 @@ function* match(node, start, ctx, depth) {
           const subs = { [`_${node.name}`]: text };
           const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: subs, ...subs }, text);
           const subsForParent = Object.assign({}, tagged.subFields, { [node.name]: subs });
-          yield { end: start + phrase.length, entities: tagged.entities, subFields: subsForParent, specificity: phrase.length, cost: node.cost || 0 };
+          yield {
+            end: start + phrase.length,
+            entities: tagged.entities,
+            subFields: subsForParent,
+            specificity: phrase.length,
+            cost: node.cost || 0,
+            charHeuristic: effectiveExit ?? charHeuristic,
+          };
         }
         return; // membership is a CONSTRAINT — no wildcard fallback for listed factories
       }
@@ -232,14 +460,47 @@ function* match(node, start, ctx, depth) {
         // a short noun phrase). The lit-vs-subfield tag eval handles missing
         // values gracefully (undefined → not set). specificity: 0 because we
         // didn't actually verify factory content — counted as a wildcard.
-        for (let n = 1; n <= 3; n += 1) {
+        // `$w` is the native one-word wildcard: compiler.cpp constructs it
+        // from one-or-more nonblank characters followed by one SPACE_WS arc.
+        // The older Phoenix fallback admitted up to three words for every
+        // unresolved reference. Preserve that adapter for unknown names, but
+        // give the reserved base word factory its source cardinality.
+        const maxN = node.name === 'w' ? 1 : 3;
+        const explicitWordWildcard = node.name === 'w' && effectiveExplicit;
+        for (let n = 1; n <= maxN; n += 1) {
           if (start + n > tokens.length) break;
           const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokens.slice(start, start + n).join(' '));
-          yield { end: start + n, entities: tagged.entities, subFields: tagged.subFields, specificity: 0, cost: (node.cost || 0) + sourceWildcardCost(tokens, start, n, ctx.wildcardPrefix) };
+          yield {
+            end: start + n,
+            entities: tagged.entities,
+            subFields: tagged.subFields,
+            specificity: 0,
+            // A source-authored `<N>` (or the generated wildcard's internal
+            // reset marker) makes `$w` use the native per-character arc
+            // heuristic, including its trailing separator. At the default
+            // state retain the historical token-level adapter until the
+            // other wildcard factories are migrated as a separate scope.
+            cost: (node.cost || 0) + (explicitWordWildcard
+              ? sourceWordCost(tokens[start], effectiveHeuristic)
+              : sourceWildcardCost(tokens, start, n, ctx.wildcardPrefix)),
+            charHeuristic: effectiveExit ?? charHeuristic,
+          };
         }
-        // Also try zero-match (factory might be optional in context).
-        const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} }, '');
-        yield { end: start, entities: tagged0.entities, subFields: tagged0.subFields, specificity: 0, cost: node.cost || 0 };
+        // The reserved `$w` source rule has a mandatory nonblank body and a
+        // trailing SPACE_WS arc, so it cannot take the legacy zero-word
+        // fallback. Keep zero-match for unresolved application-specific refs,
+        // whose older adapter explicitly allowed an optional slot.
+        if (node.name !== 'w') {
+          const tagged0 = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: {} }, '');
+          yield {
+            end: start,
+            entities: tagged0.entities,
+            subFields: tagged0.subFields,
+            specificity: 0,
+            cost: node.cost || 0,
+            charHeuristic: effectiveExit ?? charHeuristic,
+          };
+        }
         return;
       }
       // Real ref: match the sub-rule, then expose its subFields to our tags
@@ -247,11 +508,18 @@ function* match(node, start, ctx, depth) {
       // ref's own tags). Also merge that namespace INTO the returned subFields
       // so an enclosing seq's group-level tag can later read `SubRule._field`
       // — the matchSeq accumulator will carry the namespaced map up.
-      for (const m of match(target, start, ctx, depth + 1)) {
+      for (const m of match(target, start, ctx, depth + 1, effectiveHeuristic)) {
         const exposed = { [node.name]: m.subFields };
         const tagged = applyTags(node.tags, m.entities, m.subFields, exposed, tokens.slice(start, m.end).join(' '));
         const subsForParent = Object.assign({}, tagged.subFields, exposed);
-        yield { end: m.end, entities: tagged.entities, subFields: subsForParent, specificity: m.specificity || 0, cost: (m.cost || 0) + (node.cost || 0) };
+        yield {
+          end: m.end,
+          entities: tagged.entities,
+          subFields: subsForParent,
+          specificity: m.specificity || 0,
+          cost: (m.cost || 0) + (node.cost || 0),
+          charHeuristic: effectiveExit ?? m.charHeuristic,
+        };
       }
       return;
     }
@@ -264,15 +532,33 @@ function* match(node, start, ctx, depth) {
 // entities + subFields. Yields on full completion of the sequence.
 // Specificity sums across items so a seq of literals out-scores a seq with
 // the same overall length but more wildcard kleene/factory slots.
-function* matchSeq(items, idx, pos, ents, subs, specSoFar, ctx, depth, costSoFar = 0) {
+function* matchSeq(items, idx, pos, ents, subs, specSoFar, ctx, depth, charHeuristic = 0, costSoFar = 0) {
   if (idx >= items.length) {
-    yield { end: pos, entities: ents, subFields: subs, specificity: specSoFar, cost: costSoFar };
+    yield {
+      end: pos,
+      entities: ents,
+      subFields: subs,
+      specificity: specSoFar,
+      cost: costSoFar,
+      charHeuristic,
+    };
     return;
   }
-  for (const m of match(items[idx], pos, ctx, depth + 1)) {
+  for (const m of match(items[idx], pos, ctx, depth + 1, charHeuristic)) {
     const nextEnts = mergeObj(ents, m.entities);
     const nextSubs = mergeObj(subs, m.subFields);
-    yield* matchSeq(items, idx + 1, m.end, nextEnts, nextSubs, specSoFar + (m.specificity || 0), ctx, depth + 1, costSoFar + (m.cost || 0));
+    yield* matchSeq(
+      items,
+      idx + 1,
+      m.end,
+      nextEnts,
+      nextSubs,
+      specSoFar + (m.specificity || 0),
+      ctx,
+      depth + 1,
+      m.charHeuristic,
+      costSoFar + (m.cost || 0),
+    );
   }
 }
 function mergeObj(a, b) {
@@ -296,24 +582,28 @@ function mergeObj(a, b) {
 // union on `|`, `['', X]` on `?X`.
 function expandCharClass(body) {
   let pos = 0;
-  function parseAlt() {
-    const out = [...parseSeq()];
-    while (pos < body.length && body[pos] === '|') {
-      pos += 1;
-      out.push(...parseSeq());
-    }
-    return out;
-  }
   function parseSeq() {
     let acc = [''];
     while (pos < body.length && body[pos] !== '|' && body[pos] !== ')') {
-      const part = parseItem();
+      // The native character grammar gives `|` the same tight binding as
+      // the outer rule grammar. An alternation therefore belongs to the
+      // immediately preceding item while surrounding atoms concatenate:
+      // `g(ed)|(ing)` means `g(ed|ing)`, not `g(ed)|ing`.
+      const part = parseAltItem();
       if (!part.length) continue;
       const next = [];
       for (const a of acc) for (const b of part) next.push(a + b);
       acc = next;
     }
     return acc;
+  }
+  function parseAltItem() {
+    const out = [...parseItem()];
+    while (pos < body.length && body[pos] === '|') {
+      pos += 1;
+      out.push(...parseItem());
+    }
+    return out;
   }
   function parseItem() {
     if (body[pos] === '?') {
@@ -327,7 +617,7 @@ function expandCharClass(body) {
     if (pos >= body.length) return [''];
     if (body[pos] === '(') {
       pos += 1;
-      const r = parseAlt();
+      const r = parseSeq();
       if (body[pos] === ')') pos += 1;
       return r;
     }
@@ -338,7 +628,7 @@ function expandCharClass(body) {
     pos += character.length;
     return [character];
   }
-  return parseAlt();
+  return parseSeq();
 }
 
 // Public: try to match a TopRule against the input tokens. Returns the BEST
@@ -357,9 +647,9 @@ export function priorityRank(p) {
   const priority = typeof p === 'string' ? p.trim().toUpperCase() : '';
   return priority === 'HIGH' ? 2 : (priority === 'LOW' ? 0 : 1);
 }
-// The bounded matcher score keeps grammar-word specificity and the wildcard
-// byte proxy above. The priority term is the Phoenix cross-grammar arbitration
-// layer; this value must not be presented as the native numeric score.
+// The bounded matcher score keeps its existing grammar-word specificity and
+// now uses the native wildcard arc heuristic for its accumulated cost. The
+// priority term remains the Phoenix cross-grammar arbitration layer.
 export function parseScore(entities, specificity, cost = 0) {
   return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0) - (cost || 0);
 }
@@ -373,6 +663,7 @@ export function matchRule(node, tokens, ctx) {
       fullCtx.wildcardPrefix.push(previous + utf8Bytes(token));
     }
   }
+  const compiledNode = compiledHeuristicTree(node, fullCtx.rules);
   // INTRA-grammar path selection is pure FST shortest-path: maximize
   // (specificity - cost). `priority` is hub-level arbitration metadata carried in
   // the tags — the FST never sees it, so it must NOT bias which arm wins here
@@ -380,7 +671,7 @@ export function matchRule(node, tokens, ctx) {
   // HIGH-tagged generic AreYouAbleTo catch-all). Cross-grammar ranking (fullParse)
   // applies priority via parseScore on the winner this returns.
   let best = null; let bestScore = -Infinity;
-  for (const m of match(node, 0, fullCtx, 0)) {
+  for (const m of match(compiledNode, 0, fullCtx, 0, 0)) {
     if (m.end !== tokens.length) continue;
     const spec = m.specificity || 0;
     const cost = m.cost || 0;

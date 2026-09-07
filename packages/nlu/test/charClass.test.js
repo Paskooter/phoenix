@@ -12,6 +12,10 @@ const cases = [
   { body: 'ab?cde', accepted: ['abde', 'abcde'], rejected: ['ab', 'abe', 'abcd'] },
   { body: 'ab?(cd)e', accepted: ['abe', 'abcde'], rejected: ['ab', 'abde'] },
   { body: 'ab?(c|d)e', accepted: ['abe', 'abce', 'abde'], rejected: ['ab'] },
+  // Native character grammar binds `|` to the immediately preceding item.
+  // Thus the source form `g(ed)|(ing)` inside `bug(...)` is `g(ed|ing)`,
+  // which admits both bugged and bugging.
+  { body: 'bug(g(ed)|(ing))', accepted: ['bugged', 'bugging'], rejected: ['buging'] },
   { body: 'ab?éd', accepted: ['abd', 'abéd'], rejected: ['ab'] },
   { body: 'ab?😀d', accepted: ['abd', 'ab😀d'], rejected: ['ab'] },
 ];

@@ -6,7 +6,9 @@
 //   seq    — { type:'seq', items: AstNode[] }               — `A B C`
 //   opt    — { type:'opt', item: AstNode }                  — `?A`
 //   lit    — { type:'lit', word: string }                   — bareword like "time"
+//   heuristic — { type:'heuristic', value: number }         — persistent `<N>`
 //   star   — { type:'star', max?: number }                  — `$*` or `$wNN`
+//   plus   — { type:'plus', item: AstNode }                 — native `+X`
 //   ref    — { type:'ref', name, prefix?: 'factory'|'handle' }  — `$Rule`, `$factory:X`
 //   class  — { type:'class', body }                         — `[salutation?s]` → 'salutation'|'salutations'
 //
@@ -97,39 +99,68 @@ export function parse(source) {
   }
   function canStartItem(t) {
     return t.kind === 'ID' || t.kind === 'STRING' || t.kind === 'LPAREN' ||
-           t.kind === 'RULEREF' || t.kind === 'STAR' || t.kind === 'CHARCLASS' ||
+           t.kind === 'RULEREF' || t.kind === 'STAR' || t.kind === 'PLUS' || t.kind === 'CHARCLASS' ||
            t.kind === 'QMARK' || t.kind === 'WEIGHT';
   }
 
   function parseItem() {
-    // Leading FST weight blocks (`<0.4>(...)`) — cost onto this item.
+    // `<N>` is a compiler heuristic-per-character state marker, not an arc
+    // cost. The native grammar emits HEURISTIC_PER_CHAR_ELTYPE for this token
+    // (compiler.ypp:153-154); fixed arc weights use `~N` instead. Keep the
+    // marker as an AST item so the matcher can carry it across words, groups,
+    // and inlined rule references until another marker changes it.
+    if (peek().kind === 'WEIGHT') {
+      const t = peek();
+      pos += 1;
+      return { type: 'heuristic', value: t.value };
+    }
     let cost = 0;
-    while (peek().kind === 'WEIGHT') { cost += peek().value; pos += 1; }
-    let optional = false;
-    if (peek().kind === 'QMARK') { pos += 1; optional = true; }
+    // Native rulecontent is recursive on all unary operators (`?`, `*`,
+    // `+`), so prefixes can be nested and can occur in either order. Keep
+    // their source order and wrap the atom from the inside out below. The
+    // earlier one-optional/one-plus parser rejected valid forms such as
+    // `+?a` and `++a` before the matcher could apply their source semantics.
+    const prefixes = [];
+    while (peek().kind === 'QMARK' || peek().kind === 'PLUS') {
+      prefixes.push(peek().kind);
+      pos += 1;
+    }
     const atom = parseAtom();
     // Consume any consecutive entity-tag blocks attached to this item: both the
     // FST `{key=value}` form and the `{% key='value' %}` semantic-action form.
-    // Trailing WEIGHT (`(...)​<0.0>`) and TILDE (`(...)~2.5`) blocks interleave
-    // with tags in the wild — accept them in any order.
+    // Trailing TILDE (`(...)~2.5`) blocks may interleave with tags.
     const tags = [];
     for (;;) {
       const k = peek().kind;
       if (k === 'LBRACE') { tags.push(...parseTagBlock()); continue; }
       if (k === 'ACTION') { tags.push(...parseActionBlock(eat('ACTION').value)); continue; }
       if (k === 'TILDE') { cost += peek().value; pos += 1; continue; }   // `~N` is postfix
-      if (k === 'WEIGHT') {
-        // `<W>` is an ENTRY weight for the item that follows it (`<1.0>+$w<0.0>`
-        // weights the $w, not the preceding optional). Only consume it as a
-        // trailing/exit weight when no item follows (end of group/alternative);
-        // otherwise leave it for the next parseItem's leading-weight loop.
-        if (canStartItem(peek(1)) && peek(1).kind !== 'WEIGHT') break;
-        cost += peek().value; pos += 1; continue;
-      }
       break;
     }
+    // A native plus operator owns the following rule content and its trailing
+    // semantic action. Keep tags on the repeated node so `_parsed` represents
+    // the whole repetition rather than only its final word.
     if (tags.length) atom.tags = (atom.tags || []).concat(tags);
-    const node = optional ? { type: 'opt', item: atom } : atom;
+    let node = atom;
+    for (let index = prefixes.length - 1; index >= 0; index -= 1) {
+      if (prefixes[index] === 'QMARK') {
+        node = { type: 'opt', item: node };
+        continue;
+      }
+      // Move tags/cost from the operand onto each enclosing repetition. This
+      // is the source shape for `+$w {tag=...}`; an action after a plus
+      // applies after the repeated content has matched. Applying this while
+      // walking nested prefixes preserves the distinct scopes of `+?a` and
+      // `?+a`: the former leaves the tag on the nullable operand, while the
+      // latter attaches it to the inner plus.
+      const outerTags = node.tags;
+      const outerCost = node.cost;
+      if (outerTags) delete node.tags;
+      if (outerCost) delete node.cost;
+      node = { type: 'plus', item: node };
+      if (outerTags) node.tags = outerTags;
+      if (outerCost) node.cost = outerCost;
+    }
     if (cost) node.cost = (node.cost || 0) + cost;
     return node;
   }

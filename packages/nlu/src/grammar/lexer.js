@@ -180,11 +180,11 @@ export function lex(source) {
       continue;
     }
 
-    // FST weight block: `<1.0>`, `<0.5>` etc — arc costs bracketing an item
-    // (`<0.4>(you like ...)<0.0>`). Emitted as WEIGHT tokens; the parser sums
-    // them onto the adjacent item's cost. These decide WHICH grammar arm wins
-    // when several full-match (e.g. "can you dance" must take the canJiboAction
-    // arm, not requestDance) — dropping them was the corpus runner's top miss.
+    // Native heuristic-per-character marker: `<1.0>`, `<0.5>`, etc. The
+    // parser retains this as an epsilon state transition and the matcher
+    // applies it to every subsequent word byte until another marker. Fixed
+    // arc costs use `~N` above; WEIGHT is the historical token name kept for
+    // lexer/parser compatibility.
     if (ch === '<' && /[0-9.]/.test(source[i + 1] || '')) {
       advance();
       let n = '';
@@ -200,9 +200,12 @@ export function lex(source) {
     // the second tag overwrites the first and downstream scripted-response
     // set lookups miss on the bare entity name.
     if (ch === '+' && source[i + 1] === '=') { advance(2); push('PLUSEQ', '+='); continue; }
-    // Bare `+` is FST concatenation in weighted-form (equivalent to a sequence).
-    // Drop standalone occurrences; sequences naturally form by adjacency.
-    if (ch === '+') { advance(); continue; }
+    // Bare `+` is the native PLUS_KLEENE operator. It repeats the following
+    // rule content one or more times (`+$w` is one-or-more one-word matches),
+    // unlike adjacency, which is concatenation. Preserve it for the parser;
+    // dropping it turns source `+$w` into plain `$w` and loses words between
+    // a fixed prefix and suffix.
+    if (ch === '+') { advance(); push('PLUS', '+'); continue; }
 
     // `@=` is an alternate rule-definition operator (subtree-macro
     // variant). We emit a regular EQ — semantics differ subtly but
