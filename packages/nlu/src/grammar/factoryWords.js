@@ -1,6 +1,6 @@
 // Word-list factories — the finite `$factory:NAME` vocabularies, extracted as
 // plain text from the reference jibo-nlu factory FSTs (resources/factory-words/*:
-// first_name 6,008 · last_name 20,027 · music_genre 96 · country 269 · state 84 ·
+// first_name 6,007 · last_name 20,027 · music_genre 96 · country 269 · state 84 ·
 // canada_province 16). A `$factory:first_name` slot now matches ONLY real names —
 // previously the wildcard fallback let any 1-3 words through, so "i'm hungry"
 // could read "hungry" as a name. Combinatorial factories (date/time/timer/digits/

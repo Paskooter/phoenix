@@ -14,6 +14,7 @@ import { matchRule, parseScore, tokenize } from './grammar/matcher.js';
 import { loadEqWords } from './grammar/eqWords.js';
 import { loadFactoryWords } from './grammar/factoryWords.js';
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
+import { selectBestNative } from './arbitration.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
@@ -185,16 +186,16 @@ function matchNamedRule(name, text, state) {
 
 function chooseBest(requested, text, state, compiledRuntime) {
   if (!compiledRuntime) {
-    let best = null;
+    const candidates = [];
     for (const requestedEntry of requested) {
       for (const name of requestedEntry.names) {
         const candidate = matchNamedRule(name, text, state);
         if (!candidate) continue;
-        if (!best || candidate.score > best.score) best = candidate;
-        if (requestedEntry.name !== name && best && best.rule === name) best.requestedName = requestedEntry.name;
+        if (requestedEntry.name !== name) candidate.requestedName = requestedEntry.name;
+        candidates.push(candidate);
       }
     }
-    return best;
+    return selectBestNative(candidates);
   }
   const candidates = [];
   for (const requestedEntry of requested) {
@@ -218,16 +219,7 @@ function chooseBest(requested, text, state, compiledRuntime) {
   // equal score it keeps request order, then removes the designated losers only when a
   // non-loser also tied. This is the source arbitration contract; no priority constants
   // are mixed into the graph score.
-  const topScore = Math.max(...candidates.map(candidate => candidate.score));
-  let top = candidates.filter(candidate => candidate.score === topScore);
-  if (top.length > 1 && top.some(candidate => !isNativeTieLoser(candidate.rule))) {
-    top = top.filter(candidate => !isNativeTieLoser(candidate.rule));
-  }
-  return top[0] || null;
-}
-
-function isNativeTieLoser(rule) {
-  return rule === 'launch' || rule.startsWith('globals/');
+  return selectBestNative(candidates);
 }
 
 function equalName(a, b) {
