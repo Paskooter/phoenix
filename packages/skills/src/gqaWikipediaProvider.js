@@ -54,6 +54,28 @@ const PUNKT_PUNCTUATION = new Set([';', ':', ',', '.', '!', '?']);
 const SENTENCE_CLOSERS = new Set(['"', "'", ')', ']', '}']);
 const PUNKT_TOKEN_SEPARATORS = new Set(['?', '!', ';', ':', ',', '"', "'", '(', ')', '[', ']', '{', '}', '*', '@']);
 
+// Python's Unicode-aware ``re`` treats the C0 information separators and
+// NEXT LINE as whitespace.  JavaScript's Unicode \s class does not include
+// those five code points, but they are ordinary boundary whitespace to the
+// pinned Punkt 3.2.5 tokenizer.
+const PYTHON_WHITESPACE = /[\u001c-\u001f\u0085]/u;
+
+function isPunktWhitespace(character) {
+  return /\s/u.test(character) || PYTHON_WHITESPACE.test(character);
+}
+
+function isPythonInitialCharacter(character) {
+  // Punkt 3.2.5 uses ``[^\\W\\d]`` for an initial.  This includes letters,
+  // non-decimal Unicode numbers, and underscore, while excluding every
+  // Unicode decimal digit.  Python's ``\\w`` does not include arbitrary
+  // connector punctuation or combining marks, so those are intentionally
+  // excluded here.
+  return /^[\p{Letter}\p{Number}_]$/u.test(character)
+    && !/^\p{Decimal_Number}$/u.test(character);
+}
+
+const PYTHON_NUMBER_RE = /^-?[.,]?\p{Decimal_Number}[\p{Decimal_Number},.-]*\.?$/u;
+
 const QUESTION_WORDS = Object.freeze([
   'what', 'where', 'when', 'who', 'waddya', 'watcha', 'whadaya', 'whadda',
   'whaddaya', 'whaddo', 'whaddya', 'whadiya', 'whadja', 'whadya', 'whatcha',
@@ -96,7 +118,7 @@ const BLACKLIST_CATEGORIES = new Set((BLACKLIST.blacklist_categories || []).map(
 const BLACKLIST_ARTICLES = new Set((BLACKLIST.blacklist_articles || []).map(normalizeWikiName));
 
 function normalizeWhitespace(value) {
-  return String(value).trim().replace(/\s+/g, ' ');
+  return String(value).trim().replace(/[\s\u001c-\u001f\u0085]+/gu, ' ');
 }
 
 export function removeInitialStopWords(value) {
@@ -144,7 +166,7 @@ function punktTokens(text) {
   const tokens = [];
   let index = 0;
   while (index < text.length) {
-    if (/\s/u.test(text[index])) {
+    if (isPunktWhitespace(text[index])) {
       index += 1;
       continue;
     }
@@ -152,7 +174,7 @@ function punktTokens(text) {
     if (PUNKT_TOKEN_SEPARATORS.has(text[index])) {
       index += 1;
     } else {
-      while (index < text.length && !/\s/u.test(text[index]) && !PUNKT_TOKEN_SEPARATORS.has(text[index])) {
+      while (index < text.length && !isPunktWhitespace(text[index]) && !PUNKT_TOKEN_SEPARATORS.has(text[index])) {
         index += 1;
       }
     }
@@ -163,7 +185,7 @@ function punktTokens(text) {
 
 function punktType(token) {
   const text = token.text;
-  if (/^-?[.,]?\d[\d,.-]*\.?$/u.test(text)) return '##number##';
+  if (PYTHON_NUMBER_RE.test(text)) return '##number##';
   return text.toLowerCase();
 }
 
@@ -177,11 +199,14 @@ function punktTypeNoSentencePeriod(token) {
 }
 
 function punktIsInitial(token) {
-  return /^\p{L}\.$/u.test(token.text);
+  const characters = [...token.text];
+  return characters.length === 2
+    && characters[1] === '.'
+    && isPythonInitialCharacter(characters[0]);
 }
 
 function punktIsNumber(token) {
-  return /^-?[.,]?\d[\d,.-]*\.?$/u.test(token.text);
+  return PYTHON_NUMBER_RE.test(token.text);
 }
 
 function punktFirstCase(token) {
@@ -272,8 +297,12 @@ function punktSecondPass(tokens) {
 function sentenceBoundaryEnd(text, token) {
   let end = token.end;
   let cursor = end;
+  // Punkt's period-context expression is greedy over non-whitespace token
+  // material.  For adjacent sentence-end punctuation this means the final
+  // candidate is the last `!`/`?`, so `Hello!!` and `What?!` stay together.
+  while (cursor < text.length && (text[cursor] === '!' || text[cursor] === '?')) cursor += 1;
   while (cursor < text.length && SENTENCE_CLOSERS.has(text[cursor])) cursor += 1;
-  if (cursor > end && (cursor === text.length || /\s/u.test(text[cursor]) || text.startsWith('--', cursor))) {
+  if (cursor > end && (cursor === text.length || isPunktWhitespace(text[cursor]) || text.startsWith('--', cursor))) {
     end = cursor;
   }
   return end;

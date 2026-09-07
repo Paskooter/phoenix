@@ -327,3 +327,17 @@ test('Q-01 lexical preprocessing follows the pinned NLTK source vectors', () => 
     assert.equal(firstSentence(entry.summary), entry.sentence, entry.id);
   }
 });
+
+test('Q-01 lexical boundaries preserve Python Punkt Unicode and punctuation semantics', () => {
+  const cases = [
+    ['adjacent sentence punctuation', 'Hello!! Next sentence.', 'Hello!!'],
+    ['mixed adjacent sentence punctuation', 'What?! Really? Next sentence.', 'What?!'],
+    ['Python NEXT LINE whitespace', 'End.\u0085Next.', 'End.'],
+    ['Python information-separator whitespace', 'End.\u001cNext.', 'End.'],
+    ['connector-punctuation initial', '_. Zygmunt is here. Next sentence.', '_. Zygmunt is here.'],
+    ['Unicode decimal initial', '١. sentence continues. Later.', '١. sentence continues.'],
+  ];
+  for (const [id, summary, expected] of cases) {
+    assert.equal(firstSentence(summary), expected, id);
+  }
+});
