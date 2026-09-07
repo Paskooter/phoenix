@@ -567,7 +567,7 @@ test('Q-01 GQA HTTP adapter accepts source primitive JSON then exposes its 500 b
       body: '',
     });
     assert.equal(empty.status, 400);
-    assert.equal(empty.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.equal(empty.headers.get('content-type'), 'text/html');
     assert.equal(await empty.text(), GQA_BAD_REQUEST_HTML);
   } finally {
     await new Promise((resolve) => server.close(resolve));
@@ -596,7 +596,7 @@ test('Q-01 GQA HTTP adapter preserves 400 framing through the common service tra
       body: JSON.stringify(sourceRequest()),
     });
     assert.equal(response.status, 400);
-    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.equal(response.headers.get('content-type'), 'text/html');
     assert.equal(await response.text(), GQA_MISSING_TRANSID_HTML);
     assert.equal(handlerCalls, 0);
   } finally {

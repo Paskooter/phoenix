@@ -657,13 +657,18 @@ export function createGqaAnswerSkill({
 // remains unchanged until its deployment selects this profile deliberately.
 export const gqaAnswerSkill = createGqaAnswerSkill();
 
-// The recovered Flask route rejects a request before invoking gqa_pegasus when
-// X-JIBO-transID is absent.  Keep this boundary in a GQA-owned adapter so the
-// common skillRoute can continue to serve the other source services unchanged.
-// The diagnostic HTML renderer may differ from Flask 0.12.2; the source
-// status, media type and client-visible failure path are preserved.
-export const GQA_MISSING_TRANSID_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Missing X-JIBO-transID header</p>\n';
-export const GQA_BAD_REQUEST_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Bad Request</p>\n';
+// Flask 0.12.2 / Werkzeug 0.12.2 HTTPException.get_body() (HTML 3.2).
+// abort(400, "Missing X-JIBO-transID header") sets the description; malformed
+// and empty JSON raise BadRequest() with the default browser/proxy text
+// because Flask.debug is false.  log_http_error returns the exception, so
+// Werkzeug's renderer is the body.  Host Flask 3 HTML5 pages are not this
+// contract.
+export const GQA_MISSING_TRANSID_HTML = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n'
+  + '<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n'
+  + '<p>Missing X-JIBO-transID header</p>\n';
+export const GQA_BAD_REQUEST_HTML = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n'
+  + '<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n'
+  + '<p>The browser (or proxy) sent a request that this server could not understand.</p>\n';
 
 function transIdHeaderValues(headers, request = {}) {
   // Node folds duplicate HTTP fields into one comma-joined value on
@@ -759,11 +764,52 @@ function sourceErrorPayload(error) {
   };
 }
 
+const GQA_SOURCE_JSON_TYPES = Object.freeze(['application/json', 'application/*+json']);
+
+function requestContentType(request) {
+  const headers = request?.headers || {};
+  const value = headers['content-type'] ?? headers['Content-Type'];
+  if (value === undefined || value === null) return undefined;
+  return String(value).split(';', 1)[0].trim().toLowerCase();
+}
+
+function isSourceJsonRequest(request) {
+  const contentType = requestContentType(request);
+  return contentType === 'application/json'
+    || (contentType?.startsWith('application/') && contentType.endsWith('+json'));
+}
+
+function sendGqaSourceBody(context, status, body, { parserError = false } = {}) {
+  const response = context?.res;
+  if (response && typeof response.status === 'function'
+    && typeof response.setHeader === 'function' && typeof response.end === 'function'
+    && parserError) {
+    // Werkzeug 0.12.2 HTTPException.get_headers() emits exactly `text/html`
+    // (no charset). Express res.type('html') appends charset=utf-8, so this
+    // 400 boundary uses the Node header primitives. Both request.json
+    // BadRequest and abort(400, ...) share that renderer.
+    response.status(status);
+    response.setHeader('Content-Type', 'text/html');
+    response.setHeader('Content-Length', String(Buffer.byteLength(body)));
+    response.end(body);
+    return undefined;
+  }
+  if (response && typeof response.status === 'function'
+    && typeof response.type === 'function' && typeof response.send === 'function') {
+    // make_response_for_hub and the 500 errorhandler return json.dumps(...)
+    // strings. Flask's Response.default_mimetype is text/html, so Werkzeug
+    // sends `text/html; charset=utf-8`.
+    response.status(status).type('html').send(body);
+    return undefined;
+  }
+  return undefined;
+}
+
 function respondGqaSourceError(context, status, error) {
   const response = context.res;
   if (response && typeof response.status === 'function'
     && typeof response.type === 'function' && typeof response.send === 'function') {
-    response.status(status).type('html').send(JSON.stringify(sourceErrorPayload(error)));
+    sendGqaSourceBody(context, status, sourceJsonDumps(sourceErrorPayload(error)));
     return undefined;
   }
   const wrapped = error instanceof Error ? error : new Error(String(error));
@@ -774,8 +820,9 @@ function respondGqaSourceError(context, status, error) {
 function respondGqaBadRequest(context, error) {
   const response = context.res;
   if (response && typeof response.status === 'function'
-    && typeof response.type === 'function' && typeof response.send === 'function') {
-    response.status(400).type('html').send(GQA_BAD_REQUEST_HTML);
+    && ((typeof response.setHeader === 'function' && typeof response.end === 'function')
+      || (typeof response.type === 'function' && typeof response.send === 'function'))) {
+    sendGqaSourceBody(context, 400, GQA_BAD_REQUEST_HTML, { parserError: true });
     return undefined;
   }
   const wrapped = error instanceof Error ? error : new Error(String(error));
@@ -784,8 +831,7 @@ function respondGqaBadRequest(context, error) {
 }
 
 function hasEmptyJsonEntity(request) {
-  const contentType = String(request?.headers?.['content-type'] || '').split(';', 1)[0].trim().toLowerCase();
-  if (!['application/json', 'application/x-amz-json-1.1'].includes(contentType)) return false;
+  if (!isSourceJsonRequest(request)) return false;
   if (Buffer.isBuffer(request?.rawBody)) return request.rawBody.length === 0;
   const length = Number(request?.headers?.['content-length']);
   return Number.isFinite(length) && length === 0;
@@ -823,8 +869,9 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
     if (values.length === 0) {
       const response = context.res;
       if (response && typeof response.status === 'function'
-        && typeof response.type === 'function' && typeof response.send === 'function') {
-        response.status(400).type('html').send(GQA_MISSING_TRANSID_HTML);
+        && ((typeof response.setHeader === 'function' && typeof response.end === 'function')
+          || (typeof response.type === 'function' && typeof response.send === 'function'))) {
+        sendGqaSourceBody(context, 400, GQA_MISSING_TRANSID_HTML, { parserError: true });
         return undefined;
       }
       const error = new Error('Missing X-JIBO-transID header');
@@ -842,7 +889,12 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
       // GQA is a Flask service, not a BaseSkill endpoint. Its response already
       // contains provider timings; its uncaught failures use the source HTTP
       // error handler. The generic skill wrapper changes both contracts.
-      return await handler(context.body, { trace: context.trace, log: context.log, req: request });
+      const result = await handler(context.body, { trace: context.trace, log: context.log, req: request });
+      if (context.res) {
+        sendGqaSourceBody(context, 200, sourceJsonDumps(result));
+        return undefined;
+      }
+      return result;
     } catch (error) {
       context.log?.error?.('GQA handler failed', { error });
       return respondGqaSourceError(context, 500, error);
@@ -852,5 +904,11 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
   // reaches its own 500 branch.  Common services stay strict by default; this
   // opt-in is consumed by the narrow parser selection in createService.
   gqaHttpRoute.jsonStrict = false;
+  // Flask/Werkzeug's request.json accepts application/json and
+  // application/*+json. AWS JSON is a separate gateway media type and remains
+  // outside this internal route's parser, so malformed AWS JSON reaches the
+  // source-owned 500 branch rather than a parser-generated 400.
+  gqaHttpRoute.jsonTypes = GQA_SOURCE_JSON_TYPES;
+  gqaHttpRoute.parserError = (context) => respondGqaBadRequest(context, context?.error);
   return gqaHttpRoute;
 }
