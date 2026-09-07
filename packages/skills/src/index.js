@@ -61,6 +61,16 @@ export {
   WIKIPEDIA_SOURCE_REVISION,
   WIKIPEDIA_SOURCE_USER_AGENT,
 } from './gqaWikipediaProvider.js';
+export {
+  createBingProvider,
+  extractBingSpokenAnswer,
+  bingProviderContract,
+  BING_SOURCE_CONFIG_KEY,
+  BING_SOURCE_MODULE,
+  BING_SOURCE_REVISION,
+  BING_UNHELPFUL_SPOKEN_TEXT,
+  BING_SUPPRESS_IN_SPOKEN_TEXT,
+} from './gqaBingProvider.js';
 export { createReportSkill, getReportSkill, reportSkill } from './reportSkill.js';
 export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';
