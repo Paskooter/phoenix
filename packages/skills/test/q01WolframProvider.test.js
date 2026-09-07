@@ -97,8 +97,14 @@ test('Q-01 Wolfram spoken extraction follows response suppression and source pre
   const dateTemplate = sourceBody({ spokenTemplate: 'The weather for Date Boston is sunny.' });
   assert.equal(extractWolframSpokenAnswer(dateTemplate), 'The weather Boston is sunny.');
 
+  const repeatedDateTemplate = sourceBody({ spokenTemplate: 'A for Date B for Date C' });
+  assert.equal(extractWolframSpokenAnswer(repeatedDateTemplate), 'A B C');
+
   const sample = sourceBody({ spokenText: 'A sample fallback.' });
   assert.equal(extractWolframSpokenAnswer(sample), 'A sample fallback.');
+
+  const sampleWithDate = sourceBody({ spokenText: 'A for Date fallback.' });
+  assert.equal(extractWolframSpokenAnswer(sampleWithDate), 'A for Date fallback.');
 
   const podFallback = sourceBody({ pods: [resultPod('A primary pod answer.')] });
   assert.equal(extractWolframSpokenAnswer(podFallback), 'A primary pod answer.');

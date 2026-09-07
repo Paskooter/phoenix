@@ -62,13 +62,23 @@ making a project-level licensing determination.
 The reusable generator is tracked at
 packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py,
 SHA-256
-fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05. It
-accepts explicit --wheel and --output arguments; a portable command and the
-verified private receipt are recorded in PROVENANCE.json. The prior source-wheel
-vector output was exact for
+71e247a9516234935a822d7b5c8af0c97ba9da3cd142fd03f37c8a57d0ce0d07. It
+accepts explicit --wheel and --output arguments, validates the regular input
+file and exact source-wheel SHA-256, and verifies the import origin before
+writing. A portable command and the verified private receipt are recorded in
+PROVENANCE.json; the earlier pre-validation receipt remains identified there.
+The prior source-wheel vector output was exact for
 1,077,263 rows; the source and candidate control receipts remain unchanged.
 The relocation preserves the generated output hash, so this packaging change
 has no data-generation delta.
+
+The follow-up generator guard additionally requires the supplied path to be a
+regular file whose SHA-256 is the pinned wheel hash before importing Unidecode.
+It checks the imported module origin against that verified wheel, so an
+installed environment package cannot silently provide the table. The private
+repeatable guard receipt is
+/home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-generator-guard-20260907/generator-check.json.
+
 
 The recovered source reference is
 jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26, module

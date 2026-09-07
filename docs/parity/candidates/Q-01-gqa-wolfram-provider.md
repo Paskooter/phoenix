@@ -90,6 +90,18 @@ ef93beab101b46d1799fdfdbe647727e2770de722e1b021dd5ddee77699bf329  packages/skill
 1c2baedd21d19b40da8269144e0aa2f0e14cacb49b740b34595109dc2d957fb8  packages/skills/test/q01WolframProvider.test.js
 ```
 
+## Follow-up source correction
+
+The follow-up candidate changes only the `srtemplate` Date-placeholder cleanup:
+source `gqa/wolfram.py` uses Python `str.replace(' for Date ', ' ')` without a
+count, so every occurrence is replaced. The adapter now uses a global JavaScript replacement at that same boundary,
+which preserves all occurrences while retaining the source-shaped `.replace`
+error boundary for malformed values. The `spokenresult.sampletext` fallback is
+still returned without this cleanup. The focused regression covers repeated
+placeholders and the unchanged fallback path; the original 25-case receipt
+above remains immutable. The follow-up focused command passes 13/13 in the
+new candidate worktree.
+
 ## Limits
 
 This is a bounded provider candidate, not full Q-01 provider parity. No real Wolfram endpoint, credential, or archived provider was contacted. The recovered source's persistent `requests.Session` lifecycle is represented by the transport seam and tested request behavior, but connection-pool reuse itself is not claimed as cross-runtime identity. Source traceback/error wording and runtime-generated HTTP default headers remain qualified as described above. JSON decoding uses the runtime transport's parser; no XML or transliteration dependency is required by this source module. Account lookup, GQA orchestration, default registration, and live provider availability remain outside this candidate.

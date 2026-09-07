@@ -88,7 +88,10 @@ export function extractWolframSpokenAnswer(resultJson) {
         const template = requireMapping(spokenResult.srtemplate, 'result_json.queryresult.spokenresult.srtemplate');
         output = required(template, 'sampletext', 'result_json.queryresult.spokenresult.srtemplate');
         // The source applies this replacement only to srtemplate output.
-        output = output.replace(' for Date ', ' ');
+        // Python str.replace replaces every occurrence when no count is
+        // supplied; a global JS replacement preserves that behavior while
+        // retaining the source-shaped `.replace` boundary for bad values.
+        output = output.replace(/ for Date /gu, ' ');
       } else if (hasKey(spokenResult, 'sampletext')) {
         output = spokenResult.sampletext;
       }

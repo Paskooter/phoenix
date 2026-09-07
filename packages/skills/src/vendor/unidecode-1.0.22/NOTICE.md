@@ -29,10 +29,13 @@ The generated artifact is
 `PROVENANCE.json` records the source metadata hashes, exact license member,
 generator path/hash, command, and relocation-only origin. The reusable generator is tracked at
 `packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py`, SHA-256
-`fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05`. It
-accepts explicit `--wheel` and `--output` arguments. The matching private
-source-control receipt is retained at
-`/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py`.
+`71e247a9516234935a822d7b5c8af0c97ba9da3cd142fd03f37c8a57d0ce0d07`. It
+accepts explicit `--wheel` and `--output` arguments, requires a regular file
+with the exact source-wheel SHA-256 above, and verifies that the import came
+from that wheel before writing output. The prior pre-validation source-control
+receipt is retained at
+`/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py`, SHA-256
+`fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05`.
 
 This notice records package metadata and byte provenance. It does not make a
 project-level licensing determination.

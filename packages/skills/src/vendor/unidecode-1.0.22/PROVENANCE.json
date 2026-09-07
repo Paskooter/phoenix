@@ -22,11 +22,13 @@
     "portableCommand": "python3 packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py --wheel /path/to/Unidecode-1.0.22-py2.py3-none-any.whl --output /tmp/gqaUnidecodeFilterData.js",
     "privateSourceReceipt": {
       "path": "/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py",
-      "sha256": "fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05"
+      "sha256": "fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05",
+      "role": "pre-validation source-generator receipt; the tracked generator adds wheel validation"
     },
-    "sha256": "fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05",
+    "sha256": "71e247a9516234935a822d7b5c8af0c97ba9da3cd142fd03f37c8a57d0ce0d07",
     "tracked": true,
-    "verifiedCommand": "python3 packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py --wheel /home/shell/work/phoenix/.parity/reviews/q01-gqa-bing-provider-20260907/source-wheels/Unidecode-1.0.22-py2.py3-none-any.whl --output /home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-packaging-20260907/generated-filter-data.js"
+    "priorVerifiedCommand": "python3 packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py --wheel /home/shell/work/phoenix/.parity/reviews/q01-gqa-bing-provider-20260907/source-wheels/Unidecode-1.0.22-py2.py3-none-any.whl --output /home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-packaging-20260907/generated-filter-data.js",
+    "verifiedCommand": "python3 packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py --wheel /home/shell/work/phoenix/.parity/reviews/q01-gqa-bing-provider-20260907/source-wheels/Unidecode-1.0.22-py2.py3-none-any.whl --output /home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-generator-guard-20260907/exact-output.js"
   },
   "license": {
     "bytes": 18092,

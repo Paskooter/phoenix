@@ -10,7 +10,11 @@ general-purpose Unidecode implementation.
 """
 
 import argparse
+import hashlib
+import importlib
 import json
+import os
+import stat
 import sys
 import warnings
 from pathlib import Path
@@ -36,6 +40,57 @@ PREFIXES = [
     "Here's your answer",
 ]
 
+# The generated table embeds this provenance value.  Refuse to generate it
+# from a different package: otherwise a caller could accidentally stamp the
+# 1.0.22 decision data while importing an unrelated installed Unidecode.
+SOURCE_WHEEL_SHA256 = '72f49d3729f3d8f5799f710b97c1451c5163102e76d64d20e170aedbbd923582'
+
+
+def wheel_sha256(path):
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_source_unidecode(wheel):
+    try:
+        wheel_stat = wheel.stat()
+    except OSError as error:
+        raise SystemExit('cannot read --wheel {}: {}'.format(wheel, error))
+    if not stat.S_ISREG(wheel_stat.st_mode):
+        raise SystemExit('--wheel must name a regular file: {}'.format(wheel))
+
+    actual_sha256 = wheel_sha256(wheel)
+    if actual_sha256 != SOURCE_WHEEL_SHA256:
+        raise SystemExit(
+            '--wheel SHA-256 {} does not match expected Unidecode 1.0.22 {}'.format(
+                actual_sha256, SOURCE_WHEEL_SHA256,
+            )
+        )
+
+    # A normal CLI invocation has no preloaded package, but clearing these
+    # entries also prevents an embedded caller from reusing an environment
+    # import after the verified wheel is placed first on sys.path.
+    for name in list(sys.modules):
+        if name == 'unidecode' or name.startswith('unidecode.'):
+            del sys.modules[name]
+    wheel = wheel.resolve()
+    sys.path.insert(0, str(wheel))
+    importlib.invalidate_caches()
+    try:
+        source_unidecode = importlib.import_module('unidecode')
+    except Exception as error:
+        raise SystemExit('cannot import Unidecode from verified wheel {}: {}'.format(wheel, error))
+
+    origin = str(getattr(source_unidecode, '__file__', ''))
+    if not origin.startswith(str(wheel) + os.sep):
+        raise SystemExit(
+            'Unidecode import did not come from --wheel {} (origin {})'.format(wheel, origin or '<none>')
+        )
+    return source_unidecode
+
 
 def ranges(values):
     result = []
@@ -52,8 +107,7 @@ def main():
     parser.add_argument('--wheel', required=True)
     parser.add_argument('--output', required=True)
     args = parser.parse_args()
-    sys.path.insert(0, args.wheel)
-    import unidecode  # pylint: disable=import-error,import-outside-toplevel
+    unidecode = load_source_unidecode(Path(args.wheel))
     warnings.filterwarnings('ignore', category=RuntimeWarning)
 
     empty = []
