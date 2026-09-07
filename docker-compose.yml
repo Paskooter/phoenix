@@ -60,10 +60,20 @@ services:
     container_name: parser
     working_dir: /phoenix
     command: node packages/nlu/src/index.js
+    # Optional, externally provisioned portable compiled-FST bundle. The host
+    # directory is never copied into the image and may remain absent when the
+    # default AST runtime is selected.
+    volumes:
+      - ./packages:/phoenix/packages:consistent
+      - ${PHOENIX_NLU_SNAPSHOT_DIR:-./runtime/nlu-snapshot}:/phoenix/runtime/nlu-snapshot:ro
     environment:
       - PORT=8080
       - ETCO_parser_llmUrl=${LLM_URL:-}
       - ETCO_parser_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
+      # Set PHOENIX_NLU_RUNTIME=compiled-fst to opt in. The manifest path is
+      # fixed inside the container so the host install path stays portable.
+      - PHOENIX_NLU_RUNTIME=${PHOENIX_NLU_RUNTIME:-}
+      - PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=/phoenix/runtime/nlu-snapshot/profile.json
     ports:
       - 9005:8080
 
