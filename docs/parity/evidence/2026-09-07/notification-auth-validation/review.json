@@ -1,0 +1,52 @@
+{
+  "state": "changes_requested",
+  "candidateRevision": "f779a269f02d3d9893074f80306c1e343e782b5b",
+  "reviewedBy": "Codex root",
+  "source": {
+    "repository": "jiborobot/srv-notification-ws",
+    "revision": "e42bfe01506a8febf3005ac536fda735bba49d0d",
+    "path": "src/handlers/handler.ts",
+    "sha256": "ded461b5a019553a2ac3f38e2973675fbd266ab7cdc3f47b0bf593b451b6a78c",
+    "contract": "NewRobotToken declares optional Joi.string deviceId; GetStatus declares required string accountId."
+  },
+  "actualCandidateProbe": {
+    "candidate": "f779a269f02d3d9893074f80306c1e343e782b5b",
+    "mode": "Real local HTTP/signature/store; synthetic account; source handler declares optional Joi.string deviceId",
+    "rows": [
+      {
+        "deviceId": {
+          "unexpected": "object"
+        },
+        "status": 200,
+        "priorTokenStillValid": false,
+        "returnedToken": true
+      },
+      {
+        "deviceId": [
+          "array"
+        ],
+        "status": 200,
+        "priorTokenStillValid": false,
+        "returnedToken": true
+      },
+      {
+        "deviceId": true,
+        "status": 200,
+        "priorTokenStillValid": false,
+        "returnedToken": true
+      },
+      {
+        "deviceId": null,
+        "status": 200,
+        "priorTokenStillValid": false,
+        "returnedToken": true
+      }
+    ]
+  },
+  "privateEvidence": ".parity/reviews/a10-notification-auth-root-20260907/validation-probe.json",
+  "evidenceSha256": "d2cd72b9a6f9b8a753556456afe4b9ba107875d6d7f05047cd4a2a39e4e2754c",
+  "impact": "Malformed signed token requests rotate credentials and invalidate the prior token. This changes state and recovery, not merely error wording.",
+  "requiredRepair": "Apply source-compatible validation before token mutation; demonstrate rejected malformed requests preserve prior token and valid requests recover. Confirm exact archived validation helper and Joi semantics.",
+  "qualification": "Root executed candidate HTTP/signature/store; source schema inspected. Root has not executed the historical Joi validator in this receipt.",
+  "integrated": false
+}

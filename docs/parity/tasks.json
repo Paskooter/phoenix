@@ -1014,6 +1014,13 @@
           "artifact": "scripts/parity-robot/phoenix-robot@.service",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/launcher-supervision/review.json",
           "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da"
+        },
+        {
+          "state": "working",
+          "assignee": "Codex root",
+          "scope": "Authenticated Moth backend staged and locally verified with matching private credentials under user supervision; robot not switched. No native/microphone/ring/reboot acceptance.",
+          "artifact": "docs/parity/evidence/2026-09-07/moth-authenticated-stage/review.json",
+          "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da"
         }
       ]
     },
@@ -2949,7 +2956,7 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max / http_contract_repair; Codex root",
-        "scope": "Resolve NewRobotToken to a verified robot Account document ID, matching producer routing; verify actual HTTP/socket identity failures and recovery. Default authenticated event bridge, other Loop saves and hardware acceptance remain open."
+        "scope": "Repair signed payload validation before token mutation, then wire verified Account identity and the durable suspension publisher into the authenticated launcher. Verify source/client behavior, isolation and restart; full A-10 remains open."
       },
       "implementationReviewHistory": [
         {
@@ -2968,6 +2975,14 @@
           "scope": "Bounded durable local notification/socket lifecycle and explicit suspension outbox, repaired callback/race failures, fresh original Node8 controls, local TLS restart delivery,740 units and strict43. Whole A-10 remains open.",
           "artifact": "docs/parity/candidates/A-10-notification-root-review-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-pending/review.json"
+        },
+        {
+          "state": "changes_requested",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "f779a269f02d3d9893074f80306c1e343e782b5b",
+          "reviewedBy": "Codex root",
+          "scope": "Malformed signed token requests rotate credentials and invalidate the prior token. This changes state and recovery, not merely error wording.",
+          "artifact": "docs/parity/evidence/2026-09-07/notification-auth-validation/review.json"
         }
       ],
       "implementationReview": {

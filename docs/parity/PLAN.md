@@ -289,3 +289,11 @@ survive; explicit stop remains stopped, and the owned test unit/configuration
 and listeners are removed. Moth deployment, forwarding/trust dependencies and
 reboot acceptance remain separate. A passive180-second Moth observation saw
 no native speech events and provides no new microphone or ring proof.
+
+The [authenticated Moth backend](evidence/2026-09-07/moth-authenticated-stage/review.json)
+is staged under the tested user service. Local signed TLS issuance and both
+authenticated Hub paths pass using the matching private robot identity. Moth
+has not switched to it; forwarding, trust and native acceptance remain open.
+The [notification identity candidate](evidence/2026-09-07/notification-auth-validation/review.json)
+requires repair because malformed signed requests rotate an existing token.
+This is a substantive state change; harmless error prose remains nonblocking.

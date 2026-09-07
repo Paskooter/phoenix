@@ -1,0 +1,23 @@
+{
+  "state": "staged_not_robot_verified",
+  "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+  "serviceTemplateRevision": "c36549f29220a006b1f2bedca437559b1e429d2d",
+  "reviewedBy": "Codex root",
+  "observedAt": "2026-09-07T11:48:24.988Z",
+  "checks": [
+    "Read-only robot credential hash matches private baseline and staged Account store identity.",
+    "Real signed TLS1.2 CreateHubToken returns200 and locally verified robot claim.",
+    "Issued JWT opens both listen and proactive Hub paths; anonymous upgrade returns401.",
+    "Six health endpoints pass; selected compiled parser profile contains98 graphs.",
+    "Enabled user service remains active on separate Hub29000/TLS29443."
+  ],
+  "robotSwitched": false,
+  "limits": [
+    "This is local authenticated backend validation, not a native robot request.",
+    "Robot remains on its existing diagnostic backend.",
+    "Reverse forwarding, robot trust/configuration, native restart and persistent robot acceptance remain open.",
+    "No microphone, physical ring or reboot acceptance."
+  ],
+  "privateEvidence": ".parity/reviews/moth-supervised-stage-root-20260907/auth-verification.json",
+  "evidenceSha256": "48e8811c883e30bb6a0beed6f906d17cac68652a3c28e8e3ee1c1d444cafe793"
+}
