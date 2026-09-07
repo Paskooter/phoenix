@@ -303,3 +303,9 @@ is accepted for explicit account lookup and storage configuration. Root8 actual
 HTTP comparisons and source insertion/account calls match;750 units and strict43
 pass. Historical Python and real Mongo evidence were reviewed separately.
 Malformed HTTP boundaries, live providers, default deployment and Q-01 remain open.
+
+Moth is now [connected to supervised authenticated Phoenix](evidence/2026-09-07/hardware/supervised-authenticated/review.json).
+Root verified native TLS issuance and both Hub paths, a clock turn after normal
+service restart, and independent idle/health/configuration/credential checks.
+The older backend is available for rollback. The robot trust bind still needs
+a boot-persistent solution; microphone/ring and Notification remain open.

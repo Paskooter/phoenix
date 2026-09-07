@@ -1,0 +1,101 @@
+{
+  "state": "accepted_bounded_connected_deployment",
+  "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+  "reviewedBy": "Codex root",
+  "observedAt": "2026-09-07T12:18:18.358930+00:00",
+  "robot": "Moth",
+  "beVersion": "11.0.1",
+  "backend": "Normal authenticated product launcher under enabled user service; separate supervised SSH reverse transport.",
+  "checks": {
+    "nativeTlsProtocol": "TLSv1.2",
+    "nativeSignedCreateHubTokenStatus": 200,
+    "sameVerifiedTokenAcceptedPaths": [
+      "/v1/listen",
+      "/v1/proactive"
+    ],
+    "clockTurns": [
+      {
+        "at": "2026-09-07T12:15:40.791396+00:00",
+        "name": "clock-accepted",
+        "phase": "observed-clock",
+        "requestId": "tid-c878965c-aab5-11f1-92d9-5cf821ea7bf9",
+        "skill": "@be/clock",
+        "tts": true,
+        "microphoneAccepted": false,
+        "physicalRingAccepted": false
+      },
+      {
+        "at": "2026-09-07T12:16:12.959297+00:00",
+        "name": "clock-accepted",
+        "phase": "normal-service-clock",
+        "requestId": "tid-dbbb4f3e-aab5-11f1-a9dc-5cf821ea7bf9",
+        "skill": "@be/clock",
+        "tts": true,
+        "microphoneAccepted": false,
+        "physicalRingAccepted": false
+      }
+    ],
+    "normalProductLauncherAfterRestart": true,
+    "observerOverrideRemoved": true,
+    "robotSystemTrustHttpsHealth": true,
+    "unchangedRobotCredentials": true,
+    "health": {
+      "29000": 200,
+      "29003": 200,
+      "29005": 200,
+      "29006": 200,
+      "29007": 200,
+      "29011": 200
+    },
+    "idleAfterTrial": true
+  },
+  "visualReview": "Root inspected normal-service-clock-view-2.png from the real BE display: clock face and hand visible in an early animation frame. Full animation/time rendering is not newly certified.",
+  "retained": true,
+  "rollback": "Previous diagnostic backend remains available; exact configuration backup and owned trust marker retained. Failure rollback path prepared; it was not executed because this switch passed.",
+  "limits": [
+    "No microphone/hotphrase or physical blue-ring acceptance.",
+    "Robot trust bind is not boot-persistent; no robot or host reboot acceptance.",
+    "Native Notification requests repeat; full notification socket behavior remains under investigation.",
+    "SDK text turns are controlled inputs, not natural speech recognition.",
+    "This runtime predates the pending verified notification identity/default event bridge candidate."
+  ],
+  "helperQualification": "An additional listen-activation helper exited1 with native event WebSocket HTTP500 and is not counted. The two sequential main clock controls passed and their observer cleanup succeeded.",
+  "artifacts": [
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/switch.py",
+      "sha256": "9450f2977865c6776026034736fdabc9f3770e98e600c9df08127f9f484291ce"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/observer.mjs",
+      "sha256": "5d6e2eeb6cd03725f01d572cd184e183f7d4a3452cb0603a39e5a490ec36603d"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/switch-state.json",
+      "sha256": "423470b6951a246421a4b21805bf925faf9c09f784186fa7c8bb1d56581f1b30"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/native-auth-proof.json",
+      "sha256": "3c8914be4d76b6f933fdc7729955f858e9a92d9fc4894e6aff4b6947db5b4d4a"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/observed-clock.json",
+      "sha256": "d4342c75479950f62fd2f57469264d190ec9559711ab665f1c61886592bd1fa4"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/normal-service-clock.json",
+      "sha256": "8cc51b56aa726932419fa1d40562c6e2089d7deafd5d5ccc3751f6997cf6958c"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/normal-service-clock-view-2.png",
+      "sha256": "8aacb1403d4f747575f4b2e68d5d25697432f21515c71c191c522b06e56ee5f1"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/postflight.json",
+      "sha256": "83878537b5b72bb9eff40a1d35c884bbc7f8777b6419cdb8e034998f47b7565d"
+    },
+    {
+      "path": ".parity/robots/moth/20260907/supervised-authenticated-root/tunnel-verification.json",
+      "sha256": "01673d46ee2ef8af06875a1ba6e6f5085b20052876c3b37a7e3a160ccb26ad3b"
+    }
+  ]
+}

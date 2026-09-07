@@ -1021,6 +1021,15 @@
           "scope": "Authenticated Moth backend staged and locally verified with matching private credentials under user supervision; robot not switched. No native/microphone/ring/reboot acceptance.",
           "artifact": "docs/parity/evidence/2026-09-07/moth-authenticated-stage/review.json",
           "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded retained authenticated Moth deployment: native TLS1.2 issuer and sameJWTbothHub paths, clock/TTS after normal launcher restart, independent identity/trust/config/health/idle postflight. Reboot, microphone/ring and full H-10 remain open.",
+          "artifact": "docs/parity/HARDWARE.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/supervised-authenticated/review.json"
         }
       ]
     },

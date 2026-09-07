@@ -1,5 +1,12 @@
 # Moth hardware validation
 
+Current connection update, 2026-09-07: Moth now uses supervised authenticated
+Phoenix29ffac3 on Hub29000/TLS29443. Native signed TLS issuance, both Hub paths
+and a clock turn after normal-service restart passed. Reboot, microphone/ring
+and full Notification acceptance remain open. Older backend descriptions below
+are historical; consult the private canonical receipt before changing Moth.
+See the [connected deployment review](evidence/2026-09-07/hardware/supervised-authenticated/review.json).
+
 The [latest portable-parser trial](evidence/2026-09-07/hardware/portable-snapshot/review.json)
 used frozen `614e1e8`, the installed 98-graph JSON/gzip profile and original BE
 11.0.1. Real native signed TLS token issuance, both authenticated sockets and
