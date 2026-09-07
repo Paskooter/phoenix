@@ -1,0 +1,13 @@
+{
+    "skills": [
+        {
+            "baseURL": "http://localhost:9013",
+            "configPath": "external-skills/answer_manifest.json"
+        }
+    ],
+    "notes for humans": {
+        "profile": "Explicit Q-01 Wikipedia-only answer service",
+        "service": "Start packages/skills/src/index.js with PHOENIX_GQA_PROFILE=wikipedia on port 9013",
+        "providers": "Only Wikipedia is configured; Bing, Wolfram Alpha, account and attribution persistence remain open"
+    }
+}

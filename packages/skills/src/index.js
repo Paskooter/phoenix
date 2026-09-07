@@ -16,6 +16,10 @@ import { getReportSkill } from './reportSkill.js';
 import { colorSkill } from './colorSkill.js';
 import { exampleSkill } from './exampleSkill.js';
 import { templateSkill } from './templateSkill.js';
+import {
+  GQA_WIKIPEDIA_PROFILE,
+  startGqaWikipediaService,
+} from './gqaWikipediaService.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
@@ -62,6 +66,14 @@ export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchat
 export { colorSkill } from './colorSkill.js';
 export { exampleSkill } from './exampleSkill.js';
 export { templateSkill } from './templateSkill.js';
+export {
+  createGqaWikipediaService,
+  readGqaWikipediaProfileConfig,
+  startGqaWikipediaService,
+  GQA_WIKIPEDIA_BASE_PATH,
+  GQA_WIKIPEDIA_PROFILE,
+  GQA_WIKIPEDIA_SKILL_ID,
+} from './gqaWikipediaService.js';
 
 // Compatibility descriptors retain the historical named handlers. A caller
 // that passes SKILLS directly to createSkillsService still represents one
@@ -174,7 +186,21 @@ export function runService(serviceName, serviceStarter, {
   }
 }
 
-export function start(port = defaultPort(), { skillId = process.env.PHOENIX_SKILL_ID } = {}) {
+export function start(port = defaultPort(), {
+  skillId = process.env.PHOENIX_SKILL_ID,
+  gqaProfile = process.env.PHOENIX_GQA_PROFILE,
+  gqaEndpoint = process.env.ETCO_gqa_wikiApi,
+  gqaTimeoutMs = process.env.ETCO_gqa_wikiTimeoutMs,
+} = {}) {
+  if (gqaProfile === GQA_WIKIPEDIA_PROFILE) {
+    if (skillId && skillId !== 'answer' && skillId !== 'answer-skill') {
+      throw new Error(`GQA Wikipedia profile cannot serve PHOENIX_SKILL_ID '${skillId}'`);
+    }
+    return startGqaWikipediaService(port, {
+      endpoint: gqaEndpoint,
+      timeoutMs: gqaTimeoutMs,
+    });
+  }
   if (skillId) {
     if (!SKILL_IDS.has(skillId)) throw new Error(`Unknown PHOENIX_SKILL_ID '${skillId}'`);
     const selected = createSelectedSkill(skillId);
