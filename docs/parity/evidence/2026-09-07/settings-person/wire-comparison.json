@@ -1,0 +1,673 @@
+{
+  "summary": {
+    "controls": 37,
+    "orderedUniqueIdsExact": true,
+    "wireMatches": 37,
+    "behaviorMatchesExcludingFunctionNames": 32,
+    "rawOwnErrorMatches": 17,
+    "sourceUncaughtControls": 3,
+    "allGuardsPass": true
+  },
+  "sourceSha256": "a46a0f38a147521c45a7388375f795b55671856db951be005f85e67d37d0e0a2",
+  "candidateSha256": "a1f86fd88e8d666098655915d481213ebc5deacaa5cfd385704d44ef7dc39379",
+  "boundaries": [
+    "Socket-derived Host authority, returned reset markers correlated to actual logger calls, and redirect own.data request-trace URLs are the only normalized values.",
+    "Request timestamps and event timestamps are omitted from value equality. Event kinds/order are compared separately and not claimed exact across Node runtimes.",
+    "All own error properties except stack are retained. A separate behavior projection omits only function names; raw differences remain recorded.",
+    "Runtime SyntaxError wording, source uncaught assertions and missing logging events are retained as differences."
+  ],
+  "rows": [
+    {
+      "id": "socket-partial-reset",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": true,
+      "candidateMarkerLogged": true,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 1,
+      "sourceUncaught": false
+    },
+    {
+      "id": "response-partial-reset-delayed",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.error",
+        "$.error.message",
+        "$.error.name",
+        "$.error.own",
+        "$.error.ownKeys",
+        "$.error.type",
+        "$.settled",
+        "$.uncaught.length"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [
+        "$.error.error",
+        "$.error.message",
+        "$.error.name",
+        "$.error.own",
+        "$.error.ownKeys",
+        "$.error.type",
+        "$.settled",
+        "$.uncaught.length"
+      ],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 0,
+      "sourceUncaught": true
+    },
+    {
+      "id": "socket-before-response-reset",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": true,
+      "candidateMarkerLogged": true,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 1,
+      "sourceUncaught": false
+    },
+    {
+      "id": "response-header-no-body-reset",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": true,
+      "candidateMarkerLogged": true,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 1,
+      "sourceUncaught": false
+    },
+    {
+      "id": "short-content-length-fin",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.error",
+        "$.error.message",
+        "$.error.name",
+        "$.error.own",
+        "$.error.ownKeys",
+        "$.error.type",
+        "$.settled",
+        "$.uncaught.length"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [
+        "$.error.error",
+        "$.error.message",
+        "$.error.name",
+        "$.error.own",
+        "$.error.ownKeys",
+        "$.error.type",
+        "$.settled",
+        "$.uncaught.length"
+      ],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 0,
+      "sourceUncaught": true
+    },
+    {
+      "id": "header-timeout",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 1,
+      "sourceUncaught": false
+    },
+    {
+      "id": "redirect-limit-envelope",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-400",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-425",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-500",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-503-string",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-599",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-400-empty",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "provider-error-500-null",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "malformed-json-error",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.message",
+        "$.error.own.message",
+        "$.error.own.reformat.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [
+        "$.error.message",
+        "$.error.own.message"
+      ],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "get-account-basic",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "get-loop-basic",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "set-account-basic",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "set-loop-transid-body",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "unicode-and-null-values",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "missing-context-fields",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "missing-keys-field",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "null-keys-field",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "status-404-json-is-payload",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "status-500-empty-body",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "no-content-body",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "text-body-buffer",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "missing-content-type-buffer",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "malformed-json-rejected",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.message",
+        "$.error.own.message",
+        "$.error.own.reformat.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [
+        "$.error.message",
+        "$.error.own.message"
+      ],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "error-envelope",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "error-envelope-no-status",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.error",
+        "$.error.message",
+        "$.error.name",
+        "$.error.own",
+        "$.error.ownKeys",
+        "$.error.type",
+        "$.settled",
+        "$.uncaught.length"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [
+        "$.error.error",
+        "$.error.message",
+        "$.error.name",
+        "$.error.own",
+        "$.error.ownKeys",
+        "$.error.type",
+        "$.settled",
+        "$.uncaught.length"
+      ],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": true
+    },
+    {
+      "id": "error-status-only-json",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "application-json-plus",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "truncated-response",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": true,
+      "candidateMarkerLogged": true,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 1,
+      "sourceUncaught": false
+    },
+    {
+      "id": "redirect-307",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "redirect-303-not-followed",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 0,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    },
+    {
+      "id": "redirect-limit",
+      "guardsPass": true,
+      "requestDifferences": [],
+      "ownErrorDifferences": [
+        "$.error.own.reformat.name",
+        "$.error.own.typeof.name",
+        "$.functionProbe.factories[0].result.own.reformat.name",
+        "$.functionProbe.factories[0].result.own.typeof.name",
+        "$.functionProbe.factories[1].result.own.reformat.name",
+        "$.functionProbe.factories[2].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.reformat.name",
+        "$.functionProbe.factories[3].result.own.typeof.name"
+      ],
+      "behaviorDifferencesExcludingFunctionNames": [],
+      "lifecycleEventTypesExact": false,
+      "sourceMarkerLogged": null,
+      "candidateMarkerLogged": null,
+      "sourceLogCalls": 1,
+      "candidateLogCalls": 0,
+      "sourceUncaught": false
+    }
+  ]
+}

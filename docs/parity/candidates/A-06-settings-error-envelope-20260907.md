@@ -1,5 +1,9 @@
 # A-06 Settings provider error-envelope fallback candidate
 
+Root update: this bounded candidate is accepted as part of the
+[final Person review](A-06-settings-person-root-20260907.md). The original
+submission below is retained as historical evidence; full A-06 remains open.
+
 Status: unverified candidate, pending root review. This focused slice starts at
 `f074a8b11b5bdd50f8ad53cd147556b292ba8ba3` and owns only the Settings outer
 error projection and its focused regression test. It does not change Person or

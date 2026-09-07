@@ -100,11 +100,13 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **550 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **568 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
-redirect requests. Person and Hub network adapters remain under review.
+redirect requests. The [Settings Person review](evidence/2026-09-07/settings-person/review.json)
+accepts 26 full service-boundary controls, 37 transport controls and seven
+original robot error-extractor controls. Hub transport and full A-06 remain open.
 The prior compiled-FST strict 43-case smoke also passed. The default AST
 profile still has **149 corpus differences across 20,528 requests**, down from 295. The
 [accepted root review](evidence/2026-09-06/nlu-ast-ranking/root-review.json) records
@@ -123,7 +125,7 @@ earlier default-profile `057f67c` baseline retains its
 functional controls, 48 applicable original tests, seven large/repeated tie
 controls and all 20,528 full-corpus routing decisions agree. The
 [routing review](evidence/2026-09-07/intent-router/review.json) closes that task;
-older-release launch mediation remains H-04. No complete product workstream
+the complete launch/session lifecycle remains H-04. No complete product workstream
 is certified.
 
 Future long captures should use an isolated, fixed verification worktree so
@@ -135,9 +137,12 @@ rejects `2a814ab` for integration. Its completed default HTTP replay has
 176 differences: 33 previous failures repaired, 60 new failures, and eight
 changed outputs that still fail. Main retains its accepted 149-difference
 measurement. Focused native controls passed, which made the full regression
-check necessary. The agent is repairing the new failure groups in a separate
-worktree. The Person error repair remains under root review and has not earned
-a completed checkbox.
+check necessary. The separate `e26b0725` candidate repairs all 60 new failure
+IDs in the focused cluster and matches 25 executable native semantic controls;
+three native parse failures remain explicitly qualified. Its unchanged full
+20,528-request HTTP replay is running in a frozen worktree. Two focused
+cross-skill arbitration residuals have a separate agent assignment. No candidate
+measurement replaces main's accepted 149 differences before root review.
 
 The [H-04 launch review](evidence/2026-09-07/skill-launch/review.json) accepts
 bounded older-release mediation and launch/update/redirect history behavior.

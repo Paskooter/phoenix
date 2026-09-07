@@ -1,5 +1,9 @@
 # A-06 Person failure propagation candidate
 
+Root update: this bounded candidate is accepted as part of the
+[final Person review](A-06-settings-person-root-20260907.md). The original
+submission below is retained as historical evidence; full A-06 remains open.
+
 This candidate carries the source Settings boundary for failures that originate in
 the Person HTTP response stream. It is based on
 `4c290c7be0c66fe32853ed4f217405eda3f0fb5d` and remains unverified pending root

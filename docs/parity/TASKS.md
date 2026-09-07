@@ -914,7 +914,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-Root accepted bounded Settings getter/view/internal dispatch and mutation behavior: 78 original getter TCP and 52 original Update/Delete cases match status, raw bodies, header maps except Date, ordered provider calls and partial effects. Local loop sharing, account/skill credential isolation, delete/recreate, report calendar-service replacement and disk reopen pass 29 controls. Full OAuth/token exchange, real Mongo/network peers, public authentication and ambiguous legacy marker migration remain open. Final isolated Settings Lasso transport is now root accepted: 48 original Node 8 controls match, including post-timeout redirect requests; 529 unit tests and default strict43 pass. Person and Hub adapters remain unverified.
+Root accepted bounded Settings getter/view/internal dispatch and mutation behavior: 78 original getter TCP and 52 original Update/Delete cases match status, raw bodies, header maps except Date, ordered provider calls and partial effects. Local loop sharing, account/skill credential isolation, delete/recreate, report calendar-service replacement and disk reopen pass 29 controls. Full OAuth/token exchange, real Mongo/network peers, public authentication and ambiguous legacy marker migration remain open. Final isolated Settings Lasso transport is now root accepted: 48 original Node 8 controls match, including post-timeout redirect requests; 529 unit tests and default strict43 pass. Person transport is now root accepted:26 full Settings boundary controls,37 ordered transport controls and7 original robot error-extractor controls agree functionally. Fatal Person responses produce whole-request500 with a live Settings process; valid provider failures preserve per-key behavior. Hub transport and fullA06 remain open.
 
 Done when:
 
@@ -928,13 +928,13 @@ Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/setti
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
+- [x] Candidate implementation — **accepted**; Codex root with Luna Max / http_contract_repair candidates.
 
-Candidate scope: Bounded Settings Lasso network transport. All 48 fresh original Node 8 controls match, including exact request headers/body/redirect order and public errors. Final isolated branch passes 529 units and default strict43 with zero differences/invariants/gaps. Full A-06 and Person/Hub/OAuth/Mongo/authentication remain open.
+Candidate scope: Bounded Person network transport and Settings failure propagation/error projection.26 original full-boundary controls,37 ordered wire controls and7 original robot extractor controls agree functionally. Integrated identical tree passes568 units,3 skips and strict43 zero differences/invariants/gaps. FullA06 remains open.
 
-Candidate report: [docs/parity/candidates/A-06-settings-lasso-root-20260906.md](../../docs/parity/candidates/A-06-settings-lasso-root-20260906.md).
+Candidate report: [docs/parity/candidates/A-06-settings-person-root-20260907.md](../../docs/parity/candidates/A-06-settings-person-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/settings-lasso/review.json](../../docs/parity/evidence/2026-09-06/settings-lasso/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/settings-person/review.json](../../docs/parity/evidence/2026-09-07/settings-person/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 3. Verify complete skill output and interactions
 

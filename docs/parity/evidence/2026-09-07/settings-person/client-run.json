@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-v",
+    "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/jsc:/review",
+    "-v",
+    "/home/shell/work/phoenix/.parity/consumers/be-12.0.0/server-clients/settings:/consumer:ro",
+    "-e",
+    "CASES_FILE=/review/cases.json",
+    "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "node",
+    "/review/extractor.cjs"
+  ],
+  "exitCode": 0,
+  "seconds": 3.9597563464194536,
+  "extractorSha256": "e8038206883e53e0a42867aeaa12c7306709de0a13eea6ef9f0821f4f762dc63",
+  "originalJsonProtocolSha256": "6cf151a37c4b1b394eefaae34b59ef1b06d1599524b4783c02175e45329399b4",
+  "casesSha256": "aeff653bfb640ce4797a802cacaa58ce4087495e6409e82401d88f94a86f3e28",
+  "stdoutSha256": "4ccd9de6e123af4d6336a9e0276160984e18518829e6693b08f5cca8a43f599e",
+  "candidate": "609f20aa4fd1429077057e4e356f2a591d4b4ad2",
+  "qualification": "Exact original extractError source under Node8; minimal util.error property-attachment shim because archived util.js missing; original event-listener status assignment reproduced. No full SDK transport/retry claim."
+}

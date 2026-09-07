@@ -1,0 +1,334 @@
+{
+  "started": "2026-09-07T01:53:57.640348+00:00",
+  "finished": "2026-09-07T01:55:26.687377+00:00",
+  "head": "609f20aa4fd1429077057e4e356f2a591d4b4ad2",
+  "steps": [
+    {
+      "name": "boundary-getsettings-missing-status",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618434,
+      "exitCode": 0,
+      "seconds": 1.4288324322551489
+    },
+    {
+      "name": "boundary-invalid-399",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618447,
+      "exitCode": 0,
+      "seconds": 1.3242542720399797
+    },
+    {
+      "name": "boundary-invalid-null",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618470,
+      "exitCode": 0,
+      "seconds": 1.3178968732245266
+    },
+    {
+      "name": "boundary-invalid-text",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618546,
+      "exitCode": 0,
+      "seconds": 1.323507555294782
+    },
+    {
+      "name": "boundary-loop-get-short-response",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618655,
+      "exitCode": 0,
+      "seconds": 1.3176882462576032
+    },
+    {
+      "name": "boundary-loop-update-readback-failure",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618735,
+      "exitCode": 0,
+      "seconds": 1.3246486270800233
+    },
+    {
+      "name": "boundary-loop-update-success",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618759,
+      "exitCode": 0,
+      "seconds": 1.3233300261199474
+    },
+    {
+      "name": "boundary-loop-update-write-failure",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618813,
+      "exitCode": 0,
+      "seconds": 1.3220018679276109
+    },
+    {
+      "name": "boundary-malformed-json",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618886,
+      "exitCode": 0,
+      "seconds": 1.3192061698064208
+    },
+    {
+      "name": "boundary-missing-provider-status",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618927,
+      "exitCode": 0,
+      "seconds": 1.3249062499962747
+    },
+    {
+      "name": "boundary-partial-reset-delayed",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1618956,
+      "exitCode": 0,
+      "seconds": 1.3167674145661294
+    },
+    {
+      "name": "boundary-person-update-readback-failure",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619013,
+      "exitCode": 0,
+      "seconds": 1.3249657321721315
+    },
+    {
+      "name": "boundary-person-update-success",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619074,
+      "exitCode": 0,
+      "seconds": 1.323115614708513
+    },
+    {
+      "name": "boundary-person-update-valid-400",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619088,
+      "exitCode": 0,
+      "seconds": 1.3313760692253709
+    },
+    {
+      "name": "boundary-person-update-write-failure",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619106,
+      "exitCode": 0,
+      "seconds": 1.3367528580129147
+    },
+    {
+      "name": "boundary-provider-http-400-missing-status",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619159,
+      "exitCode": 0,
+      "seconds": 1.319593827240169
+    },
+    {
+      "name": "boundary-provider-http-400-with-status",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619182,
+      "exitCode": 0,
+      "seconds": 1.3275669869035482
+    },
+    {
+      "name": "boundary-short-content-length-fin",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619205,
+      "exitCode": 0,
+      "seconds": 1.3348397286608815
+    },
+    {
+      "name": "boundary-valid-provider",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619238,
+      "exitCode": 0,
+      "seconds": 1.68940848717466
+    },
+    {
+      "name": "boundary-person-update-400-code-absent",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619293,
+      "exitCode": 0,
+      "seconds": 1.3345900941640139
+    },
+    {
+      "name": "boundary-person-update-400-code-empty",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619309,
+      "exitCode": 0,
+      "seconds": 1.4487825320102274
+    },
+    {
+      "name": "boundary-person-update-400-code-present",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619325,
+      "exitCode": 0,
+      "seconds": 1.3190044569782913
+    },
+    {
+      "name": "boundary-person-update-401-code-absent",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619343,
+      "exitCode": 0,
+      "seconds": 1.3782939752563834
+    },
+    {
+      "name": "boundary-person-update-404-code-absent",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619389,
+      "exitCode": 0,
+      "seconds": 1.3249533376656473
+    },
+    {
+      "name": "boundary-person-update-500-code-absent",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619412,
+      "exitCode": 0,
+      "seconds": 1.377386084292084
+    },
+    {
+      "name": "boundary-person-update-503-code-empty",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/boundary26/candidate-bootstrap.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619431,
+      "exitCode": 0,
+      "seconds": 1.548690464347601
+    },
+    {
+      "name": "wire37-candidate",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/wire37/candidate-runner.mjs"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619505,
+      "exitCode": 0,
+      "seconds": 4.919302887283266
+    },
+    {
+      "name": "wire37-compare",
+      "argv": [
+        "python3",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/wire37/compare-root.py",
+        "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907/wire37"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619611,
+      "exitCode": 0,
+      "seconds": 0.33183350088074803
+    },
+    {
+      "name": "npm-test",
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "cwd": "/home/shell/work/phoenix/.parity/worktrees/person-main-final-root",
+      "pid": 1619612,
+      "exitCode": 0,
+      "seconds": 47.90553908003494
+    }
+  ],
+  "stableHead": true,
+  "stableFiles": true,
+  "trackedStatus": "",
+  "environmentProfile": "PHOENIX_ENV_FILE=/dev/null; default AST; LLM off",
+  "controls": 26,
+  "sourceOriginsSha256": "69dfff617688cb27c0a91a499de11144445cd9beac42a225260b3c9bd8c57e92",
+  "candidateRunnerSha256": "d04b0498678ca4c650732642886e6b74df4ec37f9c42f4baf32ee0ba82ddf569"
+}

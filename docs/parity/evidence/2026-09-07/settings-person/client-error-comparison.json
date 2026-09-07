@@ -1,0 +1,106 @@
+{
+  "controls": 7,
+  "machineCodeMessageStatusMatches": 7,
+  "rows": [
+    {
+      "id": "person-update-400-code-absent",
+      "source": {
+        "code": "Bad Request",
+        "message": "http status",
+        "statusCode": 400
+      },
+      "candidate": {
+        "code": "Bad Request",
+        "message": "http status",
+        "statusCode": 400
+      },
+      "match": true
+    },
+    {
+      "id": "person-update-400-code-empty",
+      "source": {
+        "code": "Bad Request",
+        "message": "http status",
+        "statusCode": 400
+      },
+      "candidate": {
+        "code": "Bad Request",
+        "message": "http status",
+        "statusCode": 400
+      },
+      "match": true
+    },
+    {
+      "id": "person-update-400-code-present",
+      "source": {
+        "code": "P400",
+        "message": "http status",
+        "statusCode": 400
+      },
+      "candidate": {
+        "code": "P400",
+        "message": "http status",
+        "statusCode": 400
+      },
+      "match": true
+    },
+    {
+      "id": "person-update-401-code-absent",
+      "source": {
+        "code": "Unauthorized",
+        "message": "unauthorized",
+        "statusCode": 401
+      },
+      "candidate": {
+        "code": "Unauthorized",
+        "message": "unauthorized",
+        "statusCode": 401
+      },
+      "match": true
+    },
+    {
+      "id": "person-update-404-code-absent",
+      "source": {
+        "code": "Not Found",
+        "message": "missing",
+        "statusCode": 404
+      },
+      "candidate": {
+        "code": "Not Found",
+        "message": "missing",
+        "statusCode": 404
+      },
+      "match": true
+    },
+    {
+      "id": "person-update-500-code-absent",
+      "source": {
+        "code": "Internal Server Error",
+        "message": "An internal server error occurred",
+        "statusCode": 500
+      },
+      "candidate": {
+        "code": "Internal Server Error",
+        "message": "An internal server error occurred",
+        "statusCode": 500
+      },
+      "match": true
+    },
+    {
+      "id": "person-update-503-code-empty",
+      "source": {
+        "code": "Service Unavailable",
+        "message": "unavailable",
+        "statusCode": 503
+      },
+      "candidate": {
+        "code": "Service Unavailable",
+        "message": "unavailable",
+        "statusCode": 503
+      },
+      "match": true
+    }
+  ],
+  "extractorStdoutSha256": "4ccd9de6e123af4d6336a9e0276160984e18518829e6693b08f5cca8a43f599e",
+  "qualification": "Exact original extractError source under Node8; minimal util.error property-attachment shim because archived util.js missing; original event-listener status assignment reproduced. No full SDK transport/retry claim."
+}

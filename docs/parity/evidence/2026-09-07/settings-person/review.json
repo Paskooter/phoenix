@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "state": "accepted",
+  "reviewedBy": "Codex root",
+  "parentTask": "A-06",
+  "parentTaskVerified": false,
+  "scope": "Settings Person network transport, Account/Loop property operations, fatal-response propagation at the full Settings request boundary, and machine-readable provider error projection.",
+  "candidateRevision": "609f20aa4fd1429077057e4e356f2a591d4b4ad2",
+  "integratedRuntimeRevision": "8f70fe19db21d2800057ee42fffcf85e5d8327e0",
+  "agentPrecursor": "74669ec8228c9d495a60076e01f7a9e524dbe0e4",
+  "source": {
+    "settingsRevision": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+    "pegasusReference": "5c0a7390539663ba749d360de348a428c088505c",
+    "personClientSha256": "811d41c0e738350dbe64afeaa00337276fafd0015c444d1f5ad87812d06abbc5",
+    "server": "4.0.12",
+    "hapi": "16.4.1",
+    "wreck": "12.6.2",
+    "boom": "5.1.0",
+    "runtime": "Node8.9.4",
+    "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "robotConsumer": "BE12.0.0 archived @jibo/jibo-server-client3.0.117 JSON extractError"
+  },
+  "results": {
+    "fullSettingsBoundary": {
+      "controls": 26,
+      "statusMatches": 26,
+      "rawBodyMatches": 24,
+      "decodedBodyMatches": 25,
+      "orderedProviderWireMatches": 26,
+      "functionalMatches": 26,
+      "allGuardsPass": true
+    },
+    "directPersonWire": {
+      "controls": 37,
+      "orderedUniqueIdsExact": true,
+      "wireMatches": 37,
+      "behaviorMatchesExcludingFunctionNames": 32,
+      "rawOwnErrorMatches": 17,
+      "sourceUncaughtControls": 3,
+      "allGuardsPass": true
+    },
+    "robotClientMachineIdentity": {
+      "controls": 7,
+      "matches": 7,
+      "qualification": "Exact original extractError source under Node8; minimal util.error property-attachment shim because archived util.js missing; original event-listener status assignment reproduced. No full SDK transport/retry claim."
+    },
+    "integratedTreeTests": {
+      "unitPassed": 568,
+      "unitSkipped": 3,
+      "unitFailed": 0,
+      "strictSmokeCases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "actualExitCode": 0
+    }
+  },
+  "materialBehavior": [
+    "Original Person target, credential header, ordered property payloads, redirects and error objects are preserved. Loop writes include the source transaction ID.",
+    "Malformed/incomplete provider response streams and invalid provider-status assertions produce whole-request HTTP500, with Settings remaining alive; ordinary provider errors retain per-key getter behavior.",
+    "Write failures suppress readback; readback failures preserve the prior write request. Account and loop operation order matches original controls.",
+    "When code is absent or empty, original robot client falls back to error as its machine code. Preserving the source Boom label fixes that interpretation; an explicit provider code still wins."
+  ],
+  "nonblockingDifferences": [
+    "One malformed-JSON per-key diagnostic message differs between Node8 and Node22. Its byte length is validated; all other data/status/provider calls match.",
+    "One generic500 body differs in JSON object key order only.",
+    "Direct Person control outside Hapi has three original uncaught-callback failures; Phoenix rejects normally. Full original Hapi bootstrap proves their externally observable request behavior is HTTP500 with a live process, which Phoenix matches.",
+    "Callable factory names and event-loop close-event timing differ internally; no client machine field is normalized away."
+  ],
+  "qualification": [
+    "Pinned source captures reused unchanged with hashes; final combined main-based candidate independently rerun.",
+    "Account/Hub/Lasso controlled peers at the full Settings boundary; Person uses a real loopback HTTP peer.",
+    "Original client extractor uses a disclosed util.error shim; full SDK transport/retry behavior is not claimed.",
+    "No whole A-06 credit. Hub adapter, full OAuth/token exchange, public authentication, real Mongo/provider deployment, and migration remain open.",
+    "Moth was not redeployed for this slice; physical robot acceptance remains separate."
+  ],
+  "retainedFailures": [
+    "Earlier0dd original SetLoopProperty transId assertion corrected by source-backed test-only4c; no altered source fixture.",
+    "Earlier expanded harness ReferenceError and Docker outer90 startup timeout remain retained outside this final run.",
+    "Initial final-control setup detected one duplicate internal spec id before executing; labels now use original filenames, spec and source bytes unchanged."
+  ],
+  "artifacts": {
+    "boundary-comparison.json": "7173b350c7e780f0be1bac3fe09b88bdf0b17f1d925971e3825f848b17a5cb7e",
+    "wire-comparison.json": "fbfd7902cd90cd0490cc541fdd9134896df87c1e9560ec9e306cbfe82feac56a",
+    "client-error-comparison.json": "4481d64fc3f9b6df1917fbb16ac21288841d08132c4dbd618ea68b10a2bfd131",
+    "client-run.json": "f0c4ffc6034f6ade4174dadf973a0029505e2902fc8780d8f1a87e6a0be3da02",
+    "candidate-run.json": "39aff140e4b40567b3248e1e2bfd6be5f8dbfedd1a8f0270f54d6e02eeec1ea9",
+    "main-confirmation.json": "66e466cc3bee1e0312a4d75ad031d9b36852d617f51aeead908cd4c10afd391e"
+  },
+  "privateEvidence": "/home/shell/work/phoenix/.parity/reviews/person-main-final-root-20260907",
+  "rawSourceOriginsSha256": "69dfff617688cb27c0a91a499de11144445cd9beac42a225260b3c9bd8c57e92",
+  "rawUnitStdoutSha256": "83dfad22d088b969fd3e70bc3066374007a9eeb58b6fec5c78376cc035d47e98",
+  "runtimeFiles": {
+    "packages/account/src/settingsProviders.js": "5e38ab244fb21d12c458cbf8f0fded872a98c11d9c3910ce2bf0959e0b46b168",
+    "packages/account/src/settingsFace.js": "09f99ef01deec0dc5e942fce373d162f52516b80965663d15e125c91286a11a6"
+  }
+}
