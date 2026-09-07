@@ -41,7 +41,10 @@ function sourceError(res, status, error, message, code, hapiHeaders = false, cor
   const payload = status === 500 && error === 'Internal Server Error' && message === 'An internal server error occurred'
     ? { message, statusCode: status, error }
     : { statusCode: status, error, message };
-  if (code) payload.code = code;
+  // Boom keeps an explicitly empty code in its output payload. Preserve that
+  // machine-readable field; an absent/undefined code is omitted by JSON.stringify
+  // just as it is by the source Hapi response.
+  if (code !== undefined) payload.code = code;
   const body = JSON.stringify(payload);
   if (hapiHeaders) {
     res.removeHeader?.('x-powered-by');
@@ -220,9 +223,14 @@ function sourceErrorInfo(error) {
   const status = error && error.isBoom && Number.isInteger(source.statusCode)
     ? source.statusCode
     : error && error.isBoom && Number.isInteger(error.statusCode) ? error.statusCode : 500;
-  const code = status === 500 ? undefined : source.code || (error && error.code);
+  const hasSourceCode = Object.prototype.hasOwnProperty.call(source, 'code');
+  const hasErrorCode = Boolean(error && Object.prototype.hasOwnProperty.call(error, 'code'));
+  const code = status === 500 ? undefined
+    : hasSourceCode ? source.code
+      : hasErrorCode ? error.code : undefined;
   const message = source.message || (error && error.message) || 'An internal server error occurred';
-  const errorName = status === 403 ? 'Forbidden'
+  const errorName = status !== 500 && source.error ? source.error
+    : status === 403 ? 'Forbidden'
     : status === 422 ? 'Unprocessable Entity'
       : status === 404 ? 'Not Found'
         : 'Internal Server Error';
