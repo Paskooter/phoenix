@@ -106,12 +106,19 @@ function personBoomReformat() {
   else if (this.message) this.output.payload.message = this.message;
 }
 
-function personInitializeBadGateway(error, message) {
+function personInitializeBoom(error, statusCode, message) {
+  const numberCode = Number.parseInt(statusCode, 10);
+  if (Number.isNaN(numberCode) || numberCode < 400) {
+    // The pinned Hoek assertion formats an Error argument by its message.
+    const value = typeof statusCode === 'string' ? statusCode
+      : statusCode instanceof Error ? statusCode.message : JSON.stringify(statusCode);
+    throw new Error(`First argument must be a number (400+): ${value ?? ''}`);
+  }
   error.isBoom = true;
-  error.isServer = true;
+  error.isServer = numberCode >= 500;
   if (!Object.prototype.hasOwnProperty.call(error, 'data')) error.data = null;
   error.output = {
-    statusCode: 502,
+    statusCode: numberCode,
     payload: {},
     headers: {},
   };
@@ -125,31 +132,40 @@ function personInitializeBadGateway(error, message) {
   return error;
 }
 
-function personBoomTypeof(message, data) {
-  if (data instanceof Error && !data.isBoom) return personInitializeBadGateway(data, message);
-  return personBadGateway(message, data);
+function personWrapBoom(error, statusCode, message) {
+  if (!(error instanceof Error)) throw new Error('Cannot wrap non-Error object');
+  if (error.isBoom && (statusCode || message)) {
+    throw new Error('Cannot provide statusCode or message with boom error');
+  }
+  return error.isBoom ? error : personInitializeBoom(error, statusCode || 500, message);
 }
 
-function personGatewayTimeoutFactory(message, data) {
-  return personGatewayTimeout(message, data);
+function personCreateBoom(statusCode, message, data, factory = personCreateBoomFactory) {
+  if (message instanceof Error) {
+    if (data) message.data = data;
+    return personWrapBoom(message, statusCode);
+  }
+  const error = new Error(message || undefined);
+  error.data = data || null;
+  personInitializeBoom(error, statusCode);
+  error.typeof = factory;
+  return error;
+}
+
+function personCreateBoomFactory(statusCode, message, data) {
+  return personCreateBoom(statusCode, message, data);
+}
+
+function personServerError(statusCode, message, data, factory) {
+  if (data instanceof Error && !data.isBoom) return personWrapBoom(data, statusCode, message);
+  const error = personCreateBoom(statusCode, message, undefined, factory);
+  // Server factories preserve undefined data; Boom.create uses null instead.
+  error.data = data;
+  return error;
 }
 
 function personGatewayTimeout(message, data) {
-  const error = personError(message, { isBoom: true });
-  error.isServer = true;
-  error.data = data;
-  error.output = {
-    statusCode: 504,
-    payload: {
-      statusCode: 504,
-      error: 'Gateway Time-out',
-      message,
-    },
-    headers: {},
-  };
-  error.reformat = personBoomReformat;
-  error.typeof = personGatewayTimeoutFactory;
-  return error;
+  return personServerError(504, message, data, personGatewayTimeout);
 }
 
 function personLogHttpError(uri, marker, error, trace) {
@@ -164,51 +180,23 @@ function personLogHttpError(uri, marker, error, trace) {
 }
 
 function personBadGateway(message, data) {
-  const error = new Error(message || undefined);
-  error.data = data;
-  error.typeof = personBoomTypeof;
-  return personInitializeBadGateway(error);
+  return personServerError(502, message, data, personBadGateway);
 }
 
 function personBadGatewayFromError(message, cause, trace) {
   cause.trace = trace;
-  return personInitializeBadGateway(cause, message);
+  return personWrapBoom(cause, 502, message);
 }
 
-function personBadImplementation(error) {
-  // Boom.badImplementation(responseError) wraps the original Error, keeping
-  // its name/message while adding the standard 500 output fields.
-  if (!Object.prototype.hasOwnProperty.call(error, 'data')) error.data = undefined;
-  error.isBoom = true;
-  error.isServer = true;
+function personBadImplementation(message, data) {
+  const error = personServerError(500, message, data, personBadImplementation);
   error.isDeveloperError = true;
-  error.output = {
-    statusCode: 500,
-    payload: {
-      statusCode: 500,
-      error: 'Internal Server Error',
-      message: 'An internal server error occurred',
-    },
-    headers: {},
-  };
   return error;
 }
 
 function personProviderError(message, statusCode, code) {
-  const error = personError(message, { isBoom: true });
-  error.isServer = statusCode >= 500;
-  const outputMessage = statusCode === 500 ? 'An internal server error occurred' : message;
-  error.data = { code };
-  error.output = {
-    statusCode,
-    payload: {
-      statusCode,
-      error: http.STATUS_CODES[statusCode] || 'Unknown',
-      message: outputMessage,
-      code,
-    },
-    headers: {},
-  };
+  const error = personCreateBoom(statusCode, message, { code });
+  error.output.payload.code = code;
   return error;
 }
 
@@ -224,12 +212,7 @@ function personResponseValue(response, chunks) {
   if (buffer.length === 0) return null;
   const contentType = String(response.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
   if (!PERSON_JSON_MIME.test(contentType)) return buffer;
-  try {
-    return JSON.parse(buffer.toString());
-  } catch (error) {
-    error.isBoom = true;
-    throw error;
-  }
+  return JSON.parse(buffer.toString());
 }
 
 function personLegacyHostnamePrefix(hostname) {

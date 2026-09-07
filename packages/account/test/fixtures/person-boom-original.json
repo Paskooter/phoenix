@@ -1,0 +1,268 @@
+{
+  "referenceRevision": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+  "runtime": "Node8.9.4, @jibo/server4.0.12, Wreck12.6.2, Boom5.1.0",
+  "personSourceSha256": "811d41c0e738350dbe64afeaa00337276fafd0015c444d1f5ad87812d06abbc5",
+  "sourceCaptureSha256": "2f7cf28049f46cec744de22358796ef2c977cb8b6242a871272040f912dbf272",
+  "boundary": "Every own error key except stack is asserted. Function names are implementation metadata, kept out of value equality; factories and reformat are exercised separately.",
+  "controls": [
+    {
+      "id": "provider-error-400",
+      "response": {
+        "error": true,
+        "statusCode": 400,
+        "message": "source-error",
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "source-error",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": false,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Bad Request",
+            "message": "source-error",
+            "statusCode": 400
+          },
+          "statusCode": 400
+        }
+      }
+    },
+    {
+      "id": "provider-error-425",
+      "response": {
+        "error": true,
+        "statusCode": 425,
+        "message": "source-error",
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "source-error",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": false,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Unordered Collection",
+            "message": "source-error",
+            "statusCode": 425
+          },
+          "statusCode": 425
+        }
+      }
+    },
+    {
+      "id": "provider-error-500",
+      "response": {
+        "error": true,
+        "statusCode": 500,
+        "message": "source-error",
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "source-error",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": true,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Internal Server Error",
+            "message": "An internal server error occurred",
+            "statusCode": 500
+          },
+          "statusCode": 500
+        }
+      }
+    },
+    {
+      "id": "provider-error-503-string",
+      "response": {
+        "error": true,
+        "statusCode": "503",
+        "message": "source-error",
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "source-error",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": true,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Service Unavailable",
+            "message": "source-error",
+            "statusCode": 503
+          },
+          "statusCode": 503
+        }
+      }
+    },
+    {
+      "id": "provider-error-599",
+      "response": {
+        "error": true,
+        "statusCode": 599,
+        "message": "source-error",
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "source-error",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": true,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Unknown",
+            "message": "source-error",
+            "statusCode": 599
+          },
+          "statusCode": 599
+        }
+      }
+    },
+    {
+      "id": "provider-error-400-empty",
+      "response": {
+        "error": true,
+        "statusCode": 400,
+        "message": "",
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "Bad Request",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": false,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Bad Request",
+            "message": "Bad Request",
+            "statusCode": 400
+          },
+          "statusCode": 400
+        }
+      }
+    },
+    {
+      "id": "provider-error-500-null",
+      "response": {
+        "error": true,
+        "statusCode": 500,
+        "message": null,
+        "code": "FIXTURE_CODE"
+      },
+      "error": {
+        "name": "Error",
+        "message": "Internal Server Error",
+        "ownKeys": [
+          "data",
+          "isBoom",
+          "isServer",
+          "message",
+          "output",
+          "reformat",
+          "typeof"
+        ],
+        "data": {
+          "code": "FIXTURE_CODE"
+        },
+        "isBoom": true,
+        "isServer": true,
+        "output": {
+          "headers": {},
+          "payload": {
+            "code": "FIXTURE_CODE",
+            "error": "Internal Server Error",
+            "message": "An internal server error occurred",
+            "statusCode": 500
+          },
+          "statusCode": 500
+        }
+      }
+    }
+  ]
+}

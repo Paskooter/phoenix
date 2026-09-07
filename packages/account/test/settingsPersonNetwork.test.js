@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { readFileSync } from 'node:fs';
 
 const { createSettingsProviders } = await import('../src/settingsProviders.js');
 
@@ -559,6 +560,75 @@ test('network Person preserves pinned Boom factory and reformat behavior', async
     assert.equal(wrapped.message, 'outer: cause');
     assert.equal(wrapped.data, null);
     assert.equal(Object.prototype.hasOwnProperty.call(wrapped, 'typeof'), false);
+
+    const cause = new RangeError('message cause');
+    const fromMessage = error.typeof(cause, { fixture: true });
+    assert.equal(fromMessage, cause);
+    assert.equal(fromMessage.message, 'message cause');
+    assert.deepEqual(fromMessage.data, { fixture: true });
+    assert.equal(Object.hasOwn(fromMessage, 'typeof'), false);
+  } finally {
+    await closePeer(peer);
+  }
+});
+
+const originalBoom = JSON.parse(readFileSync(new URL('./fixtures/person-boom-original.json', import.meta.url)));
+
+test('network Person provider errors match original status coercion, labels and default messages', async () => {
+  for (const control of originalBoom.controls) {
+    const peer = await listenPeer(() => ({
+      contentType: 'application/json', body: JSON.stringify(control.response),
+    }));
+    try {
+      await assert.rejects(
+        () => providers(peer.address).person.getAccountProperties(context, ['x']),
+        (error) => {
+          const ownKeys = Object.getOwnPropertyNames(error).filter(key => key !== 'stack').sort();
+          assert.deepEqual({
+            name: error.name, message: error.message, ownKeys,
+            data: error.data, isBoom: error.isBoom, isServer: error.isServer, output: error.output,
+          }, control.error, control.id);
+          assert.equal(error.reformat(), undefined);
+          assert.deepEqual(error.output, control.error.output, control.id);
+          const nested = error.typeof(425, 'status probe', { fixture: true });
+          assert.equal(nested.output.statusCode, 425);
+          assert.equal(nested.output.payload.error, 'Unordered Collection');
+          assert.deepEqual(nested.data, { fixture: true });
+          assert.throws(() => error.typeof('factory probe', { marker: true }), {
+            name: 'Error', message: 'First argument must be a number (400+): factory probe',
+          });
+          return true;
+        },
+      );
+    } finally {
+      await closePeer(peer);
+    }
+  }
+});
+
+test('network Person timeout factories wrap existing errors with source identity and data', async () => {
+  const peer = await listenPeer(() => ({ contentType: 'application/json', body: '{"x":', truncate: true }));
+  try {
+    await assert.rejects(
+      () => providers(peer.address).person.getAccountProperties(context, ['x']),
+      (error) => {
+        assert.equal(error.output.statusCode, 504);
+        const cause = new RangeError('source cause');
+        const wrapped = error.typeof('wrapped probe', cause);
+        assert.equal(wrapped, cause);
+        assert.equal(wrapped.message, 'wrapped probe: source cause');
+        assert.equal(wrapped.data, null);
+        assert.equal(Object.hasOwn(wrapped, 'typeof'), false);
+        const message = new RangeError('message cause');
+        const fromMessage = error.typeof(message, { fixture: true });
+        assert.equal(fromMessage, message);
+        assert.equal(fromMessage.message, 'message cause');
+        assert.deepEqual(fromMessage.data, { fixture: true });
+        assert.equal(fromMessage.output.statusCode, 504);
+        assert.equal(Object.hasOwn(fromMessage, 'typeof'), false);
+        return true;
+      },
+    );
   } finally {
     await closePeer(peer);
   }
