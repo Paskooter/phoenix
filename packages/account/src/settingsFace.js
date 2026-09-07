@@ -15,7 +15,7 @@
 import { createService, sendJson } from '@phoenix/common';
 import { getSettingsData, setSettingsData, dataToFriendly, friendlyToData } from './settingsData.js';
 import { getSession } from './sessions.js';
-import { createSettingsProviders } from './settingsProviders.js';
+import { createSettingsProviders, isPersonRequestFatal } from './settingsProviders.js';
 import { getStore } from './store.js';
 import { SETTINGS_PUBLIC_CONTENT_TYPE } from './settingsTransport.js';
 import querystring from 'node:querystring';
@@ -332,6 +332,12 @@ async function getWithProviders({ req, body, providers }) {
         }));
       }
     } catch (error) {
+      // Source Wreck/Boom raises incomplete response and invalid status
+      // assertions from its response callback. Hapi's request domain turns
+      // those into one generic request 500; do not project them onto each
+      // Person key as an ordinary provider error. Valid provider statuses keep
+      // the per-service/per-key error behavior below.
+      if (isPersonRequestFatal(error)) throw error;
       serviceNodes.forEach((node) => {
         errors[node.skillId][node.key] = { message: `${serviceID} request error: ${error.message}` };
       });

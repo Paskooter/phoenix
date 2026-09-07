@@ -19,6 +19,13 @@ const PERSON_JSON_MIME = /^application\/(?:[a-z0-9.]*[+-]json|json)$/i;
 const personHttpAgent = new http.Agent({ keepAlive: true, maxSockets: Infinity });
 const personHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: Infinity });
 const personLog = logger('account.person');
+// A Person response can fail outside the normal provider-error contract.  The
+// original Wreck/Boom path raises from the response callback for an incomplete
+// stream or an invalid provider status, so Hapi's request boundary returns one
+// generic 500 instead of allowing GetController to turn it into per-key data.
+// Keep that distinction as an internal, non-enumerable marker; callers still
+// receive an ordinary rejected Error and no process-level exception is needed.
+const PERSON_REQUEST_FATAL = Symbol('person.requestFatal');
 const PERSON_BOOM_STATUS_CODES = Object.freeze({
   100: 'Continue',
   101: 'Switching Protocols',
@@ -97,6 +104,21 @@ function personError(message, options = {}) {
     };
   }
   return error;
+}
+
+function personRequestFatal(error, category) {
+  const target = error instanceof Error ? error : new Error(String(error));
+  Object.defineProperty(target, PERSON_REQUEST_FATAL, {
+    configurable: false,
+    enumerable: false,
+    value: category,
+    writable: false,
+  });
+  return target;
+}
+
+export function isPersonRequestFatal(error) {
+  return Boolean(error && error[PERSON_REQUEST_FATAL]);
 }
 
 function personBoomReformat() {
@@ -348,11 +370,17 @@ function personRequest(base, method, operation, context, payload, redirectsLeft,
         let responseFinished = false;
         const premature = () => {
           if (!responseFinished && !response.complete) {
-            finish(personError('Payload stream closed prematurely', { isBoom: true }));
+            finish(personRequestFatal(
+              personError('Payload stream closed prematurely', { isBoom: true }),
+              'response-stream-failure',
+            ));
           }
         };
         response.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-        response.once('error', (error) => finish(personError(error.message, { isBoom: true })));
+        response.once('error', (error) => finish(personRequestFatal(
+          personError(error.message, { isBoom: true }),
+          'response-stream-failure',
+        )));
         response.once('aborted', premature);
         response.once('close', premature);
         response.once('end', () => {
@@ -360,14 +388,22 @@ function personRequest(base, method, operation, context, payload, redirectsLeft,
           try {
             const value = personResponseValue(response, chunks);
             if (value && value.error) {
-              // BaseClient/Boom.createWithCode has no own statusCode or code;
-              // it stores those values in output/data. A missing statusCode
-              // crashes the pinned Boom implementation; keep this process safe
-              // while retaining the provider error as an explicit divergence.
-              const error = value.statusCode === undefined
-                ? personError(value.message, { isBoom: true })
-                : personProviderError(value.message, value.statusCode, value.code);
-              finish(error);
+              // BaseClient/Boom.createWithCode asserts its first argument.  A
+              // missing or invalid provider status is therefore a request-fatal
+              // boundary, while a valid 4xx/5xx status remains an ordinary
+              // provider error for GetController's per-key projection.
+              if (value.statusCode === undefined) {
+                finish(personRequestFatal(
+                  personError(value.message, { isBoom: true }),
+                  'provider-status-assertion',
+                ));
+                return;
+              }
+              try {
+                finish(personProviderError(value.message, value.statusCode, value.code));
+              } catch (error) {
+                finish(personRequestFatal(error, 'provider-status-assertion'));
+              }
               return;
             }
             finish(null, value);
