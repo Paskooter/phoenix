@@ -50,7 +50,7 @@ docker run --rm --network none \
 
 The source output is `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-20260907/source-control/source-loop-postsave-node8.json` (SHA-256 `c1878cfc8f554a934d3f9d43e3c54674ee585766a403c8d3752dd2f57565c4aa`). It records one `LoopUpdated`, one immediate `next` call, the exact member/property projection, and the saved `robot` value. The compiled source hash and compiler receipt are in `source-control/compile-receipt.json`.
 
-The candidate control at `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-20260907/candidate-control/candidate-loop-producer.json` (SHA-256 `5f1e7323f31095e69deeb767d5ac9a45f6aadb26e9897567993fe7e543b4446f`) uses the same source-shaped document against the candidate helper. `candidate-control/../comparison.json` records exact equality of event name and complete JSON payload, account routing to `robot-001`, and skill `-1`. The candidate HTTP tests additionally exercise the real Account listener and signed caller keys.
+The candidate control at `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-20260907/candidate-control/candidate-loop-producer.json` (SHA-256 `5f1e7323f31095e69deeb767d5ac9a45f6aadb26e9897567993fe7e543b4446f`) uses the same source-shaped document against the candidate helper. `candidate-control/../comparison.json` records exact equality of event name and complete JSON payload, account routing to `robot-001`, and skill `-1`. The candidate HTTP tests additionally exercise the real Account listener with fixture AWS headers; those tests parse the caller access-key text through Phoenix's LAN-trust compatibility seam, and do not cryptographically verify the `Signature=fixture` value.
 
 ## Tests
 
