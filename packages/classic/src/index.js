@@ -21,7 +21,7 @@ export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
 export { logHandler } from './log.js';
 export { makeRobotHandler } from './robot.js';
-export { NotificationHub } from './notification.js';
+export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
 export { KeyStore } from './key.js';
 export { DeviceRegistry } from './push.js';
@@ -38,12 +38,12 @@ function isCreateHubTokenTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = []) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver } = {}) {
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: logHandler },
     { match: /^robot/i, handler: makeRobotHandler() },
-    { match: /^notification/i, handler: makeNotificationHandler(hub) },
+    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }) },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/ifttt/nlp/collision)
@@ -61,7 +61,7 @@ export function classicRoutes(hub, extra = []) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -80,7 +80,9 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     // parsing. All other Classic routes retain Pegasus's strict parser.
     jsonStrict: (req) => !isCreateHubTokenTarget(req),
     routes: {
-      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }]),
+      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }], {
+        notificationAccountResolver,
+      }),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': ({ res, body }) => {

@@ -6,6 +6,7 @@
 // owns only live socket registrations and the source delivery callbacks.
 
 import { WebSocketServer } from 'ws';
+import { SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 import { NotificationStore } from './notificationStore.js';
 
@@ -338,13 +339,138 @@ export class NotificationHub {
   }
 }
 
+/**
+ * Build the account resolver used by a standalone Classic notification face.
+ *
+ * The security gateway authenticates the AWS Authorization credential, looks
+ * up the Account document, and the notification handler receives that
+ * document's `id`/`_id`. It never derives an account id from the access key or
+ * from the gateway's x-amz-credentials forwarding header. This factory keeps
+ * that source boundary available without making Classic depend on the Account
+ * package: `resolveCredentials` may be a synchronous Account store/client
+ * seam that returns the source credential record.
+ *
+ * @param {{ resolveCredentials: (accessKeyId: string) => object|null,
+ *   now?: Date|number|string|(() => Date|number|string) }} options
+ */
+export function createVerifiedNotificationAccountResolver({ resolveCredentials, now } = {}) {
+  if (typeof resolveCredentials !== 'function') {
+    throw new TypeError('resolveCredentials must be a function');
+  }
+  return ({ req, body }) => {
+    const verificationOptions = {
+      method: req?.method || 'POST',
+      path: req?.originalUrl || req?.url || '/',
+      headers: req?.headers || {},
+      body: req?.rawBody === undefined
+        ? (body === null || body === undefined ? '' : JSON.stringify(body))
+        : req.rawBody,
+      resolveCredentials: (accessKeyId) => {
+        const credentials = resolveCredentials(accessKeyId);
+        // Account.findByAccessKeyId excludes deleted records. Keep the same
+        // boundary in the injected local/provider seam before the common
+        // verifier checks active status and the secret.
+        return credentials && credentials.isDeleted !== true ? credentials : null;
+      },
+    };
+    if (now !== undefined) verificationOptions.now = typeof now === 'function' ? now() : now;
+    const verification = verifySigV4(verificationOptions);
+    const credentials = verification.credentials;
+    // Hapi exposes the Mongoose document's `id` virtual to handlers. The
+    // local Store uses `_id`, so retain it only as the explicit adapter
+    // fallback when a provider does not expose that virtual.
+    const identity = credentials && (credentials.id ?? credentials._id);
+    if (identity === undefined || identity === null || String(identity).length === 0) {
+      throw new SigV4Error(SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+    }
+    return String(identity);
+  };
+}
+
+function resolvedAccountId(value) {
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (!value || typeof value !== 'object') return null;
+  const identity = value.accountId ?? value._id ?? value.id;
+  if (identity === undefined || identity === null || String(identity).length === 0) return null;
+  return String(identity);
+}
+
+function resolverError(error) {
+  if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) return SIGV4_ERRORS[error.code];
+  return SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE;
+}
+
+/**
+ * The notification service is a Hapi service behind the classic gateway in
+ * Pegasus. Its decorators run Joi validation before the controller mutates
+ * the Token document. Keep the two public schemas here rather than accepting
+ * arbitrary values and rotating a token as a side effect of a bad request:
+ * NewRobotToken.deviceId is optional Joi.string(), while GetStatus.accountId
+ * is a required Joi.string(). Unknown members remain allowed by the source
+ * validatePayload decorator.
+ */
+function notificationValidationMessage(op, body) {
+  const value = body;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '"value" must be an object';
+  const operation = String(op || '').toLowerCase();
+  if (operation === 'newrobottoken') {
+    if (!Object.prototype.hasOwnProperty.call(value, 'deviceId')) return null;
+    if (typeof value.deviceId !== 'string') return 'child "deviceId" fails because ["deviceId" must be a string]';
+    if (value.deviceId.length === 0) return 'child "deviceId" fails because ["deviceId" is not allowed to be empty]';
+    return null;
+  }
+  if (operation === 'getstatus') {
+    if (!Object.prototype.hasOwnProperty.call(value, 'accountId') || value.accountId === undefined) {
+      return 'child "accountId" fails because ["accountId" is required]';
+    }
+    if (typeof value.accountId !== 'string') return 'child "accountId" fails because ["accountId" must be a string]';
+    if (value.accountId.length === 0) return 'child "accountId" fails because ["accountId" is not allowed to be empty]';
+  }
+  return null;
+}
+
+function sendNotificationValidationError(res, message) {
+  // Boom.badData (used by the source validatePayload decorator) is a 422
+  // response with this structured payload. The message is source-derived Joi
+  // output; diagnostic wording is kept only to make the field/category clear.
+  const body = JSON.stringify({
+    statusCode: 422,
+    error: 'Unprocessable Entity',
+    message,
+  });
+  res.removeHeader?.('x-powered-by');
+  res.writeHead(422, {
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-cache',
+    vary: 'accept-encoding',
+    'content-length': Buffer.byteLength(body),
+  });
+  res.end(body);
+}
+
 /** AWS-JSON handler for Notification_20150505. */
-export function makeNotificationHandler(hub) {
-  return function notificationHandler({ req, res, body, op }) {
-    // Authentication/account-ID resolution remains the explicit LAN-trust
-    // seam. A later verified gateway/outbox integration must pass the source
-    // account document id to hub.newRobotToken/deliverNotification directly.
-    const accountId = accessKeyIdFromAuth(req) || (body && body.deviceId) || 'anon';
+export function makeNotificationHandler(hub, { accountResolver } = {}) {
+  return async function notificationHandler({ req, res, body, op, target }) {
+    let accountId;
+    if (accountResolver === undefined) {
+      // This compatibility mode is used by the old standalone/LAN tests. It
+      // is deliberately separate from the verified path below and must not be
+      // used as a public security-gateway identity boundary.
+      accountId = accessKeyIdFromAuth(req) || (body && body.deviceId) || 'anon';
+    } else {
+      try {
+        if (typeof accountResolver !== 'function') {
+          throw new SigV4Error(SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+        }
+        accountId = resolvedAccountId(await accountResolver({ req, body, op, target }));
+        if (!accountId) throw new SigV4Error(SIGV4_ERRORS.ACCESS_KEY_NOT_FOUND);
+      } catch (error) {
+        return void sendAmzError(res, resolverError(error));
+      }
+    }
+    const validationMessage = notificationValidationMessage(op, body);
+    if (validationMessage) return void sendNotificationValidationError(res, validationMessage);
     switch (op.toLowerCase()) {
       case 'newrobottoken': {
         const token = hub.newRobotToken(accountId, body && body.deviceId);

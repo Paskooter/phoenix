@@ -58,6 +58,9 @@ export async function startAuthenticatedRobotStack({
   const servers = [];
   let gateway;
   let classic;
+  let account;
+  let accountStore;
+  let notificationRecovery;
   let stopping;
   function stop() {
     if (stopping) return stopping;
@@ -103,20 +106,46 @@ export async function startAuthenticatedRobotStack({
       process.env[`NET_${netName}`] = `127.0.0.1:${endpoints[netName]}`;
     }
     const { createAccountService, Store } = await import('../../packages/account/src/index.js');
-    const account = createAccountService({ store: new Store(accountPath) });
+    // Account and Classic share one Store instance in this colocated
+    // development profile. The outbox is constructed without a publisher so
+    // requests arriving during Account startup are durably recorded until the
+    // Classic notification store and resolver are ready.
+    accountStore = new Store(accountPath);
+    account = createAccountService({ store: accountStore });
     servers.push(account.server);
     await listen(account.server, choosePort(11));
     endpoints.account = account.server.address().port;
     process.env.NET_account = `127.0.0.1:${endpoints.account}`;
 
-    const { createClassicEntrypoint } = await import('../../packages/classic/src/index.js');
-    classic = createClassicEntrypoint({ tls: tlsOptions });
+    const { createClassicEntrypoint, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
+    const notificationAccountResolver = createVerifiedNotificationAccountResolver({
+      resolveCredentials: (accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId),
+    });
+    classic = createClassicEntrypoint({
+      tls: tlsOptions,
+      notificationFile: resolve(directory, 'notifications.json'),
+      notificationAccountResolver,
+    });
     servers.push(classic.server);
     // Use the same TLS server for HTTP and notification upgrades. Wrapping only
     // classic.app in a second server would leave its upgrade listener behind.
     classic.server.on('tlsClientError', (_error, socket) => socket.destroy());
     await listen(classic.server, tlsPort, entrypointHost);
     endpoints.entrypointTls = classic.server.address().port;
+
+    // Attach the Account -> Classic bridge only after Classic has a durable
+    // notification store, verified resolver, and listening socket. A failed
+    // publication remains in Account's durable outbox; the explicit recovery
+    // pass below handles rows created before readiness or during an outage.
+    account.loopUpdatedOutbox.publisher = ({ accountId, skillId, notification }) =>
+      classic.hub.deliverNotification({ accountId, skillId, notification });
+    try {
+      notificationRecovery = await account.loopUpdatedOutbox.recover();
+    } catch (error) {
+      let retained = null;
+      try { retained = account.loopUpdatedOutbox.pending().length; } catch { /* preserve startup failure */ }
+      notificationRecovery = { error: error?.message || String(error), retained };
+    }
 
     const { createGateway } = await import('../../packages/gateway/src/index.js');
     const { loadConfig } = await import('../../packages/gateway/src/config.js');
@@ -133,6 +162,13 @@ export async function startAuthenticatedRobotStack({
       revision: execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
       worktree: root, node: process.version, endpoints,
       authentication: 'real signed Account CreateHubToken and Hub JWT verification',
+      notification: {
+        accountStore: accountPath,
+        notificationFile: resolve(directory, 'notifications.json'),
+        accountDocumentIdentity: 'Account._id/id from the verified SigV4 credential record',
+        publisherAttachedAfterClassicReady: typeof account.loopUpdatedOutbox.publisher === 'function',
+        recovery: notificationRecovery,
+      },
       compiledProfile, capture: 'no launcher wire or audio capture',
       scope: 'Development process lifecycle. History and notification durability and host/robot reboot supervision remain separate work.',
     };
