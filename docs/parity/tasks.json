@@ -1264,7 +1264,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.",
+      "finding": "The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open. Root rejected700e40c despite two repaired209 rows: a native w03-versus-star control changes from correct w03 on baseline to incorrect star. Main retains51; general relative wildcard arbitration repair is required.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1472,6 +1472,15 @@
           "scope": "Preserve apostrophes in default AST input tokens and grammar literals. Root original Node 8 preparation and native/compiler checks pass: 21/21 native controls, up from 19. The completed 20,528-request HTTP replay retains 20,476 matches and the same 52 residuals; root reconciled all outputs and exact package identity. Root verification passes 677 unit tests, with seven skips, and all 43 strict smoke cases. Full N-08 remains open.",
           "artifact": "docs/parity/candidates/N-08-apostrophe-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-apostrophes/review.json"
+        },
+        {
+          "state": "changes_requested",
+          "assignee": "Luna Max / audio_encoding_repair",
+          "candidateRevision": "700e40c56938b62e0b203c328434bcdd436eaaa8",
+          "reviewedBy": "Codex root",
+          "scope": "Two209 fixes do not justify a new native-confirmed w03-versus-star intent regression. No full replay or integration accepted.",
+          "artifact": "docs/parity/candidates/N-08-w03-root-review-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-w03-rejected/review.json"
         }
       ],
       "deploymentReview": {
@@ -1508,7 +1517,7 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Codex root / Luna Max team",
-        "scope": "Continue the 52 default AST residuals against pinned source/native semantics, using a general source/native-backed repair for the next coherent residual family. Establish persistent authenticated deployment of the accepted portable profile, then original native expiry/retry and full robot microphone/wake/ring acceptance. No whole-task credit until complete criteria are verified."
+        "scope": "Continue the 51 default AST residuals against pinned source/native semantics, using a general source/native-backed repair for the next coherent residual family. Establish persistent authenticated deployment of the accepted portable profile, then original native expiry/retry and full robot microphone/wake/ring acceptance. No whole-task credit until complete criteria are verified."
       }
     },
     {
@@ -2921,7 +2930,7 @@
       "phoenix": [
         "packages/classic/src/notification.js"
       ],
-      "finding": "Main notification storage remains ephemeral. Luna supplied an isolated durable queue/socket candidate 2d3563 with focused checks; root review found rejected persistence can still mutate in-memory tokens or pending rows, and the token store inherits broad file permissions. Changes requested before integration. Automatic LoopUpdated production, verified account identity and full delivery/hardware lifecycle remain open. Follow-up7f56d06 adds rollback and a suspension outbox, but root reproduced child-process termination on connection/close/expiry-poll storage faults and a concurrent second update stranded until explicit recovery. Further repair is required; no acceptance is claimed.",
+      "finding": "Root accepted the local durable notification lifecycle and suspension outbox at29ffac3 after fixing persistence rollback, callback/poll crashes and concurrent update delivery. Fresh original Node8 modules, complete source producer payload, local TLS restart delivery,740 units and strict43 pass. Token issuance still uses the LAN access-key/device fallback while the producer correctly uses a robot Account document ID; verified identity resolution is next. No default authenticated event bridge, all Loop-save producers, shared store or full robot lifecycle acceptance is claimed.",
       "acceptance": [
         "Compare token issuance/reuse, socket authentication, status, framing, delivery/reconnect/expiry and queue behavior with the original consumer.",
         "Verify ordering, replay/ack behavior where present in source, persistence and multiple-device/account isolation.",
@@ -2929,10 +2938,35 @@
       ],
       "verification": [],
       "nextImplementation": {
-        "state": "changes_requested",
+        "state": "working",
         "assignee": "Luna Max / http_contract_repair; Codex root",
-        "candidateRevision": "7f56d06fe84ed160e02252b6a7b76a0e750b8152",
-        "scope": "Durable notification and suspension outbox follow-up: root reproduced connection/close/poll storage-fault crashes and a stranded concurrent update. Further repair required before acceptance.",
+        "scope": "Resolve NewRobotToken to a verified robot Account document ID, matching producer routing; verify actual HTTP/socket identity failures and recovery. Default authenticated event bridge, other Loop saves and hardware acceptance remain open."
+      },
+      "implementationReviewHistory": [
+        {
+          "state": "changes_requested",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "7f56d06fe84ed160e02252b6a7b76a0e750b8152",
+          "scope": "Durable notification and suspension outbox follow-up: root reproduced connection/close/poll storage-fault crashes and a stranded concurrent update. Further repair required before acceptance.",
+          "artifact": "docs/parity/candidates/A-10-notification-root-review-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-pending/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded durable local notification/socket lifecycle and explicit suspension outbox, repaired callback/race failures, fresh original Node8 controls, local TLS restart delivery,740 units and strict43. Whole A-10 remains open.",
+          "artifact": "docs/parity/candidates/A-10-notification-root-review-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-pending/review.json"
+        }
+      ],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / http_contract_repair; Codex root",
+        "candidateRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded durable local notification/socket lifecycle and explicit suspension outbox, repaired callback/race failures, fresh original Node8 controls, local TLS restart delivery,740 units and strict43. Whole A-10 remains open.",
         "artifact": "docs/parity/candidates/A-10-notification-root-review-20260907.md",
         "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-pending/review.json"
       }

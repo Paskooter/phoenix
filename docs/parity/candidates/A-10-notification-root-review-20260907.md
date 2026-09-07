@@ -1,4 +1,4 @@
-# A-10 durable notification candidate — changes requested
+# A-10 notification review and bounded acceptance
 
 Candidate `2d3563f` adds durable token/pending storage and source-shaped socket
 delivery. It remains isolated and unverified.
@@ -22,3 +22,17 @@ loop update waiting until explicit recovery when it arrives during an active
 drain. These substantive delivery failures require repair before integration;
 exact diagnostic wording is nonblocking. The linked review preserves the
 baseline controls and follow-up receipts separately.
+
+Root accepted the combined local lifecycle at `29ffac3` after independent
+reproduction: the three storage-fault children exit cleanly, concurrent updates
+both drain, and the complete LoopUpdated source payload matches fresh original
+Node8 execution. The integrated suite passes **740 units, seven skips and
+strict43 with zero differences, invariants or gaps**. A real local TLS launcher
+check preserves an offline notification across restart, receives the full
+large source-shaped document and verifies deletion after the successful send.
+
+Earlier failures above remain historical evidence. The accepted scope is local
+persistence/socket delivery plus the explicitly injected suspension outbox.
+Verified public notification account resolution, default Account publishing,
+other Loop saves, shared storage and real-robot acceptance remain open. Full
+A-10 is not checked off.

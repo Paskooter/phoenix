@@ -272,3 +272,12 @@ the issued token on both Hub paths. The final suite passes720 units and strict43
 Notification follow-up review also reproduced storage-fault crashes in socket
 callbacks/polling and a concurrent outbox update left waiting for explicit recovery;
 those substantive delivery failures remain with the agent for repair.
+
+The [notification follow-up](candidates/A-10-notification-root-review-20260907.md)
+is now accepted for local persistence, socket delivery and the explicit
+suspension outbox. Root reproduced recovery from the earlier callback/race
+failures, fresh original Node8 behavior and local TLS restart delivery;740 units
+and strict43 pass. Verified token/account identity, default event publishing
+and robot acceptance remain open. The separate `$w03` parser proposal is
+rejected because a native-confirmed relative wildcard selection regresses;
+main retains the51-residual baseline.

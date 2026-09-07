@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "changes requested; not integrated",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "700e40c56938b62e0b203c328434bcdd436eaaa8",
+  "agentResults": "20 focused passes,101 NLU passes/5 configured skips,209 cases improve158 to160 matches; no full replay.",
+  "rootRegression": {
+    "grammar": "TopRule = ((a $w03 c){% intent='w03' %}|(a $* c){% intent='star' %});\n",
+    "input": "a one c",
+    "results": {
+      "baseline": {
+        "entities": {
+          "intent": "w03"
+        },
+        "subFields": {},
+        "specificity": 2,
+        "cost": 3,
+        "priority": "",
+        "score": -1
+      },
+      "candidate": {
+        "entities": {
+          "intent": "star"
+        },
+        "subFields": {},
+        "specificity": 2,
+        "cost": 3,
+        "priority": "",
+        "score": -1
+      }
+    }
+  },
+  "nativeControl": {
+    "output": [
+      {
+        "Input": "a one c",
+        "NLParse": {
+          "intent": "w03"
+        },
+        "heuristic_score": 4,
+        "index": 0
+      }
+    ],
+    "qualification": "Agent preserved execution of archived native binary; root independently reran baseline and candidate matcher on this exact grammar/input. Root did not rerun native executable for this review.",
+    "sha256": "e9971cb42f32955c4d84a1302a5130dd4ad88c57980fd217ad3abc328f41b620"
+  },
+  "rootReceiptSha256": "6df630ed263c437b878d09f94284b34ce542894646be1d4e538e82b7a1f91fde",
+  "requiredRepair": "Preserve relative wildcard arbitration with native compiler arc semantics; do not classify a new baseline intent regression as an unrelated existing limitation.",
+  "acceptedBaseline": "20477/20528 matching original HTTP status/data requests;51 residuals remains unchanged.",
+  "fullTaskVerified": false
+}

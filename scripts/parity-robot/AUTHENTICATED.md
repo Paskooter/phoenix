@@ -50,8 +50,8 @@ log retention. SIGINT/SIGTERM closes its sockets and listening servers.
 This is a development process launcher, not a claim of complete cloud parity.
 Only CreateHubToken has the reviewed Classic signature verifier; other Classic
 operations retain their documented boundaries. Account credentials/signing
-secret survive process restarts through the supplied files. History and
-notification persistence, automatic LoopUpdated delivery, and host/robot reboot
+secret survive process restarts through the supplied files. History durability,
+automatic LoopUpdated delivery, and host/robot reboot
 supervision remain separate tracked work. Inspect the current parity ledger
 before deploying a later integration.
 

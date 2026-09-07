@@ -65,5 +65,86 @@
       "Schedule delivery for updates appended during an active drain without creating a tight failure retry loop."
     ],
     "qualification": "No real robot test or default authenticated event bridge acceptance. Harmless diagnostic wording is not a blocker."
+  },
+  "finalRootReview": {
+    "decision": "accepted bounded local notification persistence/delivery and suspension outbox; full A-10 remains open",
+    "candidateRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+    "agentRevisions": [
+      "2d3563f7091f322aa8a56bb07557f3809f061da8",
+      "3b6252265d6015eac74cae8699a5b89b673a82e1",
+      "f6c92c5151953a96c1fe884132f16b086b2e1eba",
+      "e6d87cf5053fd5c1b5882cc6af0c2d1baf0a7381",
+      "a3d0f6ca5cdec7b7816cf4834ccbb6838c72ca86"
+    ],
+    "rootIntegration": "Preserved actual Classic HTTPS shared notification upgrade and private Account snapshots; launcher notificationFile is its private runDir/notifications.json.",
+    "sourceControls": {
+      "compiler": "TypeScript2.5.3",
+      "runtime": "Node8.9.4",
+      "modules": [
+        "original notification controller",
+        "original socket server",
+        "original Account Loop post-save hook"
+      ],
+      "method": "Root independently recompiled pinned original modules, verified byte equality with prior compiled source, and executed controlled original modules. Mongo/client/event infrastructure are named seams. Complete LoopUpdated event payload equals candidate and routes to saved robot account document ID.",
+      "initialStartupDelay": "Initial controller Docker client timed out at60s during high system disk I/O. Container later appeared Created; root started/attached it and observed actual exit0. Other source controls exited0. Failed setup remains retained."
+    },
+    "rootFaultControls": {
+      "connectionSetup": "Prior child exit1/cache leak; final exit0, empty caches.",
+      "socketClose": "Prior child exit1; final exit0.",
+      "scheduledExpiryPoll": "Prior child exit1; final exit0.",
+      "concurrentOutbox": "Both committed rows publish after releasing first publisher gate, without explicit recovery.",
+      "method": "Same owned filesystem EISDIR faults and synthetic EventEmitter socket as prior probes; actual timer and child-process exits."
+    },
+    "launcher": {
+      "at": "2026-09-07T11:07:26.037Z",
+      "head": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+      "checks": [
+        "initial-launch-private-store",
+        "real-signed-issuer",
+        "actual-account-suspend-200",
+        "suspension-persisted",
+        "launcher-private-notification-file",
+        "offline-notification-retained",
+        "saved-store-private",
+        "restart-success",
+        "notification-token-survives-restart",
+        "full-large-source-envelope-over-tls-after-restart",
+        "successful-send-removes-durable-row",
+        "old-issued-token-listen-after-restart",
+        "old-issued-token-proactive-after-restart"
+      ],
+      "savedMode": "600",
+      "restartError": null,
+      "qualification": "Synthetic credentials, owned ephemeral real Phoenix services/TLS/account mutation/Hub sockets, no robot. Suspend uses existing LAN access-key parser (not signature-verification proof); CreateHubToken signature is real. Imported launcher under umask0002; CLI already sets0077. Notification token/enqueue use explicit internal account-ID seam; no verified public notification auth or automatic Account producer bridge claimed."
+    },
+    "suite": {
+      "unitPassed": 740,
+      "unitSkipped": 7,
+      "unitFailed": 0,
+      "strictCases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "exitCode": 0,
+      "seconds": 412.6348976488225,
+      "inputsFrozen": true
+    },
+    "artifacts": {
+      "compile-receipt.json": "63f9d8a2a4a9957359be6f705f4ade77725b8295b8fa691c24a6452d3101baa0",
+      "controller-execution.json": "7d77e933c675b187d6c6ebe1d270911ecfa28f815d8401f5555f99e607fd3c53",
+      "source-remaining-execution.json": "72ab1958927afc90d0366f65c86c729fda8a214c22b342a42271f80ad3799fa4",
+      "producer-comparison.json": "9e2fd4303758cc3e4588cb523029d3f50aee38db3713e0e72ad36bd8d4052fa7",
+      "callback-faults.json": "8336289a6d414387c8660e0887bd011c220724ace55d63bb9910a0756fda65bd",
+      "concurrent-drain.json": "383bba646b2e08c3d9ccf472b3adeaefd6576b8d582aa4f95e1874761a7dfae4",
+      "launcher-restart.mjs": "dd97e870f6bb4b86ad348e37f38f7b76971d3929c62c9ff18d7f0657e172e2ca",
+      "launcher.json": "cce616dc6586e6fe15c45e8acc55088ca30b598ec1ff0ea960eb13530034adcb",
+      "suite/execution.json": "f28bf99d3d2d19eb854a469389971b8c9e333c146363601d8d4e00cbd58252a9"
+    },
+    "limits": [
+      "Public NewRobotToken still uses the documented LAN access-key/device fallback; verified robot Account document-ID resolution is the next repair.",
+      "Only suspension emits LoopUpdated in Account. Publisher is explicitly injected; no default cross-process bridge, SNS/SQS or other Loop-save production is claimed.",
+      "Local process restart is verified; shared-writer locking, Mongo/event-bus durability, full retention/reboot deployment and robot acceptance remain open.",
+      "A successful WebSocket send callback is the source deletion boundary, not an application-level robot acknowledgement."
+    ]
   }
 }

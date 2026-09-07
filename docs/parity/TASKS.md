@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.
+The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open. Root rejected700e40c despite two repaired209 rows: a native w03-versus-star control changes from correct w03 on baseline to incorrect star. Main retains51; general relative wildcard arbitration repair is required.
 
 Done when:
 
@@ -1488,7 +1488,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-02, A-03.
 
-Main notification storage remains ephemeral. Luna supplied an isolated durable queue/socket candidate 2d3563 with focused checks; root review found rejected persistence can still mutate in-memory tokens or pending rows, and the token store inherits broad file permissions. Changes requested before integration. Automatic LoopUpdated production, verified account identity and full delivery/hardware lifecycle remain open. Follow-up7f56d06 adds rollback and a suspension outbox, but root reproduced child-process termination on connection/close/expiry-poll storage faults and a concurrent second update stranded until explicit recovery. Further repair is required; no acceptance is claimed.
+Root accepted the local durable notification lifecycle and suspension outbox at29ffac3 after fixing persistence rollback, callback/poll crashes and concurrent update delivery. Fresh original Node8 modules, complete source producer payload, local TLS restart delivery,740 units and strict43 pass. Token issuance still uses the LAN access-key/device fallback while the producer correctly uses a robot Account document ID; verified identity resolution is next. No default authenticated event bridge, all Loop-save producers, shared store or full robot lifecycle acceptance is claimed.
 
 Done when:
 
@@ -1501,6 +1501,14 @@ Source: [jiborobot/srv-jibo-server-client/apis/notification-2015-05-05.normal.js
 Phoenix: [packages/classic/src/notification.js](../../packages/classic/src/notification.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
+
+Candidate scope: Bounded durable local notification/socket lifecycle and explicit suspension outbox, repaired callback/race failures, fresh original Node8 controls, local TLS restart delivery,740 units and strict43. Whole A-10 remains open.
+
+Candidate report: [docs/parity/candidates/A-10-notification-root-review-20260907.md](../../docs/parity/candidates/A-10-notification-root-review-20260907.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/notification-pending/review.json](../../docs/parity/evidence/2026-09-07/notification-pending/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-11 — Complete key exchange, backup and binary-key operations
 

@@ -235,7 +235,7 @@ curl -s :9012/ -H 'x-amz-target: OOBE_20161026.SetupRobot' -d '…'           # 
 | settings | `Settings_*` | ✅ end-to-end | the personal report's per-user prefs |
 | log | `Log_*` | ✅ wire | robot telemetry upload (no-op sink) |
 | robot | `Robot_*` | ✅ wire | boot-time read records (calibration stays local) |
-| notification + socket | `Notification_*` | ✅ wire | the wss push door (`/socket/<token>`) |
+| notification + socket | `Notification_*` | ◑ partial | durable local queue/socket and restart tests; verified account identity and automatic event publishing remain open |
 | key | `Key_*` | ✅ wire | UGC encryption-key exchange |
 | push | `Push_*` | ◑ stub | device register; delivery no-op (no APNs/FCM/app) |
 | rom · media · person · backup · ifttt · nlp · collision | various | ◑ build-to-spec | wire-tested shapes; need the app/hardware to exercise |
