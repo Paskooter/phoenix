@@ -31,51 +31,64 @@ function providers(active) {
   };
 }
 
-async function request(port) {
+async function request(port, operation) {
   const response = await fetch(`http://127.0.0.1:${port}/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-amz-target': 'Settings_20171219.GetSettings',
+      'x-amz-target': `Settings_20171219.${operation}`,
       'x-amz-credentials': JSON.stringify({ id: context.userId }),
     },
-    body: JSON.stringify({ loopId: context.loopId }),
+    body: JSON.stringify({ loopId: context.loopId,
+      ...(operation === 'GetSettings' ? {} : { data: {} }) }),
   });
   return { status: response.status, body: await response.json() };
 }
 
-test('Hub error code survives a 500 source envelope while transport codes stay private', async () => {
-  const active = { current: null };
-  const dir = mkdtempSync(join(tmpdir(), 'phx-settings-hub-error-projection-'));
-  const service = await createSettingsInternalService({
-    store: new Store(join(dir, 'store.json')),
-    settingsProviders: providers(active),
-  }).listen(0);
-  try {
-    active.current = boom(500, 'Internal Server Error', 'hub unavailable', 'HUB_DOWN');
-    assert.deepEqual(await request(service.address().port), {
-      status: 500,
-      body: {
-        message: 'An internal server error occurred',
-        statusCode: 500,
-        error: 'Internal Server Error',
-        code: 'HUB_DOWN',
-      },
-    });
+for (const operation of ['GetSettings', 'UpdateSettings', 'DeleteSettings']) {
+  test(`${operation} preserves provider Boom codes and omits internal diagnostic codes`, async () => {
+    const active = { current: null };
+    const dir = mkdtempSync(join(tmpdir(), 'phx-settings-hub-error-projection-'));
+    const service = await createSettingsInternalService({
+      store: new Store(join(dir, 'store.json')),
+      settingsProviders: providers(active),
+    }).listen(0);
+    try {
+      active.current = boom(500, 'Internal Server Error', 'hub unavailable', 'HUB_DOWN');
+      assert.deepEqual(await request(service.address().port, operation), {
+        status: 500,
+        body: {
+          message: 'An internal server error occurred',
+          statusCode: 500,
+          error: 'Internal Server Error',
+          code: 'HUB_DOWN',
+        },
+      });
 
-    const transport = boom(502, 'Bad Gateway', 'Client request error: connect ECONNREFUSED', undefined);
-    transport.code = 'ECONNREFUSED';
-    active.current = transport;
-    assert.deepEqual(await request(service.address().port), {
-      status: 502,
-      body: {
-        statusCode: 502,
-        error: 'Bad Gateway',
-        message: 'Client request error: connect ECONNREFUSED',
-      },
-    });
-  } finally {
-    await new Promise((resolve) => service.close(resolve));
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
+      const transport = boom(502, 'Bad Gateway', 'Client request error: connect ECONNREFUSED', undefined);
+      transport.code = 'ECONNREFUSED';
+      active.current = transport;
+      assert.deepEqual(await request(service.address().port, operation), {
+        status: 502,
+        body: {
+          statusCode: 502,
+          error: 'Bad Gateway',
+          message: 'Client request error: connect ECONNREFUSED',
+        },
+      });
+
+      active.current = Object.assign(new Error('internal provider error'), { code: 'LOCAL_DIAGNOSTIC' });
+      assert.deepEqual(await request(service.address().port, operation), {
+        status: 500,
+        body: {
+          message: 'An internal server error occurred',
+          statusCode: 500,
+          error: 'Internal Server Error',
+        },
+      });
+    } finally {
+      await new Promise((resolve) => service.close(resolve));
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+}

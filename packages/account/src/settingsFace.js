@@ -230,7 +230,10 @@ function sourceErrorInfo(error) {
   // Transport errors can retain a low-level `error.code` such as
   // ECONNREFUSED on the Error object, but the source Hapi envelope does not
   // expose that implementation detail when the Boom output has no code.
-  const code = hasSourceCode ? source.code
+  // @jibo/server wraps ordinary errors in a new generic Boom response. Their
+  // own diagnostic code never becomes part of that public output payload.
+  const code = !(error && error.isBoom) ? undefined
+    : hasSourceCode ? source.code
     : payload ? undefined
       : hasErrorCode ? error.code : undefined;
   const message = source.message || (error && error.message) || 'An internal server error occurred';
@@ -824,7 +827,7 @@ function dispatchMutationWithProviders(res, req, body, providers, operation) {
     .catch((error) => {
       const info = sourceErrorInfo(error);
       if (info.status === 500) {
-        sourceError(res, 500, 'Internal Server Error', 'An internal server error occurred', undefined, true);
+        sourceError(res, 500, 'Internal Server Error', 'An internal server error occurred', info.code, true);
       } else {
         sourceError(res, info.status, info.errorName, info.message, info.code, true);
       }
