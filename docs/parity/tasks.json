@@ -2343,7 +2343,7 @@
         "packages/skills/src/jcp.js",
         "packages/gateway/resources/skills"
       ],
-      "finding": "Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open.",
+      "finding": "Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open. The separate multi-provider candidate passes 36 fresh root response/recovery cases, including late winners, with the original MarkupSafe dependency. Unicode predicate faults require changes before integration; transport-exception recovery and provenance review remain open.",
       "acceptance": [
         "Inventory Pegasus GQA/news entrypoints and question routing, Wikipedia/Wolfram/Bing fallbacks, attributions and no-answer behavior from original source.",
         "Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.",
@@ -2351,10 +2351,10 @@
       ],
       "verification": [],
       "nextImplementation": {
-        "state": "awaiting_review",
+        "state": "changes_requested",
         "assignee": "Luna Max / capture_writer_repair; Codex root",
         "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
-        "scope": "Explicit multi-provider profile passes 32 fresh root source/response/recovery comparisons and bounded phase/deadline controls. Original Node 8 consumer framing passes six controls. Exact dependency runtime, Unicode follow-up, transport-reset recovery and late-first-group winner checks remain pending. No integration, deployment or whole-task credit.",
+        "scope": "Explicit multi-provider profile passes 36 fresh root response/recovery comparisons with original MarkupSafe 1.0 and actual Unidecode 1.0.22, including late Bing/Wikipedia winners while Wolfram is pending. Root found Unicode predicate composition faults; repair and source/provider confirmation are assigned. Transport-exception recovery, provenance and whole-task deployment remain open.",
         "artifact": "docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md",
         "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json"
       },

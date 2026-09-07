@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "date": "2026-09-07",
-  "decision": "awaiting root acceptance; dependency and Unicode review remains pending",
+  "decision": "changes requested for Unicode behavior; exact dependency runtime and late-winner controls now pass",
   "reviewedBy": "Codex root",
   "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
   "profile": "explicit opt-in multi-provider; not deployed",
@@ -22,10 +22,45 @@
     "consumerFraming": "Root repeated six original Node 8 SkillRequestMaker/Axios exchanges: valid actions, HTTP failures and malformed JSON have matching dispositions across the observed media types."
   },
   "open": [
-    "MarkupSafe 1.0 fails to build with the available setuptools; actual source run used the declared 1.1.1 fallback. Isolated compatible build tooling is being established.",
-    "Actual Unidecode 1.0.22 follow-up cc77f73 is unverified; generated dependency data needs source/provenance review.",
-    "Current failure fixtures are HTTP failures, not transport exceptions that replace a requests.Session.",
-    "The late first-group case returns before Bing arrives; it does not prove a late Bing winner while Wolfram remains pending.",
-    "Whole Q-01, account/attribution, live providers, default deployment, full corpus gaps and robot acceptance remain open."
-  ]
+    "Unicode predicate repair and compound-string source/provider controls; generated data provenance remains under review.",
+    "Transport-exception Session replacement/recovery; current failures are HTTP responses.",
+    "Whole Q-01, account/attribution, live providers, default deployment, full corpus gaps and robot acceptance."
+  ],
+  "exactDependencyFollowup": {
+    "cases": 36,
+    "matches": 36,
+    "recoveryRequests": 18,
+    "sourceExitCode": 0,
+    "candidateExitCode": 0,
+    "frozenInputsStable": true,
+    "sourceRuntime": {
+      "flask": "0.12.2",
+      "markupsafe": "1.0",
+      "python": "3.6.15 (default, Dec 21 2021, 12:28:02) \n[GCC 8.3.0]",
+      "unidecodeWheelSha256": "72f49d3729f3d8f5799f710b97c1451c5163102e76d64d20e170aedbbd923582"
+    },
+    "buildTooling": "setuptools39.2.0 selected for Feature compatibility; not an exact historical tooling claim. Python3.6.15 image remains an inferred era runtime. MarkupSafe1.0 uses the pure-Python build.",
+    "sourceSeconds": 101.75021479884163,
+    "candidateSeconds": 38.279085042886436,
+    "newBehaviorChecks": "Late Bing and Wikipedia results win after the three-second first group expires, while Wolfram is still pending. Both return before Wolfram completes; each is followed by a valid recovery request.",
+    "phaseChecks": {
+      "sourceRows": 36,
+      "candidateRows": 36,
+      "negativeControlsRejected": 6
+    },
+    "comparisonSha256": "f967dd3cbf4a7a2ad57082915c07fb9b449dc90c7ae8836691f0b61e7c7c5f1d",
+    "timingReviewSha256": "daee6f838ac50f9a26c5e425d21be14117ebc0170cc7dd1f77a4bad45fb7709c",
+    "executionSha256": "a750819ee2369765c168a4be64589133d4e85dc8df517ed4e007e610e4a80039",
+    "sourceCaptureSha256": "a38f015bb8527f1885d4abecd49532f248f210e8b858dd16e244d6d9ed21ec6a",
+    "candidateCaptureSha256": "06bc54fabf51e7b6cfe33792e25ea1e1606724c8cfb4080f266633f98027db46"
+  },
+  "unicodeReviewFinding": {
+    "candidate": "cc77f73c9c32252955b731e3042d8b39743d8ed9",
+    "state": "changes_requested",
+    "rootPredicateCases": 8,
+    "differences": 5,
+    "finding": "The generated projection erases dot-only Unicode mappings inside strings, changing prefix classification. The adapter also fails to apply dot trimming before the prefix check. Both can change whether a reply is spoken.",
+    "qualification": "Root isolated the predicate using the pinned Unidecode wheel under host Python; original Python3.6 provider confirmation and general repair are assigned to Luna. Prior single-code-point vectors do not prove composition.",
+    "comparisonSha256": "fb1d0d5975f89e69c487c8eced1f03b7ea765d2cd13ea847a120f13e8dba6e44"
+  }
 }

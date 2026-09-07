@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open.
+Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open. The separate multi-provider candidate passes 36 fresh root response/recovery cases, including late winners, with the original MarkupSafe dependency. Unicode predicate faults require changes before integration; transport-exception recovery and provenance review remain open.
 
 Done when:
 

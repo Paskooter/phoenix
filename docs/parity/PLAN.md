@@ -225,6 +225,7 @@ The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts 
 
 Current parallel candidates remain separate from accepted main: the [suspension
 candidate](candidates/A-04-suspension-root-pending-20260907.md) has passing root
-integration and original-client controls, and the [multi-provider candidate](candidates/Q-01-multiprovider-root-pending-20260907.md) has 32 passing fresh
-root response/recovery comparisons. Their remaining source and dependency
+integration and original-client controls, and the [multi-provider candidate](candidates/Q-01-multiprovider-root-pending-20260907.md) has 36 passing fresh
+root response/recovery comparisons with the original MarkupSafe dependency,
+but needs a Unicode predicate repair. Their remaining source and dependency
 checks are explicit; neither receives full task completion credit.
