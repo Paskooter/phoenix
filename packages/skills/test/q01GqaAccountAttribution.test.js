@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { createService } from '@phoenix/common';
 import {
   createGqaAccountLookup,
   createGqaAttributionStore,
@@ -416,4 +417,129 @@ test('attribution route factories retain source error status for missing credent
   assert.equal(sent[0][0], 'status');
   assert.equal(sent[0][1], 500);
   assert.ok(createGqaHttpRoute({ handler: async () => ({}) }).jsonStrict === false);
+});
+
+test('attribution HTTP routes preserve source parser boundaries and retrieve ordering', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Bing', 'A fixture answer.', 'https://fixture.invalid/result', null, 'loop-1');
+  const accountCalls = [];
+  const storageCalls = [];
+  const trackedAttribution = {
+    async search(...args) {
+      storageCalls.push('find');
+      const result = await attribution.search(...args);
+      storageCalls.push('limit');
+      return result;
+    },
+    async wipe(...args) {
+      storageCalls.push('delete_many');
+      return attribution.wipe(...args);
+    },
+  };
+  const routes = {
+    'POST /retrieveAtt': createGqaRetrieveAttributionRoute({
+      accountLookup: async (id) => {
+        accountCalls.push(id);
+        return 'loop-1';
+      },
+      attribution: trackedAttribution,
+    }),
+    'POST /wipeID': createGqaWipeAttributionRoute({ attribution: trackedAttribution }),
+  };
+  const server = await createService({ name: 'q01-attribution-boundary-test', routes }).listen(0);
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  async function post(path, body, headers = {}) {
+    return fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...headers },
+      body,
+    });
+  }
+  try {
+    let response = await post('/retrieveAtt', 'null', {
+      'x-amz-credentials': JSON.stringify({ id: 'account-1' }),
+    });
+    assert.equal(response.status, 500);
+    assert.deepEqual(accountCalls, ['account-1']);
+    assert.deepEqual(storageCalls, []);
+
+    accountCalls.length = 0;
+    storageCalls.length = 0;
+    response = await post('/retrieveAtt', JSON.stringify({ Service: 'Bing', after: '1700000000000' }), {
+      'x-amz-credentials': JSON.stringify({ id: 'account-1' }),
+    });
+    assert.equal(response.status, 500);
+    assert.deepEqual(accountCalls, ['account-1']);
+    assert.deepEqual(storageCalls, ['find']);
+
+    accountCalls.length = 0;
+    storageCalls.length = 0;
+    response = await post('/retrieveAtt', '{}', {
+      'x-amz-credentials': JSON.stringify({ id: 'account-1' }),
+      'content-type': 'text/plain',
+    });
+    assert.equal(response.status, 500);
+    assert.deepEqual(accountCalls, ['account-1']);
+    assert.deepEqual(storageCalls, []);
+
+    accountCalls.length = 0;
+    storageCalls.length = 0;
+    response = await post('/retrieveAtt', '');
+    assert.equal(response.status, 400);
+    assert.deepEqual(accountCalls, []);
+    assert.deepEqual(storageCalls, []);
+
+    response = await post('/wipeID', '');
+    assert.equal(response.status, 400);
+    response = await post('/wipeID', JSON.stringify({ ID: 'loop-1' }));
+    assert.equal(response.status, 200);
+    assert.deepEqual(JSON.parse(await response.text()), { deleted_row: 1 });
+  } finally {
+    await closeServer(server);
+  }
+});
+
+
+test('attribution media selection preserves accepted vendor JSON and ignored AWS JSON', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Bing', 'A fixture answer.', 'https://fixture.invalid/result', null, 'loop-1');
+  let calls = 0;
+  const routes = {
+    'POST /retrieveAtt': createGqaRetrieveAttributionRoute({
+      accountLookup: async () => { calls += 1; return 'loop-1'; }, attribution,
+    }),
+    'POST /wipeID': createGqaWipeAttributionRoute({ attribution }),
+  };
+  const server = await createService({ name: 'q01-media', routes }).listen(0);
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const post = (path, body, type) => fetch(base + path, {
+    method: 'POST', body,
+    headers: { 'content-type': type, 'x-amz-credentials': JSON.stringify({ id: 'account-1' }) },
+  });
+  try {
+    const retrieved = await post('/retrieveAtt', '{}', 'application/vnd.fixture+json');
+    assert.equal(retrieved.status, 200);
+    assert.equal((await retrieved.json()).data.length, 1);
+    const beforeMalformed = calls;
+    assert.equal((await post('/retrieveAtt', '{', 'application/vnd.fixture+json')).status, 400);
+    assert.equal(calls, beforeMalformed);
+    assert.equal((await post('/retrieveAtt', '{', 'application/x-amz-json-1.1')).status, 500);
+    assert.equal(calls, beforeMalformed + 1, 'Flask ignores this media body before the account call');
+    assert.equal((await post('/wipeID', '{', 'application/x-amz-json-1.1')).status, 500);
+    assert.equal(attribution.snapshot().length, 1);
+    const wiped = await post('/wipeID', JSON.stringify({ ID: 'loop-1' }), 'application/vnd.fixture+json');
+    assert.equal(wiped.status, 200);
+    assert.deepEqual(await wiped.json(), { deleted_row: 1 });
+  } finally { await closeServer(server); }
+});
+
+test('memory attribution numeric timestamp windows match real Mongo type bracketing', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Bing', 'A fixture answer.', 'https://fixture.invalid/result', null, 'loop-1');
+  for (const before of [String(FIXED_NOW + 1), [FIXED_NOW + 1], { value: FIXED_NOW + 1 }, true, FIXED_NOW]) {
+    assert.deepEqual(await attribution.search('loop-1', 'Bing', before, FIXED_NOW - 1), []);
+  }
+  for (const before of [false, FIXED_NOW + 1, [], {}]) {
+    assert.equal((await attribution.search('loop-1', 'Bing', before, FIXED_NOW - 1)).length, 1);
+  }
 });

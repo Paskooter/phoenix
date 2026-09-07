@@ -19,6 +19,13 @@ export const GQA_ATTRIBUTE_INDEX = Object.freeze({
   service: -1,
 });
 
+// Flask/Werkzeug's malformed and empty JSON requests use this same standard
+// 400 body. It is kept at the opt-in attribution route boundary; other
+// Phoenix routes continue using the common JSON error action.
+const SOURCE_BAD_REQUEST_HTML = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n'
+  + '<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n'
+  + '<p>The browser (or proxy) sent a request that this server could not understand.</p>\n';
+
 function escapeNonAscii(json) {
   // Python json.dumps defaults to ensure_ascii=True.  Deliberately iterate
   // UTF-16 code units so astral values become the same pair of \u escapes.
@@ -135,6 +142,20 @@ function timestampMs(clock) {
   return Math.trunc(value);
 }
 
+// Python compares a truthy JSON timestamp with an integer before building the
+// Mongo query. JavaScript's relational operators would coerce strings,
+// arrays, and objects instead, turning a source TypeError into a successful
+// (and often different) query. Booleans remain numeric in Python and are
+// therefore deliberately accepted here.
+function sourceTimestamp(value, label) {
+  if (sourceTruthy(value)
+    && typeof value !== 'number'
+    && typeof value !== 'boolean') {
+    throw new TypeError(`${label} must be numeric`);
+  }
+  return value;
+}
+
 function attributionRecord(service, query, url, imageUrl, loopId, clock) {
   return {
     service,
@@ -173,6 +194,7 @@ export function createGqaAttributionStore({ collection, clock = Date.now } = {})
 
     async search(loopId, service, before, after) {
       const threshold = timestampMs(clock) - (90 * 24 * 60 * 60 * 1000);
+      sourceTimestamp(after, 'after');
       if (!sourceTruthy(after) || after < threshold) after = threshold;
       const timestamp = { $gt: after };
       if (sourceTruthy(before)) timestamp.$lt = before;
@@ -206,7 +228,13 @@ export function createGqaMemoryAttributionStore({ clock = Date.now } = {}) {
 
     async search(loopId, service, before, after) {
       const threshold = timestampMs(clock) - (90 * 24 * 60 * 60 * 1000);
+      sourceTimestamp(after, 'after');
       if (!sourceTruthy(after) || after < threshold) after = threshold;
+      // Stored timestamps are numeric. Mongo's range operators bracket BSON
+      // types; a truthy nonnumeric bound matches no numeric timestamp. The
+      // source passes `before` to Mongo without a Python numeric comparison.
+      if (typeof after !== 'number'
+        || (sourceTruthy(before) && typeof before !== 'number')) return [];
       return records
         .filter((record) => record.loop_id === loopId
           && (!sourceTruthy(service) || record.service === service)
@@ -263,16 +291,79 @@ function sourceRequestMapping(body) {
   return sourceObject(body, 'request JSON');
 }
 
+function requestContentType(request) {
+  const headers = request?.headers || {};
+  const value = headers['content-type'] ?? headers['Content-Type'];
+  if (value === undefined || value === null) return undefined;
+  return String(value).split(';', 1)[0].trim().toLowerCase();
+}
+
+function requestHasEntity(request) {
+  const headers = request?.headers || {};
+  const rawLength = headers['content-length'] ?? headers['Content-Length'];
+  const length = Number(rawLength);
+  if (Number.isFinite(length)) return length > 0;
+  return headers['transfer-encoding'] !== undefined || headers['Transfer-Encoding'] !== undefined;
+}
+
+function isSourceJsonRequest(request) {
+  const type = requestContentType(request);
+  return type === 'application/json'
+    || (type?.startsWith('application/') && type.endsWith('+json'));
+}
+
+function sourceRequestBody(context) {
+  // Flask 0.12 accepts application/json and application/*+json. Keep
+  // unsupported media out of the parser as well as this route's body access.
+  if (!isSourceJsonRequest(context?.req)) return null;
+  return context?.body;
+}
+
+function emptyJsonRequest(request) {
+  return isSourceJsonRequest(request) && !requestHasEntity(request);
+}
+
+function sendSourceBadRequest(context) {
+  const response = context?.res;
+  if (response && typeof response.status === 'function'
+    && typeof response.setHeader === 'function' && typeof response.end === 'function') {
+    response.status(400);
+    // Express's `res.set()` appends a charset to text media types. The source
+    // Flask response has exactly `text/html`, so use Node's header primitive
+    // for this opt-in framework error body.
+    response.setHeader('Content-Type', 'text/html');
+    response.setHeader('Content-Length', String(Buffer.byteLength(SOURCE_BAD_REQUEST_HTML)));
+    response.end(SOURCE_BAD_REQUEST_HTML);
+    return undefined;
+  }
+  if (response && typeof response.status === 'function'
+    && typeof response.type === 'function' && typeof response.send === 'function') {
+    response.status(400).type('html').send(SOURCE_BAD_REQUEST_HTML);
+    return undefined;
+  }
+  return SOURCE_BAD_REQUEST_HTML;
+}
+
+function sourceParserError(context) {
+  return sendSourceBadRequest(context);
+}
+
 /** Source `/retrieveAtt`, exposed only when account and storage are selected. */
 export function createGqaRetrieveAttributionRoute({ accountLookup, attribution } = {}) {
   if (typeof accountLookup !== 'function') throw new TypeError('GQA retrieveAtt requires an account lookup');
   if (!attribution || typeof attribution.search !== 'function') throw new TypeError('GQA retrieveAtt requires attribution storage');
   const route = async (context = {}) => {
+    // Flask rejects an empty application/json entity in request.json before
+    // the account lookup. Keep that route-local 400 without changing the
+    // common parser used by other services.
+    if (emptyJsonRequest(context.req)) return sendSourceBadRequest(context);
     try {
-      const body = sourceRequestMapping(context.body);
       const userId = credentialsFromRequest(context.req);
       const loopId = await accountLookup(userId);
       if (!sourceTruthy(loopId)) throw new Error('No robot ID!');
+      // Source performs the account call before data.get(), so top-level
+      // JSON values retain the account side effect before their 500.
+      const body = sourceRequestMapping(sourceRequestBody(context));
       const data = await attribution.search(loopId, body.Service, body.before, body.after);
       return sendSourceJson(context, { data });
     } catch (error) {
@@ -282,6 +373,9 @@ export function createGqaRetrieveAttributionRoute({ accountLookup, attribution }
   // Flask accepts top-level JSON values and lets the route produce its own
   // failure; the common service's loose parser gives this route that boundary.
   route.jsonStrict = false;
+  route.jsonTypes = ['application/json', 'application/*+json'];
+  route.bodyDefault = null;
+  route.parserError = sourceParserError;
   return route;
 }
 
@@ -289,8 +383,9 @@ export function createGqaRetrieveAttributionRoute({ accountLookup, attribution }
 export function createGqaWipeAttributionRoute({ attribution } = {}) {
   if (!attribution || typeof attribution.wipe !== 'function') throw new TypeError('GQA wipeID requires attribution storage');
   const route = async (context = {}) => {
+    if (emptyJsonRequest(context.req)) return sendSourceBadRequest(context);
     try {
-      const body = sourceRequestMapping(context.body);
+      const body = sourceRequestMapping(sourceRequestBody(context));
       const targetId = requiredField(body, 'ID', 'wipeID request');
       if (!sourceTruthy(targetId)) return sendSourceJson(context, { message: 'No id provided.' });
       return sendSourceJson(context, { deleted_row: await attribution.wipe(targetId) });
@@ -299,5 +394,8 @@ export function createGqaWipeAttributionRoute({ attribution } = {}) {
     }
   };
   route.jsonStrict = false;
+  route.jsonTypes = ['application/json', 'application/*+json'];
+  route.bodyDefault = null;
+  route.parserError = sourceParserError;
   return route;
 }

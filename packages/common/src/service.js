@@ -36,6 +36,7 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
   const urlencoded = bodyParser.urlencoded({ extended: true, verify: captureRawBody });
   const strictJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: true });
   const looseJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: false });
+  const scopedJsonParsers = new WeakMap();
 
   // The trace logger is available to body-parser errors and the final 404 in the
   // same request scope as it is to a handler.
@@ -74,6 +75,17 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     const strict = routeStrict === undefined
       ? (typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict)
       : routeStrict;
+    if (route?.jsonTypes !== undefined) {
+      let parsers = scopedJsonParsers.get(route);
+      if (!parsers) {
+        parsers = {
+          strict: bodyParser.json({ type: route.jsonTypes, verify: captureRawBody, strict: true }),
+          loose: bodyParser.json({ type: route.jsonTypes, verify: captureRawBody, strict: false }),
+        };
+        scopedJsonParsers.set(route, parsers);
+      }
+      return (strict ? parsers.strict : parsers.loose)(req, res, next);
+    }
     return (strict ? strictJson : looseJson)(req, res, next);
   });
 
@@ -103,6 +115,14 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     const reqLog = req._phoenixLog || logger(name, readTrace(req));
     reqLog.error('handler threw', { error: error?.message });
     if (res.headersSent) return next(error);
+    // A source adapter may need to preserve a framework-native parser error
+    // envelope for one endpoint. Keep this opt-in and route-scoped so the
+    // default Phoenix error action remains unchanged for every other route.
+    const parserRoute = findRoute(routes, req);
+    if (error?.type === 'entity.parse.failed'
+      && typeof parserRoute?.parserError === 'function') {
+      return parserRoute.parserError({ req, res, error });
+    }
     const status = Number.isInteger(error?.statusCode)
       ? error.statusCode
       : Number.isInteger(error?.status) ? error.status : 500;
