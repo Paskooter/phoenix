@@ -1,0 +1,581 @@
+{
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevision": "e9b81bd0fa87048fae7182f4f49eaf0b390670d0",
+  "cases": 3,
+  "guards": [
+    {
+      "label": "closeBeforeMessage.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.source.attempt.diagnostic",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "closeBeforeMessage.candidate.attempt.diagnostic",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.delivered.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.delivered.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.attempt.timings.skill",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.attempt.timings.skill",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.rawJSON",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.byteLength",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.contentType",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.peerCompleted",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.loopback",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.rawJSON",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.byteLength",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.contentType",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.peerCompleted",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.loopback",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.request.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.source.request.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.request.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "delayedCompletionAfterClose.candidate.request.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.delivered.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.delivered.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.diagnostic",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.attempt.timings.skill",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.asr",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.nlu",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.diagnostic",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.total",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.attempt.timings.skill",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.rawJSON",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.byteLength",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.contentType",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.peerCompleted",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.loopback",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.rawJSON",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.byteLength",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.contentType",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.peerCompleted",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.loopback",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.request.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.source.request.ts.epoch",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.request.msgID.uuid",
+      "pass": true
+    },
+    {
+      "label": "timeoutAfterClose.candidate.request.ts.epoch",
+      "pass": true
+    }
+  ],
+  "guardFailures": 0,
+  "functionalDifferences": [],
+  "inputHashes": {
+    "source.json": "8b898ca017ae0205f3d379cf6716e94d8cfcd4f95d582c15193d4b53383e877d",
+    "candidate.json": "5129571a46a77b4d9900a20f93200b1a82d67913692764b4314be0c0713a6a3b"
+  },
+  "qualifications": [
+    "Source actual original handler/message reader/ResponseWrapper; EventEmitter socket send/onclose adapter, not original full WebSocket upgrade",
+    "Candidate real WebSocket and actual outer done observation",
+    "Same mapped production timers; source Node8 and candidate Node22; controlled HTTP skill/routing/history seams; no ASR",
+    "Normalize only validated generated envelope IDs/timestamps/elapsed values and timeout diagnostic wording; all nested payloads and code presence retained"
+  ],
+  "diagnostics": "Raw timeout diagnostic wording retained privately and accepted only after code/status and settlement checks; no generated text or client data broadly normalized.",
+  "transportQualification": "Node8 and Node22 request/response close-event flags and library HTTP headers differ; both controlled peers finish responses without prior cancellation. Raw complete captures retained privately."
+}

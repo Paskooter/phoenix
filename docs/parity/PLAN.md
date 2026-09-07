@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **588 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **591 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -204,3 +204,5 @@ The tracker validates metadata, evidence file presence, dependencies, cycles and
 | Broad Classic scope conceals unidentified operations | A-01 maps all discovered targets and investigates non-SDK contracts |
 
 The audit, plan and compatibility manifest are complete; engineering verification is underway. Later release operations, especially robot wiping or firmware changes, need a concrete validated procedure and authorization at the time of execution. No hardware change is required for isolated reference execution.
+
+The latest bounded [listen disconnect/timeout review](evidence/2026-09-07/listen-disconnect/review.json) passes three original-source cases and 140 guards. Its integrated tree passes 591 unit tests and strict43; full H-04 and deployed robot acceptance remain open.

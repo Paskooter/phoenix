@@ -671,7 +671,7 @@
         "packages/gateway/src/skillClient.js",
         "packages/gateway/src/listenTransaction.js"
       ],
-      "finding": "Root accepted bounded release mediation/history plus source trace defaults and launch/continuation fields. Earlier 171 original mediation controls, nine original mediator tests, and 12 HTTP history controls remain accepted. Fresh original-handler/Phoenix-WebSocket controls match two turns, two complete HTTP requests, and eight response frames with 92 guards. Original full transport/authentication, early close/timeout/reset and deployed BE/native-ASR acceptance remain open.",
+      "finding": "Root accepted bounded release mediation/history, trace defaults, launch/continuation, and listen disconnect/timeout layering. Three fresh source comparisons match full functional responses, requests, settlement and history with140 guards; old runtime fails all three new regressions. Original full transport/authentication, proactive/other reset paths and deployed BE/native-ASR acceptance remain open.",
       "acceptance": [
         "Compare general/runtime/skill/result/memo and trace propagation on launch, update, action completion and redirect.",
         "Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution.",
@@ -681,18 +681,17 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / http_contract_repair; Codex root",
-        "candidateRevision": "6ca9d31666efe9bdcc6b2a0621aca08f7236986e",
-        "reviewedCandidateRevision": "95942834fdd0ca87b620dae9163cfe56527f4dec",
+        "candidateRevision": "d15e86345da79b5324b18795040f8b0c8997f559",
+        "reviewedCandidateRevision": "e9b81bd0fa87048fae7182f4f49eaf0b390670d0",
         "reviewedBy": "Codex root",
-        "scope": "Source JiboHeaders defaults and complete launch/continuation requests, opaque sessions, and action frames. Fresh two-turn source-handler/actual-Phoenix-WebSocket comparison passes 92 guards; 588 integrated units and strict 43-case smoke pass. Prior mediation/history acceptance is retained. Full H-04 remains open.",
-        "artifact": "docs/parity/candidates/H-04-session-lifecycle-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/listen-continuation/review.json"
+        "scope": "Bounded listen disconnect and outer/internal transaction timeout layering. Three original-handler/actual-Phoenix-WebSocket comparisons, complete responses/HTTP requests/history,140 guards; three new regressions fail on old code;591 units and strict43 pass. Prior mediation/history/trace/continuation acceptance retained. Full H-04 remains open.",
+        "artifact": "docs/parity/candidates/H-04-disconnect-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/listen-disconnect/review.json"
       },
       "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / http_contract_repair; root acceptance",
-        "candidateRevision": "d15e86345da79b5324b18795040f8b0c8997f559",
-        "scope": "Early listen close/timeout/reset and source outer/internal promise layering candidate has aligned source/candidate schedules and an observable WebSocket regression that fails before the fix. Root review and final integration/deployed acceptance remain required. An independent A-06 Hub provider task is assigned to the agent."
+        "state": "working",
+        "assignee": "Codex root",
+        "scope": "Review remaining full transport/authentication and proactive/reset lifecycle boundaries; verify accepted combined runtime on Moth. Independent Luna agent continues A-06 Hub provider task."
       },
       "implementationReviewHistory": [
         {
@@ -704,6 +703,16 @@
           "scope": "Bounded report release mediation, launch/update/redirect request and response fields, and launch-history side effects. Source171 direct mediation/57 original tests,12 HTTP controls,550 integrated-main units and strict43 pass. FullH04 remains open.",
           "artifact": "docs/parity/candidates/H-04-history-redirect-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/skill-launch/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "6ca9d31666efe9bdcc6b2a0621aca08f7236986e",
+          "reviewedCandidateRevision": "95942834fdd0ca87b620dae9163cfe56527f4dec",
+          "reviewedBy": "Codex root",
+          "scope": "Source JiboHeaders defaults and complete launch/continuation requests, opaque sessions, and action frames. Fresh two-turn source-handler/actual-Phoenix-WebSocket comparison passes 92 guards; 588 integrated units and strict 43-case smoke pass. Prior mediation/history acceptance is retained. Full H-04 remains open.",
+          "artifact": "docs/parity/candidates/H-04-session-lifecycle-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/listen-continuation/review.json"
         }
       ]
     },

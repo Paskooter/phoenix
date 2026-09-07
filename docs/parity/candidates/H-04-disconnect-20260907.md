@@ -1,3 +1,5 @@
+> Root accepted the bounded disconnect/timeout slice; [final review](H-04-disconnect-root-20260907.md) supersedes the candidate status below. Historical evidence and its limitations remain recorded.
+
 # H-04 disconnect, timeout, and session reset candidate
 
 Status: unverified candidate for root review.

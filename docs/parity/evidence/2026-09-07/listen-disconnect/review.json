@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-09-07T03:35:18.415705+00:00",
+  "status": "accepted_bounded_slice",
+  "reviewedBy": "Codex root",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevisions": [
+    "48f1428ed2fc66cb2044a7d1e470fad1d15cf256",
+    "d15e86345da79b5324b18795040f8b0c8997f559"
+  ],
+  "reviewedRuntimeRevision": "e9b81bd0fa87048fae7182f4f49eaf0b390670d0",
+  "wholeTaskVerified": false,
+  "changes": [
+    "Listen disconnect leaves transaction pending for skill completion or outer timeout.",
+    "Whole-transaction timeout rejects with ordinary Error and does not stop the underlying transaction; later skill completion can record history.",
+    "Root replaced helper-only and delay-sensitive tests with three real-WebSocket/held-HTTP response regressions and deterministic deadline invocation."
+  ],
+  "validation": {
+    "sourceCases": 3,
+    "fullFunctionalDifferences": 0,
+    "guards": 140,
+    "guardFailures": 0,
+    "unitPassed": 591,
+    "unitSkipped": 3,
+    "unitFailed": 0,
+    "strictSmokeCases": 43,
+    "smokeDifferences": 0,
+    "smokeInvariants": 0,
+    "smokeCoverageGaps": 0,
+    "baselineRegression": {
+      "cases": 3,
+      "failed": 3,
+      "exitCode": 1,
+      "head": "26a89d0192d1823b97a512e8517b8e73d2fad005"
+    },
+    "runtimeAndWorkspaceFilesStable": true,
+    "commands": [
+      {
+        "label": "source",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 3.2726313089951873,
+        "budgetSeconds": 300
+      },
+      {
+        "label": "candidate",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 0.9668030189350247,
+        "budgetSeconds": 45
+      },
+      {
+        "label": "comparison",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 0.03273958479985595,
+        "budgetSeconds": 30
+      },
+      {
+        "label": "npm-test",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 21.819649998098612,
+        "budgetSeconds": 600
+      }
+    ]
+  },
+  "scope": [
+    "Source actual original handler/message reader/ResponseWrapper; EventEmitter socket send/onclose adapter, not original full WebSocket upgrade",
+    "Candidate real WebSocket and actual outer done observation",
+    "Same mapped production timers; source Node8 and candidate Node22; controlled HTTP skill/routing/history seams; no ASR",
+    "Normalize only validated generated envelope IDs/timestamps/elapsed values and timeout diagnostic wording; all nested payloads and code presence retained"
+  ],
+  "sourceRuntime": "Node8.9.4; node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "candidateRuntime": "Node22.22.0",
+  "evidenceHashes": {
+    "source.json": "8b898ca017ae0205f3d379cf6716e94d8cfcd4f95d582c15193d4b53383e877d",
+    "candidate-root.mjs": "0e8750971ad70b0870ff4969be710abd42a99cd06aeb36ed3803011b7ba76b97",
+    "candidate.json": "5129571a46a77b4d9900a20f93200b1a82d67913692764b4314be0c0713a6a3b",
+    "compare-root.py": "70ce5b020f2aca87b68a91638aa81a96d405f7f7cc8346870d6beeaca49828f7",
+    "source-root.cjs": "e0ef4780eb9149003689ee846ff202ae1c45631cc6f68d34b2c56c56d8e92588",
+    "baseline-regression.stdout": "71544f72a8446199763c97f79ef3353c202ecf919fc09ccec5664bc58a9351c4"
+  },
+  "sourceFiles": {
+    "packages/hub/lib/utils/TransactionHandler.js": "b8af80fab015578d97b04281e0cfe8ffba1535563349f471f2f18bb345fb2cca",
+    "packages/hub/lib/utils/PromiseUtils.js": "caccf1964c8af30bdbb7fb7206fef8c4605bd517276c3cca35c21f9ef191cbea",
+    "packages/hub/lib/utils/SocketMessageReader.js": "4d06d6b66e6e8ddaa0ac2db2b2d12de22c82ce9e0d69b668e4f33fab39d29863",
+    "packages/hub/lib/listen/ListenHandler.js": "ec2da268877f1bac04e412a744b4a3660857fc8bfafd12e2bfcb3be4e6e814fd",
+    "packages/utils/lib/service/handlers/BaseWebsocketHandler.js": "ecd27819cf7352735a4a33e5cab778d30ea937d87a3b2c88a9083dc8e72810dd"
+  },
+  "retainedCorrections": [
+    "Agent capture had stale48f1428 revision label and inferred outer outcome; root capture pins frozene9b81bd and observes actual done promise.",
+    "Root source capture uses original ResponseWrapper plus explicit onclose/send EventEmitter adapter; this still does not establish original full WebSocket upgrade parity."
+  ],
+  "remaining": [
+    "Full original transport/authentication boundary",
+    "Proactive lifecycle and other reset/error paths",
+    "Native ASR and deployed current-main/physical robot acceptance"
+  ]
+}

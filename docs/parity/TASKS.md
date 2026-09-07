@@ -348,7 +348,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/intent-router/review.j
 
 Owner: Codex. Dependencies: H-02, H-03.
 
-Root accepted bounded release mediation/history plus source trace defaults and launch/continuation fields. Earlier 171 original mediation controls, nine original mediator tests, and 12 HTTP history controls remain accepted. Fresh original-handler/Phoenix-WebSocket controls match two turns, two complete HTTP requests, and eight response frames with 92 guards. Original full transport/authentication, early close/timeout/reset and deployed BE/native-ASR acceptance remain open.
+Root accepted bounded release mediation/history, trace defaults, launch/continuation, and listen disconnect/timeout layering. Three fresh source comparisons match full functional responses, requests, settlement and history with140 guards; old runtime fails all three new regressions. Original full transport/authentication, proactive/other reset paths and deployed BE/native-ASR acceptance remain open.
 
 Done when:
 
@@ -364,11 +364,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Source JiboHeaders defaults and complete launch/continuation requests, opaque sessions, and action frames. Fresh two-turn source-handler/actual-Phoenix-WebSocket comparison passes 92 guards; 588 integrated units and strict 43-case smoke pass. Prior mediation/history acceptance is retained. Full H-04 remains open.
+Candidate scope: Bounded listen disconnect and outer/internal transaction timeout layering. Three original-handler/actual-Phoenix-WebSocket comparisons, complete responses/HTTP requests/history,140 guards; three new regressions fail on old code;591 units and strict43 pass. Prior mediation/history/trace/continuation acceptance retained. Full H-04 remains open.
 
-Candidate report: [docs/parity/candidates/H-04-session-lifecycle-20260907.md](../../docs/parity/candidates/H-04-session-lifecycle-20260907.md).
+Candidate report: [docs/parity/candidates/H-04-disconnect-root-20260907.md](../../docs/parity/candidates/H-04-disconnect-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/listen-continuation/review.json](../../docs/parity/evidence/2026-09-07/listen-continuation/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/listen-disconnect/review.json](../../docs/parity/evidence/2026-09-07/listen-disconnect/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-05 — Enforce proactive user settings
 
