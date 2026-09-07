@@ -20,8 +20,23 @@ function privateFile(path, name) {
 }
 function listen(server, number, host = '127.0.0.1') {
   return new Promise((resolveListen, reject) => {
-    server.once('error', reject);
-    server.listen(number, host, () => { server.off('error', reject); resolveListen(server); });
+    server.once('error', error => {
+      // Binding 443 as an unprivileged user is the expected first-run failure.
+      if (error?.code === 'EACCES' && number < 1024) {
+        reject(new Error(`cannot bind privileged port ${number} as this user. `
+          + 'Either lower the unprivileged port floor '
+          + `(sudo sysctl -w net.ipv4.ip_unprivileged_port_start=${number}, persisted in `
+          + '/etc/sysctl.d/), or set PHOENIX_ROBOT_ENTRYPOINT_PORT to an unprivileged port '
+          + 'and redirect 443 to it.'));
+        return;
+      }
+      if (error?.code === 'EADDRINUSE') {
+        reject(new Error(`port ${number} on ${host} is already in use`));
+        return;
+      }
+      reject(error);
+    });
+    server.listen(number, host, () => { server.removeAllListeners('error'); resolveListen(server); });
   });
 }
 function closeServer(server) {
@@ -35,7 +50,7 @@ function closeServer(server) {
 /** Run in a dedicated process: service modules read process.env at import time. */
 export async function startAuthenticatedRobotStack({
   runDir, secretFile, storeFile, keyFile, certFile, snapshotManifest,
-  basePort = 19000, entrypointPort = 19443, entrypointHost = '127.0.0.1',
+  basePort = 19000, entrypointPort = 443, entrypointHost = '0.0.0.0',
   publicUrl = 'https://localhost', parakeetUrl = 'http://192.168.1.252:6972',
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
@@ -194,8 +209,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       certFile: process.env.PHOENIX_ROBOT_TLS_CERT,
       snapshotManifest: process.env.PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST,
       basePort: process.env.PHOENIX_ROBOT_PORT ?? 19000,
-      entrypointPort: process.env.PHOENIX_ROBOT_ENTRYPOINT_PORT ?? 19443,
-      entrypointHost: process.env.PHOENIX_ROBOT_ENTRYPOINT_HOST || '127.0.0.1',
+      entrypointPort: process.env.PHOENIX_ROBOT_ENTRYPOINT_PORT ?? 443,
+      entrypointHost: process.env.PHOENIX_ROBOT_ENTRYPOINT_HOST || '0.0.0.0',
       publicUrl: process.env.PHOENIX_ROBOT_PUBLIC_URL || 'https://localhost',
       parakeetUrl: process.env.ETCO_server_parakeetUrl || 'http://192.168.1.252:6972',
     });

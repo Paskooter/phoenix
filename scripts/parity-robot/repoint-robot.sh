@@ -186,14 +186,26 @@ done
 HOSTS_BLOCK="${HOSTS_BLOCK}${MARK_END}"
 
 # Back up once, strip any previous managed block, comment out conflicting prior
-# entries for the same names, then append the new block.
-printf '%s\n' "$HOSTS_BLOCK" | rsh "cat > /tmp/.phoenix-hosts-block && \
-  cp -p '$HOSTS_TARGET' '${HOSTS_TARGET}.phx-bak-${STAMP}' && \
-  sed -i '/${MARK_BEGIN}/,/${MARK_END}/d' '$HOSTS_TARGET' && \
-  for n in $(for r in $REGIONS; do printf '%s.jibo.com %s-socket.jibo.com ' "$r" "$r"; done); do \
-    sed -i \"s|^\\([^#].*[[:space:]]\\\$n\\)\\\$|# superseded by phoenix-repoint: \\1|\" '$HOSTS_TARGET'; \
-  done; \
-  cat /tmp/.phoenix-hosts-block >> '$HOSTS_TARGET' && rm -f /tmp/.phoenix-hosts-block"
+# entries for the same names, then append the new block. The supersede rules are
+# generated here and piped as a sed script: building them inline over ssh needs
+# several layers of quoting and silently fails to match.
+SEDSCRIPT=""
+for r in $REGIONS; do
+  for n in "${r}.jibo.com" "${r}-socket.jibo.com"; do
+    esc="$(printf '%s' "$n" | sed 's/\./\\./g')"
+    SEDSCRIPT="${SEDSCRIPT}s|^\\([^#].*[[:space:]]${esc}[[:space:]]*\\)$|# superseded by phoenix-repoint: \\1|
+"
+  done
+done
+
+printf '%s' "$SEDSCRIPT" | rsh "cat > /tmp/.phoenix-hosts-sed"
+printf '%s\n' "$HOSTS_BLOCK" | rsh "cat > /tmp/.phoenix-hosts-block"
+rsh "set -e
+  cp -p '$HOSTS_TARGET' '${HOSTS_TARGET}.phx-bak-${STAMP}'
+  sed -i '/${MARK_BEGIN}/,/${MARK_END}/d' '$HOSTS_TARGET'
+  sed -i -f /tmp/.phoenix-hosts-sed '$HOSTS_TARGET'
+  cat /tmp/.phoenix-hosts-block >> '$HOSTS_TARGET'
+  rm -f /tmp/.phoenix-hosts-sed /tmp/.phoenix-hosts-block"
 ok "hosts updated (backup ${HOSTS_TARGET}.phx-bak-${STAMP})"
 
 say "installing CA into the real (persistent) trust store"

@@ -29,7 +29,7 @@ compiled profile explicitly; it does not change the repository's default parser
 or enable a pending GQA profile or LLM fallback.
 
 The default Hub port is 19000; skills, parser, history and data use offsets
-3, 5, 6 and 7. Account binds to loopback at offset 11. The Classic TLS entrypoint listens on loopback port 19443 and hosts both its
+3, 5, 6 and 7. Account binds to loopback at offset 11. The Classic TLS entrypoint listens on port 443 (all interfaces by default, so real robots on the LAN can reach it) and hosts both its
 HTTP routes and notification WebSocket upgrades on the same TLS server. Override the base port with
 `PHOENIX_ROBOT_PORT`, or the TLS port/bind host with
 `PHOENIX_ROBOT_ENTRYPOINT_PORT` and `PHOENIX_ROBOT_ENTRYPOINT_HOST`.
