@@ -97,5 +97,23 @@
       "path": ".parity/robots/moth/20260907/supervised-authenticated-root/tunnel-verification.json",
       "sha256": "01673d46ee2ef8af06875a1ba6e6f5085b20052876c3b37a7e3a160ccb26ad3b"
     }
-  ]
+  ],
+  "accountStateQualification": {
+    "at": "2026-09-07T12:44:12.466119+00:00",
+    "robot": "Moth",
+    "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+    "accountCounts": {
+      "accounts": 1,
+      "loops": 0,
+      "tokens": 0,
+      "sessions": 0,
+      "settings": 0
+    },
+    "notificationCounts": {
+      "tokens": 1,
+      "notifications": 0
+    },
+    "readOnly": true,
+    "qualification": "Authentication baseline only: household/Loop/profile bootstrap and workflows remain unverified; no synthetic household state was inserted."
+  }
 }

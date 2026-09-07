@@ -3,7 +3,9 @@
 Current connection update, 2026-09-07: Moth now uses supervised authenticated
 Phoenix29ffac3 on Hub29000/TLS29443. Native signed TLS issuance, both Hub paths
 and a clock turn after normal-service restart passed. Reboot, microphone/ring
-and full Notification acceptance remain open. Older backend descriptions below
+and full Notification acceptance remain open. The local Account Store currently
+contains the authentication account and no household/Loop records; account
+workflows need separate state setup and verification. Older backend descriptions below
 are historical; consult the private canonical receipt before changing Moth.
 See the [connected deployment review](evidence/2026-09-07/hardware/supervised-authenticated/review.json).
 
