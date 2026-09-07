@@ -4,6 +4,7 @@ import { constants, copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
+import { APPROVED_INVENTORY_SHA256 } from '../src/compiledFstRuntime.js';
 
 const keys = ['PHOENIX_NLU_RUNTIME', 'PHOENIX_NLU_COMPILED_FST',
   'PHOENIX_NLU_COMPILED_FACTORY_DIR', 'PHOENIX_NLU_COMPILED_RULES_DIR',
@@ -13,6 +14,12 @@ const configured = original.PHOENIX_NLU_RUNTIME === 'compiled-fst'
   && keys.every(key => original[key]);
 const approvedHash = '2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a';
 let instance = 0;
+
+test('the compiled profile approves the shipped inventory without requiring private artifacts', () => {
+  const bytes = readFileSync(new URL('../resources/rule-inventory.json', import.meta.url));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), APPROVED_INVENTORY_SHA256,
+    'An inventory change must update the compiled profile approval after review');
+});
 
 async function withConfig(values, fn) {
   try {

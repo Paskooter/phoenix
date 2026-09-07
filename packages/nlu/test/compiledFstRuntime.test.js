@@ -63,7 +63,7 @@ test('explicit compiled-FST profile connects the real /v1/parse path', { skip: !
     ruleCount: 98,
     ruleManifestSha256: '7648a6449f62d7664c7f9a602ec50e9195daeb92e30aaefbf0ebd2d50a0a3142',
     inventoryRevision: '5c0a7390539663ba749d360de348a428c088505c',
-    inventorySha256: '4377949617eb3169f1466ddb2844f2f5f9948f43e1942a2e35f38c3664dc4aa5',
+    inventorySha256: '7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4',
     sourceRevision: '91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e',
     referenceRevision: '5c0a7390539663ba749d360de348a428c088505c',
     sourceRuntime: 'jibo-nlu v2.8.3',

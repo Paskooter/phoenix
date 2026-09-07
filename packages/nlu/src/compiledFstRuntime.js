@@ -13,7 +13,7 @@ import { interpretOutputSymbols } from './compiledFstInterpreter.js';
 
 const ENABLED = 'compiled-fst';
 const APPROVED_LAUNCH_SHA256 = '2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a';
-const APPROVED_INVENTORY_SHA256 = '4377949617eb3169f1466ddb2844f2f5f9948f43e1942a2e35f38c3664dc4aa5';
+export const APPROVED_INVENTORY_SHA256 = '7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4';
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
 
