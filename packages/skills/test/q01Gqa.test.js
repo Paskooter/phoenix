@@ -603,3 +603,14 @@ test('Q-01 GQA HTTP adapter preserves 400 framing through the common service tra
     await new Promise((resolve) => server.close(resolve));
   }
 });
+
+// Generated once by executing the recovered Python functions, rather than
+// deriving expected values from this implementation. Includes questions that
+// change provider input and digit forms that change provider suppression.
+test('Q-01 query cleaning and PII filtering follow executable original NLP controls', () => {
+  const fixture = JSON.parse(readFileSync(new URL('./fixtures/gqa-nlp-source.json', import.meta.url), 'utf8'));
+  for (const row of fixture.cases) {
+    const actual = row.kind === 'clean' ? cleanGqaInput(row.text) : gqaPiiFilter(row.text);
+    assert.equal(actual, row.expected, row.id);
+  }
+});

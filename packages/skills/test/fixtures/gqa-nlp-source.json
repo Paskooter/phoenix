@@ -1,0 +1,1165 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "sourceModuleSha256": "6745ad3cbf648282d71ee732c2198652c47daeda8998bf69929a3a927587178b",
+  "sourceRuntime": "Python3.10.12; actual original gqa.nlp clean_input/pii_filter, logger stub only; no provider calls",
+  "cases": [
+    {
+      "id": "clean-0",
+      "text": "what the Earth?",
+      "kind": "clean",
+      "expected": "what the Earth"
+    },
+    {
+      "id": "clean-1",
+      "text": "hmm what the Earth?",
+      "kind": "clean",
+      "expected": "what the Earth"
+    },
+    {
+      "id": "clean-2",
+      "text": "Hey Jibo what the Earth?",
+      "kind": "clean",
+      "expected": "what the Earth"
+    },
+    {
+      "id": "clean-3",
+      "text": "well, what the Earth?",
+      "kind": "clean",
+      "expected": "what the Earth"
+    },
+    {
+      "id": "clean-4",
+      "text": "somewhat what the Earth?",
+      "kind": "clean",
+      "expected": "what the Earth"
+    },
+    {
+      "id": "clean-5",
+      "text": "你what what the Earth?",
+      "kind": "clean",
+      "expected": "what the Earth"
+    },
+    {
+      "id": "clean-6",
+      "text": "where the Earth?",
+      "kind": "clean",
+      "expected": "where the Earth"
+    },
+    {
+      "id": "clean-7",
+      "text": "hmm where the Earth?",
+      "kind": "clean",
+      "expected": "where the Earth"
+    },
+    {
+      "id": "clean-8",
+      "text": "Hey Jibo where the Earth?",
+      "kind": "clean",
+      "expected": "where the Earth"
+    },
+    {
+      "id": "clean-9",
+      "text": "well, where the Earth?",
+      "kind": "clean",
+      "expected": "where the Earth"
+    },
+    {
+      "id": "clean-10",
+      "text": "somewhat where the Earth?",
+      "kind": "clean",
+      "expected": "where the Earth"
+    },
+    {
+      "id": "clean-11",
+      "text": "你what where the Earth?",
+      "kind": "clean",
+      "expected": "where the Earth"
+    },
+    {
+      "id": "clean-12",
+      "text": "when the Earth?",
+      "kind": "clean",
+      "expected": "when the Earth"
+    },
+    {
+      "id": "clean-13",
+      "text": "hmm when the Earth?",
+      "kind": "clean",
+      "expected": "when the Earth"
+    },
+    {
+      "id": "clean-14",
+      "text": "Hey Jibo when the Earth?",
+      "kind": "clean",
+      "expected": "when the Earth"
+    },
+    {
+      "id": "clean-15",
+      "text": "well, when the Earth?",
+      "kind": "clean",
+      "expected": "when the Earth"
+    },
+    {
+      "id": "clean-16",
+      "text": "somewhat when the Earth?",
+      "kind": "clean",
+      "expected": "when the Earth"
+    },
+    {
+      "id": "clean-17",
+      "text": "你what when the Earth?",
+      "kind": "clean",
+      "expected": "when the Earth"
+    },
+    {
+      "id": "clean-18",
+      "text": "who the Earth?",
+      "kind": "clean",
+      "expected": "who the Earth"
+    },
+    {
+      "id": "clean-19",
+      "text": "hmm who the Earth?",
+      "kind": "clean",
+      "expected": "who the Earth"
+    },
+    {
+      "id": "clean-20",
+      "text": "Hey Jibo who the Earth?",
+      "kind": "clean",
+      "expected": "who the Earth"
+    },
+    {
+      "id": "clean-21",
+      "text": "well, who the Earth?",
+      "kind": "clean",
+      "expected": "who the Earth"
+    },
+    {
+      "id": "clean-22",
+      "text": "somewhat who the Earth?",
+      "kind": "clean",
+      "expected": "who the Earth"
+    },
+    {
+      "id": "clean-23",
+      "text": "你what who the Earth?",
+      "kind": "clean",
+      "expected": "who the Earth"
+    },
+    {
+      "id": "clean-24",
+      "text": "how the Earth?",
+      "kind": "clean",
+      "expected": "how the Earth"
+    },
+    {
+      "id": "clean-25",
+      "text": "hmm how the Earth?",
+      "kind": "clean",
+      "expected": "how the Earth"
+    },
+    {
+      "id": "clean-26",
+      "text": "Hey Jibo how the Earth?",
+      "kind": "clean",
+      "expected": "how the Earth"
+    },
+    {
+      "id": "clean-27",
+      "text": "well, how the Earth?",
+      "kind": "clean",
+      "expected": "how the Earth"
+    },
+    {
+      "id": "clean-28",
+      "text": "somewhat how the Earth?",
+      "kind": "clean",
+      "expected": "how the Earth"
+    },
+    {
+      "id": "clean-29",
+      "text": "你what how the Earth?",
+      "kind": "clean",
+      "expected": "how the Earth"
+    },
+    {
+      "id": "clean-30",
+      "text": "which the Earth?",
+      "kind": "clean",
+      "expected": "which the Earth"
+    },
+    {
+      "id": "clean-31",
+      "text": "hmm which the Earth?",
+      "kind": "clean",
+      "expected": "which the Earth"
+    },
+    {
+      "id": "clean-32",
+      "text": "Hey Jibo which the Earth?",
+      "kind": "clean",
+      "expected": "which the Earth"
+    },
+    {
+      "id": "clean-33",
+      "text": "well, which the Earth?",
+      "kind": "clean",
+      "expected": "which the Earth"
+    },
+    {
+      "id": "clean-34",
+      "text": "somewhat which the Earth?",
+      "kind": "clean",
+      "expected": "which the Earth"
+    },
+    {
+      "id": "clean-35",
+      "text": "你what which the Earth?",
+      "kind": "clean",
+      "expected": "which the Earth"
+    },
+    {
+      "id": "clean-36",
+      "text": "why the Earth?",
+      "kind": "clean",
+      "expected": "why the Earth"
+    },
+    {
+      "id": "clean-37",
+      "text": "hmm why the Earth?",
+      "kind": "clean",
+      "expected": "hmm why the Earth"
+    },
+    {
+      "id": "clean-38",
+      "text": "Hey Jibo why the Earth?",
+      "kind": "clean",
+      "expected": "why the Earth"
+    },
+    {
+      "id": "clean-39",
+      "text": "well, why the Earth?",
+      "kind": "clean",
+      "expected": "well, why the Earth"
+    },
+    {
+      "id": "clean-40",
+      "text": "somewhat why the Earth?",
+      "kind": "clean",
+      "expected": "somewhat why the Earth"
+    },
+    {
+      "id": "clean-41",
+      "text": "你what why the Earth?",
+      "kind": "clean",
+      "expected": "你what why the Earth"
+    },
+    {
+      "id": "clean-42",
+      "text": "whate'er the Earth?",
+      "kind": "clean",
+      "expected": "whate'er the Earth"
+    },
+    {
+      "id": "clean-43",
+      "text": "hmm whate'er the Earth?",
+      "kind": "clean",
+      "expected": "whate'er the Earth"
+    },
+    {
+      "id": "clean-44",
+      "text": "Hey Jibo whate'er the Earth?",
+      "kind": "clean",
+      "expected": "whate'er the Earth"
+    },
+    {
+      "id": "clean-45",
+      "text": "well, whate'er the Earth?",
+      "kind": "clean",
+      "expected": "whate'er the Earth"
+    },
+    {
+      "id": "clean-46",
+      "text": "somewhat whate'er the Earth?",
+      "kind": "clean",
+      "expected": "whate'er the Earth"
+    },
+    {
+      "id": "clean-47",
+      "text": "你what whate'er the Earth?",
+      "kind": "clean",
+      "expected": "whate'er the Earth"
+    },
+    {
+      "id": "clean-48",
+      "text": "whattaya the Earth?",
+      "kind": "clean",
+      "expected": "whattaya the Earth"
+    },
+    {
+      "id": "clean-49",
+      "text": "hmm whattaya the Earth?",
+      "kind": "clean",
+      "expected": "whattaya the Earth"
+    },
+    {
+      "id": "clean-50",
+      "text": "Hey Jibo whattaya the Earth?",
+      "kind": "clean",
+      "expected": "whattaya the Earth"
+    },
+    {
+      "id": "clean-51",
+      "text": "well, whattaya the Earth?",
+      "kind": "clean",
+      "expected": "whattaya the Earth"
+    },
+    {
+      "id": "clean-52",
+      "text": "somewhat whattaya the Earth?",
+      "kind": "clean",
+      "expected": "whattaya the Earth"
+    },
+    {
+      "id": "clean-53",
+      "text": "你what whattaya the Earth?",
+      "kind": "clean",
+      "expected": "whattaya the Earth"
+    },
+    {
+      "id": "clean-54",
+      "text": "what's the Earth?",
+      "kind": "clean",
+      "expected": "what's the Earth"
+    },
+    {
+      "id": "clean-55",
+      "text": "hmm what's the Earth?",
+      "kind": "clean",
+      "expected": "what's the Earth"
+    },
+    {
+      "id": "clean-56",
+      "text": "Hey Jibo what's the Earth?",
+      "kind": "clean",
+      "expected": "what's the Earth"
+    },
+    {
+      "id": "clean-57",
+      "text": "well, what's the Earth?",
+      "kind": "clean",
+      "expected": "what's the Earth"
+    },
+    {
+      "id": "clean-58",
+      "text": "somewhat what's the Earth?",
+      "kind": "clean",
+      "expected": "what's the Earth"
+    },
+    {
+      "id": "clean-59",
+      "text": "你what what's the Earth?",
+      "kind": "clean",
+      "expected": "what's the Earth"
+    },
+    {
+      "id": "clean-60",
+      "text": "who's the Earth?",
+      "kind": "clean",
+      "expected": "who's the Earth"
+    },
+    {
+      "id": "clean-61",
+      "text": "hmm who's the Earth?",
+      "kind": "clean",
+      "expected": "who's the Earth"
+    },
+    {
+      "id": "clean-62",
+      "text": "Hey Jibo who's the Earth?",
+      "kind": "clean",
+      "expected": "who's the Earth"
+    },
+    {
+      "id": "clean-63",
+      "text": "well, who's the Earth?",
+      "kind": "clean",
+      "expected": "who's the Earth"
+    },
+    {
+      "id": "clean-64",
+      "text": "somewhat who's the Earth?",
+      "kind": "clean",
+      "expected": "who's the Earth"
+    },
+    {
+      "id": "clean-65",
+      "text": "你what who's the Earth?",
+      "kind": "clean",
+      "expected": "who's the Earth"
+    },
+    {
+      "id": "clean-66",
+      "text": "whadja the Earth?",
+      "kind": "clean",
+      "expected": "whadja the Earth"
+    },
+    {
+      "id": "clean-67",
+      "text": "hmm whadja the Earth?",
+      "kind": "clean",
+      "expected": "whadja the Earth"
+    },
+    {
+      "id": "clean-68",
+      "text": "Hey Jibo whadja the Earth?",
+      "kind": "clean",
+      "expected": "whadja the Earth"
+    },
+    {
+      "id": "clean-69",
+      "text": "well, whadja the Earth?",
+      "kind": "clean",
+      "expected": "whadja the Earth"
+    },
+    {
+      "id": "clean-70",
+      "text": "somewhat whadja the Earth?",
+      "kind": "clean",
+      "expected": "whadja the Earth"
+    },
+    {
+      "id": "clean-71",
+      "text": "你what whadja the Earth?",
+      "kind": "clean",
+      "expected": "whadja the Earth"
+    },
+    {
+      "id": "clean-72",
+      "text": "watcha the Earth?",
+      "kind": "clean",
+      "expected": "watcha the Earth"
+    },
+    {
+      "id": "clean-73",
+      "text": "hmm watcha the Earth?",
+      "kind": "clean",
+      "expected": "watcha the Earth"
+    },
+    {
+      "id": "clean-74",
+      "text": "Hey Jibo watcha the Earth?",
+      "kind": "clean",
+      "expected": "watcha the Earth"
+    },
+    {
+      "id": "clean-75",
+      "text": "well, watcha the Earth?",
+      "kind": "clean",
+      "expected": "watcha the Earth"
+    },
+    {
+      "id": "clean-76",
+      "text": "somewhat watcha the Earth?",
+      "kind": "clean",
+      "expected": "watcha the Earth"
+    },
+    {
+      "id": "clean-77",
+      "text": "你what watcha the Earth?",
+      "kind": "clean",
+      "expected": "watcha the Earth"
+    },
+    {
+      "id": "pii-78",
+      "text": "+1212 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-79",
+      "text": "+1212-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-80",
+      "text": "+12123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-81",
+      "text": "+12123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-82",
+      "text": "+12 12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-83",
+      "text": "+12 12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-84",
+      "text": "+12 123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-85",
+      "text": "+12 123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-86",
+      "text": "+12.12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-87",
+      "text": "+12.12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-88",
+      "text": "+12.123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-89",
+      "text": "+12.123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-90",
+      "text": "+12-12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-91",
+      "text": "+12-12-345-6789",
+      "kind": "pii",
+      "expected": false
+    },
+    {
+      "id": "pii-92",
+      "text": "+12-123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-93",
+      "text": "+12-123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-94",
+      "text": "+12*12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-95",
+      "text": "+12*12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-96",
+      "text": "+12*123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-97",
+      "text": "+12*123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-98",
+      "text": "(+12)12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-99",
+      "text": "(+12)12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-100",
+      "text": "(+12)123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-101",
+      "text": "(+12)123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-102",
+      "text": "(+12) 12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-103",
+      "text": "(+12) 12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-104",
+      "text": "(+12) 123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-105",
+      "text": "(+12) 123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-106",
+      "text": "(+12).12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-107",
+      "text": "(+12).12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-108",
+      "text": "(+12).123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-109",
+      "text": "(+12).123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-110",
+      "text": "(+12)-12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-111",
+      "text": "(+12)-12-345-6789",
+      "kind": "pii",
+      "expected": false
+    },
+    {
+      "id": "pii-112",
+      "text": "(+12)-123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-113",
+      "text": "(+12)-123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-114",
+      "text": "(+12)*12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-115",
+      "text": "(+12)*12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-116",
+      "text": "(+12)*123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-117",
+      "text": "(+12)*123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-118",
+      "text": "1212 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-119",
+      "text": "1212-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-120",
+      "text": "12123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-121",
+      "text": "12123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-122",
+      "text": "12 12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-123",
+      "text": "12 12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-124",
+      "text": "12 123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-125",
+      "text": "12 123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-126",
+      "text": "12.12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-127",
+      "text": "12.12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-128",
+      "text": "12.123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-129",
+      "text": "12.123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-130",
+      "text": "12-12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-131",
+      "text": "12-12-345-6789",
+      "kind": "pii",
+      "expected": false
+    },
+    {
+      "id": "pii-132",
+      "text": "12-123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-133",
+      "text": "12-123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-134",
+      "text": "12*12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-135",
+      "text": "12*12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-136",
+      "text": "12*123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-137",
+      "text": "12*123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-138",
+      "text": "+12312 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-139",
+      "text": "+12312-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-140",
+      "text": "+123123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-141",
+      "text": "+123123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-142",
+      "text": "+123 12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-143",
+      "text": "+123 12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-144",
+      "text": "+123 123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-145",
+      "text": "+123 123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-146",
+      "text": "+123.12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-147",
+      "text": "+123.12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-148",
+      "text": "+123.123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-149",
+      "text": "+123.123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-150",
+      "text": "+123-12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-151",
+      "text": "+123-12-345-6789",
+      "kind": "pii",
+      "expected": false
+    },
+    {
+      "id": "pii-152",
+      "text": "+123-123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-153",
+      "text": "+123-123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-154",
+      "text": "+123*12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-155",
+      "text": "+123*12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-156",
+      "text": "+123*123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-157",
+      "text": "+123*123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-158",
+      "text": "(+123)12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-159",
+      "text": "(+123)12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-160",
+      "text": "(+123)123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-161",
+      "text": "(+123)123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-162",
+      "text": "(+123) 12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-163",
+      "text": "(+123) 12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-164",
+      "text": "(+123) 123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-165",
+      "text": "(+123) 123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-166",
+      "text": "(+123).12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-167",
+      "text": "(+123).12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-168",
+      "text": "(+123).123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-169",
+      "text": "(+123).123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-170",
+      "text": "(+123)-12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-171",
+      "text": "(+123)-12-345-6789",
+      "kind": "pii",
+      "expected": false
+    },
+    {
+      "id": "pii-172",
+      "text": "(+123)-123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-173",
+      "text": "(+123)-123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-174",
+      "text": "(+123)*12 345 6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-175",
+      "text": "(+123)*12-345-6789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-176",
+      "text": "(+123)*123456789",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-177",
+      "text": "(+123)*123 456 7890",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-178",
+      "text": "000-00-0000",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-179",
+      "text": "(000) 000-0000",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-180",
+      "text": "0000 0000 0000 0000",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-181",
+      "text": "0000000000",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-182",
+      "text": "000000000000000",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-183",
+      "text": "١١١-١١-١١١١",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-184",
+      "text": "(١١١) ١١١-١١١١",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-185",
+      "text": "١١١١ ١١١١ ١١١١ ١١١١",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-186",
+      "text": "١١١١١١١١١١",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-187",
+      "text": "١١١١١١١١١١١١١١١",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-188",
+      "text": "１１１-１１-１１１１",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-189",
+      "text": "(１１１) １１１-１１１１",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-190",
+      "text": "１１１１ １１１１ １１１１ １１１１",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-191",
+      "text": "１１１１１１１１１１",
+      "kind": "pii",
+      "expected": true
+    },
+    {
+      "id": "pii-192",
+      "text": "１１１１１１１１１１１１１１１",
+      "kind": "pii",
+      "expected": true
+    }
+  ]
+}

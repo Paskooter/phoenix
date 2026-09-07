@@ -50,21 +50,24 @@ const WH_PHRASES = [
   'what', 'where', 'when', 'who', 'how', 'which',
   'waddya', 'watcha', 'whadaya', 'whadda', 'whaddaya', 'whaddo', 'whaddya',
   'whadiya', 'whadja', 'whadya', 'whatcha', 'whatchu', 'whatchya', "what's",
-  "what'd", "what'll", "what'm", "what're", "what've", 'whatya',
+  "what'd", "whate'er", "what'll", "what'm", "what're", 'whattaya', "what've", 'whatya',
   "when'd", "whene'er", "when'll", "when's", 'where\'d', 'wheredja',
   "where'er", "where'm", "where're", "where's", "where've", "who'd",
   "who'da", "who'd've", "who'll", "who'm", "who're", "who's", "who've",
   'whoze', 'wossat', 'wossit', 'wotcha',
 ];
-// Longest-first preserves contractions (for example `what's`) before their
-// shorter `what` member when the alternatives share a word boundary.
-const WH_REMOVAL_RE = new RegExp(`^.*?\\b(${WH_PHRASES.slice().sort((a, b) => b.length - a.length).map(escapeRegExp).join('|')})\\b`, 'i');
-const JIBO_REMOVAL_RE = /^((hey )?Jibo)+\s*/i;
-const PHONE_RE_1 = /(?:(?<![\d-])(?:\+?\d{1,3}[-.\s*]?)?(?:\(?\d{3}\)?[-.\s*]?)?\d{3}[-.\s*]?\d{4}(?![\d-]))/;
-const PHONE_RE_2 = /(?:(?<![\d-])(?:(?:\(\+?\d{2}\))|(?:\+?\d{2}))\s*\d{2}\s*\d{3}\s*\d{4}(?![\d-]))/;
+// Python's Unicode word/space/digit classes differ from JavaScript's ASCII
+// word and digit classes. Preserve the query boundary and provider-suppression
+// behavior of the original regular expressions, including non-ASCII numbers.
+const PYTHON_WORD = '[\\p{Letter}\\p{Number}_]';
+const PYTHON_SPACE = '[\\p{White_Space}\\u001c-\\u001f]';
+const WH_REMOVAL_RE = new RegExp(`^.*?(?<!${PYTHON_WORD})(${WH_PHRASES.map(escapeRegExp).join('|')})(?!${PYTHON_WORD})`, 'iu');
+const JIBO_REMOVAL_RE = new RegExp(`^((hey )?Jibo)+${PYTHON_SPACE}*`, 'iu');
+const PYTHON_TRIM_RE = new RegExp(`^${PYTHON_SPACE}+|${PYTHON_SPACE}+$`, 'gu');
+const PHONE_RE_1 = /(?:(?<![\p{Decimal_Number}-])(?:\+?\p{Decimal_Number}{1,3}[-.\p{White_Space}\u001c-\u001f*]?)?(?:\(?\p{Decimal_Number}{3}\)?[-.\p{White_Space}\u001c-\u001f*]?)?\p{Decimal_Number}{3}[-.\p{White_Space}\u001c-\u001f*]?\p{Decimal_Number}{4}(?![\p{Decimal_Number}-]))/u;
 const EMAIL_RE = /([a-z0-9!#$%&'*+\/=?^_`{|.}~-]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)/i;
-const CREDIT_CARD_RE = /((?:(?:\d{4}[- ]?){3}\d{4}|\d{15,16}))(?![\d])/;
-const SSN_RE = /\d{3}-?\d{2}-?\d{4}/;
+const CREDIT_CARD_RE = /((?:(?:\p{Decimal_Number}{4}[- ]?){3}\p{Decimal_Number}{4}|\p{Decimal_Number}{15,16}))(?![\p{Decimal_Number}])/u;
+const SSN_RE = /\p{Decimal_Number}{3}-?\p{Decimal_Number}{2}-?\p{Decimal_Number}{4}/u;
 
 const INTENT_TO_QUESTION_TYPE = Object.freeze({
   gqa: 'generic',
@@ -109,13 +112,12 @@ export function getGqaQuestionType(request) {
 /** Source gqa.nlp.clean_input for the question text boundary. */
 export function cleanGqaInput(value) {
   const text = String(value).replace(/\?/g, '');
-  return text.replace(WH_REMOVAL_RE, '$1').replace(JIBO_REMOVAL_RE, '').trim();
+  return text.replace(WH_REMOVAL_RE, '$1').replace(JIBO_REMOVAL_RE, '').replace(PYTHON_TRIM_RE, '');
 }
 
 /** Source gqa.nlp.pii_filter for the request-level internal block. */
 export function gqaPiiFilter(text) {
   return PHONE_RE_1.test(text)
-    || PHONE_RE_2.test(text)
     || EMAIL_RE.test(text)
     || CREDIT_CARD_RE.test(text)
     || SSN_RE.test(text);
