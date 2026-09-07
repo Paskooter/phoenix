@@ -907,7 +907,7 @@
         "packages/gateway/test/hubAuth.test.js",
         "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open.",
+      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open. Root accepted a bounded timeout for the optional account extension: stalled headers/body reject, both Hub paths recover, and six actual Account service cases pass. The integrated suite passes 718 units and strict43. This does not complete native expiry/refetch, broader identity or persistent rollout.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -987,6 +987,15 @@
           "scope": "Bounded temporary authenticated Moth trial with 98 portable graphs: real native issuer and both sockets, clock with rendered hands, joke playback calls, synthetic proactive request and verified rollback. An empty microphone SOS_TIMEOUT does not verify recognition or the physical ring.",
           "artifact": "docs/parity/HARDWARE.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/portable-snapshot/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "f9a2498e256ec9393e3c55acb59eeb176bf054c1",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded optional account-verification HTTP/body deadline, ten real upgrade failure/recovery/revocation exchanges and six actual Account service checks. 718 units and strict43 pass; full H-10 remains open.",
+          "artifact": "docs/parity/candidates/H-10-account-deadline-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/hub-account-deadline/review.json"
         }
       ]
     },

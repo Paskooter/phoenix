@@ -282,24 +282,38 @@ key, last-seen).
 
 ## Per-robot authentication
 
-By default the hub trusts the LAN (`DISABLE_AUTH=true`) — fine at home. For a public deployment,
-turn on real per-robot auth:
+The bundled development configuration disables Hub authentication with
+`DISABLE_AUTH=true`. The [authenticated robot launcher](scripts/parity-robot/AUTHENTICATED.md)
+uses the real robot credential exchange:
 
-- Each robot has its own `accessKeyId`/`secretAccessKey` (issued at pairing/adoption, above).
-- A robot exchanges them for a short-lived hub token: `POST /api/token {accessKeyId,
-  secretAccessKey}` → an HS256 JWT signed with `HUB_TOKEN_SECRET`, carrying its identity (never
-  the secret), 3-hour expiry. (The robot's own Jetstream client may instead sign a token locally
-  with the shared secret — both modes work; the gateway only verifies the signature + identity.)
-- The hub verifies that token's signature, checks its `exp`, and — when `ETCO_hub_accountUrl` is
-  set — confirms the `accessKeyId` still maps to a live account (`GET /api/verify`), so you can
-  **revoke** a robot by deactivating its account. The secret never leaves the server.
+- Jetstream signs `Account_20151111.CreateHubToken` with the robot's stored
+  `accessKeyId`/`secretAccessKey` and sends it to the Classic TLS entrypoint.
+- Account verifies that signature and issues a three-hour HS256 JWT. Jetstream
+  presents that JWT as a Bearer token on Hub WebSocket upgrades. The Hub signing
+  secret stays on the server; the original Account token includes the caller's
+  own `secretAccessKey` claim, as documented in the source-backed issuer contract.
+- Hub verifies the signature and expiry. The optional `ETCO_hub_accountUrl`
+  extension also checks whether the access key still belongs to an active account.
+  Its complete HTTP response is bounded by `ETCO_hub_accountVerifyTimeoutMs`
+  (default 5000 ms); an unavailable or stalled account service rejects the upgrade.
+  The authenticated robot launcher currently selects the original shared-secret
+  verification path and leaves this extension disabled.
 
-Set `DISABLE_AUTH=false` (and a strong `HUB_TOKEN_SECRET`) to require it.
+`POST /api/token` remains a separate portal helper. The
+[real Moth trial](docs/parity/evidence/2026-09-07/hardware/authenticated-launcher/review.json)
+verified the native signed exchange, both Hub paths, clock rendering and a
+synthetic proactive turn, followed by rollback. Persistent deployment and the
+remaining authentication lifecycle checks are tracked in the parity ledger.
+
+For the bundled Compose launchers, `DISABLE_AUTH=false` and a private
+`HUB_TOKEN_SECRET` enable Hub authentication. Other Classic operations retain
+their individually documented authentication boundaries.
 
 ## Running it publicly
 
-Phoenix has no built-in TLS; put a reverse proxy in front and expose **only three** entry
-points — everything else stays bound to localhost behind the proxy:
+Classic supports an optional HTTPS server shared with its notification socket;
+the authenticated development launcher uses it. The standard Compose HTTP
+services can instead sit behind a TLS reverse proxy. Their public entrypoints are:
 
 | Public host | → backend | Who connects | Why |
 |---|---|---|---|

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "reviewedBy": "Codex root",
+  "decision": "accepted bounded optional account-verification timeout; full H-10 remains open",
+  "candidateRevision": "f9a2498e256ec9393e3c55acb59eeb176bf054c1",
+  "behavior": "The optional account extension bounds HTTP headers and response-body decoding. A stalled account lookup rejects the upgrade instead of waiting indefinitely. Original shared-secret authentication remains the default.",
+  "configuration": {
+    "name": "ETCO_hub_accountVerifyTimeoutMs",
+    "defaultMs": 5000,
+    "valid": "positive integer through 2147483647 milliseconds",
+    "perGatewayOverride": "accountVerifyTimeoutMs"
+  },
+  "rootControls": {
+    "before": "Both stalled headers and a partial JSON body remained pending after 450 ms; owned peer was then closed for cleanup.",
+    "after": "Both reject at approximately 150 ms with an explicit 150 ms bound.",
+    "upgradeExchanges": 10,
+    "paths": [
+      "/v1/listen",
+      "/v1/proactive"
+    ],
+    "upgradeCoverage": "Each path rejects stalled headers/body, accepts a valid response after each failure, and rejects a revoked account.",
+    "actualAccountCases": 6,
+    "actualAccountCoverage": [
+      "active",
+      "wrong friendly ID",
+      "unknown key",
+      "revoked",
+      "reactivated",
+      "account service stopped"
+    ],
+    "actualAccountScope": "Real Phoenix Account service with private synthetic Store; separate from original native token issuance.",
+    "beforeAfterSha256": "db3d29599f72295f78f529a8b0f6705bda9c22b09d4b3f929577a664edde0434",
+    "accountIntegrationSha256": "c41ad9d42d838e7926f5c28572ef2a249f9527fff5b41c1d2b1c990ed53a58c9"
+  },
+  "suite": {
+    "unitPassed": 718,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0,
+    "exitCode": 0,
+    "seconds": 70.91869718628004,
+    "inputsFrozen": true,
+    "executionSha256": "0decdfa45b9832064074755b64ec287bc0db43656520d4101af4e32b3025a5bc"
+  },
+  "limits": [
+    "No new native expiry/refetch or persistent robot deployment acceptance.",
+    "Timer bounds are event-loop deadlines, not a load-test latency guarantee.",
+    "Broader account identity and the complete authentication lifecycle remain tracked separately."
+  ]
+}

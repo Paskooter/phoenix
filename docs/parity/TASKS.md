@@ -414,7 +414,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open.
+Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open. Root accepted a bounded timeout for the optional account extension: stalled headers/body reject, both Hub paths recover, and six actual Account service cases pass. The integrated suite passes 718 units and strict43. This does not complete native expiry/refetch, broader identity or persistent rollout.
 
 Done when:
 

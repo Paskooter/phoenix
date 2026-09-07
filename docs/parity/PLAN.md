@@ -257,3 +257,10 @@ from 52, with no new or changed failures. Root independently reviewed the full
 capture and passed fresh native/HTTP checks plus 716 units and strict43.
 The durable notification candidate remains unverified: root reproduced
 in-memory state changes after failed persistence and requested a repair.
+
+The [optional account lookup deadline](candidates/H-10-account-deadline-20260907.md)
+now prevents a stalled account endpoint from holding a Hub upgrade indefinitely.
+Both socket paths recover after a rejected lookup, and actual Account service
+revocation/reactivation checks pass. Native expiry/refetch and persistent
+authenticated deployment remain open. README authentication and TLS guidance
+now describes the native signed-token exchange and current launcher accurately.
