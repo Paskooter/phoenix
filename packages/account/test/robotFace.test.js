@@ -166,9 +166,12 @@ test('Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.
   assert.equal(susp.status, 200);
   assert.equal(susp.body.result, 'Command accepted');
   assert.equal(getStore().loops.get(mine[0].id).isSuspended, true);
-  // SuspendRobotLoop by friendlyId also works
-  const suspR = await amz('Loop_20160324.SuspendRobotLoop', { friendlyId: 'rocket-maple-pixel-comet' }, { authorization: sig(robot.accessKeyId) });
-  assert.equal(suspR.body.result, 'Command accepted');
+  // SuspendRobotLoop is admin-only in the source handler and has a null output.
+  owner.isAdmin = true;
+  getStore().flush();
+  const suspR = await amz('Loop_20160324.SuspendRobotLoop', { friendlyId: 'rocket-maple-pixel-comet' }, { authorization: sig(owner.accessKeyId) });
+  assert.equal(suspR.status, 200);
+  assert.equal(suspR.body, null);
 
   // a still-unimplemented loop op is a clean UnknownOperationException, not a 500
   const rm = await amz('Loop_20160324.Remove', { loopId: mine[0].id }, { authorization: sig(robot.accessKeyId) });

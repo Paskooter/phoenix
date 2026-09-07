@@ -6,9 +6,11 @@
 //   X-Amz-Target: <Prefix>.<Operation>     (we dispatch on the OPERATION, prefix-tolerant —
 //                                           the OOBE prefix isn't in the archived API defs;
 //                                           unknown prefixes are logged for field diagnosis)
-//   Authorization: AWS4-HMAC-SHA256 Credential=<accessKeyId>/...   (the existing OOBE/Loop
+//   Authorization: AWS4-HMAC-SHA256 Credential=<accessKeyId>/...   (the remaining OOBE/Loop
 //                                           compatibility handlers retain LAN trust like the
-//                                           hub's DISABLE_AUTH; CreateHubToken verifies SigV4)
+//                                           hub's DISABLE_AUTH; the bounded suspend handlers
+//                                           resolve ownership from this stored access key;
+//                                           CreateHubToken verifies SigV4)
 //
 // Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus;
 // Account_20151111.CreateHubToken is handled by the bounded A-02 path below.
@@ -33,6 +35,15 @@ const Errors = Object.freeze({
   ACCOUNT_NOT_FOUND: { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found', statusCode: 404 },
   LOOP_MUST_BE_SUSPENDED: { code: 'LOOP_MUST_BE_SUSPENDED', message: 'Loop must be suspended', statusCode: 409 },
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
+  AUTHORIZED_UNDER_ADMIN: { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 },
+  LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
+  ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
+  ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND: {
+    code: 'ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND',
+    message: 'Only admin or robot can suspend loop',
+    statusCode: 403,
+  },
+  LOOP_VALIDATION: { code: 'ValidationException', message: 'Invalid payload', statusCode: 422 },
   VALIDATION: { code: 'ValidationException', message: 'Invalid payload', statusCode: 400 },
 });
 
@@ -40,6 +51,14 @@ export function sendAmz(res, status, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(status, { 'content-type': AMZ_JSON, 'content-length': Buffer.byteLength(body) });
   res.end(body);
+}
+
+function sendAmzEmpty(res, status = 200) {
+  // LoopHandler.SuspendRobotLoop does not return the delegated command result. Hapi's
+  // `reply()` therefore emits a successful zero-length response (the API model declares
+  // a null output), while SuspendLoop itself returns CommandResponse.
+  res.writeHead(status, { 'content-length': 0 });
+  res.end();
 }
 
 export function sendAmzError(res, err, message) {
@@ -283,6 +302,7 @@ export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
       robot: loop.robot,
       robotFriendlyId: (robot && robot.friendlyId) || undefined,
       members: loop.members,
+      isSuspended: loop.isSuspended,
       created: loop.created,
       updated: loop.updated,
     };
@@ -294,7 +314,9 @@ export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
-    if (o === 'suspendloop' || o === 'suspendrobotloop') return void loopSuspend({ res, body, op, log });
+    if (o === 'suspendloop' || o === 'suspendrobotloop') {
+      return void loopSuspend({ req, res, body, op, log });
+    }
     log.warn('unimplemented Loop op', { op });
     return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unimplemented Loop op ${op}`);
   }
@@ -306,30 +328,114 @@ export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
     // loop — a single-robot deployment has one, which is what jibo-system-backup.js requires.
     const accessKeyId = accessKeyIdFromAuth(req);
     const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-    const loops = account
-      ? [...store.loops.values()].filter((l) => l.robot === account._id || l.owner === account._id)
-      : [...store.loops.values()];
+    const visible = account
+      ? [...store.loops.values()].filter((l) => l.isDeleted !== true
+        && (l.robot === account._id || l.owner === account._id))
+      : [...store.loops.values()].filter((l) => l.isDeleted !== true);
+    // LoopController.list omits suspended loops from a robot's own list, while an owner
+    // continues to see the suspended loop. A friendlyId is the source's robot-request hint;
+    // the legacy no-credential LAN fallback intentionally retains every active loop.
+    const loops = account && account.friendlyId
+      ? visible.filter((l) => l.robot === account._id && l.isSuspended !== true)
+      : visible;
     log.info('Loop.List', { accessKeyId: accessKeyId || '(none)', accountFound: !!account, returned: loops.length });
     return void sendAmz(res, 200, loops.map(loopToWire));
   }
 
   /**
-   * Loop.SuspendLoop {loopId} / SuspendRobotLoop {friendlyId} — the robot's WipeUtil suspends its
-   * loop before erasing. WipeUtil aborts the whole wipe ("wipeFail") on any suspend error that
-   * isn't LOOP_NOT_FOUND, so this must succeed: mark the loop suspended (if we have it) and return
-   * the CommandResponse {result}. The robot is on its way out the door — we never reject.
+   * Loop.SuspendLoop {loopId} / SuspendRobotLoop {friendlyId}.
+   *
+   * The source handler parses credentials before validation. SuspendLoop then looks up the
+   * loop and permits only that loop's robot or an administrator. SuspendRobotLoop is
+   * admin-only at the handler boundary, looks up the robot by friendlyId, and delegates to
+   * suspendLoop with an admin identity. Resolve the caller from the signed-request access key
+   * used by this public Classic compatibility face; the x-amz-credentials header is an
+   * internal source-service convention and must not become a caller-controlled admin switch.
    */
-  function loopSuspend({ res, body, op, log }) {
-    let loop = null;
-    if (op.toLowerCase() === 'suspendrobotloop' && body.friendlyId) {
-      const robot = store.accountByFriendlyId(body.friendlyId);
-      loop = robot ? [...store.loops.values()].find((l) => l.robot === robot._id) || null : null;
-    } else if (body.loopId) {
-      loop = store.loops.get(body.loopId) || null;
+  function loopSuspend({ req, res, body, op, log }) {
+    const isRobotLookup = op.toLowerCase() === 'suspendrobotloop';
+    const caller = accountForClassicRequest(req);
+
+    // @parseCredentials({ adminOnly: true }) runs before @validatePayload for this method.
+    if (isRobotLookup && (!caller || !caller.isAdmin)) {
+      return void sendAmzError(res, Errors.AUTHORIZED_UNDER_ADMIN);
     }
-    if (loop) { loop.isSuspended = true; store.flush(); }
-    log.info('Loop.Suspend', { op, loopId: body.loopId, friendlyId: body.friendlyId, found: !!loop });
+
+    const field = isRobotLookup ? 'friendlyId' : 'loopId';
+    const validationMessage = requiredStringValidationMessage(body, field);
+    if (validationMessage) {
+      return void sendAmzError(res, Errors.LOOP_VALIDATION, validationMessage);
+    }
+
+    let loop = null;
+    if (isRobotLookup) {
+      const robot = store.accountByFriendlyId(body.friendlyId);
+      if (!robot) {
+        log.info('Loop.Suspend', { op, friendlyId: body.friendlyId, found: false, reason: 'robot-not-found' });
+        return void sendAmzError(res, Errors.ROBOT_NOT_FOUND);
+      }
+      loop = activeLoopForRobot(robot._id);
+      if (!loop) {
+        log.info('Loop.Suspend', { op, friendlyId: body.friendlyId, found: false, reason: 'loop-not-found' });
+        return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+      }
+      // The source delegates with `{isAdmin: true}` after the admin-only gate. Keep the
+      // resulting controller check explicit in this compatibility implementation.
+    } else {
+      // BaseLoopController.findById runs before the source ownership check.
+      loop = activeLoopById(body.loopId);
+      if (!loop) {
+        log.info('Loop.Suspend', { op, loopId: body.loopId, found: false, reason: 'loop-not-found' });
+        return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+      }
+      if (!caller || (loop.robot !== caller._id && !caller.isAdmin)) {
+        log.info('Loop.Suspend', { op, loopId: body.loopId, found: true, authorized: false });
+        return void sendAmzError(res, Errors.ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND);
+      }
+    }
+
+    loop.isSuspended = true;
+    // Mongoose's Loop pre-save hook writes updated on every save. Persist the same durable
+    // field so a restart and a subsequent List call observe the state transition.
+    loop.updated = Date.now();
+    store.flush();
+    log.info('Loop.Suspend', {
+      op,
+      loopId: loop._id,
+      friendlyId: body.friendlyId,
+      found: true,
+      authorized: true,
+    });
+    if (isRobotLookup) return void sendAmzEmpty(res);
     return void sendAmz(res, 200, { result: 'Command accepted' });
+  }
+
+  function accountForClassicRequest(req) {
+    const accessKeyId = accessKeyIdFromAuth(req);
+    return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+  }
+
+  function activeLoopById(loopId) {
+    const loop = store.loops.get(loopId);
+    return loop && loop.isDeleted !== true ? loop : null;
+  }
+
+  function activeLoopForRobot(robotId) {
+    return [...store.loops.values()].find((loop) => loop.isDeleted !== true && loop.robot === robotId) || null;
+  }
+
+  function requiredStringValidationMessage(body, field) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+    if (!Object.prototype.hasOwnProperty.call(body, field)) {
+      return `child "${field}" fails because ["${field}" is required]`;
+    }
+    if (typeof body[field] !== 'string') {
+      return `child "${field}" fails because ["${field}" must be a string]`;
+    }
+    if (body[field].length === 0) {
+      return `child "${field}" fails because ["${field}" is not allowed to be empty]`;
+    }
+    return null;
   }
 
   // -- Update_* proxy ----------------------------------------------------------
