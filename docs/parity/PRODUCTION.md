@@ -2,12 +2,22 @@
 
 The [portable graph review](evidence/2026-09-07/nlu-portable-snapshot/review.json)
 records a complete frozen `e127104` replay: 20,534 cases, zero field differences,
-zero invariants and the same 16 gap instances across eight unhosted external-answer
-cases. The complete gate still exits 1. Final integration with the latest Settings
-repairs passes 641 unit tests and both default and snapshot strict43 profiles.
-[H-03 intent routing](evidence/2026-09-07/intent-router/review.json) remains verified;
-the default AST parser separately retains 57 differences. Deployment provisioning,
-robot rollout and the external-service coverage remain open. The later [Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) passes 34 bounded source response cases and brings the combined default unit suite to 672 passes and five skips; it does not change the full corpus coverage gaps.
+zero invariants and 16 gap instances across eight unhosted external-answer cases.
+The complete gate still exits 1. [H-03 intent routing](evidence/2026-09-07/intent-router/review.json)
+remains verified. The separate [default AST class repair](evidence/2026-09-07/nlu-class-words/review.json)
+now matches 20,476 of 20,528 HTTP status/data requests: 52 differences, five repairs
+and no newly failing cases or changed shared residuals.
+
+The [installer and deployment review](evidence/2026-09-07/nlu-snapshot-deployment/review.json)
+accepts the provisioned bundle on native and Compose launch paths. The combined
+`939c670` tree passes 675 unit tests, seven skips and default strict43 with zero
+differences/invariants/gaps. Prior compiled/snapshot strict43 results remain
+separately pinned. A [temporary authenticated Moth trial](evidence/2026-09-07/hardware/portable-snapshot/review.json)
+passed clock rendering, joke playback calls and rollback. Persistent deployment,
+microphone recognition, physical ring behavior and external-service coverage
+remain open. The [Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json)
+retains its 34 bounded source response cases and does not change the full corpus
+gaps.
 
 V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory and hosted CI rejection are reviewed; V-03 infrastructure is verified. Product comparison failures remain open.
 

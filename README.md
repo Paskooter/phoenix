@@ -17,12 +17,13 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   sides**, so the complete gate still fails. All captured parser, routing, action,
   session and analytics fields now agree.
   **H-03 intent routing is verified**, including the original decision tree and tie ordering.
-  The portable graph loader is accepted; graph provisioning and robot rollout remain pending.
+  The [portable bundle installer and native/Compose startup](docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json) are accepted.
+  A temporary authenticated Moth trial passed; persistent rollout remains pending.
   Both default and compiled **43-case smoke profiles pass** after the
   [compiled inventory startup repair](docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json). The default AST parser
-  separately retains **57 differences across 20,528 requests**, down from 149, with no newly failing cases.
-  The [factory and arbitration review](docs/parity/evidence/2026-09-07/nlu-arbitration/review.json)
-  records the latest 11 repairs, bringing the total to 92, and the remaining limits. The
+  separately retains **52 differences across 20,528 requests**, down from 149. The
+  [character-class review](docs/parity/evidence/2026-09-07/nlu-class-words/review.json)
+  records five further repairs with no newly failing cases or changed residuals, bringing the total to 97. The
   [earlier regression](docs/parity/evidence/2026-09-07/nlu-explicit-weight/review.json) remains documented.
   [Production comparisons](docs/parity/PRODUCTION.md) record exact scope and evidence.
   Follow the [execution plan](docs/parity/PLAN.md) and [verified task checklist](docs/parity/TASKS.md).
@@ -101,6 +102,8 @@ bash scripts/run-compose-stack.sh
 Robots and clients connect to the hub at `ws://<host>:9000/listen` (HTTP API on the same
 port: `GET /healthcheck`, `GET /v1/skills`); a robot's Classic Services (OOBE, update, log, …)
 go to the classic entrypoint on `:9012`. Logs land in `/tmp/phx-compose-*.log`.
+
+The [portable parser deployment guide](docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md) explains installing the approved graph bundle and selecting it for native or Compose startup.
 
 Useful env, all optional:
 
@@ -345,17 +348,17 @@ Then:
 3. **Firewall the internals.** Bind `:9003`–`:9010` to `127.0.0.1` (or block them at the host
    firewall). Only `:9000`, `:9011`, and `:9012` should be reachable — and only through TLS.
 
-> **Security caveat — read before exposing this.** Phoenix does **not** verify the AWS SigV4
-> signatures on the robot's Classic-Service requests (the original per-robot signing keys are
-> unrecoverable) — it trusts the network. So anyone who can reach `:9012` can call the
-> robot-facing OOBE/classic ops. The real access controls are: the `ADMIN_PASSWORD` gate on the
-> portal admin page, per-robot hub auth (`DISABLE_AUTH=false` + a strong `HUB_TOKEN_SECRET`, with
-> account-backed revocation via `ETCO_hub_accountUrl`), and TLS at the proxy. Treat a public
-> deployment accordingly. Full ledger in [DIVERGENCES.md](DIVERGENCES.md).
+Classic authentication is partially implemented. `Account_20151111.CreateHubToken`
+verifies SigV4 using the stored robot credentials; the [real native TLS trial](docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json)
+exercises that path. Most other Classic routes still rely on network trust and
+have separate authentication work outstanding. Portal admin authentication,
+Hub bearer-token checks and TLS do not supply missing authorization for those
+routes. See the [tracked acceptance criteria](docs/parity/TASKS.md) before exposing
+them beyond the development network.
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 672 unit tests and all 43 smoke cases. The [explicit Wikipedia profile review](docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery comparisons and 68 original Hub client HTTP exchanges, including nine corrected page/deadline behaviors. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](docs/parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
+The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 675 unit tests, with seven explicit skips, and all 43 smoke cases. The [explicit Wikipedia profile review](docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery comparisons and 68 original Hub client HTTP exchanges, including nine corrected page/deadline behaviors. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](docs/parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. The [portable-parser Moth trial](docs/parity/evidence/2026-09-07/hardware/portable-snapshot/review.json) verified authenticated native transport, clock rendering, joke playback calls and rollback; microphone recognition and the physical ring remain unverified.
 
 Current regression checks and progress tracking:
 

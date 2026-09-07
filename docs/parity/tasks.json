@@ -907,7 +907,7 @@
         "packages/gateway/test/hubAuth.test.js",
         "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified. Fresh temporary9fc671f trial also passes native signed TLS issuance, both authenticated sockets, clock/TTS/display and synthetic proactive request; rollback and restored idle verified.",
+      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth checkpoint trials. The latest trial on 614e1e8 used the 98-graph portable parser and real signed TLS CreateHubToken, matching listen/proactive upgrades, rendered clock, joke playback calls and synthetic proactive exchange. Root independently verified rollback of configuration, credentials and trust; 3150063 remains the diagnostic backend. Empty microphone timeout does not verify speech recognition, wake or the physical ring. A previous BE exit was recovered by relaunching identical 11.0.1 and retesting clock; its cause remains open. Persistent authenticated deployment, expiry, per-request retry grouping and account-backed extension remain unverified.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -928,8 +928,8 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Codex root",
-        "scope": "Persistent authenticated development deployment, native expiry/per-request retry grouping and BE stability. Temporary9fc671f trial accepted; restored backend3150063 remains live.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
+        "scope": "Persistent authenticated development deployment, native expiry/per-request retry grouping and BE stability. The temporary 614e1e8 trial with 98 portable graphs is accepted; restored backend 3150063 remains live. Source disabled-auth identity failure is preserved; do not bypass authentication to promote current code.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/portable-snapshot/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -978,6 +978,15 @@
           "scope": "Temporary real-native authenticated checkpoint trial; matching issued token accepted on listen/proactive, SDK clock/TTS/display and syntheticSURPRISE; restored backend3150063 verified. Full H10 remains open.",
           "artifact": "docs/parity/HARDWARE.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "614e1e810cc25d122390b7311d856dcb8fb2f528",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded temporary authenticated Moth trial with 98 portable graphs: real native issuer and both sockets, clock with rendered hands, joke playback calls, synthetic proactive request and verified rollback. An empty microphone SOS_TIMEOUT does not verify recognition or the physical ring.",
+          "artifact": "docs/parity/HARDWARE.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/portable-snapshot/review.json"
         }
       ]
     },
@@ -1237,7 +1246,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. The explicit portable graph runtime now matches the full20,534 production comparison with zero differences/invariants and the same eight unhosted external cases; final641 units and both strict43 profiles pass. Deployment provisioning, default AST residuals, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.",
+      "finding": "The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word controls match 19/21; two apostrophe cases are separate unverified work. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 675 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1246,14 +1255,13 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / audio_encoding_repair; Codex root",
-        "candidateRevision": "51817b983dd711799ec0b6c425b853528cf48ca2",
-        "reviewedCandidateRevision": "270033dfa9ae81e75a82dcb49bd0e50c350608d3",
-        "fullReplayedRevision": "e127104db0e038704d377b5423221d41cf7080d8",
+        "assignee": "Luna Max / http_contract_repair; Codex root deployment corrections",
+        "candidateRevision": "614e1e810cc25d122390b7311d856dcb8fb2f528",
+        "integratedRevision": "939c670f787fe1dfdf606c89e4aee875796eaefa",
         "reviewedBy": "Codex root",
-        "scope": "Explicit portable JSON/gzip graph runtime with independent decoded-data hashes. Root regeneration matches all 114 bundle files. Full20,534 production replay: zero differences/invariants, same16 gaps in8 unhosted cases. Final641 units and default/snapshot strict43 pass. No default switch, graph provisioning or robot acceptance; N-08 remains open.",
-        "artifact": "docs/parity/candidates/N-08-portable-snapshot-root-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json"
+        "scope": "Complete approved JSON/gzip bundle installer. Root preserves native/binary configuration and uses an explicit read-only Compose overlay. All 114 installed files, four configured installer checks, nine binary checks and actual Node 20 native/Compose parser probes pass. The combined suite has 675 passes, seven skips and a passing strict 43-case smoke. Persistent rollout remains open.",
+        "artifact": "docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -1396,14 +1404,45 @@
           "scope": "Repair the optional compiled-profile startup regression caused by a stale inventory approval in runtime and harness. Shared approval and always-run guard; 633 units, nine configured checks and both strict 43-case profiles pass. No new full-corpus or robot acceptance.",
           "artifact": "docs/parity/candidates/N-08-inventory-approval-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; Codex root",
+          "candidateRevision": "51817b983dd711799ec0b6c425b853528cf48ca2",
+          "reviewedCandidateRevision": "270033dfa9ae81e75a82dcb49bd0e50c350608d3",
+          "fullReplayedRevision": "e127104db0e038704d377b5423221d41cf7080d8",
+          "reviewedBy": "Codex root",
+          "scope": "Explicit portable JSON/gzip graph runtime with independent decoded-data hashes. Root regeneration matches all 114 bundle files. Full20,534 production replay: zero differences/invariants, same16 gaps in8 unhosted cases. Final641 units and default/snapshot strict43 pass. No default switch, graph provisioning or robot acceptance; N-08 remains open.",
+          "artifact": "docs/parity/candidates/N-08-portable-snapshot-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; Codex root",
+          "candidateRevision": "969725b3390b5699dee62dc930f5f2cc8a96c95b",
+          "reviewedBy": "Codex root",
+          "scope": "Native character-class literal and parenthesized-word semantics: full 20,528-request HTTP status/data replay has 20,476 matches, 52 differences, five repairs and zero new or changed shared residual failures. Nineteen of 21 focused native controls match; two apostrophe cases remain. The combined 675 unit tests and strict 43-case smoke pass; full N-08 stays open.",
+          "artifact": "docs/parity/candidates/N-08-class-words-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-class-words/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / http_contract_repair; Codex root deployment corrections",
+          "candidateRevision": "614e1e810cc25d122390b7311d856dcb8fb2f528",
+          "integratedRevision": "939c670f787fe1dfdf606c89e4aee875796eaefa",
+          "reviewedBy": "Codex root",
+          "scope": "Complete approved JSON/gzip bundle installer. Root preserves native/binary configuration and uses an explicit read-only Compose overlay. All 114 installed files, four configured installer checks, nine binary checks and actual Node 20 native/Compose parser probes pass. The combined suite has 675 passes, seven skips and a passing strict 43-case smoke. Persistent rollout remains open.",
+          "artifact": "docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json"
         }
       ],
       "deploymentReview": {
         "state": "accepted",
-        "candidateRevision": "9fc671f8e900cb1e7973731cce62a4967a9a31e7",
+        "candidateRevision": "614e1e810cc25d122390b7311d856dcb8fb2f528",
         "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
-        "scope": "Temporary authenticated clock/proactive native exchanges on unchanged compiled98 profile; rollback and idle verified. DefaultAST, microphone/physicalring and persistent deployment remain open.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
+        "reviewedBy": "Codex root",
+        "scope": "Bounded temporary authenticated Moth trial with 98 portable graphs: real native issuer and both sockets, clock with rendered hands, joke playback calls, synthetic proactive request and verified rollback. An empty microphone SOS_TIMEOUT does not verify recognition or the physical ring.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/portable-snapshot/review.json"
       },
       "deploymentReviewHistory": [
         {
@@ -1419,12 +1458,19 @@
           "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
           "scope": "Temporary authenticated full-main clock/proactive exchanges passed on the unchanged compiled98-graph profile. Restored backend clock passed, including after an unexplained BE exit and identical-slot relaunch. Persistent current-main deployment, microphone/ring and stability remain open.",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
+        },
+        {
+          "state": "accepted",
+          "candidateRevision": "9fc671f8e900cb1e7973731cce62a4967a9a31e7",
+          "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+          "scope": "Temporary authenticated clock/proactive native exchanges on unchanged compiled98 profile; rollback and idle verified. DefaultAST, microphone/physicalring and persistent deployment remain open.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
         }
       ],
       "nextImplementation": {
         "state": "working",
         "assignee": "Codex root / Luna Max team",
-        "scope": "Provision the accepted portable graph bundle for normal deployment and verify it on Moth; default AST57 cluster repair continues independently from pinned source/native semantics. No whole-task credit until acceptance criteria are complete."
+        "scope": "Continue the 52 default AST residuals against pinned source/native semantics, starting with separately frozen apostrophe-boundary candidate and full regression replay. Establish persistent authenticated deployment of the accepted portable profile, then original native expiry/retry and full robot microphone/wake/ring acceptance. No whole-task credit until complete criteria are verified."
       }
     },
     {

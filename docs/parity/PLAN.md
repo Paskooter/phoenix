@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **672 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **675 unit tests**, with seven explicit skips, and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -114,10 +114,10 @@ keeping ordinary internal codes out of the response. Full A-06 remains open.
 The [compiled inventory approval repair](evidence/2026-09-07/nlu-inventory-approval/review.json)
 restores configured startup after the first-name inventory changed; nine configured
 checks and both default and compiled strict 43-case profiles pass. The default AST
-profile now has **57 differences across 20,528 requests**, down from 149. The
-[accepted factory/arbitration review](evidence/2026-09-07/nlu-arbitration/review.json)
-records the latest 11 repairs, zero new failure IDs and unchanged residual outputs;
-92 earlier failing cases are now repaired in total.
+profile now has **52 differences across 20,528 requests**, down from 149. The
+[character-class review](evidence/2026-09-07/nlu-class-words/review.json) records
+five further repairs, zero new failure IDs and unchanged residual outputs;
+97 earlier failing cases are now repaired in total.
 The [new complete compiled-profile comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
 on frozen `ef0457f` has **zero field differences across 20,534 cases**, zero
 invariants and 16 gap instances across the same eight unhosted external-answer
@@ -144,11 +144,13 @@ retains the rejected 176-difference run and its 60 new failures. The final nativ
 operator repair removes all 60 of those regressions and passes the full frozen
 HTTP replay. Twenty-five executable native semantic controls agree; three native
 runtime failures remain qualified. The subsequent factory/arbitration repair
-has completed its independent full replay and integration checks with 57
-remaining differences. The [portable graph runtime](evidence/2026-09-07/nlu-portable-snapshot/review.json)
+completed its independent full replay with 57 residual differences; the later
+character-class repair reduces that to 52. The [portable graph runtime](evidence/2026-09-07/nlu-portable-snapshot/review.json)
 is now accepted after a complete 20,534-case replay with zero differences/invariants
-and the same eight unhosted external-answer cases. Provisioning and robot rollout
-remain open. A proposed hand-written rule-pair tie table was rejected; future
+and the same eight unhosted external-answer cases. The [bundle installer and
+native/Compose startup](evidence/2026-09-07/nlu-snapshot-deployment/review.json)
+are accepted. A [temporary authenticated portable-parser Moth trial](evidence/2026-09-07/hardware/portable-snapshot/review.json)
+passed with rollback; persistent deployment and microphone/ring acceptance remain open. A proposed hand-written rule-pair tie table was rejected; future
 changes must reproduce general source semantics.
 
 The [H-04 launch review](evidence/2026-09-07/skill-launch/review.json) accepts
@@ -219,4 +221,4 @@ The audit, plan and compatibility manifest are complete; engineering verificatio
 
 The latest bounded [listen disconnect/timeout review](evidence/2026-09-07/listen-disconnect/review.json) passes three original-source cases and 140 guards. Its integrated tree passes 591 unit tests and strict43; full H-04 and deployed robot acceptance remain open.
 
-The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts the explicit factory/HTTP adapter with20 complete source HTTP controls,473 blocked-term and193 NLP controls. The [explicit Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery cases, 40 provider requests and 68 original Hub client exchanges, with nine root behavior corrections. Other provider and deployment acceptance remains separate and Q-01 stays open. The [temporary Moth checkpoint trial](evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) passed and restored the prior backend; it does not close microphone/ring or persistent deployment acceptance.
+The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts the explicit factory/HTTP adapter with20 complete source HTTP controls,473 blocked-term and193 NLP controls. The [explicit Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery cases, 40 provider requests and 68 original Hub client exchanges, with nine root behavior corrections. Other provider and deployment acceptance remains separate and Q-01 stays open. The [portable-parser Moth trial](evidence/2026-09-07/hardware/portable-snapshot/review.json) passed native authentication, clock rendering, joke playback calls and restored the prior backend; it does not close microphone/ring or persistent deployment acceptance.

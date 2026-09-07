@@ -1,5 +1,7 @@
 # N-08 default-AST parenthesized character-class equivalence
 
+Historical candidate report. The later [root acceptance](N-08-class-words-root-20260907.md) records the reviewed implementation, current instructions and verification limits.
+
 Status: **candidate unverified; pending root review**
 
 This follow-up starts from frozen candidate

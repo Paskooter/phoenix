@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded default AST character-class word semantics; N-08 remains open",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "969725b3390b5699dee62dc930f5f2cc8a96c95b",
+  "source": {
+    "repository": "ConvTech/jibo-nlu",
+    "revision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "compilerPath": "compiler/compiler.ypp",
+    "compilerSha256": "6732bf04ed15183663f7458180554aea82dfac5cc4ce2e4b64f8a031d5d95323",
+    "nativeCompilerSha256": "ed5c9868c772b8fcb370e995cc0617906562fd192809b9590e0f313699e87ba3",
+    "nativeParserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "behavior": "Bare [] words use new_word. A syntactically plain parenthesized word inside [] uses new_word_and_equivalents. Expansion applies to that atom, preserving surrounding characters and suffixes."
+  },
+  "nativeControls": {
+    "grammarsRegenerated": 8,
+    "parserOutcomes": 21,
+    "baselineMatches": 15,
+    "candidateMatches": 19,
+    "remainingApostropheCases": 2,
+    "archivedCompilerAndParserActualExitCodes": 0,
+    "nativeCaseSha256": "9253ec44470c9493443cdbd10f0a94cef5c0195487abdce05d3e196a90dac31a",
+    "candidateComparisonSha256": "02536e8eaa00605e72b5c237a3c84c64c78f6c02d579a5fa6aa4a3766f52d0a2",
+    "focusedExecutionSha256": "fa67ca140b0018e3a488912847d6abe1f87499f52d87bded2bdea1d976aba7c1",
+    "qualification": "Actual archived host compiler/parser with archived libraries; generated graph/parser bytes matched archived expectations. These are acceptance controls, not a compiler rebuild."
+  },
+  "focusedHttp": {
+    "cases": 209,
+    "baselineMatches": 152,
+    "candidateMatches": 157,
+    "repairs": 5,
+    "newFailures": 0,
+    "statusChanges": 0,
+    "reconciliationSha256": "d6feedba93b1c560c683936fc302d39daca69b68f9959488cd4247a091e70ae1"
+  },
+  "fullHttp": {
+    "cases": 20528,
+    "baselineMatches": 20471,
+    "candidateMatches": 20476,
+    "baselineDifferences": 57,
+    "candidateDifferences": 52,
+    "repaired": [
+      "chitchat:1620:0:base",
+      "chitchat:3664:0:base",
+      "hub-client:1921:0:base",
+      "hub-client:862:0:base",
+      "hub-client:862:0:condition:0"
+    ],
+    "newFailures": [],
+    "changedResiduals": [],
+    "groups": {
+      "boundary": {
+        "cases": 21,
+        "matches": 21
+      },
+      "chitchat": {
+        "cases": 11432,
+        "matches": 11403
+      },
+      "hub-client": {
+        "cases": 9002,
+        "matches": 8979
+      },
+      "report": {
+        "cases": 73,
+        "matches": 73
+      }
+    },
+    "baselineSha256": "0405eb0811c3e232ed971c5eb5d2372066e029dadac893e17ded5b9e731c3197",
+    "candidateSha256": "6f10a4b3df2aa1ef87c9a0cd64787e215b68f72f9d542a7af164b768e84c2a74"
+  },
+  "fullExecution": {
+    "startUtc": "2026-09-07T06:10:40.769291+00:00",
+    "endUtc": "2026-09-07T07:03:58.701605+00:00",
+    "durationSeconds": 3197.932,
+    "returncode": 0,
+    "timedOut": false,
+    "termSent": false,
+    "killSent": false,
+    "frozenStateStable": true
+  },
+  "fullInputSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+  "unchangedDriverSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e",
+  "fullExecutionSha256": "df51810091144a73992f5ab8c705f35e87714e4f392233072c12ecd8a24d953a",
+  "integration": {
+    "revision": "939c670f787fe1dfdf606c89e4aee875796eaefa",
+    "componentBytesEqualReviewedRevisions": true,
+    "componentIdentitiesSha256": "6986ed8a1ee2b18c3c54b82f587926d5d4a4a467729ad3b16e2b6314ab374d1b",
+    "frozenStateStable": true,
+    "unit": {
+      "tests": 682,
+      "passed": 675,
+      "failed": 0,
+      "skipped": 7
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "npmTestExitCode": 0,
+    "seconds": 26.98674068413675,
+    "executionSha256": "35dc62f20de3ea82168d084c2b06a4497ec99c29ce72a7b2c4b7abe042896adc"
+  },
+  "remaining": [
+    "52 default AST HTTP status/data differences; whole N-08 remains open.",
+    "Two focused apostrophe cases are a separate candidate, not accepted by this review.",
+    "The fixed 20,528-row replay measures HTTP status/data only. The separate portable 20,534-case production profile has broader action/session fields and eight unhosted external cases.",
+    "No default parser switch or microphone/physical-ring acceptance."
+  ]
+}

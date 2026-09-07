@@ -414,7 +414,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified. Fresh temporary9fc671f trial also passes native signed TLS issuance, both authenticated sockets, clock/TTS/display and synthetic proactive request; rollback and restored idle verified.
+Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth checkpoint trials. The latest trial on 614e1e8 used the 98-graph portable parser and real signed TLS CreateHubToken, matching listen/proactive upgrades, rendered clock, joke playback calls and synthetic proactive exchange. Root independently verified rollback of configuration, credentials and trust; 3150063 remains the diagnostic backend. Empty microphone timeout does not verify speech recognition, wake or the physical ring. A previous BE exit was recovered by relaunching identical 11.0.1 and retesting clock; its cause remains open. Persistent authenticated deployment, expiry, per-request retry grouping and account-backed extension remain unverified.
 
 Done when:
 
@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. The explicit portable graph runtime now matches the full20,534 production comparison with zero differences/invariants and the same eight unhosted external cases; final641 units and both strict43 profiles pass. Deployment provisioning, default AST residuals, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.
+The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word controls match 19/21; two apostrophe cases are separate unverified work. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 675 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.
 
 Done when:
 
@@ -707,13 +707,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root deployment corrections.
 
-Candidate scope: Explicit portable JSON/gzip graph runtime with independent decoded-data hashes. Root regeneration matches all 114 bundle files. Full20,534 production replay: zero differences/invariants, same16 gaps in8 unhosted cases. Final641 units and default/snapshot strict43 pass. No default switch, graph provisioning or robot acceptance; N-08 remains open.
+Candidate scope: Complete approved JSON/gzip bundle installer. Root preserves native/binary configuration and uses an explicit read-only Compose overlay. All 114 installed files, four configured installer checks, nine binary checks and actual Node 20 native/Compose parser probes pass. The combined suite has 675 passes, seven skips and a passing strict 43-case smoke. Persistent rollout remains open.
 
-Candidate report: [docs/parity/candidates/N-08-portable-snapshot-root-20260907.md](../../docs/parity/candidates/N-08-portable-snapshot-root-20260907.md).
+Candidate report: [docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md](../../docs/parity/candidates/N-08-snapshot-deployment-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json](../../docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json](../../docs/parity/evidence/2026-09-07/nlu-snapshot-deployment/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

@@ -1,5 +1,7 @@
 # N-08 portable snapshot deployment input — candidate
 
+Historical candidate report. The later [root acceptance](N-08-snapshot-deployment-root-20260907.md) records the reviewed implementation, current instructions and verification limits.
+
 This is an unverified deployment slice pending root review. It makes the already
 approved portable compiled-FST profile usable as an externally provisioned input;
 it does not change the AST default or publish the private graph payloads.

@@ -1,0 +1,36 @@
+{
+  "cases": 20528,
+  "baselineMatches": 20471,
+  "candidateMatches": 20476,
+  "baselineDifferences": 57,
+  "candidateDifferences": 52,
+  "repaired": [
+    "chitchat:1620:0:base",
+    "chitchat:3664:0:base",
+    "hub-client:1921:0:base",
+    "hub-client:862:0:base",
+    "hub-client:862:0:condition:0"
+  ],
+  "newFailures": [],
+  "changedResiduals": [],
+  "groups": {
+    "boundary": {
+      "cases": 21,
+      "matches": 21
+    },
+    "chitchat": {
+      "cases": 11432,
+      "matches": 11403
+    },
+    "hub-client": {
+      "cases": 9002,
+      "matches": 8979
+    },
+    "report": {
+      "cases": 73,
+      "matches": 73
+    }
+  },
+  "baselineSha256": "0405eb0811c3e232ed971c5eb5d2372066e029dadac893e17ded5b9e731c3197",
+  "candidateSha256": "6f10a4b3df2aa1ef87c9a0cd64787e215b68f72f9d542a7af164b768e84c2a74"
+}

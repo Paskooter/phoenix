@@ -1,5 +1,7 @@
 # N-08 default-AST character-class equivalence follow-up
 
+Historical candidate report. The later [root acceptance](N-08-class-words-root-20260907.md) records the reviewed implementation, current instructions and verification limits.
+
 Status: **candidate unverified; pending root review**
 
 This bounded candidate is based on

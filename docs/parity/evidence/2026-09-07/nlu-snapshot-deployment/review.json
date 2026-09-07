@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted portable snapshot installation and bounded native/Compose startup; persistent authenticated deployment remains open",
+  "reviewedBy": "Codex root",
+  "agentCandidateRevision": "f68f88a614c069d6f32ee225c59146037408adbf",
+  "reviewedRevision": "614e1e810cc25d122390b7311d856dcb8fb2f528",
+  "implementation": "Validate the approved complete JSON/gzip bundle, copy declared files, load all graphs/factories before an atomic versioned install, and mount it read-only through the optional Compose overlay. Base Compose and native launcher are byte-identical to prior main.",
+  "rootCorrections": [
+    "Removed the candidate requirement for a snapshot manifest when selecting the existing compiled binary profile.",
+    "Moved snapshot configuration to an explicit Compose overlay so binary and snapshot modes are not mixed.",
+    "Excluded the runtime bundle directory from both Git and Docker build context.",
+    "Used platform-aware path containment checks."
+  ],
+  "installation": {
+    "gzipExitCode": 0,
+    "jsonExitCode": 0,
+    "installedFiles": 114,
+    "graphs": 98,
+    "factoryGraphs": 15,
+    "factoryProvenanceEntries": 16,
+    "gzipBytesEqualApprovedBundle": true,
+    "jsonConversionDecodedBytesEqual": true,
+    "configuredInstallerTests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "configuredBinaryTests": {
+      "passed": 9,
+      "failed": 0
+    },
+    "existingDestinationRejectedAndUnchanged": true,
+    "incompleteCorruptAndEscapingInputsRejected": true,
+    "approvedProfileSha256": "16225da770c3efd4befe28f8f9f4c8b97d502cae86d5910a8c5355c3f6f09ab7"
+  },
+  "runtimeImage": {
+    "buildExitCode": 0,
+    "imageIdentity": "sha256:3b6db5bda908e9f979bbd2856b43d045e43bbd6d625f8a60fc31f9b11770d0b2",
+    "buildSeconds": 856.3199743949808,
+    "originalNativeBinariesRequiredBySnapshotTarget": false,
+    "runtimePayloadExcludedFromImage": true,
+    "qualification": "Image build completed during host disk I/O stalls; elapsed build time is not a service performance result."
+  },
+  "deploymentProbes": {
+    "native-binary": {
+      "node": "v20.20.2",
+      "healthchecks": 7,
+      "parserCases": 15,
+      "statusAndCompleteDataEqual": true,
+      "envelopeKeysAndTypeEqual": true,
+      "generatedIdsUniqueWithExpectedFormat": true,
+      "timestampsFiniteNumbers": true,
+      "captureSha256": "ad4502702a8b9a18bf1086156dfeca550dbdefa4f9ab0b64dfcf741441dfb82f"
+    },
+    "native-snapshot": {
+      "node": "v20.20.2",
+      "healthchecks": 7,
+      "parserCases": 15,
+      "statusAndCompleteDataEqual": true,
+      "envelopeKeysAndTypeEqual": true,
+      "generatedIdsUniqueWithExpectedFormat": true,
+      "timestampsFiniteNumbers": true,
+      "captureSha256": "b56d93551450c3fa4c9ae1efe34022f11f4eeb5ec34838ced2fbb7d7a29a6047"
+    },
+    "compose": {
+      "node": "v20.20.2",
+      "healthchecks": 1,
+      "parserCases": 15,
+      "statusAndCompleteDataEqual": true,
+      "envelopeKeysAndTypeEqual": true,
+      "generatedIdsUniqueWithExpectedFormat": true,
+      "timestampsFiniteNumbers": true,
+      "captureSha256": "f10f878fc2a03fedc55d9ebd8ea3dba57db533342323791a882901e5d046312e"
+    }
+  },
+  "compose": {
+    "missingBundleSettingRejected": true,
+    "readOnlyMountVerified": true,
+    "createHostPath": false,
+    "baseConfigurationPreserved": true,
+    "hostPortsExposedDuringTests": false,
+    "ownedContainersAndNetworkRemoved": true
+  },
+  "integration": {
+    "revision": "939c670f787fe1dfdf606c89e4aee875796eaefa",
+    "componentBytesEqualReviewedRevisions": true,
+    "componentIdentitiesSha256": "6986ed8a1ee2b18c3c54b82f587926d5d4a4a467729ad3b16e2b6314ab374d1b",
+    "frozenStateStable": true,
+    "unit": {
+      "tests": 682,
+      "passed": 675,
+      "failed": 0,
+      "skipped": 7
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "npmTestExitCode": 0,
+    "seconds": 26.98674068413675,
+    "executionSha256": "35dc62f20de3ea82168d084c2b06a4497ec99c29ce72a7b2c4b7abe042896adc"
+  },
+  "retainedFailedAttempts": [
+    {
+      "evidence": "n08-deployment-root-20260907",
+      "exitCode": 1,
+      "cause": "Root probe attempted JSON decoding of a successful plain-text ok health response, retried and hit its observation deadline. Build/install checks passed."
+    },
+    {
+      "evidence": "n08-deployment-compose-root-20260907",
+      "exitCode": 1,
+      "cause": "Same root health-response decoding error in Compose-only control. Service log records a listening parser."
+    },
+    {
+      "evidence": "n08-deployment-corrected-root-20260907",
+      "exitCode": 1,
+      "cause": "All corrected native/Compose probes passed. Unit tests passed674/674 with7 skips, but strict capture failed before any case because root-created absolute workspace symlinks did not resolve under the Docker mount.",
+      "strictCapturedCases": 0,
+      "strictDifferences": 44,
+      "strictInvariants": 2,
+      "correction": "New combined review checkout uses standard relative workspace links. Full npm test passed with unchanged reviewed product components."
+    }
+  ],
+  "evidenceHashes": {
+    "installationExecution": "776925b919b13633c429607d1dc179157bc6d5168c129e274b9f2bfe76cf25bf",
+    "correctedExecution": "e3d39649b819214367f08651fc39133b0d91046ac58fe8ba649d9f301d411c49",
+    "correctedProbe": "04dfd26abaf5557dd2fc5d2548276a986c9e06dd95197de8660dca772f0c1828",
+    "probeInput": "ad143e0e0a144c9a96c74a35dbfe3e52a2bd3492309d72a0a1858a4ba87b3207",
+    "setupFailureDiagnosis": "01a4851e41b84e89a180c495805a0f955b9f72e3626b3f718561ceefffc13ab4"
+  },
+  "hardwareReview": "../hardware/portable-snapshot/review.json",
+  "remaining": [
+    "Obtain the approved graph payload through separately managed provisioning; payloads and original executables are not committed.",
+    "Persistent authenticated current-main deployment, expiry/retry, microphone/wake/physical-ring and broader robot feature acceptance.",
+    "Default AST retains52 separate differences; portable production profile still has8 unhosted external cases."
+  ]
+}

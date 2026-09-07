@@ -1,15 +1,19 @@
 # Moth hardware validation
 
-The [latest authenticated main trial](evidence/2026-09-06/service-integration/authenticated-main-moth-review.json)
-used frozen `43c81f3` with the real native signed TLS Account issuer and the
-compiled 98-graph profile. Both authenticated socket paths and original SDK
-clock/proactive exchanges passed. Baseline configuration, credentials and trust
-were restored; Moth currently uses diagnostic backend `3150063`, not the later
-main checkout. A subsequent BE exit with code 0 has no established cause.
-Relaunching the identical BE 11.0.1 slot restored the debugger; the SDK clock
-and later idle were verified again without restarting native Jetstream or
-changing backend/configuration bytes. Microphone wake-up, physical ring
-illumination and persistent current-main deployment remain open.
+The [latest portable-parser trial](evidence/2026-09-07/hardware/portable-snapshot/review.json)
+used frozen `614e1e8`, the installed 98-graph JSON/gzip profile and original BE
+11.0.1. Real native signed TLS token issuance, both authenticated sockets and
+SDK clock/TTS/display passed. Root viewed later captures with hour, minute and
+seconds hands visible. A joke turn completed with speech activity and six
+observed native playback calls; their `STOPPED` outcomes remain recorded.
+
+Root independently verified rollback, configuration/credential/trust hashes,
+removed temporary resources, five healthy services and idle. Moth currently uses
+diagnostic backend `3150063`; persistent authenticated deployment remains open.
+The microphone session returned an empty `SOS_TIMEOUT`, which does not verify
+speech recognition, hotphrase activation or physical blue-ring illumination.
+A previous unexplained BE exit remains a stability follow-up. Read the private
+`.parity/robots/moth/20260906/current.json` receipt before acting on any process.
 
 
 ## Native authentication verified on 2026-09-06
@@ -29,7 +33,7 @@ inspected both clock screenshots. Proactive requests used a valid explicit
 expiry, exact HTTP retry grouping, the account-backed extension and physical
 wake/microphone/ring acceptance remain open.
 
-Moth is restored to BE 11.0.1 and the reviewed transport stack at `5e626b8`.
+At that earlier checkpoint Moth was restored to BE 11.0.1 and transport stack `5e626b8`.
 Root verified configuration, credentials and certificate trust byte-for-byte,
 temporary trust removal, `/usr/local` read-only state and Hub health. The
 authoritative private handoff is `.parity/robots/moth/20260906/current.json`;
