@@ -51,17 +51,18 @@ const ORTHO_MID_LC = 1 << 5;
 const ORTHO_UC = (1 << 1) | ORTHO_MID_UC | (1 << 3);
 const ORTHO_LC = ORTHO_BEG_LC | ORTHO_MID_LC | (1 << 6);
 const PUNKT_PUNCTUATION = new Set([';', ':', ',', '.', '!', '?']);
-const SENTENCE_CLOSERS = new Set(['"', "'", ')', ']', '}']);
-const PUNKT_TOKEN_SEPARATORS = new Set(['?', '!', ';', ':', ',', '"', "'", '(', ')', '[', ']', '{', '}', '*', '@']);
 
-// Python's Unicode-aware ``re`` treats the C0 information separators and
-// NEXT LINE as whitespace.  JavaScript's Unicode \s class does not include
-// those five code points, but they are ordinary boundary whitespace to the
-// pinned Punkt 3.2.5 tokenizer.
-const PYTHON_WHITESPACE = /[\u001c-\u001f\u0085]/u;
+// Keep the exact Unicode whitespace set used by Python's Unicode-aware
+// ``re``.  JavaScript's \s differs in two material ways for this adapter:
+// it includes U+FEFF, while Python does not, and it omits the C0 information
+// separators plus NEXT LINE.  U+FEFF must therefore remain part of a token.
+const PYTHON_WHITESPACE_CLASS = '\\t-\\r \\u001c-\\u001f\\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000';
+const PYTHON_WHITESPACE_PATTERN = `[${PYTHON_WHITESPACE_CLASS}]`;
+const PYTHON_WHITESPACE = new RegExp(PYTHON_WHITESPACE_PATTERN, 'u');
+const PYTHON_WHITESPACE_RUN = new RegExp(`${PYTHON_WHITESPACE_PATTERN}+`, 'gu');
 
 function isPunktWhitespace(character) {
-  return /\s/u.test(character) || PYTHON_WHITESPACE.test(character);
+  return PYTHON_WHITESPACE.test(character);
 }
 
 function isPythonInitialCharacter(character) {
@@ -118,7 +119,18 @@ const BLACKLIST_CATEGORIES = new Set((BLACKLIST.blacklist_categories || []).map(
 const BLACKLIST_ARTICLES = new Set((BLACKLIST.blacklist_articles || []).map(normalizeWikiName));
 
 function normalizeWhitespace(value) {
-  return String(value).trim().replace(/[\s\u001c-\u001f\u0085]+/gu, ' ');
+  let normalized = '';
+  let pendingSpace = false;
+  for (const character of String(value)) {
+    if (isPunktWhitespace(character)) {
+      pendingSpace = true;
+      continue;
+    }
+    if (pendingSpace && normalized) normalized += ' ';
+    normalized += character;
+    pendingSpace = false;
+  }
+  return normalized;
 }
 
 export function removeInitialStopWords(value) {
@@ -158,27 +170,36 @@ function cleanParentheses(value) {
   return result;
 }
 
+const PUNKT_NON_WORD = String.raw`[?!)";}\]\*:@'\(\[]`;
+const PUNKT_WORD_START = '[^("`{\\[:;&*@)}\\]\\-,]';
+const PUNKT_NON_WHITESPACE = `[^${PYTHON_WHITESPACE_CLASS}]`;
+const PUNKT_MULTI_CHAR = `(?:-{2,}|\\.{2,}|(?:\\.${PYTHON_WHITESPACE_PATTERN}){2,}\\.)`;
+
+// This is PunktLanguageVars._word_tokenize_fmt from the pinned NLTK 3.2.5
+// source, with Python's \s/\S expanded to the explicit classes above.  The
+// lazy word branch is significant: in ``Hello!world`` it produces ``Hello``
+// and ``!world``; splitting each punctuation mark independently changes the
+// period-context decision.
+const PUNKT_WORD_TOKENIZER = new RegExp(
+  `(?:${PUNKT_MULTI_CHAR}|(?=${PUNKT_WORD_START})${PUNKT_NON_WHITESPACE}+?(?=${PYTHON_WHITESPACE_RUN.source}|$|${PUNKT_NON_WORD}|${PUNKT_MULTI_CHAR}|,(?=$|${PYTHON_WHITESPACE_RUN.source}|${PUNKT_NON_WORD}|${PUNKT_MULTI_CHAR}))|${PUNKT_NON_WHITESPACE})`,
+  'gu',
+);
+
+const PUNKT_PERIOD_CONTEXT = new RegExp(
+  `${PUNKT_NON_WHITESPACE}*[.!?](?=(?<after>${PUNKT_NON_WORD}|${PYTHON_WHITESPACE_RUN.source}(?<next>${PUNKT_NON_WHITESPACE}+)))`,
+  'gu',
+);
+
+const PUNKT_REALIGN_BOUNDARIES = new RegExp(
+  `^["')\\]}]+?(?:${PYTHON_WHITESPACE_RUN.source}|(?=--)|$)`,
+  'u',
+);
+
 function punktTokens(text) {
-  // Punkt's English tokenizer keeps periods inside a word (Dr., U.S., 3.14.)
-  // and separates the other punctuation which can surround a boundary.  The
-  // source regex is intentionally represented as a scanner here so Unicode
-  // letters and code points remain intact in the original text slice.
   const tokens = [];
-  let index = 0;
-  while (index < text.length) {
-    if (isPunktWhitespace(text[index])) {
-      index += 1;
-      continue;
-    }
-    const start = index;
-    if (PUNKT_TOKEN_SEPARATORS.has(text[index])) {
-      index += 1;
-    } else {
-      while (index < text.length && !isPunktWhitespace(text[index]) && !PUNKT_TOKEN_SEPARATORS.has(text[index])) {
-        index += 1;
-      }
-    }
-    tokens.push({ text: text.slice(start, index), start, end: index });
+  PUNKT_WORD_TOKENIZER.lastIndex = 0;
+  for (const match of text.matchAll(PUNKT_WORD_TOKENIZER)) {
+    tokens.push({ text: match[0], start: match.index, end: match.index + match[0].length });
   }
   return tokens;
 }
@@ -294,29 +315,57 @@ function punktSecondPass(tokens) {
   }
 }
 
-function sentenceBoundaryEnd(text, token) {
-  let end = token.end;
-  let cursor = end;
-  // Punkt's period-context expression is greedy over non-whitespace token
-  // material.  For adjacent sentence-end punctuation this means the final
-  // candidate is the last `!`/`?`, so `Hello!!` and `What?!` stay together.
-  while (cursor < text.length && (text[cursor] === '!' || text[cursor] === '?')) cursor += 1;
-  while (cursor < text.length && SENTENCE_CLOSERS.has(text[cursor])) cursor += 1;
-  if (cursor > end && (cursor === text.length || isPunktWhitespace(text[cursor]) || text.startsWith('--', cursor))) {
-    end = cursor;
+function trimPunktWhitespaceEnd(value) {
+  let end = value.length;
+  while (end > 0 && isPunktWhitespace(value[end - 1])) end -= 1;
+  return value.slice(0, end);
+}
+
+function textContainsSentbreak(text) {
+  let found = false;
+  const tokens = punktTokens(text);
+  punktFirstPass(tokens);
+  punktSecondPass(tokens);
+  for (const token of tokens) {
+    // Punkt deliberately waits for a token after a marked break.  This is
+    // what makes a context such as ``Hello!!world. Next`` choose the final
+    // period-context boundary rather than splitting at the first ``!``.
+    if (found) return true;
+    if (token.sentbreak) found = true;
   }
-  return end;
+  return false;
+}
+
+function sentenceBoundaryEnd(text) {
+  PUNKT_PERIOD_CONTEXT.lastIndex = 0;
+  for (const match of text.matchAll(PUNKT_PERIOD_CONTEXT)) {
+    const after = match.groups.after;
+    const context = match[0] + after;
+    if (!textContainsSentbreak(context)) continue;
+
+    const boundaryEnd = match.index + match[0].length;
+    let nextStart = boundaryEnd;
+    if (match.groups.next) {
+      nextStart = boundaryEnd + after.length - match.groups.next.length;
+    }
+
+    // This is PunktSentenceTokenizer._realign_boundaries for the first
+    // sentence.  Closing quotes/brackets belong to the sentence only when
+    // followed by whitespace, ``--``, or end-of-text.
+    const remainder = text.slice(nextStart);
+    const realignment = PUNKT_REALIGN_BOUNDARIES.exec(remainder);
+    if (realignment) {
+      return nextStart + trimPunktWhitespaceEnd(realignment[0]).length;
+    }
+    return boundaryEnd;
+  }
+  return text.length;
 }
 
 export function firstSentence(value) {
   const text = normalizeWhitespace(cleanParentheses(value));
   if (!text) return '';
-  const tokens = punktTokens(text);
-  punktFirstPass(tokens);
-  punktSecondPass(tokens);
-  const boundary = tokens.find((token) => token.sentbreak);
-  if (!boundary) return text;
-  return text.slice(0, sentenceBoundaryEnd(text, boundary)).trim();
+  return text.slice(0, sentenceBoundaryEnd(text));
 }
 
 function sourceMessage(query, detail) {

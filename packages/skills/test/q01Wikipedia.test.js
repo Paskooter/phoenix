@@ -332,8 +332,16 @@ test('Q-01 lexical boundaries preserve Python Punkt Unicode and punctuation sema
   const cases = [
     ['adjacent sentence punctuation', 'Hello!! Next sentence.', 'Hello!!'],
     ['mixed adjacent sentence punctuation', 'What?! Really? Next sentence.', 'What?!'],
+    ['adjacent punctuation without a space', 'Hello!world. Next sentence.', 'Hello!world.'],
+    ['mixed adjacent punctuation without a space', 'What?!really. Next sentence.', 'What?!really.'],
+    ['ellipsis without a space', 'Wait...Next. Later sentence.', 'Wait...Next.'],
+    ['multi-hyphen word', 'well--known! Next sentence.', 'well--known!'],
+    ['apostrophe word', "It's here. Next sentence.", "It's here."],
+    ['quoted closer', 'He said "Hi." Next sentence.', 'He said "Hi."'],
+    ['bracket closer', 'First.) Next sentence.', 'First.)'],
     ['Python NEXT LINE whitespace', 'End.\u0085Next.', 'End.'],
     ['Python information-separator whitespace', 'End.\u001cNext.', 'End.'],
+    ['FEFF remains in the Python token', 'End.\ufeffNext. Later.', 'End.\ufeffNext.'],
     ['connector-punctuation initial', '_. Zygmunt is here. Next sentence.', '_. Zygmunt is here.'],
     ['Unicode decimal initial', '١. sentence continues. Later.', '١. sentence continues.'],
   ];
