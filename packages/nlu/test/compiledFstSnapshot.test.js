@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { gzipSync } from 'node:zlib';
 import { CompiledFstExecutor, VectorStandardFst } from '../src/compiledFst.js';
 import {
   FST_SNAPSHOT_SCHEMA,
@@ -107,4 +108,19 @@ test('snapshot artifact provenance stays relative', () => {
     sourcePath: '/private/launch.fst', sourceSha256: 'a'.repeat(64), sourceBytes: 1,
   });
   assert.throws(() => parseFstSnapshot(document), /sourcePath must be a relative label/);
+});
+
+test('gzip snapshots retain JSON semantics and reject truncated data', () => {
+  const original = new VectorStandardFst(vectorFst([
+    { arcs: [{ ilabel: 107, olabel: 2000, nextstate: 1 }] },
+    { final: 0, arcs: [] },
+  ], [[2000, "N:{} {% intent='gzip' %}"]]));
+  const json = stringifyFstSnapshot(serializeFstSnapshot(original));
+  const compressed = gzipSync(Buffer.from(json), { level: 9, mtime: 0 });
+  const restored = parseFstSnapshot(compressed, { compression: 'gzip' });
+  assert.deepEqual(new CompiledFstExecutor(restored).parse('a'), new CompiledFstExecutor(original).parse('a'));
+  assert.throws(
+    () => parseFstSnapshot(compressed.subarray(0, compressed.length - 3), { compression: 'gzip' }),
+    /gzip decompression failed/,
+  );
 });

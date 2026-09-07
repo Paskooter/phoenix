@@ -10,7 +10,12 @@ import { fileURLToPath } from 'node:url';
 import { ConnectedFstExecutor } from './connectedFst.js';
 import { VectorStandardFst } from './compiledFst.js';
 import { interpretOutputSymbols } from './compiledFstInterpreter.js';
-import { FST_SNAPSHOT_SCHEMA, FST_SNAPSHOT_VERSION, parseFstSnapshot } from './compiledFstSnapshot.js';
+import {
+  FST_SNAPSHOT_SCHEMA,
+  FST_SNAPSHOT_VERSION,
+  decodeSnapshotBytes,
+  parseFstSnapshot,
+} from './compiledFstSnapshot.js';
 import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from './compiledFstProfile.js';
 
 const ENABLED = COMPILED_FST_PROFILE.runtime;
@@ -107,8 +112,27 @@ function safeSnapshotPath(root, relativePath, label) {
   return path;
 }
 
-function snapshotJson(path, entry, label) {
-  const bytes = readFileSync(path);
+function snapshotJson(path, entry, label, expectedStorage = 'json') {
+  const compression = entry.compression || 'json';
+  if (compression !== expectedStorage) {
+    throw new Error(`Compiled NLU snapshot storage mismatch (${label}): expected ${expectedStorage}, found ${compression}`);
+  }
+  const stored = readFileSync(path);
+  if (compression === 'gzip') {
+    if (!/^[a-f0-9]{64}$/.test(entry.storedSha256)
+      || !Number.isSafeInteger(entry.storedBytes) || entry.storedBytes < 0) {
+      throw new Error(`Compiled NLU compressed snapshot metadata is invalid: ${path}`);
+    }
+    if (sha256(stored) !== entry.storedSha256) {
+      throw new Error(`Compiled NLU compressed snapshot hash mismatch: ${path}`);
+    }
+    if (stored.length !== entry.storedBytes) {
+      throw new Error(`Compiled NLU compressed snapshot size mismatch: ${path}`);
+    }
+  }
+  let bytes;
+  try { bytes = decodeSnapshotBytes(stored, { compression }); }
+  catch (error) { throw new Error(`${label} could not be decoded: ${error.message}`); }
   const actual = sha256(bytes);
   if (actual !== entry.snapshotSha256) throw new Error(`Compiled NLU snapshot hash mismatch: ${path}`);
   if (bytes.length !== entry.snapshotBytes) throw new Error(`Compiled NLU snapshot size mismatch: ${path}`);
@@ -156,6 +180,10 @@ function verifySnapshotProfileIdentity(manifest) {
     throw new Error('Unsupported compiled NLU snapshot profile schema');
   }
   const profile = manifest.profile;
+  const storage = manifest.format.storage || 'json';
+  if (storage !== 'json' && storage !== 'gzip') {
+    throw new Error('Unsupported compiled NLU snapshot storage');
+  }
   if (!profile || profile.runtime !== ENABLED
     || profile.approvedLaunchSha256 !== APPROVED_LAUNCH_SHA256
     || profile.approvedInventorySha256 !== APPROVED_INVENTORY_SHA256
@@ -174,6 +202,7 @@ function readPortableSnapshotProfile(manifestPath) {
   try { manifest = JSON.parse(readFileSync(manifestPath, 'utf8')); }
   catch (error) { throw new Error(`Compiled NLU snapshot profile is invalid: ${error.message}`); }
   verifySnapshotProfileIdentity(manifest);
+  const storage = manifest.format.storage || 'json';
 
   const inventoryBytes = readFileSync(INVENTORY_PATH);
   const inventorySha256 = sha256(inventoryBytes);
@@ -203,11 +232,11 @@ function readPortableSnapshotProfile(manifestPath) {
       throw new Error(`Compiled NLU snapshot graph provenance mismatch: ${name}`);
     }
     const path = safeSnapshotPath(root, entry.path, `graph ${name}`);
-    const loaded = snapshotJson(path, entry, `graph ${name}`);
+    const loaded = snapshotJson(path, entry, `graph ${name}`, storage);
     // Keep the verified JSON bytes for lazy graph construction. The launch
     // graph is large, and retaining 98 decoded object graphs after the
     // provenance pass would needlessly multiply the portable profile's RSS.
-    graphs.set(name, { ...entry, bytes: loaded.bytes, path });
+    graphs.set(name, { ...entry, bytes: loaded.bytes, path, fst: name === 'launch' ? loaded.fst : undefined });
   }
   const computedRuleManifest = ruleManifestHash(inventory, graphs);
   if (computedRuleManifest !== manifest.ruleManifestSha256
@@ -269,8 +298,8 @@ function readPortableSnapshotProfile(manifestPath) {
       throw new Error(`Compiled NLU snapshot factory provenance mismatch: ${name}`);
     }
     const path = safeSnapshotPath(root, entry.path, `factory ${name}`);
-    const loaded = snapshotJson(path, entry, `factory ${name}`);
-    factories.set(name, { ...entry, bytes: loaded.bytes, document: loaded.document, fst: loaded.fst, path });
+    const loaded = snapshotJson(path, entry, `factory ${name}`, storage);
+    factories.set(name, { ...entry, fst: loaded.fst, path });
   }
   const computedFactoryManifest = factoryManifestHash(factoryFiles);
   if (computedFactoryManifest !== PROVENANCE.factoryManifestSha256
@@ -327,7 +356,7 @@ function config() {
 function createPortableRuntime(selected, key) {
   const profile = readPortableSnapshotProfile(selected.snapshotManifest);
   const launchEntry = profile.graphs.get('launch');
-  const launchFst = parseFstSnapshot(launchEntry.bytes, { source: launchEntry.path });
+  const launchFst = launchEntry.fst || parseFstSnapshot(launchEntry.bytes, { source: launchEntry.path });
   const factoryFsts = new Map();
   for (const [name, entry] of profile.factories) factoryFsts.set(name, entry.fst);
   const executor = new ConnectedFstExecutor(launchFst, { factoryFsts });
@@ -337,7 +366,7 @@ function createPortableRuntime(selected, key) {
     if (!entry) throw new Error(`Compiled NLU rule is unavailable in the verified snapshot: ${name}`);
     let selectedExecutor = executors.get(name);
     if (!selectedExecutor) {
-      selectedExecutor = new ConnectedFstExecutor(parseFstSnapshot(entry.bytes, { source: entry.path }), { factoryFsts });
+      selectedExecutor = new ConnectedFstExecutor(entry.fst || parseFstSnapshot(entry.bytes, { source: entry.path }), { factoryFsts });
       executors.set(name, selectedExecutor);
     }
     return selectedExecutor;

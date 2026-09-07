@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { compiledFstConstants } from './compiledFst.js';
 
 // A decoded OpenFST graph is useful at the deployment boundary because it
@@ -7,6 +8,23 @@ import { compiledFstConstants } from './compiledFst.js';
 // This is deliberately a data format, not a second grammar or a lookup table.
 export const FST_SNAPSHOT_SCHEMA = 'phoenix.nlu.compiled-fst';
 export const FST_SNAPSHOT_VERSION = 1;
+
+/**
+ * Return the uncompressed JSON bytes for a stored snapshot. The decoded
+ * document format remains JSON; compression is only a distribution encoding.
+ */
+export function decodeSnapshotBytes(value, { compression = 'json' } = {}) {
+  const stored = Buffer.isBuffer(value) || value instanceof Uint8Array
+    ? Buffer.from(value)
+    : Buffer.from(String(value), 'utf8');
+  if (compression === 'json') return stored;
+  if (compression !== 'gzip') invalid(`unsupported snapshot compression: ${compression}`);
+  try {
+    return gunzipSync(stored);
+  } catch (error) {
+    invalid(`gzip decompression failed: ${error.message}`);
+  }
+}
 
 const {
   EPSILON,
@@ -249,8 +267,11 @@ export class SnapshotStandardFst {
 export function parseFstSnapshot(value, options = {}) {
   let document = value;
   if (Buffer.isBuffer(value) || typeof value === 'string') {
-    try { document = JSON.parse(Buffer.isBuffer(value) ? value.toString('utf8') : value); }
+    const jsonBytes = decodeSnapshotBytes(value, options);
+    try { document = JSON.parse(jsonBytes.toString('utf8')); }
     catch (error) { invalid(`JSON parse failed: ${error.message}`); }
+  } else if (options.compression && options.compression !== 'json') {
+    invalid('compressed snapshots must be supplied as bytes or text');
   }
   return new SnapshotStandardFst(document, options);
 }

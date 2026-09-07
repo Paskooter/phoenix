@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import { VectorStandardFst } from '../src/compiledFst.js';
 import {
   FST_SNAPSHOT_SCHEMA,
@@ -13,7 +14,7 @@ import {
 import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from '../src/compiledFstProfile.js';
 
 function usage() {
-  console.error('usage: exportCompiledFstSnapshots.mjs --inventory FILE --rules-dir DIR --factory-dir DIR --output DIR');
+  console.error('usage: exportCompiledFstSnapshots.mjs --inventory FILE --rules-dir DIR --factory-dir DIR --output DIR [--gzip]');
   process.exitCode = 2;
 }
 
@@ -22,6 +23,10 @@ function args(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === '--help') usage();
+    if (value === '--gzip') {
+      result.gzip = true;
+      continue;
+    }
     if (!value.startsWith('--') || index + 1 >= argv.length) usage();
     result[value.slice(2)] = argv[++index];
   }
@@ -48,11 +53,18 @@ function manifestHash(entries, names, sourceField = 'sourceSha256', pathField = 
   return hash.digest('hex');
 }
 
-function writeJson(path, value) {
+function writeJson(path, value, { gzip = false } = {}) {
   const bytes = Buffer.from(JSON.stringify(value) + '\n');
+  const stored = gzip ? gzipSync(bytes, { level: 9, mtime: 0 }) : bytes;
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, bytes);
-  return { path, sha256: sha256(bytes), bytes: bytes.length };
+  writeFileSync(path, stored);
+  return {
+    path,
+    sha256: sha256(bytes),
+    bytes: bytes.length,
+    storedSha256: sha256(stored),
+    storedBytes: stored.length,
+  };
 }
 
 const options = args(process.argv.slice(2));
@@ -60,6 +72,7 @@ const inventoryPath = resolve(options.inventory);
 const rulesDir = resolve(options['rules-dir']);
 const factoryDir = resolve(options['factory-dir']);
 const outputDir = resolve(options.output);
+const compression = options.gzip ? 'gzip' : 'json';
 const inventoryBytes = readFileSync(inventoryPath);
 const inventorySha256 = sha256(inventoryBytes);
 const inventory = JSON.parse(inventoryBytes.toString('utf8'));
@@ -83,8 +96,8 @@ for (const [name, entry] of Object.entries(inventory.publicRules || {})) {
     sourceSha256,
     sourceBytes: sourceBytes.length,
   });
-  const outputPath = `graphs/${sourcePath.replace(/\.fst$/, '.json')}`;
-  const written = writeJson(join(outputDir, outputPath), JSON.parse(stringifyFstSnapshot(snapshot)));
+  const outputPath = `graphs/${sourcePath.replace(/\.fst$/, compression === 'gzip' ? '.json.gz' : '.json')}`;
+  const written = writeJson(join(outputDir, outputPath), JSON.parse(stringifyFstSnapshot(snapshot)), { gzip: compression === 'gzip' });
   graphs[name] = {
     path: outputPath,
     sourcePath,
@@ -93,6 +106,11 @@ for (const [name, entry] of Object.entries(inventory.publicRules || {})) {
     snapshotSha256: written.sha256,
     snapshotBytes: written.bytes,
   };
+  if (compression === 'gzip') {
+    graphs[name].compression = compression;
+    graphs[name].storedSha256 = written.storedSha256;
+    graphs[name].storedBytes = written.storedBytes;
+  }
   process.stdout.write(`graph ${name} ${sourceBytes.length} -> ${written.bytes}\n`);
 }
 
@@ -123,8 +141,8 @@ for (const [fileName, expectedSourceSha256] of Object.entries(COMPILED_FST_PROFI
       sourceSha256,
       sourceBytes: sourceBytes.length,
     });
-    const outputPath = `factories/${name}.json`;
-    const written = writeJson(join(outputDir, outputPath), JSON.parse(stringifyFstSnapshot(snapshot)));
+    const outputPath = `factories/${name}${compression === 'gzip' ? '.json.gz' : '.json'}`;
+    const written = writeJson(join(outputDir, outputPath), JSON.parse(stringifyFstSnapshot(snapshot)), { gzip: compression === 'gzip' });
     factories[name] = {
       kind: 'fst',
       path: outputPath,
@@ -134,6 +152,11 @@ for (const [fileName, expectedSourceSha256] of Object.entries(COMPILED_FST_PROFI
       snapshotSha256: written.sha256,
       snapshotBytes: written.bytes,
     };
+    if (compression === 'gzip') {
+      factories[name].compression = compression;
+      factories[name].storedSha256 = written.storedSha256;
+      factories[name].storedBytes = written.storedBytes;
+    }
     process.stdout.write(`factory ${name} ${sourceBytes.length} -> ${written.bytes}\n`);
   } else {
     process.stdout.write(`factory auxiliary ${fileName} ${sourceBytes.length}\n`);
@@ -163,7 +186,7 @@ const manifest = {
   schema: FST_PROFILE_SCHEMA,
   version: FST_PROFILE_VERSION,
   kind: 'compiled-fst-profile',
-  format: { schema: FST_SNAPSHOT_SCHEMA, version: FST_SNAPSHOT_VERSION },
+  format: { schema: FST_SNAPSHOT_SCHEMA, version: FST_SNAPSHOT_VERSION, storage: compression },
   profile: {
     runtime: COMPILED_FST_PROFILE.runtime,
     approvedLaunchSha256: COMPILED_FST_PROFILE.approvedLaunchSha256,
