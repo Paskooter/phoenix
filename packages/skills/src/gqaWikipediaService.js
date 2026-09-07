@@ -12,6 +12,12 @@ import {
   createWikipediaProvider,
   WIKIPEDIA_SOURCE_API,
 } from './gqaWikipediaProvider.js';
+import {
+  createGqaAccountLookup,
+  createGqaAttributionStore,
+  createGqaRetrieveAttributionRoute,
+  createGqaWipeAttributionRoute,
+} from './gqaAccountAttribution.js';
 
 export const GQA_WIKIPEDIA_PROFILE = 'wikipedia';
 export const GQA_WIKIPEDIA_SKILL_ID = 'answer';
@@ -24,6 +30,25 @@ function configuredTimeout(value) {
     throw new TypeError('ETCO_gqa_wikiTimeoutMs must be a non-negative number');
   }
   return parsed;
+}
+
+function configuredAccountLookup(value) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'function') return value;
+  if (typeof value === 'object' && !Array.isArray(value)) return createGqaAccountLookup(value);
+  throw new TypeError('GQA account configuration must be a function or mapping');
+}
+
+function configuredAttribution(value) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'object' && !Array.isArray(value)
+    && typeof value.insert === 'function'
+    && typeof value.search === 'function'
+    && typeof value.wipe === 'function') return value;
+  if (typeof value === 'object' && !Array.isArray(value) && value.collection) {
+    return createGqaAttributionStore(value);
+  }
+  throw new TypeError('GQA attribution configuration must provide a store or collection');
 }
 
 // In the source route controls, Wikipedia runs inside GqaParallelQuery.  A
@@ -79,9 +104,13 @@ export function createGqaWikipediaService({
   random,
   idFactory,
   messageId,
+  account,
+  attribution,
   name = 'answer-wikipedia',
 } = {}) {
   const configuredRequestTimeout = configuredTimeout(timeoutMs);
+  const accountLookup = configuredAccountLookup(account);
+  const attributionStore = configuredAttribution(attribution);
   const provider = createWikipediaProvider({
     endpoint,
     fetchImpl,
@@ -108,19 +137,31 @@ export function createGqaWikipediaService({
     idFactory,
     messageId,
     clock,
+    accountLookup,
+    attribution: attributionStore,
   });
   const route = createGqaHttpRoute({
     skillId: GQA_WIKIPEDIA_SKILL_ID,
     handler,
   });
 
+  const routes = {
+    [`POST ${GQA_WIKIPEDIA_BASE_PATH}/v1/main`]: route,
+    [`POST ${GQA_WIKIPEDIA_BASE_PATH}`]: route,
+    'POST /v1/main': route,
+  };
+  if (attributionStore) {
+    routes['POST /wipeID'] = createGqaWipeAttributionRoute({ attribution: attributionStore });
+    if (accountLookup) {
+      routes['POST /retrieveAtt'] = createGqaRetrieveAttributionRoute({
+        accountLookup,
+        attribution: attributionStore,
+      });
+    }
+  }
   return createService({
     name,
-    routes: {
-      [`POST ${GQA_WIKIPEDIA_BASE_PATH}/v1/main`]: route,
-      [`POST ${GQA_WIKIPEDIA_BASE_PATH}`]: route,
-      'POST /v1/main': route,
-    },
+    routes,
   });
 }
 
@@ -128,6 +169,11 @@ export function createGqaWikipediaService({
 export function startGqaWikipediaService(port, options = {}) {
   const env = options.env || process.env;
   const config = readGqaWikipediaProfileConfig(env);
+  const account = Object.prototype.hasOwnProperty.call(options, 'account')
+    ? options.account
+    : env.ETCO_server_accountService
+      ? { endpoint: env.ETCO_server_accountService }
+      : undefined;
   const service = createGqaWikipediaService({
     endpoint: options.endpoint || config.endpoint,
     fetchImpl: options.fetchImpl,
@@ -143,6 +189,8 @@ export function startGqaWikipediaService(port, options = {}) {
     random: options.random,
     idFactory: options.idFactory,
     messageId: options.messageId,
+    account,
+    attribution: options.attribution,
   });
   return service.listen(port);
 }

@@ -111,6 +111,21 @@ export {
   GQA_MULTI_PROVIDER_SKILL_ID,
   GQA_MULTI_PROVIDER_TIMEOUTS,
 } from './gqaMultiProviderService.js';
+export {
+  createGqaAccountLookup,
+  createGqaAttributionStore,
+  createGqaMemoryAttributionStore,
+  createGqaRetrieveAttributionRoute,
+  createGqaWipeAttributionRoute,
+  sourceJsonDumps,
+  sourceTruthy,
+  GQA_ACCOUNT_SOURCE_REVISION,
+  GQA_ACCOUNT_SOURCE_MODULE,
+  GQA_ATTRIBUTE_SOURCE_REVISION,
+  GQA_ATTRIBUTE_SOURCE_MODULE,
+  GQA_ACCOUNT_SERVICE_ENV,
+  GQA_ATTRIBUTE_INDEX,
+} from './gqaAccountAttribution.js';
 
 // Compatibility descriptors retain the historical named handlers. A caller
 // that passes SKILLS directly to createSkillsService still represents one

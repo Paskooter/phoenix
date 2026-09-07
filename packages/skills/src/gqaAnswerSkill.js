@@ -534,8 +534,24 @@ export function createGqaProviderPipeline({
  * GqaParallelQuery records that failure privately and, when no provider
  * succeeds, choose_slim emits the normal no-answer MIM instead of GQA_error.
  */
-export function createGqaAnswerSkill({ provider = async () => ({}), providers, rng = Math.random, clock = Date.now, skillId = 'answer', idFactory = newJcpId, messageId = randomUUID } = {}) {
+export function createGqaAnswerSkill({
+  provider = async () => ({}),
+  providers,
+  rng = Math.random,
+  clock = Date.now,
+  skillId = 'answer',
+  idFactory = newJcpId,
+  messageId = randomUUID,
+  accountLookup,
+  attribution,
+} = {}) {
   if (typeof provider !== 'function') throw new TypeError('GQA provider must be a function');
+  if (accountLookup !== undefined && typeof accountLookup !== 'function') {
+    throw new TypeError('GQA account lookup must be a function');
+  }
+  if (attribution !== undefined && (!attribution || typeof attribution.insert !== 'function')) {
+    throw new TypeError('GQA attribution must provide an insert function');
+  }
   const invokeProvider = providers ? createGqaProviderPipeline({ providers }) : provider;
   return async function gqaAnswerSkill(request) {
     const start = clock();
@@ -547,6 +563,11 @@ export function createGqaAnswerSkill({ provider = async () => ({}), providers, r
     const questionType = getGqaQuestionType(request);
     context.questionType = questionType;
     context.accountId = request.data.general.accountID ?? null;
+    // gqa.account.get_loop_id runs before cleaning and before any PII/banned
+    // word branch. Keep the result on the provider context so an explicit
+    // profile can use the source loop identity without changing the response
+    // envelope. A failed network lookup returns the source empty mapping.
+    if (accountLookup) context.loopId = await accountLookup(context.accountId);
     const queryText = cleanGqaInput(rawText);
     context.queryText = queryText;
 
@@ -596,6 +617,23 @@ export function createGqaAnswerSkill({ provider = async () => ({}), providers, r
           if (answer[answer.length - 1] !== '.') answer = [...answer, '.'];
         } else {
           throw new TypeError('GQA provider payload is not subscriptable');
+        }
+        // Source choose_slim persists attribution after appending the final
+        // period and before constructing the speaking SLIM. Only Bing and
+        // Wolfram Alpha are attributed; Wikipedia is intentionally omitted.
+        if (attribution && (output.source === 'Bing' || output.source === 'Wolfram Alpha')) {
+          if (!Object.prototype.hasOwnProperty.call(output, 'url')) {
+            // The source uses output["url"] at this boundary. Keep a malformed
+            // attributed result visible instead of inserting an undefined field.
+            throw new TypeError('GQA attributed provider result is missing url');
+          }
+          await attribution.insert(
+            output.source,
+            answer,
+            output.url,
+            output.image_url ?? null,
+            context.loopId,
+          );
         }
         slim = buildGqaSlimFromText(answer, output.source, idFactory);
         output = { ...output, response: { ...output.response, payload: answer } };

@@ -17,6 +17,12 @@ import {
 import { createBingProvider } from './gqaBingProvider.js';
 import { createWikipediaProvider } from './gqaWikipediaProvider.js';
 import { createWolframProvider } from './gqaWolframProvider.js';
+import {
+  createGqaAccountLookup,
+  createGqaAttributionStore,
+  createGqaRetrieveAttributionRoute,
+  createGqaWipeAttributionRoute,
+} from './gqaAccountAttribution.js';
 
 export const GQA_MULTI_PROVIDER_PROFILE = 'multi-provider';
 export const GQA_MULTI_PROVIDER_SKILL_ID = 'answer';
@@ -57,6 +63,25 @@ function configuredTimeouts(value) {
     GQA_MULTI_PROVIDER_TIMEOUTS[index],
     `GQA provider timeout ${index}`,
   ));
+}
+
+function configuredAccountLookup(value) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'function') return value;
+  if (typeof value === 'object' && !Array.isArray(value)) return createGqaAccountLookup(value);
+  throw new TypeError('GQA account configuration must be a function or mapping');
+}
+
+function configuredAttribution(value) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'object' && !Array.isArray(value)
+    && typeof value.insert === 'function'
+    && typeof value.search === 'function'
+    && typeof value.wipe === 'function') return value;
+  if (typeof value === 'object' && !Array.isArray(value) && value.collection) {
+    return createGqaAttributionStore(value);
+  }
+  throw new TypeError('GQA attribution configuration must provide a store or collection');
 }
 
 function sourceProfileWikipediaProvider(provider) {
@@ -122,11 +147,15 @@ export function createGqaMultiProviderProfile({
   idFactory,
   messageId,
   skillId = GQA_MULTI_PROVIDER_SKILL_ID,
+  account,
+  attribution,
 } = {}) {
   const bingConfig = providerSection(bing, 'Bing');
   const wikipediaConfig = providerSection(wikipedia, 'Wikipedia');
   const wolframConfig = providerSection(wolfram, 'Wolfram Alpha');
   const providerTimeouts = configuredTimeouts(timeouts);
+  const accountLookup = configuredAccountLookup(account);
+  const attributionStore = configuredAttribution(attribution);
 
   const bingProvider = createBingProvider({
     ...bingConfig,
@@ -166,6 +195,8 @@ export function createGqaMultiProviderProfile({
     skillId,
     idFactory,
     messageId,
+    accountLookup,
+    attribution: attributionStore,
   });
 
   return Object.freeze({
@@ -175,6 +206,8 @@ export function createGqaMultiProviderProfile({
     pipeline,
     handler,
     timeouts: Object.freeze(providerTimeouts),
+    accountLookup,
+    attribution: attributionStore,
   });
 }
 
@@ -193,13 +226,23 @@ export function createGqaMultiProviderService(options = {}) {
     skillId: selected.skillId || GQA_MULTI_PROVIDER_SKILL_ID,
     handler: selected.handler,
   });
+  const routes = {
+    [`POST ${GQA_MULTI_PROVIDER_BASE_PATH}/v1/main`]: route,
+    [`POST ${GQA_MULTI_PROVIDER_BASE_PATH}`]: route,
+    'POST /v1/main': route,
+  };
+  if (selected.attribution) {
+    routes['POST /wipeID'] = createGqaWipeAttributionRoute({ attribution: selected.attribution });
+    if (selected.accountLookup) {
+      routes['POST /retrieveAtt'] = createGqaRetrieveAttributionRoute({
+        accountLookup: selected.accountLookup,
+        attribution: selected.attribution,
+      });
+    }
+  }
   return createService({
     name,
-    routes: {
-      [`POST ${GQA_MULTI_PROVIDER_BASE_PATH}/v1/main`]: route,
-      [`POST ${GQA_MULTI_PROVIDER_BASE_PATH}`]: route,
-      'POST /v1/main': route,
-    },
+    routes,
   });
 }
 
@@ -207,9 +250,15 @@ export function createGqaMultiProviderService(options = {}) {
 export function startGqaMultiProviderService(port, options = {}) {
   const { env = process.env, ...overrides } = options;
   const config = readGqaMultiProviderProfileConfig(env);
+  const account = Object.prototype.hasOwnProperty.call(overrides, 'account')
+    ? overrides.account
+    : env.ETCO_server_accountService
+      ? { endpoint: env.ETCO_server_accountService }
+      : undefined;
   return createGqaMultiProviderService({
     ...config,
     ...overrides,
+    account,
     bing: { ...config.bing, ...(overrides.bing || {}) },
     wikipedia: { ...config.wikipedia, ...(overrides.wikipedia || {}) },
     wolfram: { ...config.wolfram, ...(overrides.wolfram || {}) },
