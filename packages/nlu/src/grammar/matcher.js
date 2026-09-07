@@ -241,7 +241,14 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // optional. Match the expanded words against the next input token.
       const variants = expandCharClass(node.body);
       for (const v of variants) {
-        if (start < tokens.length && (tokens[start] === _norm(v) || eqEquals(ctx.eq, tokens[start], _norm(v)))) {
+        // Bracketed character rules are compiled with `new_word`, whereas
+        // ordinary word constants use `new_word_and_equivalents` when the
+        // source enables `use_equivalent_words`.  Keep the two source forms
+        // distinct: a class spelling such as `[georgia]` must not accept the
+        // unrelated-length ordinary word `george` merely because both happen
+        // to share an equivalence-list entry.  Native compilation still
+        // permits equivalent alternatives for the `lit` node above.
+        if (start < tokens.length && tokens[start] === _norm(v)) {
           const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
           yield {
             end: start + 1,

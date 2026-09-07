@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { matchRule } from '../src/grammar/matcher.js';
+import { loadEqWords } from '../src/grammar/eqWords.js';
 
 // Observed with the archived native jibo-nlu 2.8.3 grm2fst/parse binaries.
 // Prefix ? selects the next character or group inside [], not the rest of
@@ -31,3 +32,15 @@ for (const { body, accepted, rejected } of cases) {
     }
   });
 }
+
+test('character classes keep literal spelling when equivalence expansion is enabled', () => {
+  const eq = loadEqWords();
+  const context = { rules: {}, eq };
+
+  // compiler.ypp sends a bare word through new_word_and_equivalents, but a
+  // word inside [] through new_word.  The archived compiler therefore accepts
+  // `george` for an ordinary `georgia` word and rejects it for `[georgia]`.
+  assert.notEqual(matchRule({ type: 'lit', word: 'georgia' }, ['george'], context), null);
+  assert.equal(matchRule({ type: 'class', body: 'georgia' }, ['george'], context), null);
+  assert.notEqual(matchRule({ type: 'class', body: 'georgia' }, ['georgia'], context), null);
+});
