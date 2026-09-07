@@ -25,6 +25,21 @@ function configuredTimeout(value) {
   return parsed;
 }
 
+// In the source route controls, Wikipedia runs inside GqaParallelQuery.  A
+// provider's `{source, message}` result is recorded in the service log and
+// contributes no answer; choose_slim then emits the normal no-answer MIM.
+// Keep the direct provider factory's diagnostic result intact for callers that
+// need that lower-level contract, while adapting this one-provider profile to
+// the observable source answer route.
+function sourceProfileProvider(provider) {
+  return async (context) => {
+    const output = await provider(context);
+    if (!output || typeof output !== 'object') return {};
+    const payload = output.response && output.response.payload;
+    return payload ? output : {};
+  };
+}
+
 /** Read the explicit profile's environment without changing the default host. */
 export function readGqaWikipediaProfileConfig(env = process.env) {
   return {
@@ -63,7 +78,12 @@ export function createGqaWikipediaService({
     random,
   });
   const handler = createGqaAnswerSkill({
-    provider,
+    provider: sourceProfileProvider(provider),
+    // The source uses one random stream for both provider disambiguation and
+    // the selected GQA MIM prompt.  Sharing the injected stream also makes
+    // source-shaped controls deterministic without changing production's
+    // default Math.random behavior.
+    rng: random,
     skillId: GQA_WIKIPEDIA_SKILL_ID,
     idFactory,
     messageId,

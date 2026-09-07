@@ -2,12 +2,25 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { createGqaWikipediaService, readGqaWikipediaProfileConfig } from '../src/gqaWikipediaService.js';
-import { buildComponents } from '../../gateway/src/index.js';
+import { buildComponents, createGateway } from '../../gateway/src/index.js';
 import { loadConfig } from '../../gateway/src/config.js';
 import { start } from '../src/index.js';
 
-function page({ title = 'Fixture fact', extract = 'Fixture fact is a fixture fact.', missing } = {}) {
-  const value = { title, extract, categories: [] };
+function page({
+  title = 'Fixture fact',
+  extract = 'Fixture fact is a fixture fact.',
+  categories = [],
+  pageprops,
+  disambiguationOptions,
+  missing,
+} = {}) {
+  const value = {
+    title,
+    extract,
+    categories: categories.map((category) => ({ title: `Category:${category}` })),
+  };
+  if (pageprops) value.pageprops = pageprops;
+  if (disambiguationOptions) value.disambiguationOptions = disambiguationOptions;
   if (missing !== undefined) value.missing = missing;
   return { query: { pages: { '1': value } } };
 }
@@ -47,6 +60,33 @@ async function withApiPeer(callback) {
       status = 502;
       raw = JSON.stringify({ error: { info: 'fixture upstream failure' } });
     } else if (scenario === 'missing') raw = JSON.stringify(page({ title: 'Unknown fixture', extract: '', missing: '' }));
+    else if (scenario === 'disambiguation') {
+      const title = parsed.searchParams.get('titles');
+      raw = JSON.stringify(title === 'Mercury'
+        ? page({
+          title,
+          extract: '',
+          pageprops: { disambiguation: '' },
+          disambiguationOptions: ['Mercury (planet)', 'Mercury (disambiguation)'],
+        })
+        : page({
+          title,
+          extract: 'Mercury planet is the smallest planet in the Solar System.',
+        }));
+    } else if (scenario === 'blacklisted') {
+      // The provider blocks this source-listed article before making a peer
+      // request; this branch is a guard against accidental fixture reliance.
+      raw = JSON.stringify(page({
+        title: 'Nipple piercing',
+        extract: 'Nipple piercing is a body piercing.',
+      }));
+    } else if (scenario === 'blacklisted-category') {
+      raw = JSON.stringify(page({
+        title: 'Fixture fact',
+        extract: 'Fixture fact is a fixture fact.',
+        categories: ['BDSM'],
+      }));
+    }
     else raw = JSON.stringify(page());
     response.writeHead(status, { 'content-type': 'application/json', 'content-length': Buffer.byteLength(raw) });
     response.end(raw);
@@ -75,6 +115,10 @@ function assertWikipediaAction(body, expectedText) {
   assert.equal(body.data.skill.id, 'answer');
   assert.equal(body.data.skill.version, '5.2.15');
   assert.equal(body.data.action.type, 'JCP');
+  assert.equal(body.data.action.config.version, '2.0');
+  assert.equal(body.data.action.config.jcp.type, 'SLIM');
+  assert.equal(body.data.action.config.jcp.config.play.type, 'PLAY');
+  assert.equal(body.data.action.config.jcp.config.display, undefined);
   assert.equal(body.data.action.config.jcp.config.play.esml, expectedText);
   assert.equal(body.data.final, true);
   assert.equal(body.data.fireAndForget, true);
@@ -82,6 +126,20 @@ function assertWikipediaAction(body, expectedText) {
   assert.deepEqual(body.data.analytics.answer[1].properties, {
     success: true,
     type: 'wiki',
+  });
+  assert.equal(typeof body.timings.total, 'number');
+}
+
+function assertNoAnswerAction(body, promptId = 'GQA_no_answer_what_01') {
+  assert.equal(body.type, 'SKILL_ACTION');
+  assert.equal(body.data.skill.id, 'answer');
+  assert.equal(body.data.action.type, 'JCP');
+  assert.equal(body.data.action.config.jcp.config.play.meta.prompt_id, promptId);
+  assert.equal(body.data.action.config.jcp.config.display.type, 'DISPLAY');
+  assert.equal(body.data.final, true);
+  assert.equal(body.data.fireAndForget, true);
+  assert.deepEqual(body.data.analytics.answer[1].properties, {
+    success: false,
   });
   assert.equal(typeof body.timings.total, 'number');
 }
@@ -156,9 +214,50 @@ test('Q-01 gateway SkillClient reaches the selectable Wikipedia profile over HTT
   });
 });
 
-test('Q-01 profile keeps no-result, malformed and late provider failures visible', async () => {
+test('Q-01 actual gateway exposes the explicit profile and reaches its answer service', async () => {
+  await withApiPeer(async ({ endpoint }) => {
+    const profile = await createGqaWikipediaService({
+      endpoint,
+      timeoutMs: 100,
+      random: () => 0,
+    }).listen(0);
+    const loaded = await loadConfig({ ETCO_hub_skillsConfig: 'skills-gqa-wikipedia.json' });
+    const profileUrl = `http://127.0.0.1:${profile.address().port}/answer_skill/v1/main`;
+    const gateway = await createGateway({
+      ...loaded,
+      disableAuth: true,
+      hubTokenSecret: '',
+      parserURL: 'http://127.0.0.1:9',
+      historyURL: 'http://127.0.0.1:9',
+      skills: loaded.skills.map((skill) => ({ ...skill, URL: profileUrl })),
+    });
+    await gateway.service.listen(0);
+    try {
+      const discovery = await fetch(`http://127.0.0.1:${gateway.service.server.address().port}/v1/skills`);
+      assert.equal(discovery.status, 200);
+      assert.deepEqual((await discovery.json()).skills.map(({ id }) => id), ['answer']);
+
+      const result = await gateway.components.skillClient.launch('answer', {
+        context: {
+          general: { accountID: 'fixture-account', robotID: 'fixture-robot', remoteAddress: '127.0.0.1' },
+          runtime: { location: { lat: 42.1, lng: -71.2, countryCode: 'US' } },
+        },
+        nlu: { intent: 'generalWhatQuestions', entities: {} },
+        asr: { text: 'what is Fixture fact', confidence: 1 },
+      }, { transId: 'gateway-profile-trans' });
+      assert.equal(result.error, undefined);
+      assertWikipediaAction(result.response, 'Fixture fact is a fixture fact.');
+    } finally {
+      gateway.wss.close();
+      await new Promise((resolve) => gateway.service.server.close(resolve));
+      await new Promise((resolve) => profile.close(resolve));
+    }
+  });
+});
+
+test('Q-01 profile maps provider failures to the source no-answer action', async () => {
   await withApiPeer(async ({ endpoint, setScenario }) => {
-    const service = createGqaWikipediaService({ endpoint, timeoutMs: 15 });
+    const service = createGqaWikipediaService({ endpoint, timeoutMs: 15, random: () => 0 });
     const server = await service.listen(0);
     try {
       for (const scenario of ['missing', 'malformed', 'http-error', 'late']) {
@@ -167,18 +266,74 @@ test('Q-01 profile keeps no-result, malformed and late provider failures visible
         assert.equal(result.response.status, 200, scenario);
         assert.equal(result.body.type, 'SKILL_ACTION', scenario);
         assert.equal(result.body.data.skill.id, 'answer', scenario);
-        assert.match(result.body.data.action.config.jcp.config.play.meta.prompt_id, /^GQA_error_0[1-9]$/, scenario);
-        // The source Wikipedia adapter retains source='Wikipedia' even when
-        // it also returns a message.  The source analytics helper therefore
-        // records the provider source while the selected GQA_error MIM keeps
-        // the failure visible to the robot.
-        assert.deepEqual(result.body.data.analytics.answer[1].properties, {
-          success: true,
-          type: 'wiki',
-        }, scenario);
+        assertNoAnswerAction(result.body, 'GQA_no_answer_what_01');
       }
     } finally {
       await new Promise((resolve) => server.close(resolve));
+    }
+  });
+});
+
+test('Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure', async () => {
+  await withApiPeer(async ({ endpoint, requests, setScenario }) => {
+    const service = await createGqaWikipediaService({ endpoint, timeoutMs: 100, random: () => 0 }).listen(0);
+    try {
+      setScenario('success');
+      const success = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
+      assert.equal(success.response.status, 200);
+      assertWikipediaAction(success.body, 'Fixture fact is a fixture fact.');
+
+      setScenario('missing');
+      const missing = await postJson(service.address().port, '/answer_skill/v1/main', requestBody('what is Unknown fixture'));
+      assert.equal(missing.response.status, 200);
+      assertNoAnswerAction(missing.body);
+
+      setScenario('disambiguation');
+      const disambiguation = await postJson(service.address().port, '/answer_skill/v1/main', requestBody('what is Mercury'));
+      assert.equal(disambiguation.response.status, 200);
+      assertWikipediaAction(
+        disambiguation.body,
+        "I found a few things. Here's one of them.  Mercury planet is the smallest planet in the Solar System.",
+      );
+
+      const beforeBlacklist = requests.length;
+      setScenario('blacklisted');
+      const blacklisted = await postJson(service.address().port, '/answer_skill/v1/main', requestBody('what is Nipple piercing'));
+      assert.equal(blacklisted.response.status, 200);
+      assertNoAnswerAction(blacklisted.body);
+      assert.equal(requests.length, beforeBlacklist, 'blacklisted source article must be suppressed before HTTP');
+
+      const beforeCategoryBlacklist = requests.length;
+      setScenario('blacklisted-category');
+      const categoryBlacklisted = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
+      assert.equal(categoryBlacklisted.response.status, 200);
+      assertNoAnswerAction(categoryBlacklisted.body);
+      assert.equal(requests.length, beforeCategoryBlacklist + 1, 'blacklisted source category is checked after the page request');
+
+      setScenario('http-error');
+      const failed = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
+      assert.equal(failed.response.status, 200);
+      assertNoAnswerAction(failed.body);
+    } finally {
+      await new Promise((resolve) => service.close(resolve));
+    }
+  });
+});
+
+test('Q-01 profile keeps the source missing-transID status and failure media type', async () => {
+  await withApiPeer(async ({ endpoint }) => {
+    const service = await createGqaWikipediaService({ endpoint, timeoutMs: 100 }).listen(0);
+    try {
+      const response = await fetch(`http://127.0.0.1:${service.address().port}/answer_skill/v1/main`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(requestBody()),
+      });
+      assert.equal(response.status, 400);
+      assert.match(response.headers.get('content-type'), /^text\/html/);
+      assert.match(await response.text(), /Missing X-JIBO-transID header/);
+    } finally {
+      await new Promise((resolve) => service.close(resolve));
     }
   });
 });
