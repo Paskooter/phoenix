@@ -81,7 +81,7 @@ export async function startAuthenticatedRobotStack({
   Object.assign(process.env, {
     PHOENIX_NLU_RUNTIME: 'compiled-fst',
     PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST: resolve(snapshotManifest),
-    PHOENIX_SKILL_ID: '', PHOENIX_GQA_PROFILE: '',
+    PHOENIX_SKILL_ID: '', PHOENIX_GQA_PROFILE: '', PHOENIX_GQA_DEFAULT_PROFILE: '',
     ETCO_parser_llmUrl: '', ETCO_answer_llmUrl: '',
     ETCO_account_dataFile: accountPath,
     ETCO_classic_backupDir: resolve(directory, 'backups'),

@@ -14,6 +14,9 @@ import { WebSocket } from 'ws';
 
 process.env.PHOENIX_ENV_FILE = '/dev/null';
 delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+// The named hardware profile must keep its selected skills even when its
+// parent process selects an external GQA profile for another deployment.
+process.env.PHOENIX_GQA_DEFAULT_PROFILE = 'multi-provider';
 
 const manifest = process.argv[2];
 if (!manifest) throw new Error('usage: node scripts/parity-robot/authenticated-notification-control.mjs <snapshot-manifest>');
