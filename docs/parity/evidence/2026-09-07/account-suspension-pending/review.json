@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "awaiting root acceptance; original Account controller execution remains pending",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "5a5265b4d0c531b06e9f30b0c585593c11545c32",
+  "rootIntegrationRevision": "983318584799484455bc3ef2218a31320b076ed5",
+  "productBytesEqualCandidate": true,
+  "rootCorrection": "Removed unconditional external Hermes checkout import from the unit test; original Node 8 client evidence remains separately executed. Product implementation unchanged.",
+  "integration": {
+    "unitPassed": 678,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictSmokeCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictCoverageGaps": 0,
+    "exitCode": 0,
+    "frozenInputsStable": true,
+    "executionSha256": "f04f3099ee1130bcddfe61340607349fc38b0438c79eb5ab554198edd66b0448",
+    "isolatedNode20TestPassed": true,
+    "isolatedNode20ExecutionSha256": "2a9a97ed722d122092ceff5e4b769051428eaf468aa1092c8b23cc4c1a934bb9",
+    "isolatedNode20Scope": "Read-only Phoenix checkout only, no network, no sibling Hermes mount."
+  },
+  "publicClient": {
+    "runtime": "Node 8.9.4; original @jibo/jibo-server-client 3.0.110",
+    "orderedCalls": 87,
+    "invalidThenValidPairs": 12,
+    "deniedOrForgedAttempts": 3,
+    "rootCandidateAndServerExitCodes": 0,
+    "frozenInputsStable": true,
+    "rootChecksPassed": 1179,
+    "rootChecksTotal": 1179,
+    "negativeControlsRejected": 9,
+    "cliPassExitCode": 0,
+    "cliMismatchExitCode": 1,
+    "comparisonSha256": "1c183b3c800ba42fa09eaf3f6ccbe06b837b3985d1cc2273ff188bc6730aadff",
+    "negativeControlsSha256": "9adf1b70374d4dbbc0da2237bd9e09122542741dca75d61bab7238a0af6e081a",
+    "executionSha256": "8f0a1b56dc69c80b71ff20c8f86b32e31c487762025a65a286ae353e46728aaf",
+    "sourceQualification": "Actual original security gateway/auth and generated client; Account peer validation and state transitions are modeled with pinned Joi/Boom, not the original Account controller. Original-controller execution is requested before acceptance.",
+    "listQualification": "Complete per-side fixture lists are checked against stable metadata and observed state. Source and candidate synthetic fixtures differ; no full list-model parity claim. Raw timestamp and full captured loop state are retained in no-mutation checks."
+  },
+  "open": [
+    "Actual original Account controller execution and source-revision reconciliation.",
+    "LoopUpdated side effects, remaining Loop operations and membership lifecycle.",
+    "Full Classic SigV4 verification; access-key lookup does not establish signature verification.",
+    "Robot wipe, deployment and complete A-04 acceptance."
+  ]
+}

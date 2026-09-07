@@ -1381,7 +1381,7 @@ Lead verification: pending. This candidate does not certify task parity.
 
 Owner: Codex. Dependencies: A-03.
 
-Only List/ListLoops, SuspendLoop and SuspendRobotLoop are dispatched; the archive defines 23 operations. Suspension currently succeeds even for an unknown loop.
+Main dispatches only List/ListLoops, SuspendLoop and SuspendRobotLoop from 23 archived operations; its current suspension still succeeds for an unknown loop. Isolated root candidate 9833185 adds source-shaped suspension checks and validation. Root integration and 87 original-client exchanges pass, but the reference Account peer is modeled. Actual original controller execution, LoopUpdated side effects, full authentication and other operations remain open.
 
 Done when:
 
@@ -1394,6 +1394,14 @@ Source: [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](http
 Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/model.js](../../packages/account/src/model.js); [packages/account/src/store.js](../../packages/account/src/store.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **awaiting_review**; Luna Max / http_contract_repair; Codex root.
+
+Candidate scope: Potential suspension lookup, authorization, validation, durable state and output repair. Root 678 units, seven skips, strict43, isolated Node 20 test and 87 original Node 8 client calls pass. The reference Account peer is modeled; actual original controller execution is still required. No complete A-04 or full Classic authentication acceptance.
+
+Candidate report: [docs/parity/candidates/A-04-suspension-root-pending-20260907.md](../../docs/parity/candidates/A-04-suspension-root-pending-20260907.md).
+
+Lead verification: pending. This candidate does not certify task parity.
 
 ### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
 

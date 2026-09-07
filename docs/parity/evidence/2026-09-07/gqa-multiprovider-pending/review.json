@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "awaiting root acceptance; dependency and Unicode review remains pending",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
+  "profile": "explicit opt-in multi-provider; not deployed",
+  "rootSourceAndCandidate": {
+    "cases": 32,
+    "completeResponseMatches": 32,
+    "recoveryRequests": 16,
+    "sourceExitCode": 0,
+    "candidateExitCode": 0,
+    "frozenInputsStable": true,
+    "sourceSeconds": 65.22947582462803,
+    "candidateSeconds": 37.62606859207153,
+    "comparisonSha256": "be02a9f321b81e7c53faa39661ad08ed46caa50ee49dd1f3eafa2fc0816f328f",
+    "executionSha256": "4d6300fcf2dbdd7f5c22b4186d982c09dcbdda375e89c6b5a341174b5b1a7367",
+    "sourceChanges": "Harness retains native persistent sessions between requests and now applies the declared Wikipedia peer delays. Original provider/application code is unchanged.",
+    "phaseChecks": "32 source and 32 candidate rows pass bounded provider-order/deadline checks; five corrupted controls are rejected. Response elapsed is measured before artificial row drain.",
+    "timingReviewSha256": "e46ef7ffe233cd72b92ad186ff3350ba18513109271d0a708757136d17adac51",
+    "consumerFraming": "Root repeated six original Node 8 SkillRequestMaker/Axios exchanges: valid actions, HTTP failures and malformed JSON have matching dispositions across the observed media types."
+  },
+  "open": [
+    "MarkupSafe 1.0 fails to build with the available setuptools; actual source run used the declared 1.1.1 fallback. Isolated compatible build tooling is being established.",
+    "Actual Unidecode 1.0.22 follow-up cc77f73 is unverified; generated dependency data needs source/provenance review.",
+    "Current failure fixtures are HTTP failures, not transport exceptions that replace a requests.Session.",
+    "The late first-group case returns before Bing arrives; it does not prove a late Bing winner while Wolfram remains pending.",
+    "Whole Q-01, account/attribution, live providers, default deployment, full corpus gaps and robot acceptance remain open."
+  ]
+}

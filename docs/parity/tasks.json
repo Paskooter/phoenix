@@ -2351,10 +2351,12 @@
       ],
       "verification": [],
       "nextImplementation": {
-        "state": "working",
-        "assignee": "Luna Max / capture_writer_repair; root acceptance",
-        "candidateRevision": "af2e04e54b500a26e9345a00b9dec4f089ea155e",
-        "scope": "Bing d3bc6ff and Wolfram af2e04e adapters pending root review; new explicit multi-provider profile from root 76ba31b in progress. Actual source complete provider orchestration, deployment/full corpus/robot acceptance remain open."
+        "state": "awaiting_review",
+        "assignee": "Luna Max / capture_writer_repair; Codex root",
+        "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
+        "scope": "Explicit multi-provider profile passes 32 fresh root source/response/recovery comparisons and bounded phase/deadline controls. Original Node 8 consumer framing passes six controls. Exact dependency runtime, Unicode follow-up, transport-reset recovery and late-first-group winner checks remain pending. No integration, deployment or whole-task credit.",
+        "artifact": "docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json"
       },
       "implementationReview": {
         "state": "accepted",
@@ -2627,13 +2629,22 @@
         "packages/account/src/model.js",
         "packages/account/src/store.js"
       ],
-      "finding": "Only List/ListLoops, SuspendLoop and SuspendRobotLoop are dispatched; the archive defines 23 operations. Suspension currently succeeds even for an unknown loop.",
+      "finding": "Main dispatches only List/ListLoops, SuspendLoop and SuspendRobotLoop from 23 archived operations; its current suspension still succeeds for an unknown loop. Isolated root candidate 9833185 adds source-shaped suspension checks and validation. Root integration and 87 original-client exchanges pass, but the reference Account peer is modeled. Actual original controller execution, LoopUpdated side effects, full authentication and other operations remain open.",
       "acceptance": [
         "Cover all 23 wire operations: creation/update/removal, invitations/membership, robot association, enrollment, names/photos, legal guardian/agreement and suspension.",
         "Match ownership, membership states, side effects, errors and persistence with real client sequences.",
         "Preserve adoption/revival behavior in an explicit mode if it requires accepting obsolete loop IDs; do not redefine original errors silently."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / http_contract_repair; Codex root",
+        "candidateRevision": "5a5265b4d0c531b06e9f30b0c585593c11545c32",
+        "reviewedCandidateRevision": "983318584799484455bc3ef2218a31320b076ed5",
+        "scope": "Potential suspension lookup, authorization, validation, durable state and output repair. Root 678 units, seven skips, strict43, isolated Node 20 test and 87 original Node 8 client calls pass. The reference Account peer is modeled; actual original controller execution is still required. No complete A-04 or full Classic authentication acceptance.",
+        "artifact": "docs/parity/candidates/A-04-suspension-root-pending-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/account-suspension-pending/review.json"
+      }
     },
     {
       "id": "A-05",

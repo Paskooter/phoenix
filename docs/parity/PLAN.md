@@ -222,3 +222,9 @@ The audit, plan and compatibility manifest are complete; engineering verificatio
 The latest bounded [listen disconnect/timeout review](evidence/2026-09-07/listen-disconnect/review.json) passes three original-source cases and 140 guards. Its integrated tree passes 591 unit tests and strict43; full H-04 and deployed robot acceptance remain open.
 
 The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts the explicit factory/HTTP adapter with20 complete source HTTP controls,473 blocked-term and193 NLP controls. The [explicit Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery cases, 40 provider requests and 68 original Hub client exchanges, with nine root behavior corrections. Other provider and deployment acceptance remains separate and Q-01 stays open. The [portable-parser Moth trial](evidence/2026-09-07/hardware/portable-snapshot/review.json) passed native authentication, clock rendering, joke playback calls and restored the prior backend; it does not close microphone/ring or persistent deployment acceptance.
+
+Current parallel candidates remain separate from accepted main: the [suspension
+candidate](candidates/A-04-suspension-root-pending-20260907.md) has passing root
+integration and original-client controls, and the [multi-provider candidate](candidates/Q-01-multiprovider-root-pending-20260907.md) has 32 passing fresh
+root response/recovery comparisons. Their remaining source and dependency
+checks are explicit; neither receives full task completion credit.
