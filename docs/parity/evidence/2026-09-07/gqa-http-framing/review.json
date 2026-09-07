@@ -1,0 +1,50 @@
+{
+  "state": "accepted_bounded",
+  "reviewedBy": "Claude root",
+  "agentRuntime": "grok-4.6 (grok CLI 1.0.13 headless), isolated worktree .parity/worktrees/q01-gqa-http-framing-20260907",
+  "agentRevision": "beaeb2609186e01f8564d5e09e4a19936b8db772",
+  "agentCodeRevision": "fb3ae576fa51ca4b41c23a27935cc25aec3e2346",
+  "integrationRevisions": ["6b480ef", "ca9fa86", "d449bb1", "51abc1d"],
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "scope": "GQA HTTP response framing against Flask 0.12.2 / Werkzeug 0.12.2: 400 error bodies, success and 500 media types, vendor +json acceptance, and unsupported AWS media handling. Also promotes the previously withheld default GQA wiring (6b480ef) together with its named-hardware-profile isolation fix (ca9fa86), because the two framing defects that blocked it are now closed.",
+  "agentSelfCorrection": "The inherited uncommitted work rendered 400 bodies as host Flask 3 HTML5 pages. The agent identified this as wrong and replaced it with Werkzeug 0.12 HTML 3.2, including the exact 'The browser (or proxy) sent a request that this server could not understand.' description and text/html with no charset.",
+  "rootVerification": {
+    "independentUnitRun": "770 tests, 763 pass, 0 fail, 7 skip, run by root in the agent worktree and again on integrated main",
+    "framingOracleReplay": {
+      "runner": ".parity/reviews/Q-01-gqa-http-framing-20260907 (source, candidate and compare rerun by root)",
+      "sourceRuntime": "Python 3.6.15 / Flask 0.12.2 in python@sha256:d59ee182c4629dd33b240b9bac1a6ff44276e79e66117eba17aed4016845d3b2, --network none",
+      "sourceExit": 0,
+      "elapsedSeconds": 15.462,
+      "cases": 22,
+      "statusMatches": 22,
+      "contentTypeExactMatches": 22,
+      "bodyExactMatches": 7,
+      "substantiveDifferences": 0,
+      "wireFramingDifferences": 0
+    },
+    "defaultWireReplay": {
+      "runner": ".parity/reviews/q01-framing-default-wire-root-20260907 (root copy of the frozen runner, repointed to the new candidate; the original evidence dir was not modified)",
+      "sourceExit": 0,
+      "elapsedSeconds": 15.969,
+      "route": {"cases": 8, "statusMatches": 8, "mediaTypeMatches": 8, "semanticMatches": 7, "sourceBodyUnavailable": 1, "substantiveDifferences": 0, "wireFramingDifferences": 0},
+      "transport": {"cases": 15, "statusMatches": 15, "mediaTypeMatches": 15, "semanticMatches": 15, "substantiveDifferences": 0, "wireFramingDifferences": 0},
+      "priorFailingState": "Root previously recorded 2 malformed-JSON envelope differences and a successful-media difference at dd59225/81c7234. Both are now zero.",
+      "residuals": "Remaining flagged rows are generated-value qualification and diagnostic prose/stack text only, which the user's 2026-09-07 policy treats as nonblocking. The stricter framing oracle matched those 400 bodies byte-exact."
+    },
+    "launcherIsolationControl": {
+      "command": "PHOENIX_GQA_DEFAULT_PROFILE=multi-provider node scripts/parity-robot/authenticated-notification-control.mjs <installed-gzip profile>",
+      "revision": "beaeb2609186e01f8564d5e09e4a19936b8db772",
+      "exit": 0,
+      "result": "Named hardware profile still starts with the new default selector set; CreateHubToken 200, verifiedTLS true. Confirms ca9fa86's isolation survives the framing change.",
+      "priorRegression": "At dd59225 this control exited 1 because PHOENIX_GQA_DEFAULT_PROFILE leaked the multi-provider selection into the named profile and failed on a missing Bing endpoint."
+    },
+    "integratedMain": {"unit": "770/763 pass/0 fail/7 skip", "trackerCheck": "valid", "strictProductionGate": {"cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}}
+  },
+  "notEstablished": [
+    "Full Q-01: live providers, provider selection behavior, account/attribution end to end, and robot acceptance all remain open",
+    "Gunicorn/ALB Content-Type rewriting in the real deployment",
+    "Flask DEBUG=True behavior, where the malformed-JSON description would differ",
+    "Byte-identical 500 stack text and 200 GQA action payloads; the 200 path used a stub handler and 500 was compared as a field set"
+  ],
+  "ledgerEffect": "None. Q-01 remains todo; the checklist stays at 8/79. A bounded framing acceptance does not close the parent product task."
+}
