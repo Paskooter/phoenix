@@ -519,6 +519,240 @@ async function requestJson(fetchImpl, peer, base, path, options = {}) {
   return readResponse(response, peer, url.toString());
 }
 
+// srv-settings-ws uses @jibo/server's BaseClient for Account.getFriendlyId and
+// Hub.getSkillConfigs. That wrapper asks Wreck for JSON and intentionally does
+// not inspect HTTP status: only a decoded payload with a truthy `error` field is
+// converted to Boom. Keep this adapter private to the Hub -> Account path so
+// Person/Lasso retain their separately reviewed transport contract.
+const sourceHubHttpAgent = new http.Agent({ keepAlive: true, maxSockets: Infinity });
+const sourceHubHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: Infinity });
+const SOURCE_HUB_JSON_MIME = /^application\/(?:[a-z0-9.]*[+-]json|json)$/i;
+
+function sourceHubReformat() {
+  this.output.payload.statusCode = this.output.statusCode;
+  this.output.payload.error = PERSON_BOOM_STATUS_CODES[this.output.statusCode] || 'Unknown';
+  if (this.output.statusCode === 500) this.output.payload.message = 'An internal server error occurred';
+  else if (this.message) this.output.payload.message = this.message;
+}
+
+// Boom 5.1.0 uses parseInt(statusCode, 10), not Number(statusCode), and
+// initializes an Error before it applies the output envelope. Keeping those
+// details here matters for machine-readable status/error fields, including
+// string status codes emitted by old internal peers.
+function sourceHubInitializeBoom(error, statusCode, message) {
+  const numberCode = Number.parseInt(statusCode, 10);
+  if (Number.isNaN(numberCode) || numberCode < 400) {
+    throw new AssertionError({
+      message: `First argument must be a number (400+): ${statusCode === undefined ? '' : statusCode}`,
+    });
+  }
+  error.isBoom = true;
+  error.isServer = numberCode >= 500;
+  if (!Object.prototype.hasOwnProperty.call(error, 'data')) error.data = null;
+  error.output = { statusCode: numberCode, payload: {}, headers: {} };
+  error.reformat = sourceHubReformat;
+  if (!message && !error.message) {
+    error.reformat();
+    message = error.output.payload.error;
+  }
+  if (message) {
+    error.message = `${message}${error.message ? `: ${error.message}` : ''}`;
+    error.output.payload.message = error.message;
+  }
+  error.reformat();
+  return error;
+}
+
+function sourceBoomFromPayload(payload) {
+  const rawStatusCode = payload && payload.statusCode;
+  const error = new Error(payload && payload.message ? payload.message : undefined);
+  // BaseClient passes { code } as Boom's data argument even when code is
+  // undefined, so `data` remains an own property with that shape.
+  error.data = { code: payload && payload.code };
+  sourceHubInitializeBoom(error, rawStatusCode);
+  error.output.payload.code = payload && payload.code;
+  return error;
+}
+
+function sourceHubWrapBoom(error, statusCode, message) {
+  if (!(error instanceof Error)) throw new Error('Cannot wrap non-Error object');
+  if (error.isBoom && (statusCode || message)) {
+    throw new AssertionError({ message: 'Cannot provide statusCode or message with boom error' });
+  }
+  return error.isBoom ? error : sourceHubInitializeBoom(error, statusCode, message);
+}
+
+function sourceHubCreateBoom(statusCode, message, data) {
+  const error = new Error(message || undefined);
+  error.data = data || null;
+  return sourceHubInitializeBoom(error, statusCode);
+}
+
+function sourceHubServerError(statusCode, message, data) {
+  const error = sourceHubCreateBoom(statusCode, message, data);
+  // Boom's serverError helper assigns its second argument after create(). An
+  // omitted data argument therefore replaces create()'s null with undefined.
+  error.data = data;
+  return error;
+}
+
+function sourceBoomBadImplementation(cause) {
+  const error = sourceHubWrapBoom(cause, 500);
+  error.data = undefined;
+  error.isDeveloperError = true;
+  return error;
+}
+
+function sourceBoomBadGateway(cause, trace) {
+  if (cause && typeof cause === 'object') cause.trace = trace;
+  return sourceHubWrapBoom(cause, 502, 'Client request error');
+}
+
+function sourceBoomGatewayTimeout() {
+  return sourceHubServerError(504, 'Client request timeout');
+}
+
+function sourceBoomGatewayReset() {
+  return sourceHubServerError(504, `Gateway Time-out. Log marker:${Date.now()}`);
+}
+
+function sourceBoomInternal(message, cause) {
+  if (cause instanceof Error && !cause.isBoom) return sourceHubWrapBoom(cause, 500, message);
+  return sourceHubServerError(500, message, cause);
+}
+
+function sourceNullPropertyError(property, value) {
+  if (value === null) throw new TypeError(`Cannot read property '${property}' of null`);
+  if (value === undefined) throw new TypeError(`Cannot read property '${property}' of undefined`);
+}
+
+function sourceHubTimeout() {
+  return process.env.ETCO_server_http_timeout || 60000;
+}
+
+function sourceHubRedirects() {
+  return process.env.ETCO_server_http_maxredirects || 3;
+}
+
+function sourceHubResponsePayload(response, buffer) {
+  if (buffer.length === 0) return null;
+  const contentType = String(response.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (!SOURCE_HUB_JSON_MIME.test(contentType)) return buffer;
+  try {
+    return JSON.parse(buffer.toString());
+  } catch (error) {
+    throw sourceBoomBadImplementation(error);
+  }
+}
+
+function sourceHubRead(response) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      response.removeListener('error', onError);
+      response.removeListener('close', onAborted);
+      response.removeListener('aborted', onAborted);
+      if (error) reject(error);
+      else resolve(value);
+    };
+    const onError = (error) => finish(sourceBoomInternal('Payload stream error', error));
+    const onAborted = () => {
+      if (!response.complete) finish(sourceBoomInternal('Payload stream closed prematurely'));
+    };
+    response.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    response.once('error', onError);
+    response.once('close', onAborted);
+    response.once('aborted', onAborted);
+    response.once('end', () => {
+      try {
+        finish(null, sourceHubResponsePayload(response, Buffer.concat(chunks)));
+      } catch (error) {
+        finish(error);
+      }
+    });
+  });
+}
+
+function sourceHubRequest(uri, headers, redirectsLeft, state, trace) {
+  return new Promise((resolve, reject) => {
+    const parsed = legacyUrlParse(uri);
+    const client = parsed.protocol === 'https:' ? https : http;
+    const agent = parsed.protocol === 'https:' ? sourceHubHttpsAgent : sourceHubHttpAgent;
+    const request = client.request({
+      protocol: parsed.protocol,
+      hostname: parsed.hostname,
+      port: parsed.port || undefined,
+      path: parsed.path || '/',
+      method: 'GET',
+      headers: headers === undefined ? undefined : headers,
+      agent,
+      host: parsed.host || undefined,
+    }, (response) => {
+      const redirect = [301, 302, 307, 308].includes(response.statusCode);
+      if (redirect && redirectsLeft !== false) {
+        response.destroy();
+        if (redirectsLeft === 0) {
+          finish(sourceHubCreateBoom(502, 'Maximum redirections reached', trace));
+          return;
+        }
+        const location = response.headers.location;
+        if (!location) {
+          finish(sourceHubCreateBoom(502, 'Received redirection without location', trace));
+          return;
+        }
+        const nextUri = /^https?:/i.test(location) ? location : legacyUrlResolve(uri, location);
+        sourceHubRequest(nextUri, headers, Number.isNaN(Number(redirectsLeft)) ? false : Number(redirectsLeft) - 1, state, trace.concat({ method: 'GET', url: nextUri }))
+          .then((value) => finish(null, value), (error) => finish(error));
+        return;
+      }
+      // Wreck's request timer is cleared when the final response headers arrive;
+      // body reads have no timeout in the BaseClient wrapper.
+      if (state.timer !== null) {
+        clearTimeout(state.timer);
+        state.timer = null;
+      }
+      sourceHubRead(response).then((payload) => {
+        if (payload && payload.error) {
+          finish(sourceBoomFromPayload(payload));
+          return;
+        }
+        finish(null, payload);
+      }, (error) => finish(error));
+    });
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      if (state.timer !== null && (error || value !== undefined)) {
+        clearTimeout(state.timer);
+        state.timer = null;
+      }
+      if (error) reject(error);
+      else resolve(value);
+    };
+    request.once('error', (error) => finish(error && error.code === 'ECONNRESET'
+      ? sourceBoomGatewayReset()
+      : sourceBoomBadGateway(error, trace)));
+    if (state.timer === null && state.initial) {
+      state.initial = false;
+      state.timer = setTimeout(() => {
+        finish(sourceBoomGatewayTimeout());
+        request.destroy();
+      }, sourceHubTimeout());
+    }
+    request.end();
+  });
+}
+
+async function requestSourceJson(_fetchImpl, peer, base, target, headers = undefined) {
+  if (!base) throw providerError(`${peer} service is not configured (set a NET_* peer)`, 503);
+  const url = target instanceof URL ? target : new URL(target, base);
+  return sourceHubRequest(url.toString(), headers, sourceHubRedirects(), { timer: null, initial: true }, [{ method: 'GET', url: url.toString() }]);
+}
+
 function sourceLoopMemberError() {
   const error = providerError('Only loop member can query loop properties', 403, 'LOOP_MEMBER_ONLY');
   error.isBoom = true;
@@ -986,8 +1220,8 @@ function networkAccount(fetchImpl, base) {
     async getFriendlyId(context) {
       const url = new URL('loopPopulated', base);
       url.searchParams.set('loopId', context.loopId);
-      const response = await requestJson(fetchImpl, 'Account', base, `${url.pathname}${url.search}`);
-      if (!response || !response.robotFriendlyId) throw providerError(`Loop ${context.loopId} has no robot`, 404, 'LOOP_NOT_FOUND');
+      const response = await requestSourceJson(fetchImpl, 'Account', base, url);
+      sourceNullPropertyError('robotFriendlyId', response);
       return response.robotFriendlyId;
     },
   };
@@ -997,13 +1231,19 @@ function networkHub(fetchImpl, base, account) {
   return {
     async getSkillConfigs(context) {
       const robotFriendlyId = await account.getFriendlyId(context);
-      const path = `/v1/skills/settings/${encodeURIComponent(robotFriendlyId)}`;
-      const response = await requestJson(fetchImpl, 'Hub', base, path, {
-        headers: transactionHeaders(context),
-      });
+      const url = new URL(`/v1/skills/settings/${robotFriendlyId}`, base);
+      // BaseClient passes this property to Node's setHeader unconditionally.
+      // Preserve its missing-value boundary instead of silently dropping the
+      // header as the other Phoenix fetch adapters do.
+      const headers = { 'X-JIBO-transID': context.transactionId };
+      if (context.transactionId === undefined) {
+        throw new Error('"value" required in setHeader("X-JIBO-transID", value)');
+      }
+      const response = await requestSourceJson(fetchImpl, 'Hub', base, url, headers);
+      sourceNullPropertyError('skills', response);
       // The source Hub client returns response.skills directly; the Settings
       // controller owns the subsequent `.map` failure for malformed replies.
-      return response && response.skills;
+      return response.skills;
     },
   };
 }
