@@ -1,3 +1,5 @@
+> Root accepted the bounded GQA core slice; see the [integration review](Q-01-core-integration-root-20260907.md). Candidate history below retains its original scope and qualifications.
+
 # Q-01 — GQA pinned-era runtime and transport follow-up
 
 Status: **working candidate; unverified**

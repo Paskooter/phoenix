@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "status": "accepted_bounded_temporary_robot_trial",
+  "reviewedBy": "Codex root",
+  "trialRevision": "9fc671f8e900cb1e7973731cce62a4967a9a31e7",
+  "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+  "completedAt": "2026-09-07T03:41:31.973614+00:00",
+  "execution": {
+    "exitCode": 0,
+    "seconds": 113.45069320406765
+  },
+  "profile": {
+    "BE": "11.0.1 original parity slot",
+    "nlu": "Explicit compiled-FST profile,98 public graphs; LLM off",
+    "authentication": "Real native signed CreateHubToken through temporary Classic TLS issuer and original robot credentials; stored credentials unchanged"
+  },
+  "checks": {
+    "nativeAuthentication": {
+      "status": 200,
+      "jwtVerified": true,
+      "signedPostBodySha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "tlsProtocol": "TLSv1.2",
+      "issuedTokenAcceptedOnBothPaths": true,
+      "upgradeStatus": 101,
+      "paths": [
+        "/v1/listen",
+        "/v1/proactive"
+      ],
+      "tlsErrorsRetained": []
+    },
+    "initialClock": {
+      "matchingSdkAckStartAndSuccess": true,
+      "skill": "@be/clock",
+      "ttsAndClockView": true,
+      "captureSha256": "407b5b60f83c3bf5d054d1383a5838a93e88cb0722ed60ba52429842abc09324",
+      "microphoneAcceptance": false
+    },
+    "restoredClock": {
+      "matchingSdkAckStartAndSuccess": true,
+      "skill": "@be/clock",
+      "ttsAndClockView": true,
+      "captureSha256": "3e37b0278f5a4f802181c47bfd08ce55968ae04c26e15f9f1552ee526058beb2",
+      "microphoneAcceptance": false
+    },
+    "proactive": {
+      "proof": {
+        "ackPresent": true,
+        "sdkPromiseResolved": true,
+        "matchingNativeProactiveEvent": true
+      },
+      "cleanup": "pass",
+      "naturalProactivityAcceptance": false
+    },
+    "rollback": {
+      "configurationCredentialsTrustByteEqual": true,
+      "temporaryTrustMountRemoved": true,
+      "temporaryRemoteFilesRemoved": true,
+      "usrLocalReadOnly": true,
+      "ownedTrialProcessesStopped": true,
+      "restoredHealthchecks": 5,
+      "idleVerified": true
+    },
+    "visualReview": {
+      "initial-clock-view-2.png": {
+        "sha256": "6fedd8b5b54ab2c3e344cc1f20ce3de9052d0998f75726197dc06f1455349b9a",
+        "observation": "Root viewed the early capture: cyan clock face and markers visible; hands are not visible in this frame. Full animation and precise time rendering remain unverified."
+      },
+      "restored-clock-view-2.png": {
+        "sha256": "5b18d93705e7f65407919ddc46d5861f94c8c824ba5efb21bdb427722eea6c3a",
+        "observation": "Root viewed the restored capture: cyan clock face, markers and hands visible. Precise time correctness not accepted from this image."
+      }
+    }
+  },
+  "limits": [
+    "SDK text injection is not microphone or physical blue-ring acceptance.",
+    "Native synthetic SURPRISE is not natural proactivity.",
+    "Temporary authenticated9fc671f trial rolled back; current backend remains3150063.",
+    "No claim of current-main persistent deployment or complete clock animation/time rendering.",
+    "Clock/native paths exercise real robot consumption of the reviewed backend, not every new Settings or listen-disconnect branch.",
+    "Physical wake, blue-ring illumination, natural proactivity and long-term stability remain open."
+  ],
+  "evidenceHashes": {
+    "trial.json": "d893e40cd6621ef3f3fe6de4bd7bab41ae693b8acd926503b135705f66017fc2",
+    "root-postflight-review.json": "5f28e081644ea4705aa5fae811531f80e6eee6f0719ac389950a36e26a364d1c",
+    "initial/issuer.jsonl": "0b4b17e631cb12deea111a7f643d3ea91ad040ff045d4a47f6176b6af5ab922e",
+    "initial/hub.jsonl": "bfc8b245c5684c9b2337df95b226cc8d0fb2c06517517ac7a9bb1b8a35758f59",
+    "initial-clock.json": "407b5b60f83c3bf5d054d1383a5838a93e88cb0722ed60ba52429842abc09324",
+    "restored-clock.json": "3e37b0278f5a4f802181c47bfd08ce55968ae04c26e15f9f1552ee526058beb2",
+    "initial-proactive.json": "0c1bb5090ce960936427a2767c90d80c08c72c8e54226c81837f5fcb13b192ad"
+  }
+}

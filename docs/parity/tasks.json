@@ -907,7 +907,7 @@
         "packages/gateway/test/hubAuth.test.js",
         "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified.",
+      "finding": "Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified. Fresh temporary9fc671f trial also passes native signed TLS issuance, both authenticated sockets, clock/TTS/display and synthetic proactive request; rollback and restored idle verified.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -928,8 +928,8 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Codex root",
-        "scope": "Source-backed persistent authenticated development deployment, native token expiry/per-request retry grouping and BE stability follow-up. Temporary43c81f3 issuer/Hub trial is accepted within its bounded scope; current restored backend remains3150063.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
+        "scope": "Persistent authenticated development deployment, native expiry/per-request retry grouping and BE stability. Temporary9fc671f trial accepted; restored backend3150063 remains live.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -969,6 +969,15 @@
           "scope": "Bounded authenticated reviewed-main temporary deployment with real native issuer, both socket paths, SDK clock/proactive and verified rollback/relaunch recovery; full H-10 remains open.",
           "artifact": "docs/parity/HARDWARE.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "9fc671f8e900cb1e7973731cce62a4967a9a31e7",
+          "reviewedBy": "Codex root",
+          "scope": "Temporary real-native authenticated checkpoint trial; matching issued token accepted on listen/proactive, SDK clock/TTS/display and syntheticSURPRISE; restored backend3150063 verified. Full H10 remains open.",
+          "artifact": "docs/parity/HARDWARE.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
         }
       ]
     },
@@ -1361,10 +1370,10 @@
       ],
       "deploymentReview": {
         "state": "accepted",
-        "candidateRevision": "43c81f32b4ea2ef3a6f172944ce8bb6e6ebac150",
+        "candidateRevision": "9fc671f8e900cb1e7973731cce62a4967a9a31e7",
         "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
-        "scope": "Temporary authenticated full-main clock/proactive exchanges passed on the unchanged compiled98-graph profile. Restored backend clock passed, including after an unexplained BE exit and identical-slot relaunch. Persistent current-main deployment, microphone/ring and stability remain open.",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
+        "scope": "Temporary authenticated clock/proactive native exchanges on unchanged compiled98 profile; rollback and idle verified. DefaultAST, microphone/physicalring and persistent deployment remain open.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
       },
       "deploymentReviewHistory": [
         {
@@ -1373,6 +1382,13 @@
           "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
           "scope": "Full-main real-client deployment must supply a verified socket identity. Diagnostic authentication-disabled trial failed and was rolled back; parser-scoring evidence remains unchanged.",
           "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/reviewed-main-moth-trial.json"
+        },
+        {
+          "state": "accepted",
+          "candidateRevision": "43c81f32b4ea2ef3a6f172944ce8bb6e6ebac150",
+          "restoredRevision": "3150063655567151eb0c8d478d140bc1efd29ced",
+          "scope": "Temporary authenticated full-main clock/proactive exchanges passed on the unchanged compiled98-graph profile. Restored backend clock passed, including after an unexplained BE exit and identical-slot relaunch. Persistent current-main deployment, microphone/ring and stability remain open.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/authenticated-main-moth-review.json"
         }
       ],
       "nextImplementation": {
@@ -2243,7 +2259,7 @@
         "packages/skills/src/jcp.js",
         "packages/gateway/resources/skills"
       ],
-      "finding": "The original out-of-monorepo GQA source and fake services survive. A generic LLM answer does not establish those behaviors.",
+      "finding": "Root accepted explicit original GQA factory and HTTP adapter:20 complete source status/body matches,473 original blocked-term controls,193 NLP controls with29 repairs;614 integrated units and strict43 pass. Default service remains separate. Wikipedia provider/profile, other providers/account/attribution and deployed GQA acceptance remain open.",
       "acceptance": [
         "Inventory Pegasus GQA/news entrypoints and question routing, Wikipedia/Wolfram/Bing fallbacks, attributions and no-answer behavior from original source.",
         "Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.",
@@ -2252,9 +2268,19 @@
       "verification": [],
       "nextImplementation": {
         "state": "working",
+        "assignee": "Luna Max / capture_writer_repair; root acceptance",
+        "candidateRevision": "ee200b4",
+        "scope": "Wikipedia HTTP/scanner candidate plus selectable service profile; root336 lexical and169 systematic punctuation controls reported exact by agent, pending root. Own dependency links required; earlier primitive mismatch was foreign-workspace leakage. Agent integrates latest root core in a new tree for complete service/provider HTTP controls. No deployed GQA acceptance yet."
+      },
+      "implementationReview": {
+        "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair; Codex root",
         "candidateRevision": "c1e760ff698c6d62b7e2e8d2a83cfbd11721b509",
-        "scope": "Root GQA response/filter candidate passes 20 complete source HTTP status/body comparisons, 473 original blocked-term results, and 163 skill tests; not integrated. Wikipedia/provider/profile candidates remain unverified. Root lexical review found six differences among 336 controls, including sentence-span errors; original HTTP/disambiguation and general tokenizer semantics are under review and repair. Other providers/account/attribution and deployed acceptance remain open."
+        "reviewedCandidateRevision": "ef4c758073ad82ef6d7d1c9da134e203aea1225d",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded GQA core factory and HTTP adapter;20 full source comparisons,473 blocked-term and193 query/filter controls;614 integrated units and strict43. Default service not switched, whole Q-01 remains open.",
+        "artifact": "docs/parity/candidates/Q-01-core-integration-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-core/review.json"
       }
     },
     {

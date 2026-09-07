@@ -414,7 +414,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified.
+Root accepted bounded original JWT/CONTEXT controls and native cached-token rotation, plus a temporary authenticated43c81f3 Moth trial: real signed TLS CreateHubToken, matching listen/proactive upgrades and SDK clock/proactive exchanges. All baseline config/credentials/trust were restored, and3150063 is the current diagnostic backend. A later BE exit was recovered by relaunching identical11.0.1 and retesting clock; its cause remains open. Expiry, per-request retry grouping and account-backed extension remain unverified. Fresh temporary9fc671f trial also passes native signed TLS issuance, both authenticated sockets, clock/TTS/display and synthetic proactive request; rollback and restored idle verified.
 
 Done when:
 
@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-The original out-of-monorepo GQA source and fake services survive. A generic LLM answer does not establish those behaviors.
+Root accepted explicit original GQA factory and HTTP adapter:20 complete source status/body matches,473 original blocked-term controls,193 NLP controls with29 repairs;614 integrated units and strict43 pass. Default service remains separate. Wikipedia provider/profile, other providers/account/attribution and deployed GQA acceptance remain open.
 
 Done when:
 
@@ -1275,6 +1275,14 @@ Source: [jiborobot/srv-gqa-ws/README.md](https://pvindex.org/gitea/jiborobot/srv
 Phoenix: [packages/skills/src/answerSkill.js](../../packages/skills/src/answerSkill.js); [packages/skills/src/jcp.js](../../packages/skills/src/jcp.js); [packages/gateway/resources/skills](../../packages/gateway/resources/skills).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair; Codex root.
+
+Candidate scope: Bounded GQA core factory and HTTP adapter;20 full source comparisons,473 blocked-term and193 query/filter controls;614 integrated units and strict43. Default service not switched, whole Q-01 remains open.
+
+Candidate report: [docs/parity/candidates/Q-01-core-integration-root-20260907.md](../../docs/parity/candidates/Q-01-core-integration-root-20260907.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-core/review.json](../../docs/parity/evidence/2026-09-07/gqa-core/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 4. Complete companion-cloud and restored features
 

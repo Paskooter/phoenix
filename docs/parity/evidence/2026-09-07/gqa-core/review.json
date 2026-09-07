@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-09-07T03:50:52.529485+00:00",
+  "status": "accepted_bounded_factory_and_http_adapter",
+  "reviewedBy": "Codex root",
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "reviewedRuntimeRevision": "ef4c758073ad82ef6d7d1c9da134e203aea1225d",
+  "wholeTaskVerified": false,
+  "behavior": [
+    "Original answer skill response construction, MIM actions, speech/display fields, analytics and timing keys.",
+    "Source request validation, transID handling and HTTP400/500 boundaries, including provider result shape errors.",
+    "Source provider fallback timing/order and request-blocking order through controlled provider adapters.",
+    "Source blocked terms and question cleaning; Unicode word/decimal/whitespace semantics; no provider dispatch for source-filtered requests."
+  ],
+  "validation": {
+    "fullHttpCases": 20,
+    "statusMatches": 20,
+    "completeNormalizedBodyMatches": 20,
+    "blockedTermSourceControls": 473,
+    "blockedTermMatches": 473,
+    "nlpSourceControls": 193,
+    "nlpMatches": 193,
+    "nlpDifferencesBefore": 29,
+    "nlpDifferencesAfter": 0,
+    "integratedUnitPassed": 614,
+    "integratedUnitSkipped": 3,
+    "integratedUnitFailed": 0,
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "frozenWorktreeAndOwnLinksStable": true,
+    "execution": [
+      {
+        "label": "http-candidate",
+        "exitCode": 0,
+        "seconds": 0.2652417067438364,
+        "budgetSeconds": 60,
+        "timedOut": false
+      },
+      {
+        "label": "http-comparison",
+        "exitCode": 0,
+        "seconds": 0.06471223197877407,
+        "budgetSeconds": 30,
+        "timedOut": false
+      },
+      {
+        "label": "nlp-source",
+        "exitCode": 0,
+        "seconds": 0.032604907639324665,
+        "budgetSeconds": 30,
+        "timedOut": false
+      },
+      {
+        "label": "nlp-candidate",
+        "exitCode": 0,
+        "seconds": 0.11501111183315516,
+        "budgetSeconds": 30,
+        "timedOut": false
+      },
+      {
+        "label": "npm-test",
+        "exitCode": 0,
+        "seconds": 20.4141311859712,
+        "budgetSeconds": 600,
+        "timedOut": false
+      }
+    ]
+  },
+  "sourceRuntimeQualifications": [
+    "The20 HTTP expectations use actual original GQA on recovered Python3.6.15/Flask0.12.2. Source-locked MarkupSafe1.0 installation failed;1.1.1 fallback is retained. Python3.6 is an inferred compatible era runtime, not a proven historical deployment image.",
+    "473 blocked-term controls execute actual original Python3.6 module. The193 new clean_input/pii_filter controls execute original gqa.nlp on hostPython3.10.12 with only logging stubbed.",
+    "All named success decoder route fixtures have every provider productive, so Bing wins. Individual source decoder outputs are real module outputs, but these fixtures do not establish every live provider pipeline.",
+    "Provider/account/attribution/NLP dependencies in the20 HTTP controls have named controlled seams. No historical provider credentials used.",
+    "HTTP400 diagnostic HTML and HTTP500 message/stacktrace may differ; only validated generated IDs and elapsed values normalized. All speech/display/action/analytics/timing keys retained.",
+    "Flask/Phoenix successful media types differ; earlier direct original Axios0.17.1 client parsing proof is retained, not a claim of identical framing."
+  ],
+  "retainedFailuresAndCorrections": [
+    "Original source controlv1 omitted a Bing timestamp andv2 used an undefined fixture clock. Both invalid attempts remain private; only correctedv3 expectations are accepted.",
+    "The primitive400-vs500 candidate-test failure was reproduced and causally isolated to foreign main @phoenix/common resolution. Correct local dependencies already match source. Earlier leaked-worktree test results are not accepted.",
+    "Root193-control extension found29 query/filter mismatches before correction; baseline outputs retained."
+  ],
+  "scopeLimits": [
+    "This adds an explicit GQA factory/HTTP adapter; it does not replace the default answer service registration.",
+    "Wikipedia network/provider/profile candidates remain separately unverified; remaining provider inventory/account/attribution/deployed GQA acceptance stays open.",
+    "Full Q-01 remains open."
+  ],
+  "evidenceHashes": {
+    ".parity/reviews/q01-core-integration-root-20260907/candidate-http.json": "a0a4e475565bb00ff924cf85712b95b53498e9875af12c02dd2caf6044d64e80",
+    ".parity/reviews/q01-core-integration-root-20260907/comparison-http.json": "9348a8f84befaa5f11663c1b1a4900f52eccee90eebd1f73be933b7adc2aa3f6",
+    ".parity/reviews/q01-core-integration-root-20260907/nlp-source.stdout": "f01a4bed5b235227efd600a44310b155d49bc16e17a1007bb26e8be05146718a",
+    ".parity/reviews/q01-core-integration-root-20260907/nlp-candidate.stdout": "027481b0978bfdfd37a7bc05bfa81552a5f49742379af15041bd11dcd677e2cc",
+    ".parity/reviews/q01-core-integration-root-20260907/nlp-baseline-comparison.json": "99d4c8eb6c94a05fcb3f5aeab3b38083781be7453fed477a418af9c0a7f0c1d3",
+    ".parity/reviews/q01-gqa-core-root-20260907/controls/source-boundary-root-v3/docker-run.stdout": "7ad1b838a7645b73f1929eab6a7fb3269c6de60f41af04533cf49acf465b5226",
+    ".parity/reviews/q01-gqa-functional-20260907/controls/source-functional-run-5/docker-run.stdout": "0cddad1b0a366c47bd087d1937b515164ebc8b7893fb83d6af45ee6b07640fe8"
+  }
+}

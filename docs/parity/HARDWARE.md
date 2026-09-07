@@ -221,3 +221,7 @@ Moth BE11.0.1 now completes the original clock duration/cancel flow using Phoeni
 A [15-minute read-only observation](evidence/2026-09-06/service-integration/moth-passive-observation-review.json) sampled 840 BE states without connection errors. Moth produced a proactive greeting, entered speech and active listening, then completed two no-speech timeout turns and returned to idle. The observer injected no input. Backend/native processes and baseline configuration, credentials and trust hashes were unchanged at postflight.
 
 No wake-word event or recognized speech was captured. The physical blue ring, microphone wake-up and full greeting/trigger semantics remain unverified. Successful transaction status on an empty `SOS_TIMEOUT` result is not speech-recognition success. The earlier unexplained BE exit remains a stability follow-up.
+
+## Reviewed checkpoint on Moth, 2026-09-07
+
+A temporary authenticated trial of `9fc671f` completed original native TLS token issuance, both Hub upgrade paths, an SDK clock turn with TTS/display, and a synthetic proactive request. Root verified rollback, configuration/credential/trust hashes, five restored service healthchecks and idle. The current backend remains `3150063`; this does not certify microphone wake, the physical blue ring, natural proactivity or complete clock animation/time rendering. See the [bounded review](evidence/2026-09-07/hardware/reviewed-checkpoint/review.json).

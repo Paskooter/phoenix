@@ -1,0 +1,18 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "sourceRuntime": "Python3.10.12; actual original gqa.nlp with logging stub only",
+  "cases": 193,
+  "beforeMatches": 164,
+  "afterMatches": 193,
+  "fixed": 29,
+  "newFailures": 0,
+  "sourceSha256": "f01a4bed5b235227efd600a44310b155d49bc16e17a1007bb26e8be05146718a",
+  "candidateSha256": "027481b0978bfdfd37a7bc05bfa81552a5f49742379af15041bd11dcd677e2cc",
+  "fixture": "packages/skills/test/fixtures/gqa-nlp-source.json",
+  "changes": [
+    "Complete original question phrase list",
+    "Python Unicode word boundary for question trimming",
+    "Python Unicode decimal and whitespace classes for PII patterns",
+    "Use only the source-active PII regex list"
+  ]
+}

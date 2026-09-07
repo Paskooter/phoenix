@@ -1,0 +1,214 @@
+{
+  "summary": {
+    "cases": 20,
+    "statusMatches": 20,
+    "completeBodyMatches": 20,
+    "sourceExtraBoundaryAvailable": true
+  },
+  "candidateSha256": "a0a4e475565bb00ff924cf85712b95b53498e9875af12c02dd2caf6044d64e80",
+  "sourceSha256": "0cddad1b0a366c47bd087d1937b515164ebc8b7893fb83d6af45ee6b07640fe8",
+  "sourceBoundarySha256": "7ad1b838a7645b73f1929eab6a7fb3269c6de60f41af04533cf49acf465b5226",
+  "normalization": "Only validated unique message UUIDv4 and32-hex JCP IDs, nonnegative duration values (keys retained), HTTP400 diagnostic HTML and HTTP500 message/stacktrace text. All speech/display/action/analytics/skill/final/other fields retained. HTTP framing mismatch remains qualified separately by the original Axios client parsing proof.",
+  "rows": [
+    {
+      "group": "route",
+      "id": "success",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "no-answer",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "provider-failure",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "missing-transid",
+      "sourceStatus": 400,
+      "candidateStatus": 400,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "invalid-shape",
+      "sourceStatus": 500,
+      "candidateStatus": 500,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "empty-text",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "missing-ip",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "pii-email",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "decoder-bing",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "decoder-wiki",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "decoder-wolfram",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "route",
+      "id": "banned-word",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "provider-success",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "provider-no-answer",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "provider-message",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "payload-number",
+      "sourceStatus": 500,
+      "candidateStatus": 500,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "payload-object",
+      "sourceStatus": 500,
+      "candidateStatus": 500,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "payload-array",
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "payload-missing-source",
+      "sourceStatus": 500,
+      "candidateStatus": 500,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    },
+    {
+      "group": "boundary",
+      "id": "response-null",
+      "sourceStatus": 500,
+      "candidateStatus": 500,
+      "statusEqual": true,
+      "bodyDifferences": [],
+      "guardsPass": true,
+      "match": true
+    }
+  ]
+}
