@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded Linux user-service supervision; no robot deployment or reboot acceptance",
+  "reviewedBy": "Codex root",
+  "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+  "unit": "scripts/parity-robot/phoenix-robot@.service",
+  "unitSha256": "3d34e3f967dd7c3287d985c0a70e358796ff895751423022fd9d9a5e25c5e70d",
+  "execution": {
+    "at": "2026-09-07T11:39:49.174326+00:00",
+    "events": [
+      {
+        "kind": "initial-ready",
+        "pid": 1996644,
+        "properties": {
+          "MainPID": "1996644",
+          "NRestarts": "0",
+          "LoadState": "loaded",
+          "ActiveState": "active"
+        },
+        "endpoints": {
+          "parser": 44573,
+          "history": 37643,
+          "data": 42371,
+          "skills": 38775,
+          "account": 41591,
+          "entrypointTls": 43813,
+          "hub": 41511
+        }
+      },
+      {
+        "kind": "owned-main-killed",
+        "pid": 1996644
+      },
+      {
+        "kind": "automatic-restart",
+        "pid": 1996763,
+        "properties": {
+          "MainPID": "1996763",
+          "NRestarts": "1",
+          "LoadState": "loaded",
+          "ActiveState": "active"
+        },
+        "endpoints": {
+          "parser": 42627,
+          "history": 40443,
+          "data": 41581,
+          "skills": 35567,
+          "account": 32879,
+          "entrypointTls": 45661,
+          "hub": 44791
+        }
+      },
+      {
+        "kind": "explicit-stop-stays-stopped",
+        "properties": {
+          "MainPID": "0",
+          "NRestarts": "0",
+          "LoadState": "loaded",
+          "ActiveState": "inactive"
+        }
+      },
+      {
+        "kind": "cleanup",
+        "properties": {
+          "MainPID": "0",
+          "NRestarts": "0",
+          "LoadState": "not-found",
+          "ActiveState": "inactive"
+        }
+      }
+    ],
+    "unitSha256": "3d34e3f967dd7c3287d985c0a70e358796ff895751423022fd9d9a5e25c5e70d"
+  },
+  "networkChecks": {
+    "beforeCrash": [
+      "health-hub",
+      "health-skills",
+      "health-parser",
+      "health-history",
+      "health-data",
+      "health-account",
+      "signed-native-shape-token-issuer",
+      "explicit-LAN-notification-token",
+      "offline-notification-queued",
+      "private-notification-state"
+    ],
+    "afterAutomaticRestart": [
+      "health-hub",
+      "health-skills",
+      "health-parser",
+      "health-history",
+      "health-data",
+      "health-account",
+      "issued-token-listen-after-crash",
+      "issued-token-proactive-after-crash",
+      "offline-row-delivered-after-crash",
+      "send-deletion-persisted"
+    ]
+  },
+  "postflight": {
+    "ownedProcessesGone": true,
+    "ownedPortsClosed": [
+      {
+        "port": 44573,
+        "refused": true
+      },
+      {
+        "port": 37643,
+        "refused": true
+      },
+      {
+        "port": 42371,
+        "refused": true
+      },
+      {
+        "port": 38775,
+        "refused": true
+      },
+      {
+        "port": 41591,
+        "refused": true
+      },
+      {
+        "port": 43813,
+        "refused": true
+      },
+      {
+        "port": 41511,
+        "refused": true
+      },
+      {
+        "port": 42627,
+        "refused": true
+      },
+      {
+        "port": 40443,
+        "refused": true
+      },
+      {
+        "port": 41581,
+        "refused": true
+      },
+      {
+        "port": 35567,
+        "refused": true
+      },
+      {
+        "port": 32879,
+        "refused": true
+      },
+      {
+        "port": 45661,
+        "refused": true
+      },
+      {
+        "port": 44791,
+        "refused": true
+      }
+    ],
+    "testConfigurationRemoved": true
+  },
+  "artifacts": {
+    "run-supervisor.py": "2b84ddbb23fc1481fca9f84bdf3e342391398b4e3c4c326daa3339eef264f957",
+    "exercise.mjs": "bd5e922e2e5e664095a78fb9afe1511294ffc1078be29b9810842c6708b6ab69",
+    "execution.json": "22934f6839427b9a4a7c3412c4358dfd5eda9cc467ce53ea0e38603dc08a77b2",
+    "before-checks.json": "abd915de597d102c1d90271271a55581f93aeb3ec7714589c7b3c92001be86a6",
+    "after-checks.json": "9393676c32c240ccb90a5d4f3214a68979dd31cd63f6a2a363ea45d0efbf8444",
+    "postflight.json": "4fd043930dcfab07bedc9cd24f3e442f47770ee3ed3f0354427c6d96a629094d"
+  },
+  "qualification": [
+    "The exact tracked template was linked as an owned runtime test instance. Its %h/%i checkout and environment paths were exercised; test configuration and14 listeners were cleaned.",
+    "Synthetic credentials and local Phoenix services. Notification token uses explicit LAN fallback; public verified identity and automatic Account bridge remain separate work.",
+    "A previous owned concrete-unit control also passed; the template was then tested after changing path resolution.",
+    "No new npm suite was needed: runtime is unchanged from accepted740unit/strict43 checkpoint.",
+    "Moth passive180-second observation saw no native speech events and idle BE; no microphone/wake/ring acceptance.",
+    "User-manager lifetime, robot trust/configuration and forwarding are deployment dependencies. No host or robot reboot was performed."
+  ],
+  "unitProvenance": "Template tested before its commit; the recorded complete-file SHA256 matches the final committed template bytes. runtimeRevision identifies the already frozen launcher checkout, not the new template."
+}

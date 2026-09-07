@@ -60,3 +60,30 @@ The launcher keeps notification tokens and pending source-shaped documents in
 restart recovery. Account-to-notification publishing and verified notification
 account resolution remain explicit integration work; the local outbox seam is
 not selected by this launcher. Notification identity and robot acceptance stay open.
+
+For a supervised Linux user service, install
+[`phoenix-robot@.service`](phoenix-robot@.service). Each instance reads only its
+own environment file and runs a reviewed checkout selected by a `current`
+symlink. For example, `phoenix-robot@moth.service` uses:
+
+- `~/.config/phoenix/moth.env`: the file-path settings shown above, mode0600;
+  include `PHOENIX_ENV_FILE=/dev/null` and use absolute paths.
+- `~/.local/share/phoenix/moth/current`: a symlink to the reviewed, frozen
+  checkout with its installed dependencies. Switch it only while stopped.
+- `PHOENIX_ROBOT_RUN`: a private persistent directory for the launcher receipt,
+  notification state and backups.
+
+Install the template under `~/.config/systemd/user/`, then run
+`systemctl --user daemon-reload` and
+`systemctl --user enable --now phoenix-robot@moth.service`.
+`systemctl --user restart phoenix-robot@moth.service` applies a reviewed
+configuration change. An explicit stop stays stopped; an unexpected process
+failure restarts after two seconds, with a five-start limit per minute.
+The service controls its whole process group during shutdown. This template
+uses `/usr/bin/node`; adjust that path when Node is installed elsewhere.
+
+The user manager must be available for unattended operation. Check
+`loginctl show-user "$USER" -p Linger`; enabling lingering is a separate host
+configuration action. Robot trust/configuration and reverse SSH forwarding
+remain separate deployment dependencies. A passing process-recovery test does
+not establish successful host or robot reboot recovery.

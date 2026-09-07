@@ -907,7 +907,7 @@
         "packages/gateway/test/hubAuth.test.js",
         "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open. Root accepted a bounded timeout for the optional account extension: stalled headers/body reject, both Hub paths recover, and six actual Account service cases pass. The integrated suite passes 718 units and strict43. This does not complete native expiry/refetch, broader identity or persistent rollout. Root accepted private Account snapshot replacement and imported-launcher restart recovery after a real Account mutation: old JWT works on both Hub paths after restart. Final720 units and strict43 pass; CLI already sets a private umask.",
+      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open. Root accepted a bounded timeout for the optional account extension: stalled headers/body reject, both Hub paths recover, and six actual Account service cases pass. The integrated suite passes 718 units and strict43. This does not complete native expiry/refetch, broader identity or persistent rollout. Root accepted private Account snapshot replacement and imported-launcher restart recovery after a real Account mutation: old JWT works on both Hub paths after restart. Final720 units and strict43 pass; CLI already sets a private umask. The Linux user-service template passes real owned process-failure/restart controls, retaining the Hub token and pending notification; persistent Moth switch and reboot acceptance remain open.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -1005,6 +1005,15 @@
           "scope": "Bounded Account snapshot privacy and imported authenticated launcher restart after state mutation; synthetic real-service controls,720 units and strict43. Full H-10 remains open.",
           "artifact": "docs/parity/candidates/H-10-account-store-permissions-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/account-store-permissions/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded systemd user-service template: real automatic process restart, retained issued Hub token and pending TLS notification, explicit-stop behavior and cleanup. No robot/reboot or full H-10 acceptance.",
+          "artifact": "scripts/parity-robot/phoenix-robot@.service",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/launcher-supervision/review.json",
+          "runtimeRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da"
         }
       ]
     },

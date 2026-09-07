@@ -281,3 +281,11 @@ and strict43 pass. Verified token/account identity, default event publishing
 and robot acceptance remain open. The separate `$w03` parser proposal is
 rejected because a native-confirmed relative wildcard selection regresses;
 main retains the51-residual baseline.
+
+The [launcher supervision control](evidence/2026-09-07/launcher-supervision/review.json)
+accepts the Linux user-service template after a real process failure and
+automatic restart. Issued Hub credentials and a pending TLS notification
+survive; explicit stop remains stopped, and the owned test unit/configuration
+and listeners are removed. Moth deployment, forwarding/trust dependencies and
+reboot acceptance remain separate. A passive180-second Moth observation saw
+no native speech events and provides no new microphone or ring proof.

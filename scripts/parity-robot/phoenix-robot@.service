@@ -1,0 +1,20 @@
+[Unit]
+Description=Phoenix authenticated robot stack (%i)
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/phoenix/%i/current
+EnvironmentFile=%h/.config/phoenix/%i.env
+ExecStart=/usr/bin/node scripts/parity-robot/authenticated-stack.mjs
+UMask=0077
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=20
+KillMode=control-group
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
