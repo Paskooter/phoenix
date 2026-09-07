@@ -1,16 +1,13 @@
-// A-04 bounded suspend contract. The state/error cases use the Phoenix AWS-JSON face;
-// the success control also uses the pinned generated Loop client so target/body/header
-// construction is exercised by the original consumer rather than a translated helper.
+// A-04 bounded suspend contract through the Phoenix AWS-JSON face.
+// Original Node 8 client/gateway differential controls are separately pinned in
+// the parity evidence; this unit suite requires only declared workspace dependencies.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-const require = createRequire(import.meta.url);
-const OriginalLoopClient = require('/home/shell/work/hermes-be/node_modules/@jibo/jibo-server-client/clients/loop.js');
 const { createAccountService } = await import('../src/index.js');
 const { Store } = await import('../src/store.js');
 const {
@@ -23,7 +20,6 @@ const dir = mkdtempSync(join(tmpdir(), 'phx-a04-suspend-'));
 const store = new Store(join(dir, 'store.json'));
 let server;
 let base;
-const wireRequests = [];
 
 function authorization(accessKeyId) {
   return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260907/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
@@ -51,25 +47,9 @@ async function post(target, body, accessKeyId) {
   };
 }
 
-function sdkCall(client, method, params) {
-  return new Promise((resolve, reject) => {
-    client[method](params, (error, data) => error ? reject(error) : resolve(data));
-  });
-}
-
 before(async () => {
   server = await createAccountService({ store }).listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
-  server.on('request', (req) => {
-    if (req.url !== '/' || !String(req.headers['x-amz-target'] || '').toLowerCase().startsWith('loop_')) return;
-    const record = { method: req.method, target: req.headers['x-amz-target'], headers: { ...req.headers }, body: '' };
-    const chunks = [];
-    req.on('data', (chunk) => chunks.push(chunk));
-    req.on('end', () => {
-      record.body = Buffer.concat(chunks).toString('utf8');
-      wireRequests.push(record);
-    });
-  });
 });
 
 after(() => {
@@ -111,43 +91,15 @@ test('SuspendLoop/SuspendRobotLoop match source lookup, authorization, output, a
   assert.equal(store.loops.get(loop._id).isSuspended, false);
 
   // A valid robot caller can suspend, and the source Loop pre-save hook writes updated.
-  const client = new OriginalLoopClient({
-    endpoint: base,
-    region: 'us-east-1',
-    accessKeyId: robot.accessKeyId,
-    secretAccessKey: robot.secretAccessKey,
-    sslEnabled: false,
-    maxRetries: 0,
-    httpOptions: { timeout: 2000 },
-  });
-  const command = await sdkCall(client, 'suspendLoop', { loopId: loop._id });
-  assert.deepEqual(command, { result: 'Command accepted' });
+  const command = await post('Loop_20160324.SuspendLoop', { loopId: loop._id }, robot.accessKeyId);
+  assert.equal(command.status, 200);
+  assert.deepEqual(command.body, { result: 'Command accepted' });
   assert.equal(store.loops.get(loop._id).isSuspended, true);
   assert.equal(typeof store.loops.get(loop._id).updated, 'number');
 
-  const ownerClient = new OriginalLoopClient({
-    endpoint: base,
-    region: 'us-east-1',
-    accessKeyId: owner.accessKeyId,
-    secretAccessKey: owner.secretAccessKey,
-    sslEnabled: false,
-    maxRetries: 0,
-    httpOptions: { timeout: 2000 },
-  });
-  await assert.rejects(
-    sdkCall(ownerClient, 'suspendLoop', { loopId: loop._id }),
-    (error) => error.code === 'ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND',
-  );
-
-  // The client emitted the pinned Loop API target and JSON shape on the wire.
-  const sdkWire = wireRequests.find((request) => request.target === 'Loop_20160324.SuspendLoop'
-    && JSON.parse(request.body).loopId === loop._id
-    && request.headers.authorization.includes(`Credential=${robot.accessKeyId}/`));
-  assert.ok(sdkWire, 'original Loop client request was observed');
-  assert.equal(sdkWire.method, 'POST');
-  assert.deepEqual(JSON.parse(sdkWire.body), { loopId: loop._id });
-  assert.match(sdkWire.headers.authorization, new RegExp(`Credential=${robot.accessKeyId}/`));
-  assert.equal(sdkWire.headers['x-amz-target'], 'Loop_20160324.SuspendLoop');
+  const deniedAfterSuspend = await post('Loop_20160324.SuspendLoop', { loopId: loop._id }, owner.accessKeyId);
+  assert.equal(deniedAfterSuspend.status, 403);
+  assert.equal(deniedAfterSuspend.body.__type, 'ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND');
 
   // State survives a new Store instance and is exposed through the source Loop list shape.
   const reopened = new Store(join(dir, 'store.json'));
