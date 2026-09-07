@@ -16,7 +16,7 @@ The focused candidate command was:
 node --test packages/account/test/loopUpdatedNotification.test.js packages/account/test/loopUpdatedOutboxConcurrency.test.js
 ```
 
-It exited `0` with 7 tests passing. The two new controls use a real `Store` and `LoopUpdatedOutbox`, an awaited publisher gate, and durable outbox rows. The success control records `first-loop`, enqueues `second-loop` while the first publisher is suspended, releases the gate, and verifies both rows publish without explicit recovery. The failure control rejects `first-loop`, enqueues `second-loop` during the await, verifies one follow-up pass retries the retained first row and publishes the second, and verifies no further attempts occur after the pass settles.
+It exited `0` with 8 tests passing. The three new controls use a real `Store` and `LoopUpdatedOutbox`, awaited publisher gates, and durable outbox rows. The success control records `first-loop`, enqueues `second-loop` while the first publisher is suspended, releases the gate, and verifies both rows publish without explicit recovery. The publisher-failure control rejects `first-loop`, enqueues `second-loop` during the await, verifies one follow-up pass retries the retained first row and publishes the second, and verifies no further attempts occur after the pass settles. The acknowledgement-failure control keeps durable flush failing, verifies one follow-up retry, and verifies that the retained rows do not spin indefinitely.
 
 The complete Account test command was:
 
@@ -24,10 +24,12 @@ The complete Account test command was:
 node --test packages/account/test/*.test.js
 ```
 
-It exited `0` with 124 tests passing. Raw outputs are retained at:
+It exited `0` with 125 tests passing. Raw outputs from the final run are retained at:
 
-- `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-concurrency-20260907/candidate-account-tests.tap` (7 focused producer/regression tests)
-- `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-concurrency-20260907/account-tests.tap` (124 Account tests)
+- `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-concurrency-20260907/candidate-account-tests-v2.tap` (8 focused producer/regression tests)
+- `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-concurrency-20260907/account-tests-v2.tap` (125 Account tests)
+
+The notification lifecycle follow-up was also exercised in owned child Node processes against its separate candidate `e6d87cf`; `/home/shell/work/phoenix/.parity/reviews/a10-loop-producer-concurrency-20260907/callback-faults/candidate-callback-faults.json` records zero exits for attach, close, and timer-poll EISDIR failures. That is supporting notification evidence and is not part of this Account implementation.
 
 The candidate worktree has private `node_modules` and `@phoenix/*` links resolving to this worktree. The implementation revision is `6e84c4ec02051b6bf4a879f9ce570012d7d604c1`.
 

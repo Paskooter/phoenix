@@ -91,3 +91,45 @@ test('a concurrent request causes only one recovery pass after a publisher failu
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('a concurrent request does not spin when acknowledgement persistence keeps failing', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'phx-a10-outbox-ack-failure-'));
+  try {
+    const store = new Store(join(directory, 'account.json'));
+    const originalFlush = store.flush.bind(store);
+    let failFlush = false;
+    store.flush = (...args) => {
+      if (failFlush) throw new Error('synthetic acknowledgement failure');
+      return originalFlush(...args);
+    };
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    let firstStarted = false;
+    const delivered = [];
+    const outbox = new LoopUpdatedOutbox(store, {
+      publisher: async (request) => {
+        const id = request.notification.payload.id;
+        delivered.push(id);
+        if (id === 'first-loop' && !firstStarted) {
+          firstStarted = true;
+          await gate;
+          failFlush = true;
+        }
+      },
+    });
+
+    outbox.record(loop('first-loop'));
+    await waitFor(() => firstStarted);
+    outbox.record(loop('second-loop'));
+    release();
+
+    await waitFor(() => outbox.draining === null && delivered.length === 2
+      && outbox.pending().length === 2);
+    assert.deepEqual(delivered, ['first-loop', 'first-loop']);
+    const attempts = delivered.length;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.equal(delivered.length, attempts, 'a failed acknowledgement does not spin a retry loop');
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
