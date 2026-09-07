@@ -219,8 +219,24 @@ export class NotificationHub {
         const current = this.inflight.get(notification._id);
         if (current?.attempt === attempt) this.inflight.delete(notification._id);
         if (!error) {
-          this.store.removeNotification(notification._id);
-          if (current?.attempt === attempt) void this._deliverPending(tokenId);
+          try {
+            this.store.removeNotification(notification._id);
+          } catch {
+            // A successful socket write does not make a notification durable.
+            // Keep the row pending when its delete cannot be committed, and
+            // contain the synchronous persistence error inside the callback.
+            // The next poll/reconnect can retry it.
+            if (!settled) {
+              settled = true;
+              resolve(false);
+            }
+            return;
+          }
+          if (current?.attempt === attempt) {
+            // Store reads/purge can fail too; a rejected retry must not escape
+            // the WebSocket callback as an unhandled promise rejection.
+            void this._deliverPending(tokenId).catch(() => {});
+          }
         }
         if (!settled) {
           settled = true;
