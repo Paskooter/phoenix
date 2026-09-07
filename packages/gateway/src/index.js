@@ -24,16 +24,6 @@ import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
 const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
 
-/**
- * Bind close handling for the transaction family. The source listen handler's
- * socket reader resolves its own read promise on close; it does not resolve the
- * listen transaction. Keep that distinction explicit so a client disconnect
- * cannot turn an unfinished listen into a successful transaction.
- */
-export function bindTransactionClose(socket, transaction, isProactive) {
-  if (isProactive) socket.on('close', () => transaction.resolve());
-}
-
 export function buildComponents(config) {
   const skillConfigManager = new SkillConfigManager(config.skills);
   return {
@@ -156,7 +146,7 @@ export async function createGateway(config = loadConfig()) {
     // while a skill request is still in flight. ProactiveTransaction retains
     // Phoenix's existing close behavior until that separate lifecycle is
     // reviewed against the source proactive handler.
-    bindTransactionClose(ws, tx, isProactive);
+    if (isProactive) ws.on('close', () => tx.resolve());
 
     tx.done.catch((err) => {
       reqLog.error('transaction failed', { error: err.message, code: err.code });
