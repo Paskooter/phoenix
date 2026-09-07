@@ -75,6 +75,13 @@ A task must have all of the following:
 - For timing/randomness: bounded timing assertions and seeded or distribution-based checks. Normalization must not erase the property being tested.
 - A reviewed evidence entry with source revision, Phoenix revision/working-tree fingerprint, command, fixture/configuration, date, result and retained artifact.
 
+The user's 2026-09-07 clarification prioritizes substantive compatibility.
+Harmless error wording and internal diagnostic metadata are nonblocking when
+the relevant robot/client path does not depend on them. Apply the
+[consumer-focused policy](COMPATIBILITY.md#observable-compatibility-policy)
+when reviewing earlier strict comparisons; preserve status/codes, data,
+selection, side effects and recovery requirements.
+
 Source-derived fixtures are legitimate evidence but must be labeled as such. They do not pretend the original runtime ran. Where acceptance explicitly requires an original-client, differential, live-provider or hardware check, the task stays open until that check is completed.
 
 Reference session internals can remain opaque only if their externally observable continuation is verified. Whether in-flight original sessions must survive deployment cutover is an explicit compatibility decision; wholesale session deletion in a normalizer is insufficient evidence.

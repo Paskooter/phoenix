@@ -44,6 +44,19 @@ V-01 records what actually executes, including interpreter, dependency closure, 
 
 The original profile preserves paths, methods, authentication semantics, required/optional fields, null versus missing versus empty, errors, request ordering, session continuation, side effects, retention, entities/rules and the complete speech/display/action output. Modern implementation choices are allowed when those properties agree. Replacement external providers must implement the original adapter contract and separately demonstrate a functioning success path.
 
+**User clarification, 2026-09-07:** acceptance focuses on substantive behavior
+and the robot client's interpretation. Error-message wording, diagnostic
+formatting, stack traces and internal function metadata may differ when the
+relevant consumer does not depend on them. These differences do not block a
+task or justify work to reproduce a historical runtime's phrasing. Check the
+consumer path when a message might be parsed or shown as part of a functional
+response. Status and machine-readable error codes, required fields, success
+versus failure, retries, state changes, speech/display output and recovery
+remain requirements. Preserve raw observations for diagnosis and classify
+harmless differences explicitly; do not erase substantive differences with
+broad normalization. Earlier reports of exact wording remain historical
+measurements, rather than additional acceptance requirements.
+
 Original session tokens must support their documented round trips. S-01/R-02 must explicitly verify continuity across cutover or implement a reviewed draining/migration procedure; deleting sessions from comparison is not a parity argument. Test-only clock/random controls may make observations repeatable but must not erase timing, identity or selection requirements.
 
 The table below classifies every existing entry in [DIVERGENCES.md](../../DIVERGENCES.md). That older file retains its historical rationale; this manifest governs the new compatibility work. **Required repair** means a behavior cannot be counted as original parity in its present form. **Separate extension** means it may remain available under an explicitly tested configuration, while the original profile is still required. Open details remain in the named tasks.

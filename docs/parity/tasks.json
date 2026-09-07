@@ -647,16 +647,18 @@
       ],
       "reference": [
         "pegasus:packages/hub/src/skill",
-        "pegasus:packages/hub/src/listen/ListenTransactionHandler.ts"
+        "pegasus:packages/hub/src/listen/ListenTransactionHandler.ts",
+        "pegasus:packages/hub/src/intent/DecisionMediator.ts"
       ],
       "phoenix": [
         "packages/gateway/src/skillClient.js",
         "packages/gateway/src/listenTransaction.js"
       ],
-      "finding": "Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification.",
+      "finding": "Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification. Source DecisionMediator also rewrites six report decisions for robot releases below1.9.0; nine original mediator tests pass on source only. This launch-stage compatibility behavior belongs to H-04 and remains unimplemented, separate from the H-03 decision tree.",
       "acceptance": [
         "Compare general/runtime/skill/result/memo and trace propagation on launch, update, action completion and redirect.",
-        "Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution."
+        "Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution.",
+        "Preserve release-dependent launch mediation for older robot versions, including report-to-chitchat/answer/news decisions, without relying on a fabricated robot release."
       ],
       "verification": []
     },

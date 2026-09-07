@@ -348,14 +348,15 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/production/residual-re
 
 Owner: Codex. Dependencies: H-02, H-03.
 
-Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification.
+Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification. Source DecisionMediator also rewrites six report decisions for robot releases below1.9.0; nine original mediator tests pass on source only. This launch-stage compatibility behavior belongs to H-04 and remains unimplemented, separate from the H-03 decision tree.
 
 Done when:
 
 - Compare general/runtime/skill/result/memo and trace propagation on launch, update, action completion and redirect.
 - Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution.
+- Preserve release-dependent launch mediation for older robot versions, including report-to-chitchat/answer/news decisions, without relying on a fabricated robot release.
 
-Source: [Original Pegasus packages/hub/src/skill](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/skill); [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts).
+Source: [Original Pegasus packages/hub/src/skill](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/skill); [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts); [Original Pegasus packages/hub/src/intent/DecisionMediator.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/intent/DecisionMediator.ts).
 
 Phoenix: [packages/gateway/src/skillClient.js](../../packages/gateway/src/skillClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js).
 
