@@ -33,6 +33,10 @@ const netUrl = (name, defPort) => {
   return /^https?:\/\//.test(v) ? v : `http://${v}`;
 };
 
+function isNotificationTarget(req) {
+  return /^notification[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
 function isCreateHubTokenTarget(req) {
   return /\.createhubtoken$/i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
@@ -43,7 +47,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver } =
     ...extra,
     { match: /^log/i, handler: logHandler },
     { match: /^robot/i, handler: makeRobotHandler() },
-    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }) },
+    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/ifttt/nlp/collision)
@@ -77,8 +81,9 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     name: 'classic',
     tls,
     // The Hapi-backed Account boundary validates primitive JSON values after
-    // parsing. All other Classic routes retain Pegasus's strict parser.
-    jsonStrict: (req) => !isCreateHubTokenTarget(req),
+    // parsing. Notification's Hapi validator also needs null/scalar payloads
+    // intact to reject them before token mutation. Other routes stay strict.
+    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req),
     routes: {
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }], {
         notificationAccountResolver,

@@ -30,12 +30,17 @@ export function createClassicRouter(registrations) {
       log.warn('classic: no service for target', { target: target || '(none)' });
       return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);
     }
-    if (reg.handler) return reg.handler({ req, res, body: body || {}, target, op, log });
+    if (reg.handler) return reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log });
     return proxy(reg.proxyTo(), req, res, body, log);
   };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
-  dispatch.bodyDefault = (req) => parseTarget(req).op.toLowerCase() === 'createhubtoken' ? null : {};
+  dispatch.bodyDefault = (req) => {
+    const { prefix, op } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    if (reg && Object.prototype.hasOwnProperty.call(reg, 'bodyDefault')) return reg.bodyDefault;
+    return op.toLowerCase() === 'createhubtoken' ? null : {};
+  };
 
   return {
     'POST /': dispatch,

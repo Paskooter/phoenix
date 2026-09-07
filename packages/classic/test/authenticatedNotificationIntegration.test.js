@@ -181,6 +181,14 @@ test('signed notification validation, shared Account outbox, account isolation, 
       assert.match(invalid.body.message, /deviceId/);
       assert.ok(classic.hub.findByToken(priorToken), 'Joi rejection must not rotate the prior token');
     }
+    // Original Hapi supplies null for a missing HTTP entity. Keep the route
+    // boundary intact: an absent body must not become a valid empty object.
+    for (const payload of ['', null, [], false, 0, '"scalar"']) {
+      const invalid = await notify(payload);
+      assert.equal(invalid.status, 422);
+      assert.equal(invalid.body.statusCode, 422);
+      assert.ok(classic.hub.findByToken(priorToken), 'invalid HTTP body must retain the token');
+    }
     const recovered = await notify({ deviceId: 'device-a-recovered', unknown: 'allowed' });
     assert.equal(recovered.status, 200);
     assert.equal(classic.hub.findByToken(priorToken), null, 'a valid request rotates the source token');
@@ -193,6 +201,11 @@ test('signed notification validation, shared Account outbox, account isolation, 
       assert.equal(invalid.status, 422, `invalid GetStatus ${JSON.stringify(payload)}`);
       assert.equal(invalid.body.statusCode, 422);
       assert.match(invalid.body.message, /accountId/);
+    }
+    for (const payload of ['', null, [], false, 0]) {
+      const invalid = await getStatus(payload);
+      assert.equal(invalid.status, 422);
+      assert.equal(invalid.body.statusCode, 422);
     }
     const statusBefore = await getStatus({ accountId: robotB._id, extra: true });
     assert.equal(statusBefore.status, 200);

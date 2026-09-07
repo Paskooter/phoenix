@@ -2,7 +2,9 @@
 // It creates only synthetic accounts, keys, a private store, and a one-day
 // loopback certificate. No token or private request body is printed.
 
-import { chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import https from 'node:https';
+import { readFileSync, chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,7 +13,7 @@ import { startAuthenticatedRobotStack } from './authenticated-stack.mjs';
 import { WebSocket } from 'ws';
 
 process.env.PHOENIX_ENV_FILE = '/dev/null';
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
 
 const manifest = process.argv[2];
 if (!manifest) throw new Error('usage: node scripts/parity-robot/authenticated-notification-control.mjs <snapshot-manifest>');
@@ -27,7 +29,7 @@ const storeFile = join(directory, 'account.json');
 writeFileSync(secretFile, 'a10-launcher-control-secret\n', { mode: 0o600 });
 execFileSync('openssl', [
   'req', '-x509', '-newkey', 'rsa:2048', '-keyout', keyFile, '-out', certFile,
-  '-days', '1', '-nodes', '-subj', '/CN=localhost',
+  '-days', '1', '-nodes', '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1',
 ], { stdio: 'ignore' });
 chmodSync(keyFile, 0o600);
 chmodSync(certFile, 0o600);
@@ -71,7 +73,7 @@ function signed(host, target, payload, credentials, overrides = {}) {
 
 async function post(base, target, payload, credentials, overrides = {}) {
   const request = signed(new URL(base).host, target, payload, credentials, overrides);
-  const response = await fetch(`${base}/`, { method: 'POST', headers: request.headers, body: request.body });
+  const response = await new Promise((resolve,reject)=>{const req=https.request(`${base}/`,{method:'POST',headers:request.headers,ca:readFileSync(certFile),rejectUnauthorized:true,minVersion:'TLSv1.2'},res=>{const chunks=[];res.on('data',c=>chunks.push(c));res.on('end',()=>resolve({status:res.statusCode,headers:new Headers(res.headers),text:async()=>Buffer.concat(chunks).toString('utf8')}));res.on('error',reject);});req.on('error',reject);req.setTimeout(5000,()=>req.destroy(new Error('TLS request deadline')));req.end(request.body);});
   const raw = await response.text();
   let body = null;
   try { body = JSON.parse(raw); } catch { /* retain the status for non-JSON failures */ }
@@ -80,7 +82,7 @@ async function post(base, target, payload, credentials, overrides = {}) {
 
 function openSocket(base, token) {
   return new Promise((resolve, reject) => {
-    const socket = new WebSocket(`${base}/socket/${token}`, { rejectUnauthorized: false });
+    const socket = new WebSocket(`${base}/socket/${token}`, { ca: readFileSync(certFile), rejectUnauthorized: true });
     socket.once('open', () => resolve(socket));
     socket.once('error', reject);
   });
@@ -145,11 +147,14 @@ try {
   socketA = await openSocket(firstBase, validAgain.body.token);
   socketB = await openSocket(firstBase, issuedB.body.token);
 
+  let accountBReceivedA = false;
+  const isolationObserver = () => { accountBReceivedA = true; };
+  socketB.on('message', isolationObserver);
   const eventA = nextMessage(socketA);
   const suspendA = await post(firstBase, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, robotA);
   const messageA = await eventA;
-  let accountBReceivedA = false;
-  try { await nextMessage(socketB, 150); accountBReceivedA = true; } catch { /* isolation control */ }
+  await new Promise(r=>setTimeout(r,150));
+  socketB.off('message',isolationObserver);
   const statusInvalidStatuses = [];
   for (const payload of [{}, { accountId: null }, { accountId: 7 }, { accountId: '' }]) {
     const invalid = await post(firstBase, 'Notification_20150505.GetStatus', payload, robotA);
@@ -202,7 +207,14 @@ try {
       second.services.classic.hub.store.findTokenByKey(issuedC.body.token)._id,
     ]).length,
   };
-  console.log(JSON.stringify({ kind: 'a10-authenticated-notification-launcher-control', result }));
+  assert.equal(result.createHubToken.status,200);assert.equal(result.createHubToken.claims.id,robotA._id);
+  assert.equal(result.validation.validStatus,200);assert.equal(result.validation.priorTokenStillValid,true);
+  assert.equal(result.delivery.suspendStatus,200);assert.equal(result.delivery.accountBReceivedA,false);
+  assert.equal(result.delivery.event.name,'LoopUpdated');assert.equal(result.delivery.event.skillId,'-1');assert.equal(result.delivery.event.accountId,robotA._id);assert.equal(result.delivery.event.loopId,loopA._id);assert.equal(result.delivery.event.isSuspended,true);
+  assert.equal(result.delivery.crossAccountStatus.status,200);assert.equal(result.delivery.crossAccountStatus.connected,true);assert.equal(result.delivery.rejectedCaller.status,401);
+  assert.equal(result.offline.retainedBeforeRestart,1);assert.equal(result.restartRecovery.eventName,'LoopUpdated');assert.equal(result.restartRecovery.accountId,robotC._id);assert.equal(result.restartRecovery.loopId,loopC._id);assert.equal(result.restartRecovery.isSuspended,true);assert.equal(result.restartRecovery.pendingAfterSuccessfulSend,0);
+  result.verifiedTLS = true;
+  console.log(JSON.stringify({kind:'a10-authenticated-notification-launcher-control',result}));
 } finally {
   socketA?.terminate();
   socketB?.terminate();
