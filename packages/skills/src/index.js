@@ -33,9 +33,13 @@ export { buildPromptData, loadMimFile } from './graph/mims/promptData.js';
 export { answerSkill } from './answerSkill.js';
 export {
   createGqaAnswerSkill,
+  createGqaProviderPipeline,
   createGqaHttpRoute,
   gqaAnswerSkill,
   GQA_MISSING_TRANSID_HTML,
+  GQA_BAD_REQUEST_HTML,
+  validateGqaRequestEnvelope,
+  validateGqaRequestBody,
   buildGqaResponse,
   buildGqaSlimFromMim,
   buildGqaSlimFromText,

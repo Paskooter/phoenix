@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { request as httpRequest } from 'node:http';
 import { createService } from '@phoenix/common';
 import { skillRoute } from '../src/skillService.js';
 import {
@@ -10,6 +11,7 @@ import {
   createGqaAnswerSkill,
   createGqaHttpRoute,
   GQA_MISSING_TRANSID_HTML,
+  GQA_BAD_REQUEST_HTML,
   gqaPiiFilter,
   getGqaQuestionType,
   gqaMimPromptIds,
@@ -199,6 +201,60 @@ test('Q-01 provider pipeline rejects an incomplete adapter inventory', () => {
   );
 });
 
+test('Q-01 provider pipeline advances at the source group deadline and keeps late priority', async () => {
+  const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+  const calls = [];
+  const pipeline = createGqaProviderPipeline({
+    providers: {
+      Bing: async () => {
+        calls.push('Bing:start');
+        await sleep(45);
+        calls.push('Bing:done');
+        return { source: 'Bing', response: { payload: 'late priority answer' } };
+      },
+      Wikipedia: async () => {
+        calls.push('Wikipedia:start');
+        return {};
+      },
+      'Wolfram Alpha': async () => {
+        calls.push('Wolfram Alpha:start');
+        await sleep(80);
+        return { source: 'Wolfram Alpha', response: { payload: 'fallback answer' } };
+      },
+    },
+    // The source values are 3s/4s. Short values keep this regression bounded;
+    // the production defaults remain unchanged and are exercised separately.
+    timeouts: [25, 100],
+  });
+  const started = Date.now();
+  const output = await pipeline({ queryText: 'fixture' });
+  const elapsed = Date.now() - started;
+  assert.equal(output.source, 'Bing');
+  assert.ok(elapsed >= 35 && elapsed < 90, `unexpected elapsed ${elapsed}ms`);
+  assert.deepEqual(calls, [
+    'Bing:start', 'Wikipedia:start', 'Wolfram Alpha:start', 'Bing:done',
+  ]);
+});
+
+test('Q-01 provider pipeline uses the next group after both first-group workers time out', async () => {
+  const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+  const calls = [];
+  const pipeline = createGqaProviderPipeline({
+    providers: {
+      Bing: async () => { calls.push('Bing'); await sleep(70); return {}; },
+      Wikipedia: async () => { calls.push('Wikipedia'); await sleep(80); return {}; },
+      'Wolfram Alpha': async () => { calls.push('Wolfram Alpha'); return { source: 'Wolfram Alpha', response: { payload: 'fallback' } }; },
+    },
+    timeouts: [20, 100],
+  });
+  const started = Date.now();
+  const output = await pipeline({ queryText: 'fixture' });
+  const elapsed = Date.now() - started;
+  assert.equal(output.source, 'Wolfram Alpha');
+  assert.ok(elapsed >= 15 && elapsed < 60, `unexpected elapsed ${elapsed}ms`);
+  assert.deepEqual(calls, ['Bing', 'Wikipedia', 'Wolfram Alpha']);
+});
+
 test('Q-01 request blocks match source IP and PII ordering before providers', async () => {
   const calls = [];
   const provider = async () => {
@@ -323,6 +379,39 @@ test('Q-01 GQA HTTP adapter preserves the first duplicate/empty transID and uses
   assert.equal(emptyResponse.type, 'SKILL_ACTION');
 });
 
+test('Q-01 GQA HTTP adapter reads duplicate transID fields like Flask getlist', async () => {
+  const service = createService({
+    name: 'q01-gqa-duplicate-transid',
+    routes: {
+      'POST /v1/answer/main': createGqaHttpRoute({
+        handler: async (body) => ({ observedTransID: body.transID }),
+      }),
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const port = server.address().port;
+    const response = await new Promise((resolve, reject) => {
+      const request = httpRequest({
+        host: '127.0.0.1', port, path: '/v1/answer/main', method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-jibo-transid': ['first-transID', 'second-transID'],
+        },
+      }, (incoming) => {
+        const chunks = [];
+        incoming.on('data', (chunk) => chunks.push(chunk));
+        incoming.on('end', () => resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))));
+      });
+      request.on('error', reject);
+      request.end(JSON.stringify(sourceRequest()));
+    });
+    assert.deepEqual(response.observedTransID, ['first-transID']);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('Q-01 GQA HTTP adapter exposes a status-coded error for direct callers without a response', async () => {
   const route = createGqaHttpRoute({ handler: async () => ({ type: 'SKILL_ACTION' }) });
   await assert.rejects(
@@ -331,6 +420,64 @@ test('Q-01 GQA HTTP adapter exposes a status-coded error for direct callers with
       && error.statusCode === 400
       && error.message === 'Missing X-JIBO-transID header',
   );
+});
+
+test('Q-01 GQA HTTP adapter preserves source analytics-before-header failure order', async () => {
+  const route = createGqaHttpRoute({ handler: async () => ({ type: 'SKILL_ACTION' }) });
+  const state = { statusCode: null, contentType: null, body: null };
+  const response = {
+    status(status) { state.statusCode = status; return this; },
+    type(type) { state.contentType = type; return this; },
+    send(body) { state.body = body; return this; },
+  };
+
+  // Source analytics indexes request["type"] before getlist(transID), so an
+  // empty object with no header is a 500 rather than the missing-header 400.
+  await route({ body: {}, req: { headers: {} }, res: response });
+  assert.equal(state.statusCode, 500);
+  assert.equal(state.contentType, 'html');
+  assert.match(state.body, /Missing GQA request field type/);
+
+  // Once type exists, a malformed data tree reaches the header branch first.
+  state.statusCode = null;
+  state.body = null;
+  await route({ body: { type: 'LISTEN_LAUNCH', data: null }, req: { headers: {} }, res: response });
+  assert.equal(state.statusCode, 400);
+  assert.equal(state.body, GQA_MISSING_TRANSID_HTML);
+});
+
+test('Q-01 GQA HTTP adapter accepts source primitive JSON then exposes its 500 body branch', async () => {
+  const service = createService({
+    name: 'q01-gqa-source-json-shapes',
+    routes: {
+      'POST /v1/answer/main': createGqaHttpRoute({ handler: async () => ({ type: 'SKILL_ACTION' }) }),
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const port = server.address().port;
+    for (const [label, body] of [['null', 'null'], ['array', '[]'], ['number', '1']]) {
+      const response = await fetch(`http://127.0.0.1:${port}/v1/answer/main`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-jibo-transid': 'fixture-trans' },
+        body,
+      });
+      assert.equal(response.status, 500, label);
+      const payload = await response.text();
+      assert.match(payload, /GQA request JSON must be an object/);
+    }
+
+    const empty = await fetch(`http://127.0.0.1:${port}/v1/answer/main`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-jibo-transid': 'fixture-trans' },
+      body: '',
+    });
+    assert.equal(empty.status, 400);
+    assert.equal(empty.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.equal(await empty.text(), GQA_BAD_REQUEST_HTML);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
 
 test('Q-01 GQA HTTP adapter preserves 400 framing through the common service transport', async () => {

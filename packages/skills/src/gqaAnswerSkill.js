@@ -266,7 +266,11 @@ export function gqaMimPromptIds(mimId) {
 
 /** Source analytics.build_skill_entry_analytics(request). */
 export function buildGqaSkillEntryAnalytics(request) {
-  const launch = request?.type === 'LISTEN_LAUNCH';
+  // The recovered Python helper indexes request["type"] directly.  The
+  // route preflight performs the mapping/shape check before this function is
+  // called, while keeping this access direct preserves the source null
+  // boundary for callers that use the helper itself.
+  const launch = request.type === 'LISTEN_LAUNCH';
   return {
     event: 'Skill Entry',
     properties: {
@@ -322,19 +326,21 @@ export function buildGqaResponse({ jcp, timings, analytics, skillId = 'answer', 
   };
 }
 
-function requestContext(request, queryText, questionType) {
+function requestContext(request, queryText) {
   const data = request.data;
   const location = data.runtime.location;
   const general = data.general;
   return {
     request,
     queryText,
-    questionType,
+    // Keep the field access order from gqa_pegasus: query, latitude,
+    // longitude, country, IP, question type, account.  The values are read
+    // before this object is returned so malformed source-shaped requests
+    // retain their observable failure precedence.
     latitude: sourceString(location.lat),
     longitude: sourceString(location.lng),
     countryCode: sourceString(location.countryCode),
     ipAddress: general.remoteAddress ?? null,
-    accountId: general.accountID ?? null,
   };
 }
 
@@ -368,14 +374,18 @@ function hasGqaPayload(output) {
  * Build the source provider fallback boundary around named local adapters.
  *
  * The original starts Bing and Wikipedia together, gives Bing priority when
- * both answer, then tries Wolfram Alpha only after that group has no usable
- * result. Individual adapter failures are private failed results, matching
- * GqaParallelQuery.make_async_call; they do not become the client-facing
- * GQA_error response. The local fixture adapters used by the controls resolve
- * immediately, so this helper intentionally leaves the original wall-clock
- * timeout policy to the deployment adapter.
+ * both answer, and advances to Wolfram Alpha only after the first group has
+ * failed or reached its three-second deadline.  A late result from an older
+ * group remains eligible while a later group is running.  That detail is
+ * observable with a slow provider and is why this is an event/deadline loop
+ * rather than Promise.all: Promise.all would wait for a timed-out worker and
+ * would let a lower-priority answer win too early.
  */
-export function createGqaProviderPipeline({ providers = {} } = {}) {
+export function createGqaProviderPipeline({
+  providers = {},
+  timeouts = [3000, 4000],
+  clock = Date.now,
+} = {}) {
   for (const group of SOURCE_PROVIDER_PLAN) {
     for (const [name, key] of group) {
       if (typeof (providers[name] || providers[key]) !== 'function') {
@@ -383,18 +393,113 @@ export function createGqaProviderPipeline({ providers = {} } = {}) {
       }
     }
   }
+
+  if (!Array.isArray(timeouts) || timeouts.length < SOURCE_PROVIDER_PLAN.length
+    || timeouts.some((value) => !Number.isFinite(value) || value < 0)) {
+    throw new TypeError('GQA provider timeouts must contain one non-negative number per source group');
+  }
+
   return async function gqaProviderPipeline(context) {
-    for (const group of SOURCE_PROVIDER_PLAN) {
-      const results = await Promise.all(group.map(async ([name, key]) => {
-        const adapter = providers[name] || providers[key];
-        try {
-          return normalizeProviderOutput(await adapter(context));
-        } catch (_error) {
-          return {};
+    const results = new Map();
+    const startedAt = new Map();
+    const finishedAt = new Map();
+    const previousServices = [];
+    const waiters = new Set();
+    let resultVersion = 0;
+
+    const notify = () => {
+      resultVersion += 1;
+      for (const wake of [...waiters]) wake();
+    };
+
+    const start = ([name, key]) => {
+      const adapter = providers[name] || providers[key];
+      startedAt.set(name, clock());
+      // Deliberately detach workers from the caller's await.  The source
+      // leaves timed-out threads alive and a late result can still be chosen
+      // while the next service group is active.
+      Promise.resolve()
+        .then(() => adapter(context))
+        .then((value) => normalizeProviderOutput(value), () => ({}))
+        .then((value) => {
+          results.set(name, value);
+          finishedAt.set(name, clock());
+          notify();
+        }, () => {
+          // normalizeProviderOutput is intentionally defensive, but keep the
+          // worker boundary total if a hostile thenable throws during adopt.
+          results.set(name, {});
+          finishedAt.set(name, clock());
+          notify();
+        });
+    };
+
+    const waitForEventOrDeadline = (observedVersion, deadline) => {
+      if (resultVersion !== observedVersion) return Promise.resolve(true);
+      const remaining = deadline - clock();
+      if (remaining <= 0) return Promise.resolve(false);
+      return new Promise((resolve) => {
+        let done = false;
+        let timer;
+        const finish = (event) => {
+          if (done) return;
+          done = true;
+          if (timer !== undefined) clearTimeout(timer);
+          waiters.delete(wake);
+          resolve(event);
+        };
+        const wake = () => finish(true);
+        waiters.add(wake);
+        timer = setTimeout(() => finish(false), remaining);
+        // A worker can complete between the version check and registration.
+        // Re-check after registering to avoid losing that event.
+        if (resultVersion !== observedVersion) finish(true);
+      });
+    };
+
+    const pickWinner = (currentGroup) => {
+      for (const [name] of currentGroup) {
+        if (!previousServices.includes(name)) previousServices.push(name);
+      }
+      for (const name of previousServices) {
+        if (results.has(name)) {
+          const result = results.get(name);
+          if (hasGqaPayload(result)) return { status: 'SUCCESS', output: result };
+          continue;
         }
-      }));
-      for (const result of results) {
-        if (hasGqaPayload(result)) return result;
+        if (currentGroup.some(([currentName]) => currentName === name)) {
+          return { status: 'KEEP WAITING' };
+        }
+      }
+      return { status: 'FAIL' };
+    };
+
+    const addProviderTiming = (name, output) => {
+      if (!output || typeof output !== 'object') return output;
+      const finished = finishedAt.get(name);
+      const started = startedAt.get(name);
+      if (finished === undefined || started === undefined) return output;
+      const key = name === 'Wolfram Alpha' ? 'wolfram' : name === 'Wikipedia' ? 'wiki' : 'bing';
+      return {
+        ...output,
+        timings: { ...(output.timings || {}), [key]: Math.max(0, finished - started) / 1000 },
+      };
+    };
+
+    for (let groupIndex = 0; groupIndex < SOURCE_PROVIDER_PLAN.length; groupIndex += 1) {
+      const group = SOURCE_PROVIDER_PLAN[groupIndex];
+      for (const service of group) start(service);
+      const deadline = clock() + timeouts[groupIndex];
+      let observedVersion = resultVersion;
+      while (true) {
+        const event = await waitForEventOrDeadline(observedVersion, deadline);
+        observedVersion = resultVersion;
+        const picked = pickWinner(event ? group : []);
+        if (picked.status === 'SUCCESS') return addProviderTiming(
+          previousServices.find((name) => results.get(name) === picked.output),
+          picked.output,
+        );
+        if (!event || picked.status === 'FAIL') break;
       }
     }
     return {};
@@ -419,9 +524,15 @@ export function createGqaAnswerSkill({ provider = async () => ({}), providers, r
   return async function gqaAnswerSkill(request) {
     const start = clock();
     const rawText = sourceQuestionText(request);
-    const queryText = cleanGqaInput(rawText);
+    // gqa_pegasus reads location and IP, resolves the NLU question type, and
+    // then reads accountID before cleaning the query.  Keep that sequence so
+    // malformed requests and account/provider seams fail at the same stage.
+    const context = requestContext(request, rawText);
     const questionType = getGqaQuestionType(request);
-    const context = requestContext(request, queryText, questionType);
+    context.questionType = questionType;
+    context.accountId = request.data.general.accountID ?? null;
+    const queryText = cleanGqaInput(rawText);
+    context.queryText = queryText;
 
     let output = {};
     let slim;
@@ -488,14 +599,132 @@ export const gqaAnswerSkill = createGqaAnswerSkill();
 // 3.1.3 control; status/message are source-backed while the historical Flask
 // 0.12.2 renderer remains an explicit runtime qualification.
 export const GQA_MISSING_TRANSID_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Missing X-JIBO-transID header</p>\n';
+export const GQA_BAD_REQUEST_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Bad Request</p>\n';
 
-function transIdHeaderValues(headers) {
+function transIdHeaderValues(headers, request = {}) {
+  // Node folds duplicate HTTP fields into one comma-joined value on
+  // req.headers, while Flask's getlist() preserves each field separately.
+  // rawHeaders is the transport-level source of truth for this one header;
+  // use it when available and keep the object/array path for direct callers.
+  if (Array.isArray(request.rawHeaders)) {
+    const values = [];
+    for (let index = 0; index + 1 < request.rawHeaders.length; index += 2) {
+      if (String(request.rawHeaders[index]).toLowerCase() === 'x-jibo-transid') {
+        values.push(request.rawHeaders[index + 1]);
+      }
+    }
+    if (values.length > 0) return values;
+  }
   const sourceHeaders = headers && typeof headers === 'object' ? headers : {};
   const name = Object.keys(sourceHeaders).find((key) => key.toLowerCase() === 'x-jibo-transid');
   if (!name) return [];
   const value = sourceHeaders[name];
   if (Array.isArray(value)) return value.slice();
   return value === undefined ? [] : [value];
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function requireOwn(record, key, label) {
+  if (!Object.prototype.hasOwnProperty.call(record, key)) {
+    throw new Error(`Missing GQA request field ${label}`);
+  }
+  return record[key];
+}
+
+/**
+ * Validate only the source fields read before the transID branch.  The Flask
+ * route first evaluates request.json and analytics["type"], so a valid JSON
+ * object without `type` is a 500 even when its header is absent.  This helper
+ * intentionally does not inspect `data` until after the header check.
+ */
+export function validateGqaRequestEnvelope(body) {
+  if (!isRecord(body)) throw new TypeError('GQA request JSON must be an object');
+  requireOwn(body, 'type', 'type');
+  // Keep the source helper call in the boundary, rather than duplicating its
+  // launch comparison in the HTTP adapter.
+  buildGqaSkillEntryAnalytics(body);
+  return body;
+}
+
+/**
+ * Evaluate the direct body accesses in gqa_pegasus after transID mutation.
+ * This turns source KeyError/TypeError cases into the GQA source 500 branch
+ * before the common skillRoute can turn them into an HTTP-200 ERROR object.
+ */
+export function validateGqaRequestBody(body) {
+  const data = requireOwn(body, 'data', 'data');
+  if (!isRecord(data)) throw new TypeError('GQA request data must be an object');
+  const result = requireOwn(data, 'result', 'data.result');
+  if (!isRecord(result)) throw new TypeError('GQA request result must be an object');
+  const asr = requireOwn(result, 'asr', 'data.result.asr');
+  if (!isRecord(asr)) throw new TypeError('GQA request ASR must be an object');
+  requireOwn(asr, 'text', 'data.result.asr.text');
+
+  const runtime = requireOwn(data, 'runtime', 'data.runtime');
+  if (!isRecord(runtime)) throw new TypeError('GQA request runtime must be an object');
+  const location = requireOwn(runtime, 'location', 'data.runtime.location');
+  if (!isRecord(location)) throw new TypeError('GQA request location must be an object');
+  requireOwn(location, 'lat', 'data.runtime.location.lat');
+  requireOwn(location, 'lng', 'data.runtime.location.lng');
+
+  const general = requireOwn(data, 'general', 'data.general');
+  if (!isRecord(general)) throw new TypeError('GQA request general must be an object');
+
+  // get_question_type is evaluated after location/IP and before accountID.
+  const nlu = requireOwn(result, 'nlu', 'data.result.nlu');
+  if (!isRecord(nlu)) throw new TypeError('GQA request NLU must be an object');
+  requireOwn(nlu, 'intent', 'data.result.nlu.intent');
+  if (sourceString(nlu.intent) === 'scripted') {
+    const entities = requireOwn(nlu, 'entities', 'data.result.nlu.entities');
+    if (!isRecord(entities)) throw new TypeError('GQA request NLU entities must be an object');
+  }
+  // accountID is optional in the source mapping, but the read itself belongs
+  // after question type resolution.
+  void general.accountID;
+  return body;
+}
+
+function sourceErrorPayload(error) {
+  return {
+    version: GQA_VERSION,
+    message: error?.message || String(error),
+    stacktrace: error?.stack,
+  };
+}
+
+function respondGqaSourceError(context, status, error) {
+  const response = context.res;
+  if (response && typeof response.status === 'function'
+    && typeof response.type === 'function' && typeof response.send === 'function') {
+    response.status(status).type('html').send(JSON.stringify(sourceErrorPayload(error)));
+    return undefined;
+  }
+  const wrapped = error instanceof Error ? error : new Error(String(error));
+  wrapped.statusCode = status;
+  throw wrapped;
+}
+
+function respondGqaBadRequest(context, error) {
+  const response = context.res;
+  if (response && typeof response.status === 'function'
+    && typeof response.type === 'function' && typeof response.send === 'function') {
+    response.status(400).type('html').send(GQA_BAD_REQUEST_HTML);
+    return undefined;
+  }
+  const wrapped = error instanceof Error ? error : new Error(String(error));
+  wrapped.statusCode = 400;
+  throw wrapped;
+}
+
+function hasEmptyJsonEntity(request) {
+  const contentType = String(request?.headers?.['content-type'] || '').split(';', 1)[0].trim().toLowerCase();
+  if (!['application/json', 'application/x-amz-json-1.1'].includes(contentType)) return false;
+  if (Buffer.isBuffer(request?.rawBody)) return request.rawBody.length === 0;
+  const length = Number(request?.headers?.['content-length']);
+  return Number.isFinite(length) && length === 0;
 }
 
 /**
@@ -511,9 +740,23 @@ function transIdHeaderValues(headers) {
 export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkill } = {}) {
   if (typeof handler !== 'function') throw new TypeError('GQA HTTP handler must be a function');
   const sourceRoute = skillRoute(skillId, handler);
-  return async function gqaHttpRoute(context = {}) {
+  const gqaHttpRoute = async function gqaHttpRoute(context = {}) {
     const request = context.req || {};
-    const values = transIdHeaderValues(request.headers);
+    if (hasEmptyJsonEntity(request)) {
+      const error = new Error('Unexpected end of JSON input');
+      return respondGqaBadRequest(context, error);
+    }
+
+    try {
+      // Source analytics runs before header lookup.  Do not validate nested
+      // data here: Flask would still return the missing-header 400 first for
+      // a typed request whose data is malformed.
+      validateGqaRequestEnvelope(context.body);
+    } catch (error) {
+      return respondGqaSourceError(context, 500, error);
+    }
+
+    const values = transIdHeaderValues(request.headers, request);
     if (values.length === 0) {
       const response = context.res;
       if (response && typeof response.status === 'function'
@@ -526,12 +769,17 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
       throw error;
     }
 
-    // Parsed JSON objects are the normal source request shape.  Arrays and
-    // primitive bodies are left for the handler/error path, matching the
-    // source's direct indexing failure instead of inventing a global schema.
-    if (context.body && typeof context.body === 'object' && !Array.isArray(context.body)) {
-      context.body.transID = values.slice(0, 1);
+    context.body.transID = values.slice(0, 1);
+    try {
+      validateGqaRequestBody(context.body);
+    } catch (error) {
+      return respondGqaSourceError(context, 500, error);
     }
     return sourceRoute(context);
   };
+  // The source Flask request.json accepts top-level null/arrays/primitives and
+  // reaches its own 500 branch.  Common services stay strict by default; this
+  // opt-in is consumed by the narrow parser selection in createService.
+  gqaHttpRoute.jsonStrict = false;
+  return gqaHttpRoute;
 }

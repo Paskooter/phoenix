@@ -60,7 +60,18 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true 
   // This is intentionally after healthcheck and before application handlers.
   app.use((req, res, next) => {
     if (findRoute(routes, req, { rawOnly: true })) return next();
-    const strict = typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict;
+    const route = findRoute(routes, req);
+    // A source-compatible adapter may opt into body-parser's loose JSON
+    // decoding for its own endpoint.  This is deliberately route-scoped: all
+    // existing Phoenix services retain the strict default, while Flask-era
+    // endpoints can observe top-level null/array/primitive JSON and produce
+    // their own source error status after parsing.
+    const routeStrict = route && typeof route.jsonStrict === 'boolean'
+      ? route.jsonStrict
+      : undefined;
+    const strict = routeStrict === undefined
+      ? (typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict)
+      : routeStrict;
     return (strict ? strictJson : looseJson)(req, res, next);
   });
 
