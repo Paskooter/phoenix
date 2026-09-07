@@ -1,5 +1,7 @@
 // Source-backed Bing provider for the opt-in GQA adapter.
-//
+
+import { unidecodeForBingFilter } from './gqaUnidecodeFilter.js';
+
 // The recovered srv-gqa-ws implementation is
 // jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26,
 // gqa/bing.py.  This module keeps the provider separate from the default
@@ -110,26 +112,11 @@ function cleanParentheses(value) {
   return result;
 }
 
-const UNICODE_ASCII_REPLACEMENTS = Object.freeze({
-  '\u2018': "'",
-  '\u2019': "'",
-  '\u201c': '"',
-  '\u201d': '"',
-  '\u2026': '...',
-  '\u2013': '-',
-  '\u2014': '-',
-  '\u2212': '-',
-  '\u00a0': ' ',
-});
-
 function defaultUnidecode(value) {
-  // Unidecode is used by the source only to decide whether spokenText is
-  // empty or starts with a known boilerplate prefix.  NFKD handles Latin
-  // accents; retaining an ASCII marker for other scripts avoids the unsafe
-  // false-empty result that a blanket non-ASCII deletion would produce.
-  return value.normalize('NFKD')
-    .replace(/[\u0300-\u036f]/gu, '')
-    .replace(/[^\u0000-\u007f]/gu, (character) => UNICODE_ASCII_REPLACEMENTS[character] ?? '?');
+  // The source's Unidecode call is a filter predicate, not output
+  // transliteration.  Keep the source decision table in the helper and
+  // preserve the original Unicode spoken text below.
+  return unidecodeForBingFilter(value);
 }
 
 function lowerFirst(value) {

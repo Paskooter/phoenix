@@ -9,6 +9,10 @@ import {
   createBingProvider,
   extractBingSpokenAnswer,
 } from '../src/gqaBingProvider.js';
+import {
+  SOURCE_UNIDECODE_DATA,
+} from '../src/gqaUnidecodeFilterData.js';
+import { unidecodeForBingFilter } from '../src/gqaUnidecodeFilter.js';
 
 function answerBody(answerType = 'Facts', spokenText = 'The fixture answer.') {
   const key = answerType.slice(0, 1).toLowerCase() + answerType.slice(1);
@@ -170,6 +174,42 @@ test('Q-01 Bing suppresses source boilerplate and parenthesized text without cha
   assert.deepEqual(extractBingSpokenAnswer(answerBody('Facts', '北京的答案。'), 'en-US').response, {
     type: 'string',
     payload: '北京的答案。',
+  });
+});
+
+test('Q-01 Bing uses the source Unidecode decision boundary for ignored and transliterated Unicode', () => {
+  assert.deepEqual(SOURCE_UNIDECODE_DATA, {
+    version: '1.0.22',
+    sourceWheelSha256: '72f49d3729f3d8f5799f710b97c1451c5163102e76d64d20e170aedbbd923582',
+    sourceLicense: 'GPLv2+ (source data provenance; lead review required)',
+    emptyRangeCount: 215,
+    prefixReplacementCount: 8511,
+  });
+  assert.equal(unidecodeForBingFilter('😀'), '');
+  assert.equal(unidecodeForBingFilter('\ue000\ufeff\u2060'), '');
+  assert.equal(unidecodeForBingFilter('Ι fοund thіs'), 'I found this');
+  assert.equal(unidecodeForBingFilter('北京'), '\u0001\u0001');
+
+  for (const spokenText of [
+    '😀',
+    '\ue000',
+    '\ufeff',
+    '\u2060',
+    'Ι found this',
+    'І found thіs',
+    '😀I found this',
+    'I 😀found this',
+    '\ue000...',
+  ]) {
+    assert.deepEqual(extractBingSpokenAnswer(answerBody('Facts', spokenText), 'en-US'), {}, spokenText);
+  }
+  assert.deepEqual(extractBingSpokenAnswer(answerBody('Facts', 'Moist sang \u0378 (Heart) Is'), 'en-US').response, {
+    type: 'string',
+    payload: 'Moist sang \u0378  Is',
+  });
+  assert.deepEqual(extractBingSpokenAnswer(answerBody('Facts', '北京'), 'en-US').response, {
+    type: 'string',
+    payload: '北京',
   });
 });
 
