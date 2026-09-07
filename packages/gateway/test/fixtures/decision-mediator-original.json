@@ -1,0 +1,4519 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "referenceRuntime": "Node 8.9.4, semver 5.5.0",
+  "sourceOutputSha256": "482c676a2d147773a98092184923817c1ca8b447e0ca6eae01cc41a921915e83",
+  "notes": "Executed original DecisionMediator. Diagnostic error wording is retained in raw evidence but nonblocking per user policy. Inputs and selected decisions must match.",
+  "cases": [
+    {
+      "id": "release-00-launchPersonalReport",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-00-requestWeatherPR",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-00-requestCommute",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-00-requestCalendar",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-00-requestNews",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-00-unlistedReportIntent",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-01-launchPersonalReport",
+      "release": "1.8.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-01-requestWeatherPR",
+      "release": "1.8.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-01-requestCommute",
+      "release": "1.8.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-01-requestCalendar",
+      "release": "1.8.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-01-requestNews",
+      "release": "1.8.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-01-unlistedReportIntent",
+      "release": "1.8.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-02-launchPersonalReport",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-02-requestWeatherPR",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-02-requestCommute",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-02-requestCalendar",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-02-requestNews",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-02-unlistedReportIntent",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-03-launchPersonalReport",
+      "release": "1.9.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-03-requestWeatherPR",
+      "release": "1.9.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-03-requestCommute",
+      "release": "1.9.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-03-requestCalendar",
+      "release": "1.9.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-03-requestNews",
+      "release": "1.9.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-03-unlistedReportIntent",
+      "release": "1.9.0-RC2",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-04-launchPersonalReport",
+      "release": "2.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-04-requestWeatherPR",
+      "release": "2.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-04-requestCommute",
+      "release": "2.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-04-requestCalendar",
+      "release": "2.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-04-requestNews",
+      "release": "2.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-04-unlistedReportIntent",
+      "release": "2.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-05-launchPersonalReport",
+      "release": "RELEASE_NOT_FOUND",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-05-requestWeatherPR",
+      "release": "RELEASE_NOT_FOUND",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-05-requestCommute",
+      "release": "RELEASE_NOT_FOUND",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-05-requestCalendar",
+      "release": "RELEASE_NOT_FOUND",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-05-requestNews",
+      "release": "RELEASE_NOT_FOUND",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-05-unlistedReportIntent",
+      "release": "RELEASE_NOT_FOUND",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-06-launchPersonalReport",
+      "release": "1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-06-requestWeatherPR",
+      "release": "1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-06-requestCommute",
+      "release": "1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-06-requestCalendar",
+      "release": "1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-06-requestNews",
+      "release": "1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-06-unlistedReportIntent",
+      "release": "1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-07-launchPersonalReport",
+      "release": "1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-07-requestWeatherPR",
+      "release": "1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-07-requestCommute",
+      "release": "1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-07-requestCalendar",
+      "release": "1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-07-requestNews",
+      "release": "1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-07-unlistedReportIntent",
+      "release": "1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-08-launchPersonalReport",
+      "release": "v1.8.4+build",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-08-requestWeatherPR",
+      "release": "v1.8.4+build",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-08-requestCommute",
+      "release": "v1.8.4+build",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-08-requestCalendar",
+      "release": "v1.8.4+build",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-08-requestNews",
+      "release": "v1.8.4+build",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-08-unlistedReportIntent",
+      "release": "v1.8.4+build",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-09-launchPersonalReport",
+      "release": "firmware: 1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-09-requestWeatherPR",
+      "release": "firmware: 1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-09-requestCommute",
+      "release": "firmware: 1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-09-requestCalendar",
+      "release": "firmware: 1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-09-requestNews",
+      "release": "firmware: 1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-09-unlistedReportIntent",
+      "release": "firmware: 1.9.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-10-launchPersonalReport",
+      "release": "0.99.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-10-requestWeatherPR",
+      "release": "0.99.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-10-requestCommute",
+      "release": "0.99.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-10-requestCalendar",
+      "release": "0.99.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-10-requestNews",
+      "release": "0.99.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-10-unlistedReportIntent",
+      "release": "0.99.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-11-launchPersonalReport",
+      "release": "9.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-11-requestWeatherPR",
+      "release": "9.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-11-requestCommute",
+      "release": "9.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-11-requestCalendar",
+      "release": "9.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-11-requestNews",
+      "release": "9.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-11-unlistedReportIntent",
+      "release": "9.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-12-launchPersonalReport",
+      "release": "1.09.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-12-requestWeatherPR",
+      "release": "1.09.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-12-requestCommute",
+      "release": "1.09.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-12-requestCalendar",
+      "release": "1.09.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-12-requestNews",
+      "release": "1.09.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-12-unlistedReportIntent",
+      "release": "1.09.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-13-launchPersonalReport",
+      "release": "01.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-13-requestWeatherPR",
+      "release": "01.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-13-requestCommute",
+      "release": "01.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-13-requestCalendar",
+      "release": "01.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-13-requestNews",
+      "release": "01.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-13-unlistedReportIntent",
+      "release": "01.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-14-launchPersonalReport",
+      "release": "1.8.00",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-14-requestWeatherPR",
+      "release": "1.8.00",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-14-requestCommute",
+      "release": "1.8.00",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-14-requestCalendar",
+      "release": "1.8.00",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-14-requestNews",
+      "release": "1.8.00",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-14-unlistedReportIntent",
+      "release": "1.8.00",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-15-launchPersonalReport",
+      "release": "invalid",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-15-requestWeatherPR",
+      "release": "invalid",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-15-requestCommute",
+      "release": "invalid",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-15-requestCalendar",
+      "release": "invalid",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-15-requestNews",
+      "release": "invalid",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-15-unlistedReportIntent",
+      "release": "invalid",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-16-launchPersonalReport",
+      "release": "",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-16-requestWeatherPR",
+      "release": "",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-16-requestCommute",
+      "release": "",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-16-requestCalendar",
+      "release": "",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-16-requestNews",
+      "release": "",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-16-unlistedReportIntent",
+      "release": "",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-17-launchPersonalReport",
+      "release": null,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-17-requestWeatherPR",
+      "release": null,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-17-requestCommute",
+      "release": null,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-17-requestCalendar",
+      "release": null,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-17-requestNews",
+      "release": null,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-17-unlistedReportIntent",
+      "release": null,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-18-launchPersonalReport",
+      "release": 18,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-18-requestWeatherPR",
+      "release": 18,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-18-requestCommute",
+      "release": 18,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-18-requestCalendar",
+      "release": 18,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-18-requestNews",
+      "release": 18,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-18-unlistedReportIntent",
+      "release": 18,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-19-launchPersonalReport",
+      "release": true,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-19-requestWeatherPR",
+      "release": true,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-19-requestCommute",
+      "release": true,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-19-requestCalendar",
+      "release": true,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-19-requestNews",
+      "release": true,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-19-unlistedReportIntent",
+      "release": true,
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-20-launchPersonalReport",
+      "release": {},
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-20-requestWeatherPR",
+      "release": {},
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-20-requestCommute",
+      "release": {},
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-20-requestCalendar",
+      "release": {},
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-20-requestNews",
+      "release": {},
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-20-unlistedReportIntent",
+      "release": {},
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-21-launchPersonalReport",
+      "release": [
+        "1.8.0"
+      ],
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-21-requestWeatherPR",
+      "release": [
+        "1.8.0"
+      ],
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-21-requestCommute",
+      "release": [
+        "1.8.0"
+      ],
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-21-requestCalendar",
+      "release": [
+        "1.8.0"
+      ],
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-21-requestNews",
+      "release": [
+        "1.8.0"
+      ],
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-21-unlistedReportIntent",
+      "release": [
+        "1.8.0"
+      ],
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-22-launchPersonalReport",
+      "release": "9007199254740991.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-22-requestWeatherPR",
+      "release": "9007199254740991.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-22-requestCommute",
+      "release": "9007199254740991.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-22-requestCalendar",
+      "release": "9007199254740991.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-22-requestNews",
+      "release": "9007199254740991.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-22-unlistedReportIntent",
+      "release": "9007199254740991.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "release-23-launchPersonalReport",
+      "release": "9007199254740992.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-23-requestWeatherPR",
+      "release": "9007199254740992.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-23-requestCommute",
+      "release": "9007199254740992.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-23-requestCalendar",
+      "release": "9007199254740992.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-23-requestNews",
+      "release": "9007199254740992.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-23-unlistedReportIntent",
+      "release": "9007199254740992.0.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    },
+    {
+      "id": "release-24-launchPersonalReport",
+      "release": "12345678901234567.1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-24-requestWeatherPR",
+      "release": "12345678901234567.1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-24-requestCommute",
+      "release": "12345678901234567.1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-24-requestCalendar",
+      "release": "12345678901234567.1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-24-requestNews",
+      "release": "12345678901234567.1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-24-unlistedReportIntent",
+      "release": "12345678901234567.1.8",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-25-launchPersonalReport",
+      "release": "1.8.12345678901234567",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-25-requestWeatherPR",
+      "release": "1.8.12345678901234567",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-25-requestCommute",
+      "release": "1.8.12345678901234567",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-25-requestCalendar",
+      "release": "1.8.12345678901234567",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-25-requestNews",
+      "release": "1.8.12345678901234567",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-25-unlistedReportIntent",
+      "release": "1.8.12345678901234567",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-26-launchPersonalReport",
+      "release": "-1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-26-requestWeatherPR",
+      "release": "-1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-26-requestCommute",
+      "release": "-1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-26-requestCalendar",
+      "release": "-1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-26-requestNews",
+      "release": "-1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-26-unlistedReportIntent",
+      "release": "-1.8.0",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-27-launchPersonalReport",
+      "release": "1.8.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "launchPersonalReport",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_GiveMeA",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-27-requestWeatherPR",
+      "release": "1.8.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestWeatherPR",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "answer"
+        }
+      }
+    },
+    {
+      "id": "release-27-requestCommute",
+      "release": "1.8.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCommute",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Traffic",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-27-requestCalendar",
+      "release": "1.8.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestCalendar",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "RA_JBO_Calendar",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "release-27-requestNews",
+      "release": "1.8.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "news"
+        }
+      }
+    },
+    {
+      "id": "release-27-unlistedReportIntent",
+      "release": "1.8.0.1",
+      "decision": {
+        "skillID": "report-skill",
+        "memo": "unchanged source memo"
+      },
+      "nlu": {
+        "intent": "unlistedReportIntent",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "retained": "entity"
+        }
+      },
+      "asr": {
+        "text": "retained text",
+        "confidence": 1
+      },
+      "expected": {
+        "kind": "altered",
+        "decision": {
+          "skillID": "chitchat-skill",
+          "memo": {
+            "mim": "KU_AreYouAbleTo",
+            "type": "ScriptedResponse"
+          }
+        }
+      }
+    },
+    {
+      "id": "other-skill-1.8.0",
+      "release": "1.8.0",
+      "decision": {
+        "skillID": "another-skill",
+        "memo": {
+          "preserve": true
+        }
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ]
+      },
+      "asr": {},
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "other-skill-1.9.0",
+      "release": "1.9.0",
+      "decision": {
+        "skillID": "another-skill",
+        "memo": {
+          "preserve": true
+        }
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ]
+      },
+      "asr": {},
+      "expected": {
+        "kind": "unchanged"
+      }
+    },
+    {
+      "id": "other-skill-invalid",
+      "release": "invalid",
+      "decision": {
+        "skillID": "another-skill",
+        "memo": {
+          "preserve": true
+        }
+      },
+      "nlu": {
+        "intent": "requestNews",
+        "rules": [
+          "launch"
+        ]
+      },
+      "asr": {},
+      "expected": {
+        "kind": "error",
+        "name": "TypeError"
+      }
+    }
+  ]
+}

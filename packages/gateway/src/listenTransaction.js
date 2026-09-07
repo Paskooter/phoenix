@@ -12,6 +12,7 @@ import { preprocessContext, validateContextMessage } from './preprocessor.js';
 import { isRedirect } from './skillClient.js';
 import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
 import { normalizeString } from './stringNormalizer.js';
+import { mediateDecision } from './decisionMediator.js';
 
 const State = {
   WAIT_LISTEN: 'WAIT_LISTEN',
@@ -297,7 +298,8 @@ export class ListenTransaction {
     const context = await this._awaitContext();
     const decision = this.components.intentRouter.getSkillIDFromNLU(this.nluData);
     if (decision) {
-      await this._onSkillMatch(decision.skillID, context, decision.memo, false);
+      const finalDecision = mediateDecision(decision, this.asrData, this.nluData, context.data.general.release) || decision;
+      await this._onSkillMatch(finalDecision.skillID, context, finalDecision.memo, false);
     } else if (context.data && context.data.skill && context.data.skill.id && !this.listenMessage.data.hotphrase) {
       await this._onSkillMatch(context.data.skill.id, context, null, true);
     } else {
@@ -306,7 +308,7 @@ export class ListenTransaction {
     this._gotoState(State.DONE);
   }
 
-  async _onSkillMatch(skillID, context, memo, isUpdate) {
+  async _onSkillMatch(skillID, context, memo = null, isUpdate) {
     const onRobot = this.components.skillConfigManager.isOnRobotSkill(skillID);
     const matchData = { skillID, launch: !isUpdate, onRobot };
     if (onRobot) {
