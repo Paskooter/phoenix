@@ -1,0 +1,16 @@
+# Optional portable compiled parser. Install the reviewed bundle first, then run:
+#   PHOENIX_NLU_SNAPSHOT_DIR=./runtime/nlu-snapshot-v1 docker compose \
+#     -f docker-compose.yml -f docker-compose.nlu-snapshot.yml up
+# The base Compose file continues to support its existing parser configuration.
+services:
+  parser:
+    volumes:
+      - type: bind
+        source: ${PHOENIX_NLU_SNAPSHOT_DIR:?Set PHOENIX_NLU_SNAPSHOT_DIR to an installed bundle directory}
+        target: /phoenix/runtime/nlu-snapshot
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      - PHOENIX_NLU_RUNTIME=compiled-fst
+      - PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=/phoenix/runtime/nlu-snapshot/profile.json

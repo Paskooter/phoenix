@@ -16,7 +16,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
-import { dirname, basename, join, relative, resolve } from 'node:path';
+import { dirname, basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import {
@@ -133,12 +133,12 @@ function relativeBundlePath(value, label) {
 }
 
 function inside(root, value, label) {
-  const path = resolve(root, ...value.split('/'));
-  const rel = relative(root, path);
-  if (rel.startsWith('..') || rel.startsWith('/') || rel.includes(`..${path.sep}`)) {
+  const artifactPath = resolve(root, ...value.split('/'));
+  const rel = relative(root, artifactPath);
+  if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
     die(`${label} path escapes the bundle directory`);
   }
-  return path;
+  return artifactPath;
 }
 
 function sameKeys(actual, expected, label) {

@@ -19,27 +19,8 @@ PARAKEET_URL="${PARAKEET_URL:-}"
 REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
 REPORT_LASSO="${NET_lasso:-localhost:9007}"
 REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
-NLU_RUNTIME="${PHOENIX_NLU_RUNTIME:-}"
-NLU_SNAPSHOT_MANIFEST="${PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST:-}"
-if [[ -n "$NLU_RUNTIME" && "$NLU_RUNTIME" != "compiled-fst" ]]; then
-  echo "unsupported PHOENIX_NLU_RUNTIME: $NLU_RUNTIME" >&2
-  exit 2
-fi
-if [[ -n "$NLU_SNAPSHOT_MANIFEST" && "$NLU_RUNTIME" != "compiled-fst" ]]; then
-  echo "PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST requires PHOENIX_NLU_RUNTIME=compiled-fst" >&2
-  exit 2
-fi
-if [[ "$NLU_RUNTIME" == "compiled-fst" && -z "$NLU_SNAPSHOT_MANIFEST" ]]; then
-  echo "PHOENIX_NLU_RUNTIME=compiled-fst requires PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST" >&2
-  exit 2
-fi
-if [[ -n "$NLU_SNAPSHOT_MANIFEST" && ! -f "$NLU_SNAPSHOT_MANIFEST" ]]; then
-  echo "compiled NLU snapshot manifest is unavailable: $NLU_SNAPSHOT_MANIFEST" >&2
-  exit 2
-fi
 
-PORT=9005 PHOENIX_NLU_RUNTIME="$NLU_RUNTIME" PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST="$NLU_SNAPSHOT_MANIFEST" \
-  ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
+PORT=9005 ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
   node packages/nlu/src/index.js      > /tmp/phx-compose-parser.log  2>&1 &
 PORT=9006 node packages/history/src/index.js  > /tmp/phx-compose-history.log 2>&1 &
 PORT=9007 node packages/data/src/index.js     > /tmp/phx-compose-lasso.log   2>&1 &
