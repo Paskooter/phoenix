@@ -190,13 +190,44 @@ test('SuspendLoop/SuspendRobotLoop match source lookup, authorization, output, a
   assert.equal(deleted.status, 404);
   assert.equal(deleted.body.__type, 'LOOP_NOT_FOUND');
 
-  // Both handlers validate their required string field before mutating anything.
-  const invalidLoop = await post('Loop_20160324.SuspendLoop', {}, robot.accessKeyId);
-  assert.equal(invalidLoop.status, 422);
-  assert.equal(invalidLoop.body.__type, 'ValidationException');
-  const invalidRobot = await post('Loop_20160324.SuspendRobotLoop', {}, admin.accessKeyId);
-  assert.equal(invalidRobot.status, 422);
-  assert.equal(invalidRobot.body.__type, 'ValidationException');
+  // Both handlers use the source @validatePayload/Joi contract. The
+  // validation decorator returns Boom.badData (HTTP 422) before lookup or
+  // mutation, so the public response is Hapi's JSON envelope rather than the
+  // AWS-JSON controller envelope used by lookup/authorization failures.
+  const validationLoop = createLoop(store, { owner, robotId: 'a04-validation-robot' });
+  store.flush();
+  const validationCases = [
+    { suffix: 'missing', value: undefined, message: 'child "FIELD" fails because ["FIELD" is required]' },
+    { suffix: 'empty', value: '', message: 'child "FIELD" fails because ["FIELD" is not allowed to be empty]' },
+    { suffix: 'null', value: null, message: 'child "FIELD" fails because ["FIELD" must be a string]' },
+    { suffix: 'number', value: 42, message: 'child "FIELD" fails because ["FIELD" must be a string]' },
+    { suffix: 'object', value: {}, message: 'child "FIELD" fails because ["FIELD" must be a string]' },
+    { suffix: 'array', value: [], message: 'child "FIELD" fails because ["FIELD" must be a string]' },
+  ];
+  for (const operation of [
+    { name: 'SuspendLoop', field: 'loopId', accessKeyId: validationLoop.robot.accessKeyId },
+    { name: 'SuspendRobotLoop', field: 'friendlyId', accessKeyId: admin.accessKeyId },
+  ]) {
+    for (const item of validationCases) {
+      const body = item.value === undefined ? {} : { [operation.field]: item.value };
+      const invalid = await post(`Loop_20160324.${operation.name}`, body, operation.accessKeyId);
+      assert.equal(invalid.status, 422, `${operation.name}/${item.suffix}`);
+      assert.deepEqual(invalid.body, {
+        statusCode: 422,
+        error: 'Unprocessable Entity',
+        message: item.message.replaceAll('FIELD', operation.field),
+      }, `${operation.name}/${item.suffix}`);
+      assert.equal(store.loops.get(validationLoop.loop._id).isSuspended, false);
+    }
+  }
+  const validationFollowing = await post(
+    'Loop_20160324.SuspendLoop',
+    { loopId: validationLoop.loop._id },
+    validationLoop.robot.accessKeyId,
+  );
+  assert.equal(validationFollowing.status, 200);
+  assert.deepEqual(validationFollowing.body, { result: 'Command accepted' });
+  assert.equal(store.loops.get(validationLoop.loop._id).isSuspended, true);
 
   // An x-amz-credentials JSON header is not a caller identity on this public face.
   const forgedAdmin = await fetch(`${base}/`, {

@@ -364,7 +364,11 @@ export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
     const field = isRobotLookup ? 'friendlyId' : 'loopId';
     const validationMessage = requiredStringValidationMessage(body, field);
     if (validationMessage) {
-      return void sendAmzError(res, Errors.LOOP_VALIDATION, validationMessage);
+      // LoopHandler's @validatePayload decorator rejects these values with
+      // Boom.badData (HTTP 422).  Keep this branch on the source Hapi
+      // envelope; the AWS JSON envelope remains the contract for the other
+      // Loop/controller failures below.
+      return void sendValidationError(res, validationMessage);
     }
 
     let loop = null;
