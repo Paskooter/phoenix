@@ -27,6 +27,7 @@ import { eqEquals } from './eqWords.js';
 
 const EMPTY = Object.freeze({});
 const COMPILED_WEIGHT_CACHE = new WeakMap();
+const CLASS_EQUIVALENT_CACHE = new WeakMap();
 
 // The native compiler's result_fst score is input-string byte length minus the
 // accumulated arc heuristic. The compiler's generated `$*` factory surrounds
@@ -239,15 +240,14 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
     case 'class': {
       // Inside [], ? makes the next character or parenthesized group
       // optional. Match the expanded words against the next input token.
-      const variants = expandCharClass(node.body);
+      const variants = expandCharClass(node.body, ctx.eq);
       for (const v of variants) {
-        // Bracketed character rules are compiled with `new_word`, whereas
-        // ordinary word constants use `new_word_and_equivalents` when the
-        // source enables `use_equivalent_words`.  Keep the two source forms
-        // distinct: a class spelling such as `[georgia]` must not accept the
-        // unrelated-length ordinary word `george` merely because both happen
-        // to share an equivalence-list entry.  Native compilation still
-        // permits equivalent alternatives for the `lit` node above.
+        // Bare bracketed character words are compiled with `new_word`, whereas
+        // ordinary word constants and a syntactically plain parenthesized
+        // character word use `new_word_and_equivalents`. `expandCharClass`
+        // expands only that parenthesized atom; matching each resulting
+        // spelling exactly keeps a bare class such as `[georgia]` from
+        // accepting the unrelated-length `george` equivalent.
         if (start < tokens.length && tokens[start] === _norm(v)) {
           const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
           yield {
@@ -587,7 +587,69 @@ function mergeObj(a, b) {
 // Implementation: recursive descent over the body that returns the full set
 // of strings each subexpression can produce. Cross-products on concatenation,
 // union on `|`, `['', X]` on `?X`.
-function expandCharClass(body) {
+function classEquivalentVariants(eq, word) {
+  if (!eq) return [word];
+  let byWord = CLASS_EQUIVALENT_CACHE.get(eq);
+  if (!byWord) {
+    byWord = new Map();
+    CLASS_EQUIVALENT_CACHE.set(eq, byWord);
+  }
+  const source = String(word);
+  const normalized = _norm(source);
+  const cacheKey = source.toLowerCase();
+  const cached = byWord.get(cacheKey);
+  if (cached) return cached;
+
+  // The source map is keyed by the spelling emitted by the grammar lexer. Try
+  // the source spelling first, then the matcher-normalized spelling used for
+  // input tokens. This matters for escaped apostrophes such as `(we\'re)`.
+  const canonical = eq.get(source.toLowerCase()) ?? eq.get(normalized);
+  if (canonical === undefined) {
+    const result = Object.freeze([source]);
+    byWord.set(cacheKey, result);
+    return result;
+  }
+
+  const result = [];
+  const seen = new Set();
+  for (const [candidate, representative] of eq) {
+    if (representative !== canonical) continue;
+    const value = String(candidate);
+    const valueKey = value.toLowerCase();
+    if (seen.has(valueKey)) continue;
+    seen.add(valueKey);
+    result.push(value);
+  }
+  if (!seen.has(source.toLowerCase())) result.unshift(source);
+  const frozen = Object.freeze(result);
+  byWord.set(cacheKey, frozen);
+  return frozen;
+}
+
+function readParenthesizedWord(body, start) {
+  if (body[start] !== '(') return null;
+  let pos = start + 1;
+  let word = '';
+  while (pos < body.length && body[pos] !== ')') {
+    const character = body[pos];
+    if (character === '\\') {
+      if (pos + 1 >= body.length) return null;
+      word += body[pos + 1];
+      pos += 2;
+      continue;
+    }
+    // `?`, `|`, `*`, `+`, nested parentheses, and `~` are char-rule
+    // operators, so this is a generic group rather than the native `(wrd)`
+    // production. Whitespace likewise means it is not one lexical word.
+    if (/\s/.test(character) || '?|*+()~'.includes(character)) return null;
+    word += character;
+    pos += 1;
+  }
+  if (body[pos] !== ')' || word.length === 0) return null;
+  return { end: pos + 1, word };
+}
+
+function expandCharClass(body, eq = null) {
   let pos = 0;
   function parseSeq() {
     let acc = [''];
@@ -623,6 +685,11 @@ function expandCharClass(body) {
   function parseAtom() {
     if (pos >= body.length) return [''];
     if (body[pos] === '(') {
+      const simple = readParenthesizedWord(body, pos);
+      if (simple) {
+        pos = simple.end;
+        return classEquivalentVariants(eq, simple.word);
+      }
       pos += 1;
       const r = parseSeq();
       if (body[pos] === ')') pos += 1;

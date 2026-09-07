@@ -43,4 +43,12 @@ test('character classes keep literal spelling when equivalence expansion is enab
   assert.notEqual(matchRule({ type: 'lit', word: 'georgia' }, ['george'], context), null);
   assert.equal(matchRule({ type: 'class', body: 'georgia' }, ['george'], context), null);
   assert.notEqual(matchRule({ type: 'class', body: 'georgia' }, ['georgia'], context), null);
+
+  // A plain parenthesized word inside [] is the separate native
+  // new_word_and_equivalents production.  Expansion is local to that atom,
+  // so suffixes and surrounding characters remain exact class content.
+  assert.notEqual(matchRule({ type: 'class', body: '(time)' }, ['thyme'], context), null);
+  assert.notEqual(matchRule({ type: 'class', body: '(time)s' }, ['thymes'], context), null);
+  assert.notEqual(matchRule({ type: 'class', body: 'a(time)b' }, ['athymeb'], context), null);
+  assert.equal(matchRule({ type: 'class', body: 't(i|y)me' }, ['thyme'], context), null);
 });
