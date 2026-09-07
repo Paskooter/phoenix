@@ -1,0 +1,105 @@
+{
+  "state": "accepted_bounded",
+  "reviewedBy": "Codex root",
+  "agentRevision": "749d5a129d4ff5c7405aaf5f47ae35605630131f",
+  "rootCandidateRevision": "4bb55831436b5ed9967a4229b68db55015247a25",
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "scope": "Explicit GQA Account loop lookup and attribution insert/search/wipe adapters; optional route/profile wiring. Defaults unchanged.",
+  "rootHttp": {
+    "at": "2026-09-07T12:02:05.037Z",
+    "sourceHash": "df30ca19137dd61ca460bf4816a91eb510a763140caa2f81013a2c800d1ad3c2",
+    "rows": [
+      {
+        "id": "retrieve-bing-window",
+        "status": 200,
+        "completeBodyEqual": true,
+        "errorProseIgnored": false
+      },
+      {
+        "id": "retrieve-other-service",
+        "status": 200,
+        "completeBodyEqual": true,
+        "errorProseIgnored": false
+      },
+      {
+        "id": "retrieve-before-exclusive",
+        "status": 200,
+        "completeBodyEqual": true,
+        "errorProseIgnored": false
+      },
+      {
+        "id": "wipe-empty-id",
+        "status": 200,
+        "completeBodyEqual": true,
+        "errorProseIgnored": false
+      },
+      {
+        "id": "wipe-loop",
+        "status": 200,
+        "completeBodyEqual": true,
+        "errorProseIgnored": false
+      },
+      {
+        "id": "retrieve-after-wipe",
+        "status": 200,
+        "completeBodyEqual": true,
+        "errorProseIgnored": false
+      },
+      {
+        "id": "retrieve-missing-credentials",
+        "status": 500,
+        "completeBodyEqual": false,
+        "errorProseIgnored": true
+      },
+      {
+        "id": "wipe-missing-id",
+        "status": 500,
+        "completeBodyEqual": false,
+        "errorProseIgnored": true
+      }
+    ],
+    "insertionEqual": true,
+    "completeAccountCallsEqual": true,
+    "qualification": "Actual candidate HTTP, controlled account/provider and memory collection. Compared complete success bodies against frozen exact-runtime original source; error wording and stack paths ignored; substantive error fields/status retained."
+  },
+  "rootSuite": {
+    "exit": 0,
+    "elapsedSeconds": 129.3752516899258,
+    "revision": "4bb55831436b5ed9967a4229b68db55015247a25",
+    "unitPassed": 750,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0
+  },
+  "independentlyRehashedAgentArtifacts": [
+    {
+      "path": ".parity/reviews/q01-gqa-account-attribution-runtime-followup-20260907/run/attempt-3/source-route-output.json",
+      "sha256": "df30ca19137dd61ca460bf4816a91eb510a763140caa2f81013a2c800d1ad3c2"
+    },
+    {
+      "path": ".parity/reviews/q01-gqa-account-attribution-runtime-followup-20260907/mongo-control/run-6/orchestrator.json",
+      "sha256": "49b3c8334631d54b4305ad7d2a0c3c320b98bb151d5336adcca6bcb8ae49bbfa"
+    },
+    {
+      "path": ".parity/reviews/q01-gqa-account-attribution-runtime-followup-20260907/mongo-control/run-6/mongo-control-result.json",
+      "sha256": "767329d2a2d551fa8ee08504121e87db4635d62213ba904925b027186b29b4e9"
+    },
+    {
+      "path": ".parity/reviews/q01-gqa-account-attribution-runtime-followup-20260907/mongo-driver/package-lock.json",
+      "sha256": "e37f21b151c0928a4a9fc6078d1ed8619b25de19f8d9c1e67f66ba887639b243"
+    }
+  ],
+  "sourceExecution": "Reviewed original unchanged Python modules under pinned Python3.6.15/Flask0.12.2 closure. Explicit local account/provider/collection seams; existing captured execution reused.",
+  "mongoExecution": "Reviewed real private Mongo7.0.14 and mongodb6.21.0 control: actual stored IDs excluded by projection, filter/50 limit, insert/index, wipe leaves other loop intact. Exact owned cleanup recorded. Agent execution reviewed; no root Mongo rerun.",
+  "limits": [
+    "Additional malformed HTTP/body and timestamp-type boundaries are under separate review.",
+    "Source Mongo query has no sort; memory fixture order is not a production ordering guarantee.",
+    "Historical Python control uses local database seam; candidate real Mongo control does not establish historical Python Mongo driver parity.",
+    "Provider defaults, live providers, authentication infrastructure, multi-process deployment and whole Q-01 remain open."
+  ],
+  "setupQualification": "First root HTTP control incorrectly treated async listen result as Server and exited1 before HTTP checks. Preserved script, corrected controller only, final8 passed. Agent source and Mongo setup failures remain in private evidence and candidate report.",
+  "fullyVerifiedTask": false
+}

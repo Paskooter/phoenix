@@ -297,3 +297,9 @@ has not switched to it; forwarding, trust and native acceptance remain open.
 The [notification identity candidate](evidence/2026-09-07/notification-auth-validation/review.json)
 requires repair because malformed signed requests rotate an existing token.
 This is a substantive state change; harmless error prose remains nonblocking.
+
+The [GQA account/attribution integration](candidates/Q-01-account-attribution-root-20260907.md)
+is accepted for explicit account lookup and storage configuration. Root8 actual
+HTTP comparisons and source insertion/account calls match;750 units and strict43
+pass. Historical Python and real Mongo evidence were reviewed separately.
+Malformed HTTP boundaries, live providers, default deployment and Q-01 remain open.

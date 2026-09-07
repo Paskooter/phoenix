@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted the bounded GQA core, explicit Wikipedia profile and explicit Bing/Wikipedia/Wolfram profile. The combined profile matches 36 complete responses and phase controls; 12 transport recovery and 210 Unicode comparisons are reviewed. Source-backed repeated-date cleanup and reproducible vendored Unicode data are integrated. All 711 units and strict43 pass. Account/attribution, live providers, default deployment, broader coverage and whole Q-01 remain open.
+Root accepted bounded GQA core and explicit provider profiles, now including optional Account loop lookup and attribution insert/retrieve/wipe adapters. Root8 actual HTTP source comparisons, insertion/account calls, reviewed Python3.6 and real Mongo controls,750 units and strict43 pass. Malformed-request boundaries, live providers, default deployment and whole Q-01 remain open.
 
 Done when:
 
@@ -1278,11 +1278,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Bounded explicit multi-provider profile, source-shaped provider recovery, Unicode decision filter and repeated-date cleanup. Root final 36 response/phase cases, 12 transport cases, 8 extraction cases, 5 generator controls, 711 units and strict43 pass; root independently reviewed 210 Unicode cases on identical Bing runtime files. Default deployment and whole Q-01 remain open.
+Candidate scope: Bounded explicit Account lookup and attribution storage/profile wiring; root8 real HTTP source comparisons, exact insertion/account calls, reviewed historical source/real Mongo evidence,750 units and strict43. Additional HTTP boundaries/default/live provider/deployment/full Q-01 remain open.
 
-Candidate report: [docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md](../../docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md).
+Candidate report: [docs/parity/candidates/Q-01-account-attribution-root-20260907.md](../../docs/parity/candidates/Q-01-account-attribution-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json](../../docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-account-attribution/review.json](../../docs/parity/evidence/2026-09-07/gqa-account-attribution/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 4. Complete companion-cloud and restored features
 
