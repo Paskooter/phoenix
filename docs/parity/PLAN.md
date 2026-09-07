@@ -118,6 +118,15 @@ Future long captures should use an isolated, fixed verification worktree so
 main can continue receiving reviewed commits and pushes while evidence stays
 pinned. Never modify that worktree's code or HEAD during a capture.
 
+The [2026-09-07 explicit-weight candidate review](evidence/2026-09-07/nlu-explicit-weight/review.json)
+rejects `2a814ab` for integration. Its completed default HTTP replay has
+176 differences: 33 previous failures repaired, 60 new failures, and eight
+changed outputs that still fail. Main retains its accepted 149-difference
+measurement. Focused native controls passed, which made the full regression
+check necessary. The agent is repairing the new failure groups in a separate
+worktree. The broader H-03 routing candidate and Person error repair remain
+under root review; neither has earned a completed checkbox.
+
 ## Tracker commands
 
 ```bash

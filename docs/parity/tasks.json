@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-06",
+  "updated": "2026-09-07",
   "objective": "A feature-complete, behavior-compatible reimplementation of original Pegasus, with companion-cloud and restored-branch work explicitly tracked.",
   "owner": "Codex (project management and task execution)",
   "baseline": {
@@ -624,6 +624,12 @@
         "scope": "Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.",
         "artifact": "docs/parity/candidates/H-03-S-03-residual-repair-20260906.md",
         "reviewEvidence": "docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json"
+      },
+      "nextImplementation": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / http_contract_repair; root acceptance",
+        "candidateRevision": "9c28ed4c13c9bcc7ba33031d413e66fa115d06a4",
+        "scope": "Grouped decision tree, Exact/NOT coercion, dotted paths, source no-route/memo/rule validation, and Node8 tie sort. Agent35 controls:34 exact and1 retained TypeError wording difference. Root supplementary original-suite/repeated-call/large-tie and integrated production review pending."
       }
     },
     {
@@ -1293,13 +1299,15 @@
         }
       ],
       "nextImplementation": {
-        "state": "working",
+        "state": "changes_requested",
         "assignee": "Luna Max / audio_encoding_repair; root acceptance",
         "candidateRevision": "2a814ab68321701cb5fa49435ad369d03cfc8a4a",
         "worktree": ".parity/worktrees/n08-explicit-weight-followup",
-        "scope": "Explicit heuristic/mandatory base-word repair and stable parser compilation cache. Fresh root native selected-result controls match30/30 valid cases, up from27; negative compiler control is excluded and scores remain unverified. Full unchanged default HTTP replay is assigned with a7200s outer cap after measured cache bottleneck; prior3600s timeout at12000/20528 remains retained. No main acceptance yet.",
+        "scope": "Frozen2a814ab completed all20528 HTTP rows, actual exit0 in2717.353s:20352 matches/176 differences. Root independently reconciled33 repairs,60 new failures,116 shared residuals(108 unchanged/8 changed). Candidate rejected for integration; main remains20379/149. Root30 valid focused native matches are retained but insufficient. A new isolated repair is assigned.",
         "previousCandidateRevision": "1aeec0125667c5d1a23cfcdb510a13985d6f416e",
-        "previousRootReview": "docs/parity/evidence/2026-09-06/nlu-explicit-weight/root-review-pending.json"
+        "previousRootReview": "docs/parity/evidence/2026-09-06/nlu-explicit-weight/root-review-pending.json",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-explicit-weight/review.json",
+        "reviewedBy": "Codex root"
       }
     },
     {
@@ -2541,7 +2549,7 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max candidates; root acceptance",
-        "scope": "Settings Lasso is integrated after final root48 and 529-unit/default43 checks. Person full own-error and legacy URL behavior is under follow-up; Hub friendly-ID transport awaits root review. Neither network candidate is accepted.",
+        "scope": "Settings Lasso remains accepted. Person root review found provider status/message and callable error-factory defects in32be386/4881aba; root0ddf45a repairs them and passes15 focused tests, expanded original comparisons still pending. Hub candidate remains unverified.",
         "candidates": [
           {
             "revision": "6798b426d1671b48e15ca3cf04f9780b35543c8b",
@@ -2558,6 +2566,12 @@
             "worktree": ".parity/worktrees/a06-hub",
             "state": "awaiting_review",
             "scope": "Hub/Account friendly-ID network adapter; unverified."
+          },
+          {
+            "revision": "0ddf45a0e64acf242a8dc37a31cb55ea2f679370",
+            "worktree": ".parity/worktrees/a06-person-final-root",
+            "state": "awaiting_review",
+            "scope": "Root generic pinned Boom creation/wrapping repair. Prior candidate harness ReferenceError and fresh Docker outer90 startup timeout retained; no source acceptance inferred from either."
           }
         ]
       }
