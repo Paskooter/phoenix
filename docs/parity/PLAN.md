@@ -223,13 +223,16 @@ The latest bounded [listen disconnect/timeout review](evidence/2026-09-07/listen
 
 The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts the explicit factory/HTTP adapter with20 complete source HTTP controls,473 blocked-term and193 NLP controls. The [explicit Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery cases, 40 provider requests and 68 original Hub client exchanges, with nine root behavior corrections. Other provider and deployment acceptance remains separate and Q-01 stays open. The [portable-parser Moth trial](evidence/2026-09-07/hardware/portable-snapshot/review.json) passed native authentication, clock rendering, joke playback calls and restored the prior backend; it does not close microphone/ring or persistent deployment acceptance.
 
-Current parallel candidates remain separate from accepted main: the [suspension
-candidate](candidates/A-04-suspension-root-pending-20260907.md) has passing root
-integration, original-client and actual-controller controls; downstream
-LoopUpdated notification effects remain under investigation. The
-[multi-provider candidate](candidates/Q-01-multiprovider-root-pending-20260907.md)
+The [suspension HTTP/state repair](candidates/A-04-suspension-root-pending-20260907.md)
+is integrated after root testing, original-client and actual-controller controls.
+Downstream LoopUpdated notifications, full signature verification and whole
+A-04 remain open. The [multi-provider candidate](candidates/Q-01-multiprovider-root-pending-20260907.md)
 has 36 passing root response/recovery comparisons with original dependencies,
 plus 12 connection/decode failure and same-provider recovery cases. The repaired
-Unicode candidate passes 210 root comparisons against original provider output.
-Generated data packaging and combined integration remain pending. Neither
-candidate receives full task completion credit.
+Unicode candidate passes 210 root comparisons against original provider output;
+packaging and combined integration remain pending.
+
+The [punctuation candidate was rejected](evidence/2026-09-07/nlu-punctuation-rejected/review.json):
+it repairs one full-corpus case but adds seven failures involving “c.e.s.”,
+raising residual differences from 52 to 58. Main retains the accepted parser.
+These bounded reviews do not change the 8/79 fully verified task count.

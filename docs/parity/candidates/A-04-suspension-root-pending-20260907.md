@@ -1,9 +1,11 @@
-# A-04 suspension candidate — awaiting root acceptance
+# A-04 suspension — bounded HTTP/state acceptance
 
-The isolated candidate adds missing-loop/robot errors, robot-or-admin suspension
+The integrated repair adds missing-loop/robot errors, robot-or-admin suspension
 checks, durable suspension timestamps, robot list filtering and the original
 empty success body for SuspendRobotLoop. Invalid payloads use the source-shaped
-422 envelope consumed by the original client. Main has not integrated this code.
+422 envelope consumed by the original client. Main `d0ac8ce` contains the repair;
+its application package tree and test/dependency files match the tested root
+integration exactly.
 
 Root integration `9833185` passes 678 unit tests, seven skips and strict43 with
 zero differences, invariants or gaps. Root removed a test dependency on the
@@ -27,5 +29,5 @@ state consistency.
 Full Classic signature verification, LoopUpdated events, remaining Loop
 operations and robot acceptance are open. This candidate does not close A-04.
 
-The [pending review](../evidence/2026-09-07/account-suspension-pending/review.json)
+The [bounded review](../evidence/2026-09-07/account-suspension-pending/review.json)
 records the execution scope and hashes.

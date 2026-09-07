@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word/apostrophe controls now match 21/21 after preserving apostrophes; the full corpus retains the same 52 residuals. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 677 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.
+The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word/apostrophe controls now match 21/21 after preserving apostrophes; the full corpus retains the same 52 residuals. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 677 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open. A subsequent punctuation candidate was rejected: its full replay repairs one case but adds seven c.e.s. failures (58 residuals versus accepted52). Main retains52; the general repair remains under review.
 
 Done when:
 
@@ -1381,7 +1381,7 @@ Lead verification: pending. This candidate does not certify task parity.
 
 Owner: Codex. Dependencies: A-03.
 
-Main dispatches only List/ListLoops, SuspendLoop and SuspendRobotLoop from 23 archived operations; its current suspension still succeeds for an unknown loop. Isolated root candidate 9833185 adds source-shaped suspension checks and validation. Root integration and 87 original-client exchanges pass. Root also reproduced 21 actual original controller controls (53 checks), using controlled model/query/save boundaries. The source emits LoopUpdated after suspension; candidate notification effects, full authentication and other operations remain open.
+Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open.
 
 Done when:
 
@@ -1395,13 +1395,13 @@ Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFac
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / http_contract_repair; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Potential suspension lookup, authorization, validation, durable state and output repair. Root 678 units, seven skips, strict43, isolated Node 20 test and 87 original Node 8 client calls pass. The reference Account peer is modeled; actual original controller execution is still required. No complete A-04 or full Classic authentication acceptance.
+Candidate scope: Bounded suspension HTTP/state behavior. Root 678 units, seven skips, strict43, isolated Node20 test, 87 original Node8 client calls and 21 actual original controller controls pass. Integrated package tree and test/dependency files equal tested983. LoopUpdated effects, full Classic signature verification and complete A-04 remain open.
 
 Candidate report: [docs/parity/candidates/A-04-suspension-root-pending-20260907.md](../../docs/parity/candidates/A-04-suspension-root-pending-20260907.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/account-suspension-pending/review.json](../../docs/parity/evidence/2026-09-07/account-suspension-pending/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
 

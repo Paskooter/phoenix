@@ -1,0 +1,41 @@
+{
+  "decision": "changes requested; no integration",
+  "candidate": "607521f8c9df7d608af50e9af08ff6230547093b",
+  "implementation": "3bd26728d7a39380bc752a4b0208d2026192d96c",
+  "cases": [
+    20528,
+    20528
+  ],
+  "matches": [
+    20476,
+    20470
+  ],
+  "residuals": [
+    52,
+    58
+  ],
+  "sameResidualRecords": 51,
+  "actualExit": 0,
+  "seconds": 2507.515,
+  "candidateHashMatchesReceipt": true,
+  "prePostTrackedEqual": true,
+  "prePostExternalEqual": true,
+  "baselineSha256": "6f10a4b3df2aa1ef87c9a0cd64787e215b68f72f9d542a7af164b768e84c2a74",
+  "candidateSha256": "15c9a93a0a14dc2df1079b5c9763d4dd1771d7bbb0f4fe6d893c2ce12eefcdd3",
+  "executionSha256": "d86beba68284e742ec29cc28c6e0adadccea711e43f0ebd4472fd6fe702c553f",
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "reviewedBy": "Codex root",
+  "newFailures": 7,
+  "repairedCases": 1,
+  "changedExistingResiduals": 0,
+  "finding": "Preserving all input punctuation fixes one comma-bearing language question but breaks seven questions with c.e.s. Main retains the accepted 52 residuals. General source-backed repair is assigned in a new worktree.",
+  "executionOwnership": "Full replay executed by Luna. Root independently verified actual terminal receipt, frozen input/code hashes, output hash and every residual record against the accepted baseline.",
+  "scope": "HTTP status and parser data; no full robot lifecycle acceptance.",
+  "rootReconciliationSha256": "125373d5375d0404a9ccb4f694a2e12b03488f75dab833a785ed7db97bdad446",
+  "rootRehashedFiles": {
+    "tracked": 6,
+    "external": 6
+  },
+  "rootRehashMismatches": []
+}
