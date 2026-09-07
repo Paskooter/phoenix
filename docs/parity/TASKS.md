@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted explicit original GQA factory and HTTP adapter:20 complete source status/body matches,473 original blocked-term controls,193 NLP controls with29 repairs;614 integrated units and strict43 pass. Default service remains separate. Wikipedia provider/profile, other providers/account/attribution and deployed GQA acceptance remain open.
+Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open.
 
 Done when:
 
@@ -1278,11 +1278,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Bounded GQA core factory and HTTP adapter;20 full source comparisons,473 blocked-term and193 query/filter controls;614 integrated units and strict43. Default service not switched, whole Q-01 remains open.
+Candidate scope: Bounded explicit Wikipedia provider/profile: 34 complete source HTTP response and recovery cases, 40 ordered provider requests, and 68 original Hub/Axios exchanges. Root corrected nine behavior differences. All 672 units and the strict 43-case smoke pass. Default deployment and whole Q-01 remain open.
 
-Candidate report: [docs/parity/candidates/Q-01-core-integration-root-20260907.md](../../docs/parity/candidates/Q-01-core-integration-root-20260907.md).
+Candidate report: [docs/parity/candidates/Q-01-wikipedia-root-20260907.md](../../docs/parity/candidates/Q-01-wikipedia-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-core/review.json](../../docs/parity/evidence/2026-09-07/gqa-core/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json](../../docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 4. Complete companion-cloud and restored features
 

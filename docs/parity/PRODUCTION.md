@@ -7,7 +7,7 @@ cases. The complete gate still exits 1. Final integration with the latest Settin
 repairs passes 641 unit tests and both default and snapshot strict43 profiles.
 [H-03 intent routing](evidence/2026-09-07/intent-router/review.json) remains verified;
 the default AST parser separately retains 57 differences. Deployment provisioning,
-robot rollout and the external-service coverage remain open.
+robot rollout and the external-service coverage remain open. The later [Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) passes 34 bounded source response cases and brings the combined default unit suite to 672 passes and five skips; it does not change the full corpus coverage gaps.
 
 V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory and hosted CI rejection are reviewed; V-03 infrastructure is verified. Product comparison failures remain open.
 

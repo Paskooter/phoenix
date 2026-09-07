@@ -1,0 +1,714 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "candidateRevision": "76ba31bd3765b9ab05ed859609439f42013332d0",
+  "sourceSha256": "9beb673b1d2c773e808f389857bc09981aed4bd9db22d95c7e34bdd863e3405b",
+  "candidateSha256": "3741c97081fccbbdcb92aa257dd305bf294949b5a63775acea0b9db9282679a4",
+  "caseCount": 34,
+  "matches": 34,
+  "baselineMatches": 25,
+  "baselineDifferences": [
+    "wiki-non200-page-route",
+    "wiki-top-error-page-route",
+    "wiki-redirect-route",
+    "wiki-invalid-redirect-route",
+    "wiki-normalized-redirect-route",
+    "wiki-empty-pageprops-route",
+    "wiki-option-case-route",
+    "wiki-missing-page-url-route",
+    "wiki-late-page-route"
+  ],
+  "comparatorControls": {
+    "controls": 26,
+    "passed": 26,
+    "positive": 3,
+    "negative": 23,
+    "allPassed": true,
+    "rows": [
+      {
+        "name": "unchanged",
+        "expectedPass": true,
+        "actualPass": true,
+        "exitCode": 0,
+        "stdout": "{\"coverageExact\": true, \"caseCount\": 34, \"matches\": 34, \"allPassed\": true, \"generatedIdsPerSide\": 107, \"scope\": \"Complete decoded action/status and ordered MediaWiki method/path/query/User-Agent plus identical controlled response bytes. Remaining transport headers are retained in captures, not claimed identical. Header/diagnostic qualification requires the separate original-client execution receipt.\", \"sourceSha256\": \"565ccef62967372a857dd9951af4acb45bf3bb1f5a68914b6db50c4ecb909628\", \"candidateSha256\": \"fcb22aaaaa28a4cebc11e78bad714a8554145c0ba12df9bd19fe5d6e2e0745dd\"}\n",
+        "stderr": ""
+      },
+      {
+        "name": "valid-new-generated-values",
+        "expectedPass": true,
+        "actualPass": true
+      },
+      {
+        "name": "signed-wiki-instrumentation-delta",
+        "expectedPass": true,
+        "actualPass": true
+      },
+      {
+        "name": "speech-mismatch",
+        "expectedPass": false,
+        "actualPass": false,
+        "exitCode": 1,
+        "stdout": "{\"coverageExact\": true, \"caseCount\": 34, \"matches\": 33, \"allPassed\": false, \"generatedIdsPerSide\": 107, \"scope\": \"Complete decoded action/status and ordered MediaWiki method/path/query/User-Agent plus identical controlled response bytes. Remaining transport headers are retained in captures, not claimed identical. Header/diagnostic qualification requires the separate original-client execution receipt.\", \"sourceSha256\": \"565ccef62967372a857dd9951af4acb45bf3bb1f5a68914b6db50c4ecb909628\", \"candidateSha256\": \"d923c2c703af369df36bd17a7ffaa3f06c032d68821c117c53c2eaaa785462ae\"}\n",
+        "stderr": ""
+      },
+      {
+        "name": "reused-jcp-within-action",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "reused-jcp-across-responses",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "reused-msgid-across-responses",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "invalid-generated-id",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "missing-msgid",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "missing-final",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "boolean-vs-number",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "analytics-mismatch",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "timing-key-loss",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "boolean-timing",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "null-key-loss",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "semantic-display-id-preserved",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "arbitrary-nested-id-preserved",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "successful-string-is-not-diagnostic",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "status-mismatch",
+        "expectedPass": false,
+        "actualPass": false,
+        "exitCode": 1,
+        "stdout": "{\"coverageExact\": true, \"caseCount\": 34, \"matches\": 33, \"allPassed\": false, \"generatedIdsPerSide\": 107, \"scope\": \"Complete decoded action/status and ordered MediaWiki method/path/query/User-Agent plus identical controlled response bytes. Remaining transport headers are retained in captures, not claimed identical. Header/diagnostic qualification requires the separate original-client execution receipt.\", \"sourceSha256\": \"565ccef62967372a857dd9951af4acb45bf3bb1f5a68914b6db50c4ecb909628\", \"candidateSha256\": \"11920c7c9f0e95786f0710d9c0af33edb2102ffd1637f4be3fec28179ce6be94\"}\n",
+        "stderr": ""
+      },
+      {
+        "name": "reordered-cases",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "omitted-case",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "provider-request-loss",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "provider-query-difference",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "provider-byte-difference",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "provider-user-agent-difference",
+        "expectedPass": false,
+        "actualPass": false
+      },
+      {
+        "name": "unknown-response-media-type",
+        "expectedPass": false,
+        "actualPass": false
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "wiki-success-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-success-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-no-result-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-no-result-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-disambiguation-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 3,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-disambiguation-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-blacklisted-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 0,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-blacklisted-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-category-blacklist-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-category-blacklist-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-provider-failure-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-provider-failure-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-malformed-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-malformed-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-missing-transid-route",
+      "statusEqual": true,
+      "sourceStatus": 400,
+      "candidateStatus": 400,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 0,
+      "diagnosticWordingQualified": true,
+      "responseMediaTypes": [
+        "text/html",
+        "text/html"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-missing-transid-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-non200-page-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-non200-page-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-top-error-page-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-top-error-page-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-redirect-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 2,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-redirect-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-invalid-redirect-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-invalid-redirect-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-normalized-redirect-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 2,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-normalized-redirect-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-empty-pageprops-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 3,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-empty-pageprops-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-option-case-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 3,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-option-case-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-missing-page-url-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-missing-page-url-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-late-page-route",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    },
+    {
+      "id": "wiki-late-page-route:following-valid",
+      "statusEqual": true,
+      "sourceStatus": 200,
+      "candidateStatus": 200,
+      "bodyDifferences": [],
+      "providerDifferences": [],
+      "providerRequests": 1,
+      "diagnosticWordingQualified": false,
+      "responseMediaTypes": [
+        "text/html",
+        "application/json"
+      ],
+      "requiresOriginalClientQualification": true,
+      "match": true
+    }
+  ]
+}

@@ -355,14 +355,14 @@ Then:
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 641 unit tests and all 43 smoke cases. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](docs/parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
+The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 672 unit tests and all 43 smoke cases. The [explicit Wikipedia profile review](docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery comparisons and 68 original Hub client HTTP exchanges, including nine corrected page/deadline behaviors. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](docs/parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
 
 Current regression checks and progress tracking:
 
 ```bash
 npm test                                      # unit tests, tracker validation, strict production parity gate
 npm run test:unit                            # regression tests without the parity comparison
-npm run parity:gate                          # 40 production parser/router/skill cases; fails on differences
+npm run parity:gate                          # 43 production parser/router/skill cases; fails on differences
 npm run harness -- --out .parity/runs/compare   # original/Phoenix wire comparison; fails on differences
 npm run harness -- --candidate original --out .parity/runs/control  # calibrate with two original runs
 npm run parity:status                         # tracked tasks and next ready task

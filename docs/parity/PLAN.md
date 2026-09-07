@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **641 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **672 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -219,4 +219,4 @@ The audit, plan and compatibility manifest are complete; engineering verificatio
 
 The latest bounded [listen disconnect/timeout review](evidence/2026-09-07/listen-disconnect/review.json) passes three original-source cases and 140 guards. Its integrated tree passes 591 unit tests and strict43; full H-04 and deployed robot acceptance remain open.
 
-The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts the explicit factory/HTTP adapter with20 complete source HTTP controls,473 blocked-term and193 NLP controls. Wikipedia/provider deployment remains separate and Q-01 stays open. The [temporary Moth checkpoint trial](evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) passed and restored the prior backend; it does not close microphone/ring or persistent deployment acceptance.
+The [GQA core adapter review](evidence/2026-09-07/gqa-core/review.json) accepts the explicit factory/HTTP adapter with20 complete source HTTP controls,473 blocked-term and193 NLP controls. The [explicit Wikipedia profile review](evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery cases, 40 provider requests and 68 original Hub client exchanges, with nine root behavior corrections. Other provider and deployment acceptance remains separate and Q-01 stays open. The [temporary Moth checkpoint trial](evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) passed and restored the prior backend; it does not close microphone/ring or persistent deployment acceptance.

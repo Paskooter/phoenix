@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-09-07T05:55:25.146430+00:00",
+  "status": "accepted_bounded_wikipedia_provider_and_profile",
+  "reviewedBy": "Codex root",
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "reviewedRuntimeRevision": "76ba31bd3765b9ab05ed859609439f42013332d0",
+  "agentCandidateRevision": "7634f2bfda5cfbbf17630821813f8f710059c26e",
+  "wholeTaskVerified": false,
+  "behavior": [
+    "Explicit Wikipedia answer service uses original-shaped HTTP requests, the recovered Wikipedia page flow, NLTK lexical/model data and GQA speech/action/analytics construction.",
+    "Root corrected usable non-200 and top-level-error page handling, redirect reload and normalized/from validation, empty pageprops disambiguation, case-sensitive disambiguation exclusions, and missing title/URL failure handling.",
+    "Root removed synthetic page-option shortcuts from production and fixtures; disambiguation uses the original revision HTML request.",
+    "The explicit profile now uses the existing original provider-group pipeline: a slow Wikipedia lookup falls back at the default three-second group deadline, and the next valid request succeeds."
+  ],
+  "validation": {
+    "sourceCases": 34,
+    "completeStatusAndBodyMatches": 34,
+    "jsonActionMatches": 33,
+    "namedDiagnosticQualifiedCases": 1,
+    "followingValidCases": 17,
+    "providerRequestsPerSide": 40,
+    "providerRequestMatches": 40,
+    "generatedIdsPerSide": 107,
+    "rootExtensionDifferencesBefore": 9,
+    "rootExtensionDifferencesAfter": 0,
+    "originalClientCases": 34,
+    "originalClientHttpRequests": 68,
+    "originalClientModulesStable": 327,
+    "comparatorControls": 26,
+    "comparatorNegativeControls": 23,
+    "integratedUnitPassed": 672,
+    "integratedUnitSkipped": 5,
+    "integratedUnitFailed": 0,
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "frozenTrackedProductFiles": 5194,
+    "frozenExternalFiles": 454,
+    "frozenControls": 11,
+    "frozenWorktreeAndOwnLinksStable": true,
+    "defaultDeadlineSeconds": {
+      "source": 3.0019919727928936,
+      "candidate": 3.002373681,
+      "controlledProviderDelay": 3.4
+    },
+    "execution": [
+      {
+        "label": "candidate",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 4.124301909934729,
+        "budgetSeconds": 900
+      },
+      {
+        "label": "comparison",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 0.06486083474010229,
+        "budgetSeconds": 900
+      },
+      {
+        "label": "client",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 0.3649092670530081,
+        "budgetSeconds": 900
+      },
+      {
+        "label": "comparator-controls",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 0.7663580770604312,
+        "budgetSeconds": 900
+      },
+      {
+        "label": "npm-test",
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 20.97990391217172,
+        "budgetSeconds": 900
+      }
+    ]
+  },
+  "sourceRuntimeQualifications": [
+    "Actual recovered GQA route, orchestration, MIM/analytics helpers and Wikipedia 1.4.0 Jibo fork execute unchanged on Python 3.6.15/Flask 0.12.2. The route boundary is Flask test_client; outbound Wikipedia calls use actual requests and local HTTP.",
+    "NLTK 3.2.5 with the selected PY3 Punkt model and198 stopwords executes unchanged. Exact historical deployment model/stopword asset versions were not pinned in the recovered service; this acceptance is qualified to the recorded assets.",
+    "Source-locked MarkupSafe 1.0 installation fails and the established1.1.1 fallback is retained; six 1.10.0 is an inferred transitive dependency.",
+    "Bing/Wolfram are disabled transport seams; account/config, attribution/AP/API-AI and unidecode remain named seams. No live provider credentials or robot sessions are used.",
+    "The pinned original Hub SkillRequestMaker and Axios 0.17.1 run under actual Node 8.9.4 over 68 loopback HTTP requests replaying captured raw bodies/status/Content-Type.327 loaded original dependency modules are stable."
+  ],
+  "comparisonPolicy": [
+    "Only exact generated message/JCP declaration paths are normalized after validating shape, uniqueness across all 34 responses and a bijection between the two sides. Semantic/display IDs and nulls remain exact.",
+    "Finite runtime timing values are qualified with every timing key retained. The original wiki_tokenization fork-minus-start instrumentation can be signed.",
+    "Only the identified missing-transID HTTP400 HTML diagnostic is wording-qualified. All other response fields, statuses, speech, action structure, final flags and analytics are compared.",
+    "Source success Content-Type is text/html and Phoenix application/json. Actual original Hub client execution proves both are decoded into their complete objects; the 400 diagnostic yields the same client error code and absence of an action. Other response/request headers are retained privately, not claimed identical.",
+    "Every ordered MediaWiki method/path/query/User-Agent, provider status and controlled response-byte hash matches. Both Host authorities are validated against their real fixture listeners."
+  ],
+  "retainedFailuresAndCorrections": [
+    "Earlier agent constructed Wikipedia/NLTK controls and broad ID/null normalization remain historical, not acceptance evidence. The subsequent agent comparator still collapsed IDs to constants and did not fail its CLI on action mismatch; root replaced it and ran 26 positive/negative controls.",
+    "Root initial 16 actual-package cases passed on integrated 2022d8c; source-guided extensions then exposed 8 page-flow differences and one missing default deadline. Baseline34 capture has25 matches / 9 differences, and comparison exit 1 is retained.",
+    "The source and final candidate use exactly the same controlled provider response bytes. Final 34 comparison and all subsequent review commands exit 0; no failed baseline was overwritten."
+  ],
+  "scopeLimits": [
+    "Explicit PHOENIX_GQA_PROFILE=wikipedia only. Default answer registration and normal deployment are unchanged.",
+    "Bing/Wolfram candidates, account/attribution/news/provider configuration, complete HTML/Punkt edge coverage, supported live-provider integration, robot execution and full Q-01 remain open.",
+    "The complete production20534 gate still has16 gap instances in8 unhosted answer cases; this bounded profile check does not close that full-corpus gate.",
+    "No new whole-task completion credit;8/79(10.1%) remains the checklist metric."
+  ],
+  "sourceData": {
+    "nltk_module": "/nltk-source/nltk/__init__.py",
+    "nltk_source_sha256": "f5d250e565b09712d6f80d47e19e24fcb2d01d9c52a8032058a3140d900a1934",
+    "nltk_version": "3.2.5",
+    "punkt_path": "/nltk-data/tokenizers/punkt/PY3/english.pickle",
+    "punkt_probe": [
+      "Dr. Ada wrote one.",
+      "Next sentence."
+    ],
+    "punkt_sha256": "5cad3758596392364e3be9803dbd7ebeda384b68937b488a01365f5551bb942c",
+    "stopwords_count": 198,
+    "stopwords_path": "/nltk-data/corpora/stopwords/english",
+    "stopwords_sha256": "f6d005956f407dbc6ea32e5ff0c7e8e6f71488d3239b9023efdc7fc139d6375b",
+    "wikipedia_module": "/wiki-package/wikipedia/__init__.py",
+    "wikipedia_source_sha256": "e4e714e516c48a3becf34558a281da4ebdd6a08abf86b1fe342225959833be3b",
+    "wikipedia_version": [
+      1,
+      4,
+      0
+    ]
+  },
+  "evidenceHashes": {
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/source-root/docker-run.stdout": "9beb673b1d2c773e808f389857bc09981aed4bd9db22d95c7e34bdd863e3405b",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/source-root/docker-run.json": "d9a65c700544e4bd19662841162bb172b6ebb92163b943cdb218a847b6890b25",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/baseline-comparison.json": "dc4da2c938477dbbe5b3d6aa1c5c6b3e4026ace76536f1212ea81d1fcb968766",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/candidate-root/candidate-profile.json": "5c97fe61da431c42606ca9b99e30e529d28edfc7d4c9e06dc86b561aab478e37",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/fixtures.json": "5b1368ce398d678622928fcc1441fad1a6ed9f01d24a77f9f5b0ce81c582f48c",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/extra-cases.json": "ca346fba68fb6b7cf4c40d2105df8e73d84f7bf7a7c50b6cac1f53581dbc8925",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/controls/source-control.py": "f9a8a698b012d98e63c882a611a838b0557a83fcec82842afb899c616340337a",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/controls/candidate-final.mjs": "d507df4f18ad96be3c85957e1149091fae970398cd0cc7e4c8e303a20b796e23",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/controls/client-final.js": "ce95ea118355c2bc85af696fc8f27db955d0f2c79eda80d0d21fe97b688fb5ad",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/compare-root.py": "7fa045bee26ffc96f08ff243529e72aafe5e7defeec047d5e85776d34ff10186",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/comparator-controls-final.py": "445ffce9fd3b60552cdc88d1bfa6c9c39ae6bc5694638fadc3a460332996ccf8",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/run-final.py": "7456ed525e30875c5f211a093a16f698d27b85b6019ac6387e8e2e0bdfe91814",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/final-root/execution.json": "d6ce6c9e498b13d0552d13108e104be99645e04fd51c4d6e4d1eafb8841bbd41",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/final-root/candidate/candidate-profile.json": "3741c97081fccbbdcb92aa257dd305bf294949b5a63775acea0b9db9282679a4",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/final-root/comparison.json": "ed0346028be1c58b8a1ad8712b6a232c80d2942c262823c53f307872dd9be90e",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/final-root/client-root.json": "02ec3d59d5e757d2e3e7eb1758e4735c725677865072de2b60d587ea016eee93",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/final-root/comparator-controls.json": "f93675614a70b315ecdf47c29b0df9eab00360bfcb134d8abcb4119d57f4dd66",
+    ".parity/reviews/q01-wikipedia-deadline-root-20260907/final-root/npm-test.stdout": "e4df052fb93bb898ae675756ef2d3686578294b1f9c74e7be8306afd8b66eb4e"
+  }
+}
