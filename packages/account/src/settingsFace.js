@@ -225,8 +225,13 @@ function sourceErrorInfo(error) {
     : error && error.isBoom && Number.isInteger(error.statusCode) ? error.statusCode : 500;
   const hasSourceCode = Object.prototype.hasOwnProperty.call(source, 'code');
   const hasErrorCode = Boolean(error && Object.prototype.hasOwnProperty.call(error, 'code'));
-  const code = status === 500 ? undefined
-    : hasSourceCode ? source.code
+  // A provider Boom may carry a meaningful machine code in its output even
+  // when the HTTP status is 500 (for example HUB_DOWN). Preserve that code.
+  // Transport errors can retain a low-level `error.code` such as
+  // ECONNREFUSED on the Error object, but the source Hapi envelope does not
+  // expose that implementation detail when the Boom output has no code.
+  const code = hasSourceCode ? source.code
+    : payload ? undefined
       : hasErrorCode ? error.code : undefined;
   const message = source.message || (error && error.message) || 'An internal server error occurred';
   const errorName = status !== 500 && source.error ? source.error
@@ -368,7 +373,7 @@ function dispatchWithProviders(res, req, body, providers) {
     .catch((error) => {
       const info = sourceErrorInfo(error);
       if (info.status === 500) {
-        sourceError(res, 500, 'Internal Server Error', 'An internal server error occurred', undefined, true);
+        sourceError(res, 500, 'Internal Server Error', 'An internal server error occurred', info.code, true);
       } else {
         sourceError(res, info.status, info.errorName, info.message, info.code, true);
       }
