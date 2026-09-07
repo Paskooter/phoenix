@@ -5,6 +5,7 @@ import {
   BING_SOURCE_CONFIG_KEY,
   BING_SOURCE_MODULE,
   BING_SOURCE_REVISION,
+  BING_UNHELPFUL_SPOKEN_TEXT,
   bingProviderContract,
   createBingProvider,
   extractBingSpokenAnswer,
@@ -182,8 +183,8 @@ test('Q-01 Bing uses the source Unidecode decision boundary for ignored and tran
     version: '1.0.22',
     sourceWheelSha256: '72f49d3729f3d8f5799f710b97c1451c5163102e76d64d20e170aedbbd923582',
     sourceLicense: 'GPLv2+ (source data provenance; lead review required)',
-    emptyRangeCount: 215,
-    prefixReplacementCount: 8511,
+    emptyRangeCount: 201,
+    prefixReplacementCount: 8530,
   });
   assert.equal(unidecodeForBingFilter('😀'), '');
   assert.equal(unidecodeForBingFilter('\ue000\ufeff\u2060'), '');
@@ -211,6 +212,38 @@ test('Q-01 Bing uses the source Unidecode decision boundary for ignored and tran
     type: 'string',
     payload: '北京',
   });
+});
+
+test('Q-01 Bing composes dot-only Unidecode mappings before stripping prefix edges', () => {
+  assert.equal(unidecodeForBingFilter('\u2024'), '.');
+  assert.equal(unidecodeForBingFilter('\u2025'), '..');
+  assert.equal(unidecodeForBingFilter('\u2026'), '...');
+  assert.equal(unidecodeForBingFilter('\uff0e'), '.');
+  assert.equal(unidecodeForBingFilter('\u0301'), '');
+  assert.equal(unidecodeForBingFilter('I\u2024 found this'), 'I. found this');
+
+  // Source `unidecode(text).strip('.')` removes only the assembled string's
+  // outer ASCII periods.  Internal mapped periods change the prefix.
+  const internal = extractBingSpokenAnswer(answerBody('Facts', 'I\u2024 found this'), 'en-US');
+  assert.equal(internal.response.payload, 'I\u2024 found this');
+  assert.equal(extractBingSpokenAnswer(answerBody('Facts', '\u2024\u2025\u2026'), 'en-US').response, undefined);
+  assert.deepEqual(extractBingSpokenAnswer(answerBody('Facts', '.I found this...'), 'en-US'), {});
+  assert.deepEqual(extractBingSpokenAnswer(answerBody('Facts', '\u2024I found this\u2026'), 'en-US'), {});
+
+  for (const prefix of BING_UNHELPFUL_SPOKEN_TEXT) {
+    assert.deepEqual(
+      extractBingSpokenAnswer(answerBody('Facts', `.${prefix}...`), 'en-US'),
+      {},
+      `edge periods should be stripped for ${prefix}`,
+    );
+    const withInternalDot = `${prefix.slice(0, 1)}\u2024${prefix.slice(1)}`;
+    const result = extractBingSpokenAnswer(answerBody('Facts', withInternalDot), 'en-US');
+    assert.equal(
+      result.response.payload,
+      withInternalDot.replace(/\([^()]*\)/gu, '').trim(),
+      `internal period changed ${prefix}`,
+    );
+  }
 });
 
 test('Q-01 Bing applies country gates before HTTP and Canada answer licensing after HTTP', async () => {

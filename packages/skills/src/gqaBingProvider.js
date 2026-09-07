@@ -166,8 +166,12 @@ export function extractBingSpokenAnswer(parsed, market, { unidecode = defaultUni
 
   // unidecode(spoken_text).strip('.') is only used by the source as the
   // empty/unhelpful test.  The response retains the original Unicode string.
-  const normalized = unidecode(spokenText);
-  if (normalized.replace(/^\.+|\.+$/gu, '') === ''
+  // The source strips ASCII periods from both ends before it checks the
+  // unhelpful prefixes.  Do this after the complete per-codepoint mapping:
+  // a dot-only mapping is empty at an edge, but remains significant when it
+  // occurs inside the assembled string.
+  const normalized = unidecode(spokenText).replace(/^\.+|\.+$/gu, '');
+  if (normalized === ''
     || BING_UNHELPFUL_SPOKEN_TEXT.some((prefix) => normalized.startsWith(prefix))) {
     return {};
   }
