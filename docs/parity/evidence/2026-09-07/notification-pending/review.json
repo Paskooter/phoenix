@@ -20,5 +20,50 @@
     "Delivery callback must handle persistence rejection without an unhandled exception.",
     "Token-bearing store files need private permissions."
   ],
-  "remaining": "Automatic LoopUpdated producer, verified account identity, source comparison and full hardware lifecycle remain open."
+  "remaining": "Automatic LoopUpdated producer, verified account identity, source comparison and full hardware lifecycle remain open.",
+  "followupRootReview": {
+    "candidateRevision": "7f56d06fe84ed160e02252b6a7b76a0e750b8152",
+    "decision": "changes requested; not integrated",
+    "agentScope": "Rollback/private notification persistence and suspension LoopUpdated outbox producer; whole source/identity integration remains pending.",
+    "rootControls": {
+      "storageFaults": {
+        "method": "Actual EISDIR failures in owned child processes with synthetic EventEmitter sockets; poll fault occurs in a real timer.",
+        "attach": {
+          "childExit": 1,
+          "leakedSocketAndTokenCacheEntries": 1
+        },
+        "close": {
+          "childExit": 1
+        },
+        "scheduledExpiryPoll": {
+          "childExit": 1
+        }
+      },
+      "concurrentOutbox": {
+        "method": "Hold first publisher promise, enqueue a second loop update, release first, await drain and observation window.",
+        "deliveredBeforeExplicitRecovery": [
+          "first-loop"
+        ],
+        "pendingBeforeExplicitRecovery": [
+          "second-loop"
+        ],
+        "activeDrainAfterward": false,
+        "deliveredAfterExplicitRecovery": [
+          "first-loop",
+          "second-loop"
+        ]
+      }
+    },
+    "artifacts": {
+      "callback-faults.mjs": "de644e12978e944b68919f8dd78159735d8beff0501a87cd7116bb1da573a275",
+      "callback-faults.json": "1888fe30c66f902273c00fd9cf424809b13a3313d88afa8474adc7236132bafc",
+      "concurrent-drain.mjs": "2db8be2e07cba0b991f79af1491140cde22614b3ddf6e63236ce6677450e37b6",
+      "concurrent-drain.json": "7e13a49dab67b8fb58186e67adf7234463869f92f7deb6e7e2f4bce089016a0a"
+    },
+    "requiredRepair": [
+      "Contain persistence errors in socket setup/close/poll callbacks; clean caches and continue polling/reconnect.",
+      "Schedule delivery for updates appended during an active drain without creating a tight failure retry loop."
+    ],
+    "qualification": "No real robot test or default authenticated event bridge acceptance. Harmless diagnostic wording is not a blocker."
+  }
 }

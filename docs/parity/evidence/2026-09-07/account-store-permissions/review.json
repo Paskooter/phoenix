@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "reviewedBy": "Codex root",
+  "decision": "accepted bounded Account snapshot permissions and imported-launcher restart repair; full H-10 remains open",
+  "candidateRevision": "1f4cf28c18bb4b8dd4e4f1e0cd12bdcd7238dd5e",
+  "behavior": "Account saves use exclusive private temporary snapshots and atomic replacement. New parent directories are private. Repeated saves retain private credential files independently of the caller umask. Failed writes clean only the current invocation temporary file.",
+  "before": {
+    "at": "2026-09-07T10:51:37.840Z",
+    "head": "0d768c0539326fa8fd6e64148d44ab80ca3fd1f9",
+    "checks": [
+      "initial-launch-private-store",
+      "real-signed-issuer",
+      "actual-account-suspend-200",
+      "suspension-persisted",
+      "baseline-restart-rejects-store-mode",
+      "baseline-mode-664"
+    ],
+    "savedMode": "664",
+    "restartError": "storeFile must be a private regular file (0600)",
+    "qualification": "Synthetic credentials, owned ephemeral real Phoenix services/TLS/account mutation/Hub sockets, no robot. Suspend uses existing LAN access-key parser (not signature-verification proof); CreateHubToken signature is real. Imported launcher under umask0002; CLI already sets0077."
+  },
+  "after": {
+    "at": "2026-09-07T10:52:08.431Z",
+    "head": "1f4cf28c18bb4b8dd4e4f1e0cd12bdcd7238dd5e",
+    "checks": [
+      "initial-launch-private-store",
+      "real-signed-issuer",
+      "actual-account-suspend-200",
+      "suspension-persisted",
+      "saved-store-private",
+      "restart-success",
+      "old-issued-token-listen-after-restart",
+      "old-issued-token-proactive-after-restart"
+    ],
+    "savedMode": "600",
+    "restartError": null,
+    "qualification": "Synthetic credentials, owned ephemeral real Phoenix services/TLS/account mutation/Hub sockets, no robot. Suspend uses existing LAN access-key parser (not signature-verification proof); CreateHubToken signature is real. Imported launcher under umask0002; CLI already sets0077."
+  },
+  "focusedCoverage": [
+    "Four umasks: 0000,0002,0022,0077; saved file0600 and new parent0700",
+    "Repeated replacement and complete synthetic account reload",
+    "Legacy unrelated temporary file is neither reused nor removed",
+    "Serialization failure preserves prior snapshot bytes",
+    "Real rename failure cleans owned temporary file and permits later successful save"
+  ],
+  "suite": {
+    "unitPassed": 720,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0,
+    "exitCode": 0,
+    "seconds": 51.4236712208949,
+    "inputsFrozen": true
+  },
+  "setupHistory": "First two strict attempts captured no cases because root-created absolute node_modules links could not resolve in the isolated container (first @phoenix/common, then express). Root copied external installed dependencies and used relative workspace links; the final complete npm test rerun passed on unchanged tracked inputs. Both failed attempts are retained.",
+  "artifacts": {
+    "probe.mjs": "4db76ed1fb6a03d9de7ff2eb385b43bcc690f342cb117b4c0dd894fc2d55993b",
+    "before.json": "c4a13ca327609621ec7ad4b8aef2196aa5f541fdd6afeda857e745e49c0e738a",
+    "launcher-restart.mjs": "0935d142e2efa21aecf61a162200261d8e7a26dc6ae611e00e7a98538bb19424",
+    "launcher-before.json": "85869c9f74c9bcdcc51bf662b44931093cc9b94a011de0139aa55abf357e11f0",
+    "launcher-after.json": "c566b6a2fa55428b32f8ac86740abc08914c08867e8d1f93509e79ed59bb87d4",
+    "suite/execution.json": "80ad34eda93c7ac50ca314e109652e465629980c4bf218a89e4b8587b6791059",
+    "gate-retry/execution.json": "82124690381fb58644f7ca7f4f63b5cef271f484ca53c6fa14c6741744d99603",
+    "suite-final/execution.json": "3f201953893a739f4395d60d494dfacf809581eb058dfddb445d3ff4bc7e3e18",
+    "dependency-copy.json": "1cbd94c4a10f6f49ec2aa84593e47e7e14652aa88d9d301e389c58a7e97cf6e3"
+  },
+  "limits": [
+    "No new robot execution. All new launcher controls use synthetic credentials and owned ephemeral services.",
+    "The command-line authenticated launcher already uses umask0077; the reproduced failure is its imported API under umask0002 after a real Account mutation.",
+    "This does not introduce general Account mutation rollback, cross-process locking, fsync durability, persistent robot deployment, or broader signature verification."
+  ]
+}

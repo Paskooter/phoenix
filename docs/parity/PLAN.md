@@ -264,3 +264,11 @@ Both socket paths recover after a rejected lookup, and actual Account service
 revocation/reactivation checks pass. Native expiry/refetch and persistent
 authenticated deployment remain open. README authentication and TLS guidance
 now describes the native signed-token exchange and current launcher accurately.
+
+The [Account snapshot restart repair](candidates/H-10-account-store-permissions-20260907.md)
+keeps credential files private across saves by library/standalone callers.
+Root verified a real Account mutation followed by launcher restart and reuse of
+the issued token on both Hub paths. The final suite passes720 units and strict43.
+Notification follow-up review also reproduced storage-fault crashes in socket
+callbacks/polling and a concurrent outbox update left waiting for explicit recovery;
+those substantive delivery failures remain with the agent for repair.

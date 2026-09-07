@@ -13,3 +13,12 @@ and permissions before integration.
 The [review](../evidence/2026-09-07/notification-pending/review.json) retains
 the control result. Automatic LoopUpdated production, verified account identity
 and complete socket/hardware acceptance remain open.
+
+The follow-up `7f56d06` adds rollback/private persistence and a suspension
+outbox, but root reproduced three further storage-fault crashes: connection
+setup, socket close, and the scheduled expiry poll. Failed setup also retains
+live cache entries. A separate controlled concurrency test leaves the second
+loop update waiting until explicit recovery when it arrives during an active
+drain. These substantive delivery failures require repair before integration;
+exact diagnostic wording is nonblocking. The linked review preserves the
+baseline controls and follow-up receipts separately.
