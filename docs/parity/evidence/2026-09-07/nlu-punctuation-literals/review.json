@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded input/rule punctuation repair; full N-08 remains open",
+  "reviewedBy": "Codex root",
+  "agentCandidateRevision": "c1257a2f899b602515e701b08c9559987ebc4020",
+  "integrationRevision": "d1262a970e9cc9c28b63d53e8b9133cc85efa1b7",
+  "integratedNluTreeEqualsAgentCandidate": true,
+  "behavior": "Preserve punctuation in ordinary input and rule words; character-class operators retain their separate expansion semantics. No utterance-specific exception.",
+  "fullReplay": {
+    "cases": 20528,
+    "matches": 20477,
+    "remainingDifferences": 51,
+    "fixedAgainstAccepted52": [
+      "hub-client:42:0:base"
+    ],
+    "newDifferences": 0,
+    "changedResiduals": 0,
+    "unchangedResiduals": 51,
+    "agentExitCode": 0,
+    "agentSeconds": 2131.715,
+    "rootReview": "Root independently reconciled all residuals and rehashed 30 recorded artifacts. Capture ran on stable uncommitted matcher/test bytes over 607; final c125 runtime matches those hashes. Root did not repeat the full 35-minute run.",
+    "scope": "HTTP status and parser data, not every transport field or native numeric score.",
+    "captureSha256": "3e1272da875c8084b9336ae82a4c9dc4ef2538c310b6bb7a76672322a738efb9",
+    "rootReviewSha256": "7f679ff3c73df0efa2f0d58c70057caec9acd54e004e319701fd07a16a2caf66"
+  },
+  "rootIntegration": {
+    "freshNativeCesCases": 7,
+    "freshNativeAndCandidateOutputsMatchReviewedControls": true,
+    "nativeRuntime": "Archived host parse binary with archived shared libraries, not Docker.",
+    "classApostropheCasesAgainstPreservedNativeOutputs": 21,
+    "classApostropheMatches": 21,
+    "freshHttpCases": 209,
+    "expectedMatches": 158,
+    "sameOutcomesAsAgent": 209,
+    "requestErrors": 0,
+    "unitPassed": 716,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictGaps": 0,
+    "npmTestExitCode": 0,
+    "npmTestSeconds": 22.064113965258002,
+    "allInputsStable": true,
+    "executionSha256": "994c0e4d43476fdb54c4149547008fcff2b3612cdd62bb404cd8384c4ed4e95f",
+    "regressionReviewSha256": "4aad431ff2616887358256f9d62d122592ef3af1ccfee5f9987bdc3b99bc0e57"
+  },
+  "retainedLimitations": [
+    "51 original AST residual differences remain.",
+    "Compiled-FST external coverage and deployment acceptance remain separately tracked.",
+    "No new robot, microphone or physical-ring acceptance from parser controls."
+  ],
+  "retainedHistory": "The earlier607 punctuation-only candidate remains rejected with 58 residuals. The combined repair restores all seven CES regressions and adds one repair over the accepted 52 baseline."
+}

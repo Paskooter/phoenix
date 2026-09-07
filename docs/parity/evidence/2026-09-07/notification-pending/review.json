@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "changes requested; not integrated",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "2d3563f7091f322aa8a56bb07557f3809f061da8",
+  "agentResults": "10 focused notification tests and 30 Classic tests reported passing; root source/delivery review remains pending.",
+  "rootFailureControl": {
+    "injection": "Owned temporary output path is a directory, causing persistence write to fail. Synthetic local account only.",
+    "tokenRotationThrows": true,
+    "previousTokenStillAccepted": false,
+    "removalThrows": true,
+    "pendingRowStillInMemory": false,
+    "diskBytesUnchanged": true,
+    "observedStoreMode": "0664",
+    "receiptSha256": "d70b9aa382491bbf574ad7e5ccc55b660f7b48d760d6269cea9c7b5471870566"
+  },
+  "requiredRepair": [
+    "Failed persistence must leave observable token/pending state consistent.",
+    "Delivery callback must handle persistence rejection without an unhandled exception.",
+    "Token-bearing store files need private permissions."
+  ],
+  "remaining": "Automatic LoopUpdated producer, verified account identity, source comparison and full hardware lifecycle remain open."
+}

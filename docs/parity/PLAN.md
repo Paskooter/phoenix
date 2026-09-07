@@ -250,3 +250,10 @@ is integrated after root source comparison, generator reproduction and final
 regression review. It preserves provider ordering/recovery and Unicode answer
 selection, and fixes repeated date placeholders in spoken Wolfram templates.
 Default deployment, account/attribution and full Q-01 remain open.
+
+The [combined punctuation repair](evidence/2026-09-07/nlu-punctuation-literals/review.json)
+is accepted: the default AST full corpus now has 51 residual differences, down
+from 52, with no new or changed failures. Root independently reviewed the full
+capture and passed fresh native/HTTP checks plus 716 units and strict43.
+The durable notification candidate remains unverified: root reproduced
+in-memory state changes after failed persistence and requested a repair.

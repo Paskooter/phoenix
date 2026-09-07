@@ -1,6 +1,9 @@
 # N-08 AST punctuation in ordinary rule literals
 
-Status: **candidate unverified; pending root review**
+Status: **bounded repair accepted by root and integrated**
+
+The [root review](../evidence/2026-09-07/nlu-punctuation-literals/review.json)
+records final integration tests and the remaining 51 differences.
 
 This candidate is a follow-up to the frozen punctuation integration replay at
 `607521f8c9df7d608af50e9af08ff6230547093b`. That replay preserved punctuation
@@ -54,7 +57,7 @@ The exact shell/Node control commands are retained in `native-controls/commands.
 (SHA-256 `0d6fd10f710dcfaf60b74c6629a6f1447bf5b45d042229caee53345deb23ba47`).
 
 The semantic comparison is `comparison.json` (SHA-256
-`27f9e63d7162da30aa3c4c3d99a254b99e1265906803f62a78c37a1cc75964`); the
+`27f9e63d7162da30aa3c04c3d99a254b99e1265906803f62a78c37a1cc75964b`); the
 archived launch FST is SHA-256
 `2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a`, and
 the native `parse` binary is SHA-256

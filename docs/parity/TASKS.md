@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser matches 20,476/20,528 original HTTP status/data requests: 52 residual differences, five repaired from 57, zero newly failing cases and unchanged shared residual outputs. Native class-word/apostrophe controls now match 21/21 after preserving apostrophes; the full corpus retains the same 52 residuals. The explicit portable JSON/gzip profile retains its full 20,534-case production comparison with zero differences/invariants and 16 gaps in eight unhosted external cases. Root accepts its complete bundle installer, existing binary/native compatibility and read-only Compose startup. The combined 677 unit tests and strict 43-case smoke pass. Temporary authenticated portable-parser Moth clock rendering, joke playback and proactive checks passed with independently verified rollback. Full N-08, the 52 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open. A subsequent punctuation candidate was rejected: its full replay repairs one case but adds seven c.e.s. failures (58 residuals versus accepted52). Main retains52; the general repair remains under review.
+The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open.
 
 Done when:
 
@@ -709,11 +709,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Preserve apostrophes in default AST input tokens and grammar literals. Root original Node 8 preparation and native/compiler checks pass: 21/21 native controls, up from 19. The completed 20,528-request HTTP replay retains 20,476 matches and the same 52 residuals; root reconciled all outputs and exact package identity. Root verification passes 677 unit tests, with seven skips, and all 43 strict smoke cases. Full N-08 remains open.
+Candidate scope: Bounded ordinary input/rule punctuation semantics. Full 20,528 status/data replay reviewed: 20,477 matches, 51 unchanged residuals, one repair, zero regressions. Root 7 native CES, 21 class/apostrophe comparisons, 209 HTTP regressions, 716 units and strict43 pass. Full N-08 remains open.
 
-Candidate report: [docs/parity/candidates/N-08-apostrophe-root-20260907.md](../../docs/parity/candidates/N-08-apostrophe-root-20260907.md).
+Candidate report: [docs/parity/candidates/N-08-ast-punctuation-literals-20260907.md](../../docs/parity/candidates/N-08-ast-punctuation-literals-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-apostrophes/review.json](../../docs/parity/evidence/2026-09-07/nlu-apostrophes/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-punctuation-literals/review.json](../../docs/parity/evidence/2026-09-07/nlu-punctuation-literals/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 
@@ -1488,7 +1488,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-02, A-03.
 
-Live/pending queues and sockets exist, but storage is ephemeral and full original delivery semantics have not been verified.
+Main notification storage remains ephemeral. Luna supplied an isolated durable queue/socket candidate 2d3563 with focused checks; root review found rejected persistence can still mutate in-memory tokens or pending rows, and the token store inherits broad file permissions. Changes requested before integration. Automatic LoopUpdated production, verified account identity and full delivery/hardware lifecycle remain open.
 
 Done when:
 
