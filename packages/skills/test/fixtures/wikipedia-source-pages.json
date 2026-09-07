@@ -1,0 +1,677 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "wikipediaPackage": "1.4.0 recovered Jibo fork",
+  "sourceControlSha256": "9beb673b1d2c773e808f389857bc09981aed4bd9db22d95c7e34bdd863e3405b",
+  "cases": [
+    {
+      "id": "wiki-non200-page-route",
+      "queryText": "who is John Henry Brooke",
+      "questionType": "who",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "John Henry Brooke"
+              ]
+            }
+          },
+          "response": {
+            "status": 503,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"John Henry Brooke\", \"fullurl\": \"https://en.wikipedia.org/wiki/John_Henry_Brooke\", \"extract\": \"Hon John Henry Brooke MLA (15 May 1826 \\u2013 8 January 1902), was a colonial Victorian politician.\", \"categories\": [{\"title\": \"Category:1825 births\"}, {\"title\": \"Category:1902 deaths\"}, {\"title\": \"Category:19th-century Australian politicians\"}, {\"title\": \"Category:All Wikipedia articles written in Australian English\"}, {\"title\": \"Category:All stub articles\"}, {\"title\": \"Category:Australian politician stubs\"}, {\"title\": \"Category:Members of the Victorian Legislative Assembly\"}, {\"title\": \"Category:People from Lincolnshire\"}, {\"title\": \"Category:Use Australian English from June 2015\"}, {\"title\": \"Category:Use dmy dates from June 2015\"}]}}}}"
+          }
+        }
+      ],
+      "expectedAnswer": "Hon John Henry Brooke MLA , was a colonial Victorian politician."
+    },
+    {
+      "id": "wiki-top-error-page-route",
+      "queryText": "who is John Henry Brooke",
+      "questionType": "who",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "John Henry Brooke"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"John Henry Brooke\", \"fullurl\": \"https://en.wikipedia.org/wiki/John_Henry_Brooke\", \"extract\": \"Hon John Henry Brooke MLA (15 May 1826 \\u2013 8 January 1902), was a colonial Victorian politician.\", \"categories\": [{\"title\": \"Category:1825 births\"}, {\"title\": \"Category:1902 deaths\"}, {\"title\": \"Category:19th-century Australian politicians\"}, {\"title\": \"Category:All Wikipedia articles written in Australian English\"}, {\"title\": \"Category:All stub articles\"}, {\"title\": \"Category:Australian politician stubs\"}, {\"title\": \"Category:Members of the Victorian Legislative Assembly\"}, {\"title\": \"Category:People from Lincolnshire\"}, {\"title\": \"Category:Use Australian English from June 2015\"}, {\"title\": \"Category:Use dmy dates from June 2015\"}]}}}, \"error\": {\"info\": \"ignored top-level diagnostic\"}}"
+          }
+        }
+      ],
+      "expectedAnswer": "Hon John Henry Brooke MLA , was a colonial Victorian politician."
+    },
+    {
+      "id": "wiki-redirect-route",
+      "queryText": "who is Alias Topic",
+      "questionType": "who",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Alias Topic"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Final Topic\", \"fullurl\": \"https://en.wikipedia.org/wiki/Final_Topic\", \"extract\": \"Alias Topic is an unresolved placeholder.\", \"categories\": []}}, \"redirects\": [{\"from\": \"Alias Topic\", \"to\": \"Final Topic\"}]}}"
+          }
+        },
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Final Topic"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Final Topic\", \"fullurl\": \"https://en.wikipedia.org/wiki/Final_Topic\", \"extract\": \"Final Topic is a resolved answer.\", \"categories\": []}}}}"
+          }
+        }
+      ],
+      "expectedAnswer": "Final Topic is a resolved answer."
+    },
+    {
+      "id": "wiki-invalid-redirect-route",
+      "queryText": "who is Alias Topic",
+      "questionType": "who",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Alias Topic"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Final Topic\", \"fullurl\": \"https://en.wikipedia.org/wiki/Final_Topic\", \"extract\": \"Alias Topic is an unresolved placeholder.\", \"categories\": []}}, \"redirects\": [{\"from\": \"Wrong Alias\", \"to\": \"Final Topic\"}]}}"
+          }
+        }
+      ],
+      "expectedAnswer": null
+    },
+    {
+      "id": "wiki-normalized-redirect-route",
+      "queryText": "who is alias topic",
+      "questionType": "who",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "alias topic"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Final Topic\", \"fullurl\": \"https://en.wikipedia.org/wiki/Final_Topic\", \"extract\": \"Alias Topic is an unresolved placeholder.\", \"categories\": []}}, \"redirects\": [{\"from\": \"Alias Topic\", \"to\": \"Final Topic\"}], \"normalized\": [{\"from\": \"alias topic\", \"to\": \"Alias Topic\"}]}}"
+          }
+        },
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Final Topic"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Final Topic\", \"fullurl\": \"https://en.wikipedia.org/wiki/Final_Topic\", \"extract\": \"Final Topic is a resolved answer.\", \"categories\": []}}}}"
+          }
+        }
+      ],
+      "expectedAnswer": "Final Topic is a resolved answer."
+    },
+    {
+      "id": "wiki-empty-pageprops-route",
+      "queryText": "what is Mercury",
+      "questionType": "what",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Mercury"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Mercury\", \"fullurl\": \"https://en.wikipedia.org/wiki/Mercury\", \"extract\": \"Mercury is an unresolved placeholder.\", \"categories\": [], \"pageprops\": {}}}}}"
+          }
+        },
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "format": [
+                "json"
+              ],
+              "prop": [
+                "revisions"
+              ],
+              "rvlimit": [
+                "1"
+              ],
+              "rvparse": [
+                ""
+              ],
+              "rvprop": [
+                "content"
+              ],
+              "titles": [
+                "Mercury"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Mercury\", \"revisions\": [{\"*\": \"<ul><li><a>Mercury (planet)</a></li></ul>\"}]}}}}"
+          }
+        },
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Mercury (planet)"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Mercury (planet)\", \"fullurl\": \"https://en.wikipedia.org/wiki/Mercury_(planet)\", \"extract\": \"Mercury (planet) is a resolved answer.\", \"categories\": []}}}}"
+          }
+        }
+      ],
+      "expectedAnswer": "I found a few things. Here's one of them.  Mercury is a resolved answer."
+    },
+    {
+      "id": "wiki-option-case-route",
+      "queryText": "what is Mercury",
+      "questionType": "what",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Mercury"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Mercury\", \"fullurl\": \"https://en.wikipedia.org/wiki/Mercury\", \"extract\": \"Mercury is an unresolved placeholder.\", \"categories\": [], \"pageprops\": {\"disambiguation\": \"\"}}}}}"
+          }
+        },
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "format": [
+                "json"
+              ],
+              "prop": [
+                "revisions"
+              ],
+              "rvlimit": [
+                "1"
+              ],
+              "rvparse": [
+                ""
+              ],
+              "rvprop": [
+                "content"
+              ],
+              "titles": [
+                "Mercury"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Mercury\", \"revisions\": [{\"*\": \"<ul><li><a>Sample Disambig Subject</a></li></ul>\"}]}}}}"
+          }
+        },
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "Sample Disambig Subject"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"Sample Disambig Subject\", \"fullurl\": \"https://en.wikipedia.org/wiki/Sample_Disambig_Subject\", \"extract\": \"Sample Disambig Subject is a resolved answer.\", \"categories\": []}}}}"
+          }
+        }
+      ],
+      "expectedAnswer": "I found a few things. Here's one of them.  Sample Disambig Subject is a resolved answer."
+    },
+    {
+      "id": "wiki-missing-page-url-route",
+      "queryText": "who is John Henry Brooke",
+      "questionType": "who",
+      "exchanges": [
+        {
+          "request": {
+            "method": "GET",
+            "path": "/w/api.php",
+            "params": {
+              "action": [
+                "query"
+              ],
+              "cllimit": [
+                "max"
+              ],
+              "exintro": [
+                ""
+              ],
+              "explaintext": [
+                ""
+              ],
+              "format": [
+                "json"
+              ],
+              "inprop": [
+                "url"
+              ],
+              "list": [
+                "allcategories"
+              ],
+              "ppprop": [
+                "disambiguation"
+              ],
+              "prop": [
+                "info|pageprops|extracts|categories"
+              ],
+              "redirects": [
+                ""
+              ],
+              "titles": [
+                "John Henry Brooke"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": "{\"query\": {\"pages\": {\"1\": {\"pageid\": 1, \"title\": \"John Henry Brooke\", \"extract\": \"Hon John Henry Brooke MLA (15 May 1826 \\u2013 8 January 1902), was a colonial Victorian politician.\", \"categories\": [{\"title\": \"Category:1825 births\"}, {\"title\": \"Category:1902 deaths\"}, {\"title\": \"Category:19th-century Australian politicians\"}, {\"title\": \"Category:All Wikipedia articles written in Australian English\"}, {\"title\": \"Category:All stub articles\"}, {\"title\": \"Category:Australian politician stubs\"}, {\"title\": \"Category:Members of the Victorian Legislative Assembly\"}, {\"title\": \"Category:People from Lincolnshire\"}, {\"title\": \"Category:Use Australian English from June 2015\"}, {\"title\": \"Category:Use dmy dates from June 2015\"}]}}}}"
+          }
+        }
+      ],
+      "expectedAnswer": null
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { createService } from '@phoenix/common';
 import {
   createGqaAnswerSkill,
   createGqaHttpRoute,
+  createGqaProviderPipeline,
 } from './gqaAnswerSkill.js';
 import {
   createWikipediaProvider,
@@ -91,7 +92,13 @@ export function createGqaWikipediaService({
     random,
   });
   const handler = createGqaAnswerSkill({
-    provider: sourceProfileProvider(provider),
+    provider: createGqaProviderPipeline({
+      providers: {
+        Bing: async () => ({}),
+        Wikipedia: sourceProfileProvider(provider),
+        'Wolfram Alpha': async () => ({}),
+      },
+    }),
     // The source uses one random stream for both provider disambiguation and
     // the selected GQA MIM prompt.  Sharing the injected stream also makes
     // source-shaped controls deterministic without changing production's

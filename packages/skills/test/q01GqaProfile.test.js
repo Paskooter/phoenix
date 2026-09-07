@@ -11,16 +11,15 @@ function page({
   extract = 'Fixture fact is a fixture fact.',
   categories = [],
   pageprops,
-  disambiguationOptions,
   missing,
 } = {}) {
   const value = {
     title,
+    fullurl: `https://en.wikipedia.org/wiki/${title}`,
     extract,
     categories: categories.map((category) => ({ title: `Category:${category}` })),
   };
   if (pageprops) value.pageprops = pageprops;
-  if (disambiguationOptions) value.disambiguationOptions = disambiguationOptions;
   if (missing !== undefined) value.missing = missing;
   return { query: { pages: { '1': value } } };
 }
@@ -62,12 +61,13 @@ async function withApiPeer(callback) {
     } else if (scenario === 'missing') raw = JSON.stringify(page({ title: 'Unknown fixture', extract: '', missing: '' }));
     else if (scenario === 'disambiguation') {
       const title = parsed.searchParams.get('titles');
-      raw = JSON.stringify(title === 'Mercury'
+      raw = JSON.stringify(parsed.searchParams.get('prop') === 'revisions'
+        ? { query: { pages: { '1': { revisions: [{ '*': '<ul><li><a>Mercury (planet)</a></li><li><a>Mercury (disambiguation)</a></li></ul>' }] } } } }
+        : title === 'Mercury'
         ? page({
           title,
           extract: '',
           pageprops: { disambiguation: '' },
-          disambiguationOptions: ['Mercury (planet)', 'Mercury (disambiguation)'],
         })
         : page({
           title,
@@ -273,9 +273,7 @@ test('Q-01 profile retains source Wikipedia timing keys on a successful answer',
   });
 });
 
-test('Q-01 profile measures Wikipedia phases from the source fork boundary', async () => {
-  // start, fork, tokenization-begin, request, response, end
-  const ticks = [1000, 1001, 1001, 1005, 1006];
+test('Q-01 profile retains source Wikipedia timing fields through the provider group', async () => {
   const service = await createGqaWikipediaService({
     endpoint: 'http://fixture.invalid/w/api.php',
     fetchImpl: async () => new Response(JSON.stringify(page()), {
@@ -284,16 +282,46 @@ test('Q-01 profile measures Wikipedia phases from the source fork boundary', asy
     }),
     timeoutMs: 100,
     random: () => 0,
-    clock: () => ticks.shift() ?? 1006,
   }).listen(0);
   try {
     const result = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
     assert.equal(result.response.status, 200);
-    assert.equal(result.body.timings.wiki, 0.005);
-    assert.equal(result.body.timings.wiki_tokenization, 0);
-    assert.equal(result.body.timings.total, 6);
+    assert.deepEqual(Object.keys(result.body.timings).sort(), [
+      'finalization_part', 'initialization_part', 'total', 'wiki', 'wiki_tokenization',
+    ]);
+    for (const value of Object.values(result.body.timings)) {
+      assert.equal(typeof value, 'number');
+      assert.ok(Number.isFinite(value));
+    }
   } finally {
     await new Promise((resolve) => service.close(resolve));
+  }
+});
+
+test('Q-01 Wikipedia profile falls back at the source default deadline and accepts the next request', { timeout: 8000 }, async () => {
+  let finishLate;
+  let calls = 0;
+  const reply = () => new Response(JSON.stringify(page()), { status: 200, headers: { 'content-type': 'application/json' } });
+  const service = await createGqaWikipediaService({
+    endpoint: 'http://fixture.invalid/w/api.php',
+    fetchImpl: () => ++calls === 1 ? new Promise(resolve => { finishLate = () => resolve(reply()); }) : Promise.resolve(reply()),
+    random: () => 0,
+  }).listen(0);
+  let watchdog;
+  try {
+    const result = await Promise.race([
+      postJson(service.address().port, '/answer_skill/v1/main', requestBody()),
+      new Promise((_, reject) => { watchdog = setTimeout(() => reject(new Error('source provider group deadline was not applied')), 5000); }),
+    ]);
+    clearTimeout(watchdog);
+    assertNoAnswerAction(result.body);
+    const following = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
+    assertWikipediaAction(following.body, 'Fixture fact is a fixture fact.');
+    assert.equal(calls, 2);
+  } finally {
+    clearTimeout(watchdog);
+    finishLate?.();
+    await new Promise(resolve => service.close(resolve));
   }
 });
 

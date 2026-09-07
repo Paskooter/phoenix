@@ -438,13 +438,9 @@ async function requestJson({ endpoint, params, fetchImpl, headers, signal }) {
   const url = buildUrl(endpoint, params);
   const response = await fetchImpl(url, { method: 'GET', headers, signal });
   const result = await readJson(response);
-  if (response && response.ok === false) {
-    const info = result.body?.error?.info || `HTTP ${response.status}`;
-    throw new Error(`Wikipedia API request failed: ${info}`);
-  }
-  if (result.body && result.body.error) {
-    throw new Error(`Wikipedia API error: ${result.body.error.info || 'unknown error'}`);
-  }
+  // The pinned Wikipedia _wiki_request returns requests.Response.json()
+  // directly. Page loading determines whether that data is usable, including
+  // non-200 responses and responses with unrelated top-level error fields.
   return { ...result, url: String(url), status: response?.status };
 }
 
@@ -516,16 +512,30 @@ async function loadPage({ endpoint, query, fetchImpl, headers, signal }) {
   const response = await requestJson({ endpoint, params: pageParams(query), fetchImpl, headers, signal });
   const page = pageFromBody(response.body, query);
   if (page.missing !== undefined) return { page, response };
-  if (page.pageprops?.disambiguation !== undefined || page.disambiguation === true) {
-    let options = page.disambiguationOptions || page.options || page.links;
-    if (!Array.isArray(options)) {
-      const revision = await requestJson({ endpoint, params: revisionParams(query), fetchImpl, headers, signal });
-      const revisionPages = revision.body?.query?.pages;
-      const revisionPage = revisionPages && revisionPages[Object.keys(revisionPages)[0]];
-      const html = revisionPage?.revisions?.[0]?.['*'] || revisionPage?.revisions?.[0]?.content || '';
-      options = optionsFromRevisionHtml(html);
+  const pageQuery = response.body.query;
+  if (Object.hasOwn(pageQuery, 'redirects')) {
+    const redirect = pageQuery.redirects[0];
+    let fromTitle = query;
+    if (Object.hasOwn(pageQuery, 'normalized')) {
+      const normalized = pageQuery.normalized[0];
+      if (!normalized || normalized.from !== query) throw new Error('Wikipedia normalized title does not match the requested title');
+      fromTitle = normalized.to;
     }
-    return { page: { ...page, disambiguationOptions: options || [] }, response };
+    if (!redirect || redirect.from !== fromTitle || !Object.hasOwn(redirect, 'to')) {
+      throw new Error('Wikipedia redirect does not match the requested title');
+    }
+    // WikipediaPage reloads the redirected title even when the first query
+    // already carries page data. That next response can change the answer.
+    return loadPage({ endpoint, query: redirect.to, fetchImpl, headers, signal });
+  }
+  if (Object.hasOwn(page, 'pageprops')) {
+    const revision = await requestJson({ endpoint, params: revisionParams(query), fetchImpl, headers, signal });
+    const pageId = Object.keys(response.body.query.pages)[0];
+    const html = revision.body.query.pages[pageId].revisions[0]['*'];
+    return { page: { ...page, disambiguationOptions: optionsFromRevisionHtml(html) }, response };
+  }
+  if (!Object.hasOwn(page, 'title') || !Object.hasOwn(page, 'fullurl')) {
+    throw new Error('Wikipedia page is missing its title or URL');
   }
   return { page, response };
 }
@@ -558,7 +568,7 @@ async function searchArticle({ query, endpoint, fetchImpl, headers, signal, rand
     const errors = [];
     for (const option of page.disambiguationOptions) {
       const optionText = String(option);
-      if (optionText.toLowerCase().includes('disambig')) {
+      if (optionText.includes('disambig')) {
         errors.push(`Skipping disambiguation page ${optionText}`);
         continue;
       }

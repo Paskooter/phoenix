@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { readFileSync } from 'node:fs';
 import {
   createGqaProviderPipeline,
   createWikipediaProvider,
@@ -14,7 +15,7 @@ import {
 } from '../src/gqaWikipediaProvider.js';
 
 function page({ title, extract, categories = [], pageprops, missing } = {}) {
-  const value = { title, extract, categories: categories.map((item) => ({ title: `Category:${item}` })) };
+  const value = { title, fullurl: `https://en.wikipedia.org/wiki/${title}`, extract, categories: categories.map((item) => ({ title: `Category:${item}` })) };
   if (pageprops) value.pageprops = pageprops;
   if (missing !== undefined) value.missing = missing;
   return { query: { pages: { '1': value } } };
@@ -52,6 +53,28 @@ function sendJson(response, status, body) {
   const raw = typeof body === 'string' ? body : JSON.stringify(body);
   response.writeHead(status, { 'content-type': 'application/json', 'content-length': Buffer.byteLength(raw) });
   response.end(raw);
+}
+
+const pageSourceControls = JSON.parse(readFileSync(new URL('./fixtures/wikipedia-source-pages.json', import.meta.url), 'utf8'));
+for (const control of pageSourceControls.cases) {
+  test(`Q-01 source page boundary: ${control.id}`, async () => {
+    let next = 0;
+    await withFixtureServer((_request, response) => {
+      const exchange = control.exchanges[next++];
+      assert.ok(exchange, 'unexpected additional page request');
+      sendJson(response, exchange.response.status, exchange.response.body);
+    }, async ({ endpoint, requests }) => {
+      const provider = createWikipediaProvider({ endpoint, random: () => 0 });
+      const result = await provider({ queryText: control.queryText, questionType: control.questionType });
+      if (control.expectedAnswer === null) assert.equal(result.response, undefined);
+      else assert.deepEqual(result.response, { type: 'string', payload: control.expectedAnswer });
+      assert.deepEqual(requests.map(request => {
+        const url = new URL(request.url, endpoint);
+        return { method: request.method, path: url.pathname,
+          params: Object.fromEntries([...url.searchParams.keys()].map(key => [key, url.searchParams.getAll(key)])) };
+      }), control.exchanges.map(exchange => exchange.request));
+    });
+  });
 }
 
 test('Q-01 Wikipedia adapter follows source success request and result contract', async () => {
@@ -178,7 +201,7 @@ test('Q-01 Wikipedia malformed and HTTP responses remain visible as provider err
     const provider = createWikipediaProvider({ endpoint });
     const output = await provider({ queryText: 'what is a fixture', questionType: 'what' });
     assert.match(output.message, /Wikipedia query 'fixture' raised unexpected exception/);
-    assert.match(output.message, /upstream unavailable/);
+    assert.equal(output.response, undefined);
   });
 
   await withFixtureServer((_request, response) => {
