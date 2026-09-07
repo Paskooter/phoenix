@@ -236,3 +236,11 @@ The [punctuation candidate was rejected](evidence/2026-09-07/nlu-punctuation-rej
 it repairs one full-corpus case but adds seven failures involving “c.e.s.”,
 raising residual differences from 52 to 58. Main retains the accepted parser.
 These bounded reviews do not change the 8/79 fully verified task count.
+
+The [authenticated development launcher](../../scripts/parity-robot/AUTHENTICATED.md)
+is integrated with a Classic HTTPS server that retains notification upgrades.
+Thirty local checks, 678 unit tests and strict43 pass. A
+[real Moth trial](evidence/2026-09-07/hardware/authenticated-launcher/review.json)
+verified native TLS token issuance, both authenticated Hub paths, clock rendering
+and a synthetic proactive exchange, followed by independent rollback checks.
+Persistent deployment, reboot supervision and microphone/ring acceptance remain open.

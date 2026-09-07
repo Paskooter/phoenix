@@ -907,7 +907,7 @@
         "packages/gateway/test/hubAuth.test.js",
         "docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json"
       ],
-      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth checkpoint trials. The latest trial on 614e1e8 used the 98-graph portable parser and real signed TLS CreateHubToken, matching listen/proactive upgrades, rendered clock, joke playback calls and synthetic proactive exchange. Root independently verified rollback of configuration, credentials and trust; 3150063 remains the diagnostic backend. Empty microphone timeout does not verify speech recognition, wake or the physical ring. A previous BE exit was recovered by relaunching identical 11.0.1 and retesting clock; its cause remains open. Persistent authenticated deployment, expiry, per-request retry grouping and account-backed extension remain unverified.",
+      "finding": "Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open.",
       "acceptance": [
         "Use original client tokens to compare missing/malformed bearer headers, signatures, expiry/claims, unknown WS paths and CONTEXT identity mismatch.",
         "Verify preprocessing defaults, authenticated robot/account identity, disabled-auth compatibility and no cross-robot identity substitution.",
@@ -3217,13 +3217,23 @@
         "scripts/run-sim-stack.sh",
         "README.md"
       ],
-      "finding": "Ports look similar, but environment aliases, default skill routes, state durability and reference substitution have not been proven.",
+      "finding": "The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open.",
       "acceptance": [
         "Test a clean install and isolated native/compose deployments with correct service names, ports, configuration, startup/shutdown and readiness.",
         "Verify migration from the current Phoenix stores and, where available, original database fixtures with backup/restore and rollback.",
         "Make verification commands use temporary stores/test accounts and avoid depending on this machine's .env, siblings or live robot."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Codex root",
+        "candidateRevision": "135cd7dd0ca08e762c4fd8536acad0f73ac3deb9",
+        "integrationRevision": "a8ee4bf8b7ac7044a86381956fa2a59213e641bf",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded authenticated development process launcher and shared Classic HTTPS/notification server. 30 local checks, 678 units, strict43, real native TLS/clock/proactive trial and independent rollback pass. Full R-02 and persistent deployment remain open.",
+        "artifact": "scripts/parity-robot/AUTHENTICATED.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/authenticated-launcher/review.json"
+      }
     },
     {
       "id": "R-03",

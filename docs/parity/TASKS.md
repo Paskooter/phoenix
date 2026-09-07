@@ -414,7 +414,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth checkpoint trials. The latest trial on 614e1e8 used the 98-graph portable parser and real signed TLS CreateHubToken, matching listen/proactive upgrades, rendered clock, joke playback calls and synthetic proactive exchange. Root independently verified rollback of configuration, credentials and trust; 3150063 remains the diagnostic backend. Empty microphone timeout does not verify speech recognition, wake or the physical ring. A previous BE exit was recovered by relaunching identical 11.0.1 and retesting clock; its cause remains open. Persistent authenticated deployment, expiry, per-request retry grouping and account-backed extension remain unverified.
+Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open.
 
 Done when:
 
@@ -1684,7 +1684,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: R-01, A-02, A-06, A-09.
 
-Ports look similar, but environment aliases, default skill routes, state durability and reference substitution have not been proven.
+The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open.
 
 Done when:
 
@@ -1697,6 +1697,14 @@ Source: [Original Pegasus docker-compose.yml](https://pvindex.org/gitea/jiboV2/p
 Phoenix: [docker-compose.yml](../../docker-compose.yml); [scripts/run-compose-stack.sh](../../scripts/run-compose-stack.sh); [scripts/run-sim-stack.sh](../../scripts/run-sim-stack.sh); [README.md](../../README.md).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Codex root.
+
+Candidate scope: Bounded authenticated development process launcher and shared Classic HTTPS/notification server. 30 local checks, 678 units, strict43, real native TLS/clock/proactive trial and independent rollback pass. Full R-02 and persistent deployment remain open.
+
+Candidate report: [scripts/parity-robot/AUTHENTICATED.md](../../scripts/parity-robot/AUTHENTICATED.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/hardware/authenticated-launcher/review.json](../../docs/parity/evidence/2026-09-07/hardware/authenticated-launcher/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### R-03 — Verify reliability, limits and observability
 
