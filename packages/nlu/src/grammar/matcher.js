@@ -135,31 +135,28 @@ function sourceWildcardCost(tokens, start, count, prefix) {
 
 function freshEnts(prev) { return Object.assign({}, prev); }
 
-// Tokenize an input string into lowercased word tokens. Matches the
-// cloud's tokenization closely enough — strip punctuation, split on
-// whitespace, lowercase. Contractions get split on apostrophe to mirror
-// the cloud which sees `i'm` as `i 'm` or `i'm` per its tokenizer; we
-// keep them whole and let rules handle `i\'m` literals as one token.
+// Tokenize an input string into lowercased word tokens. The original public
+// handler trims the request and RobustParserClient lowercases it, then the
+// native parser splits only on whitespace and consumes every remaining byte.
+// Keep apostrophes in the token: grammar authors use them as real character
+// arcs (and optional apostrophes are written explicitly in character rules).
 export function tokenize(text) {
   if (!text) return [];
-  // Strip apostrophes: typed input frequently lacks them ("whats" vs "what's"),
-  // and ASR transcripts vary. Comparing both sides apostrophe-free in `lit`
-  // matching makes `what's` in the rule and "whats" in the input equivalent.
   return text
     .toLowerCase()
-    .replace(/['’]/g, '')
     .replace(/[.,!?;:]+/g, ' ')
     .split(/\s+/)
     .filter(Boolean);
 }
-// Same strip applied to rule lits so they compare equal to tokenized input.
+// Apply the same case/punctuation normalization to rule literals while
+// retaining apostrophes, whose presence is source-observable.
 function _norm(s) {
   // The source grammar spells abbreviations inside character classes as
   // `u?.s?.`/`b?.e?.t?.`; the reference token matcher treats those optional
   // punctuation marks as part of the same word. Normalize them on rule arcs
-  // just as tokenize() normalizes apostrophes, so source-backed event and
+  // just as tokenize() normalizes punctuation, so source-backed event and
   // entity vocabularies remain usable for ordinary ASR text ("us", "bet").
-  return String(s).toLowerCase().replace(/['’]/g, '').replace(/[.,!?;:]+/g, '');
+  return String(s).toLowerCase().replace(/[.,!?;:]+/g, '');
 }
 
 // Apply tag specs (from a node's .tags) against a sub-match's subFields,
@@ -220,7 +217,8 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       return;
     }
     case 'lit': {
-      // Lowercased + apostrophe-stripped equality (see tokenize/_norm).
+      // Lowercased source-token equality (see tokenize/_norm); apostrophes
+      // remain part of the token and therefore require an explicit grammar arc.
       // Keep literal specificity at one grammar-word unit. Wildcard arc costs
       // below use the source's byte heuristic in this bounded repair.
       if (start < tokens.length && (tokens[start] === _norm(node.word) || eqEquals(ctx.eq, tokens[start], _norm(node.word)))) {
