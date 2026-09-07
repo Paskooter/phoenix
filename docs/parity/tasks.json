@@ -2964,7 +2964,7 @@
       "phoenix": [
         "packages/classic/src/notification.js"
       ],
-      "finding": "Root accepted the local durable notification lifecycle and suspension outbox at29ffac3 after fixing persistence rollback, callback/poll crashes and concurrent update delivery. Fresh original Node8 modules, complete source producer payload, local TLS restart delivery,740 units and strict43 pass. Token issuance still uses the LAN access-key/device fallback while the producer correctly uses a robot Account document ID; verified identity resolution is next. No default authenticated event bridge, all Loop-save producers, shared store or full robot lifecycle acceptance is claimed.",
+      "finding": "Root accepted durable local notification lifecycle, verified Account document identity, source validation and the authenticated launcher suspension bridge/startup recovery. Original23 Hapi controls, root23 signed HTTP comparisons, verifiedTLS isolation/restart and751 units/strict43 pass. Other Loop-save producers, distributed persistence/transport and real-robot notification delivery remain open.",
       "acceptance": [
         "Compare token issuance/reuse, socket authentication, status, framing, delivery/reconnect/expiry and queue behavior with the original consumer.",
         "Verify ordering, replay/ack behavior where present in source, persistence and multiple-device/account isolation.",
@@ -2974,7 +2974,7 @@
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max / http_contract_repair; Codex root",
-        "scope": "Repair signed payload validation before token mutation, then wire verified Account identity and the durable suspension publisher into the authenticated launcher. Verify source/client behavior, isolation and restart; full A-10 remains open."
+        "scope": "Verify and connect the real robot Notification socket endpoint, then remaining Loop-save producers/event types. Review shared persistence/transport boundaries; only fully verified A-10 counts."
       },
       "implementationReviewHistory": [
         {
@@ -3001,16 +3001,32 @@
           "reviewedBy": "Codex root",
           "scope": "Malformed signed token requests rotate credentials and invalidate the prior token. This changes state and recovery, not merely error wording.",
           "artifact": "docs/parity/evidence/2026-09-07/notification-auth-validation/review.json"
+        },
+        {
+          "state": "changes_requested",
+          "assignee": "Codex root",
+          "candidateRevision": "2320a2714f4bf7efff7a93ae971424170fb8fc89",
+          "scope": "Root found missing-body token mutation and top-level null status differences; repaired in902cea1.",
+          "artifact": "docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "902cea18c8b8d342505c56497e20267921928a67",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded verified Notification account identity, source body validation, default colocated suspension publisher and startup recovery. Original23 Hapi cases, root23 signed HTTP cases, verifiedTLS bridge,751 units and strict43 pass. Full A-10 remains open.",
+          "artifact": "docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-authenticated-bridge/review.json"
         }
       ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / http_contract_repair; Codex root",
-        "candidateRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+        "candidateRevision": "902cea18c8b8d342505c56497e20267921928a67",
         "reviewedBy": "Codex root",
-        "scope": "Bounded durable local notification/socket lifecycle and explicit suspension outbox, repaired callback/race failures, fresh original Node8 controls, local TLS restart delivery,740 units and strict43. Whole A-10 remains open.",
-        "artifact": "docs/parity/candidates/A-10-notification-root-review-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-pending/review.json"
+        "scope": "Bounded verified Notification account identity, source body validation, default colocated suspension publisher and startup recovery. Original23 Hapi cases, root23 signed HTTP cases, verifiedTLS bridge,751 units and strict43 pass. Full A-10 remains open.",
+        "artifact": "docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-authenticated-bridge/review.json"
       }
     },
     {

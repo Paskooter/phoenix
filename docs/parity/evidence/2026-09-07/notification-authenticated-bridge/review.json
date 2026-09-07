@@ -1,0 +1,348 @@
+{
+  "state": "accepted_bounded",
+  "reviewedBy": "Codex root",
+  "agentRevision": "723f347a2f8e052532af46eb7ff96b7c29b274db",
+  "rootRevision": "902cea18c8b8d342505c56497e20267921928a67",
+  "scope": "Authenticated development launcher shares the Account Store with verified Notification identity resolution and attaches the durable Loop suspension publisher after Classic readiness; startup recovers retained outbox rows.",
+  "originalValidation": {
+    "source": {
+      "handlerRepository": "jiborobot/srv-notification-ws",
+      "handlerRevision": "e42bfe01506a8febf3005ac536fda735bba49d0d",
+      "handlerPath": "src/handlers/handler.ts",
+      "handlerSha256": "ded461b5a019553a2ac3f38e2973675fbd266ab7cdc3f47b0bf593b451b6a78c",
+      "serverVersion": "4.0.12",
+      "joiVersion": "10.5.2",
+      "hapiVersion": "16.4.1",
+      "boomVersion": "5.1.0",
+      "validateJsSha256": "1717f29cdbecee099841e161bd00308a1ec24b5b612b87179f360c5169ec2fff",
+      "joiIndexSha256": "93442dc3460f1a9b80aca3b9529101808065040029055a09a2052fe35e156b95",
+      "node": "v8.9.4"
+    },
+    "hapiCases": 23,
+    "success": 5,
+    "rejected": 18,
+    "invalidRowsDoNotInvokeHandler": true,
+    "qualification": "Executed actual archived decorators/Joi/Hapi under Node8 with a counted handler seam, not the original complete gateway. Root reviewed and independently rehashed five artifacts."
+  },
+  "rootHttpMatrix": {
+    "scope": "Actual candidate signed HTTP versus original decorated Hapi service boundary; upstream original gateway not executed in this matrix",
+    "rows": [
+      {
+        "id": "http-new-missing-payload",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-empty-object",
+        "sourceStatus": 200,
+        "candidateStatus": 200,
+        "statusEqual": true,
+        "rejectionStructureEqual": null,
+        "priorTokenRetained": false
+      },
+      {
+        "id": "http-new-valid-device",
+        "sourceStatus": 200,
+        "candidateStatus": 200,
+        "statusEqual": true,
+        "rejectionStructureEqual": null,
+        "priorTokenRetained": false
+      },
+      {
+        "id": "http-new-unknown-only",
+        "sourceStatus": 200,
+        "candidateStatus": 200,
+        "statusEqual": true,
+        "rejectionStructureEqual": null,
+        "priorTokenRetained": false
+      },
+      {
+        "id": "http-new-empty-device",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-null-device",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-number-device",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-array-device",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-object-device",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-top-array",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-new-top-null",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-missing-payload",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-empty-object",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-valid",
+        "sourceStatus": 200,
+        "candidateStatus": 200,
+        "statusEqual": true,
+        "rejectionStructureEqual": null,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-valid-plus-unknown",
+        "sourceStatus": 200,
+        "candidateStatus": 200,
+        "statusEqual": true,
+        "rejectionStructureEqual": null,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-empty-account",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-null-account",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-number-account",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-boolean-account",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-array-account",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-object-account",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-top-array",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      },
+      {
+        "id": "http-status-top-null",
+        "sourceStatus": 422,
+        "candidateStatus": 422,
+        "statusEqual": true,
+        "rejectionStructureEqual": true,
+        "priorTokenRetained": true
+      }
+    ]
+  },
+  "rootLauncher": {
+    "baseRevision": "902cea18c8b8d342505c56497e20267921928a67",
+    "node": "v22.22.0",
+    "resolverAttached": true,
+    "initialRecovery": {
+      "published": 0,
+      "retained": 0
+    },
+    "createHubToken": {
+      "status": 200,
+      "claims": {
+        "id": "a10-launcher-robot-a",
+        "secretClaimPresent": true,
+        "ttlSeconds": 10800
+      }
+    },
+    "validation": {
+      "validStatus": 200,
+      "invalidStatuses": [
+        422,
+        422,
+        422,
+        422
+      ],
+      "validationStatus": 422,
+      "priorTokenStillValid": true
+    },
+    "delivery": {
+      "suspendStatus": 200,
+      "event": {
+        "name": "LoopUpdated",
+        "skillId": "-1",
+        "loopId": "a10-launcher-loop-a",
+        "accountId": "a10-launcher-robot-a",
+        "isSuspended": true
+      },
+      "accountBReceivedA": false,
+      "getStatusInvalidStatuses": [
+        422,
+        422,
+        422,
+        422
+      ],
+      "crossAccountStatus": {
+        "status": 200,
+        "connected": true
+      },
+      "rejectedCaller": {
+        "status": 401,
+        "errorType": "ACCESS_KEY_NOT_FOUND"
+      }
+    },
+    "offline": {
+      "suspendStatus": 200,
+      "retainedBeforeRestart": 1
+    },
+    "restartRecovery": {
+      "recovery": {
+        "published": 1,
+        "retained": 0
+      },
+      "eventName": "LoopUpdated",
+      "loopId": "a10-launcher-loop-c",
+      "accountId": "a10-launcher-robot-c",
+      "isSuspended": true,
+      "pendingAfterSuccessfulSend": 0
+    },
+    "verifiedTLS": true
+  },
+  "rootSuite": {
+    "exit": 0,
+    "elapsedSeconds": 227.94660829519853,
+    "revision": "902cea18c8b8d342505c56497e20267921928a67",
+    "reason": "Previous suite hit existing outbox test1000ms watchdog under measured93percent full I/O pressure; unchanged-runtime rerun. Original failure preserved.",
+    "unitPassed": 751,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0
+  },
+  "priorFailures": [
+    {
+      "revision": "f779a269f02d3d9893074f80306c1e343e782b5b",
+      "finding": "Malformed signed deviceId fields accepted and rotated token; repaired."
+    },
+    {
+      "revision": "2320a2714f4bf7efff7a93ae971424170fb8fc89",
+      "finding": "Empty HTTP request body became an empty object and rotated token; top-level null returned400 before Hapi validation. Root fixed Notification-specific body/default/parser handling; other registrations retain prior defaults."
+    },
+    {
+      "revision": "902cea18c8b8d342505c56497e20267921928a67",
+      "finding": "First full suite failed existing outbox1000ms watchdog during high measured host I/O pressure. Same unchanged candidate passes isolated3 concurrency tests and complete751/strict43 rerun. Original failure retained; no test timeout or product code weakened."
+    }
+  ],
+  "limits": [
+    "Only Loop suspension is connected; other Loop-save producers and event types remain open.",
+    "Colocated file-backed development bridge; no full SNS/SQS, Mongo transaction or cross-process locking acceptance.",
+    "Actual Moth remains on deployed29ffac3; this new bridge is not yet robot verified.",
+    "Source error prose and stacks are nonblocking; status, envelope categories, token state, isolation and recovery are checked."
+  ],
+  "artifacts": [
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/source-matrix.json",
+      "sha256": "da81cb3f8b93edd98ec16dbf19f5e89756cfef392f24796010ecba2e7e65951b"
+    },
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/source-artifact-review.json",
+      "sha256": "2659c4ff41bd674d18c520c9fddfa5da5e87e6f8795a4f7fe391c3f2df21c8f7"
+    },
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/launcher.json",
+      "sha256": "1681a6d55dd99e1a92c2931f1c5fefc31a2c8fc891a64855fdfea1b354753d0b"
+    },
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/launcher.stdout",
+      "sha256": "01f6e5ed4904e49755f8c4866dc31d62c2dbbb8d6c3eec0b90515b0bd1548921"
+    },
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/npm-test.json",
+      "sha256": "8db8695fd5440502bdedace24cffde427772fe5581ad824fcbc3a8b4ce93523a"
+    },
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/npm-test-retry.json",
+      "sha256": "87e087099e92be77233f3eebfede8c382a52302084a2f9da141406abf3013c3c"
+    },
+    {
+      "path": ".parity/reviews/a10-authenticated-final-root-20260907/outbox-focused.stdout",
+      "sha256": "d8f2c4cc6a67626af2ab39a309a40593b5d059d107b9ff0527322357c96782fe"
+    }
+  ]
+}

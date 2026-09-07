@@ -309,3 +309,10 @@ Root verified native TLS issuance and both Hub paths, a clock turn after normal
 service restart, and independent idle/health/configuration/credential checks.
 The older backend is available for rollback. The robot trust bind still needs
 a boot-persistent solution; microphone/ring and Notification remain open.
+
+The [authenticated notification bridge](candidates/A-10-authenticated-bridge-root-20260907.md)
+is accepted for the colocated launcher. Root repaired omitted/null HTTP body
+handling before token mutation, matched23 original Hapi cases, and verified
+TLS account isolation and restart recovery;751 units and strict43 pass.
+Moth remains on29ffac3 until a separate deployment check. Notification socket
+configuration and remaining Loop-save producers are the next A-10 work.

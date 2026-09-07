@@ -1488,7 +1488,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: A-02, A-03.
 
-Root accepted the local durable notification lifecycle and suspension outbox at29ffac3 after fixing persistence rollback, callback/poll crashes and concurrent update delivery. Fresh original Node8 modules, complete source producer payload, local TLS restart delivery,740 units and strict43 pass. Token issuance still uses the LAN access-key/device fallback while the producer correctly uses a robot Account document ID; verified identity resolution is next. No default authenticated event bridge, all Loop-save producers, shared store or full robot lifecycle acceptance is claimed.
+Root accepted durable local notification lifecycle, verified Account document identity, source validation and the authenticated launcher suspension bridge/startup recovery. Original23 Hapi controls, root23 signed HTTP comparisons, verifiedTLS isolation/restart and751 units/strict43 pass. Other Loop-save producers, distributed persistence/transport and real-robot notification delivery remain open.
 
 Done when:
 
@@ -1504,11 +1504,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Bounded durable local notification/socket lifecycle and explicit suspension outbox, repaired callback/race failures, fresh original Node8 controls, local TLS restart delivery,740 units and strict43. Whole A-10 remains open.
+Candidate scope: Bounded verified Notification account identity, source body validation, default colocated suspension publisher and startup recovery. Original23 Hapi cases, root23 signed HTTP cases, verifiedTLS bridge,751 units and strict43 pass. Full A-10 remains open.
 
-Candidate report: [docs/parity/candidates/A-10-notification-root-review-20260907.md](../../docs/parity/candidates/A-10-notification-root-review-20260907.md).
+Candidate report: [docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md](../../docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/notification-pending/review.json](../../docs/parity/evidence/2026-09-07/notification-pending/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/notification-authenticated-bridge/review.json](../../docs/parity/evidence/2026-09-07/notification-authenticated-bridge/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-11 — Complete key exchange, backup and binary-key operations
 
