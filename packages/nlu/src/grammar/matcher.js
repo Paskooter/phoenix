@@ -144,18 +144,18 @@ export function tokenize(text) {
   if (!text) return [];
   return text
     .toLowerCase()
-    .replace(/[.,!?;:]+/g, ' ')
     .split(/\s+/)
     .filter(Boolean);
 }
-// Apply the same case/punctuation normalization to rule literals while
-// retaining apostrophes, whose presence is source-observable.
+// Rule-literal normalization is grammar-specific: punctuation used by the
+// optional character-class spellings is removed from rule arcs. Input
+// tokenization above deliberately leaves source punctuation intact, including
+// apostrophes whose presence is source-observable.
 function _norm(s) {
   // The source grammar spells abbreviations inside character classes as
-  // `u?.s?.`/`b?.e?.t?.`; the reference token matcher treats those optional
-  // punctuation marks as part of the same word. Normalize them on rule arcs
-  // just as tokenize() normalizes punctuation, so source-backed event and
-  // entity vocabularies remain usable for ordinary ASR text ("us", "bet").
+  // `u?.s?.`/`b?.e?.t?.`; normalize those optional punctuation marks on rule
+  // arcs so source-backed event and entity vocabularies remain usable for
+  // ordinary ASR text ("us", "bet").
   return String(s).toLowerCase().replace(/[.,!?;:]+/g, '');
 }
 

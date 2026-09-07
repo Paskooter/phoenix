@@ -29,8 +29,9 @@ export function lex(source) {
   // Normalize unicode the hand-authored grammars contain: non-breaking spaces
   // (U+00A0, e.g. `gray |<nbsp> grey` in hue-control) → regular space; curly
   // apostrophes/quotes (U+2019/U+2018, e.g. `let’s` in gui_nav) → straight `'`
-  // so they tokenize as ordinary word chars (the matcher strips apostrophes
-  // anyway). Without this a handful of real grammars fail to lex.
+  // so they tokenize as ordinary word chars; the matcher preserves apostrophes
+  // as source-visible input characters. Without this a handful of real
+  // grammars fail to lex.
   source = source.replace(/[\u00A0\u2007\u202F\u200B]/g, " ").replace(/[\u2018\u2019]/g, "'");
   const tokens = [];
   let i = 0;
