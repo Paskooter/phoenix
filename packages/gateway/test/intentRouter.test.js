@@ -151,3 +151,32 @@ test('groups entity branches in tree traversal order before applying weight sort
     intent: 'ask', entities: { a: 'x', b: 'y', c: 'z' },
   }).map(decision => decision.skillID), ['path-ab', 'path-ac', 'path-ba']);
 });
+
+const originalRouter = JSON.parse(readFileSync(new URL('./fixtures/intent-router-original.json', import.meta.url)));
+
+function capturedValue(value) {
+  if (value === undefined) return { type: 'undefined' };
+  if (value === null) return { type: 'null' };
+  if (Array.isArray(value)) return value.map(capturedValue);
+  if (typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, capturedValue(item)]));
+  }
+  return value;
+}
+
+test('matches all original routing controls, including complete decision order and failures', () => {
+  for (const control of originalRouter.cases) {
+    let route;
+    let decisions;
+    let errorName = null;
+    try {
+      const router = new IntentRouter(control.config);
+      route = router.getSkillIDFromNLU(control.nlu);
+      if (control.nlu?.intent) decisions = router.getDecisions(control.nlu);
+    } catch (error) {
+      errorName = error.name;
+    }
+    assert.deepEqual({ route: capturedValue(route), decisions: capturedValue(decisions) }, control.expected, control.id);
+    assert.equal(errorName, control.errorName, control.id);
+  }
+});

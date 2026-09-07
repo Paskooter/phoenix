@@ -1,0 +1,1823 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "Node8.9.4",
+  "sourceCaptureSha256": "2462664afcbe1cf889bb15649441723f13af11aa280064437213c948c3735004",
+  "boundary": "Route and complete decision arrays are preserved, including undefined/null and repeated-call ordering. Failure classes agree; wording is nonblocking under the user compatibility policy.",
+  "cases": [
+    {
+      "id": "no-nlu",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": null
+    },
+    {
+      "id": "no-intent",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": null
+    },
+    {
+      "id": "no-launch-rule",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "global"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": [
+          {
+            "skillID": "basic",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "unknown-intent",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "missing",
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "case-insensitive-intent",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "Ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "aSk",
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "skillID": "basic",
+          "weight": 0
+        },
+        "decisions": [
+          {
+            "skillID": "basic",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "bare-without-entities",
+      "config": [
+        {
+          "id": "bare",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "arm": "bare"
+              }
+            }
+          ]
+        },
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "x"
+                }
+              ],
+              "memo": {
+                "arm": "exact"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ]
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        },
+        "decisions": [
+          {
+            "memo": {
+              "arm": "bare"
+            },
+            "skillID": "bare",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "bare-with-null-entities",
+      "config": [
+        {
+          "id": "bare",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "arm": "bare"
+              }
+            }
+          ]
+        },
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "x"
+                }
+              ],
+              "memo": {
+                "arm": "exact"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": null
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        },
+        "decisions": [
+          {
+            "memo": {
+              "arm": "bare"
+            },
+            "skillID": "bare",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-case-insensitive-scalar",
+      "config": [
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "Pizza"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": "pizza"
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "exact",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "skillID": "exact",
+            "weight": 1
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-number-coercion",
+      "config": [
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "quantity",
+                  "value": "5"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "quantity": 5
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "exact",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "skillID": "exact",
+            "weight": 1
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-boolean-coercion",
+      "config": [
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "flag",
+                  "value": "true"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "flag": true
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "exact",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "skillID": "exact",
+            "weight": 1
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-empty-string",
+      "config": [
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": ""
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-null",
+      "config": [
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": null
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-array-member",
+      "config": [
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "Pizza"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": [
+            "salad",
+            "pizza"
+          ]
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "exact",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "skillID": "exact",
+            "weight": 1
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "not-case-insensitive",
+      "config": [
+        {
+          "id": "not",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "Pizza",
+                  "matchRule": "NOT"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": "pizza"
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "not-array-member",
+      "config": [
+        {
+          "id": "not",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "Pizza",
+                  "matchRule": "NOT"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": [
+            "salad",
+            "pizza"
+          ]
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "not-empty-string",
+      "config": [
+        {
+          "id": "not",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "Pizza",
+                  "matchRule": "NOT"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": ""
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "not-missing",
+      "config": [
+        {
+          "id": "not",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "Pizza",
+                  "matchRule": "NOT"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "wildcard-empty-values",
+      "config": [
+        {
+          "id": "any",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "value",
+                  "value": "*"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "value": [
+            "",
+            null,
+            []
+          ]
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "wildcard-nested-value",
+      "config": [
+        {
+          "id": "any",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "value",
+                  "value": "*"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "value": [
+            [
+              ""
+            ],
+            [
+              {
+                "name": "x"
+              }
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "any",
+          "weight": 0.5
+        },
+        "decisions": [
+          {
+            "skillID": "any",
+            "weight": 0.5
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "nested-object-exact",
+      "config": [
+        {
+          "id": "nested",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "properties.kind",
+                  "value": "Marinara"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "properties": {
+            "kind": "marinara"
+          }
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "nested",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "skillID": "nested",
+            "weight": 1
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "nested-object-wildcard",
+      "config": [
+        {
+          "id": "nested",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "properties",
+                  "value": "*"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "properties": {
+            "kind": ""
+          }
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "nested",
+          "weight": 0.5
+        },
+        "decisions": [
+          {
+            "skillID": "nested",
+            "weight": 0.5
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "nested-array-path",
+      "config": [
+        {
+          "id": "nested",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "loop.users.0.name",
+                  "value": "Jane"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "loop": {
+            "users": [
+              {
+                "name": "jane"
+              }
+            ]
+          }
+        }
+      },
+      "expected": {
+        "route": {
+          "skillID": "nested",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "skillID": "nested",
+            "weight": 1
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "entity-order-independent",
+      "config": [
+        {
+          "id": "two",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "food",
+                  "value": "pizza"
+                },
+                {
+                  "name": "when",
+                  "value": "today"
+                }
+              ],
+              "memo": {
+                "arm": "food-first"
+              }
+            },
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "when",
+                  "value": "today"
+                },
+                {
+                  "name": "food",
+                  "value": "pizza"
+                }
+              ],
+              "memo": {
+                "arm": "when-first"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "when": "today",
+          "food": "pizza"
+        }
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "arm": "food-first"
+          },
+          "skillID": "two",
+          "weight": 2
+        },
+        "decisions": [
+          {
+            "memo": {
+              "arm": "food-first"
+            },
+            "skillID": "two",
+            "weight": 2
+          },
+          {
+            "memo": {
+              "arm": "when-first"
+            },
+            "skillID": "two",
+            "weight": 2
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "bare-parent-fallback",
+      "config": [
+        {
+          "id": "bare",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "arm": "bare"
+              }
+            }
+          ]
+        },
+        {
+          "id": "specific",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "x"
+                }
+              ],
+              "memo": {
+                "arm": "specific"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": "y"
+        }
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        },
+        "decisions": [
+          {
+            "memo": {
+              "arm": "bare"
+            },
+            "skillID": "bare",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "unknown-match-rule",
+      "config": [
+        {
+          "id": "bad",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "kind",
+                  "value": "x",
+                  "matchRule": "MAYBE"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "kind": "x"
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": "Error"
+    },
+    {
+      "id": "string-rules",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": "launch",
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "skillID": "basic",
+          "weight": 0
+        },
+        "decisions": [
+          {
+            "skillID": "basic",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "intent-number",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": 5,
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": "TypeError"
+    },
+    {
+      "id": "skill-entity-without-intent",
+      "config": [
+        {
+          "id": "@be/clock",
+          "intents": [
+            {
+              "name": "launchClock"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "skill": "@be/clock"
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": null
+    },
+    {
+      "id": "skill-entity-with-unknown-intent",
+      "config": [
+        {
+          "id": "@be/clock",
+          "intents": [
+            {
+              "name": "launchClock"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "missing",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "skill": "@be/clock"
+        }
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": []
+      },
+      "errorName": null
+    },
+    {
+      "id": "exact-and-wildcard-weight",
+      "config": [
+        {
+          "id": "any",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "food",
+                  "value": "*"
+                }
+              ],
+              "memo": {
+                "arm": "any"
+              }
+            }
+          ]
+        },
+        {
+          "id": "exact",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "food",
+                  "value": "pizza"
+                }
+              ],
+              "memo": {
+                "arm": "exact"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "food": "pizza"
+        }
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "arm": "exact"
+          },
+          "skillID": "exact",
+          "weight": 1
+        },
+        "decisions": [
+          {
+            "memo": {
+              "arm": "exact"
+            },
+            "skillID": "exact",
+            "weight": 1
+          },
+          {
+            "memo": {
+              "arm": "any"
+            },
+            "skillID": "any",
+            "weight": 0.5
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "twenty-equal-ties",
+      "config": [
+        {
+          "id": "skill-00",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-01",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-02",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 2
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-03",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 3
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-04",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 4
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-05",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 5
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-06",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 6
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-07",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 7
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-08",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 8
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-09",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 9
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-10",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 10
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-11",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 11
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-12",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 12
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-13",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 13
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-14",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 14
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-15",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 15
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-16",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 16
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-17",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 17
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-18",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 18
+              }
+            }
+          ]
+        },
+        {
+          "id": "skill-19",
+          "intents": [
+            {
+              "name": "ask",
+              "memo": {
+                "n": 19
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "n": 10
+          },
+          "skillID": "skill-10",
+          "weight": 0
+        },
+        "decisions": [
+          {
+            "memo": {
+              "n": 1
+            },
+            "skillID": "skill-01",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 10
+            },
+            "skillID": "skill-10",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 2
+            },
+            "skillID": "skill-02",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 3
+            },
+            "skillID": "skill-03",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 4
+            },
+            "skillID": "skill-04",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 5
+            },
+            "skillID": "skill-05",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 6
+            },
+            "skillID": "skill-06",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 7
+            },
+            "skillID": "skill-07",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 8
+            },
+            "skillID": "skill-08",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 9
+            },
+            "skillID": "skill-09",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 0
+            },
+            "skillID": "skill-00",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 11
+            },
+            "skillID": "skill-11",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 12
+            },
+            "skillID": "skill-12",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 13
+            },
+            "skillID": "skill-13",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 14
+            },
+            "skillID": "skill-14",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 15
+            },
+            "skillID": "skill-15",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 16
+            },
+            "skillID": "skill-16",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 17
+            },
+            "skillID": "skill-17",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 18
+            },
+            "skillID": "skill-18",
+            "weight": 0
+          },
+          {
+            "memo": {
+              "n": 19
+            },
+            "skillID": "skill-19",
+            "weight": 0
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "grouped-entity-order",
+      "config": [
+        {
+          "id": "path-ab",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "a",
+                  "value": "x"
+                },
+                {
+                  "name": "b",
+                  "value": "y"
+                }
+              ],
+              "memo": {
+                "path": "ab"
+              }
+            }
+          ]
+        },
+        {
+          "id": "path-ba",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "b",
+                  "value": "y"
+                },
+                {
+                  "name": "a",
+                  "value": "x"
+                }
+              ],
+              "memo": {
+                "path": "ba"
+              }
+            }
+          ]
+        },
+        {
+          "id": "path-ac",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": [
+                {
+                  "name": "a",
+                  "value": "x"
+                },
+                {
+                  "name": "c",
+                  "value": "z"
+                }
+              ],
+              "memo": {
+                "path": "ac"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {
+          "a": "x",
+          "b": "y",
+          "c": "z"
+        }
+      },
+      "expected": {
+        "route": {
+          "memo": {
+            "path": "ab"
+          },
+          "skillID": "path-ab",
+          "weight": 2
+        },
+        "decisions": [
+          {
+            "memo": {
+              "path": "ab"
+            },
+            "skillID": "path-ab",
+            "weight": 2
+          },
+          {
+            "memo": {
+              "path": "ac"
+            },
+            "skillID": "path-ac",
+            "weight": 2
+          },
+          {
+            "memo": {
+              "path": "ba"
+            },
+            "skillID": "path-ba",
+            "weight": 2
+          }
+        ]
+      },
+      "errorName": null
+    },
+    {
+      "id": "rules-object-invalid",
+      "config": [
+        {
+          "id": "basic",
+          "intents": [
+            {
+              "name": "ask"
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": {
+          "0": "launch"
+        },
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": "TypeError"
+    },
+    {
+      "id": "missing-intents-invalid-config",
+      "config": [
+        {
+          "id": "bad"
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": "TypeError"
+    },
+    {
+      "id": "non-array-entities-invalid-config",
+      "config": [
+        {
+          "id": "bad",
+          "intents": [
+            {
+              "name": "ask",
+              "entities": {
+                "name": "kind"
+              }
+            }
+          ]
+        }
+      ],
+      "nlu": {
+        "intent": "ask",
+        "rules": [
+          "launch"
+        ],
+        "entities": {}
+      },
+      "expected": {
+        "route": {
+          "type": "undefined"
+        },
+        "decisions": {
+          "type": "undefined"
+        }
+      },
+      "errorName": "TypeError"
+    }
+  ]
+}
