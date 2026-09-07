@@ -25,6 +25,10 @@ APPROVED_REFERENCE_REVISION = '5c0a7390539663ba749d360de348a428c088505c'
 APPROVED_PUBLIC_RULE_COUNT = 98
 
 
+def sha_bytes(value):
+    return hashlib.sha256(value).hexdigest()
+
+
 def compiled_rule_snapshot(rules_dir):
     """Verify every public graph selected by the pinned NLU inventory."""
     inventory_path = ROOT / 'packages/nlu/resources/rule-inventory.json'
@@ -65,6 +69,87 @@ def compiled_rule_snapshot(rules_dir):
         'ruleCount': len(files),
         'ruleManifestSha256': manifest.hexdigest(),
         'inventorySha256': inventory_hash,
+    }
+
+
+def compiled_snapshot_profile(manifest_path):
+    """Validate a provisioned JSON/gzip snapshot tree before it is mounted."""
+    manifest_path = manifest_path.resolve()
+    if not manifest_path.is_file(): raise ValueError('Compiled snapshot profile is unavailable: ' + str(manifest_path))
+    try:
+        manifest = json.loads(manifest_path.read_text())
+    except Exception as error:
+        raise ValueError('Compiled snapshot profile is invalid: ' + str(error))
+    if not isinstance(manifest, dict) or manifest.get('kind') != 'compiled-fst-profile' or not isinstance(manifest.get('format'), dict):
+        raise ValueError('Compiled snapshot profile schema is unsupported')
+    storage = manifest['format'].get('storage', 'json')
+    if storage not in ('json', 'gzip'):
+        raise ValueError('Compiled snapshot storage is unsupported: ' + str(storage))
+    profile = manifest.get('profile')
+    if not isinstance(profile, dict):
+        raise ValueError('Compiled snapshot profile provenance is malformed')
+    graphs = manifest.get('graphs', {})
+    factories = manifest.get('factories', {})
+    if not isinstance(graphs, dict) or len(graphs) != APPROVED_PUBLIC_RULE_COUNT:
+        raise ValueError('Compiled snapshot profile must contain all 98 public graphs')
+    if not isinstance(factories, dict) or len(factories) != 15:
+        raise ValueError('Compiled snapshot profile must contain all 15 factory FSTs')
+    root = manifest_path.parent
+    files = {}
+
+    def provisioned_path(relative_path, label):
+        if not isinstance(relative_path, str) or not relative_path or os.path.isabs(relative_path):
+            raise ValueError('Compiled snapshot path is not relative: ' + label)
+        path = (root / relative_path).resolve()
+        try:
+            inside = os.path.commonpath([str(root), str(path)]) == str(root)
+        except ValueError:
+            inside = False
+        if not inside or not path.is_file():
+            raise ValueError('Compiled snapshot artifact is unavailable: ' + label)
+        return path
+
+    def verify_snapshot(entry, label):
+        if not isinstance(entry, dict): raise ValueError('Compiled snapshot entry is malformed: ' + label)
+        if entry.get('compression', 'json') != storage:
+            raise ValueError('Compiled snapshot entry storage does not match the profile: ' + label)
+        path = provisioned_path(entry.get('path'), label)
+        stored = path.read_bytes()
+        if storage == 'gzip':
+            expected_hash = entry.get('storedSha256')
+            expected_bytes = entry.get('storedBytes')
+            if not isinstance(expected_hash, str) or not isinstance(expected_bytes, int):
+                raise ValueError('Compressed snapshot metadata is incomplete: ' + label)
+            if sha(path) != expected_hash or len(stored) != expected_bytes:
+                raise ValueError('Compressed snapshot hash/size mismatch: ' + label)
+            try:
+                decoded = gzip.decompress(stored)
+            except Exception as error:
+                raise ValueError('Compressed snapshot cannot be decoded: ' + label + ': ' + str(error))
+        else:
+            decoded = stored
+        if sha_bytes(decoded) != entry.get('snapshotSha256') or len(decoded) != entry.get('snapshotBytes'):
+            raise ValueError('Snapshot decoded hash/size mismatch: ' + label)
+        relative_path = str(path.relative_to(root))
+        if relative_path in files:
+            raise ValueError('Compiled snapshot artifacts reuse one path: ' + relative_path)
+        files[relative_path] = sha(path)
+
+    for name, entry in graphs.items(): verify_snapshot(entry, 'graph ' + name)
+    for name, entry in factories.items(): verify_snapshot(entry, 'factory ' + name)
+    factory_files = manifest.get('factoryFiles', {})
+    if not isinstance(factory_files, dict) or len(factory_files) != 16:
+        raise ValueError('Compiled snapshot profile must retain all 16 factory-file provenance entries')
+    return {
+        'manifest': str(manifest_path),
+        'manifestSha256': sha(manifest_path),
+        'root': str(root),
+        'storage': storage,
+        'graphCount': len(graphs),
+        'factoryCount': len(factories),
+        'factoryFileCount': len(factory_files),
+        'files': files,
+        'decodedHashAnchorSha256': profile.get('decodedHashAnchorSha256'),
     }
 
 
@@ -120,12 +205,17 @@ def main():
     parser.add_argument('--compiled-factory-dir', type=Path)
     parser.add_argument('--compiled-rules-dir', type=Path, help='Pinned parent directory containing the inventory compiledPath graph files')
     parser.add_argument('--compiled-fst-sha256')
+    parser.add_argument('--compiled-snapshot-manifest', type=Path, help='Explicit Phoenix decoded JSON/gzip snapshot profile; mounts its complete artifact directory')
     args = parser.parse_args()
     compiled_options = [args.compiled_fst, args.compiled_factory_dir, args.compiled_rules_dir, args.compiled_fst_sha256]
     if any(compiled_options) and not all(compiled_options):
         parser.error('The compiled profile requires --compiled-fst, --compiled-factory-dir, --compiled-rules-dir and --compiled-fst-sha256')
     if any(compiled_options) and args.candidate != 'phoenix':
         parser.error('The compiled profile selects a Phoenix implementation only')
+    if args.compiled_snapshot_manifest and any(compiled_options):
+        parser.error('The JSON snapshot profile cannot be combined with binary compiled artifact settings')
+    if args.compiled_snapshot_manifest and args.candidate != 'phoenix':
+        parser.error('The JSON snapshot profile selects a Phoenix implementation only')
     compiled = None
     if all(compiled_options):
         fst = args.compiled_fst.resolve(); factories = args.compiled_factory_dir.resolve(); rules = args.compiled_rules_dir.resolve()
@@ -137,6 +227,12 @@ def main():
         compiled = {'fst': str(fst), 'factoryDir': str(factories), 'rulesDir': str(rules),
                     'fstSha256': args.compiled_fst_sha256,
                     'factoryFiles': {p.name: sha(p) for p in sorted(factories.iterdir())}, **rule_snapshot}
+    compiled_snapshot = None
+    if args.compiled_snapshot_manifest:
+        try:
+            compiled_snapshot = compiled_snapshot_profile(args.compiled_snapshot_manifest)
+        except ValueError as error:
+            parser.error(str(error))
     if args.golden and args.candidate != 'phoenix': parser.error('--golden is for Phoenix grading')
     if args.golden and (args.selection != 'smoke' or args.corpus or args.offset or args.limit): parser.error('A golden fixes its own complete selection; selection filters are not allowed')
     if not args.golden and args.selection != 'corpus' and (args.corpus or args.offset or args.limit): parser.error('Corpus/offset/limit options require --selection corpus')
@@ -148,7 +244,12 @@ def main():
     docker = ['docker', '-H', args.docker_host]
     record = {'date': datetime.now(timezone.utc).isoformat(), 'referenceRevision': REVISION, 'candidate': args.candidate,
               'images': {'original': foundation.ORIGINAL_IMAGE, 'phoenix': foundation.PHOENIX_IMAGE}, 'commands': [], 'result': 'error'}
-    record['candidateNluProfile'] = {'runtime': 'compiled-fst', **compiled} if compiled else {'runtime': 'default'}
+    if compiled:
+        record['candidateNluProfile'] = {'runtime': 'compiled-fst', **compiled}
+    elif compiled_snapshot:
+        record['candidateNluProfile'] = {'runtime': 'compiled-fst-snapshot', **compiled_snapshot}
+    else:
+        record['candidateNluProfile'] = {'runtime': 'default'}
     capture_tools = {name: sha(ROOT / name) for name in ['scripts/parity-production/driver.cjs', 'scripts/parity-production/capture-writer.cjs', 'scripts/parity-production/original.cjs', 'scripts/parity-production/fixtures.mjs']}
     record['originalCaptureTools'] = capture_tools
     containers = []
@@ -186,6 +287,11 @@ def main():
                          '--env', 'PHOENIX_NLU_COMPILED_FACTORY_DIR=/nlu/factories',
                          '--env', 'PHOENIX_NLU_COMPILED_RULES_DIR=/nlu/rules',
                          '--env', 'PHOENIX_NLU_COMPILED_FST_SHA256=' + compiled['fstSha256']]
+            elif compiled_snapshot:
+                manifest_name = Path(compiled_snapshot['manifest']).name
+                argv += ['--mount', 'type=bind,source=' + compiled_snapshot['root'] + ',target=/nlu/snapshot,readonly',
+                         '--env', 'PHOENIX_ENV_FILE=/dev/null', '--env', 'PHOENIX_NLU_RUNTIME=compiled-fst',
+                         '--env', 'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=/nlu/snapshot/' + manifest_name]
             argv += [foundation.PHOENIX_IMAGE, 'node', '/harness/phoenix.mjs', '/phoenix', '/evidence/suite.json', '/evidence/' + name + '.json.gz']
         # Outer process bound includes container startup, every bounded case, and cleanup.
         step(name, argv, timeout=240 + count * 35, allowed=(0,) if implementation == 'original' else (0, 2))
@@ -232,6 +338,11 @@ def main():
             current_rules = compiled_rule_snapshot(Path(compiled['rulesDir']))
             if current_rules['ruleFiles'] != compiled['ruleFiles'] or current_rules['ruleManifestSha256'] != compiled['ruleManifestSha256']:
                 raise RuntimeError('Compiled rule graph snapshot changed during capture; retain this run and repeat with stable inputs')
+        if compiled_snapshot:
+            current_snapshot = compiled_snapshot_profile(Path(compiled_snapshot['manifest']))
+            if (current_snapshot['manifestSha256'] != compiled_snapshot['manifestSha256']
+                    or current_snapshot['files'] != compiled_snapshot['files']):
+                raise RuntimeError('Compiled JSON snapshot profile changed during capture; retain this run and repeat with stable inputs')
         if before != foundation.fingerprint(): raise RuntimeError('Source or tools changed during capture; retain this development run and rerun against one stable tree')
         code = step('compare', ['node', ROOT / 'scripts/parity-production/compare.mjs', '--reference', out / 'reference.json.gz', '--candidate', out / 'candidate.json.gz',
                                 '--suite', out / 'suite.json', '--out', out / 'comparison.json'], allowed=(0, 1), timeout=600)

@@ -6,6 +6,8 @@ import { dirname, join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { VectorStandardFst } from '../src/compiledFst.js';
 import {
+  FST_SNAPSHOT_HASH_ANCHOR_SCHEMA,
+  FST_SNAPSHOT_HASH_ANCHOR_VERSION,
   FST_SNAPSHOT_SCHEMA,
   FST_SNAPSHOT_VERSION,
   serializeFstSnapshot,
@@ -14,7 +16,7 @@ import {
 import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from '../src/compiledFstProfile.js';
 
 function usage() {
-  console.error('usage: exportCompiledFstSnapshots.mjs --inventory FILE --rules-dir DIR --factory-dir DIR --output DIR [--gzip]');
+  console.error('usage: exportCompiledFstSnapshots.mjs --inventory FILE --rules-dir DIR --factory-dir DIR --output DIR [--gzip] [--anchor-output FILE]');
   process.exitCode = 2;
 }
 
@@ -73,6 +75,7 @@ const rulesDir = resolve(options['rules-dir']);
 const factoryDir = resolve(options['factory-dir']);
 const outputDir = resolve(options.output);
 const compression = options.gzip ? 'gzip' : 'json';
+const anchorOutput = options['anchor-output'] ? resolve(options['anchor-output']) : null;
 const inventoryBytes = readFileSync(inventoryPath);
 const inventorySha256 = sha256(inventoryBytes);
 const inventory = JSON.parse(inventoryBytes.toString('utf8'));
@@ -182,6 +185,78 @@ if (graphs.launch?.sourceSha256 !== COMPILED_FST_PROFILE.approvedLaunchSha256) {
   throw new Error('launch graph is not the approved profile artifact');
 }
 
+// This small hash-only document is intended to be committed with the runtime.
+// It is generated from the verified source artifacts, while the large decoded
+// graph data remains an independently provisioned deployment artifact. The
+// loader uses this document as its trusted decoded-byte anchor rather than
+// trusting snapshot hashes supplied by the profile it is loading.
+const anchorGraphs = Object.fromEntries(Object.keys(graphs).sort().map(name => {
+  const entry = graphs[name];
+  return [name, {
+    sourcePath: entry.sourcePath,
+    sourceSha256: entry.sourceSha256,
+    sourceBytes: entry.sourceBytes,
+    snapshotSha256: entry.snapshotSha256,
+    snapshotBytes: entry.snapshotBytes,
+  }];
+}));
+const anchorFactories = Object.fromEntries(Object.keys(factories).sort().map(name => {
+  const entry = factories[name];
+  return [name, {
+    kind: entry.kind,
+    sourcePath: entry.sourcePath,
+    sourceSha256: entry.sourceSha256,
+    sourceBytes: entry.sourceBytes,
+    snapshotSha256: entry.snapshotSha256,
+    snapshotBytes: entry.snapshotBytes,
+  }];
+}));
+const anchorFactoryFiles = Object.fromEntries(Object.keys(factoryFiles).sort().map(fileName => {
+  const entry = factoryFiles[fileName];
+  return [fileName, {
+    kind: entry.kind,
+    sourcePath: entry.sourcePath,
+    sourceSha256: entry.sourceSha256,
+    sourceBytes: entry.sourceBytes,
+  }];
+}));
+const anchor = {
+  schema: FST_SNAPSHOT_HASH_ANCHOR_SCHEMA,
+  version: FST_SNAPSHOT_HASH_ANCHOR_VERSION,
+  format: {
+    schema: FST_SNAPSHOT_SCHEMA,
+    version: FST_SNAPSHOT_VERSION,
+    canonicalEncoding: 'UTF-8 JSON bytes produced by stringifyFstSnapshot, including the final newline',
+    digest: 'sha256',
+  },
+  profile: {
+    runtime: COMPILED_FST_PROFILE.runtime,
+    approvedLaunchSha256: COMPILED_FST_PROFILE.approvedLaunchSha256,
+    approvedInventorySha256: COMPILED_FST_PROFILE.approvedInventorySha256,
+    sourceRevision: COMPILED_FST_PROFILE.sourceRevision,
+    referenceRevision: COMPILED_FST_PROFILE.referenceRevision,
+    sourceRuntime: COMPILED_FST_PROFILE.sourceRuntime,
+    nativeParserSha256: COMPILED_FST_PROFILE.nativeParserSha256,
+    factoryManifestSha256,
+    ruleManifestSha256,
+  },
+  inventory: {
+    referenceRevision: inventory.referenceRevision,
+    sha256: inventorySha256,
+    publicRuleCount: graphNames.length,
+    factoryCount: factoryNames.length,
+  },
+  ruleManifestSha256,
+  factoryManifestSha256,
+  graphs: anchorGraphs,
+  factories: anchorFactories,
+  factoryFiles: anchorFactoryFiles,
+};
+const anchorWritten = anchorOutput ? writeJson(anchorOutput, anchor) : null;
+if (anchorWritten && anchorWritten.sha256 !== COMPILED_FST_PROFILE.decodedHashAnchorSha256) {
+  throw new Error(`decoded hash anchor mismatch: ${anchorWritten.sha256}`);
+}
+
 const manifest = {
   schema: FST_PROFILE_SCHEMA,
   version: FST_PROFILE_VERSION,
@@ -197,6 +272,7 @@ const manifest = {
     nativeParserSha256: COMPILED_FST_PROFILE.nativeParserSha256,
     factoryManifestSha256,
     ruleManifestSha256,
+    ...(anchorWritten ? { decodedHashAnchorSha256: anchorWritten.sha256 } : {}),
   },
   inventory: {
     referenceRevision: inventory.referenceRevision,
@@ -219,4 +295,5 @@ process.stdout.write(JSON.stringify({
   factoryCount: factoryNames.length,
   ruleManifestSha256,
   factoryManifestSha256,
+  ...(anchorWritten ? { decodedHashAnchor: anchorOutput, decodedHashAnchorSha256: anchorWritten.sha256 } : {}),
 }) + '\n');

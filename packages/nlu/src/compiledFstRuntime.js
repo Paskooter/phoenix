@@ -11,6 +11,8 @@ import { ConnectedFstExecutor } from './connectedFst.js';
 import { VectorStandardFst } from './compiledFst.js';
 import { interpretOutputSymbols } from './compiledFstInterpreter.js';
 import {
+  FST_SNAPSHOT_HASH_ANCHOR_SCHEMA,
+  FST_SNAPSHOT_HASH_ANCHOR_VERSION,
   FST_SNAPSHOT_SCHEMA,
   FST_SNAPSHOT_VERSION,
   decodeSnapshotBytes,
@@ -21,8 +23,10 @@ import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from '.
 const ENABLED = COMPILED_FST_PROFILE.runtime;
 const APPROVED_LAUNCH_SHA256 = COMPILED_FST_PROFILE.approvedLaunchSha256;
 const APPROVED_INVENTORY_SHA256 = COMPILED_FST_PROFILE.approvedInventorySha256;
+const APPROVED_SNAPSHOT_HASH_ANCHOR_SHA256 = COMPILED_FST_PROFILE.decodedHashAnchorSha256;
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
+const SNAPSHOT_HASH_ANCHOR_PATH = join(RESOURCE_ROOT, 'compiled-fst-snapshot-hashes.json');
 
 // These identities describe the only archived graph profile this adapter is
 // allowed to execute. They make a replay self-auditing: a graph byte hash
@@ -112,7 +116,8 @@ function safeSnapshotPath(root, relativePath, label) {
   return path;
 }
 
-function snapshotJson(path, entry, label, expectedStorage = 'json') {
+function snapshotJson(path, entry, label, expectedStorage = 'json', trusted = null) {
+  if (trusted) verifyTrustedSnapshotEntry(entry, trusted, label);
   const compression = entry.compression || 'json';
   if (compression !== expectedStorage) {
     throw new Error(`Compiled NLU snapshot storage mismatch (${label}): expected ${expectedStorage}, found ${compression}`);
@@ -136,6 +141,9 @@ function snapshotJson(path, entry, label, expectedStorage = 'json') {
   const actual = sha256(bytes);
   if (actual !== entry.snapshotSha256) throw new Error(`Compiled NLU snapshot hash mismatch: ${path}`);
   if (bytes.length !== entry.snapshotBytes) throw new Error(`Compiled NLU snapshot size mismatch: ${path}`);
+  if (trusted && (actual !== trusted.snapshotSha256 || bytes.length !== trusted.snapshotBytes)) {
+    throw new Error(`Compiled NLU snapshot trusted hash anchor mismatch: ${label}`);
+  }
   let document;
   try { document = JSON.parse(bytes.toString('utf8')); }
   catch (error) { throw new Error(`Compiled NLU snapshot JSON is invalid (${label}): ${error.message}`); }
@@ -196,6 +204,135 @@ function verifySnapshotProfileIdentity(manifest) {
   }
 }
 
+function validHash(value) {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+}
+
+function validByteCount(value) {
+  return Number.isSafeInteger(value) && value >= 0;
+}
+
+function sameEntryField(entry, trusted, field) {
+  return entry[field] === trusted[field];
+}
+
+function verifyTrustedSourceEntry(entry, trusted, label) {
+  if (!entry || !trusted
+    || !sameEntryField(entry, trusted, 'sourcePath')
+    || !sameEntryField(entry, trusted, 'sourceSha256')
+    || !sameEntryField(entry, trusted, 'sourceBytes')) {
+    throw new Error(`Compiled NLU snapshot trusted hash anchor mismatch: ${label}`);
+  }
+}
+
+function verifyTrustedSnapshotEntry(entry, trusted, label) {
+  verifyTrustedSourceEntry(entry, trusted, label);
+  if (!sameEntryField(entry, trusted, 'snapshotSha256')
+    || !sameEntryField(entry, trusted, 'snapshotBytes')) {
+    throw new Error(`Compiled NLU snapshot trusted hash anchor mismatch: ${label}`);
+  }
+}
+
+function readSnapshotHashAnchor(inventory) {
+  let anchor;
+  let bytes;
+  try {
+    bytes = readFileSync(SNAPSHOT_HASH_ANCHOR_PATH);
+    anchor = JSON.parse(bytes.toString('utf8'));
+  } catch (error) {
+    throw new Error(`Compiled NLU snapshot trusted hash anchor is invalid: ${error.message}`);
+  }
+  if (sha256(bytes) !== APPROVED_SNAPSHOT_HASH_ANCHOR_SHA256) {
+    throw new Error('Compiled NLU snapshot trusted hash anchor bytes do not match the approved runtime anchor');
+  }
+  if (!anchor || anchor.schema !== FST_SNAPSHOT_HASH_ANCHOR_SCHEMA
+    || anchor.version !== FST_SNAPSHOT_HASH_ANCHOR_VERSION
+    || !anchor.format || anchor.format.schema !== FST_SNAPSHOT_SCHEMA
+    || anchor.format.version !== FST_SNAPSHOT_VERSION
+    || anchor.format.canonicalEncoding !== 'UTF-8 JSON bytes produced by stringifyFstSnapshot, including the final newline'
+    || anchor.format.digest !== 'sha256') {
+    throw new Error('Compiled NLU snapshot trusted hash anchor schema is unsupported');
+  }
+  const profile = anchor.profile;
+  if (!profile || profile.runtime !== ENABLED
+    || profile.approvedLaunchSha256 !== APPROVED_LAUNCH_SHA256
+    || profile.approvedInventorySha256 !== APPROVED_INVENTORY_SHA256
+    || profile.factoryManifestSha256 !== PROVENANCE.factoryManifestSha256
+    || profile.sourceRevision !== PROVENANCE.sourceRevision
+    || profile.referenceRevision !== PROVENANCE.referenceRevision
+    || profile.sourceRuntime !== PROVENANCE.sourceRuntime
+    || profile.nativeParserSha256 !== PROVENANCE.nativeParserSha256
+    || !validHash(profile.ruleManifestSha256)
+    || !validHash(anchor.ruleManifestSha256)
+    || profile.ruleManifestSha256 !== anchor.ruleManifestSha256
+    || profile.factoryManifestSha256 !== anchor.factoryManifestSha256) {
+    throw new Error('Compiled NLU snapshot trusted hash anchor provenance is unsupported');
+  }
+  if (!anchor.inventory || anchor.inventory.referenceRevision !== inventory.referenceRevision
+    || anchor.inventory.sha256 !== sha256(readFileSync(INVENTORY_PATH))
+    || anchor.inventory.publicRuleCount !== inventory.publicRuleCount
+    || anchor.inventory.factoryCount !== Object.keys(COMPILED_FST_PROFILE.factoryFiles)
+      .filter(fileName => fileName.endsWith('.fst')).length) {
+    throw new Error('Compiled NLU snapshot trusted hash anchor inventory is unsupported');
+  }
+  const graphNames = Object.keys(anchor.graphs || {}).sort();
+  const inventoryNames = Object.keys(inventory.publicRules || {}).sort();
+  if (graphNames.length !== inventoryNames.length || graphNames.some((name, index) => name !== inventoryNames[index])) {
+    throw new Error('Compiled NLU snapshot trusted hash anchor graph inventory mismatch');
+  }
+  for (const name of inventoryNames) {
+    const expected = inventory.publicRules[name];
+    const trusted = anchor.graphs[name];
+    if (!trusted || trusted.sourcePath !== expected.compiledPath || trusted.sourceSha256 !== expected.sha256
+      || !validByteCount(trusted.sourceBytes) || !validHash(trusted.snapshotSha256)
+      || !validByteCount(trusted.snapshotBytes)) {
+      throw new Error(`Compiled NLU snapshot trusted hash anchor graph is invalid: ${name}`);
+    }
+  }
+  const expectedFactoryFiles = Object.entries(COMPILED_FST_PROFILE.factoryFiles)
+    .map(([fileName, sourceSha256]) => {
+      const factoryName = fileName.endsWith('.fst') ? fileName.slice(0, -4) : null;
+      const inventoryEntry = factoryName ? inventory.factoryDependencies?.[factoryName] : undefined;
+      return [fileName, {
+        sourcePath: inventoryEntry?.referencePath || `build/data/en-us/factory_rules/${fileName}`,
+        sourceSha256,
+        kind: fileName.endsWith('.fst') ? 'fst' : 'auxiliary',
+      }];
+    });
+  const factoryFileNames = Object.keys(anchor.factoryFiles || {}).sort();
+  const expectedFactoryFileNames = expectedFactoryFiles.map(([fileName]) => fileName).sort();
+  if (factoryFileNames.length !== expectedFactoryFileNames.length
+    || factoryFileNames.some((name, index) => name !== expectedFactoryFileNames[index])) {
+    throw new Error('Compiled NLU snapshot trusted hash anchor factory inventory mismatch');
+  }
+  for (const [fileName, expected] of expectedFactoryFiles) {
+    const trusted = anchor.factoryFiles[fileName];
+    if (!trusted || trusted.kind !== expected.kind || trusted.sourcePath !== expected.sourcePath
+      || trusted.sourceSha256 !== expected.sourceSha256 || !validByteCount(trusted.sourceBytes)) {
+      throw new Error(`Compiled NLU snapshot trusted hash anchor factory file is invalid: ${fileName}`);
+    }
+  }
+  const factoryNames = Object.keys(anchor.factories || {}).sort();
+  const expectedFactoryNames = expectedFactoryFiles
+    .filter(([, expected]) => expected.kind === 'fst')
+    .map(([fileName]) => fileName.slice(0, -4)).sort();
+  if (factoryNames.length !== expectedFactoryNames.length
+    || factoryNames.some((name, index) => name !== expectedFactoryNames[index])) {
+    throw new Error('Compiled NLU snapshot trusted hash anchor FST inventory mismatch');
+  }
+  for (const name of expectedFactoryNames) {
+    const fileName = `${name}.fst`;
+    const expected = anchor.factoryFiles[fileName];
+    const trusted = anchor.factories[name];
+    if (!trusted || trusted.kind !== 'fst' || trusted.sourcePath !== expected.sourcePath
+      || trusted.sourceSha256 !== expected.sourceSha256 || trusted.sourceBytes !== expected.sourceBytes
+      || !validHash(trusted.snapshotSha256) || !validByteCount(trusted.snapshotBytes)) {
+      throw new Error(`Compiled NLU snapshot trusted hash anchor factory is invalid: ${name}`);
+    }
+  }
+  return { anchor, sha256: sha256(bytes) };
+}
+
 function readPortableSnapshotProfile(manifestPath) {
   const root = resolve(dirname(manifestPath));
   let manifest;
@@ -212,6 +349,11 @@ function readPortableSnapshotProfile(manifestPath) {
   const inventory = JSON.parse(inventoryBytes.toString('utf8'));
   if (inventory.referenceRevision !== PROVENANCE.referenceRevision) {
     throw new Error(`Compiled NLU rule inventory reference mismatch: ${INVENTORY_PATH}`);
+  }
+  const trustedHashes = readSnapshotHashAnchor(inventory);
+  if (manifest.profile.decodedHashAnchorSha256 !== undefined
+    && manifest.profile.decodedHashAnchorSha256 !== trustedHashes.sha256) {
+    throw new Error('Compiled NLU snapshot profile hash anchor identity mismatch');
   }
   if (!manifest.inventory || manifest.inventory.referenceRevision !== inventory.referenceRevision
     || manifest.inventory.sha256 !== inventorySha256
@@ -231,8 +373,9 @@ function readPortableSnapshotProfile(manifestPath) {
     if (!entry || entry.sourcePath !== expected.compiledPath || entry.sourceSha256 !== expected.sha256) {
       throw new Error(`Compiled NLU snapshot graph provenance mismatch: ${name}`);
     }
+    verifyTrustedSnapshotEntry(entry, trustedHashes.anchor.graphs[name], `graph ${name}`);
     const path = safeSnapshotPath(root, entry.path, `graph ${name}`);
-    const loaded = snapshotJson(path, entry, `graph ${name}`, storage);
+    const loaded = snapshotJson(path, entry, `graph ${name}`, storage, trustedHashes.anchor.graphs[name]);
     // Keep the verified JSON bytes for lazy graph construction. The launch
     // graph is large, and retaining 98 decoded object graphs after the
     // provenance pass would needlessly multiply the portable profile's RSS.
@@ -240,7 +383,8 @@ function readPortableSnapshotProfile(manifestPath) {
   }
   const computedRuleManifest = ruleManifestHash(inventory, graphs);
   if (computedRuleManifest !== manifest.ruleManifestSha256
-    || computedRuleManifest !== manifest.profile.ruleManifestSha256) {
+    || computedRuleManifest !== manifest.profile.ruleManifestSha256
+    || computedRuleManifest !== trustedHashes.anchor.ruleManifestSha256) {
     throw new Error('Compiled NLU snapshot graph manifest mismatch');
   }
   const launch = graphs.get('launch');
@@ -277,6 +421,7 @@ function readPortableSnapshotProfile(manifestPath) {
       || !Number.isSafeInteger(entry.sourceBytes) || entry.sourceBytes < 0) {
       throw new Error(`Compiled NLU snapshot factory file provenance mismatch: ${fileName}`);
     }
+    verifyTrustedSourceEntry(entry, trustedHashes.anchor.factoryFiles[fileName], `factory file ${fileName}`);
     factoryFiles.set(fileName, entry);
   }
   const factories = new Map();
@@ -297,14 +442,16 @@ function readPortableSnapshotProfile(manifestPath) {
       || entry.sourceBytes !== expected.sourceBytes) {
       throw new Error(`Compiled NLU snapshot factory provenance mismatch: ${name}`);
     }
+    verifyTrustedSnapshotEntry(entry, trustedHashes.anchor.factories[name], `factory ${name}`);
     const path = safeSnapshotPath(root, entry.path, `factory ${name}`);
-    const loaded = snapshotJson(path, entry, `factory ${name}`, storage);
+    const loaded = snapshotJson(path, entry, `factory ${name}`, storage, trustedHashes.anchor.factories[name]);
     factories.set(name, { ...entry, fst: loaded.fst, path });
   }
   const computedFactoryManifest = factoryManifestHash(factoryFiles);
   if (computedFactoryManifest !== PROVENANCE.factoryManifestSha256
     || computedFactoryManifest !== manifest.factoryManifestSha256
-    || computedFactoryManifest !== manifest.profile.factoryManifestSha256) {
+    || computedFactoryManifest !== manifest.profile.factoryManifestSha256
+    || computedFactoryManifest !== trustedHashes.anchor.factoryManifestSha256) {
     throw new Error('Compiled NLU snapshot factory manifest mismatch');
   }
   return {
@@ -316,6 +463,7 @@ function readPortableSnapshotProfile(manifestPath) {
     inventorySha256,
     ruleManifestSha256: computedRuleManifest,
     factoryManifestSha256: computedFactoryManifest,
+    snapshotHashAnchorSha256: trustedHashes.sha256,
   };
 }
 
@@ -383,6 +531,7 @@ function createPortableRuntime(selected, key) {
     ruleManifestSha256: profile.ruleManifestSha256,
     inventoryRevision: profile.inventoryRevision,
     inventorySha256: profile.inventorySha256,
+    snapshotHashAnchorSha256: profile.snapshotHashAnchorSha256,
     getExecutor,
     ...PROVENANCE,
     runtime: ENABLED,
@@ -526,7 +675,11 @@ export function compiledFstRuntimeConfig() {
     nativeParserSha256: runtime.nativeParserSha256,
     factoryManifestSha256: runtime.factoryManifestSha256,
   };
-  if (runtime.snapshotManifest) return { ...metadata, snapshotManifest: runtime.snapshotManifest };
+  if (runtime.snapshotManifest) return {
+    ...metadata,
+    snapshotManifest: runtime.snapshotManifest,
+    snapshotHashAnchorSha256: runtime.snapshotHashAnchorSha256,
+  };
   return {
     ...metadata,
     fstPath: runtime.fstPath,

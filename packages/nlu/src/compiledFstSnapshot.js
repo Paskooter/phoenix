@@ -8,6 +8,8 @@ import { compiledFstConstants } from './compiledFst.js';
 // This is deliberately a data format, not a second grammar or a lookup table.
 export const FST_SNAPSHOT_SCHEMA = 'phoenix.nlu.compiled-fst';
 export const FST_SNAPSHOT_VERSION = 1;
+export const FST_SNAPSHOT_HASH_ANCHOR_SCHEMA = 'phoenix.nlu.compiled-fst-snapshot-hashes';
+export const FST_SNAPSHOT_HASH_ANCHOR_VERSION = 1;
 
 /**
  * Return the uncompressed JSON bytes for a stored snapshot. The decoded
