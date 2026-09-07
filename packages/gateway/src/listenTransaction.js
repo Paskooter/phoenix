@@ -54,7 +54,17 @@ export class ListenTransaction {
     this.components = components;
     this.response = response;
     this.log = log;
-    this.trace = readTrace({ headers: socket._jiboHeaders || {} });
+    // The reference socket is wrapped in JiboHeaders before a transaction is
+    // created.  That wrapper supplies the same defaults for absent/empty
+    // tracing headers that it sends to every parser, skill, and history peer.
+    // Phoenix receives the raw upgrade headers, so materialize those defaults
+    // at the transaction boundary instead of silently dropping trace context.
+    const trace = readTrace({ headers: socket._jiboHeaders || {} });
+    this.trace = {
+      transId: trace.transId || 'unknown',
+      robotId: trace.robotId || 'unknown',
+      loggingConfig: trace.loggingConfig || '{}',
+    };
     this.auth = socket._auth || null;
 
     this.state = State.WAIT_LISTEN;
