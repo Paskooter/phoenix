@@ -1,0 +1,31 @@
+{
+  "started": "2026-09-07T01:07:45.411793+00:00",
+  "durationSeconds": 1.8103221259079874,
+  "argv": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-v",
+    "/home/shell/work/phoenix/.parity/reviews/h04-mediation-root-20260907:/review",
+    "-v",
+    "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c:/reference:ro",
+    "-w",
+    "/review",
+    "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "node",
+    "/review/direct-source.cjs",
+    "/reference",
+    "/review/cases.json",
+    "/review/source.json"
+  ],
+  "exitCode": 0,
+  "sha256": {
+    "cases.json": "c94730a0092173d02c16373ca467b75b773b4592e1ab73e51f29de60259286e2",
+    "direct-source.cjs": "fb9b00bbb59ee8ad31936db1b4375addc44454db02db6f525438665c2b665f49",
+    "source.stdout": "5c07e1cb5145915f587f2b6dfc3f2fbf9c356c20be08b494bea168e945114e72",
+    "source.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source.json": "482c676a2d147773a98092184923817c1ca8b447e0ca6eae01cc41a921915e83"
+  }
+}

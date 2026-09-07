@@ -348,7 +348,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/intent-router/review.j
 
 Owner: Codex. Dependencies: H-02, H-03.
 
-Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification. Source DecisionMediator also rewrites six report decisions for robot releases below1.9.0; nine original mediator tests pass on source only. This launch-stage compatibility behavior belongs to H-04 and remains unimplemented, separate from the H-03 decision tree.
+Root accepted bounded release mediation and launch/update/redirect history behavior: 171 original Node8 mediation controls, all nine original mediator tests, and 12 actual-source HTTP launch controls agree. The controlled history/response comparison improves from3/12 to12/12. Older robot releases select the original report alternatives, failed requests do not count as launches, and redirected launches keep their own sessions. Full original-client/WebSocket action lifecycle, trace, continuation and close/reset remain unverified.
 
 Done when:
 
@@ -361,6 +361,14 @@ Source: [Original Pegasus packages/hub/src/skill](https://pvindex.org/gitea/jibo
 Phoenix: [packages/gateway/src/skillClient.js](../../packages/gateway/src/skillClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
+
+Candidate scope: Bounded report release mediation, launch/update/redirect request and response fields, and launch-history side effects. Source171 direct mediation/57 original tests,12 HTTP controls,550 integrated-main units and strict43 pass. FullH04 remains open.
+
+Candidate report: [docs/parity/candidates/H-04-history-redirect-20260907.md](../../docs/parity/candidates/H-04-history-redirect-20260907.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/skill-launch/review.json](../../docs/parity/evidence/2026-09-07/skill-launch/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-05 — Enforce proactive user settings
 

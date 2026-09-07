@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **539 unit tests** and the default
+The latest accepted main checkpoint passes **550 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -138,6 +138,14 @@ measurement. Focused native controls passed, which made the full regression
 check necessary. The agent is repairing the new failure groups in a separate
 worktree. The Person error repair remains under root review and has not earned
 a completed checkbox.
+
+The [H-04 launch review](evidence/2026-09-07/skill-launch/review.json) accepts
+bounded older-release mediation and launch/update/redirect history behavior.
+All 171 original mediator controls and 12 HTTP launch controls agree; nine
+previously failing history/request controls now pass. Full client session
+handoff, close/reset and deployed acceptance remain open, so the verified
+checklist stays at 8/79. Harmless diagnostic differences follow the user
+policy; structured error identities still require consumer checks.
 
 ## Tracker commands
 

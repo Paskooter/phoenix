@@ -1,0 +1,5309 @@
+{
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "controls": 12,
+  "sides": {
+    "baseline": {
+      "matches": 3,
+      "allGuardsPass": true,
+      "rows": [
+        {
+          "id": "success-speaker",
+          "guardsPass": true,
+          "differences": [
+            "$.history[0].personIDs.length"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": [
+                          {
+                            "id": "other-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-1"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": [
+                          {
+                            "id": "other-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "other-1",
+                  "speaker-1"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "success-unknown",
+          "guardsPass": true,
+          "differences": [
+            "$.history[0].personIDs[0]"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": null,
+                        "peoplePresent": [
+                          {
+                            "id": "present-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "UNKNOWN"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": null,
+                        "peoplePresent": [
+                          {
+                            "id": "present-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "present-1"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "initial-failure",
+          "guardsPass": true,
+          "differences": [
+            "$.history.length"
+          ],
+          "diagnosticWordingExact": false,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "2553645a-88e3-4307-a8d1-bbec50e5c68a",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-1"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-success",
+          "guardsPass": true,
+          "differences": [
+            "$.history.length",
+            "$.requests[1].body.data.result.asr"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-2"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-2"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination",
+                    "session": {
+                      "id": "destination-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "asr": {
+                        "text": "redirect-asr"
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "other-2",
+                  "speaker-2"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination",
+                    "session": {
+                      "id": "destination-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-destination-failure",
+          "guardsPass": true,
+          "differences": [
+            "$.history[0].sessionID",
+            "$.requests[1].body.data.result.asr"
+          ],
+          "diagnosticWordingExact": false,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-3"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "asr": {
+                        "text": "redirect-asr"
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "1a7672fa-d6db-45db-abcc-d0db5368bbd0",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-3"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "repeated-redirect",
+          "guardsPass": true,
+          "differences": [
+            "$.history.length",
+            "$.requests[1].body.data.result.asr"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-4"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-4"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              }
+            ],
+            "error": {
+              "name": "Error"
+            }
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "asr": {
+                        "text": "redirect-asr"
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              }
+            ],
+            "error": {
+              "name": "Error"
+            }
+          }
+        },
+        {
+          "id": "on-robot",
+          "guardsPass": true,
+          "differences": [
+            "$.history[0].personIDs.length"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-5"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": true
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "other-5",
+                  "speaker-5"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": true
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "history-disabled",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-6",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-6",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "launch-null-memo",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": null
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": null
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "session-update",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_UPDATE",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source",
+                      "session": {
+                        "id": "existing-session",
+                        "retained": "context"
+                      }
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": false,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_UPDATE",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source",
+                      "session": {
+                        "id": "existing-session",
+                        "retained": "context"
+                      }
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": false,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-on-robot",
+          "guardsPass": true,
+          "differences": [
+            "$.history[0].sessionID"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": true,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": true
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "96b838ef-a3db-465e-9dfd-8bb8b82c9d3d",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": true,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": true
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-generated-sessions",
+          "guardsPass": true,
+          "differences": [
+            "$.history.length",
+            "$.requests[1].body.data.result.asr"
+          ],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination"
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "asr": {
+                        "text": "redirect-asr"
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination"
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "matches": 12,
+      "allGuardsPass": true,
+      "rows": [
+        {
+          "id": "success-speaker",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": [
+                          {
+                            "id": "other-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-1"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": [
+                          {
+                            "id": "other-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-1"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "success-unknown",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": null,
+                        "peoplePresent": [
+                          {
+                            "id": "present-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "UNKNOWN"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": null,
+                        "peoplePresent": [
+                          {
+                            "id": "present-1"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "UNKNOWN"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "initial-failure",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": false,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-1",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-success",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-2"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-2"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination",
+                    "session": {
+                      "id": "destination-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-2",
+                        "peoplePresent": [
+                          {
+                            "id": "other-2"
+                          }
+                        ]
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-2"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-2"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination",
+                    "session": {
+                      "id": "destination-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-destination-failure",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": false,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-3"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-3",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-3"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "repeated-redirect",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-4"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-4"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              }
+            ],
+            "error": {
+              "name": "Error"
+            }
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-4",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-4"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "destination-session",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-4"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              }
+            ],
+            "error": {
+              "name": "Error"
+            }
+          }
+        },
+        {
+          "id": "on-robot",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-5"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": true
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker-5"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": true
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "history-disabled",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-6",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker-6",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "launch-null-memo",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": null
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": null
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "session-update",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_UPDATE",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source",
+                      "session": {
+                        "id": "existing-session",
+                        "retained": "context"
+                      }
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": false,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_UPDATE",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source",
+                      "session": {
+                        "id": "existing-session",
+                        "retained": "context"
+                      }
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": false,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "source",
+                    "session": {
+                      "id": "source-session"
+                    }
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-on-robot",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": true,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": true
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "source-session",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": true,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": true
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "ERROR",
+                "final": true,
+                "data": {
+                  "message": "<diagnostic-error-message>"
+                }
+              }
+            ],
+            "error": null
+          }
+        },
+        {
+          "id": "redirect-generated-sessions",
+          "guardsPass": true,
+          "differences": [],
+          "diagnosticWordingExact": true,
+          "expected": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination"
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          },
+          "actual": {
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "source"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "original-intent",
+                        "entities": {
+                          "original": true
+                        }
+                      },
+                      "asr": {
+                        "text": "original asr",
+                        "confidence": 1
+                      },
+                      "memo": "initial-memo"
+                    }
+                  }
+                }
+              },
+              {
+                "method": "POST",
+                "path": "/v1/main",
+                "body": {
+                  "type": "LISTEN_LAUNCH",
+                  "data": {
+                    "general": {
+                      "robotID": "robot-h04"
+                    },
+                    "runtime": {
+                      "perception": {
+                        "speaker": "speaker",
+                        "peoplePresent": []
+                      }
+                    },
+                    "skill": {
+                      "id": "destination"
+                    },
+                    "result": {
+                      "nlu": {
+                        "intent": "redirect-intent",
+                        "entities": {
+                          "redirected": true
+                        }
+                      },
+                      "memo": "redirect-memo"
+                    }
+                  }
+                }
+              }
+            ],
+            "history": [
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "source",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              },
+              {
+                "robotID": "robot-h04",
+                "sessionID": "<generated-session>",
+                "skillID": "destination",
+                "intent": "original-intent",
+                "personIDs": [
+                  "speaker"
+                ]
+              }
+            ],
+            "frames": [
+              {
+                "type": "LISTEN",
+                "data": {
+                  "asr": {
+                    "text": "original asr",
+                    "confidence": 1
+                  },
+                  "nlu": {
+                    "intent": "original-intent",
+                    "entities": {
+                      "original": true
+                    }
+                  },
+                  "match": {
+                    "skillID": "source",
+                    "launch": true,
+                    "onRobot": false
+                  }
+                },
+                "final": false,
+                "timings": {
+                  "total": "<elapsed-ms>"
+                }
+              },
+              {
+                "type": "SKILL_REDIRECT",
+                "final": false,
+                "data": {
+                  "match": {
+                    "skillID": "destination",
+                    "launch": true,
+                    "onRobot": false
+                  },
+                  "nlu": {
+                    "intent": "redirect-intent",
+                    "entities": {
+                      "redirected": true
+                    }
+                  },
+                  "asr": {
+                    "text": "redirect-asr"
+                  },
+                  "memo": "redirect-memo"
+                }
+              },
+              {
+                "type": "SKILL_ACTION",
+                "data": {
+                  "skill": {
+                    "id": "destination"
+                  },
+                  "action": {
+                    "kind": "controlled"
+                  }
+                },
+                "final": true,
+                "timings": {
+                  "total": "<elapsed-ms>",
+                  "skill": "<elapsed-ms>"
+                }
+              }
+            ],
+            "error": null
+          }
+        }
+      ]
+    }
+  },
+  "inputHashes": {
+    "cases.json": "8dfb2319ac7a2feb8740f2621a39fe34767c0e12abccf1e7708faf9ba76994fc",
+    "source.json": "b54312dfd88e27700f52a3080d166be561ed910b420a2d00baf3785bfa1ea283",
+    "baseline.json": "7c248657041d9d26e792f994c98e27b013426954816196fdaa229f7de605ddeb",
+    "candidate.json": "b46190a62a4d9586331b0d0c5deb517dfdfa43ec08c3263d9e125c1063829914",
+    "compare-root.py": "18c32c0814f33c317a94622e48dedb91de7b979ca4f8ab0b1121c56d36e4a829"
+  },
+  "limits": [
+    "Actual source launch/update/redirect methods, HTTP skill client and response emitters; controlled component context and history writer. Full WebSocket intake and robot execution are separate gates.",
+    "Only validated generated message IDs, generated absent-response session IDs, top-level timestamps and measured timing values are normalized; timing keys and sentinel -1 are retained. Clock/timeout equivalence is not claimed.",
+    "Complete request method/path/data and history values agree. Trace headers were not captured by this inherited peer and are outside this result.",
+    "ERROR frame diagnostic message wording is nonblocking under the user policy; frame types, final flags and other fields remain exact. Raw messages and outer exception classes/codes are retained."
+  ]
+}

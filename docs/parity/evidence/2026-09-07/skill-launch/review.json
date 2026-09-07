@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "reviewer": "Codex root",
+  "decision": "accepted_bounded_implementation",
+  "task": "H-04",
+  "wholeTaskVerified": false,
+  "reference": {
+    "pegasusRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "runtime": "Node8.9.4",
+    "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "releaseCoercion": "semver5.5.0",
+    "mediatorSourceSha256": "1ecf17e65a68141669db731d35396080c3727cefee8b4a5825c7e352e2b94d23"
+  },
+  "candidates": {
+    "mediation": "48fa5127a580f2ae3be72f7d235bbbe0d1202796",
+    "history": "abf324bf46714d843658f1ff2bca15484b0239f3",
+    "combinedRootReview": "ad77262915de5ae7e96315b0de0ddcc9222f139d",
+    "integratedMain": "1f9860366d19d4eebe123ac431d14318747d96a3"
+  },
+  "behavior": [
+    "Pre1.9 report launches mediate to original chitchat/answer/news destinations; newer releases and RELEASE_NOT_FOUND keep report routing. Original CONTEXT release/default1.8 is used; invalid releases fail a matched launch.",
+    "Original decision NLU/ASR and mediated memo survive launch. No supplied memo becomes null; continued sessions are not mediated.",
+    "History uses speaker or UNKNOWN; failed skill requests do not count as successful launches. Initial and redirected successes each retain their own session and original intent, including before a repeated redirect fails.",
+    "Redirect notifications preserve ASR while redirect launch request data omits it. Returned response fields and final flags match the controlled source cases."
+  ],
+  "verification": {
+    "directMediationControls": 171,
+    "directMediationResultKinds": {
+      "unchanged": 44,
+      "altered": 60,
+      "error": 67
+    },
+    "directMediationMatches": 171,
+    "inputsUnchanged": true,
+    "originalTests": {
+      "passed": 57,
+      "skipped": 1,
+      "failed": 0
+    },
+    "gatewayFocusedTests": 82,
+    "historyControls": 12,
+    "historyBaselineMatches": 3,
+    "historyCandidateMatches": 12,
+    "historyNewlyRepairedControls": 9,
+    "historyGuardsPass": true,
+    "mainUnitTests": {
+      "tests": 553,
+      "pass": 550,
+      "fail": 0,
+      "skipped": 3
+    },
+    "mainStrictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "exitCode": 0
+    },
+    "runtimeByteIdenticalToReviewedFiles": true
+  },
+  "policy": "Diagnostic wording is nonblocking when client interpretation is unchanged. The history comparison retains structural fields, final flags, request data, and side effects; raw observations remain retained privately.",
+  "limits": [
+    "Actual source launch/update/redirect methods, HTTP skill client and response emitters; controlled component context and history writer. Full WebSocket intake and robot execution are separate gates.",
+    "Only validated generated message IDs, generated absent-response session IDs, top-level timestamps and measured timing values are normalized; timing keys and sentinel -1 are retained. Clock/timeout equivalence is not claimed.",
+    "Complete request method/path/data and history values agree. Trace headers were not captured by this inherited peer and are outside this result.",
+    "ERROR frame diagnostic message wording is nonblocking under the user policy; frame types, final flags and other fields remain exact. Raw messages and outer exception classes/codes are retained.",
+    "H-04 remains partial. Full original WebSocket/client lifecycle, early/late actions, malformed response handling, complete trace propagation, session handoff/close/reset and deployed robot acceptance remain open.",
+    "The historical full production corpus invokes the router/builders separately and does not by itself verify these ListenTransaction launch methods. DefaultAST149 and compiled-profile measurements remain separately pinned.",
+    "The first original-test candidate capture had a stale9c28ed4 metadata label although it imported the frozen48fa512 checkout. Its receipt is retained; v2 corrected only metadata and reran57 tests successfully.",
+    "The combined review worktree also contains unaccepted Person code. Only the gateway files were integrated, and root verified their bytes and reran main npm test; no Person code was included in this integration."
+  ],
+  "evidence": {
+    "history": "history-comparison.json",
+    "historyRun": "history-run.json",
+    "mediationSource": "mediation-source-run.json",
+    "originalTests": "original-tests-run.json",
+    "mainConfirmation": "main-confirmation.json",
+    "mediationFixture": "packages/gateway/test/fixtures/decision-mediator-original.json"
+  }
+}

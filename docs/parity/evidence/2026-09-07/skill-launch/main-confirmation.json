@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "npm",
+    "test"
+  ],
+  "at": "2026-09-07T01:38:34.388780+00:00",
+  "exitCode": 0,
+  "seconds": 59.76057162415236,
+  "revision": "1f9860366d19d4eebe123ac431d14318747d96a3",
+  "reviewedRuntimeByteIdentical": true,
+  "files": {
+    "packages/gateway/src/decisionMediator.js": "577461d2d33a051852cc7f8f669acb9085106b254feef4bd116f90bd71482689",
+    "packages/gateway/src/listenTransaction.js": "2f9bab9be3ef98a3f2a544bdf14ee12bf73bbe1494f5743c0a6c53238fb9c886",
+    "packages/gateway/src/skillClient.js": "b40300b124412ceaef0fcbe70897f6fdf0d149deaad4ff380615491ebaea948f",
+    "packages/gateway/test/decisionMediator.test.js": "af67346a69d87a7eb1a17af950289d8ae2773f0cbd5f1b9ffa1ad86ef2b9a882",
+    "packages/gateway/test/listenTransaction.history.test.js": "d4ff111004cc1dd2cf62ea5387dd83f7b4a2687bd6062f22d4b221d903278849"
+  },
+  "stableFiles": true,
+  "stableHead": true,
+  "trackedStatus": ""
+}

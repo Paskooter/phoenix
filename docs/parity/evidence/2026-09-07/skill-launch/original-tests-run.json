@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "node",
+    "/home/shell/work/phoenix/.parity/reviews/h04-mediation-root-20260907/original-tests-candidate-v2.mjs"
+  ],
+  "exitCode": 0,
+  "seconds": 0.04063811106607318,
+  "candidateRevision": "48fa5127a580f2ae3be72f7d235bbbe0d1202796",
+  "runnerSha256": "06680fc2d8d1417160721ff550db7ccd05b3c3bae8827f8a1bf7ac573bf5a6b9",
+  "outputSha256": "71ac81b674acf93e42f5b7255593e8ba200a2fed5a0987141fc002c8c3ebc61f",
+  "retainedCorrection": "First capture ran actual48fa512 but inherited old candidateRevision9c28ed4 metadata from the prior harness. Original import path, parent receipt and actual HEAD prove48fa512. V2 corrects only the metadata and passes again; original artifact unchanged."
+}

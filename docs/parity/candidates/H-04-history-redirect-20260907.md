@@ -1,67 +1,25 @@
-# H-04 history and redirect candidate
+# H-04 reviewed launch behavior
 
-Status: unverified; isolated candidate for root review.
+Root accepted the bounded release-mediation, launch/update/redirect and history
+implementation at `1f9860366d19d4eebe123ac431d14318747d96a3`. The complete
+H-04 task remains open.
 
-Base: `150d6fc9a31137166ff8dfe09f137e3170e93e5c`. This slice owns the
-`ListenTransaction` launch-history and redirect boundaries in
-`packages/gateway/src/listenTransaction.js`; the H-04 decision mediator and
-`_performRouting` release mediation remain outside this candidate and are
-owned by the root review worktree.
+Older report requests now launch the original release-appropriate skills and
+memos. Successful initial and redirected requests receive separate history
+records with their own sessions; failures are excluded. History uses the
+speaker or `UNKNOWN`, and redirected request data omits ASR while the robot
+notification preserves it.
 
-The pinned Pegasus implementation is
-`5c0a7390539663ba749d360de348a428c088505c`. Its
-`ListenTransactionHandler.getSkillResponse` records a launch only when the
-skill request returned without an error, before redirect processing. Its
-`handleSkillRedirect` records a successful destination launch separately,
-using the original NLU intent and the destination response session, before
-checking for a second redirect. The redirect request is built with context,
-redirect NLU, and redirect memo; ASR is omitted. `TransactionHelper.getPersonIDs`
-returns `[perception.speaker]` or `['UNKNOWN']` and never unions
-`peoplePresent`.
+The [root review](../evidence/2026-09-07/skill-launch/review.json) records 171
+original Node 8 mediator controls, all nine original mediator tests, and 12
+source HTTP launch controls. The history comparison improves from 3/12 to
+12/12. Root captured actual source response emitters and retained failed
+baseline observations. Integrated main passes 550 unit tests and strict43
+with zero differences, invariants or gaps.
 
-Phoenix now follows those boundaries. `_onSkillMatch` records the successful
-initial response before `_handleRedirect`, skips history for a returned skill
-error, and defaults `memo` to `null` like the source. `_handleRedirect` omits
-ASR, records a successful destination response with its own session, and
-records a successful second redirect before returning the source
-"Too many redirects" error. `_record` uses only the speaker or the
-`UNKNOWN` sentinel and still remains fire-and-forget when history is enabled.
-
-The focused tests in
-`packages/gateway/test/listenTransaction.history.test.js` use the real
-Phoenix `SkillClient` and `SkillConfigManager` against controlled loopback
-HTTP skills. They cover successful launch/session, speaker/`UNKNOWN`, initial
-failure, successful redirect, destination failure, repeated redirect,
-on-robot, and history-disabled cases. The source differential runner uses the
-compiled pinned Node 8 Pegasus `SkillRequestMaker`, `SkillConfigManager`, and
-`ListenTransactionHandler` against equivalent loopback HTTP skills; it
-records request JSON and history writes.
-
-Fresh evidence is under
-`.parity/reviews/h04-history-redirect-20260907/`:
-
-* `source.json` contains 8 original Node `v8.9.4` controls.
-* `candidate.json` contains the same 8 controls under Node `v22.22.0`.
-* `comparison.json` compares case order, request bodies, history rows, and
-  transaction fates; all 8 cases pass after excluding only generated UUIDs.
-* `provenance.json` records the exact Node 8 image, Docker argv, source file
-  hashes, source exit status, and control scripts.
-
-The source and candidate controls produced identical normalized request shapes,
-history rows, and outcomes: 8/8 cases and 8 total history rows. The redirect
-request has `result.nlu` and `result.memo` but no serialized `result.asr`; the
-initial and destination rows retain the original intent. The two source
-redirect failure controls retain the initial successful row only, while the
-repeated redirect retains both successful rows before rejection.
-
-Validation from this worktree:
-
-```text
-node --test packages/gateway/test/listenTransaction.history.test.js  6/6
-node --test packages/gateway/test/*.test.js                            83/83
-```
-
-Remaining scope includes the root-owned decision mediator/release routing,
-speech-history records, proactive transactions, and full robot/WebSocket
-acceptance. No main, robot, source reference, golden, comparator, or live
-service files were changed. Root acceptance remains required.
+Validated generated IDs and measured timing values are separated from the
+functional comparison. Error wording is nonblocking under the user's policy;
+request fields, skill selection, final flags, sessions and side effects are
+still compared. Full WebSocket/client lifecycle, trace propagation, close/reset,
+complete continuation and robot acceptance remain open. No full-task checkmark
+was added.

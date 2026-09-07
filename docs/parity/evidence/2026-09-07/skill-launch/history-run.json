@@ -1,0 +1,84 @@
+{
+  "at": "2026-09-07T01:32:42.393744+00:00",
+  "revision": "ad77262915de5ae7e96315b0de0ddcc9222f139d",
+  "workspaceLinks": {
+    "account": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/account",
+    "classic": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/classic",
+    "common": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/common",
+    "contracts": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/contracts",
+    "data": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/data",
+    "gateway": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/gateway",
+    "harness": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/harness",
+    "history": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/history",
+    "nlu": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/nlu",
+    "ota": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/ota",
+    "skills": "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root/packages/skills"
+  },
+  "integration": "Cherry-picked abf324b onto dadec7f, resolving the sole _onSkillMatch signature overlap to memo=null,isUpdate=false. Root mediation remains present.",
+  "inputHashes": {
+    "source-runner.cjs": "c2f40fcc7145a12516df5d8aff44a5f484ddfe1adbd69e2ffbbd0cd707e90152",
+    "candidate-runner.mjs": "81ab1084817eaf3f2e843daf78f0177040a7f3cd9b7582d2ac6a53486ac8555e",
+    "cases.json": "8dfb2319ac7a2feb8740f2621a39fe34767c0e12abccf1e7708faf9ba76994fc"
+  },
+  "commands": [
+    {
+      "name": "source",
+      "argv": [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907:/review",
+        "-v",
+        "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c:/reference:ro",
+        "-w",
+        "/review",
+        "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+        "node",
+        "/review/source-runner.cjs",
+        "/reference",
+        "/review/cases.json",
+        "/review/source.json"
+      ],
+      "exitCode": 0,
+      "seconds": 3.2326418487355113
+    },
+    {
+      "name": "baseline",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907/candidate-runner.mjs",
+        "/home/shell/work/phoenix/.parity/worktrees/settings-mediation-integration-root",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907/cases.json",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907/baseline.json"
+      ],
+      "exitCode": 0,
+      "seconds": 0.4961172421462834
+    },
+    {
+      "name": "candidate",
+      "argv": [
+        "node",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907/candidate-runner.mjs",
+        "/home/shell/work/phoenix/.parity/worktrees/h04-history-final-root",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907/cases.json",
+        "/home/shell/work/phoenix/.parity/reviews/h04-history-final-root-20260907/candidate.json"
+      ],
+      "exitCode": 0,
+      "seconds": 0.4606959270313382
+    },
+    {
+      "name": "units",
+      "argv": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 0,
+      "seconds": 25.09658882720396
+    }
+  ],
+  "stableHead": true,
+  "trackedStatus": ""
+}

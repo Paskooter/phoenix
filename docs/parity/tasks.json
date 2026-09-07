@@ -671,13 +671,23 @@
         "packages/gateway/src/skillClient.js",
         "packages/gateway/src/listenTransaction.js"
       ],
-      "finding": "Launch/update/redirect paths exist, but full request and response parity and side effects remain unverified. Recovered SDK/Nimbus source correlates actions by transID, waits for the cloud action, stores the entire returned skill/session in context and uses it on later local turns. Test early/late actions, follow-ups and close/reset behavior through that lifecycle; source inspection is not runtime verification. Source DecisionMediator also rewrites six report decisions for robot releases below1.9.0; nine original mediator tests pass on source only. This launch-stage compatibility behavior belongs to H-04 and remains unimplemented, separate from the H-03 decision tree.",
+      "finding": "Root accepted bounded release mediation and launch/update/redirect history behavior: 171 original Node8 mediation controls, all nine original mediator tests, and 12 actual-source HTTP launch controls agree. The controlled history/response comparison improves from3/12 to12/12. Older robot releases select the original report alternatives, failed requests do not count as launches, and redirected launches keep their own sessions. Full original-client/WebSocket action lifecycle, trace, continuation and close/reset remain unverified.",
       "acceptance": [
         "Compare general/runtime/skill/result/memo and trace propagation on launch, update, action completion and redirect.",
         "Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution.",
         "Preserve release-dependent launch mediation for older robot versions, including report-to-chitchat/answer/news decisions, without relying on a fabricated robot release."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Codex root and Luna Max / http_contract_repair",
+        "candidateRevision": "1f9860366d19d4eebe123ac431d14318747d96a3",
+        "reviewedCandidateRevision": "ad77262915de5ae7e96315b0de0ddcc9222f139d",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded report release mediation, launch/update/redirect request and response fields, and launch-history side effects. Source171 direct mediation/57 original tests,12 HTTP controls,550 integrated-main units and strict43 pass. FullH04 remains open.",
+        "artifact": "docs/parity/candidates/H-04-history-redirect-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/skill-launch/review.json"
+      }
     },
     {
       "id": "H-05",
