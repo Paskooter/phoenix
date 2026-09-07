@@ -1,0 +1,468 @@
+{
+  "cases": 2,
+  "requests": 2,
+  "frames": 8,
+  "bodyAndFrameDifferences": [],
+  "allGuardsPass": true,
+  "guardCount": 92,
+  "guards": [
+    {
+      "check": "source two HTTP skill requests",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0] raw JSON decodes to recorded body",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0] exact raw byte length",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0] loopback peer authority",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0] JSON request media type",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0] source method and path",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0].body generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.requests[0].body generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1] raw JSON decodes to recorded body",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1] exact raw byte length",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1] loopback peer authority",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1] JSON request media type",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1] source method and path",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1].body generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.requests[1].body generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source same peer across continuation",
+      "pass": true
+    },
+    {
+      "check": "source two response turns",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0] complete ordered sequence",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][0] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][0] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][0] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][1] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][1] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][1] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][2] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][2] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][2] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][2] timing asr",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][2] timing nlu",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][3] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[0][3] timing skill",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1] complete ordered sequence",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][0] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][0] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][0] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][1] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][1] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][1] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][2] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][2] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][2] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][2] timing asr",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][2] timing nlu",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][3] timing total",
+      "pass": true
+    },
+    {
+      "check": "source.frames[1][3] timing skill",
+      "pass": true
+    },
+    {
+      "check": "source unique generated IDs across requests and frames",
+      "pass": true
+    },
+    {
+      "check": "candidate two HTTP skill requests",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0] raw JSON decodes to recorded body",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0] exact raw byte length",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0] loopback peer authority",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0] JSON request media type",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0] source method and path",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0].body generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[0].body generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1] raw JSON decodes to recorded body",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1] exact raw byte length",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1] loopback peer authority",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1] JSON request media type",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1] source method and path",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1].body generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.requests[1].body generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate same peer across continuation",
+      "pass": true
+    },
+    {
+      "check": "candidate two response turns",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0] complete ordered sequence",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][0] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][0] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][0] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][1] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][1] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][1] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][2] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][2] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][2] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][2] timing asr",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][2] timing nlu",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][3] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[0][3] timing skill",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1] complete ordered sequence",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][0] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][0] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][0] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][1] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][1] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][1] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][2] generated UUIDv4",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][2] generated millisecond timestamp",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][2] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][2] timing asr",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][2] timing nlu",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][3] timing total",
+      "pass": true
+    },
+    {
+      "check": "candidate.frames[1][3] timing skill",
+      "pass": true
+    },
+    {
+      "check": "candidate unique generated IDs across requests and frames",
+      "pass": true
+    }
+  ],
+  "match": true,
+  "normalization": [
+    "Only generated top-level request/SOS/EOS/LISTEN UUIDv4 and timestamps; provider response ID/time and opaque data remain exact",
+    "Finite nonnegative elapsed timings; keys and -1 sentinels retained",
+    "Non-trace transport headers classified separately; raw JSON byte length, JSON media type, loopback authority, method/path validated"
+  ],
+  "rawHeaderDifferences": [
+    {
+      "request": 0,
+      "fields": {
+        "accept": {
+          "source": "application/json, text/plain, */*",
+          "candidate": "*/*"
+        },
+        "accept-encoding": {
+          "source": null,
+          "candidate": "gzip, deflate"
+        },
+        "accept-language": {
+          "source": null,
+          "candidate": "*"
+        },
+        "connection": {
+          "source": "close",
+          "candidate": "keep-alive"
+        },
+        "content-type": {
+          "source": "application/json;charset=utf-8",
+          "candidate": "application/json"
+        },
+        "host": {
+          "source": "127.0.0.1:36435",
+          "candidate": "127.0.0.1:40245"
+        },
+        "sec-fetch-mode": {
+          "source": null,
+          "candidate": "cors"
+        },
+        "user-agent": {
+          "source": "axios/0.17.1",
+          "candidate": "node"
+        }
+      }
+    },
+    {
+      "request": 1,
+      "fields": {
+        "accept": {
+          "source": "application/json, text/plain, */*",
+          "candidate": "*/*"
+        },
+        "accept-encoding": {
+          "source": null,
+          "candidate": "gzip, deflate"
+        },
+        "accept-language": {
+          "source": null,
+          "candidate": "*"
+        },
+        "connection": {
+          "source": "close",
+          "candidate": "keep-alive"
+        },
+        "content-type": {
+          "source": "application/json;charset=utf-8",
+          "candidate": "application/json"
+        },
+        "host": {
+          "source": "127.0.0.1:36435",
+          "candidate": "127.0.0.1:40245"
+        },
+        "sec-fetch-mode": {
+          "source": null,
+          "candidate": "cors"
+        },
+        "user-agent": {
+          "source": "axios/0.17.1",
+          "candidate": "node"
+        }
+      }
+    }
+  ],
+  "qualification": "Original ListenHandler and SocketMessageReader with executable Socket EventEmitter plus HTTP peer, versus actual Phoenix WebSocket endpoint plus HTTP peer; full original upgrade/authentication transport and physical robot not executed. Transport negotiation/connection policies are outside this trace and continued-session slice.",
+  "sha256": {
+    "source.json": "08c53625f4feffea8a65768af86306c85a43797a2b8cacb140980892a564fa88",
+    "candidate.json": "160a6b1980de5ea6275f559afb036cb11bcf4851063ded5dab66999d5739c751",
+    "source-handler-root.cjs": "d728454a09e4c0396d0181061104df887989b894f22a5dd04307ea587faea783",
+    "candidate-ws-root.mjs": "8f1278f9fa26915361b77d1e3d973be4823afdf64ec6206e489eabbc4e8f0f8a",
+    "compare-root.py": "8020b0df6015d3b084e5d094859822c099685c455f90ed175f94b8569fd85f71"
+  }
+}

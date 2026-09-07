@@ -18,9 +18,10 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
   session and analytics fields now agree.
   **H-03 intent routing is verified**, including the original decision tree and tie ordering.
   Both default and compiled **43-case smoke profiles pass**. The default AST parser
-  separately retains **149 differences across 20,528 requests**, down from 295.
-  A subsequent [explicit-weight candidate](docs/parity/evidence/2026-09-07/nlu-explicit-weight/review.json)
-  regressed to 176 differences and was kept out of main pending repair.
+  separately retains **68 differences across 20,528 requests**, down from 149, with no newly failing cases.
+  The [native-operator review](docs/parity/evidence/2026-09-07/nlu-native-operators/review.json)
+  records 81 repaired cases and the remaining limits. The
+  [earlier regression](docs/parity/evidence/2026-09-07/nlu-explicit-weight/review.json) remains documented.
   [Production comparisons](docs/parity/PRODUCTION.md) record exact scope and evidence.
   Follow the [execution plan](docs/parity/PLAN.md) and [verified task checklist](docs/parity/TASKS.md).
   Run `npm run parity:status` for progress and the next ready task. [M9-REPORT.md](M9-REPORT.md)

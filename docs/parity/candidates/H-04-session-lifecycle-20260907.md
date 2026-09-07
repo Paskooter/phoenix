@@ -1,3 +1,5 @@
+> Root accepted the bounded trace/continuation slice in the [review](../evidence/2026-09-07/listen-continuation/review.json). Source transport here uses an executable socket emitter; Phoenix uses an actual WebSocket connection. The complete H-04 task remains open.
+
 # H-04 continued-session lifecycle candidate
 
 This candidate is based on `7361c2a3033b6afd421eaae03d07a007cbfd5505` and is

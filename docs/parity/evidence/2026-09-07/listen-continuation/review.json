@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded trace and continued-session slice; H-04 remains open",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevision": "6ca9d31666efe9bdcc6b2a0621aca08f7236986e",
+  "reviewedIntegratedRevision": "95942834fdd0ca87b620dae9163cfe56527f4dec",
+  "sourceRuntime": "Node8.9.4",
+  "sourceImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "change": "Materialize original JiboHeaders defaults (unknown/unknown/{}) at the listen transaction boundary and propagate the same trace to downstream peers",
+  "freshControls": {
+    "turns": 2,
+    "requests": 2,
+    "frames": 8,
+    "functionalDifferences": 0,
+    "guards": 92,
+    "guardsPassed": true,
+    "scope": "Launch followed by continuation: complete request and action fields, opaque session, source trace defaults, ordered frames, provider ID/time passthrough, final and fireAndForget"
+  },
+  "qualification": "Original ListenHandler and SocketMessageReader with executable Socket EventEmitter plus HTTP peer, versus actual Phoenix WebSocket endpoint plus HTTP peer; full original upgrade/authentication transport and physical robot not executed. Transport negotiation/connection policies are outside this trace and continued-session slice.",
+  "normalization": [
+    "Only generated top-level request/SOS/EOS/LISTEN UUIDv4 and timestamps; provider response ID/time and opaque data remain exact",
+    "Finite nonnegative elapsed timings; keys and -1 sentinels retained",
+    "Non-trace transport headers classified separately; raw JSON byte length, JSON media type, loopback authority, method/path validated"
+  ],
+  "integration": {
+    "unit": {
+      "tests": 591,
+      "pass": 588,
+      "fail": 0,
+      "skipped": 3
+    },
+    "strictSmoke": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "npmTestExitCode": 0,
+    "executionSha256": "5561709bdc1c242fff43c16120924b1ae53cc6928faa1c800bedb4094cdc04ca"
+  },
+  "retainedIncompleteAttempt": {
+    "worktreeRevision": "99bb11ddae42aac1e1516f6842dfc2ce86e5cd7d",
+    "unitPassed": 570,
+    "unitSkipped": 3,
+    "outerNpmBudgetSeconds": 180,
+    "outcome": "npm controller timed out during smoke gate; not counted as a passing full run",
+    "finalIntegratedRunBudgetSeconds": 600,
+    "finalIntegratedRunExitCode": 0
+  },
+  "remaining": [
+    "Disconnect/timeout/reset followup d15e863 has aligned controls and remains pending root review and integration",
+    "Original full WebSocket upgrade/authentication and BE client transport not executed in these source controls",
+    "Proactive lifecycle, native ASR, physical robot and persistent current-main deployment acceptance"
+  ],
+  "sourceCaptureSha256": "08c53625f4feffea8a65768af86306c85a43797a2b8cacb140980892a564fa88",
+  "candidateCaptureSha256": "160a6b1980de5ea6275f559afb036cb11bcf4851063ded5dab66999d5739c751"
+}

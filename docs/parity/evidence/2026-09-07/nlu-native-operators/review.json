@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded implementation; N-08 remains in progress",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "replayedCandidateRevision": "e26b0725af94d2e3d40d39f3c06925abe79b29b1",
+  "reviewedIntegratedRevision": "95942834fdd0ca87b620dae9163cfe56527f4dec",
+  "profile": "default AST, LLM disabled",
+  "scope": "HTTP status and complete parser data against unchanged archived source responses; not a new full-production or physical robot acceptance",
+  "cases": 20528,
+  "matches": 20460,
+  "differences": 68,
+  "priorDifferences": 149,
+  "repairedCases": 81,
+  "newFailureIds": 0,
+  "changedResidualOutputs": 2,
+  "sourceAndWorktreeStable": true,
+  "nativeControls": {
+    "validSemanticMatches": 25,
+    "validSemanticCases": 25,
+    "additionalNativeRuntimeFailures": 3,
+    "qualification": "Archived host grm2fst/parse with LD_LIBRARY_PATH; no numeric-score equivalence claim, no Node8 Docker claim for native controls"
+  },
+  "fullExecution": {
+    "exitCode": 0,
+    "durationSeconds": 3362.943,
+    "timedOut": false,
+    "killed": false,
+    "sourceRunnerSha256": "358ad2646543ecff6eda384e2298423ebc1f21cbe935169647b9121485c23b8e",
+    "sourceInputSha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+    "outputSha256": "a7118964155d7aa02244372783efeb917eaa8e43b6a5ef6f43dd0ac812f70e9c"
+  },
+  "integration": {
+    "nluRuntimeAndResourceBytesEqualToReplayedCandidate": true,
+    "retainedMainWildcardRegressionTests": true,
+    "unit": {
+      "tests": 591,
+      "pass": 588,
+      "fail": 0,
+      "skipped": 3
+    },
+    "strictSmoke": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "npmTestExitCode": 0,
+    "executionSha256": "5561709bdc1c242fff43c16120924b1ae53cc6928faa1c800bedb4094cdc04ca"
+  },
+  "remaining": [
+    "68 status/data mismatches; native graph-state scoring and tie semantics remain partly approximated in AST",
+    "Full N-08 acceptance and persistent current-main robot deployment",
+    "Original native runtime-failing controls remain qualified rather than counted as matches"
+  ],
+  "nextCandidate": {
+    "revision": "e3965821155ccaf159d43a7c9ccffd85700220da",
+    "scope": "Factory membership and general score/order/loser arbitration",
+    "state": "full replay running; unverified"
+  },
+  "rejectedApproach": {
+    "revision": "ef62f6dda5cf26df5aef16f86a130400a8708fda",
+    "reason": "Hand-written source-rule-pair tie exception; focused matches do not establish general native tie semantics"
+  }
+}

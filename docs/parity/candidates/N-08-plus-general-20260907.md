@@ -1,3 +1,5 @@
+> Historical candidate report. The final bounded implementation is accepted in the [root native-operator review](N-08-native-operators-root-20260907.md); earlier failed runs and qualifications remain retained.
+
 # N-08 general PLUS boundary follow-up
 
 Status: candidate unverified; pending root review and the full 20,528-row gate.

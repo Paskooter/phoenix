@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **568 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **588 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -108,9 +108,9 @@ redirect requests. The [Settings Person review](evidence/2026-09-07/settings-per
 accepts 26 full service-boundary controls, 37 transport controls and seven
 original robot error-extractor controls. Hub transport and full A-06 remain open.
 The prior compiled-FST strict 43-case smoke also passed. The default AST
-profile still has **149 corpus differences across 20,528 requests**, down from 295. The
-[accepted root review](evidence/2026-09-06/nlu-ast-ranking/root-review.json) records
-146 repaired cases, zero new failure IDs, and the remaining limits.
+profile now has **68 differences across 20,528 requests**, down from 149. The
+[accepted native-operator review](evidence/2026-09-07/nlu-native-operators/review.json)
+records 81 repaired cases, zero new failure IDs, and two changed residual outputs.
 The [new complete compiled-profile comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
 on frozen `ef0457f` has **zero field differences across 20,534 cases**, zero
 invariants and 16 gap instances across the same eight unhosted external-answer
@@ -132,24 +132,24 @@ Future long captures should use an isolated, fixed verification worktree so
 main can continue receiving reviewed commits and pushes while evidence stays
 pinned. Never modify that worktree's code or HEAD during a capture.
 
-The [2026-09-07 explicit-weight candidate review](evidence/2026-09-07/nlu-explicit-weight/review.json)
-rejects `2a814ab` for integration. Its completed default HTTP replay has
-176 differences: 33 previous failures repaired, 60 new failures, and eight
-changed outputs that still fail. Main retains its accepted 149-difference
-measurement. Focused native controls passed, which made the full regression
-check necessary. The separate `e26b0725` candidate repairs all 60 new failure
-IDs in the focused cluster and matches 25 executable native semantic controls;
-three native parse failures remain explicitly qualified. Its unchanged full
-20,528-request HTTP replay is running in a frozen worktree. Two focused
-cross-skill arbitration residuals have a separate agent assignment. No candidate
-measurement replaces main's accepted 149 differences before root review.
+The [earlier explicit-weight candidate review](evidence/2026-09-07/nlu-explicit-weight/review.json)
+retains the rejected 176-difference run and its 60 new failures. The final native
+operator repair removes all 60 of those regressions and passes the full frozen
+HTTP replay. Twenty-five executable native semantic controls agree; three native
+runtime failures remain qualified. The next factory/arbitration candidate is
+undergoing its own full replay. Focused results do not replace the accepted
+68-difference count. A proposed hand-written rule-pair tie table was rejected;
+future changes must reproduce general source semantics.
 
 The [H-04 launch review](evidence/2026-09-07/skill-launch/review.json) accepts
 bounded older-release mediation and launch/update/redirect history behavior.
 All 171 original mediator controls and 12 HTTP launch controls agree; nine
-previously failing history/request controls now pass. Full client session
-handoff, close/reset and deployed acceptance remain open, so the verified
-checklist stays at 8/79. Harmless diagnostic differences follow the user
+previously failing history/request controls now pass. The [continued-session review](evidence/2026-09-07/listen-continuation/review.json)
+also accepts source trace defaults and complete launch/update request and action
+fields across two turns, with 92 raw/structural guards. The original control
+uses its executable socket reader/handler; Phoenix uses an actual WebSocket
+connection. Full original-client transport, early close/timeout/reset and
+deployed acceptance remain open, so the verified checklist stays at 8/79. Harmless diagnostic differences follow the user
 policy; structured error identities still require consumer checks.
 
 ## Tracker commands

@@ -348,7 +348,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/intent-router/review.j
 
 Owner: Codex. Dependencies: H-02, H-03.
 
-Root accepted bounded release mediation and launch/update/redirect history behavior: 171 original Node8 mediation controls, all nine original mediator tests, and 12 actual-source HTTP launch controls agree. The controlled history/response comparison improves from3/12 to12/12. Older robot releases select the original report alternatives, failed requests do not count as launches, and redirected launches keep their own sessions. Full original-client/WebSocket action lifecycle, trace, continuation and close/reset remain unverified.
+Root accepted bounded release mediation/history plus source trace defaults and launch/continuation fields. Earlier 171 original mediation controls, nine original mediator tests, and 12 HTTP history controls remain accepted. Fresh original-handler/Phoenix-WebSocket controls match two turns, two complete HTTP requests, and eight response frames with 92 guards. Original full transport/authentication, early close/timeout/reset and deployed BE/native-ASR acceptance remain open.
 
 Done when:
 
@@ -362,13 +362,13 @@ Phoenix: [packages/gateway/src/skillClient.js](../../packages/gateway/src/skillC
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Bounded report release mediation, launch/update/redirect request and response fields, and launch-history side effects. Source171 direct mediation/57 original tests,12 HTTP controls,550 integrated-main units and strict43 pass. FullH04 remains open.
+Candidate scope: Source JiboHeaders defaults and complete launch/continuation requests, opaque sessions, and action frames. Fresh two-turn source-handler/actual-Phoenix-WebSocket comparison passes 92 guards; 588 integrated units and strict 43-case smoke pass. Prior mediation/history acceptance is retained. Full H-04 remains open.
 
-Candidate report: [docs/parity/candidates/H-04-history-redirect-20260907.md](../../docs/parity/candidates/H-04-history-redirect-20260907.md).
+Candidate report: [docs/parity/candidates/H-04-session-lifecycle-20260907.md](../../docs/parity/candidates/H-04-session-lifecycle-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/skill-launch/review.json](../../docs/parity/evidence/2026-09-07/skill-launch/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/listen-continuation/review.json](../../docs/parity/evidence/2026-09-07/listen-continuation/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-05 — Enforce proactive user settings
 
@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The explicit compiled profile matches all 20,528 archived HTTP status/data responses and 42 original native multi-rule HTTP/routing cases. The latest default AST repair is independently accepted at 20,379/20,528 matches: 149 residual differences, 146 previous failures repaired and no new failure IDs; 24 still-failing outputs changed. The integrated root tree passes 516 active unit tests, 9 configured gateway checks and all 43 compiled server smoke cases with zero differences/invariants/gaps. Shared-host answer routing now includes all original answer registrations. Moth remains on the previously verified diagnostic compiled backend; earlier clock/joke/timer and temporary authenticated trial evidence is retained. Full N-08, microphone wake, physical ring and new deployment acceptance remain open. The completed frozen ec02766 compiled production comparison covers 20,534 cases: 11 field differences in four cases, zero invariants, and 16 gap instances across eight symmetric unhosted external-answer cases. All 20,528 parser responses match; H-03 empty-entity routing and S-03 fallback prompt selection own the residual fields. Subsequent compiled full-production replay ef0457f removes all11 route/prompt differences across20,534 fixtures; the same8 external-answer cases remain unhosted. This does not alter the separate default AST149 measurement.
+The explicit compiled profile retains its separately verified full-source result. The default AST parser now matches 20,460/20,528 original HTTP status/data cases: 68 residual differences, 81 previous failures repaired, zero newly failing IDs, and two changed residual outputs. Root verified unchanged runtime/resource bytes in the integrated tree and the full unit/strict 43-case smoke checks. The factory/arbitration followup remains unverified while its own full replay runs. Native score/tie approximation, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.
 
 Done when:
 
@@ -707,13 +707,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root source review and gateway correction.
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Bounded default AST wildcard-byte ranking plus original answer registrations in the shared-host deployment. Independent 20,528-row HTTP replay repairs 146 previous failures: 20,379 matches and 149 differences, zero newly failing previously passing IDs, 125 unchanged residuals and 24 changed residuals. Final root 516 unit tests, 9 configured gateway checks and strict43 zero-difference smoke pass. Full N-08 remains open.
+Candidate scope: Bounded native grammar operators, explicit weighting and wildcard cardinality. 20,460/20,528 matches, 68 differences, 81 repairs, zero new failure IDs; 25 valid native semantic controls and three qualified native failures; 588 integrated unit tests and strict 43-case smoke pass. Full N-08 remains open.
 
-Candidate report: [docs/parity/candidates/N-08-ast-score-20260906.md](../../docs/parity/candidates/N-08-ast-score-20260906.md).
+Candidate report: [docs/parity/candidates/N-08-native-operators-root-20260907.md](../../docs/parity/candidates/N-08-native-operators-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review.json](../../docs/parity/evidence/2026-09-06/nlu-ast-ranking/root-review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-native-operators/review.json](../../docs/parity/evidence/2026-09-07/nlu-native-operators/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 
