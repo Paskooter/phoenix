@@ -1,0 +1,138 @@
+{
+  "state": "accepted_bounded",
+  "reviewedBy": "Codex root",
+  "agentRevision": "060c126ed5fb20ce8c32f461670aacc6a998ee9c",
+  "rootCandidateRevision": "a2452733ff857ece7ce4414eb81c8df568d5df6e",
+  "integrationRevision": "28e093a58969c419893da95af64300984ad8db48",
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "scope": "Explicit GQA attribution HTTP parsing, Account-before-body-validation order, and numeric timestamp filtering in the optional memory store. Shared route parsing is opt-in.",
+  "sourceRuntime": "Original GQA modules under archived Python 3.6.15 / Flask 0.12.2. HTTP comparisons use explicit Account and collection test doubles.",
+  "rootCorrections": [
+    "Archived Flask Request.is_json accepts application/json and application/*+json. Agent rejected the latter; root added route-specific parser media types. Unsupported AWS/text media bypass JSON parsing as in source, preserving downstream account calls and errors.",
+    "The Python collection double throws on nonnumeric before values. Source passes before to Mongo without that Python comparison. Actual Mongo returns empty rows; root removed the candidate memory-store TypeError and matches observed BSON range behavior."
+  ],
+  "httpMedia": {
+    "cases": 10,
+    "beforeSelectedDifferences": 8,
+    "afterSelectedDifferences": 0,
+    "afterSemanticBodyDifferences": 0,
+    "rawBodyMatches": 6,
+    "freshOriginalExecution": true
+  },
+  "httpBoundary": {
+    "cases": 36,
+    "selectedDifferences": 0,
+    "semanticBodyDifferences": 0,
+    "rawBodyMatches": 12,
+    "originalCaptureReused": true,
+    "qualification": "Collection-double exceptions remain useful for route error propagation only. The three nonnumeric-before cases do not establish database behavior; actual Mongo evidence takes precedence."
+  },
+  "mongo": {
+    "version": "7.0.14",
+    "driverVersion": "6.21.0",
+    "actualRootExecution": true,
+    "cases": 9,
+    "memoryCandidateComparedToRetainedMongo": true,
+    "memoryDifferences": 0,
+    "cleanupIndependentlyRechecked": true,
+    "qualification": "Current Mongo/Node-driver observations do not establish execution parity for the original historical Python Mongo driver."
+  },
+  "validation": {
+    "revision": "a2452733ff857ece7ce4414eb81c8df568d5df6e",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 20.811744404025376,
+    "focusedPassed": 13,
+    "unitPassed": 754,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0
+  },
+  "artifacts": [
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/source/boundary-control.py",
+      "sha256": "ac1cd4a1bd79d9b7c6d891cf493ad56171ecf74a5a2e3d6829c1e1ab47f0b43e"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/source/source-container.py",
+      "sha256": "80134d0f13b1d8582c58f13bce37fba05252039ca44584e31a44fba11b2a0c59"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/run/source-attempt-1/docker-run.stdout",
+      "sha256": "8e944c31b539dcb1bf519d2a24fbee32def7857ac682b13bc2123d9ca8aa31f2"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/before/candidate-output.json",
+      "sha256": "04a65a8b49ede377a564a3dbf685cb1cb6d8716ac8d6c31f125144b35e76acd4"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/before-comparison.json",
+      "sha256": "d10ff0f9227d4780e15913c2646a92f819cf0dba51a946f3a273d32eeed9035f"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/candidate-media-after.mjs",
+      "sha256": "535214d62659983ec2f96bdcd8eb5ddb550d796a09c166ced80e50af95c2759b"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/after/candidate-output.json",
+      "sha256": "86b55f0eee85c08b8cd6a4e7064c673fb1380b91c10b7c21d8db6ae1eb38866a"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/after-comparison.json",
+      "sha256": "f8f36c042a16ff845289117df7a7a77caa3632e0accefdb3c8a8922242cf855a"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/candidate-boundary-after.mjs",
+      "sha256": "9ee8cbcaa9820eca603148198211369ba35d71f95027918cacd10eb16980ef06"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/boundary-after-comparison.json",
+      "sha256": "d17b26500973470f9c63259ffd5b7ce3f0671f96b3cfc76c7151f87be4e1cefe"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/mongo-control/run-1/mongo-control-result.json",
+      "sha256": "b46608216581d02cb44b6fa91fb229a4f622856b1a7e6076992d625d7f3ebe40"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/mongo-control/run-1/orchestrator.json",
+      "sha256": "12aeb603567773270c67e02f045239b6f96317cba7f1eec3b754dcf5025c793a"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/memory-after.mjs",
+      "sha256": "d0cf2652b38b8e9c18bb86f03bdf5850cd63fee6b5603c7f2f19f87f9898be50"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/memory-after.json",
+      "sha256": "ec6862256a477257f48d7ad3d2c4d233d820eaa3caf6e8f7f28ef1545d20269a"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/cleanup-recheck.json",
+      "sha256": "b940a5715d0c3dd35f219eef10ce8190b157512c916cf4cc26b1d3dd3bac9c47"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/full-suite.json",
+      "sha256": "2725e058aa12303d23c93c0963b7f1bb533b1fd7af1b482082895598b0095b5a"
+    },
+    {
+      "path": ".parity/reviews/q01-http-media-root-20260907/full-suite.stdout",
+      "sha256": "9b1a75ca161c80281bfb3de65364de4e6c442186763df75783cf8e2a0874533c"
+    },
+    {
+      "path": ".parity/reviews/q01-gqa-account-attribution-http-boundary-20260907/run/source-attempt-3/docker-run.stdout",
+      "sha256": "c6eef4629f4e9a2b461578d8adfba59d7bbab27ee260e53d0dc006e1ae766473"
+    }
+  ],
+  "limits": [
+    "Harmless cross-runtime diagnostic wording, stack paths, and raw JSON formatting are retained but nonblocking under user policy. Status, response shape, calls and mutations are compared.",
+    "No general Flask/body-parser equivalence claim for untested encoding, compression, size or charset boundaries.",
+    "Memory adapter is scoped to source-shaped numeric timestamp records; it is not a general Mongo query engine. Source query has no sort.",
+    "Default GQA routing, live provider replacement, authenticated deployment and full Q-01 remain open. No robot deployment or acceptance in this review."
+  ],
+  "fullyVerifiedTask": false
+}

@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted bounded GQA core and explicit provider profiles, now including optional Account loop lookup and attribution insert/retrieve/wipe adapters. Root8 actual HTTP source comparisons, insertion/account calls, reviewed Python3.6 and real Mongo controls,750 units and strict43 pass. Malformed-request boundaries, live providers, default deployment and whole Q-01 remain open.
+Root accepted bounded GQA core, explicit providers, Account/attribution adapters and attribution HTTP boundaries. Root corrected vendor-JSON parsing and a mock-induced timestamp error;10 fresh original-runtime media cases,36 qualified HTTP-double cases,9 real-Mongo observations,754 units and strict43 pass. Default routing, live providers and whole Q-01 remain open.
 
 Done when:
 
@@ -1278,11 +1278,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Bounded explicit Account lookup and attribution storage/profile wiring; root8 real HTTP source comparisons, exact insertion/account calls, reviewed historical source/real Mongo evidence,750 units and strict43. Additional HTTP boundaries/default/live provider/deployment/full Q-01 remain open.
+Candidate scope: Explicit GQA attribution HTTP parsing, Account-before-body-validation order, and numeric timestamp filtering in the optional memory store. Shared route parsing is opt-in. 10 fresh source HTTP media cases,36 qualified boundary cases,9 Mongo comparisons;754 units and strict43 pass. Full Q-01 remains open.
 
-Candidate report: [docs/parity/candidates/Q-01-account-attribution-root-20260907.md](../../docs/parity/candidates/Q-01-account-attribution-root-20260907.md).
+Candidate report: [docs/parity/candidates/Q-01-http-boundaries-root-20260907.md](../../docs/parity/candidates/Q-01-http-boundaries-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-account-attribution/review.json](../../docs/parity/evidence/2026-09-07/gqa-account-attribution/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-http-boundaries/review.json](../../docs/parity/evidence/2026-09-07/gqa-http-boundaries/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 4. Complete companion-cloud and restored features
 
