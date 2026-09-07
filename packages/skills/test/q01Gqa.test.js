@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createService } from '@phoenix/common';
 import { skillRoute } from '../src/skillService.js';
 import {
   buildGqaSlimFromMim,
@@ -7,6 +8,8 @@ import {
   cleanGqaInput,
   createGqaProviderPipeline,
   createGqaAnswerSkill,
+  createGqaHttpRoute,
+  GQA_MISSING_TRANSID_HTML,
   gqaPiiFilter,
   getGqaQuestionType,
   gqaMimPromptIds,
@@ -251,4 +254,111 @@ test('Q-01 low-level builders keep source id order and source metadata', () => {
   const mim = buildGqaSlimFromMim('GQA_error', undefined, { rng: () => 0, idFactory: idFactory() });
   assert.equal(mim.config.display, null);
   assert.equal(mim.config.play.meta.prompt_id, 'GQA_error_01');
+});
+
+test('Q-01 GQA HTTP adapter rejects missing transID before the handler with source status/body', async () => {
+  let calls = 0;
+  const route = createGqaHttpRoute({
+    handler: async () => {
+      calls += 1;
+      return { type: 'SKILL_ACTION' };
+    },
+  });
+  const state = { statusCode: null, contentType: null, body: null };
+  const response = {
+    status(status) {
+      state.statusCode = status;
+      return this;
+    },
+    type(contentType) {
+      state.contentType = contentType;
+      return this;
+    },
+    send(body) {
+      state.body = body;
+      return this;
+    },
+  };
+
+  const result = await route({
+    body: sourceRequest(),
+    req: { headers: {} },
+    res: response,
+  });
+  assert.equal(result, undefined);
+  assert.equal(calls, 0);
+  assert.equal(state.statusCode, 400);
+  assert.equal(state.contentType, 'html');
+  assert.equal(state.body, GQA_MISSING_TRANSID_HTML);
+});
+
+test('Q-01 GQA HTTP adapter preserves the first duplicate/empty transID and uses common timing wrapper', async () => {
+  let seen;
+  const route = createGqaHttpRoute({
+    handler: async (body) => {
+      seen = body;
+      return { type: 'SKILL_ACTION', data: {} };
+    },
+  });
+  const body = sourceRequest();
+  const response = await route({
+    body,
+    req: { headers: { 'X-JIBO-transID': ['first-transID', 'second-transID'] } },
+    trace: {},
+    log: { error() {} },
+  });
+  assert.equal(seen, body);
+  assert.deepEqual(seen.transID, ['first-transID']);
+  assert.equal(response.type, 'SKILL_ACTION');
+  assert.equal(typeof response.timings.total, 'number');
+
+  const emptyHeaderBody = sourceRequest();
+  const emptyResponse = await route({
+    body: emptyHeaderBody,
+    req: { headers: { 'x-jibo-transid': '' } },
+    trace: {},
+    log: { error() {} },
+  });
+  assert.deepEqual(emptyHeaderBody.transID, ['']);
+  assert.equal(emptyResponse.type, 'SKILL_ACTION');
+});
+
+test('Q-01 GQA HTTP adapter exposes a status-coded error for direct callers without a response', async () => {
+  const route = createGqaHttpRoute({ handler: async () => ({ type: 'SKILL_ACTION' }) });
+  await assert.rejects(
+    route({ body: sourceRequest(), req: { headers: {} } }),
+    (error) => error instanceof Error
+      && error.statusCode === 400
+      && error.message === 'Missing X-JIBO-transID header',
+  );
+});
+
+test('Q-01 GQA HTTP adapter preserves 400 framing through the common service transport', async () => {
+  let handlerCalls = 0;
+  const service = createService({
+    name: 'q01-gqa-http-boundary',
+    routes: {
+      'POST /v1/answer/main': createGqaHttpRoute({
+        handler: async () => {
+          handlerCalls += 1;
+          return { type: 'SKILL_ACTION' };
+        },
+      }),
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const port = server.address().port;
+    const response = await fetch(`http://127.0.0.1:${port}/v1/answer/main`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(sourceRequest()),
+    });
+    assert.equal(response.status, 400);
+    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.equal(await response.text(), GQA_MISSING_TRANSID_HTML);
+    assert.equal(handlerCalls, 0);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });

@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { newJcpId } from './jcpId.js';
+import { skillRoute } from './skillService.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_VERSION = '5.2.15';
@@ -479,3 +480,58 @@ export function createGqaAnswerSkill({ provider = async () => ({}), providers, r
 // hosts the original `answer` service; the shared Phoenix answer-skill alias
 // remains unchanged until its deployment selects this profile deliberately.
 export const gqaAnswerSkill = createGqaAnswerSkill();
+
+// The recovered Flask route rejects a request before invoking gqa_pegasus when
+// X-JIBO-transID is absent.  Keep this boundary in a GQA-owned adapter so the
+// common skillRoute can continue to serve the other source services unchanged.
+// This HTML is the body observed from the source route under the host Flask
+// 3.1.3 control; status/message are source-backed while the historical Flask
+// 0.12.2 renderer remains an explicit runtime qualification.
+export const GQA_MISSING_TRANSID_HTML = '<!doctype html>\n<html lang=en>\n<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>Missing X-JIBO-transID header</p>\n';
+
+function transIdHeaderValues(headers) {
+  const sourceHeaders = headers && typeof headers === 'object' ? headers : {};
+  const name = Object.keys(sourceHeaders).find((key) => key.toLowerCase() === 'x-jibo-transid');
+  if (!name) return [];
+  const value = sourceHeaders[name];
+  if (Array.isArray(value)) return value.slice();
+  return value === undefined ? [] : [value];
+}
+
+/**
+ * Create the source GQA HTTP boundary around the common skill route.
+ *
+ * The adapter performs only the source-specific transID check and mutation:
+ * source gqa_pegasus stores the first Flask header value as a one-element
+ * `request_data.transID` list before reading the rest of the body.  A service
+ * route receives the Express response object and can therefore preserve the
+ * source 400 status without changing the shared error envelope.  Direct
+ * callers without a response receive a statusCode-bearing Error instead.
+ */
+export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkill } = {}) {
+  if (typeof handler !== 'function') throw new TypeError('GQA HTTP handler must be a function');
+  const sourceRoute = skillRoute(skillId, handler);
+  return async function gqaHttpRoute(context = {}) {
+    const request = context.req || {};
+    const values = transIdHeaderValues(request.headers);
+    if (values.length === 0) {
+      const response = context.res;
+      if (response && typeof response.status === 'function'
+        && typeof response.type === 'function' && typeof response.send === 'function') {
+        response.status(400).type('html').send(GQA_MISSING_TRANSID_HTML);
+        return undefined;
+      }
+      const error = new Error('Missing X-JIBO-transID header');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Parsed JSON objects are the normal source request shape.  Arrays and
+    // primitive bodies are left for the handler/error path, matching the
+    // source's direct indexing failure instead of inventing a global schema.
+    if (context.body && typeof context.body === 'object' && !Array.isArray(context.body)) {
+      context.body.transID = values.slice(0, 1);
+    }
+    return sourceRoute(context);
+  };
+}
