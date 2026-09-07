@@ -27,11 +27,12 @@ The generated artifact is
 `gqaUnidecodeFilterData.js`, SHA-256
 `605a670a0874aa6433f2043606cd26e43a6553a1080c7b9242be72bfaadfcab1`.
 `PROVENANCE.json` records the source metadata hashes, exact license member,
-private generator path/hash, command, and relocation-only origin. The generator
-is the source-controlled review receipt at
-`/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py`,
-SHA-256
-`fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05`.
+generator path/hash, command, and relocation-only origin. The reusable generator is tracked at
+`packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py`, SHA-256
+`fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05`. It
+accepts explicit `--wheel` and `--output` arguments. The matching private
+source-control receipt is retained at
+`/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py`.
 
 This notice records package metadata and byte provenance. It does not make a
 project-level licensing determination.

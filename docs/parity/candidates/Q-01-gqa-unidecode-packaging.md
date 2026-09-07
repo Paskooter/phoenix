@@ -2,13 +2,21 @@
 
 Status: **candidate, unverified; awaiting root review**.
 
-This candidate starts at Phoenix main 3af2c09c11729bd2bd35aee568ec05de9d74a4d0
-and cherry-picks only the requested provider/data commits: db9a2fa811ba46c8f839902e41c893c231f3dc78,
-fc730402fdc5a45877c963df60c6c565b8e85201,
-d43b3537bbca5f5d97f5e9f8c41aa1dcf893bc68,
-cc77f73c9c32252955b731e3042d8b39743d8ed9, and
-65e5994a2c7812f458ebe06b40eedcde50656b53. The resulting cherry-pick commits
-are recorded in the candidate history. No default profile, project license,
+This integration candidate starts at Phoenix main df8b9bd3e84c16a02fd5f26e3f31f9ad7c10e7a5
+and cherry-picks only the requested provider/data commits:
+
+- b55ccace9774fa81c2429f8ce426d50264c65edb (Bing provider);
+- f5fee3a16d73595863505f174cb5677cf76a044c (Wolfram provider);
+- 8aeb0032a218e30472d96ed41751db296cbacc4d (multi-provider profile);
+- 6246c1dd176ab288f5295462dbbc587392a132eb (Unidecode boundary);
+- a558b29c2af7b97163642b902fa20597c96a9f98 (internal Unidecode periods); and
+- 05d86d3f96873ba5ae15450815bc680c21b3b0fa (vendor packaging).
+
+The resulting integration commits are e95167f7f31c44f378d08cd6684717e922a579a3,
+cad2a8cfe962143f9a7f765f2e2cc20e4aeb11f5, 7da41b59fc455d96ac7a7cc23e78464d76b93d09,
+4ab83198a588c16e20bf045d1056136df61a4bdd, 4c179a0513d60f3b325b6784cd736de75e489902,
+and 18d038c8f91aeb4789883e7fc96a73b810a51df8, followed by the tracked-generator
+provenance correction in this candidate. No default profile, project license,
 main branch, robot, source wheel, or prior capture was changed.
 
 ## Relocation and tracked artifacts
@@ -51,12 +59,13 @@ metadata reports License: GPL and a GPLv2+ classifier; the full license bytes
 are retained as LICENSE.txt. This report records those package facts without
 making a project-level licensing determination.
 
-The generated file was produced in the earlier source control by
-/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py,
+The reusable generator is tracked at
+packages/skills/src/vendor/unidecode-1.0.22/generate-filter-data.py,
 SHA-256
-fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05. Its
-reproducible input/output command is recorded in PROVENANCE.json and uses the
-pinned wheel above. The prior source-wheel vector output was exact for
+fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05. It
+accepts explicit --wheel and --output arguments; a portable command and the
+verified private receipt are recorded in PROVENANCE.json. The prior source-wheel
+vector output was exact for
 1,077,263 rows; the source and candidate control receipts remain unchanged.
 The relocation preserves the generated output hash, so this packaging change
 has no data-generation delta.
@@ -78,13 +87,11 @@ sha256sum packages/skills/src/vendor/unidecode-1.0.22/gqaUnidecodeFilterData.js
 sha256sum packages/skills/src/vendor/unidecode-1.0.22/LICENSE.txt
 ~~~
 
-The focused Bing tests and the complete skills suite were run after
-workspace dependencies were installed in this worktree. The prior unchanged
-repair receipts recorded 13/13 focused tests and 221/221 skills tests; fresh
-local-linked results for this import path and provider commit composition are
-recorded below. Full Q-01 provider parity, real Bing
-reachability, credentials, and default registration remain outside this
-packaging slice.
+The earlier packaging worktree recorded 13/13 focused Bing tests, 221/221
+skills tests, and a full npm test run; those historical receipts remain at
+/home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-packaging-20260907.
+Full Q-01 provider parity, real Bing reachability, credentials, and default
+registration remain outside this packaging slice.
 
 The tracked root and @phoenix/skills package declarations remain
 license UNLICENSED. The vendor NOTICE/LICENSE files document the inspected
@@ -93,19 +100,27 @@ project distribution decision.
 
 ## Fresh candidate validation
 
-The candidate received its own offline dependency install with
-npm ci --ignore-scripts --offline. Every @phoenix workspace package resolved
-inside this worktree; the resolution receipt is retained privately with the
-packaging evidence.
+This integration candidate received its own offline dependency install with
+npm ci --ignore-scripts --offline. All 11 @phoenix workspace packages resolved
+inside this worktree; the resolution, npm listing, test logs, exits, generated
+private output, and hashes are retained at
+/home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-integration-20260907.
 
-The pinned generator was run against the pinned wheel into a private evidence
+The tracked generator was run against the pinned wheel into a private evidence
 output, not over the tracked table. It exited 0 and reproduced the tracked
 vendor table byte-for-byte: both output hashes are
-605a670a0874aa6433f2043606cd26e43a6553a1080c7b9242be72bfaadfcab1. Focused
-Bing tests passed 13/13; the complete skills suite passed 221/221. The full
-npm test command exited 0 with 717 tests, 710 passes, 7 skips and no failures.
-Its strict production smoke gate covered 43 cases with 0 differences,
-invariants, or coverage gaps. Raw logs, exits, generated private output,
-workspace resolution, and hashes are in
-/home/shell/work/phoenix/.parity/reviews/q01-gqa-vendor-packaging-20260907.
+605a670a0874aa6433f2043606cd26e43a6553a1080c7b9242be72bfaadfcab1. Fresh
+focused Bing tests passed 13/13 and the complete skills suite passed 221/221.
+
+The three fresh candidate controllers reused existing immutable original
+source captures and wrote separate candidate outputs; they did not rerun or
+modify the source captures:
+
+- the 36-row multi-provider controller matched 36/36 with its typed comparator;
+- the 12-row transport controller matched 12/12 with its typed comparator; and
+- the 210-row Unidecode controller matched 210/210, with all 9 negative
+  controls rejected.
+
+The controller reports retain status, complete decoded fields, request
+metadata, generated IDs, timing guards, and their explicit comparison scope.
 These checks do not establish live provider reachability or full Q-01 parity.
