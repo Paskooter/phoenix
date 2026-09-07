@@ -286,7 +286,7 @@ test('Q-01 Wolfram successful JSON shape failures stay outside the request catch
     state.body = sourceBody({ spokenTemplate: 42 });
     await assert.rejects(
       provider({ queryText: 'non-string answer', ipAddress: '127.0.0.1' }),
-      /replace is not a function|Wolfram answer must be a string/,
+      /replace(?:All)? is not a function|Wolfram answer must be a string/,
     );
   });
 });
