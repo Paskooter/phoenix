@@ -1,0 +1,82 @@
+{
+  "state": "reviewed_investigation",
+  "reviewedBy": "Codex root",
+  "agentRevision": "3b9d2873fe39b133728b21ba395a2a0fe6109f2a",
+  "runtimeRevision": "19e01ad3fae65ee63d84748e34793e1ac552a5af",
+  "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "scope": "Compiler graph ordering and direct parser execution on 27 focused wildcard and equal-arm permutations. No production matcher or runtime-profile change.",
+  "sourceChecks": [
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/compiler/compiler.cpp",
+      "sha256": "59d3273c8d63fd7e5311e63c6d4067604b4208dae39b7ee0befe14a57a79f5b2"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/compiler/compiler.ypp",
+      "sha256": "6732bf04ed15183663f7458180554aea82dfac5cc4ce2e4b64f8a031d5d95323"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/compiler/rule_cmp.cpp",
+      "sha256": "a247278c1e14b6feb8b2d80289253345fa342974f62bf3c25bf21080909d9866"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/compiler/fst_cmp.cpp",
+      "sha256": "e8a5ca564c885378efae73f91fe54f507583ee01c745b83b1602f3ccd05689fb"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/compiler/vocab.cpp",
+      "sha256": "b5fa25f17e8755cc96aef5b01538a40ce9a8cffaa4f2b67d8862c9bfcbc6af10"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/fst_operations/fst_operations.cpp",
+      "sha256": "91545da46ef872be4ebee3acdc9f13776503aaa7ed13805e6ce3331da12da30e"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/parser/parser.cpp",
+      "sha256": "6b86849e390473c77979d48f47f830b3dde86f1e7c89ed37077319a149c19b1f"
+    },
+    {
+      "path": ".parity/consumers/git/ConvTech/jibo-nlu/91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e/parser/result_fst.cpp",
+      "sha256": "f44d933224081b24dd297ffc72465959450370fa9518c21f4cd35a5b53b6bb19"
+    }
+  ],
+  "parserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+  "rootExecution": {
+    "nativeCases": 27,
+    "completeParseAndScoreDifferences": 0,
+    "mode": "Fresh archived native parser execution with LD_LIBRARY_PATH against retained compiler artifacts, followed by Phoenix CompiledFstExecutor and output interpreter. Not Node8 Docker.",
+    "compiledReaderMatchesMain": true
+  },
+  "findings": [
+    "Original compiler optimization performs epsilon removal, determinization, optional minimization and weight pushing. The parser replaces paths only on strictly lower heuristic; optimized graph ordering therefore determines equal-cost selection.",
+    "The expanded agent AST matrix has 9 intent differences among19 cases; fixed wildcard preferences and reversing all equal ties are unsupported. Root instead verified27 complete original parse objects and scores using the existing compiled-graph path, including8 fresh permutation cases.",
+    "The native field named heuristic_score is the exposed result score; do not label it as the raw accumulated path heuristic."
+  ],
+  "decision": "Keep rejected wildcard heuristics out of main. Verify original production graph-acquisition and compilation contracts, then close those gaps in the compiled runtime. The approved98-graph bundle alone is not universal grammar coverage.",
+  "tool": "packages/nlu/tools/inspectVectorFstStructure.mjs",
+  "toolValidation": "Root executed on the three_literal_132 graph;8 states9 arcs, preserved graph order and matching main reader hash. Diagnostic only.",
+  "setupQualification": "The first root comparison was invoked before the source controller had completed and failed ENOENT for source.json. The same source process completed exit0; the comparison then completed exit0 with27 cases0 differences. No source or runtime change was made to obtain the result.",
+  "artifacts": [
+    {
+      "path": ".parity/reviews/n08-fst-order-root-20260907/source.json",
+      "sha256": "2ccaa51383d5c5172dd3c65a04c88baef0b65a3ed9ae1bb14e2061aed92e798f"
+    },
+    {
+      "path": ".parity/reviews/n08-fst-order-root-20260907/comparison.json",
+      "sha256": "527ddb70de3b25c5d52835fd433fbdae884183e58977abe441d7fd3c8a12460e"
+    },
+    {
+      "path": ".parity/reviews/n08-fst-order-root-20260907/compare.mjs",
+      "sha256": "92ec65d891b5a873dccc748f54d005767a3e1d8c8131a129a4aa08cc15ecaf5e"
+    },
+    {
+      "path": ".parity/reviews/n08-fst-order-root-20260907/structure.json",
+      "sha256": "32b87015c9a9ceb47bb45d433b402172f0111e17d4528b914c4a5f619761c94c"
+    }
+  ],
+  "limits": [
+    "No production endpoint/default-profile switch, new grammar provisioning, full corpus replay or robot acceptance in this investigation.",
+    "Main AST baseline still has51 retained full-corpus residuals. Previously accepted compiled full replay is a separate scoped result with external coverage gaps.",
+    "The diagnostic tool is accepted for source inspection; full N-08 remains open."
+  ],
+  "fullyVerifiedTask": false
+}

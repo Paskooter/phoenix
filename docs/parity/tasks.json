@@ -1289,7 +1289,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open. Root rejected700e40c despite two repaired209 rows: a native w03-versus-star control changes from correct w03 on baseline to incorrect star. Main retains51; general relative wildcard arbitration repair is required.",
+      "finding": "The default AST parser matches 20,477/20,528 original HTTP status/data requests, with 51 residual differences. The combined ordinary input/rule punctuation repair fixes one case without new or changed residuals; the prior seven CES regressions are repaired. Root reviewed the completed full replay and verified fresh native CES, preserved native class/apostrophe, 209 HTTP regression cases, 716 units and strict43. The portable compiled profile remains separately verified with 16 coverage gaps in eight unhosted external cases. Full N-08, the 51 AST residuals, external coverage, persistent deployment, microphone recognition and physical-ring acceptance remain open. Root rejected700e40c despite two repaired209 rows: a native w03-versus-star control changes from correct w03 on baseline to incorrect star. Main retains51; general relative wildcard arbitration repair is required. Root structural follow-up: compiled-graph execution matches27 fresh native wildcard/tie controls. AST loses optimized graph ordering; no heuristic follow-up is accepted. Production graph provisioning/default-runtime contracts are the next implementation focus.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1506,6 +1506,15 @@
           "scope": "Two209 fixes do not justify a new native-confirmed w03-versus-star intent regression. No full replay or integration accepted.",
           "artifact": "docs/parity/candidates/N-08-w03-root-review-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-w03-rejected/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; Codex root",
+          "candidateRevision": "3b9d2873fe39b133728b21ba395a2a0fe6109f2a",
+          "reviewedBy": "Codex root",
+          "scope": "Source investigation and diagnostic graph-inspection utility only. Root27 complete native parse/score comparisons match compiled executor. No matcher/default-runtime change or full N-08 acceptance.",
+          "artifact": "docs/parity/candidates/N-08-fst-order-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-fst-order/review.json"
         }
       ],
       "deploymentReview": {
