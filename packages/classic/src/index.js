@@ -22,6 +22,7 @@ export * as awsJson from './awsJson.js';
 export { logHandler } from './log.js';
 export { makeRobotHandler } from './robot.js';
 export { NotificationHub } from './notification.js';
+export { NotificationStore } from './notification.js';
 export { KeyStore } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore } from './backup.js';
@@ -60,8 +61,14 @@ export function classicRoutes(hub, extra = []) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls } = {}) {
-  const hub = new NotificationHub();
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs } = {}) {
+  const hub = new NotificationHub({
+    file: notificationFile,
+    store: notificationStore,
+    clock: notificationClock,
+    notificationTtlMs,
+    pollIntervalMs: notificationPollIntervalMs,
+  });
   const backups = new BackupStore();
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
@@ -78,12 +85,21 @@ export function createClassicEntrypoint({ extra = [], tls } = {}) {
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': ({ res, body }) => {
         if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
-        const n = hub.enqueue(body.accountId, body.payload || {});
+        const notification = Object.prototype.hasOwnProperty.call(body, 'notification')
+          ? body.notification
+          : Object.prototype.hasOwnProperty.call(body, 'payload') ? body.payload : {};
+        const n = hub.enqueueNotification({
+          accountId: body.accountId,
+          skillId: body.skillId === undefined ? '-1' : body.skillId,
+          notification,
+        });
         return { queued: n._id };
       },
     },
   });
   const wss = attachNotificationSocket(service.server, hub);
+  hub.startDelivery();
+  service.server.on('close', () => hub.stopDelivery());
   return { ...service, hub, wss, backups };
 }
 
