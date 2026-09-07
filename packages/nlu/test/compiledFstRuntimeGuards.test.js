@@ -7,10 +7,10 @@ import { test } from 'node:test';
 
 const keys = ['PHOENIX_NLU_RUNTIME', 'PHOENIX_NLU_COMPILED_FST',
   'PHOENIX_NLU_COMPILED_FACTORY_DIR', 'PHOENIX_NLU_COMPILED_RULES_DIR',
-  'PHOENIX_NLU_COMPILED_FST_SHA256'];
+  'PHOENIX_NLU_COMPILED_FST_SHA256', 'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST'];
 const original = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 const configured = original.PHOENIX_NLU_RUNTIME === 'compiled-fst'
-  && keys.every(key => original[key]);
+  && keys.slice(1, 5).every(key => original[key]);
 const approvedHash = '2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a';
 let instance = 0;
 
@@ -38,7 +38,7 @@ test('explicit compiled runtime rejects each missing artifact setting', async ()
   const config = { PHOENIX_NLU_RUNTIME: 'compiled-fst', PHOENIX_NLU_COMPILED_FST: '/unused/launch.fst',
     PHOENIX_NLU_COMPILED_FACTORY_DIR: '/unused/factories', PHOENIX_NLU_COMPILED_RULES_DIR: '/unused/rules',
     PHOENIX_NLU_COMPILED_FST_SHA256: approvedHash };
-  for (const key of keys.slice(1)) {
+  for (const key of keys.slice(1, 5)) {
     await withConfig({ ...config, [key]: undefined }, ({ getCompiledFstRuntime }) => {
       assert.throws(getCompiledFstRuntime, /compiled-fst runtime requires/);
     });
