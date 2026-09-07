@@ -1,6 +1,6 @@
 # A-10 LoopUpdated producer and notification-boundary candidate
 
-Status: candidate, pending root review. This follow-up is based on frozen `2d3563f7091f322aa8a56bb07557f3809f061da8` in `/home/shell/work/phoenix/.parity/worktrees/a10-loop-producer`, branch `codex/candidate-a10-loop-producer-20260907`. The persistence repair is `3b62522`; the producer changes are in the follow-up revision recorded below. Main, the frozen notification worktree, robots, live services, source caches, goldens, and comparators were not changed.
+Status: candidate, pending root review. This follow-up is based on frozen `2d3563f7091f322aa8a56bb07557f3809f061da8` in `/home/shell/work/phoenix/.parity/worktrees/a10-loop-producer`, branch `codex/candidate-a10-loop-producer-20260907`. The persistence repair is `3b62522`; the producer changes are `f6c92c5`. Main, the frozen notification worktree, robots, live services, source caches, goldens, and comparators were not changed.
 
 ## Source contract
 
