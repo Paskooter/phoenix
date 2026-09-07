@@ -6,11 +6,22 @@
 
 import { loadRegistry } from './registry.js';
 
+// This bounds Phoenix's optional account lookup, which is separate from the
+// original shared-secret authentication path. Include response-body reads.
+export function accountVerifyTimeout(value = 5000) {
+  const timeout = value === '' ? 5000 : Number(value);
+  if (!Number.isSafeInteger(timeout) || timeout <= 0 || timeout > 2147483647) {
+    throw new TypeError('Account verification timeout must be a positive integer in milliseconds');
+  }
+  return timeout;
+}
+
 /**
  * Build the gateway runtime config from the environment.
  * @param {NodeJS.ProcessEnv} [env]
  */
 export async function loadConfig(env = process.env, registryOptions = {}) {
+  const accountVerifyTimeoutMs = accountVerifyTimeout(env.ETCO_hub_accountVerifyTimeoutMs);
   // Resolve the supplied environment consistently; reading process.env here
   // used to make embedded callers silently select a different registry/peer.
   const peer = (name, fallback) => {
@@ -35,6 +46,7 @@ export async function loadConfig(env = process.env, registryOptions = {}) {
     // accessKeyId claim still maps to a live account (account service GET /api/verify). Unset
     // (the default) = shared-secret-only, i.e. any validly-signed token is accepted.
     accountUrl: (env.ETCO_hub_accountUrl || '').replace(/\/$/, ''),
+    accountVerifyTimeoutMs,
     asrProvider: env.ETCO_server_asrProvider || 'none',
     parserURL: sourcePeer('parser', 'docker.for.mac.localhost:9005', 'ETCO_hub_parserUrl'),
     historyURL: sourcePeer('history', 'docker.for.mac.localhost:9006', 'ETCO_hub_historyUrl'),

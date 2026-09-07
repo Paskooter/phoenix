@@ -12,7 +12,7 @@
 import { WebSocketServer } from 'ws';
 import { createService, logger, jwt } from '@phoenix/common';
 import { newMsgId, now, ResponseType, DefaultPort } from '@phoenix/contracts';
-import { loadConfig } from './config.js';
+import { loadConfig, accountVerifyTimeout } from './config.js';
 import { ParserClient } from './parserClient.js';
 import { IntentRouter } from './intentRouter.js';
 import { SkillConfigManager, SkillClient } from './skillClient.js';
@@ -58,10 +58,12 @@ export function checkAuthentication(headers, secret) {
  * through — accountUrl only constrains tokens that present one.
  * @returns {Promise<{ok:true}|{error:string}>}
  */
-export async function verifyAgainstAccount(auth, accountUrl, log) {
+export async function verifyAgainstAccount(auth, accountUrl, log, { timeoutMs } = {}) {
   if (!auth || !auth.accessKeyId) return { ok: true };
   try {
-    const res = await fetch(`${accountUrl}/api/verify?accessKeyId=${encodeURIComponent(auth.accessKeyId)}`);
+    const res = await fetch(`${accountUrl}/api/verify?accessKeyId=${encodeURIComponent(auth.accessKeyId)}`, {
+      signal: AbortSignal.timeout(accountVerifyTimeout(timeoutMs)),
+    });
     if (!res.ok) return { error: `account verify ${res.status}` };
     const v = await res.json();
     if (!v.valid) return { error: 'account not found or inactive' };
@@ -112,7 +114,7 @@ export async function createGateway(config = loadConfig()) {
       if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
       if (!config.accountUrl) return cb(true, 200, ''); // shared-secret-only mode
       // Per-robot account validation (async — ws supports a deferred cb).
-      verifyAgainstAccount(auth, config.accountUrl, log).then((r) => {
+      verifyAgainstAccount(auth, config.accountUrl, log, { timeoutMs: config.accountVerifyTimeoutMs }).then((r) => {
         if (r.error) { log.warn('ws account check failed', { error: r.error }); return cb(false, 401, r.error); }
         cb(true, 200, '');
       });
