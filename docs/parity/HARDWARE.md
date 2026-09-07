@@ -9,6 +9,12 @@ workflows need separate state setup and verification. Older backend descriptions
 are historical; consult the private canonical receipt before changing Moth.
 See the [connected deployment review](evidence/2026-09-07/hardware/supervised-authenticated/review.json).
 
+A separate [Notification transport investigation](evidence/2026-09-07/hardware/notification-transport/review.json)
+found that the active BE Node 6.5 runtime rejects the current issuer certificate
+in an HTTPS health probe. The actual Notification WebSocket constructor and
+service configuration still need verification; native TLS success does not
+certify that separate path. No deployment changes were made for this probe.
+
 The [latest portable-parser trial](evidence/2026-09-07/hardware/portable-snapshot/review.json)
 used frozen `614e1e8`, the installed 98-graph JSON/gzip profile and original BE
 11.0.1. Real native signed TLS token issuance, both authenticated sockets and

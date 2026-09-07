@@ -1,0 +1,53 @@
+{
+  "state": "investigating",
+  "reviewedBy": "Codex root",
+  "date": "2026-09-07",
+  "deploymentRevision": "29ffac3c28dd2e5d288971d0c113eca35120a5da",
+  "beVersion": "11.0.1",
+  "nodeVersion": "6.5.0",
+  "sourceClientRevision": "155d20a8102960b2aeb89c197bdf04dc1f1fc344",
+  "observations": [
+    "Active BE-slot region_config.json matches the original 721-byte source file and retains separate Notification wsendpoint rules. This does not establish effective per-service overrides.",
+    "The running server-client global configuration has region api and null endpoint/wsendpoint values; concrete per-service configuration remains to be inspected.",
+    "A real unauthenticated Node HTTPS GET to https://localhost/health from the active BE runtime failed with UNABLE_TO_VERIFY_LEAF_SIGNATURE. Native Jetstream trust success therefore does not establish Node HTTPS trust. The bounded probe completed and its temporary global was removed.",
+    "Installed notification.js matches the pinned source exactly. It selects window.WebSocket when available, otherwise @jibo/ws; the active window has a browser-style WebSocket without prototype.on. The constructor captured when the module initialized remains unresolved."
+  ],
+  "sourceBehavior": "Notification.connect resolves its independent wsendpoint and mints a token, then appends /<token>. Inner reconnect reuses that URL after 10 seconds. Source local profile uses ws://localhost:8090; global SSL uses wss://<region>-socket.jibo.com.",
+  "limits": [
+    "The HTTPS probe did not invoke the Notification client or test a Notification WSS handshake. Browser and Node TLS trust are separate; do not infer the active Notification constructor from the current global alone.",
+    "Two read-only CDP scope-inspection attempts could not retrieve function internalProperties. Debugger/object-group cleanup executed; neither attempt resolved the constructor.",
+    "No backend deployment, robot configuration, certificate, credentials or household state was changed. Native process/configuration and supervised backend/tunnel remained at their prior checkpoint; BE observed idle.",
+    "Authenticated notification bridge accepted on main has not yet been deployed to Moth. Full Notification, household/bootstrap and reboot acceptance remain open."
+  ],
+  "artifacts": [
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/region-summary.json",
+      "sha256": "f3e92001cedb1add72905cd5789088a8bc253724525c11fa11ca87322309a2c0"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/runtime-config.json",
+      "sha256": "32e8f5796348a5f2d76fae7dfb1bd4d6e3d0d1a44e38a8035bcc2cfa3818454c"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/tls-probe.js",
+      "sha256": "224cdbb6fca2572c02923910ce828e28a02b82bf46e0b54225ee2f904e56b1bc"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/tls-result.json",
+      "sha256": "84c790981776766af46743c9c72ecd25548a5b9378f40367c1aa740b8576ac51"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/installed-notification.js",
+      "sha256": "93b9677b95a3a153a540b98f79d15c5c0c28fb4819b0f1aed99abae93828bd9b"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/websocket-selection.json",
+      "sha256": "9a3480b4d143f61083b8d5b0fc62f643265842ae568e418797859ab9f83d4918"
+    },
+    {
+      "path": ".parity/reviews/moth-notification-readonly-root-20260907/scope-debugger.stderr",
+      "sha256": "fc27d5abd5f9b79968c571935e48be946874aa5765a67e7e74bef71a0213fe53"
+    }
+  ],
+  "fullyVerifiedTask": false
+}
