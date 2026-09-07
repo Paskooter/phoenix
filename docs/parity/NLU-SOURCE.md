@@ -48,6 +48,16 @@ The [compiled-profile integration](evidence/2026-09-06/nlu-compiled-fst/integrat
 
 This profile is selected with `PHOENIX_NLU_RUNTIME=compiled-fst` and requires the verified launch graph, public-rule directory, factory directory and approved launch hash. The parser validates and snapshots those artifacts before execution. The default AST runtime remains available.
 
+The [portable profile](evidence/2026-09-07/nlu-portable-snapshot/review.json) also accepts
+`PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=/path/to/bundle/profile.json` with
+`PHOENIX_NLU_RUNTIME=compiled-fst`. It loads independently approved JSON/gzip graph data;
+binary artifact settings must be absent in this mode. The exporter is
+`packages/nlu/tools/exportCompiledFstSnapshots.mjs`; its required arguments are
+`--inventory`, `--rules-dir`, `--factory-dir` and `--output`, with optional `--gzip`
+and `--anchor-output`. The complete 20,534-case production replay has zero field
+differences/invariants and retains the same eight unhosted answer cases. The payload
+bundle still requires deployment provisioning.
+
 An earlier launch-only candidate failed on Moth because it compared native scores with AST priority scores. That failure and rollback remain recorded in the [candidate history](candidates/N-08-compiled-fst.md). The repaired all-rule profile uses one scoring scale and is now running on Moth. The [real-client trial](evidence/2026-09-06/nlu-compiled-fst/moth-multirule-review.json) verifies clock display/TTS, joke TTS and a persistent timer's creation and cancellation. Microphone wake-up and physical ring illumination remain unverified.
 
 Source recovery and these bounded checks do not close N-02 or N-08. After the accepted SettingsClient, Report analytics, graph allocation and Report Lasso transport fixes, the configured 43-case server smoke comparison has zero differences, invariants and coverage gaps. Grammar compilation, broader factory behavior, native build reproduction and full-server acceptance remain tracked in the [checklist](TASKS.md).

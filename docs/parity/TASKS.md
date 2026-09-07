@@ -693,7 +693,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. Portable graph data, remaining native score/tie differences, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.
+The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. The explicit portable graph runtime now matches the full20,534 production comparison with zero differences/invariants and the same eight unhosted external cases; final641 units and both strict43 profiles pass. Deployment provisioning, default AST residuals, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.
 
 Done when:
 
@@ -707,13 +707,13 @@ Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Repair the optional compiled-profile startup regression caused by a stale inventory approval in runtime and harness. Shared approval and always-run guard; 633 units, nine configured checks and both strict 43-case profiles pass. No new full-corpus or robot acceptance.
+Candidate scope: Explicit portable JSON/gzip graph runtime with independent decoded-data hashes. Root regeneration matches all 114 bundle files. Full20,534 production replay: zero differences/invariants, same16 gaps in8 unhosted cases. Final641 units and default/snapshot strict43 pass. No default switch, graph provisioning or robot acceptance; N-08 remains open.
 
-Candidate report: [docs/parity/candidates/N-08-inventory-approval-root-20260907.md](../../docs/parity/candidates/N-08-inventory-approval-root-20260907.md).
+Candidate report: [docs/parity/candidates/N-08-portable-snapshot-root-20260907.md](../../docs/parity/candidates/N-08-portable-snapshot-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json](../../docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json](../../docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 

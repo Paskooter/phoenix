@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted tree, integrated unchanged on main, passes **636 unit tests** and the default
+The latest accepted tree, integrated unchanged on main, passes **641 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -145,8 +145,10 @@ operator repair removes all 60 of those regressions and passes the full frozen
 HTTP replay. Twenty-five executable native semantic controls agree; three native
 runtime failures remain qualified. The subsequent factory/arbitration repair
 has completed its independent full replay and integration checks with 57
-remaining differences. Portable JSON graph data is a separate unverified
-candidate. A proposed hand-written rule-pair tie table was rejected; future
+remaining differences. The [portable graph runtime](evidence/2026-09-07/nlu-portable-snapshot/review.json)
+is now accepted after a complete 20,534-case replay with zero differences/invariants
+and the same eight unhosted external-answer cases. Provisioning and robot rollout
+remain open. A proposed hand-written rule-pair tie table was rejected; future
 changes must reproduce general source semantics.
 
 The [H-04 launch review](evidence/2026-09-07/skill-launch/review.json) accepts

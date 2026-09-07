@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted explicit portable graph runtime; complete N-08 and full production gate remain open",
+  "reviewedBy": "Codex root",
+  "agentCandidateRevision": "51817b983dd711799ec0b6c425b853528cf48ca2",
+  "fullReplayedRevision": "e127104db0e038704d377b5423221d41cf7080d8",
+  "integratedRevision": "270033dfa9ae81e75a82dcb49bd0e50c350608d3",
+  "implementation": "JavaScript executes JSON/gzip graph data, preserving source symbol bytes, state/arc order, weights, nonfinite values and factory calls. Independently tracked decoded hashes anchor the profile; changing its manifest cannot approve substitute graph data.",
+  "source": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "nativeParserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+    "runtime": "jibo-nlu v2.8.3",
+    "referenceGoldenSha256": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53",
+    "suiteSha256": "7adb8a8f48b0806cebc31ec420f289bca10703c15195aeaf5fd1ed60deddd327",
+    "goldenSourceManifestSha256": "80a22278b9c72978bf9b88638ab64415b493f562d310c3f98e89ff4872bbf01e"
+  },
+  "profile": {
+    "head": "e127104db0e038704d377b5423221d41cf7080d8",
+    "files": 114,
+    "sourceRegeneratedProfileAndDataEqualAgent": true,
+    "profileSha256": "16225da770c3efd4befe28f8f9f4c8b97d502cae86d5910a8c5355c3f6f09ab7",
+    "anchorSha256": "882e4e7e3b541b7fcd9b059279b1ce8079a39c158b36ade95309f8d5c0a95520",
+    "unchangedRuntimeDuringExport": true,
+    "graphs": 98,
+    "factoryGraphs": 15,
+    "factoryProvenanceFiles": 16,
+    "bundleBytes": 9978000,
+    "decodedGraphBytes": 170143253,
+    "decodedFactoryBytes": 9317512,
+    "inventorySha256": "7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4",
+    "rootRegeneratedFromPinnedSourceFiles": true,
+    "all114GeneratedFilesEqualAgentBundle": true,
+    "approvalSharedWithRuntimeExporterAndHarness": true,
+    "qualification": "Snapshot graph manifest hashing consumes binary digest bytes; the earlier binary profile hashes hexadecimal digest text. Manifest hashes differ by encoding while individual source and decoded hashes stay fixed."
+  },
+  "fullComparison": {
+    "cases": 20534,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGapInstances": 16,
+    "uniqueGapCases": 8,
+    "gapCases": [
+      "hub-client:1372:0:base",
+      "hub-client:1372:4:base",
+      "hub-client:1588:3:base",
+      "hub-client:168:0:base",
+      "hub-client:28:0:base",
+      "hub-client:42:0:base",
+      "hub-client:7:0:base",
+      "report:5:0:base"
+    ],
+    "allGapInstancesEqualPreviousCompiledProfile": true,
+    "result": "mismatch",
+    "strictGatePass": false,
+    "captureCasesComplete": true,
+    "captureFailures": 0,
+    "command": {
+      "label": "full-snapshot",
+      "argv": [
+        "python3",
+        "scripts/parity-production/run.py",
+        "--golden",
+        "/home/shell/work/phoenix/.parity/worktrees/n08-snapshot-integration-root/packages/harness/resources/goldens/production-full",
+        "--out",
+        "/home/shell/work/phoenix/.parity/reviews/n08-snapshot-integration-root-20260907/full-snapshot",
+        "--compiled-snapshot-manifest",
+        "/home/shell/work/phoenix/.parity/reviews/n08-snapshot-integration-root-20260907/profile-root/profile.json"
+      ],
+      "startUtc": "2026-09-07T04:54:11.777240+00:00",
+      "endUtc": "2026-09-07T05:07:04.607051+00:00",
+      "exitCode": 1,
+      "timedOut": false,
+      "seconds": 772.82982901996,
+      "budgetSeconds": 7200,
+      "stdoutSha256": "4733c0828f11d573b2e7937419fb340cd6bd80571e185ab2f7e8e085bca5ab44",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "dimensions": {
+      "parserHttp": {
+        "compared": 20528,
+        "agreement": 20528,
+        "differences": 0,
+        "invalid": 0
+      },
+      "intent": {
+        "compared": 20524,
+        "agreement": 20524,
+        "differences": 0,
+        "invalid": 0
+      },
+      "entities": {
+        "compared": 20524,
+        "agreement": 20524,
+        "differences": 0,
+        "invalid": 0
+      },
+      "rules": {
+        "compared": 20524,
+        "agreement": 20524,
+        "differences": 0,
+        "invalid": 0
+      },
+      "selectedSkill": {
+        "compared": 20528,
+        "agreement": 20528,
+        "differences": 0,
+        "invalid": 0
+      },
+      "memo": {
+        "compared": 20457,
+        "agreement": 20457,
+        "differences": 0,
+        "invalid": 0
+      },
+      "skillRequest": {
+        "compared": 20435,
+        "agreement": 20435,
+        "differences": 0,
+        "invalid": 0
+      },
+      "action": {
+        "compared": 20434,
+        "agreement": 20434,
+        "differences": 0,
+        "invalid": 0
+      },
+      "session": {
+        "compared": 20434,
+        "agreement": 20434,
+        "differences": 0,
+        "invalid": 0
+      },
+      "analytics": {
+        "compared": 20434,
+        "agreement": 20434,
+        "differences": 0,
+        "invalid": 0
+      },
+      "noMatch": {
+        "compared": 16,
+        "agreement": 16,
+        "differences": 0,
+        "invalid": 0
+      },
+      "providerRequests": {
+        "compared": 83,
+        "agreement": 83,
+        "differences": 0,
+        "invalid": 0
+      }
+    },
+    "comparisonSha256": "c66018c32237eea29d9bc02dbf16f4bd42ceb13269d76a6fe4dc78ae43026291",
+    "candidateSha256": "fa255b949bcc80a0b77237ff927322d695ea27c1f5aca5760b28ca900e744d29",
+    "runSha256": "b85abaf7c17c0f29aa2d171937a74b646eda30354d2191358c9369daff0ed3c7",
+    "executionSha256": "5fa4090cec5fa438f24c3e3c9079eb704a4ea910788eb715d2271866e799b2da",
+    "trackedFilesStable": 5184,
+    "profileFilesStable": 114
+  },
+  "testsAtFullReplay": {
+    "unit": {
+      "tests": 643,
+      "passed": 638,
+      "failed": 0,
+      "skipped": 5
+    },
+    "configuredBinary": {
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "configuredSnapshot": {
+      "tests": 24,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 1
+    },
+    "snapshotSmoke": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "defaultSmoke": "43 cases, zero differences/invariants/gaps in npm test",
+    "exportExitCode": 0
+  },
+  "finalIntegration": {
+    "nluTreeEqualReplayedCandidate": true,
+    "nluTree": "091edcb10750522eed4db08edc15b32217572938",
+    "unit": {
+      "tests": 646,
+      "passed": 641,
+      "failed": 0,
+      "skipped": 5
+    },
+    "defaultSmoke": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "snapshotSmoke": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "commands": [
+      {
+        "label": "npm-test",
+        "argv": [
+          "npm",
+          "test"
+        ],
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 19.329811793752015,
+        "budgetSeconds": 900
+      },
+      {
+        "label": "strict43-snapshot",
+        "argv": [
+          "python3",
+          "scripts/parity-production/run.py",
+          "--golden",
+          "/home/shell/work/phoenix/.parity/worktrees/n08-snapshot-final-root/packages/harness/resources/goldens/production-smoke",
+          "--out",
+          "/home/shell/work/phoenix/.parity/reviews/n08-snapshot-final-root-20260907/strict43-snapshot",
+          "--compiled-snapshot-manifest",
+          "/home/shell/work/phoenix/.parity/reviews/n08-snapshot-integration-root-20260907/profile-root/profile.json"
+        ],
+        "exitCode": 0,
+        "timedOut": false,
+        "seconds": 12.693253862205893,
+        "budgetSeconds": 900
+      }
+    ],
+    "trackedFilesStable": 5185,
+    "ownWorkspaceLinksVerified": true,
+    "executionSha256": "b5e1c18baced06abd83edddddf96682a4e2bda53224304bac18088f923bd0fd6"
+  },
+  "remaining": [
+    "Eight external-answer cases are outside both sides of the pinned production fixture profile. The full gate exits 1.",
+    "Default AST retains its separately tracked57 differences; no default switch.",
+    "Graph payloads are privately provisioned for verification. Committed runtime/export tooling and hash manifest do not complete deployment provisioning or robot rollout.",
+    "No source-to-binary compiler rebuild, full N-08, microphone/physical-ring, load-performance or full robot-release acceptance."
+  ]
+}

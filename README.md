@@ -11,12 +11,13 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
 - **Status: implemented in part; 1:1 compatibility is not yet verified.**
-  The [latest complete comparison](docs/parity/evidence/2026-09-07/intent-router/review.json)
-  covers **20,534 fixtures** with the compiled-FST parser: **zero field differences**
+  The [latest complete comparison](docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json)
+  covers **20,534 fixtures** with the portable JSON/gzip graph parser: **zero field differences**
   and zero invariant failures. **Eight external-service cases remain unhosted on both
   sides**, so the complete gate still fails. All captured parser, routing, action,
   session and analytics fields now agree.
   **H-03 intent routing is verified**, including the original decision tree and tie ordering.
+  The portable graph loader is accepted; graph provisioning and robot rollout remain pending.
   Both default and compiled **43-case smoke profiles pass** after the
   [compiled inventory startup repair](docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json). The default AST parser
   separately retains **57 differences across 20,528 requests**, down from 149, with no newly failing cases.
@@ -354,7 +355,7 @@ Then:
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 636 unit tests and all 43 smoke cases. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](docs/parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
+The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 641 unit tests and all 43 smoke cases. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](docs/parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
 
 Current regression checks and progress tracking:
 

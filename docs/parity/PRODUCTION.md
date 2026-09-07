@@ -1,11 +1,13 @@
 # Production parser, routing and skill comparison
 
-The [2026-09-07 H-03 review](evidence/2026-09-07/intent-router/review.json)
-verifies intent routing on frozen `9c28ed4`: the full compiled profile retains
-zero differences across 20,534 cases, with all 20,528 routing decisions
-present and matching. The same eight external-action coverage gaps remain.
-Integrated `6380425` also passes 539 unit tests and the default 43-case smoke
-check. Default AST parsing still has its separate 149 residual differences.
+The [portable graph review](evidence/2026-09-07/nlu-portable-snapshot/review.json)
+records a complete frozen `e127104` replay: 20,534 cases, zero field differences,
+zero invariants and the same 16 gap instances across eight unhosted external-answer
+cases. The complete gate still exits 1. Final integration with the latest Settings
+repairs passes 641 unit tests and both default and snapshot strict43 profiles.
+[H-03 intent routing](evidence/2026-09-07/intent-router/review.json) remains verified;
+the default AST parser separately retains 57 differences. Deployment provisioning,
+robot rollout and the external-service coverage remain open.
 
 V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory and hosted CI rejection are reviewed; V-03 infrastructure is verified. Product comparison failures remain open.
 
@@ -34,7 +36,7 @@ The [smoke golden](../../packages/harness/resources/goldens/production-smoke/sou
 
 ## Complete baseline and reviewed integration
 
-The [latest complete comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
+The [earlier complete binary-profile comparison](evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
 executes all **20,534 fixtures** on frozen review revision `ef0457f` with the
 explicit compiled-FST parser. It has **zero field differences**, zero trace
 invariants and **16 coverage-gap instances**: the same eight external answer
@@ -230,3 +232,8 @@ node --test packages/harness/test/productionCompare.test.js scripts/parity-produ
 ```
 
 Both runtimes use temporary containers, `--network none` and no published ports. Package, script and manifest fingerprints must remain unchanged throughout capture. Docker lifecycle bounds are separate from measured request/case bounds. Exit 0 means complete agreement within the declared selection and profile; exit 1 reports differences or missing coverage; exit 2 reports setup, capture or provenance failure.
+
+For an explicitly provisioned JSON/gzip graph bundle, the production runner accepts
+`--compiled-snapshot-manifest /path/to/bundle/profile.json`. Use the complete pinned
+golden without selection filters. The runtime/export tooling and independent decoded
+hash manifest are committed; the graph payload bundle is provisioned separately.

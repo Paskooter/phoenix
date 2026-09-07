@@ -1237,7 +1237,7 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. Portable graph data, remaining native score/tie differences, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.",
+      "finding": "The default AST parser now matches 20,471/20,528 original HTTP status/data cases: 57 residual differences, 11 repaired from the preceding 68, no newly failing cases and no changed residual outputs. The source factory rejects the removed my entry and accepts all 6,007 retained entries. Thirteen actual Node 8 arbitration controls agree. Root verified unchanged replayed runtime/resource bytes in the integrated tree; 620 unit tests and strict 43-case smoke pass. A later root repair restores optional compiled startup after the inventory digest changed: 633 units, nine configured checks and both strict 43-case profiles pass. Its full-source result remains separately scoped. The explicit portable graph runtime now matches the full20,534 production comparison with zero differences/invariants and the same eight unhosted external cases; final641 units and both strict43 profiles pass. Deployment provisioning, default AST residuals, complete N-08 and persistent current-main robot/microphone/ring acceptance remain open.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
@@ -1246,12 +1246,14 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Codex root",
-        "candidateRevision": "3108820f1c50b57d9d0b9734723d0d8e1caac2ba",
+        "assignee": "Luna Max / audio_encoding_repair; Codex root",
+        "candidateRevision": "51817b983dd711799ec0b6c425b853528cf48ca2",
+        "reviewedCandidateRevision": "270033dfa9ae81e75a82dcb49bd0e50c350608d3",
+        "fullReplayedRevision": "e127104db0e038704d377b5423221d41cf7080d8",
         "reviewedBy": "Codex root",
-        "scope": "Repair the optional compiled-profile startup regression caused by a stale inventory approval in runtime and harness. Shared approval and always-run guard; 633 units, nine configured checks and both strict 43-case profiles pass. No new full-corpus or robot acceptance.",
-        "artifact": "docs/parity/candidates/N-08-inventory-approval-root-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json"
+        "scope": "Explicit portable JSON/gzip graph runtime with independent decoded-data hashes. Root regeneration matches all 114 bundle files. Full20,534 production replay: zero differences/invariants, same16 gaps in8 unhosted cases. Final641 units and default/snapshot strict43 pass. No default switch, graph provisioning or robot acceptance; N-08 remains open.",
+        "artifact": "docs/parity/candidates/N-08-portable-snapshot-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-portable-snapshot/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -1385,6 +1387,15 @@
           "scope": "Bounded first-name membership and supplied-score arbitration. Full default AST replay: 20,471/20,528 matches, 57 differences, 11 repairs, zero newly failing IDs or changed residuals. Root native membership and 13 original Node 8 selection controls agree; 620 integrated units and strict 43-case smoke pass. Full N-08 remains open.",
           "artifact": "docs/parity/candidates/N-08-arbitration-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-arbitration/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "candidateRevision": "3108820f1c50b57d9d0b9734723d0d8e1caac2ba",
+          "reviewedBy": "Codex root",
+          "scope": "Repair the optional compiled-profile startup regression caused by a stale inventory approval in runtime and harness. Shared approval and always-run guard; 633 units, nine configured checks and both strict 43-case profiles pass. No new full-corpus or robot acceptance.",
+          "artifact": "docs/parity/candidates/N-08-inventory-approval-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-inventory-approval/review.json"
         }
       ],
       "deploymentReview": {
@@ -1412,10 +1423,8 @@
       ],
       "nextImplementation": {
         "state": "working",
-        "assignee": "Luna Max / audio_encoding_repair; root acceptance",
-        "candidateRevision": "51817b983dd711799ec0b6c425b853528cf48ca2",
-        "worktree": ".parity/worktrees/n08-fst-json-anchor-inventory-20260907",
-        "scope": "Frozen portable canonical JSON/gzip graph candidate with an independently pinned decoded-data anchor and shared inventory approval. Agent reports strict43 passing; root review and full corpus replay pending. Binary-to-JSON implementation comparisons are not independent original-service parity evidence. No default switch or whole-task credit."
+        "assignee": "Codex root / Luna Max team",
+        "scope": "Provision the accepted portable graph bundle for normal deployment and verify it on Moth; default AST57 cluster repair continues independently from pinned source/native semantics. No whole-task credit until acceptance criteria are complete."
       }
     },
     {
