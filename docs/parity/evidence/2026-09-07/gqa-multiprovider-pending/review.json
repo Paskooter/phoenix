@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "date": "2026-09-07",
-  "decision": "awaiting combined integration review; source recovery and repaired Unicode comparisons pass",
+  "decision": "accepted bounded explicit multi-provider profile and reproducible Unicode data; whole Q-01 remains open",
   "reviewedBy": "Codex root",
   "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
   "profile": "explicit opt-in multi-provider; not deployed",
@@ -22,7 +22,6 @@
     "consumerFraming": "Root repeated six original Node 8 SkillRequestMaker/Axios exchanges: valid actions, HTTP failures and malformed JSON have matching dispositions across the observed media types."
   },
   "open": [
-    "Generated Unicode data packaging/provenance and current-main integration/full regression review.",
     "Whole Q-01, account/attribution, live providers, default deployment, full corpus gaps and robot acceptance."
   ],
   "exactDependencyFollowup": {
@@ -106,5 +105,59 @@
     "comparisonSha256": "eaaac55bd1c3114357948a4ea34ea152803b0b9d12ef60420a910c81fe46f966",
     "executionSha256": "0d75976528fb24fef12b97d8ea289709d1e059f1c45e0bdf83fcc75618c7a99d",
     "pending": "Generated data packaging/provenance and fresh integration onto current main; no deployment or whole-provider acceptance."
+  },
+  "integrationRevision": "91fd38540f76dc2dd4942b69b2e36c96b6801e48",
+  "finalIntegration": {
+    "candidateRevision": "91fd38540f76dc2dd4942b69b2e36c96b6801e48",
+    "agentFollowupRevision": "bd4e61b237e950d64122f56d42e2a4675f77c28c",
+    "packagesTree": "feb4502d94efc797a2ea77c2aeb170363e859b24",
+    "rootReviewedBy": "Codex root",
+    "freshRootCases": 36,
+    "freshRootMatches": 36,
+    "freshRootCandidateSeconds": 38.199839727953076,
+    "freshRootExitCode": 0,
+    "phaseRowsPerSide": 36,
+    "phaseNegativeControlsRejected": 6,
+    "unitPassed": 711,
+    "unitSkipped": 7,
+    "unitFailed": 0,
+    "strictCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictGaps": 0,
+    "npmTestExitCode": 0,
+    "npmTestSeconds": 21.3007211801596,
+    "frozenInputsStable": true,
+    "agentIntegrationReview": "Root rehashed 27 receipt artifacts and independently ran typed 36/12/210 comparisons, 36-row phase guards, 157 transport guards and their negative controls. Final Bing/Unicode runtime matches that reviewed integration; only Wolfram repeated-date cleanup changed.",
+    "sourceReuse": "Previously executed original source captures were preserved and compared read-only; no new live vendor or robot test.",
+    "generator": "Tracked generator requires an existing regular wheel, exact SHA-256 and matching module origin before output. Root reproduced five controls: exact wheel, wrong bytes, missing file, directory, and environment shadow. Valid outputs match the unchanged table; invalid inputs leave sentinel outputs intact.",
+    "generatorSha256": "71e247a9516234935a822d7b5c8af0c97ba9da3cd142fd03f37c8a57d0ce0d07",
+    "dataSha256": "605a670a0874aa6433f2043606cd26e43a6553a1080c7b9242be72bfaadfcab1",
+    "license": "Exact Unidecode wheel license, attribution and provenance retained with vendored decision data.",
+    "spokenRepair": {
+      "source": "Pinned original Wolfram extraction function ASTs executed unchanged under Python 3.6; module/network behavior is excluded from this narrow control.",
+      "cases": 8,
+      "priorDifferences": 2,
+      "finalMatches": 8,
+      "behavior": "All repeated srtemplate date placeholders are removed; sampletext fallback remains unchanged.",
+      "sourceCaptureSha256": "4cb19f75bc481e2c30572a608ca8c287da71b5ed639bc84f55950c678c0dd1ec",
+      "finalCaptureSha256": "5b3d981810f158b3dbedb05fd240bfa6a7168f27992c128ea06820cbfc3f38c0"
+    },
+    "candidateCaptureSha256": "93feabed70e19ab2e8534e521d1478e0f27374c03d6136fc2a04f647f3358c7c",
+    "comparisonSha256": "9f1d5160a2fa5fdfb406619dae2c86754a48d78ebaceb04afaca449943607eeb",
+    "executionSha256": "80b9e046aa3e0115036007fa7e8ff0ba91f7b5b89dbf7761ab63bd628655e931",
+    "suiteExecutionSha256": "c7eaeba98e6c6ed359c5eaa400fba282dedf191161a50ef59c863e39f7bc52db",
+    "generatorReviewSha256": "54bb015b4551043a434cbadcef5a3acb1eb93086a2b2977049fd8dbd8c0c6488",
+    "freshRootTransport": {
+      "cases": 12,
+      "matches": 12,
+      "checks": 157,
+      "negativeControlsRejected": 8,
+      "candidateExitCode": 0,
+      "checkerExitCode": 0,
+      "seconds": 7.60982116125524,
+      "candidateSha256": "9beed6ae1b2dbbe4ba24314de5ab45d9d66d2c59bd67aca55ed03d2e6c254e5d",
+      "reviewSha256": "ef5ab4f77cce17ad2aa194dbaf2378bdc744327414ccb35254a4bf39fe42b0bb"
+    }
   }
 }

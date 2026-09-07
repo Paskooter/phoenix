@@ -2123,7 +2123,7 @@
           "assignee": "Luna Max / capture_writer_repair; root acceptance",
           "candidateRevision": "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
           "worktree": ".parity/worktrees/report-lasso-integration",
-          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Historical review found redirect header reconstruction and requested exact source TypeError wording. The wording request is superseded by the user’s consumer-focused compatibility policy: it is nonblocking unless client interpretation changes. Later bounded acceptance is recorded above; prefetch rejection behavior remains an explicit Node8/Node22 divergence."
+          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Historical review found redirect header reconstruction and requested exact source TypeError wording. The wording request is superseded by the user\u2019s consumer-focused compatibility policy: it is nonblocking unless client interpretation changes. Later bounded acceptance is recorded above; prefetch rejection behavior remains an explicit Node8/Node22 divergence."
         }
       ]
     },
@@ -2343,30 +2343,21 @@
         "packages/skills/src/jcp.js",
         "packages/gateway/resources/skills"
       ],
-      "finding": "Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open. The separate multi-provider candidate passes 36 fresh root response/recovery cases, including late winners, with the original MarkupSafe dependency. Root also passes 12 connection/decode failure and same-provider recovery cases. The repaired Unicode candidate passes 210 root comparisons; generated data packaging and combined integration remain pending.",
+      "finding": "Root accepted the bounded GQA core, explicit Wikipedia profile and explicit Bing/Wikipedia/Wolfram profile. The combined profile matches 36 complete responses and phase controls; 12 transport recovery and 210 Unicode comparisons are reviewed. Source-backed repeated-date cleanup and reproducible vendored Unicode data are integrated. All 711 units and strict43 pass. Account/attribution, live providers, default deployment, broader coverage and whole Q-01 remain open.",
       "acceptance": [
         "Inventory Pegasus GQA/news entrypoints and question routing, Wikipedia/Wolfram/Bing fallbacks, attributions and no-answer behavior from original source.",
         "Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.",
         "Use replaceable live providers while preserving client-visible functionality and mark unresolved provider-specific features explicitly."
       ],
       "verification": [],
-      "nextImplementation": {
-        "state": "awaiting_review",
-        "assignee": "Luna Max / capture_writer_repair; Codex root",
-        "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
-        "scope": "Explicit multi-provider profile passes 36 root response/recovery comparisons with original dependencies, plus 12 connection/decode failure and same-provider recovery cases. Root reran the repaired Unicode candidate against the original provider capture: 210 complete comparisons pass. Generated data packaging/provenance, combined integration and whole-task deployment remain open.",
-        "artifact": "docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json"
-      },
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair; Codex root",
-        "candidateRevision": "7634f2bfda5cfbbf17630821813f8f710059c26e",
-        "reviewedCandidateRevision": "76ba31bd3765b9ab05ed859609439f42013332d0",
+        "candidateRevision": "91fd38540f76dc2dd4942b69b2e36c96b6801e48",
         "reviewedBy": "Codex root",
-        "scope": "Bounded explicit Wikipedia provider/profile: 34 complete source HTTP response and recovery cases, 40 ordered provider requests, and 68 original Hub/Axios exchanges. Root corrected nine behavior differences. All 672 units and the strict 43-case smoke pass. Default deployment and whole Q-01 remain open.",
-        "artifact": "docs/parity/candidates/Q-01-wikipedia-root-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json"
+        "scope": "Bounded explicit multi-provider profile, source-shaped provider recovery, Unicode decision filter and repeated-date cleanup. Root final 36 response/phase cases, 12 transport cases, 8 extraction cases, 5 generator controls, 711 units and strict43 pass; root independently reviewed 210 Unicode cases on identical Bing runtime files. Default deployment and whole Q-01 remain open.",
+        "artifact": "docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -2378,6 +2369,16 @@
           "scope": "Bounded GQA core factory and HTTP adapter;20 full source comparisons,473 blocked-term and193 query/filter controls;614 integrated units and strict43. Default service not switched, whole Q-01 remains open.",
           "artifact": "docs/parity/candidates/Q-01-core-integration-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-core/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / capture_writer_repair; Codex root",
+          "candidateRevision": "7634f2bfda5cfbbf17630821813f8f710059c26e",
+          "reviewedCandidateRevision": "76ba31bd3765b9ab05ed859609439f42013332d0",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded explicit Wikipedia provider/profile: 34 complete source HTTP response and recovery cases, 40 ordered provider requests, and 68 original Hub/Axios exchanges. Root corrected nine behavior differences. All 672 units and the strict 43-case smoke pass. Default deployment and whole Q-01 remain open.",
+          "artifact": "docs/parity/candidates/Q-01-wikipedia-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json"
         }
       ]
     },

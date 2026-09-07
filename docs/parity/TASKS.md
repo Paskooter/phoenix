@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open. The separate multi-provider candidate passes 36 fresh root response/recovery cases, including late winners, with the original MarkupSafe dependency. Root also passes 12 connection/decode failure and same-provider recovery cases. The repaired Unicode candidate passes 210 root comparisons; generated data packaging and combined integration remain pending.
+Root accepted the bounded GQA core, explicit Wikipedia profile and explicit Bing/Wikipedia/Wolfram profile. The combined profile matches 36 complete responses and phase controls; 12 transport recovery and 210 Unicode comparisons are reviewed. Source-backed repeated-date cleanup and reproducible vendored Unicode data are integrated. All 711 units and strict43 pass. Account/attribution, live providers, default deployment, broader coverage and whole Q-01 remain open.
 
 Done when:
 
@@ -1278,11 +1278,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Bounded explicit Wikipedia provider/profile: 34 complete source HTTP response and recovery cases, 40 ordered provider requests, and 68 original Hub/Axios exchanges. Root corrected nine behavior differences. All 672 units and the strict 43-case smoke pass. Default deployment and whole Q-01 remain open.
+Candidate scope: Bounded explicit multi-provider profile, source-shaped provider recovery, Unicode decision filter and repeated-date cleanup. Root final 36 response/phase cases, 12 transport cases, 8 extraction cases, 5 generator controls, 711 units and strict43 pass; root independently reviewed 210 Unicode cases on identical Bing runtime files. Default deployment and whole Q-01 remain open.
 
-Candidate report: [docs/parity/candidates/Q-01-wikipedia-root-20260907.md](../../docs/parity/candidates/Q-01-wikipedia-root-20260907.md).
+Candidate report: [docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md](../../docs/parity/candidates/Q-01-multiprovider-root-pending-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json](../../docs/parity/evidence/2026-09-07/gqa-wikipedia/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json](../../docs/parity/evidence/2026-09-07/gqa-multiprovider-pending/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 4. Complete companion-cloud and restored features
 

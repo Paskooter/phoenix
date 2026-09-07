@@ -244,3 +244,9 @@ Thirty local checks, 678 unit tests and strict43 pass. A
 verified native TLS token issuance, both authenticated Hub paths, clock rendering
 and a synthetic proactive exchange, followed by independent rollback checks.
 Persistent deployment, reboot supervision and microphone/ring acceptance remain open.
+
+The explicit [GQA multi-provider profile](candidates/Q-01-multiprovider-root-pending-20260907.md)
+is integrated after root source comparison, generator reproduction and final
+regression review. It preserves provider ordering/recovery and Unicode answer
+selection, and fixes repeated date placeholders in spoken Wolfram templates.
+Default deployment, account/attribution and full Q-01 remain open.

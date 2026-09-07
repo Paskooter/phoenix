@@ -1,4 +1,4 @@
-# Q-01 multi-provider candidate — awaiting integration review
+# Q-01 multi-provider profile — bounded integration accepted
 
 The isolated candidate adds an explicit Bing/Wikipedia/Wolfram profile.
 Root reproduced 36 complete source/candidate response and recovery cases with
@@ -18,10 +18,16 @@ Luna repaired period composition and trimming in `65e5994`. Root inspected the
 change and reran all 210 candidate cases against Luna's original Python provider
 capture: all complete provider results and request contracts agree, with finite
 ordered timestamp checks and nine rejected corrupted controls. Root did not
-repeat that 210-case Python run. Generated data packaging/provenance and fresh
-current-main integration remain pending.
+repeat that 210-case Python run. The generated data, exact license, attribution, provenance and guarded reusable
+generator are now integrated. Root reproduced the generator controls, including
+rejection of invalid wheel inputs without overwriting existing output.
 
-The profile has not been integrated or deployed. Q-01, account/attribution,
+The profile is integrated at `91fd385` and remains an explicit deployment option.
+Root reran all 36 response and phase cases on that final revision; 711 units
+and strict43 pass. Eight original extraction controls also verify the repair
+of repeated Wolfram date placeholders without changing fallback sample text.
+
+Q-01, account/attribution,
 live provider access, full corpus coverage and robot acceptance remain open.
 Harmless diagnostic wording does not block acceptance.
 The [review](../evidence/2026-09-07/gqa-multiprovider-pending/review.json)
