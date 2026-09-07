@@ -24,6 +24,7 @@ import {
   createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
+import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 
 export const AMZ_JSON = 'application/x-amz-json-1.1';
 const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-';
@@ -91,7 +92,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store) } = {}) {
   // oobe.handler.ts mapping keys (lowercased for the prefix-tolerant match).
   const ops = {
     setuprobot: setupRobot,
@@ -398,11 +399,24 @@ export function robotFaceRoutes(store, { settingsProviders = null } = {}) {
       }
     }
 
+    const previousSuspended = loop.isSuspended;
+    const previousUpdated = loop.updated;
     loop.isSuspended = true;
     // Mongoose's Loop pre-save hook writes updated on every save. Persist the same durable
     // field so a restart and a subsequent List call observe the state transition.
     loop.updated = Date.now();
-    store.flush();
+    try {
+      loopUpdatedOutbox.record(loop);
+    } catch (error) {
+      // The source save and its post-save event are one successful operation
+      // from this boundary's perspective. If the local snapshot cannot be
+      // committed, keep the in-memory loop aligned with the rejected write.
+      if (previousSuspended === undefined) delete loop.isSuspended;
+      else loop.isSuspended = previousSuspended;
+      if (previousUpdated === undefined) delete loop.updated;
+      else loop.updated = previousUpdated;
+      throw error;
+    }
     log.info('Loop.Suspend', {
       op,
       loopId: loop._id,

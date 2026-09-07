@@ -15,6 +15,7 @@ import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
+import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -42,6 +43,7 @@ export {
 } from './settingsTransport.js';
 export * as settingsData from './settingsData.js';
 export { createSettingsProviders } from './settingsProviders.js';
+export { LoopUpdatedOutbox, buildLoopUpdatedPayload, buildLoopUpdatedNotification } from './loopUpdatedOutbox.js';
 export { staticRoutes } from './static.js';
 
 function isCreateHubTokenTarget(req) {
@@ -54,12 +56,13 @@ function isSettingsTarget(req) {
     && /^settings/i.test(String(req.headers?.['x-amz-target'] || '').split('.').slice(0, -1).join('.'));
 }
 
-export function createAccountService({ store = getStore(), settingsProviders } = {}) {
+export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
-  return createService({
+  const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
+  const service = createService({
     name: 'account',
     // Hapi/Joi validates JSON primitives at the CreateHubToken handler.
     // Hapi also parses Settings payloads as JSON values before Joi rejects
@@ -71,9 +74,17 @@ export function createAccountService({ store = getStore(), settingsProviders } =
       ...portalRoutes(store),     // REST /api/* (sessions)
       ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
       ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
-      ...robotFaceRoutes(store, { settingsProviders: effectiveSettingsProviders }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
+      ...robotFaceRoutes(store, {
+        settingsProviders: effectiveSettingsProviders,
+        loopUpdatedOutbox,
+      }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });
+  // An injected publisher is the explicit Account -> notification boundary;
+  // recover rows left by a prior process after construction.
+  service.loopUpdatedOutbox = loopUpdatedOutbox;
+  void loopUpdatedOutbox.recover();
+  return service;
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.account) {
