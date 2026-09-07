@@ -54,3 +54,9 @@ secret survive process restarts through the supplied files. History and
 notification persistence, automatic LoopUpdated delivery, and host/robot reboot
 supervision remain separate tracked work. Inspect the current parity ledger
 before deploying a later integration.
+
+The launcher keeps notification tokens and pending source-shaped documents in
+`notifications.json` inside its private run directory. This supports process
+restart recovery. Account-to-notification publishing and verified notification
+account resolution remain explicit integration work; the local outbox seam is
+not selected by this launcher. Notification identity and robot acceptance stay open.
