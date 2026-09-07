@@ -22,7 +22,12 @@ import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from '.
 
 const ENABLED = COMPILED_FST_PROFILE.runtime;
 const APPROVED_LAUNCH_SHA256 = COMPILED_FST_PROFILE.approvedLaunchSha256;
-const APPROVED_INVENTORY_SHA256 = COMPILED_FST_PROFILE.approvedInventorySha256;
+// Keep the runtime approval in the small shipped manifest shared with the
+// production comparison runner. The profile still carries the same value as
+// metadata, and the runtime guard checks that both agree.
+export const APPROVED_INVENTORY_SHA256 = JSON.parse(readFileSync(
+  new URL('../resources/compiled-fst-approval.json', import.meta.url), 'utf8',
+)).inventorySha256;
 const APPROVED_SNAPSHOT_HASH_ANCHOR_SHA256 = COMPILED_FST_PROFILE.decodedHashAnchorSha256;
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
