@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 0 | 46 | 1 | 0 |
+| pegasus | 1 | 46 | 1 | 0 |
 | classic | 0 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -317,11 +317,11 @@ Evidence: pending.
 
 ### H-03 — Match the original intent decision tree
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: V-02.
 
-Root accepted original Any entity non-emptiness: 22 Node8 controls match and three full-corpus empty-name route/weight failures are fixed. Full compiled20534 now has zero differences, with external coverage gaps retained. Exact/NOT coercion, nested paths, tree traversal/ties and intentless skill-entity fallback remain open.
+Verified original intent decision tree: independent35 routing controls,48 applicable original tests and7 large/repeated sort controls agree. Full20534 compiled regression has zero differences/invariants and all20528 routing decisions match; same8 unrelated external-action gaps remain. Integrated main539 units/default43 pass. Older-release launch mediation is tracked in H-04.
 
 Done when:
 
@@ -332,15 +332,15 @@ Source: [Original Pegasus packages/hub/src/intent](https://pvindex.org/gitea/jib
 
 Phoenix: [packages/gateway/src/intentRouter.js](../../packages/gateway/src/intentRouter.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-07/intent-router/review.json](../../docs/parity/evidence/2026-09-07/intent-router/review.json) (2026-09-07; Pinned original Node8 differential, unchanged source test vectors, root full production regression and integrated main tests).
 
-- [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root review and acceptance.
 
-Candidate scope: Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.
+Candidate scope: Complete H-03 intent decision-tree acceptance; runtime diagnostic wording is nonblocking per user policy.
 
-Candidate report: [docs/parity/candidates/H-03-S-03-residual-repair-20260906.md](../../docs/parity/candidates/H-03-S-03-residual-repair-20260906.md).
+Candidate report: [docs/parity/candidates/H-03-intent-router-20260906.md](../../docs/parity/candidates/H-03-intent-router-20260906.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json](../../docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/intent-router/review.json](../../docs/parity/evidence/2026-09-07/intent-router/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### H-04 — Match skill launches, updates, redirects and session handoff
 

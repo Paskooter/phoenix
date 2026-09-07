@@ -1,0 +1,162 @@
+{
+  "candidateRevision": "9c28ed4c13c9bcc7ba33031d413e66fa115d06a4",
+  "decision": "verified H-03",
+  "full": {
+    "cases": 20534,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 16,
+    "uniqueGapCases": 8,
+    "sameGapsAsPredecessor": true,
+    "routingCompared": 20528,
+    "routingAgreement": 20528,
+    "strictExit": 1,
+    "strictExitReason": "only unchanged external action coverage gaps"
+  },
+  "matrix": {
+    "controls": 35,
+    "exact": 34,
+    "sameFunctionalOutcomeWithHarmlessRuntimeTypeErrorWording": 1
+  },
+  "originalTests": {
+    "sourcePass": 57,
+    "sourceSkip": 1,
+    "candidateApplicablePass": 48,
+    "candidateSkip": 1,
+    "sourceOnlyMediatorTests": 9,
+    "mediatorOwner": "H-04"
+  },
+  "sortStress": {
+    "controls": 7,
+    "matches": 7
+  },
+  "tests": {
+    "unitPass": 538,
+    "skip": 3,
+    "default43": true
+  },
+  "userPolicy": "2026-09-07: incidental error wording is nonblocking when consumer behavior agrees. The missing-intents TypeError occurs during config construction; route/decisions/failure class agree.",
+  "date": "2026-09-07",
+  "reviewedBy": "Codex root",
+  "integratedRevision": "6380425afaf1e5b441a24ab3faea7f7fa6af0be5",
+  "runtimeSourceSha256": "881ce0eadf5f2c72ec4d8012626403244fc87d4a43b534e0b975fed945e61035",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "fullProductionSourceTreeSha256": "443790b1f29b10d0b1a32b92ecad9207099ec69a4f5c80e6c8a2731704363953",
+  "dimensions": {
+    "parserHttp": {
+      "compared": 20528,
+      "agreement": 20528,
+      "differences": 0,
+      "invalid": 0
+    },
+    "intent": {
+      "compared": 20524,
+      "agreement": 20524,
+      "differences": 0,
+      "invalid": 0
+    },
+    "entities": {
+      "compared": 20524,
+      "agreement": 20524,
+      "differences": 0,
+      "invalid": 0
+    },
+    "rules": {
+      "compared": 20524,
+      "agreement": 20524,
+      "differences": 0,
+      "invalid": 0
+    },
+    "selectedSkill": {
+      "compared": 20528,
+      "agreement": 20528,
+      "differences": 0,
+      "invalid": 0
+    },
+    "memo": {
+      "compared": 20457,
+      "agreement": 20457,
+      "differences": 0,
+      "invalid": 0
+    },
+    "skillRequest": {
+      "compared": 20435,
+      "agreement": 20435,
+      "differences": 0,
+      "invalid": 0
+    },
+    "action": {
+      "compared": 20434,
+      "agreement": 20434,
+      "differences": 0,
+      "invalid": 0
+    },
+    "session": {
+      "compared": 20434,
+      "agreement": 20434,
+      "differences": 0,
+      "invalid": 0
+    },
+    "analytics": {
+      "compared": 20434,
+      "agreement": 20434,
+      "differences": 0,
+      "invalid": 0
+    },
+    "noMatch": {
+      "compared": 16,
+      "agreement": 16,
+      "differences": 0,
+      "invalid": 0
+    },
+    "providerRequests": {
+      "compared": 83,
+      "agreement": 83,
+      "differences": 0,
+      "invalid": 0
+    }
+  },
+  "mainConfirmation": {
+    "head": "6380425afaf1e5b441a24ab3faea7f7fa6af0be5",
+    "argv": [
+      "npm",
+      "test"
+    ],
+    "exitCode": 0,
+    "seconds": 18.449060597922653,
+    "finalHead": "6380425afaf1e5b441a24ab3faea7f7fa6af0be5",
+    "runtimeMatchesReviewedCandidate": true,
+    "stdoutSha256": "b41b3543e1eade1ae4d2f40622fe6e72fb2535fa4a9531fb9231d873677939a2"
+  },
+  "mainUnitPass": 539,
+  "mainUnitSkip": 3,
+  "criterionCoverage": [
+    {
+      "criterion": "Exact/NOT/wildcard/nested-entity matching, parent fallback, weights, registration ties and case behavior",
+      "evidence": "35 independent original/candidate controls,48 applicable original tests,7 source sort stress controls and full20528 routing decisions agree."
+    },
+    {
+      "criterion": "No intentless/unregistered skill-entity launch; local-turn launch gating",
+      "evidence": "Root control matrix plus original router tests and strict full production field comparison."
+    }
+  ],
+  "retainedLimits": [
+    "Full production comparator exits1 solely for16 unchanged external-action gap instances across8 answer cases. All20528 routing decisions are present and match. Those service gaps remain Q-01/release work.",
+    "Nine original DecisionMediator tests are source-only; older-release launch rewriting is explicitly tracked under H-04.",
+    "Missing-intents configuration failures have the same TypeError and no-route outcome; Node runtime wording differs and is nonblocking under the user policy.",
+    "This verifies intent selection, not the complete listen/launch lifecycle or real-microphone/physical-ring behavior."
+  ],
+  "artifacts": {
+    "original-test-coverage.json": "7639606d6543ef6175b7140e4301905003d65e11f2c431332d2e24f3b2641e13",
+    "matrix-comparison.json": "07cd06924d2ae6d25324a209476fad4990217f45830da9064548512aaba173d0",
+    "full-comparison.json.gz": "4ae52433273eb1cecfa127650caeab14d4d4b956762a583cf50419208a686f10",
+    "run.json": "6765f1711bd0b37280d32d252098113440b64263dc60b65180f71c56419050a3"
+  },
+  "privateReceiptHashes": {
+    "root-receipt.json": "440f97dc5937e859b5b1bab20bb052feba7073b558f25d8b0e64b9c387293cba",
+    "matrix/receipt.json": "92e81f77d489bd94c3095ee22e425933a80d2fec038f47945df5a397b3df9354",
+    "units.json": "0e81b90a7eda76a3b7fc3151f0c085f663f76373664d4f75917596af1b5450dc",
+    "main-confirmation.json": "7620e1f4b34efad948d304e756266384960bb76f1850778d59cc8db92b263eea"
+  },
+  "supplementalReceiptSha256": "a1f65ab6d004e9a76c7b01e0199a1a88ef78b2aafaf49f50a9d7cc24a60c746e"
+}

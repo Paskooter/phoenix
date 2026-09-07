@@ -1,0 +1,515 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "v8.9.4",
+  "candidateRevision": "9c28ed4c13c9bcc7ba33031d413e66fa115d06a4",
+  "candidateRuntime": "v22.22.0",
+  "sourceTests": [
+    "packages/hub/tests/intent/IRDecisionMaker/index.js",
+    "packages/hub/tests/intent/IntentRouter/GetSkillIDFromNLU.test.js",
+    "packages/hub/tests/intent/IntentRouter/DecisionMediator.test.js"
+  ],
+  "candidateTests": [
+    "packages/hub/tests/intent/IRDecisionMaker/index.js",
+    "packages/hub/tests/intent/IntentRouter/GetSkillIDFromNLU.test.js"
+  ],
+  "sourceAssertions": {
+    "passed": 57,
+    "skipped": 1,
+    "failed": 0
+  },
+  "candidateApplicableAssertions": {
+    "passed": 48,
+    "skipped": 1,
+    "failed": 0
+  },
+  "rows": [
+    {
+      "name": "IRDecisionMaker / When skills without entities specified / should return all skills registered for given intent",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When skills without entities specified / should return empty array if unknown intent passed",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When skills without entities specified / should find intent even if it was passed in different case",
+      "sourceStatus": "skipped",
+      "candidateStatus": "skipped",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / should find correct decisions based on entities given",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / should ignore entities order",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / should ignore extra entities",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / should return empty array for unknown intent",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / should return empty array when no entities passed",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / should return empty array if intent exists but no entities match",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / when entity value is an array / should match if one of values is matching",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities are specified / when entity value is an array / empty array should not match wildcard value",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / Should return decisions with weight / should return weight for a decision",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / Should return decisions with weight / should return two decisions if theres exact match and wildcard match",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / Should return decisions with weight / should return all decisions",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / Decision tree JSON / should correctly display decision tree as JSON object",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When memo is specified / should return memo in the decision results",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When memo is specified / should not return memo if it was not specified in config",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities with matchRule=NOT are present / should find correct decisions based on entities given",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities with matchRule=NOT are present / should not match if entity value is empty empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities with matchRule=NOT are present / when entity value is an array / NOT[x] should match only if no x in array",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entities with matchRule=NOT are present / when entity value is an array / NOT[x] should NOT match if there's x value in array",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / should match wildcard to any value",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / should return both exact matches and wildcard matches",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / should not match wildcard even when value is empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / should not match wildcard when entity is missing",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / should not match wildcard when entity value is undefined or null or empty string",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / when entity value is an array / ANY should match if array is not empty and has non-empty values",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / when entity value is an array / ANY should NOT match if array is empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When wildcard entities are specified / when entity value is an array / ANY should NOT match if array has only empty values",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as a number / should match nothing when quantity entity is empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as a number / should match when quantity entity is 0",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as a number / should match when quantity is a some number",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as a number / should match when quantity is a some number as a string",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as boolean / should match nothing when today entity is empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as boolean / should match false when today entity is false",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as boolean / should match false when today entity is a \"false\" string",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as boolean / should match true when today entity is true",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values arrive as boolean / should match true when today entity is a \"true\" string",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values are objects / should match nothing when kind entity is an empty array",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values are objects / should match when there is Marinara in array",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values are objects / should NOT match when there is no Marinara in array",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values are objects / should match nothing when properties entity is empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IRDecisionMaker / When entity values are objects / should match any when properties entity is not empty",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / getSkillIDFromNLU function / should return undefined when no NLU",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / getSkillIDFromNLU function / should return undefined when no intent",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / getSkillIDFromNLU function / should return undefined when no match",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / getSkillIDFromNLU function / should match a skill",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / getSkillIDFromNLU function / should match a skill and entity1, return match memo",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / getSkillIDFromNLU function / should match a skill and entity2, return match memo",
+      "sourceStatus": "passed",
+      "candidateStatus": "passed",
+      "sameStatus": true,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / No mediation required / shouldn't return mediated decision when >=1.9.0",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / No mediation required / shouldn't return mediated decision when RELEASE_NOT_FOUND",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / No mediation required / should coerce non-standard SEMVER and not return mediated decision",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- launchPersonalReport",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestWeatherPR",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestCommute",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestCalendar",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestNews",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "name": "IntentRouter / DecisionMediator / Mediation required / should coerce non-standard SEMVER and return apropriate mediated decision",
+      "sourceStatus": "passed",
+      "candidateStatus": "unsupported-seam",
+      "sameStatus": false,
+      "sourceError": null,
+      "candidateError": null
+    }
+  ],
+  "counts": {
+    "sourcePassed": 57,
+    "sourceSkipped": 1,
+    "sourceFailed": 0,
+    "candidatePassed": 48,
+    "candidateSkipped": 1,
+    "candidateFailed": 0,
+    "applicableMatched": 48,
+    "unsupported": 9,
+    "statusMismatches": 0
+  },
+  "unsupportedNames": [
+    "IntentRouter / DecisionMediator / No mediation required / shouldn't return mediated decision when >=1.9.0",
+    "IntentRouter / DecisionMediator / No mediation required / shouldn't return mediated decision when RELEASE_NOT_FOUND",
+    "IntentRouter / DecisionMediator / No mediation required / should coerce non-standard SEMVER and not return mediated decision",
+    "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- launchPersonalReport",
+    "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestWeatherPR",
+    "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestCommute",
+    "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestCalendar",
+    "IntentRouter / DecisionMediator / Mediation required / should return apropriate mediated decision when <1.9.0 -- requestNews",
+    "IntentRouter / DecisionMediator / Mediation required / should coerce non-standard SEMVER and return apropriate mediated decision"
+  ],
+  "boundary": "DecisionMediator is source-only: Phoenix gateway candidate exposes no mediateDecision API, so its nine source assertions are preserved as unsupported rather than represented as candidate passes."
+}

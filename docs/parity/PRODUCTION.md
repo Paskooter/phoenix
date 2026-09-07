@@ -1,5 +1,12 @@
 # Production parser, routing and skill comparison
 
+The [2026-09-07 H-03 review](evidence/2026-09-07/intent-router/review.json)
+verifies intent routing on frozen `9c28ed4`: the full compiled profile retains
+zero differences across 20,534 cases, with all 20,528 routing decisions
+present and matching. The same eight external-action coverage gaps remain.
+Integrated `6380425` also passes 539 unit tests and the default 43-case smoke
+check. Default AST parsing still has its separate 149 residual differences.
+
 V-03's production v2 gate executes real HTTP parser requests, each implementation's intent router and local skill registry, its production skill request builders, and real chitchat/report skill services. Full responses, provider requests, JCP/ESML/display actions, analytics and continuation sessions are compared. This is a component profile; full HubService orchestration, proactive transactions, external cloud skills and physical clients retain separate tasks. The corpus-to-gate inventory and hosted CI rejection are reviewed; V-03 infrastructure is verified. Product comparison failures remain open.
 
 The bounded writer now exports the full corpus under Node 8. The independently

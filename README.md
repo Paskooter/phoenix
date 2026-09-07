@@ -11,11 +11,12 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
 - **Stack:** Node.js ≥ 20, ESM JavaScript, npm workspaces, a single external dependency (`ws`).
   Tests use the built-in `node:test` runner.
 - **Status: implemented in part; 1:1 compatibility is not yet verified.**
-  The [latest complete comparison](docs/parity/evidence/2026-09-06/production/residual-repair-full-compiled/review.json)
+  The [latest complete comparison](docs/parity/evidence/2026-09-07/intent-router/review.json)
   covers **20,534 fixtures** with the compiled-FST parser: **zero field differences**
-  and zero trace invariants. **Eight external-service cases remain unhosted on both
+  and zero invariant failures. **Eight external-service cases remain unhosted on both
   sides**, so the complete gate still fails. All captured parser, routing, action,
   session and analytics fields now agree.
+  **H-03 intent routing is verified**, including the original decision tree and tie ordering.
   Both default and compiled **43-case smoke profiles pass**. The default AST parser
   separately retains **149 differences across 20,528 requests**, down from 295.
   A subsequent [explicit-weight candidate](docs/parity/evidence/2026-09-07/nlu-explicit-weight/review.json)
@@ -27,9 +28,9 @@ reimplemented, with only plain-text data vendored (grammars, MIMs, word lists, m
 
 <!-- parity-progress:start -->
 
-![8.9% checklist completion — 7 of 79 tasks verified](docs/parity/progress.svg)
+![10.1% checklist completion — 8 of 79 tasks verified](docs/parity/progress.svg)
 
-**8.9% checklist completion · 7/79 tasks verified.**
+**10.1% checklist completion · 8/79 tasks verified.**
 
 Counts only tasks whose full acceptance criteria and evidence have been reviewed. Candidate implementations do not count. This includes planning and verification tooling; it is not a percentage of server functionality.
 
@@ -37,7 +38,7 @@ Counts only tasks whose full acceptance criteria and evidence have been reviewed
 |---|---:|---:|
 | Planning | 3 | 3 |
 | Verification tooling | 4 | 4 |
-| Pegasus | 0 | 46 |
+| Pegasus | 1 | 46 |
 | Companion cloud | 0 | 20 |
 | Restoration | 0 | 1 |
 | Release | 0 | 5 |

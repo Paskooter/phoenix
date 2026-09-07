@@ -1,0 +1,1395 @@
+{
+  "sourceRuntime": "v8.9.4",
+  "candidateRuntime": "v22.22.0",
+  "idsExact": true,
+  "controls": 35,
+  "counts": {
+    "exact": 34,
+    "difference": 1,
+    "fatal": 0
+  },
+  "rows": [
+    {
+      "index": 0,
+      "id": "no-nlu",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 1,
+      "id": "no-intent",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 2,
+      "id": "no-launch-rule",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "basic",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "basic",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 3,
+      "id": "unknown-intent",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 4,
+      "id": "case-insensitive-intent",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "basic",
+        "weight": 0
+      },
+      "candidateRoute": {
+        "skillID": "basic",
+        "weight": 0
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "basic",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "basic",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 5,
+      "id": "bare-without-entities",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "arm": "bare"
+        },
+        "skillID": "bare",
+        "weight": 0
+      },
+      "candidateRoute": {
+        "memo": {
+          "arm": "bare"
+        },
+        "skillID": "bare",
+        "weight": 0
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 6,
+      "id": "bare-with-null-entities",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "arm": "bare"
+        },
+        "skillID": "bare",
+        "weight": 0
+      },
+      "candidateRoute": {
+        "memo": {
+          "arm": "bare"
+        },
+        "skillID": "bare",
+        "weight": 0
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 7,
+      "id": "exact-case-insensitive-scalar",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 8,
+      "id": "exact-number-coercion",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 9,
+      "id": "exact-boolean-coercion",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 10,
+      "id": "exact-empty-string",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 11,
+      "id": "exact-null",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 12,
+      "id": "exact-array-member",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "skillID": "exact",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "exact",
+          "weight": 1
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 13,
+      "id": "not-case-insensitive",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 14,
+      "id": "not-array-member",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 15,
+      "id": "not-empty-string",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 16,
+      "id": "not-missing",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 17,
+      "id": "wildcard-empty-values",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 18,
+      "id": "wildcard-nested-value",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "any",
+        "weight": 0.5
+      },
+      "candidateRoute": {
+        "skillID": "any",
+        "weight": 0.5
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "any",
+          "weight": 0.5
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "any",
+          "weight": 0.5
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 19,
+      "id": "nested-object-exact",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "nested",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "skillID": "nested",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "nested",
+          "weight": 1
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "nested",
+          "weight": 1
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 20,
+      "id": "nested-object-wildcard",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "nested",
+        "weight": 0.5
+      },
+      "candidateRoute": {
+        "skillID": "nested",
+        "weight": 0.5
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "nested",
+          "weight": 0.5
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "nested",
+          "weight": 0.5
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 21,
+      "id": "nested-array-path",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "nested",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "skillID": "nested",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "nested",
+          "weight": 1
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "nested",
+          "weight": 1
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 22,
+      "id": "entity-order-independent",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "arm": "food-first"
+        },
+        "skillID": "two",
+        "weight": 2
+      },
+      "candidateRoute": {
+        "memo": {
+          "arm": "food-first"
+        },
+        "skillID": "two",
+        "weight": 2
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "arm": "food-first"
+          },
+          "skillID": "two",
+          "weight": 2
+        },
+        {
+          "memo": {
+            "arm": "when-first"
+          },
+          "skillID": "two",
+          "weight": 2
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "arm": "food-first"
+          },
+          "skillID": "two",
+          "weight": 2
+        },
+        {
+          "memo": {
+            "arm": "when-first"
+          },
+          "skillID": "two",
+          "weight": 2
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 23,
+      "id": "bare-parent-fallback",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "arm": "bare"
+        },
+        "skillID": "bare",
+        "weight": 0
+      },
+      "candidateRoute": {
+        "memo": {
+          "arm": "bare"
+        },
+        "skillID": "bare",
+        "weight": 0
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "arm": "bare"
+          },
+          "skillID": "bare",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 24,
+      "id": "unknown-match-rule",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": {
+        "type": "error",
+        "name": "Error",
+        "message": "Unknown matchRule for kind: MAYBE",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "Unknown matchRule for kind: MAYBE"
+        }
+      },
+      "candidateError": {
+        "type": "error",
+        "name": "Error",
+        "message": "Unknown matchRule for kind: MAYBE",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "Unknown matchRule for kind: MAYBE"
+        }
+      }
+    },
+    {
+      "index": 25,
+      "id": "string-rules",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "skillID": "basic",
+        "weight": 0
+      },
+      "candidateRoute": {
+        "skillID": "basic",
+        "weight": 0
+      },
+      "sourceDecisions": [
+        {
+          "skillID": "basic",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "skillID": "basic",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 26,
+      "id": "intent-number",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "intentName.toLowerCase is not a function",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "intentName.toLowerCase is not a function"
+        }
+      },
+      "candidateError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "intentName.toLowerCase is not a function",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "intentName.toLowerCase is not a function"
+        }
+      }
+    },
+    {
+      "index": 27,
+      "id": "skill-entity-without-intent",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 28,
+      "id": "skill-entity-with-unknown-intent",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": [],
+      "candidateDecisions": [],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 29,
+      "id": "exact-and-wildcard-weight",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "arm": "exact"
+        },
+        "skillID": "exact",
+        "weight": 1
+      },
+      "candidateRoute": {
+        "memo": {
+          "arm": "exact"
+        },
+        "skillID": "exact",
+        "weight": 1
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "arm": "exact"
+          },
+          "skillID": "exact",
+          "weight": 1
+        },
+        {
+          "memo": {
+            "arm": "any"
+          },
+          "skillID": "any",
+          "weight": 0.5
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "arm": "exact"
+          },
+          "skillID": "exact",
+          "weight": 1
+        },
+        {
+          "memo": {
+            "arm": "any"
+          },
+          "skillID": "any",
+          "weight": 0.5
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 30,
+      "id": "twenty-equal-ties",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "n": 10
+        },
+        "skillID": "skill-10",
+        "weight": 0
+      },
+      "candidateRoute": {
+        "memo": {
+          "n": 10
+        },
+        "skillID": "skill-10",
+        "weight": 0
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "n": 1
+          },
+          "skillID": "skill-01",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 10
+          },
+          "skillID": "skill-10",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 2
+          },
+          "skillID": "skill-02",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 3
+          },
+          "skillID": "skill-03",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 4
+          },
+          "skillID": "skill-04",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 5
+          },
+          "skillID": "skill-05",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 6
+          },
+          "skillID": "skill-06",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 7
+          },
+          "skillID": "skill-07",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 8
+          },
+          "skillID": "skill-08",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 9
+          },
+          "skillID": "skill-09",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 0
+          },
+          "skillID": "skill-00",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 11
+          },
+          "skillID": "skill-11",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 12
+          },
+          "skillID": "skill-12",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 13
+          },
+          "skillID": "skill-13",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 14
+          },
+          "skillID": "skill-14",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 15
+          },
+          "skillID": "skill-15",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 16
+          },
+          "skillID": "skill-16",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 17
+          },
+          "skillID": "skill-17",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 18
+          },
+          "skillID": "skill-18",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 19
+          },
+          "skillID": "skill-19",
+          "weight": 0
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "n": 1
+          },
+          "skillID": "skill-01",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 10
+          },
+          "skillID": "skill-10",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 2
+          },
+          "skillID": "skill-02",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 3
+          },
+          "skillID": "skill-03",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 4
+          },
+          "skillID": "skill-04",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 5
+          },
+          "skillID": "skill-05",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 6
+          },
+          "skillID": "skill-06",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 7
+          },
+          "skillID": "skill-07",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 8
+          },
+          "skillID": "skill-08",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 9
+          },
+          "skillID": "skill-09",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 0
+          },
+          "skillID": "skill-00",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 11
+          },
+          "skillID": "skill-11",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 12
+          },
+          "skillID": "skill-12",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 13
+          },
+          "skillID": "skill-13",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 14
+          },
+          "skillID": "skill-14",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 15
+          },
+          "skillID": "skill-15",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 16
+          },
+          "skillID": "skill-16",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 17
+          },
+          "skillID": "skill-17",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 18
+          },
+          "skillID": "skill-18",
+          "weight": 0
+        },
+        {
+          "memo": {
+            "n": 19
+          },
+          "skillID": "skill-19",
+          "weight": 0
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 31,
+      "id": "grouped-entity-order",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "memo": {
+          "path": "ab"
+        },
+        "skillID": "path-ab",
+        "weight": 2
+      },
+      "candidateRoute": {
+        "memo": {
+          "path": "ab"
+        },
+        "skillID": "path-ab",
+        "weight": 2
+      },
+      "sourceDecisions": [
+        {
+          "memo": {
+            "path": "ab"
+          },
+          "skillID": "path-ab",
+          "weight": 2
+        },
+        {
+          "memo": {
+            "path": "ac"
+          },
+          "skillID": "path-ac",
+          "weight": 2
+        },
+        {
+          "memo": {
+            "path": "ba"
+          },
+          "skillID": "path-ba",
+          "weight": 2
+        }
+      ],
+      "candidateDecisions": [
+        {
+          "memo": {
+            "path": "ab"
+          },
+          "skillID": "path-ab",
+          "weight": 2
+        },
+        {
+          "memo": {
+            "path": "ac"
+          },
+          "skillID": "path-ac",
+          "weight": 2
+        },
+        {
+          "memo": {
+            "path": "ba"
+          },
+          "skillID": "path-ba",
+          "weight": 2
+        }
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "index": 32,
+      "id": "rules-object-invalid",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "nluData.rules.indexOf is not a function",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "nluData.rules.indexOf is not a function"
+        }
+      },
+      "candidateError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "nluData.rules.indexOf is not a function",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "nluData.rules.indexOf is not a function"
+        }
+      }
+    },
+    {
+      "index": 33,
+      "id": "missing-intents-invalid-config",
+      "classification": "difference",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": false,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "Cannot read property 'forEach' of undefined",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "Cannot read property 'forEach' of undefined"
+        }
+      },
+      "candidateError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'forEach')",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "Cannot read properties of undefined (reading 'forEach')"
+        }
+      }
+    },
+    {
+      "index": 34,
+      "id": "non-array-entities-invalid-config",
+      "classification": "exact",
+      "routeExact": true,
+      "decisionsExact": true,
+      "errorExact": true,
+      "sourceRoute": {
+        "type": "undefined"
+      },
+      "candidateRoute": {
+        "type": "undefined"
+      },
+      "sourceDecisions": {
+        "type": "undefined"
+      },
+      "candidateDecisions": {
+        "type": "undefined"
+      },
+      "sourceError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "intent.entities.forEach is not a function",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "intent.entities.forEach is not a function"
+        }
+      },
+      "candidateError": {
+        "type": "error",
+        "name": "TypeError",
+        "message": "intent.entities.forEach is not a function",
+        "ownKeys": [
+          "message"
+        ],
+        "own": {
+          "message": "intent.entities.forEach is not a function"
+        }
+      }
+    }
+  ]
+}

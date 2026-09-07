@@ -22,7 +22,7 @@ Replacement providers are acceptable implementation mechanisms. Verify their ada
 
 ## Execution order
 
-The ledger has **79 tasks**: 3 management, 4 verification, 46 Pegasus, 20 companion-cloud, 1 restoration and 5 release tasks. **PM-01–PM-03 are complete.** Jot (A-19) and VoiceTraining (A-20) split newly recovered functional scope from A-18; the verified numerator remains 7. These counts describe checklist granularity, not percent-complete software. Dependencies in the ledger control readiness; phase labels group the work for readability.
+The ledger has **79 tasks**: 3 management, 4 verification, 46 Pegasus, 20 companion-cloud, 1 restoration and 5 release tasks. **PM-01–PM-03 are complete.** Jot (A-19) and VoiceTraining (A-20) split newly recovered functional scope from A-18. The verified numerator is now **8**, including H-03 intent routing. These counts describe checklist granularity, not percent-complete software. Dependencies in the ledger control readiness; phase labels group the work for readability.
 
 | Stage | Main tasks | Exit condition |
 |---|---|---|
@@ -100,7 +100,7 @@ Maintain independent measures:
 
 Do not average NLU accuracy with API coverage or present test pass rates as overall completion. Splitting/adding tasks changes task counts and must not manufacture progress. Reopen a verified task when its contract, dependencies or implementation changes invalidate its evidence.
 
-The latest accepted main checkpoint passes **532 unit tests** and the default
+The latest accepted main checkpoint passes **539 unit tests** and the default
 strict **43-case smoke profile with zero differences, invariants or coverage
 gaps**. The [Settings Lasso review](evidence/2026-09-06/settings-lasso/review.json)
 adds 48 exact original Node 8 transport controls, including post-timeout
@@ -119,7 +119,12 @@ open. Integrated-main confirmation passed after two retained ASR fixture
 timeouts and passing unchanged predecessor/current focused controls. The
 earlier default-profile `057f67c` baseline retains its
 49,155 differences; profiles and limitations remain explicit in
-[PRODUCTION.md](PRODUCTION.md). No complete product workstream is certified.
+[PRODUCTION.md](PRODUCTION.md). H-03 intent routing is now verified: 35 original
+functional controls, 48 applicable original tests, seven large/repeated tie
+controls and all 20,528 full-corpus routing decisions agree. The
+[routing review](evidence/2026-09-07/intent-router/review.json) closes that task;
+older-release launch mediation remains H-04. No complete product workstream
+is certified.
 
 Future long captures should use an isolated, fixed verification worktree so
 main can continue receiving reviewed commits and pushes while evidence stays
@@ -131,8 +136,8 @@ rejects `2a814ab` for integration. Its completed default HTTP replay has
 changed outputs that still fail. Main retains its accepted 149-difference
 measurement. Focused native controls passed, which made the full regression
 check necessary. The agent is repairing the new failure groups in a separate
-worktree. The broader H-03 routing candidate and Person error repair remain
-under root review; neither has earned a completed checkbox.
+worktree. The Person error repair remains under root review and has not earned
+a completed checkbox.
 
 ## Tracker commands
 

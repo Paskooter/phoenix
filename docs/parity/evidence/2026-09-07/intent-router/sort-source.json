@@ -1,0 +1,12 @@
+{
+  "source": "https://github.com/nodejs/node/blob/v8.9.4/deps/v8/src/js/array.js",
+  "revision": "Node8.9.4 /V8 6.1.534.50",
+  "sha256": "82e054b34805e4ea91d2c76628bb0ed8ef75c67fc486ae05839eafee471a1477",
+  "scope": "Phoenix legacySort implements the pinned in-place sorting algorithm to preserve selected skills when weights tie;7 independent original/candidate controls include1024 entries and repeated calls.",
+  "upstreamLicense": "V8 BSD-style license",
+  "functions": [
+    "QuickSort",
+    "InsertionSort",
+    "GetThirdIndex"
+  ]
+}
