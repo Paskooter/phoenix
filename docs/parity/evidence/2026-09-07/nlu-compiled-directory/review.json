@@ -1,0 +1,26 @@
+{
+  "state": "accepted_bounded_infrastructure",
+  "reviewedBy": "Claude root",
+  "agentRuntime": "grok-4.6 (grok CLI 1.0.13 headless), isolated worktree .parity/worktrees/n08-runtime-default-20260907",
+  "agentRevisions": {"implementation": "e1f0fc5", "writeup": "a3ff5a6", "priorAssessment": "c04e705"},
+  "integrationRevisions": ["3a0012b", "9cf607b", "1016aa7"],
+  "sourceRevisions": {"pegasus": "5c0a7390539663ba749d360de348a428c088505c", "nluService": "5d6755a", "jiboNlu": "91b1bb6"},
+  "scope": "Source-backed compiled-FST directory acquisition so graphs outside the closed 98-rule bundle can load and parse, selected by PHOENIX_NLU_COMPILED_FST_DIRECTORIES. Adds compiledFstAcquisition.js, a third runtime profile, and a requestParser path that accepts discovered names absent from the 98-rule public map.",
+  "defaultUnchanged": "The repo default remains the AST profile. getCompiledFstRuntime() returns null with no env selection, so the new requestParser branch short-circuits and the reordered call is inert on the default path. Root verified this by reading the code and by the strict gate.",
+  "rootVerification": {
+    "independentUnitRunInWorktree": "776 tests, 769 pass, 0 fail, 7 skip",
+    "strictGateInWorktree": {"cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0},
+    "integratedMain": {"unit": "785 tests, 778 pass, 0 fail, 7 skip", "trackerCheck": "valid", "strictGate": {"cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}},
+    "codeReview": "requestParser only consults the compiled runtime when one exists; compiledHasRule returns false for a null runtime. Confirmed getCompiledFstRuntime short-circuits on falsy config before any file read or hash check."
+  },
+  "notEstablished": [
+    "No 20,528-case replay was run. The c125/main 51-residual baseline is UNCHANGED and unverified against this code.",
+    "Synthetic VectorFSTs only; the approved 98-rule bundle was not re-executed against the new path.",
+    "No new coverage claim for the 98-rule bundle.",
+    "OpenFST UNION not implemented; it is offline-only in source (build-rules.ts).",
+    "Native Promise.all directory collision race, mixed-case glob reconstruction, and factory_list.txt versus all-*.fst preload were not measured against the native service.",
+    "No robot or nlu_interface host run."
+  ],
+  "agentNextStep": "Provision a real rules_fst directory or extra skill .fst files, set PHOENIX_NLU_COMPILED_FST_DIRECTORIES, commit, then compare native COMPILE/PARSE_FROM_URI on those graphs. A full replay is only justified once that is the profile a deployment would actually serve.",
+  "ledgerEffect": "None. N-08 remains in_progress and the checklist stays at 8/79. This is enabling infrastructure, not a parity result."
+}
