@@ -36,7 +36,20 @@ function sourceProfileProvider(provider) {
     const output = await provider(context);
     if (!output || typeof output !== 'object') return {};
     const payload = output.response && output.response.payload;
-    return payload ? output : {};
+    if (!payload) return {};
+    // gqa.wiki.call reports worker checkpoints and the source route combines
+    // them with the parent fork boundary: `wiki` is response minus fork and
+    // `wiki_tokenization` is fork minus tokenization start. Preserve those
+    // keys while leaving their measured values runtime-owned.
+    const timestamps = output.timestamps || {};
+    const timings = { ...(output.timings || {}) };
+    if (timestamps.wiki_response !== undefined && timestamps.wikipedia_fork !== undefined) {
+      timings.wiki = Math.max(0, timestamps.wiki_response - timestamps.wikipedia_fork) / 1000;
+    }
+    if (timestamps.wikipedia_fork !== undefined && timestamps.wiki_begin_tokenization !== undefined) {
+      timings.wiki_tokenization = Math.max(0, timestamps.wikipedia_fork - timestamps.wiki_begin_tokenization) / 1000;
+    }
+    return { ...output, timings };
   };
 }
 

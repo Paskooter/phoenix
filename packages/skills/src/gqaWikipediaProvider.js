@@ -656,6 +656,13 @@ export function createWikipediaProvider({
     const query = String(context.queryText ?? '');
     const questionType = context.questionType ?? '';
     const output = { source: 'Wikipedia', timestamps: {}, logs: {} };
+    // The source GqaParallelQuery records the fork timestamp in the parent
+    // immediately before starting the Wikipedia worker.  Keeping this
+    // boundary separate from the worker's tokenization timestamp lets the
+    // response builder reproduce `wiki_tokenization` (fork minus begin) and
+    // `wiki` (response minus fork), rather than folding tokenization into the
+    // network phase.
+    output.timestamps.wikipedia_fork = Math.trunc(clock());
     output.timestamps.wiki_begin_tokenization = Math.trunc(clock());
     const strictQuery = removeInitialStopWords(query);
     output.logs.strict_query = strictQuery;

@@ -72,7 +72,7 @@ test('Q-01 Wikipedia adapter follows source success request and result contract'
     });
     assert.equal(output.logs.strict_query, 'John Henry Brooke');
     assert.deepEqual(Object.keys(output.timestamps), [
-      'wiki_begin_tokenization', 'wiki_request', 'wiki_response',
+      'wikipedia_fork', 'wiki_begin_tokenization', 'wiki_request', 'wiki_response',
     ]);
     assert.equal(requests.length, 1);
     const requestUrl = new URL(requests[0].url, endpoint);

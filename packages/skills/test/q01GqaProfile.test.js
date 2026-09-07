@@ -255,6 +255,48 @@ test('Q-01 actual gateway exposes the explicit profile and reaches its answer se
   });
 });
 
+test('Q-01 profile retains source Wikipedia timing keys on a successful answer', async () => {
+  await withApiPeer(async ({ endpoint, setScenario }) => {
+    const service = await createGqaWikipediaService({ endpoint, timeoutMs: 100, random: () => 0 }).listen(0);
+    try {
+      setScenario('success');
+      const result = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
+      assert.equal(result.response.status, 200);
+      assert.deepEqual(Object.keys(result.body.timings).sort(), [
+        'finalization_part', 'initialization_part', 'total', 'wiki', 'wiki_tokenization',
+      ].sort());
+      assert.equal(typeof result.body.timings.wiki, 'number');
+      assert.equal(typeof result.body.timings.wiki_tokenization, 'number');
+    } finally {
+      await new Promise((resolve) => service.close(resolve));
+    }
+  });
+});
+
+test('Q-01 profile measures Wikipedia phases from the source fork boundary', async () => {
+  // start, fork, tokenization-begin, request, response, end
+  const ticks = [1000, 1001, 1001, 1005, 1006];
+  const service = await createGqaWikipediaService({
+    endpoint: 'http://fixture.invalid/w/api.php',
+    fetchImpl: async () => new Response(JSON.stringify(page()), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }),
+    timeoutMs: 100,
+    random: () => 0,
+    clock: () => ticks.shift() ?? 1006,
+  }).listen(0);
+  try {
+    const result = await postJson(service.address().port, '/answer_skill/v1/main', requestBody());
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.timings.wiki, 0.005);
+    assert.equal(result.body.timings.wiki_tokenization, 0);
+    assert.equal(result.body.timings.total, 6);
+  } finally {
+    await new Promise((resolve) => service.close(resolve));
+  }
+});
+
 test('Q-01 profile maps provider failures to the source no-answer action', async () => {
   await withApiPeer(async ({ endpoint, setScenario }) => {
     const service = createGqaWikipediaService({ endpoint, timeoutMs: 15, random: () => 0 });
