@@ -511,7 +511,11 @@ test('configured Person/Lasso providers use the source update/delete peer bounda
       ['DELETE', '/v1/credential', undefined],
     ]);
     assert.deepEqual(requests[0].body, { key: 'accountFlag', value: { value: true } });
-    assert.deepEqual(requests[1].body, { key: 'loopFlag', value: { value: false }, loopId: 'loop-1' });
+    // Original Person.setLoopProperty sends the transaction ID in the body.
+    // The source TCP control "set-loop-transid-body" verifies this boundary.
+    assert.deepEqual(requests[1].body, {
+      loopId: 'loop-1', transId: 'tx-1', key: 'loopFlag', value: { value: false },
+    });
     assert.deepEqual(requests[2].body, {
       skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'calendar', scopes: ['read'], authCode: 'auth', clientId: 'client', accountId: 'user-1',
     });
