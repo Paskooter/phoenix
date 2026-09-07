@@ -24,6 +24,10 @@ import {
   GQA_MULTI_PROVIDER_PROFILE,
   startGqaMultiProviderService,
 } from './gqaMultiProviderService.js';
+import {
+  createGqaDefaultSkill,
+  validateGqaDefaultProfile,
+} from './gqaDefaultService.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
@@ -112,6 +116,12 @@ export {
   GQA_MULTI_PROVIDER_TIMEOUTS,
 } from './gqaMultiProviderService.js';
 export {
+  createGqaDefaultSkill,
+  validateGqaDefaultProfile,
+  GQA_DEFAULT_PROFILE,
+  GQA_DEFAULT_PROFILE_ENV,
+} from './gqaDefaultService.js';
+export {
   createGqaAccountLookup,
   createGqaAttributionStore,
   createGqaMemoryAttributionStore,
@@ -152,10 +162,20 @@ export const SKILLS = [
 
 const SKILL_IDS = new Set(SKILLS.map((skill) => skill.id));
 
+function answerSkillEntry(handler = answerSkill, route) {
+  const entry = { id: 'answer-skill', handler };
+  if (typeof route === 'function') entry.route = route;
+  return entry;
+}
+
 /** Construct only the handlers hosted by this process, in source order. */
-export function createBuiltinSkills({ graphManager = new GraphManager() } = {}) {
+export function createBuiltinSkills({
+  graphManager = new GraphManager(),
+  answerHandler = answerSkill,
+  answerRoute,
+} = {}) {
   return [
-    { id: 'answer-skill', handler: answerSkill },
+    answerSkillEntry(answerHandler, answerRoute),
     { id: 'chitchat-skill', handler: getChitchatSkill({ graphManager }) },
     { id: 'report-skill', handler: getReportSkill({ graphManager }) },
     { id: 'color-skill', handler: colorSkill },
@@ -164,9 +184,10 @@ export function createBuiltinSkills({ graphManager = new GraphManager() } = {}) 
   ];
 }
 
-function createSelectedSkill(skillId) {
+function createSelectedSkill(skillId, { answerHandler = answerSkill, answerRoute } = {}) {
   if (skillId === 'chitchat-skill') return { id: skillId, handler: getChitchatSkill({ graphManager: new GraphManager() }) };
   if (skillId === 'report-skill') return { id: skillId, handler: getReportSkill({ graphManager: new GraphManager() }) };
+  if (skillId === 'answer-skill') return answerSkillEntry(answerHandler, answerRoute);
   return SKILLS.find((skill) => skill.id === skillId);
 }
 
@@ -241,11 +262,13 @@ export function runService(serviceName, serviceStarter, {
 export function start(port = defaultPort(), {
   skillId = process.env.PHOENIX_SKILL_ID,
   gqaProfile = process.env.PHOENIX_GQA_PROFILE,
+  gqaDefaultProfile = process.env.PHOENIX_GQA_DEFAULT_PROFILE,
   gqaEnvironment = process.env,
   gqaConfig = {},
   gqaEndpoint = process.env.ETCO_gqa_wikiApi,
   gqaTimeoutMs = process.env.ETCO_gqa_wikiTimeoutMs,
 } = {}) {
+  const selectedDefaultProfile = validateGqaDefaultProfile(gqaDefaultProfile);
   if (gqaProfile === GQA_WIKIPEDIA_PROFILE) {
     if (skillId && skillId !== 'answer' && skillId !== 'answer-skill') {
       throw new Error(`GQA Wikipedia profile cannot serve PHOENIX_SKILL_ID '${skillId}'`);
@@ -266,10 +289,31 @@ export function start(port = defaultPort(), {
   }
   if (skillId) {
     if (!SKILL_IDS.has(skillId)) throw new Error(`Unknown PHOENIX_SKILL_ID '${skillId}'`);
-    const selected = createSelectedSkill(skillId);
-    return createSkillService({ name: selected.id, skillId: selected.id, handler: selected.handler }).listen(port);
+    const defaultGqa = selectedDefaultProfile && skillId === 'answer-skill'
+      ? createGqaDefaultSkill({ env: gqaEnvironment, ...gqaConfig })
+      : undefined;
+    const selected = createSelectedSkill(skillId, {
+      answerHandler: defaultGqa?.handler,
+      answerRoute: defaultGqa?.route,
+    });
+    return createSkillService({
+      name: selected.id,
+      skillId: selected.id,
+      handler: selected.handler,
+      route: selected.route,
+    }).listen(port);
   }
-  return createSkillsService({ name: 'skills', skills: createBuiltinSkills(), defaultId: 'answer-skill' }).listen(port);
+  const defaultGqa = selectedDefaultProfile
+    ? createGqaDefaultSkill({ env: gqaEnvironment, ...gqaConfig })
+    : undefined;
+  return createSkillsService({
+    name: 'skills',
+    skills: createBuiltinSkills({
+      answerHandler: defaultGqa?.handler,
+      answerRoute: defaultGqa?.route,
+    }),
+    defaultId: 'answer-skill',
+  }).listen(port);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -66,19 +66,28 @@ export function skillRoute(skillId, handler) {
 /**
  * Host several skills. Each gets POST /v1/<id>/main; `defaultId` (or the first) is also served at
  * POST /v1/main for back-compat.
- * @param {{ name?:string, skills:Array<{id:string, handler:Function}>, defaultId?:string }} opts
+ * @param {{ name?:string, skills:Array<{id:string, handler:Function, route?:Function}>, defaultId?:string }} opts
  */
 export function createSkillsService({ name = 'skills', skills, defaultId }) {
   const routes = {};
-  for (const { id, handler } of skills) routes[`POST /v1/${id}/main`] = skillRoute(id, handler);
+  for (const { id, handler, route } of skills) {
+    // Most skills use the BaseSkill wrapper.  Source services with a distinct
+    // HTTP contract (the Flask-era GQA route is one) can provide their own
+    // route while remaining part of the same host registry.  Keeping this
+    // choice on the descriptor prevents a GQA route from inheriting the
+    // generic strict JSON/error envelope.
+    routes[`POST /v1/${id}/main`] = typeof route === 'function' ? route : skillRoute(id, handler);
+  }
   const def = skills.find((s) => s.id === defaultId) || skills[0];
-  if (def) routes['POST /v1/main'] = skillRoute(def.id, def.handler);
+  if (def) routes['POST /v1/main'] = typeof def.route === 'function'
+    ? def.route
+    : skillRoute(def.id, def.handler);
   return createService({ name, routes });
 }
 
 /** Back-compat single-skill host. */
-export function createSkillService({ name, skillId, handler }) {
-  return createSkillsService({ name, skills: [{ id: skillId, handler }], defaultId: skillId });
+export function createSkillService({ name, skillId, handler, route }) {
+  return createSkillsService({ name, skills: [{ id: skillId, handler, route }], defaultId: skillId });
 }
 
 function errorResponse(skillId, message) {
