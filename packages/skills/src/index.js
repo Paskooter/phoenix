@@ -71,6 +71,19 @@ export {
   BING_UNHELPFUL_SPOKEN_TEXT,
   BING_SUPPRESS_IN_SPOKEN_TEXT,
 } from './gqaBingProvider.js';
+export {
+  createWolframProvider,
+  extractWolframPodAnswer,
+  extractWolframSpokenAnswer,
+  cleanWolframAnswer,
+  wolframProviderContract,
+  WOLFRAM_SOURCE_CONFIG_KEY,
+  WOLFRAM_SOURCE_MODULE,
+  WOLFRAM_SOURCE_REVISION,
+  WOLFRAM_SOURCE_TOTAL_TIMEOUT,
+  WOLFRAM_SOURCE_SCAN_TIMEOUT,
+  WOLFRAM_SOURCE_ANSWER_POD_INDEX,
+} from './gqaWolframProvider.js';
 export { createReportSkill, getReportSkill, reportSkill } from './reportSkill.js';
 export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';
