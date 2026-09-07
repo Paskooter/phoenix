@@ -914,7 +914,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-Root has accepted bounded Settings getter/view/internal dispatch and mutation behavior (78 getter TCP, 52 mutation cases), local state and disk reopen (29 controls), Lasso transport (48 controls), and Person transport (26 service-boundary, 37 wire and seven original robot error-extractor controls). Account-to-Hub transport is now also accepted: 40 payload/wire, 11 redirect/deadline and eight complete service-response cases agree with the original captures. Every failed-request case allows a following valid response. The integrated tree passes 632 units and strict 43-case smoke. Full deployment authentication, OAuth, real Mongo/live providers, migration and whole A-06 remain open.
+Root has accepted bounded Settings getter/view/internal dispatch and mutation behavior (78 getter TCP, 52 mutation cases), local state and disk reopen (29 controls), Lasso transport (48 controls), and Person transport (26 service-boundary, 37 wire and seven original robot error-extractor controls). Account-to-Hub transport is now also accepted: 40 payload/wire, 11 redirect/deadline and eight complete service-response cases agree with the original captures. Every failed-request case allows a following valid response. A further root-reviewed 22-case control preserves provider codes on reads/updates/deletes and omits internal diagnostic codes; an initial candidate regression was repaired before integration. The integrated tree passes 636 units and strict 43-case smoke. Full deployment authentication, OAuth, real Mongo/live providers, migration and whole A-06 remain open.
 
 Done when:
 
@@ -930,11 +930,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Bounded Account-to-Hub network transport and request-scoped error recovery: 40 payload/wire, 11 redirect/deadline and eight complete source service-response cases match; every following valid request succeeds. Integrated 632 units and strict 43-case smoke pass. Preserved original App/Hapi captures supply the boundary reference; a root reference-container startup timeout is retained separately. Whole A-06 remains open.
+Candidate scope: Bounded Settings error-code projection for read/update/delete operations. Root repaired an ordinary-error code regression and remaining mutation code loss; 22 complete response/Hub request controls and following valid requests agree. All 636 units and strict43 pass. Source Node8 host reproduces 17 preserved container response controls. Full A-06 remains open.
 
-Candidate report: [docs/parity/candidates/A-06-hub-root-20260907.md](../../docs/parity/candidates/A-06-hub-root-20260907.md).
+Candidate report: [docs/parity/candidates/A-06-hub-projection-root-20260907.md](../../docs/parity/candidates/A-06-hub-projection-root-20260907.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/settings-hub/review.json](../../docs/parity/evidence/2026-09-07/settings-hub/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-07/settings-hub-projection/review.json](../../docs/parity/evidence/2026-09-07/settings-hub-projection/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ## 3. Verify complete skill output and interactions
 

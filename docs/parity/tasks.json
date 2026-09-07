@@ -2612,7 +2612,7 @@
         "packages/account/src/settingsProviders.js",
         "docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json"
       ],
-      "finding": "Root has accepted bounded Settings getter/view/internal dispatch and mutation behavior (78 getter TCP, 52 mutation cases), local state and disk reopen (29 controls), Lasso transport (48 controls), and Person transport (26 service-boundary, 37 wire and seven original robot error-extractor controls). Account-to-Hub transport is now also accepted: 40 payload/wire, 11 redirect/deadline and eight complete service-response cases agree with the original captures. Every failed-request case allows a following valid response. The integrated tree passes 632 units and strict 43-case smoke. Full deployment authentication, OAuth, real Mongo/live providers, migration and whole A-06 remain open.",
+      "finding": "Root has accepted bounded Settings getter/view/internal dispatch and mutation behavior (78 getter TCP, 52 mutation cases), local state and disk reopen (29 controls), Lasso transport (48 controls), and Person transport (26 service-boundary, 37 wire and seven original robot error-extractor controls). Account-to-Hub transport is now also accepted: 40 payload/wire, 11 redirect/deadline and eight complete service-response cases agree with the original captures. Every failed-request case allows a following valid response. A further root-reviewed 22-case control preserves provider codes on reads/updates/deletes and omits internal diagnostic codes; an initial candidate regression was repaired before integration. The integrated tree passes 636 units and strict 43-case smoke. Full deployment authentication, OAuth, real Mongo/live providers, migration and whole A-06 remain open.",
       "acceptance": [
         "Compare all four operations, skill selection, default/view schema, partial updates/deletes and per-account/loop access.",
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
@@ -2622,12 +2622,12 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / http_contract_repair; Codex root",
-        "candidateRevision": "fc4445efff54f89e9f40fca6bc322acfbd72f236",
-        "reviewedCandidateRevision": "83836e1c43fb410d8f34ecb85c6082289b2bf020",
+        "candidateRevision": "ab71ee98030fdd084d10ea8030bcd52f012acde5",
+        "reviewedCandidateRevision": "85ea30cbdf386db976e95230cf03a32b642e61ab",
         "reviewedBy": "Codex root",
-        "scope": "Bounded Account-to-Hub network transport and request-scoped error recovery: 40 payload/wire, 11 redirect/deadline and eight complete source service-response cases match; every following valid request succeeds. Integrated 632 units and strict 43-case smoke pass. Preserved original App/Hapi captures supply the boundary reference; a root reference-container startup timeout is retained separately. Whole A-06 remains open.",
-        "artifact": "docs/parity/candidates/A-06-hub-root-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/settings-hub/review.json"
+        "scope": "Bounded Settings error-code projection for read/update/delete operations. Root repaired an ordinary-error code regression and remaining mutation code loss; 22 complete response/Hub request controls and following valid requests agree. All 636 units and strict43 pass. Source Node8 host reproduces 17 preserved container response controls. Full A-06 remains open.",
+        "artifact": "docs/parity/candidates/A-06-hub-projection-root-20260907.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-07/settings-hub-projection/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -2681,21 +2681,22 @@
           "scope": "Bounded Person network transport and Settings failure propagation/error projection.26 original full-boundary controls,37 ordered wire controls and7 original robot extractor controls agree functionally. Integrated identical tree passes568 units,3 skips and strict43 zero differences/invariants/gaps. FullA06 remains open.",
           "artifact": "docs/parity/candidates/A-06-settings-person-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/settings-person/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "fc4445efff54f89e9f40fca6bc322acfbd72f236",
+          "reviewedCandidateRevision": "83836e1c43fb410d8f34ecb85c6082289b2bf020",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded Account-to-Hub network transport and request-scoped error recovery: 40 payload/wire, 11 redirect/deadline and eight complete source service-response cases match; every following valid request succeeds. Integrated 632 units and strict 43-case smoke pass. Preserved original App/Hapi captures supply the boundary reference; a root reference-container startup timeout is retained separately. Whole A-06 remains open.",
+          "artifact": "docs/parity/candidates/A-06-hub-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/settings-hub/review.json"
         }
       ],
       "nextImplementation": {
         "state": "working",
-        "assignee": "Luna Max / http_contract_repair; root acceptance",
-        "candidateRevision": "fc4445efff54f89e9f40fca6bc322acfbd72f236",
-        "scope": "Expand the actual App.start/Hapi full-service controls across successful payloads, smart JSON, redirects/deadlines and connection failures while preserving completed transport controls. Full deployment/OAuth/Mongo/authentication remain open.",
-        "earlierCandidates": [
-          {
-            "revision": "04ba2fa7979faa8147fea2010ddfe73ab0d46c7d",
-            "worktree": ".parity/worktrees/a06-hub",
-            "state": "awaiting_review",
-            "scope": "Hub/Account friendly-ID network adapter; unverified."
-          }
-        ]
+        "assignee": "Codex root / Luna Max team",
+        "scope": "Remaining deployment authentication, OAuth, real persistence and full A-06 acceptance. Completed Hub boundary/projection work is recorded in accepted implementation reviews."
       }
     },
     {

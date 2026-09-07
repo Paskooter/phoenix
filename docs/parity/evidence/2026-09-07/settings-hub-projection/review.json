@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded error-code projection; full A-06 remains open",
+  "reviewedBy": "Codex root",
+  "agentCandidateRevision": "ab71ee98030fdd084d10ea8030bcd52f012acde5",
+  "integratedPreRepairRevision": "d815ba6516d013e3dd4ace149c74e699ee58ba74",
+  "reviewedRuntimeRevision": "85ea30cbdf386db976e95230cf03a32b642e61ab",
+  "source": {
+    "settingsRevision": "0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+    "server": "@jibo/server 4.0.12",
+    "hapi": "16.4.1",
+    "boom": "5.1.0",
+    "module": "Actual Settings handler/controller, Account and Hub clients through App.start and Hapi HTTP listener",
+    "runtime": "Original Node 8.9.4 executable on host",
+    "nodeExecutableSha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d",
+    "hostQualification": "Fresh host execution reproduces all 17 retained original container response controls after the stated generated-field rules. Five additional root controls use the same source and host runtime.",
+    "sourceBootstrapSha256": "02a0c6953376c52e37cbc0f49a4835aeb78157d59be3321f2dd6a674cf3fb8a4"
+  },
+  "repairs": [
+    "Preserve a provider Boom output code on HTTP 500, including GetSettings, UpdateSettings and DeleteSettings.",
+    "Omit low-level Error.code when it is absent from the provider Boom output.",
+    "Do not project an ordinary non-Boom error code into the generic internal-error response. This repairs a regression in the initial agent candidate."
+  ],
+  "retainedPreRepairEvidence": {
+    "agentExpandedCases": 17,
+    "agentBaselineDecodedMatches": 14,
+    "agentBaselineMatchesAfterResetMarkerQualification": 15,
+    "rootExtensionCases": 5,
+    "rootExtensionDifferences": 3,
+    "rootExtensionDescription": "Plain-coded GetSettings leaked an internal code; coded Hub 500 responses lost their code on UpdateSettings and DeleteSettings. Both plain-coded mutation controls already agreed.",
+    "rootExtensionReceiptSha256": "a2dcbf2e2e324ee60aac4360f1812542ef79913672e388996975338b53c7d01e",
+    "scope": "The root baseline is the integrated initial agent candidate, not an assertion that all three were regressions in previously published main."
+  },
+  "verification": {
+    "cases": 22,
+    "qualifiedResponseMatches": 22,
+    "exactDecodedResponses": 20,
+    "hubWireMatches": 22,
+    "priorContainerSourceMatches": 17,
+    "followingValidResponses": 22,
+    "candidateRuntime": "Node 22.22.0",
+    "commands": 45,
+    "allCommandExitsZero": true,
+    "timedOutCommands": 0,
+    "trackedFilesStable": 5179,
+    "externalFilesStable": 148,
+    "ownWorkspaceLinksVerified": true,
+    "unit": {
+      "tests": 639,
+      "passed": 636,
+      "failed": 0,
+      "skipped": 3
+    },
+    "npmTestSeconds": 20.3604651899077,
+    "strictSmoke": {
+      "result": "match",
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "comparisonSha256": "770b732908fc2a65d94c42f06197a14ef4c1054898d0f1ad04744e9fc30291c3"
+    },
+    "executionSha256": "e769c52e0066051ba85b3c172a70f6a445e5ade41aea7bc2fbe087adebebfc73",
+    "comparisonSha256": "984970757072a51fc3cb08bd817a6099f13268f99e7187b3c8407daf1c0c26f6",
+    "unitLogSha256": "eee62dacb7b9c69668ad9ccf8c64a8df48807abc6940610ea7e83a274dc7f4a6"
+  },
+  "comparisonPolicy": "Only validated Date/content-length framing, listener-backed refusal port and timestamp-validated reset marker are normalized. Decoded JSON preserves all fields/types/nulls/semantic IDs. Hub method/path/body/header values compared after listener-backed Host authority. Account method/path/body/transID compared; inherited membership fetch default headers remain captured and outside complete Account wire acceptance.",
+  "limits": [
+    "Response comparison covers status, complete decoded body and header values after validated HTTP Date/content-length framing. Raw JSON bytes and header casing/order remain captured; this is not byte-for-byte wire identity.",
+    "The refusal listener port and reset log timestamp are the only qualified diagnostic message differences. No blanket message, null or ID removal.",
+    "Account membership requests retain inherited fetch default headers. Account method/path/body/transID are compared, but complete Account HTTP behavior is outside this acceptance.",
+    "Person and Lasso are named inert dependency seams. Live providers, authentication, OAuth, real Mongo, migration and whole A-06 remain open.",
+    "No robot deployment or full-production corpus claim."
+  ]
+}

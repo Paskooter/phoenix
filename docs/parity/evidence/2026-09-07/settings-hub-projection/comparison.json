@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "summary": {
+    "cases": 22,
+    "qualifiedResponseMatches": 22,
+    "exactDecodedResponses": 20,
+    "hubWireMatches": 22,
+    "priorContainerSourceMatches": 17,
+    "followingValidResponses": 22
+  },
+  "cases": [
+    {
+      "case": "success-object",
+      "sourceSha256": "d898d38d19ae184ff608feb190d13ed5c86ae8da4fdf5154d355fd6a09afe034",
+      "candidateSha256": "23ba46cca0facfde05d4685077d91c7d9830d3c33167d1d83120b280489657aa",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "success-array",
+      "sourceSha256": "4f45830f35b44acfc61e969123342eec713e9f94f0c7cdc7e6b699ad5334193a",
+      "candidateSha256": "dcc083afa170ab00e7efd944bb042bc84f0c4825e9e62b440904b5de6abea9b6",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "success-string",
+      "sourceSha256": "09076a7d034f49205a98a0ae47796698e740a0e3c5887f7da288096d956ef332",
+      "candidateSha256": "d5d123ee07a80adeb3f71d9490cfbd4f4ba487601c5387b8caed0294bbe929e8",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "smart-json-amz",
+      "sourceSha256": "8a242e068e4aa5657d88de21195554bbb3ebb3bc0f00c5719b50caa4956bf4a0",
+      "candidateSha256": "290290cf6366afa6dac5e1dcfdd68a1e2898ad6081642fdd8f09ae08ebf818f3",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "smart-json-vendor-plus",
+      "sourceSha256": "faeb5f13585e3a0fbfc43744de86a532aff664ae49aa3f2f53e5ca81b67ef779",
+      "candidateSha256": "4e7991b601a3f6d9b73757ddcceea7ea93031de8eda47ea3cf2dcf008e7112fb",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "smart-json-text-plain",
+      "sourceSha256": "2dec100417d0f39a4cef2c2acb6062a17146cc3749bf30026f9d7b9313a08df8",
+      "candidateSha256": "159472674ec8f1fe2dea8d1d15c89a34b746ccd96b288859d077b6175380e2bd",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "smart-json-missing-content-type",
+      "sourceSha256": "5d89a999dcc3b90bea222cb1185a7638d5f53d9e31b01f0873f0628b8f575ae9",
+      "candidateSha256": "27adfe11767765485426ca43ff9cbf97b5258950140e9ae69db3345cad45948e",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "truthy-error-422",
+      "sourceSha256": "01f5ca5b8c7d9b5a0dad0b989d4793c5bdb716b6a653612c5ad27423e90d4b94",
+      "candidateSha256": "9d5dd6863d20ec108063427ef6fa8145549b8087ef44e3b89df1e025a15d6d0e",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "truthy-error-500",
+      "sourceSha256": "14cd5db0233b488c93c1bdf741414301631fd4ffc6b36f4375e6e7ed99771c77",
+      "candidateSha256": "cfc4a66ce746fdd2f02966134096bcb485f3907e219d92bffa591cf1ff49b26b",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "truthy-error-string-status",
+      "sourceSha256": "c307ee6091a2e2ed01e239f5273d94097defa2cea5c2b49251c8342614a387aa",
+      "candidateSha256": "0deeb4c7365d43f8f9b8e468c4583bd4de2a2a2aeb199237f38f32b1409e11e5",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "connection-refused",
+      "sourceSha256": "835750612f008547feabe24f1590b1e13d6b2c5b774ab1b3b794e691fcb6193b",
+      "candidateSha256": "2afab42440949b369aecc00f344b0668469903088243abe02edd1f3adb1219cf",
+      "statusBodyAndHeadersExact": false,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "redirect-relative",
+      "sourceSha256": "45a8fe586442b6745e4d17bf05f3df34593454cf3e20abf35a62c01426beef27",
+      "candidateSha256": "6fa596646d2c9d1bfd6a9868282485647e7c7fdb2102c074c5f6e2eed1d2cbd8",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "redirect-missing-location",
+      "sourceSha256": "6ffd1d977af28aca621c0cb86f22561b1e77fe671fea87ed35e43ce71262537e",
+      "candidateSha256": "d44d447b40cf53a4a79bb8d3eaa08ec35cbab480daaedab16e32b57dc5e4cf63",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "redirect-max",
+      "sourceSha256": "9085d2d8e09f649293792e16a792da64a922d14f86fcedd79db00e157abf17df",
+      "candidateSha256": "fea975414c765b381f87a0554e79bad2490277a45b0d21ebd38a522be8b6208a",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "redirect-timeout-final-headers",
+      "sourceSha256": "e1110e33d29af009826d1a9d1b893c4e7c7bacca5bb67de0e03cdc5bf03eca2d",
+      "candidateSha256": "7c4d72e8aade833366030adcce883e1d8354adfdc4594b9d69a346c2b630331b",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "redirect-final-body-delay",
+      "sourceSha256": "aa2aef3716a02a0a6ab77e07006a454fbb8dd5eba9ee4cc79add9d7b6d4e4c2b",
+      "candidateSha256": "c43c442e5d00aa28c72620f8e534d3b3e2715105b978f965fe93228bdb7d0896",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "reset-hub",
+      "sourceSha256": "f5b69e04af9d3d4ec7a66a31a1a7c65c539d8c12c4d36ad7381bc873d4c6dc35",
+      "candidateSha256": "af7147810d16bfa1f2e04fdb067816ad2beea0bb2661f9e321fc0803cfc84313",
+      "statusBodyAndHeadersExact": false,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "plain-coded-GetSettings",
+      "sourceSha256": "3aa14da82a144849edf257e0542314fa08666d4e211c41557387cb8b8e804ec2",
+      "candidateSha256": "c5a3bcc47d72c89baa61fd31e82e7de2b8f6f11255673e91ba2941696e9c6d2c",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "plain-coded-UpdateSettings",
+      "sourceSha256": "907eeb652c7382d567e9bc86a065b5fdda3c4f204e97a63b26079c88ee7f41fc",
+      "candidateSha256": "1403b2cf10972140d1a9da734876c4e53259ae01fe86f924bb9a59f99764fb3d",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "plain-coded-DeleteSettings",
+      "sourceSha256": "235f14e7740edae82fd55223dac721c4bb29fd8d9851c42e8f4d0bc89ae68e02",
+      "candidateSha256": "ff73b78ef028e995ae937c5e99e308ad798780e6a9f9e6a2f059b0aca8cdff37",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "coded-hub-UpdateSettings",
+      "sourceSha256": "5172c5bd105095595229033495ca2d3420adb29894d99b843da222e94a6bb795",
+      "candidateSha256": "fb0f555f9a52d1af57453aa42af2856e5dbd383ecfd4bdbfac5a38d843eb380c",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    },
+    {
+      "case": "coded-hub-DeleteSettings",
+      "sourceSha256": "918b1ceb586419ba5576c00547b3f08252aa5ccb07436b9009a698a32c9d0c53",
+      "candidateSha256": "0dfca741ed18f7c609bf085129612be2b0c9a8658bed80efc2d0dd64f75b8c1f",
+      "statusBodyAndHeadersExact": true,
+      "qualifiedStatusBodyAndHeadersMatch": true,
+      "hubWireMatch": true,
+      "accountMethodUrlBodyAndTransIdMatch": true,
+      "sourceAndCandidateFollowup": true
+    }
+  ]
+}
