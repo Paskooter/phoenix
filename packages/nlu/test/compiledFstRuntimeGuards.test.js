@@ -8,7 +8,8 @@ import { APPROVED_INVENTORY_SHA256 } from '../src/compiledFstRuntime.js';
 
 const keys = ['PHOENIX_NLU_RUNTIME', 'PHOENIX_NLU_COMPILED_FST',
   'PHOENIX_NLU_COMPILED_FACTORY_DIR', 'PHOENIX_NLU_COMPILED_RULES_DIR',
-  'PHOENIX_NLU_COMPILED_FST_SHA256', 'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST'];
+  'PHOENIX_NLU_COMPILED_FST_SHA256', 'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST',
+  'PHOENIX_NLU_COMPILED_FST_DIRECTORIES'];
 const original = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 const configured = original.PHOENIX_NLU_RUNTIME === 'compiled-fst'
   && keys.slice(1, 5).every(key => original[key]);

@@ -26,6 +26,7 @@ const original = Object.fromEntries([
   'PHOENIX_NLU_COMPILED_FACTORY_DIR',
   'PHOENIX_NLU_COMPILED_RULES_DIR',
   'PHOENIX_NLU_COMPILED_FST_SHA256',
+  'PHOENIX_NLU_COMPILED_FST_DIRECTORIES',
 ].map(name => [name, process.env[name]]));
 let serial = 0;
 

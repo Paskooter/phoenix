@@ -139,7 +139,18 @@ function emptyResult() {
   return { intent: EMPTY_NLU.intent, entities: EMPTY_NLU.entities, rules: EMPTY_NLU.rules.slice() };
 }
 
-function requestedEntries(requested, state) {
+function compiledHasRule(runtime, name) {
+  if (!runtime) return false;
+  if (typeof runtime.hasRule === 'function') return runtime.hasRule(name);
+  try {
+    runtime.getExecutor(name);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function requestedEntries(requested, state, compiledRuntime) {
   const seen = new Set();
   const entries = [];
   for (const name of requested) {
@@ -147,6 +158,11 @@ function requestedEntries(requested, state) {
     seen.add(name);
     const entry = state.publicRules.get(name);
     if (entry) entries.push({ name, names: entry.sources });
+    else if (compiledHasRule(compiledRuntime, name)) {
+      // RobustParserClient keeps any requested name present in the discovered
+      // FST registry, including graphs that are not in the closed 98-rule map.
+      entries.push({ name, names: [name], compiledOnly: true });
+    }
   }
   return entries;
 }
@@ -299,9 +315,9 @@ export function parseRequest(request) {
   if (!text) return emptyResult();
   if (!Array.isArray(request.rules)) return applyExternalCompatibility(request, emptyResult());
   const state = load();
-  const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state);
-  if (!requested.length) return applyExternalCompatibility(request, emptyResult());
   const compiledRuntime = getCompiledFstRuntime();
+  const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state, compiledRuntime);
+  if (!requested.length) return applyExternalCompatibility(request, emptyResult());
   if (!compiledRuntime) {
     for (const entry of requested) {
       const unsupported = unsupportedDependencies(entry.name, state);

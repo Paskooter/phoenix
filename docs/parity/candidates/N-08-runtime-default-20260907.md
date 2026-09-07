@@ -1,207 +1,203 @@
-# N-08 parser runtime boundary and default assessment
+# N-08 production NLU compiled-graph runtime and default contracts
 
-Status: candidate unverified; source and implementation review only. This
-candidate does not change parser code, the AST profile, the compiled profile,
-graph payloads, goldens, the main worktree, or the robot.
+Status: candidate unverified. Source-backed compiled-graph acquisition is
+implemented and unit-tested. This candidate does **not** replay the 20,528-case
+corpus and does **not** claim to move the `c125`/main 51-residual AST baseline.
 
-The question for this slice was whether the original production NLU accepts
-text grammars or compiled `VectorFST` data as part of a public operation, and
-whether Phoenix should make its portable compiled-FST executor the global
-default. The pinned source answers the first question precisely: the public
-parser operation accepts an NLU request containing text and rule names. It does
-not accept a grammar or FST payload. Text compilation and binary-FST loading
-exist behind the native `nlu_interface`, which the public parser service does
-not expose.
+Source revision: hashbrown/Pegasus `5c0a7390539663ba749d360de348a428c088505c`.
+Native service: ConvTech/jibo-nlu-service `5d6755a5116694e2801438f358b862109cd16ba5`.
+Native library: ConvTech/jibo-nlu `91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e`.
+Phoenix worktree head before this implementation: `c04e705`.
 
-## Source contract
+Private receipts live under
+`.parity/reviews/n08-runtime-default-20260907/` (gitignored).
 
-The original reference is revision
-`5c0a7390539663ba749d360de348a428c088505c`. The source files used here were
-hashed before the review; the private manifest is
-`.parity/reviews/n08-runtime-default-20260907/source-manifest.json`.
+## 1. How the original parser acquires FSTs
 
-`packages/interfaces/src/nlu.ts:32-44` defines the public request data as
-`text`, `rules`, and optional `loop`/`external` fields. The public route is
-registered by `packages/parser/src/ParserService.ts:52-58` as `POST
-/v1/parse` and `GET /state`. `ParseRequestHandler.ts:25-47` validates the
-request and trims text before asking the clients for a result; it has no
-grammar or FST input field. The original Hub `ParserClient.ts:12-24` sends
-exactly that NLU envelope to `/v1/parse`.
+Verified by reading the pinned Pegasus files (hashes match the earlier
+source-manifest):
 
-Startup is artifact based. `ParserService.ts:65-70,122-133` starts the native
-process and initializes `RobustParserClient` before opening the public HTTP
-listener. `RobustParserClient.ts:40-49` discovers configured FSTs and, when
-`loadFSTs` is enabled, loads them. Its `loadFSTIntoMemory` and
-`parseFromHandle` calls at `:188-210` send internal `COMPILE` with
-`BINARYFST_PATH`, followed by `PARSE_FROM_URI` with a handle. The registry at
-`packages/parser/src/utils/RulesRegistry.ts:33-51` globs configured
-directories for existing `.fst` files; it does not compile source during a
-public request.
+| File | sha256 |
+|---|---|
+| `packages/parser/resources/default.json` | `2283cd6db43d150c38bcd42a4b0ea746a0e414ae5a3fb0d2347423ea3358b581` |
+| `packages/parser/src/utils/RulesRegistry.ts` | `7dbe093f3da33a05c6b8842f0f88ea102fbeb9bd210da56e3b2b3b1db8f1d664` |
+| `packages/parser/src/robustparser/RobustParserClient.ts` | `2c4b7c1544d82c4e42863cdacf06226fb31f5ba6745827bf165124e3a22b0906` |
+| `nluservice/nlu_request_executor.cc` | `48b685e43d39045509b15b5c3743d431518c3f340b66fa89c6cdb386de58359f` |
+| `fst_cache/fst_cache.cpp` | `0d962bae76a4b0830a08acd7591162fb16feb4d2ef1e66e10c2ca21a06959590` |
 
-The source build step is offline/deployment work. `packages/parser/src/cli/build-rules.ts:19-55`
-invokes the native `grm2fst` compiler for every `rules_src/**/*.rule`, and
-`:57-88` unionizes launch graphs and writes the final `launch.fst`. The parser
-README describes the same source-to-FST packaging at `:89-93`.
+Startup sequence:
 
-The native service has a broader internal protocol. At
-`nluservice/nlu_request_executor.h:34-58` the pinned service declares
-`PARSE_FROM_TEXT`, `PARSE_FROM_FILE`, `PARSE_FROM_URI`, `COMPILE`, `UNION`,
-`RESET_MEMORY`, and related operations. Its dispatcher at
-`nlu_request_executor.cc:114-143` routes those operations. In particular:
+1. `ParserConfigProvider.getConfig()` reads `resources/default.json`.
+2. Production config has `robustParser.enabled: true`, `startProcess: true`,
+   `fstDirectories: ["robust-parser/rules_fst"]`, `loadFSTs: true`.
+3. `ParserService.init()` starts `jibo-nlu-service` (`-c` config JSON), then
+   `RobustParserClient.init()` **before** the public HTTP listener opens.
+4. `RulesRegistry.findRules` globs `**/*.fst` in each configured directory.
+   The rule name is the lowercased relative path without `.fst`. The stored
+   `fstPath` is `path.join(dir, name) + '.fst'` — the source reconstructs the
+   path from the lowered name, not the original glob spelling.
+5. When `loadFSTs` is true, `loadAllFSTs` COMPILEs every discovered graph
+   with `MAX_PARALLEL_FST_LOAD = 5`. One COMPILE failure rejects init, so a
+   missing or malformed FST prevents the public listener from starting.
+6. A missing configured directory yields an empty glob, not a throw. An empty
+   registry still starts; parse then has no known rules.
+7. Factory FSTs are **not** in `fstDirectories`. Native init sets
+   `factory_rules/` from `Service.nlu_data_dir` + locale and
+   `pre_load_factories_in_memory()` from `factory_list.txt`.
+8. Offline packaging is `cli/build-rules.ts`: `grm2fst` every
+   `rules_src/**/*.rule`, UNION every `*/launch` handle, SAVE the result as
+   `rules_fst/launch.fst`, delete the per-skill launch files.
 
-* `execute_parse_from_uri` at `:246-276` accepts an FST/file URI and text,
-  opens the requested graph(s), creates a sentence parser, and parses the
-  text. The source service creates fresh graph/parser objects for this request
-  path; the native library's factory bytes are separately cached. This is
-  recorded in the corrected cache-lifecycle evidence, rather than the earlier
-  retained-parser interpretation.
-* `execute_parse_from_text` at `:278-315` accepts `RULE_STRING` and
-  `TXT_STRING`, compiles the grammar, parses it, and removes its temporary
-  handle. This proves an internal compile-on-request operation, not a public
-  parser contract.
-* `execute_compile` at `:436-463` accepts one of `RULE_STRING`,
-  `RULE_STRING_PATH`, `RULE_BINARYFST`, or `BINARYFST_PATH`, associates the
-  result with a URI/handle, and returns no parse result. The helpers at
-  `:465-512` show the text and binary loading paths.
+`fstDirectories` later-name overwrite is the configured-array contract.
+The original `Promise.all` across directories is a collision race; production
+`default.json` has a single directory, so this candidate loads directories
+sequentially in array order.
 
-The native library confirms the representation boundary. At
-`jibonluapi/jibonluapi.cpp:35-52`, text compilation creates an FST group while
-`read_open_fst_from_uri` opens an existing graph. The parser then consumes the
-graph at `:54-72`. The pinned compiler creates the reserved wildcard rules at
-`compiler/compiler.cpp:99-135,167-225`; this is why replacing the native
-compiled path with a text matcher is a semantic change even when the public
-request JSON is the same.
+The public operation is unchanged: `POST /v1/parse` accepts `text` + `rules`
+(+ optional `loop`/`external`). It does not accept a grammar or FST payload.
 
-Therefore no original public operation requires a new grammar compilation at
-request time. `POST /v1/parse` parses against rule graphs selected from the
-startup registry, and `GET /state` reports service state. Runtime text
-compilation is reachable only through the internal native protocol used by
-build/startup tooling or a caller that directly exposes `nlu_interface`.
+## 2. Native protocol Phoenix must reproduce
 
-## Current Phoenix paths
-
-Phoenix has the same public route shape in `packages/nlu/src/index.js:112-143`:
-`POST /v1/parse` validates `body.data.text`, calls `parseRequest`, and returns a
-message; `GET /state` is the only other parser route. There is no
-`/nlu_interface`, `/compile`, FST upload, union, or grammar source route.
-
-The default request path is a fixed, source-inventory-backed AST path.
-`packages/nlu/src/requestParser.js:56-135` loads and hashes the 117 source
-rules, two local grammar factories, and 98 public rule entries from
-`resources/rule-inventory.json`; `:142-159` accepts only names in that public
-map. `:187-223,290-332` selects the AST matcher when no compiled profile is
-selected. Its `grammar/index.js:28-65` can load an inline or URL source, but
-that is an in-process programmatic registry and is not called by the HTTP
-listener. `launchRules.js:24-42` and `fullGrammar.js:32-65` read local sources
-at initialization.
-
-The portable executor is already source-backed for an explicitly selected
-profile. `compiledFstRuntime.js:474-501` returns no compiled runtime unless
-`PHOENIX_NLU_RUNTIME=compiled-fst` is set; binary mode requires all artifact
-paths and the approved launch hash, while snapshot mode requires an explicit
-manifest. `:504-539` loads the verified JSON/gzip profile and
-`:542-609` verifies binary graphs, factory files, rule inventory, and source
-anchors before constructing executors. A missing or invalid selected profile
-throws before `start()` returns a listener (`index.js:112-116`); there is no
-silent AST fallback for a selected compiled profile.
-
-The approved portable bundle is a deployment input, not an implicit repository
-dependency. `scripts/install-nlu-snapshot.mjs:240-340` validates and installs a
-complete versioned bundle. The root deployment review records 98 graph
-snapshots, 15 executable factory snapshots, 16 factory provenance files, the
-approved inventory hash
-`7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4`, and a
-9,978,000-byte gzip bundle. It also records about 1.1 GB peak RSS while loading
-the complete profile on the Node 22 host. The target needs an explicit
-provisioned bundle and manifest; it does not need the archived Jibo executable
-in snapshot mode.
-
-## Bounded controls
-
-All controls used the candidate-local workspace links and Node `v22.22.0`.
-The dependency receipt records `npm ci --ignore-scripts --offline`, lock hash,
-and these resolutions:
+`RobustParserClient` talks to `POST /nlu_interface` (not a public ParserService
+route). The production request path is:
 
 ```text
-@phoenix/common    -> packages/common/src/index.js
-@phoenix/contracts -> packages/contracts/src/index.js
-@phoenix/nlu       -> packages/nlu/src/index.js
+COMPILE
+  REQ_CONTENT.BINARYFST_PATH = <discovered .fst path>
+  REQ_CONTENT.URI            = "handle:" + ruleName
+
+PARSE_FROM_URI
+  REQ_CONTENT.TXT_STRING     = lowercased request text
+  REQ_CONTENT.URI            = "handle:" + ruleName
 ```
 
-Private receipts are under
-`.parity/reviews/n08-runtime-default-20260907/`:
+Handle lifecycle, from `nlu_request_executor` + `fst_cache`:
 
-* `operation-matrix.json` is the machine-readable map of eight public,
-  internal, and offline operations. It records zero public operations that
-  require new grammar compilation and the two internal text-compilation
-  operations separately.
-* `public-route-controls.json` is a normalized process-level Phoenix default
-  listener control. The normal `/v1/parse` request returns the named timer
-  result; an unknown rule returns the empty NLU shape; an extra grammar-shaped
-  field is ignored; `/state` returns 200; `/nlu_interface` and `/compile`
-  return 404. Volatile message IDs/timestamps are removed from this receipt.
-* `dynamic-registry-control.json` loads two synthetic grammars through the
-  programmatic `createRegistry` API, once inline and once from an owned local
-  HTTP peer. Both parse successfully. This demonstrates the separate dynamic
-  AST API and does not claim public endpoint or native-FST behavior.
-* `explicit-missing.status` and `snapshot-missing.status` are both `1`.
-  Selecting the compiled mode without its required artifacts or with an
-  unavailable snapshot fails before listener startup.
-* `focused-unit.log` contains 19 discovered NLU tests, 18 passes, one expected
-  configuration skip, and zero failures. It includes the request-parser,
-  public launch, and compiled-runtime guard controls.
+* COMPILE BINARYFST_PATH opens the file (`Could not open binary_fst_path` if
+  missing) and stores the graph at `URI`. A later COMPILE of the same URI
+  overwrites the cache entry.
+* PARSE_FROM_URI looks the URI up in `fst_cache`. A missing handle throws
+  `Attempting to read handle, but it does not exist`. Native then builds a
+  **fresh** sentence parser per request; factory bytes stay in the cache.
+* RESET_MEMORY (`fst_cache.clear_cache`) drops every URI, then re-preloads
+  factory graphs. Rule handles do not survive reset.
+* REMOVE_FROM_MEM erases one URI.
+* UNION (`fst_group_base::fst_union`) is used by `build-rules.ts` to produce
+  `launch.fst`. It is not part of `POST /v1/parse`. This candidate does **not**
+  reimplement OpenFST union.
 
-The direct compiled executor also has separate root evidence on 27 expanded
-and permuted native graphs: `n08-fst-order-root-20260907/comparison.json`
-records 27/27 complete result and exposed-score matches. That evidence supports
-the portable executor's graph semantics beyond the 98 archived public graphs;
-it does not establish graph acquisition, source compilation, public endpoint
-coverage, or a default switch. Its source side ran archived native binaries on
-the host with their pinned libraries, so it is not a Node 8 Docker execution
-claim.
+Request filtering: unknown names are dropped; if none remain, the client
+throws `No rules known by Robust Parser`; `ParseRequestHandler` catches that
+and returns EMPTY_NLU. One rule's PARSE failure is caught per-rule and does
+not cancel the others.
 
-## Assessment and implementation sequence
+## 3. Phoenix default profile and migration
 
-Making the portable executor the default for a *specific, provisioned compiled
-profile* is technically supported by the current runtime and is closer to the
-original parser's graph execution than the default AST matcher. Making it the
-global Phoenix default now would overstate the source contract and create
-unbounded deployment behavior. The current profile is a closed set of 98 public
-graphs and 15 factory FSTs, while the original registry discovers whatever
-prebuilt graphs are present under configured directories. Neither the public
-source API nor the current snapshot manifest defines acquisition, registration,
-or compilation of a newly deployed grammar.
+Original production default is compiled graphs from `fstDirectories` with
+`loadFSTs: true`. Phoenix cannot silently copy that default: the repo does
+not ship the binary graphs, and switching the Node default would fail startup
+or over-claim the closed 98-rule bundle.
 
-The source-supported sequence is:
+Source-backed Phoenix defaults:
 
-1. Keep the explicit compiled profile as the production deployment option and
-   keep AST as the no-bundle/development compatibility path. Select the
-   compiled profile in deployment configuration only after the complete bundle
-   is provisioned and startup validation succeeds.
-2. Define a deployment-owned profile acquisition contract: versioned manifest,
-   ordered public graph inventory, factory dependencies, source/compiler/runtime
-   provenance, trusted decoded hashes, and an atomic install/update boundary.
-   Reject missing or unknown requested graphs; never silently substitute AST for
-   a selected compiled graph.
-3. If production needs skill grammars outside the approved profile, add a
-   controlled graph-provisioning/registration path and verify its complete
-   source-to-graph chain. The current programmatic `createRegistry` URL loader
-   is an AST convenience and cannot serve as that native-compatible contract.
-4. Treat text compilation as a separate internal/admin capability. If it must
-   be exposed, specify authentication, include resolution, filesystem
-   sandboxing, resource limits, handle lifetime, locale/factory loading, and
-   reset semantics before adding a route. Do not expose the native
-   `nlu_interface` directly as a public HTTP endpoint.
-5. Validate the selected profile against fixed and novel source/native graph
-   controls, the actual public rule/skill inventory, and deployment resource
-   limits. Revisit a compiled-default deployment class only after those
-   controls cover the graphs that class actually serves.
+| Situation | Profile |
+|---|---|
+| No `PHOENIX_NLU_RUNTIME` | `ast` (development / no-bundle path) |
+| `compiled-fst` + approved binary pins | closed 98-rule binary profile |
+| `compiled-fst` + snapshot manifest | closed 98-rule portable profile |
+| `compiled-fst` + `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` | discovered `.fst` graphs, including names outside the 98-rule map |
 
-The current blockers are dynamic graph acquisition and registration, exact
-source-to-binary rebuild provenance, coverage beyond the approved profile,
-portable startup memory on the target, and the still-open broader N-08
-provider/skill/robot acceptance. The existing full 20,534 snapshot comparison
-has zero parser status/data differences but retains eight external-answer gap
-cases; it is evidence for the selected profile, not evidence that all production
-grammars or public providers are covered. No full corpus replay, robot trial, or
-task completion is claimed by this candidate.
+A selected compiled profile still has **no AST fallback**. Malformed discovered
+graphs fail before `listen()`.
+
+Migration sequence:
+
+1. Keep AST as the no-bundle compatibility path. Do not change the repo default.
+2. Provision graphs: either the reviewed snapshot/binary bundle, or a directory
+   of existing `.fst` files (the original `rules_fst` layout).
+3. Set `PHOENIX_NLU_RUNTIME=compiled-fst` and exactly one acquisition contract.
+4. Confirm startup validation. Extra skill graphs are additional `.fst` files
+   in a configured directory, not a new public compile route.
+5. Revisit making compiled-fst the process default only after that deployment
+   class actually has graphs on disk. A full corpus replay is required before
+   claiming the 20,528-case baseline moved.
+
+## 4. Bounded implementation
+
+New wiring is justified by `RulesRegistry` + `RobustParserClient.loadFSTIntoMemory`
+/ `parseFromHandle`. Phoenix now has an in-process subset of that protocol and
+a directory-discovered compiled runtime that is not locked to the 98-rule
+inventory.
+
+* `packages/nlu/src/compiledFstAcquisition.js` — glob discovery, `handle:` URIs,
+  COMPILE BINARYFST_PATH, PARSE_FROM_URI, REMOVE_FROM_MEM, RESET_MEMORY.
+* `packages/nlu/src/compiledFstRuntime.js` — third acquisition path
+  `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` (colon-separated). Mutually exclusive
+  with snapshot and closed binary pins. Optional factory directory. No approved
+  launch-hash requirement on this path.
+* `packages/nlu/src/requestParser.js` — when a compiled runtime is selected,
+  requested names present in the discovered registry are parsed even if they
+  are absent from `rule-inventory.json` public rules. AST still filters to the
+  public map.
+
+UNION, text COMPILE, PARSE_FROM_TEXT, and exposing `/nlu_interface` are
+intentionally not added.
+
+## Evidence
+
+Commands (Node `v22.22.0`), from this worktree at dirty `c04e705` plus the
+files listed above:
+
+```text
+node --test packages/nlu/test/compiledFstAcquisition.test.js \
+  packages/nlu/test/compiledFstDirectoryRuntime.test.js \
+  packages/nlu/test/compiledFstRuntimeGuards.test.js
+# 21 tests / 20 pass / 1 expected skip / 0 fail
+# skip: approved artifact pins (private binary graphs not in this tree)
+# log sha256 734e6a76a4408de6e845a206b871cd1d8792a1ccbf8219bb2611f034fd1b0545
+
+node --test packages/nlu/test/*.js
+# 121 tests / 116 pass / 5 expected skips / 0 fail
+# log sha256 245762aee751e9612be9c1642709b280b4c5ac598d487a2ad54d0cc360606933
+
+node --test
+# 776 tests / 769 pass / 7 expected skips / 0 fail
+# predecessor at c04e705 was 761 / 754 pass / 7 skip; this slice adds 15 tests
+# log sha256 607ee0e6b6e493855d8b1fe5afb3ab590a26cd4994d6469bf125782463c7d03e
+```
+
+Focused new controls (synthetic VectorFST files, not the approved 98-rule
+bundle): handle format; colon-separated directories; missing directory is
+empty; nested `skill/extra.fst` name reconstruction; later directory overwrite;
+COMPILE then PARSE_FROM_URI; missing/malformed COMPILE does not register a
+handle; RESET_MEMORY and REMOVE_FROM_MEM; in-memory bytes survive a disk
+replace; directory runtime parses a public-inventory-unknown rule on
+`POST /v1/parse`; unknown extra names return EMPTY_NLU; malformed discovered
+FST blocks `start()`; snapshot/binary mix is rejected; default profile remains
+`ast` without `PHOENIX_NLU_RUNTIME`.
+
+The `c125`/main baseline of 20,528 cases / 20,477 matches / **51 residuals is
+untouched**. No full HTTP replay was run. No new coverage is claimed for the
+approved 98-rule bundle. No robot, native-host COMPILE, or OpenFST union
+measurement was taken.
+
+## What remains unknown / next step
+
+Unknown from this slice:
+
+* Exact native glob sort vs this directory walk on mixed-case names.
+* Native `Promise.all` last-writer race across multiple `fstDirectories`.
+* OpenFST UNION semantics for a newly built `launch.fst`.
+* Directory-mode factory preload via `factory_list.txt` versus loading every
+  top-level factory `.fst` (Phoenix directory mode does the latter when a
+  factory dir is supplied).
+* Whether a provisioned original `rules_fst` tree plus this directory runtime
+  reproduces the 20,528-case compiled profile (zero differences on the portable
+  snapshot is prior root evidence for the closed bundle, not for arbitrary
+  extra graphs).
+
+Concrete next step: provision a real `rules_fst` (or extra skill `.fst` files)
+under `PHOENIX_NLU_COMPILED_FST_DIRECTORIES`, commit, then run a bounded native
+COMPILE/PARSE_FROM_URI comparison on those graphs. A full 20k replay is only
+justified after that directory profile is the one a deployment would actually
+serve.

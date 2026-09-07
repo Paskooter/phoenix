@@ -1,7 +1,12 @@
-// Explicit, opt-in bridge from the archived native public-rule graphs into the HTTP
-// request parser. The normal Phoenix path never loads these graphs: the
-// request parser remains AST-backed unless PHOENIX_NLU_RUNTIME is exactly
-// "compiled-fst" and all pinned artifact settings are present.
+// Explicit compiled-FST bridge into the HTTP request parser.
+//
+// The request parser remains AST-backed unless PHOENIX_NLU_RUNTIME is exactly
+// "compiled-fst". That flag then requires one of three mutually exclusive
+// acquisition contracts:
+//   1. Closed approved binary pins (launch hash + inventory).
+//   2. Closed approved JSON/gzip snapshot manifest.
+//   3. Source-faithful directory glob of existing .fst files
+//      (PHOENIX_NLU_COMPILED_FST_DIRECTORIES), matching RulesRegistry.
 
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -19,6 +24,13 @@ import {
   parseFstSnapshot,
 } from './compiledFstSnapshot.js';
 import { COMPILED_FST_PROFILE, FST_PROFILE_SCHEMA, FST_PROFILE_VERSION } from './compiledFstProfile.js';
+import {
+  compileDiscoveredGraphs,
+  discoverCompiledGraphs,
+  loadFactoryFsts,
+  ruleHandle,
+  splitFstDirectories,
+} from './compiledFstAcquisition.js';
 
 const ENABLED = COMPILED_FST_PROFILE.runtime;
 const APPROVED_LAUNCH_SHA256 = COMPILED_FST_PROFILE.approvedLaunchSha256;
@@ -474,20 +486,36 @@ function pathSeparator() {
 function config() {
   if (process.env.PHOENIX_NLU_RUNTIME !== ENABLED) return null;
   const snapshotManifest = process.env.PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST;
+  const fstDirectoriesValue = process.env.PHOENIX_NLU_COMPILED_FST_DIRECTORIES;
   const fstPath = process.env.PHOENIX_NLU_COMPILED_FST;
   const factoryDir = process.env.PHOENIX_NLU_COMPILED_FACTORY_DIR;
   const rulesDir = process.env.PHOENIX_NLU_COMPILED_RULES_DIR;
   const expectedFstSha256 = process.env.PHOENIX_NLU_COMPILED_FST_SHA256;
+  const fstDirectories = splitFstDirectories(fstDirectoriesValue);
   if (snapshotManifest) {
-    if (fstPath || factoryDir || rulesDir || expectedFstSha256) {
+    if (fstPath || factoryDir || rulesDir || expectedFstSha256 || fstDirectoriesValue) {
       throw new Error('compiled-fst runtime cannot combine a JSON snapshot manifest with binary graph settings');
     }
     if (!existsSync(snapshotManifest)) throw new Error(`Compiled NLU snapshot profile is unavailable: ${snapshotManifest}`);
     return { snapshotManifest: resolve(snapshotManifest) };
   }
+  if (fstDirectoriesValue) {
+    if (fstPath || rulesDir || expectedFstSha256) {
+      throw new Error('compiled-fst runtime cannot combine directory discovery with closed binary graph settings');
+    }
+    if (!fstDirectories.length) {
+      throw new Error('compiled-fst runtime PHOENIX_NLU_COMPILED_FST_DIRECTORIES is empty');
+    }
+    return {
+      fstDirectories: fstDirectories.map(directory => resolve(directory)),
+      factoryDir: factoryDir ? resolve(factoryDir) : null,
+      acquisition: 'fst-directories',
+    };
+  }
   if (!fstPath || !factoryDir || !rulesDir || !expectedFstSha256) {
     throw new Error(
-      'compiled-fst runtime requires PHOENIX_NLU_COMPILED_FST, '
+      'compiled-fst runtime requires PHOENIX_NLU_COMPILED_FST_DIRECTORIES, '
+      + 'a snapshot manifest, or PHOENIX_NLU_COMPILED_FST, '
       + 'PHOENIX_NLU_COMPILED_FACTORY_DIR, PHOENIX_NLU_COMPILED_RULES_DIR, '
       + 'and PHOENIX_NLU_COMPILED_FST_SHA256',
     );
@@ -521,6 +549,7 @@ function createPortableRuntime(selected, key) {
   };
   loaded = Object.freeze({
     key,
+    acquisition: 'snapshot',
     executor,
     snapshotManifest: selected.snapshotManifest,
     fstPath: null,
@@ -533,7 +562,40 @@ function createPortableRuntime(selected, key) {
     inventorySha256: profile.inventorySha256,
     snapshotHashAnchorSha256: profile.snapshotHashAnchorSha256,
     getExecutor,
+    hasRule: name => profile.graphs.has(name),
     ...PROVENANCE,
+    runtime: ENABLED,
+  });
+  return loaded;
+}
+
+function createDirectoryRuntime(selected, key) {
+  const graphs = discoverCompiledGraphs(selected.fstDirectories);
+  const factoryFsts = loadFactoryFsts(selected.factoryDir);
+  const compiled = compileDiscoveredGraphs(graphs, { factoryFsts, loadFSTs: true });
+  const launch = compiled.byName.get('launch');
+  const getExecutor = name => {
+    const entry = compiled.byName.get(name);
+    if (!entry) throw new Error(`Compiled NLU rule is unavailable: ${name}`);
+    return compiled.store.getExecutor(entry.handle);
+  };
+  const launchBytes = launch ? compiled.store.handles.get(launch.handle)?.bytes : null;
+  loaded = Object.freeze({
+    key,
+    acquisition: 'fst-directories',
+    executor: launch ? getExecutor('launch') : null,
+    snapshotManifest: null,
+    fstPath: null,
+    factoryDir: selected.factoryDir,
+    rulesDir: null,
+    fstDirectories: selected.fstDirectories.slice(),
+    fstSha256: launchBytes ? sha256(launchBytes) : null,
+    ruleCount: compiled.byName.size,
+    ruleNames: Object.freeze([...compiled.byName.keys()].sort()),
+    getExecutor,
+    hasRule: name => compiled.byName.has(name),
+    ruleHandle,
+    store: compiled.store,
     runtime: ENABLED,
   });
   return loaded;
@@ -550,6 +612,7 @@ export function getCompiledFstRuntime() {
   if (loaded?.key === key) return loaded;
 
   if (selected.snapshotManifest) return createPortableRuntime(selected, key);
+  if (selected.acquisition === 'fst-directories') return createDirectoryRuntime(selected, key);
 
   const bytes = readFileSync(selected.fstPath);
   const fstSha256 = sha256(bytes);
@@ -592,6 +655,7 @@ export function getCompiledFstRuntime() {
   };
   loaded = Object.freeze({
     key,
+    acquisition: 'approved-binary',
     executor,
     fstPath: selected.fstPath,
     factoryDir: selected.factoryDir,
@@ -602,10 +666,26 @@ export function getCompiledFstRuntime() {
     inventoryRevision: rules.inventoryRevision,
     inventorySha256: rules.inventorySha256,
     getExecutor,
+    hasRule: name => rules.files.has(name),
     ...PROVENANCE,
     runtime: ENABLED,
   });
   return loaded;
+}
+
+/**
+ * The Phoenix default is AST when no compiled artifacts are selected. Original
+ * production default.json always uses compiled graphs from fstDirectories.
+ * Phoenix cannot silently switch that default: the repo does not ship the
+ * binary graphs. Deployment selects compiled-fst after provisioning.
+ */
+export function defaultParserProfile() {
+  if (process.env.PHOENIX_NLU_RUNTIME !== ENABLED) return 'ast';
+  const selected = config();
+  if (!selected) return 'ast';
+  if (selected.snapshotManifest) return 'compiled-fst-snapshot';
+  if (selected.acquisition === 'fst-directories') return 'compiled-fst-directories';
+  return 'compiled-fst-approved';
 }
 
 /**
@@ -662,6 +742,17 @@ export function matchCompiledRule(name, text, runtime = getCompiledFstRuntime())
 export function compiledFstRuntimeConfig() {
   const runtime = getCompiledFstRuntime();
   if (!runtime) return null;
+  if (runtime.acquisition === 'fst-directories') {
+    return {
+      runtime: runtime.runtime,
+      acquisition: runtime.acquisition,
+      fstDirectories: runtime.fstDirectories,
+      factoryDir: runtime.factoryDir,
+      ruleCount: runtime.ruleCount,
+      ruleNames: runtime.ruleNames,
+      fstSha256: runtime.fstSha256,
+    };
+  }
   const metadata = {
     runtime: runtime.runtime,
     fstSha256: runtime.fstSha256,
