@@ -45,5 +45,18 @@
     "LoopUpdated side effects, remaining Loop operations and membership lifecycle.",
     "Full Classic SigV4 verification; access-key lookup does not establish signature verification.",
     "Robot wipe, deployment and complete A-04 acceptance."
-  ]
+  ],
+  "originalControllerFollowup": {
+    "sourceRevision": "b525601390108b8635a31794dfa5cc3fda8a37d0",
+    "controls": 21,
+    "verificationChecks": 53,
+    "rootReproductionExitCode": 0,
+    "runtime": "Actual extracted Node8.9.4 with archived @jibo/server4.0.12; original compiled handler/controller/decorators and source LoopUpdated trigger.",
+    "rootReproductionSha256": "694c6c2f7984b42a7a23ad0c569fa9668a7e5eaf155fc36a5ea64a965c48d4c6",
+    "verificationSha256": "98096a4e40276b04b9f0ec23ead8996f4b34e7774bf8be6a76d079ab3defdd6c",
+    "executionSha256": "0d75976528fb24fef12b97d8ea289709d1e059f1c45e0bdf83fcc75618c7a99d",
+    "modelSeams": "Lookup/query/save, source-shaped Date update/schema transforms and recording event sender. Actual Mongo storage and public SigV4 are not exercised.",
+    "finding": "Original successful suspension emits LoopUpdated. Candidate983 currently persists isSuspended/updated without this event; downstream notification effects are assigned for source/consumer investigation. This is substantive follow-up, not diagnostic wording.",
+    "eraReconciliation": "Suspend handler/controller methods and trigger are unchanged versus initial6cea source reads. Executedb525 adds associated-loop suspension filtering; no full repository byte identity is claimed for6cea."
+  }
 }

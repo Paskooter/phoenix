@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "date": "2026-09-07",
-  "decision": "changes requested for Unicode behavior; exact dependency runtime and late-winner controls now pass",
+  "decision": "awaiting combined integration review; source recovery and repaired Unicode comparisons pass",
   "reviewedBy": "Codex root",
   "candidateRevision": "833fcef593e8fa66dfbeaa9b4c6989c4162107d2",
   "profile": "explicit opt-in multi-provider; not deployed",
@@ -22,8 +22,7 @@
     "consumerFraming": "Root repeated six original Node 8 SkillRequestMaker/Axios exchanges: valid actions, HTTP failures and malformed JSON have matching dispositions across the observed media types."
   },
   "open": [
-    "Unicode predicate repair and compound-string source/provider controls; generated data provenance remains under review.",
-    "Transport-exception Session replacement/recovery; current failures are HTTP responses.",
+    "Generated Unicode data packaging/provenance and current-main integration/full regression review.",
     "Whole Q-01, account/attribution, live providers, default deployment, full corpus gaps and robot acceptance."
   ],
   "exactDependencyFollowup": {
@@ -62,5 +61,50 @@
     "finding": "The generated projection erases dot-only Unicode mappings inside strings, changing prefix classification. The adapter also fails to apply dot trimming before the prefix check. Both can change whether a reply is spoken.",
     "qualification": "Root isolated the predicate using the pinned Unidecode wheel under host Python; original Python3.6 provider confirmation and general repair are assigned to Luna. Prior single-code-point vectors do not prove composition.",
     "comparisonSha256": "fb1d0d5975f89e69c487c8eced1f03b7ea765d2cd13ea847a120f13e8dba6e44"
+  },
+  "transportFailureFollowup": {
+    "cases": 12,
+    "matches": 12,
+    "sameProviderRecoveryRequests": 6,
+    "frozenInputsStable": true,
+    "commands": [
+      {
+        "label": "source",
+        "exitCode": 0,
+        "seconds": 232.6251445133239
+      },
+      {
+        "label": "candidate",
+        "exitCode": 0,
+        "seconds": 7.534639650955796
+      }
+    ],
+    "failures": [
+      "TCP close without an HTTP response",
+      "truncated body: one byte with declared Content-Length nine",
+      "complete HTTP200 with malformed JSON"
+    ],
+    "sourceSessionObservation": "Bing retains its Session; Wolfram replaces its Session after each of the three failures. Following valid requests use the same provider and retain the recovered Session. Phoenix matches observable answers and recovery; internal Session identity is not a compatibility requirement.",
+    "transportChecks": 157,
+    "negativeControlsRejected": 8,
+    "comparisonSha256": "959a1624c61867edc0608abb97b0da001d0ad4f4d273fe45ea7ee625a7618b10",
+    "transportReviewSha256": "ef5ab4f77cce17ad2aa194dbaf2378bdc744327414ccb35254a4bf39fe42b0bb",
+    "sourceCaptureSha256": "58c905dbda31224fe3fd943a46ce80026de974746e94658054b7b45cf6851d76",
+    "candidateCaptureSha256": "2aac3282313f7ffc75c3c1a2d1ddd2b46502c9dcc13f6ef1476e14e88bf1cab4",
+    "executionSha256": "2ef10e32c10c818ad2c440f9e13d397f3edb6637ddac0f4f58c52a2bb1f69af2",
+    "limitations": "Owned peers, not live vendors. Bounded response observations, not a load or connection-pool stress test. The earlier HTTP500 source path also resets Wolfram Session; this follow-up directly observes connection and decode failures."
+  },
+  "unicodeRepairFollowup": {
+    "candidateRevision": "65e5994a2c7812f458ebe06b40eedcde50656b53",
+    "rootFreshCandidateCases": 210,
+    "rootTypedComparisonMatches": 210,
+    "negativeControlsRejected": 9,
+    "rootCandidateExitCode": 0,
+    "sourceExecution": "Luna original Python3.6.15 Bing provider with Unidecode1.0.22; root independently compared its frozen output to a fresh candidate run. Root did not repeat this 210-case Python run.",
+    "rootReview": "Period-only mappings are retained through composition; outer periods are trimmed before prefix classification. Complete provider result, request fields, statuses, nulls and finite ordered timestamp keys agree. Source authority is verified as one stable loopback endpoint; its top-level peer field is descriptive, not a URL.",
+    "candidateCaptureSha256": "bb03a0e389ca90107512447c8e30475007e6948793cb39debaf6eed9a1bdd9e1",
+    "comparisonSha256": "eaaac55bd1c3114357948a4ea34ea152803b0b9d12ef60420a910c81fe46f966",
+    "executionSha256": "0d75976528fb24fef12b97d8ea289709d1e059f1c45e0bdf83fcc75618c7a99d",
+    "pending": "Generated data packaging/provenance and fresh integration onto current main; no deployment or whole-provider acceptance."
   }
 }

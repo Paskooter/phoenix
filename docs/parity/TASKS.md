@@ -1262,7 +1262,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open. The separate multi-provider candidate passes 36 fresh root response/recovery cases, including late winners, with the original MarkupSafe dependency. Unicode predicate faults require changes before integration; transport-exception recovery and provenance review remain open.
+Root accepted the GQA core with 20 complete source responses, 473 blocked-term and 193 NLP controls. The explicit Wikipedia profile adds 34 response/recovery matches, 40 ordered provider requests and 68 original Hub client exchanges. Root repaired nine substantive page/deadline differences. Other providers, account/attribution, deployment and whole Q-01 remain open. The separate multi-provider candidate passes 36 fresh root response/recovery cases, including late winners, with the original MarkupSafe dependency. Root also passes 12 connection/decode failure and same-provider recovery cases. The repaired Unicode candidate passes 210 root comparisons; generated data packaging and combined integration remain pending.
 
 Done when:
 
@@ -1381,7 +1381,7 @@ Lead verification: pending. This candidate does not certify task parity.
 
 Owner: Codex. Dependencies: A-03.
 
-Main dispatches only List/ListLoops, SuspendLoop and SuspendRobotLoop from 23 archived operations; its current suspension still succeeds for an unknown loop. Isolated root candidate 9833185 adds source-shaped suspension checks and validation. Root integration and 87 original-client exchanges pass, but the reference Account peer is modeled. Actual original controller execution, LoopUpdated side effects, full authentication and other operations remain open.
+Main dispatches only List/ListLoops, SuspendLoop and SuspendRobotLoop from 23 archived operations; its current suspension still succeeds for an unknown loop. Isolated root candidate 9833185 adds source-shaped suspension checks and validation. Root integration and 87 original-client exchanges pass. Root also reproduced 21 actual original controller controls (53 checks), using controlled model/query/save boundaries. The source emits LoopUpdated after suspension; candidate notification effects, full authentication and other operations remain open.
 
 Done when:
 

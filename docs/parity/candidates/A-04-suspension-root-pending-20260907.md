@@ -16,10 +16,14 @@ checks for complete operation responses, client errors, fixture lists and state.
 Nine corrupted controls are rejected, including timestamp mutation and numeric
 or null suspension values. The comparator returns a failure exit code on mismatch.
 
-The reference executes the original security gateway but models the Account
-peer. Actual original Account controller execution and source-revision
-reconciliation are still required. List metadata differs between synthetic
-fixtures; the current comparison verifies its stability and state consistency.
+The 87-call reference executes the original security gateway with a modeled
+Account peer. Root has now separately reproduced 21 actual original
+LoopHandler/LoopController controls under Node 8 (53 checks), using controlled
+model/query/save boundaries. Source revision differences are documented.
+The source also emits LoopUpdated after suspension; its downstream notification
+effects are being traced before complete feature acceptance. List metadata
+differs between synthetic fixtures; the comparison verifies its stability and
+state consistency.
 Full Classic signature verification, LoopUpdated events, remaining Loop
 operations and robot acceptance are open. This candidate does not close A-04.
 
