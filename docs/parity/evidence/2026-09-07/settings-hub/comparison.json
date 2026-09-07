@@ -1,0 +1,906 @@
+{
+  "boundary": {
+    "cases": 8,
+    "matches": 8,
+    "followingValidRequests": 8,
+    "policy": "Complete decoded response bodies, machine fields, status and relevant headers. Only validated reset log-marker timestamps differ; raw bodies/headers retained. No broad message deletion. Person and Lasso are inert named seams; App registry points to controlled Account and Hub listeners.",
+    "rows": [
+      {
+        "case": "valid",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "1e793cdd57fe10e24c3ea7159a3a6b0c0221186e0ee5925a2d7ddf261ca250b9",
+        "candidateSha256": "70c980738009a6d7ce93e47aa0bc96b0ffaad724a7823bc919ae398a55247804"
+      },
+      {
+        "case": "missing-status",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 500,
+            "body": {
+              "message": "An internal server error occurred",
+              "statusCode": 500,
+              "error": "Internal Server Error"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "b983b9ef81db9813fbc8236f80a48f86f1c6043dc5ae2b29837448fd292222e4",
+        "candidateSha256": "82c9ca03487077abe6a2b46af0815e5856d71a40fe04674b8069623d19e76885"
+      },
+      {
+        "case": "invalid-status-399",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 500,
+            "body": {
+              "message": "An internal server error occurred",
+              "statusCode": 500,
+              "error": "Internal Server Error"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "85f79a8067b4ef08dda6db4ab68118e0418a3d97106afb5579cb140ecfbffcbc",
+        "candidateSha256": "dd6f2bf519d6a85ae4dc048e53090cf3d37a4337a8ab0d3b70921a0b3043b77f"
+      },
+      {
+        "case": "invalid-status-text",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 500,
+            "body": {
+              "message": "An internal server error occurred",
+              "statusCode": 500,
+              "error": "Internal Server Error"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "0dc37ac51ec83884718b3d881e870a110eb071b746225174ab5f501c1d4688b1",
+        "candidateSha256": "1ee7e41740cab642b96245e00c9e34c60f88812620862d0dc40bb52e1482e048"
+      },
+      {
+        "case": "invalid-status-null",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 500,
+            "body": {
+              "message": "An internal server error occurred",
+              "statusCode": 500,
+              "error": "Internal Server Error"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "1e91e58e54fe3342c4bba6091c964a2e96f909ed721f78028492a6eb41c9cc67",
+        "candidateSha256": "09dde12562e8c2c4ff9717face1a90fb5a1d2b077a0735a929238b9fd789353f"
+      },
+      {
+        "case": "malformed-json",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 500,
+            "body": {
+              "statusCode": 500,
+              "error": "Internal Server Error",
+              "message": "An internal server error occurred"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "5750d196186092b549d1b23284413d582dd6f5fd51ba0a1afef3bae1a3e36bda",
+        "candidateSha256": "dcb352e3a04e9bdbd3ffc66646f8f511a2bfb607e528b5dbdd617900e278c374"
+      },
+      {
+        "case": "malformed-error-json",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 500,
+            "body": {
+              "statusCode": 500,
+              "error": "Internal Server Error",
+              "message": "An internal server error occurred"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "7751faabab91cba991c24ff06679f091b8ab0139eef7e4db166f9bdc2dc32957",
+        "candidateSha256": "b8c53c01578594013eaeb35e62647661d8aaef4116fc58e82edab903487735dc"
+      },
+      {
+        "case": "connection-reset",
+        "sourceCapturedBy": "agent frozen App.start/Hapi; root independently decoded",
+        "responses": [
+          {
+            "status": 504,
+            "body": {
+              "statusCode": 504,
+              "error": "Gateway Time-out",
+              "message": "Gateway Time-out. Log marker:<timestamp>"
+            }
+          },
+          {
+            "status": 200,
+            "body": [
+              {
+                "skillId": "report-skill",
+                "view": {
+                  "type": "switch",
+                  "valueDefinition": {
+                    "target": "person",
+                    "key": "flag",
+                    "default": false
+                  }
+                },
+                "data": {
+                  "flag": {
+                    "value": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "completeStatusBodyMatch": true,
+        "followupSurvives": true,
+        "orderedWire": {
+          "accountPeer": [
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/isLoopMember?accountId=hub-boundary-user&loopId=loop-1",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/loopPopulated?loopId=loop-1",
+              "body": ""
+            }
+          ],
+          "hubPeer": [
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            },
+            {
+              "method": "GET",
+              "url": "/v1/skills/settings/robot-boundary",
+              "body": ""
+            }
+          ]
+        },
+        "sourceSha256": "beb4d9e69a212042e7e8a04d512a6b9746050f24ac61377bfc0c3fcc37b12dd3",
+        "candidateSha256": "855bc08b00b7140ce1a4083c1ee909e2eb319203f629a4e9d9ab90e54f731a05"
+      }
+    ]
+  },
+  "transport": {
+    "comparisons": [
+      {
+        "label": "transport40",
+        "cases": 40,
+        "matches": 40,
+        "sourceRuntime": "v8.9.4",
+        "candidateRuntime": "v22.22.0",
+        "sourceSha256": "21c172bc413cc972318fe45966c4a42ae9f2b5a1d9ef4157486ad45af1fc3724",
+        "candidateSha256": "f3f02385da3310f2f8c017aadbfd25455e4bfddcd8126b3fc919f2d8d6a4a340",
+        "rows": [
+          {
+            "id": "content-0",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "content-1",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "content-2",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "content-3",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "content-4",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "account-content-0",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "account-content-1",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "account-content-2",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-500-absent",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-500-empty",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-500-null",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-500-detail",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-422-empty",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-422-null",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-422-zero",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-422-false",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-422-code-absent",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-string-prefix",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-string-space",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-string-decimal",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-number-decimal",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-unknown-599",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "error-string",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "error-number",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "error-empty-string",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "error-zero",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "account-text-null",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "account-text-false",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "account-text-empty",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "transaction-null",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "transaction-zero",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "transaction-false",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "transaction-empty",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "transaction-array",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "transaction-object",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "friendly-percent",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "friendly-unicode",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "friendly-colon",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "friendly-backslash",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "friendly-at",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          }
+        ]
+      },
+      {
+        "label": "redirect11",
+        "cases": 11,
+        "matches": 11,
+        "sourceRuntime": "v8.9.4",
+        "candidateRuntime": "v22.22.0",
+        "sourceSha256": "cef25bec141364f837583da556702f031ecce8e77950c18d8bd40db1cb4589bc",
+        "candidateSha256": "39ceaaefd096882b7feb0ac20fbc248fbb1570d7b03e1b32930cc43f01374660",
+        "rows": [
+          {
+            "id": "redirect-relative",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "redirect-absolute",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "redirect-missing-location",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "redirect-max",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "status-303-body",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "timeout-account-headers",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "timeout-hub-headers",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "body-delay-after-headers",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "redirect-timeout-final",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "redirect-final-body-delay",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          },
+          {
+            "id": "reset-hub",
+            "resultAndErrorMatch": true,
+            "orderedWireMatch": true
+          }
+        ]
+      }
+    ],
+    "policy": "Complete selected result and error structures retained. Normalize only source/candidate ephemeral Hub authority in redirect error data after matching it to each actual captured request, and validated reset marker timestamps in the two known message locations. No generic message/id/null deletion. HTTP header name casing/order and nonsemantic runtime defaults are retained raw, not compared as data fields.",
+    "controllerSha256": "7a39a42237696d24927e63c846f3673aa3222806a6ca027e361df61dc31f0efb"
+  }
+}

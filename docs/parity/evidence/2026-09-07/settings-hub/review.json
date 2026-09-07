@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-07",
+  "decision": "accepted bounded Account-to-Hub transport and Settings failure boundary; whole A-06 remains open",
+  "sourceRevision": "jiborobot/srv-settings-ws@0d37e1fd2f4fca40538fb470194a3c5daf2c9830",
+  "sourceDependencies": {
+    "server": "4.0.12",
+    "hapi": "16.4.1",
+    "boom": "5.1.0",
+    "wreck": "12.2.2",
+    "node": "v8.9.4",
+    "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c"
+  },
+  "candidateRevisions": [
+    "b037a05bed8db0be0c90e719122f2a122a2a80a2",
+    "406d28dcce32083de9a6d6d773780ae2f10e1692",
+    "fc4445efff54f89e9f40fca6bc322acfbd72f236"
+  ],
+  "reviewedIntegratedRevision": "83836e1c43fb410d8f34ecb85c6082289b2bf020",
+  "scope": [
+    "Account friendly-ID prerequisite, source URL/header handling and ordinary non-2xx responses",
+    "Smart JSON MIME parsing, truthy provider error envelopes and machine-readable Boom fields",
+    "GET redirect order and header deadline, late body reads, reset and malformed response handling",
+    "Missing or invalid provider status reaches one HTTP 500; a later valid request still succeeds"
+  ],
+  "sourceControlQualification": "Root independently compared fresh integrated candidate captures with preserved completed Node 8 source captures. Eight boundary cases execute actual source App.start/Hapi with recovered Account/Hub clients and controlled TCP peers; Person/Lasso and registry discovery are named seams. Forty payload/wire and eleven redirect/deadline cases exercise original clients directly, not the complete service boundary.",
+  "boundary": {
+    "cases": 8,
+    "completeStatusBodyMatches": 8,
+    "followingValidResponses": 8,
+    "orderedPeerRequestsMatched": true,
+    "comparisonSha256": "3fd57fc6741eb31eba3acf292d1e2a090cd162c0903f978f63e0c6899edc3b04"
+  },
+  "transport": {
+    "cases": 40,
+    "resultErrorAndWireMatches": 40,
+    "redirectDeadlineCases": 11,
+    "redirectDeadlineMatches": 11,
+    "comparisonSha256": "d291586946cad23508b47057a1e94059c3b443303fb8d8afcb2a2e19415d230a"
+  },
+  "diagnosticPolicy": "Do not require incidental wording when robot interpretation is unchanged. Here complete decoded bodies and machine fields match after replacing only the validated reset log-marker timestamp; no generic message or null deletion. Redirect trace authorities are validated against actual listener requests before replacement.",
+  "integration": {
+    "candidateRuntimeAndTestsEqualToFrozenAgent": true,
+    "acceptedNluTreeUnchanged": true,
+    "trackedFilesStable": 5111,
+    "ownWorkspaceLinksVerified": true,
+    "unit": {
+      "tests": 635,
+      "pass": 632,
+      "fail": 0,
+      "skipped": 3
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "exitCode": 0,
+      "seconds": 88.90200210409239,
+      "runSha256": "b7ae541055848b4fd2233cc1df394aa4149c3e8dae3f39cd95d692548bdf592d"
+    },
+    "commands": [
+      "npm run test:unit",
+      "npm run parity:check",
+      "npm run parity:gate"
+    ],
+    "localExecutionSha256": "7eaad7877c450283c3b3436ab1aa2c7cfae19cc8f9c312ddd36f0ff2ea2c5e27",
+    "strictExecutionSha256": "2bce565f467391f63653b4673c1899838076b0f101ec0d0a55a9875269499d52"
+  },
+  "retainedAttempts": [
+    {
+      "kind": "candidate defect",
+      "revision": "b037a05bed8db0be0c90e719122f2a122a2a80a2",
+      "finding": "Unhandled Boom assertion on missing/invalid Hub status caused process exit1 in the pre-repair candidate; source Hapi returned500 and survived. Fixed by request-scoped rejection."
+    },
+    {
+      "kind": "root tooling startup timeout",
+      "budgetSeconds": 120,
+      "sourceProcessStarted": false,
+      "finding": "Container remained created with PID0 and zero StartedAt; no source bootstrap output. Not counted as a source result. Preserved completed source captures provide the comparison basis.",
+      "receiptSha256": "ab2ac59c433ddc4daf5fdfc5baf0e7bb70400a2f2fcff2627f9d22730077a978"
+    }
+  ],
+  "remaining": [
+    "Full Settings deployment registry and public authentication",
+    "Live Hub, Account, Person, Lasso, OAuth/Mongo and migration behavior",
+    "Extended whole-service redirect/payload controls remain in separate review",
+    "Whole A-06 and physical robot acceptance for this slice"
+  ]
+}

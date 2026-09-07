@@ -1,3 +1,5 @@
+> Historical candidate report. This bounded implementation is accepted in the [root Hub review](A-06-hub-root-20260907.md). The helper-only process-failure interpretation is superseded by the actual Hapi boundary evidence; original observations below are retained.
+
 # A-06 Settings Hub provider transport candidate (unverified)
 
 This candidate is based on 95942834fdd0ca87b620dae9163cfe56527f4dec. It owns the

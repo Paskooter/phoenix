@@ -1,3 +1,5 @@
+> Historical candidate report. This bounded implementation is accepted in the [root Hub review](A-06-hub-root-20260907.md). The helper-only process-failure interpretation is superseded by the actual Hapi boundary evidence; original observations below are retained.
+
 # A-06 Hub provider failure at the full Settings boundary (unverified)
 
 This follow-up is based on `b037a05bed8db0be0c90e719122f2a122a2a80a2` in the

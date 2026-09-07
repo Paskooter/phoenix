@@ -353,7 +353,7 @@ Then:
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 620 unit tests and all 43 smoke cases. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
+The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](docs/parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 632 unit tests and all 43 smoke cases. The [Settings Hub review](docs/parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. Full GQA provider/deployment parity remains open. A [temporary authenticated Moth trial](docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json) verified native clock/proactive exchanges and rollback; microphone and physical ring acceptance remain open.
 
 Current regression checks and progress tracking:
 
