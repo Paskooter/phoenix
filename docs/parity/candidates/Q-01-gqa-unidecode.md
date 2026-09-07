@@ -37,7 +37,7 @@ Unidecode implementation.  Its final 34-row output is
 ## Repair
 
 `gqaUnidecodeFilter.js` and the generated
-`gqaUnidecodeFilterData.js` provide a decision-only projection of the pinned
+`vendor/unidecode-1.0.22/gqaUnidecodeFilterData.js` provide a decision-only projection of the pinned
 Unidecode tables.  It skips code points that the source drops, retains source
 mappings that can form a legacy prefix (including mappings after an earlier
 fragment), and uses a private non-prefix marker for mapped-but-unknown output.

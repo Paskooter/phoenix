@@ -1,7 +1,7 @@
 import {
   SOURCE_UNIDECODE_EMPTY_RANGES,
   SOURCE_UNIDECODE_PREFIX_REPLACEMENTS,
-} from './gqaUnidecodeFilterData.js';
+} from './vendor/unidecode-1.0.22/gqaUnidecodeFilterData.js';
 
 // Unidecode emits ``[?]`` for a mapped-but-unknown character.  A private
 // control marker keeps that value non-prefix even when the source's legacy

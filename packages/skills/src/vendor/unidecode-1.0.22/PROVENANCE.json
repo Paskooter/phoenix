@@ -1,0 +1,59 @@
+{
+  "artifact": {
+    "path": "packages/skills/src/vendor/unidecode-1.0.22/gqaUnidecodeFilterData.js",
+    "relocationOnly": true,
+    "relocationOnlyFrom": "packages/skills/src/gqaUnidecodeFilterData.js",
+    "scope": "Decision-only projection of Unidecode output used by the recovered Bing empty/unhelpful predicate; not a general transliterator.",
+    "sha256": "605a670a0874aa6433f2043606cd26e43a6553a1080c7b9242be72bfaadfcab1"
+  },
+  "candidateSource": {
+    "recoveredRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+    "sourceModule": "gqa/bing.py",
+    "sourceModuleSha256": "116266b442337251569954aba6eac100d141669b44a93801d20a2542799b4d73"
+  },
+  "generator": {
+    "command": "python3 controls/generate-filter-data.py --wheel /home/shell/work/phoenix/.parity/reviews/q01-gqa-bing-provider-20260907/source-wheels/Unidecode-1.0.22-py2.py3-none-any.whl --output packages/skills/src/vendor/unidecode-1.0.22/gqaUnidecodeFilterData.js",
+    "generatorIsRetainedInPrivateEvidence": true,
+    "inputs": [
+      "/home/shell/work/phoenix/.parity/reviews/q01-gqa-bing-provider-20260907/source-wheels/Unidecode-1.0.22-py2.py3-none-any.whl"
+    ],
+    "outputSha256": "605a670a0874aa6433f2043606cd26e43a6553a1080c7b9242be72bfaadfcab1",
+    "path": "/home/shell/work/phoenix/.parity/reviews/q01-gqa-unidecode-repair-20260907/controls/generate-filter-data.py",
+    "sha256": "fb183a2fc1de1fdb0bfe5208f79f6ebd83b00097cab46a37eb0e57254cf14c05"
+  },
+  "license": {
+    "bytes": 18092,
+    "copiedByteForByteFromWheel": true,
+    "expectedWheelMemberSha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "trackedPath": "packages/skills/src/vendor/unidecode-1.0.22/LICENSE.txt",
+    "wheelMember": "Unidecode-1.0.22.dist-info/LICENSE.txt"
+  },
+  "schema": 1,
+  "sourcePackage": {
+    "authorsRecordedByMetadata": [
+      "Tomaz Solc",
+      "Sean M. Burke (original transliteration tables, as recorded in METADATA)"
+    ],
+    "metadataClassifier": "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "metadataLicense": "GPL",
+    "metadataMembers": {
+      "Unidecode-1.0.22.dist-info/METADATA": {
+        "sha256": "aca995ac6d3e3fb51cf42b820950f355c1542913b4e69071a54b8901dea5546d"
+      },
+      "Unidecode-1.0.22.dist-info/metadata.json": {
+        "sha256": "0e4a27112e8747939c57f13001ac155573ae0d7703a4fc43c9a39b94b4ebbe0a"
+      }
+    },
+    "name": "Unidecode",
+    "sourceUrlsRecordedByMetadata": [
+      "https://www.tablix.org/~avian/git/unidecode.git",
+      "https://github.com/avian2/unidecode"
+    ],
+    "version": "1.0.22",
+    "wheel": {
+      "path": "/home/shell/work/phoenix/.parity/reviews/q01-gqa-bing-provider-20260907/source-wheels/Unidecode-1.0.22-py2.py3-none-any.whl",
+      "sha256": "72f49d3729f3d8f5799f710b97c1451c5163102e76d64d20e170aedbbd923582"
+    }
+  }
+}

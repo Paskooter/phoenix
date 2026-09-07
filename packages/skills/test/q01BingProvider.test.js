@@ -12,7 +12,7 @@ import {
 } from '../src/gqaBingProvider.js';
 import {
   SOURCE_UNIDECODE_DATA,
-} from '../src/gqaUnidecodeFilterData.js';
+} from '../src/vendor/unidecode-1.0.22/gqaUnidecodeFilterData.js';
 import { unidecodeForBingFilter } from '../src/gqaUnidecodeFilter.js';
 
 function answerBody(answerType = 'Facts', spokenText = 'The fixture answer.') {
