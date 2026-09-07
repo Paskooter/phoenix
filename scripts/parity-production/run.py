@@ -20,7 +20,9 @@ foundation = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(foundation)
 REVISION = foundation.REVISION
 sha = foundation.sha
-APPROVED_RULE_INVENTORY_SHA256 = '4377949617eb3169f1466ddb2844f2f5f9948f43e1942a2e35f38c3664dc4aa5'
+APPROVED_RULE_INVENTORY_SHA256 = json.loads(
+    (ROOT / 'packages/nlu/resources/compiled-fst-approval.json').read_text()
+)['inventorySha256']
 APPROVED_REFERENCE_REVISION = '5c0a7390539663ba749d360de348a428c088505c'
 APPROVED_PUBLIC_RULE_COUNT = 98
 
