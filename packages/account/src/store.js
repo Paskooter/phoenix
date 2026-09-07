@@ -3,7 +3,8 @@
 // file with atomic writes (tmp + rename) is plenty at household scale and keeps Phoenix
 // zero-dependency. Collections are Maps keyed by _id; every mutation schedules a flush.
 
-import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,14 +32,28 @@ export class Store {
     }
   }
 
-  /** Atomic write: serialize all collections to <file>.tmp, then rename over. */
+  /** Replace the snapshot atomically, keeping credential bytes private. */
   flush() {
     const out = {};
     for (const c of COLLECTIONS) out[c] = [...this[c].values()];
-    mkdirSync(dirname(this.file), { recursive: true });
-    const tmp = `${this.file}.tmp`;
-    writeFileSync(tmp, JSON.stringify(out, null, 2));
-    renameSync(tmp, this.file);
+    const serialized = JSON.stringify(out, null, 2);
+    mkdirSync(dirname(this.file), { recursive: true, mode: 0o700 });
+    // An exclusive, private temporary file avoids inheriting permissions from
+    // an old temporary snapshot. Do not rely on a particular caller's umask.
+    const tmp = `${this.file}.${randomUUID()}.tmp`;
+    const fd = openSync(tmp, 'wx', 0o600);
+    try {
+      try {
+        writeFileSync(fd, serialized);
+      } finally {
+        closeSync(fd);
+      }
+      renameSync(tmp, this.file);
+    } finally {
+      // Only remove the temporary file this invocation created. Preserve the
+      // original write/rename error if cleanup is also unavailable.
+      try { unlinkSync(tmp); } catch { /* renamed or cleanup unavailable */ }
+    }
   }
 
   // -- convenience finders ----------------------------------------------------
