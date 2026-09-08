@@ -258,7 +258,19 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         loop.isSuspended = false;
         loop.robot = newRobotAccount._id;
         loop.members = Array.isArray(loop.members) ? loop.members : [];
-        loop.members.push({ _id: newId(), accountId: newRobotAccount._id, status: MEMBER_STATUS.ACCEPTED });
+        // Mongoose applies these memberSchema defaults when the source pushes
+        // `{ accountId, status }`. Keep the persisted replacement subdocument
+        // source-shaped as well as the LoopUpdated projection: the defaults
+        // remain observable after reopening the account store.
+        loop.members.push({
+          _id: newId(),
+          accountId: newRobotAccount._id,
+          status: MEMBER_STATUS.ACCEPTED,
+          created: Date.now(),
+          invitedAsLegalGuardian: false,
+          enrolled: { face: false, voice: false },
+          memberProperties: { isChild: false },
+        });
         saveOobeLoop(loop, before);
       } else {
         // A different robot may only take over a suspended loop. Same-robot
