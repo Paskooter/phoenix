@@ -1,7 +1,7 @@
 // LoopController.updateMemberPhoto/removeMemberPhoto at srv-account-ws@6cea434.
 import { populateLoop, LOOP_MEMBERSHIP_ERRORS } from './loopMembership.js';
 import { sendAmz, sendAmzError } from './loopHttp.js';
-import { Transform } from 'node:stream';
+import { Transform, PassThrough } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -15,13 +15,12 @@ export async function stagePhotoDigest(req) {
   const directory = await mkdtemp(join(tmpdir(), 'phoenix-photo-request-'));
   const path = join(directory, 'body');
   const digest = createHash('sha256');
-  let size = 0;
   try {
-    await pipeline(req, new Transform({ transform(chunk, encoding, callback) {
-      size += chunk.length;
-      digest.update(chunk);
-      callback(size > 1000000000 ? new Error('Payload too large') : null, chunk);
-    } }), createWriteStream(path, { mode: 0o600, flags: 'wx' }));
+    const hashing = new Transform({ transform(chunk, encoding, callback) { digest.update(chunk); callback(null, chunk); } });
+    req.on('error', (error) => hashing.destroy(error));
+    req.pipe(hashing);
+    try { await pipeline(hashing, createWriteStream(path, { mode: 0o600, flags: 'wx' })); }
+    finally { req.unpipe(hashing); }
     req.photoBodyDigest = digest.digest('hex');
     req.photoInputStream = createReadStream(path);
     req.photoCleanup = async () => { req.photoInputStream.destroy(); await rm(directory, { recursive: true, force: true }); };
@@ -90,11 +89,7 @@ export function handleMemberPhotos({ store, req, res, body, op, provider, outbox
     id: input[upload ? 'x-id' : 'id'], loopId: input[upload ? 'x-loop-id' : 'loopId'] };
   let stream;
   if (upload) {
-    let bytes = 0;
-    stream = new Transform({ transform(chunk, encoding, callback) {
-      bytes += chunk.length;
-      callback(bytes > 1000000000 ? Object.assign(new Error('Payload too large'), { code: 'RequestEntityTooLarge', statusCode: 413 }) : null, chunk);
-    } });
+    stream = new PassThrough();
     payload.dataStream = stream;
   }
   // Start consuming only after controller ownership/member checks reach upload.
