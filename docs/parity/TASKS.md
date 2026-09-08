@@ -1397,7 +1397,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code encoder still needs the same source-backed leading-zero fix as setup tokens.
+Candidate scope: Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code leading-zero repair is root accepted on isolated candidatea5d04b5 after924 tests, seven skips andstrict43; combined integration remains pending.
 
 Candidate report: [packages/account/src/loopMembership.js](../../packages/account/src/loopMembership.js).
 
@@ -1409,7 +1409,7 @@ Lead verification: pending. This candidate does not certify task parity.
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-Published isolated candidate3fc197e includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Root accepted leading-zero Base58 repair after1,030 original encoder matches; combined product3467001 passes923 tests with7 skips and43 strict smoke cases. Installed robot SDK passed28 synthetic checks, including orderly server restart. Public parser candidate7cf0cba awaits root review; combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.
+Published isolated candidate6b600f9 includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Root accepted leading-zero Base58 repair after1,030 original encoder matches; combined producta5d04b5 passes924 tests with7 skips and43 strict smoke cases. Installed robot SDK passed28 synthetic checks, including orderly server restart. Public parser candidate7cf0cba awaits root review; combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.
 
 Done when:
 
@@ -1425,7 +1425,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Published combined candidate3fc197e passes923/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.
+Candidate scope: Published combined candidate6b600f9 passes924/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.
 
 Candidate report: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
 

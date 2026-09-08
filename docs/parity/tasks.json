@@ -2744,7 +2744,7 @@
         "assignee": "Luna Max / audio_encoding_repair; Codex root",
         "reviewedBy": "Codex root",
         "candidateRevision": "9f00907a3d3c0034e8f3ba2add67fbbaba774e45",
-        "scope": "Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code encoder still needs the same source-backed leading-zero fix as setup tokens.",
+        "scope": "Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code leading-zero repair is root accepted on isolated candidatea5d04b5 after924 tests, seven skips andstrict43; combined integration remains pending.",
         "artifact": "packages/account/src/loopMembership.js",
         "reviewEvidence": "docs/parity/evidence/2026-09-08/membership-concurrency-followup-root/review.json"
       },
@@ -2938,6 +2938,15 @@
           "scope": "Root accepted existing robot Account reactivation and save boundary after three exact source controller controls, eight originalNode8client checks across Account/Classic and restart, independent review,901unit passes/seven skips andstrict43. Existing identity/keys persist; failed Account save restores committed map state; a successful Account save survives later Loop save failure. Deployment and complete A-04 remain open.",
           "artifact": "packages/account/src/model.js",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/robot-reactivation-candidate/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "reviewedBy": "Codex root",
+          "candidateRevision": "a5d04b5",
+          "scope": "Invitation creation and email assignment now use shared source-verified Base58 encoder; six archived vectors exercised through both paths and disk reload. Thirteen focused tests,924 combined unit passes/seven skips andstrict43 pass. Isolated branch only; main product integration, provider delivery and full A-04 remain open.",
+          "artifact": "packages/account/src/loopMembership.js",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/invitation-token-encoding/review.json"
         }
       ]
     },
@@ -2963,7 +2972,7 @@
         "packages/account/src/qrPayload.js",
         "packages/account/portal/qr.js"
       ],
-      "finding": "Published isolated candidate3fc197e includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Root accepted leading-zero Base58 repair after1,030 original encoder matches; combined product3467001 passes923 tests with7 skips and43 strict smoke cases. Installed robot SDK passed28 synthetic checks, including orderly server restart. Public parser candidate7cf0cba awaits root review; combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.",
+      "finding": "Published isolated candidate6b600f9 includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Root accepted leading-zero Base58 repair after1,030 original encoder matches; combined producta5d04b5 passes924 tests with7 skips and43 strict smoke cases. Installed robot SDK passed28 synthetic checks, including orderly server restart. Public parser candidate7cf0cba awaits root review; combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.",
       "acceptance": [
         "Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.",
         "Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.",
@@ -2973,7 +2982,7 @@
       "implementationReview": {
         "state": "awaiting_review",
         "assignee": "Luna Max / capture_writer_repair; Codex root",
-        "scope": "Published combined candidate3fc197e passes923/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.",
+        "scope": "Published combined candidate6b600f9 passes924/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.",
         "artifact": "packages/account/src/robotFace.js",
         "reviewEvidence": "docs/parity/evidence/2026-09-08/oobe-integration-root/review.json"
       }
