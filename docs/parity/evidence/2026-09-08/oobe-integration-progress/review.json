@@ -1,8 +1,8 @@
 {
   "status": "candidate-awaiting-final-independent-review",
-  "branch": "codex/candidate-a05-service-token-20260908",
-  "publishedRevision": "66c89bfd56f2737deaa33fb8aa4873af8e248200",
-  "testedProductionRevision": "4a5ae0a",
+  "branch": "codex/candidate-a05-qr-utf8-20260908",
+  "publishedRevision": "9d333c99a773427dfe3bc9715b396103e2bddf07",
+  "testedProductionRevision": "5e48d5e69f62fbfa0a83857a8eb1503f57cd17f5",
   "implemented": [
     "ReconnectRobot token consumption and errors",
     "Setup owner/deleted-loop checks and suspended robot replacement",
@@ -13,11 +13,12 @@
     "Verified OOBE SigV4 authentication with exact anonymous exceptions",
     "Source-shaped primitive and field validation across Account and Classic",
     "Administrator service token, service account persistence and first invitation binding",
-    "Failed token mint/refresh rollback and strict token-reuse expiry boundary"
+    "Failed token mint/refresh rollback and strict token-reuse expiry boundary",
+    "UTF-8 QR byte-capacity splitting without surrogate-pair corruption"
   ],
   "verification": {
-    "fullTests": 927,
-    "passed": 920,
+    "fullTests": 929,
+    "passed": 922,
     "failed": 0,
     "skipped": 7,
     "strictCases": 43,
@@ -25,20 +26,30 @@
     "strictInvariants": 0,
     "strictCoverageGaps": 0,
     "rootRepeatedSourceDefaultsAndFinalSaveControls": true,
-    "strictRun": "ci-production-a0db3a7a-585f-4ac5-af9b-5ab3b58e6c8f",
+    "strictRun": "ci-production-96a91520-c435-45bd-89f9-f7d797ac1fe1",
     "rootOriginalGatewayControls": 16,
     "rootOriginalHandlerValidationCases": 31,
-    "rootOriginalUnboundSourceCases": 7
+    "rootOriginalUnboundSourceCases": 7,
+    "rootOriginalServiceAccountCreateCases": 7,
+    "rootOriginalQrConsumerCases": 7,
+    "independentQrConsumerCases": 8
   },
   "sourceRerunReceiptSha256": "8c1579dd549098ab7ca633dcb89c40e81ede1dd89a41c941f6b7647ce6557e10",
   "pending": [
-    "Independent final service-token source/schema/save-boundary and original OOBEAdmin SDK review",
+    "Source Base58 leading-zero token encoding repair and original dependency verification",
     "Independent latest payload-parser review across Account and Classic",
-    "Root final acceptance, QR/remaining consumer coverage and safe deployment checks",
-    "Full A-03/A-04 dependencies and hardware lifecycle acceptance"
+    "Final combined root acceptance and safe deployment",
+    "Remaining consumer/native optical QR/hardware lifecycle coverage and A-03/A-04 dependencies"
   ],
   "fullTaskComplete": false,
   "robotDeploymentChanged": false,
   "authEvidence": "docs/parity/evidence/2026-09-08/oobe-auth-root/review.json",
-  "fullTestLogSha256": "10698b4e71ab9a0229eb3407a8f2555d60143cd3d1776778986489cc43318023"
+  "fullTestLogSha256": "5572ea853d758eb4c9ecbdf29bc0e4ec4e721077ba0d71c1e44c1bb37743604d",
+  "serviceTokenReview": {
+    "originalOobeAdminSdkCalls": 4,
+    "originalAccountCreateCases": 7,
+    "rootAccountCreateCasesRerun": 7,
+    "qualification": "Controller/model provider seams and synthetic client listeners. Broader Account schema/password/collision semantics remain open."
+  },
+  "qrEvidence": "docs/parity/evidence/2026-09-08/qr-utf8-candidate/review.json"
 }

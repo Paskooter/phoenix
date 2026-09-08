@@ -50,10 +50,19 @@
     "Candidate comparison uses direct functions from clean 80b12bd, not public HTTP.",
     "Historical whole-document-save control and failed attempts remain preserved."
   ],
-  "action": "Luna Max agent implementing bounded request snapshot and modified-path persistence behavior; root review and HTTP verification remain required.",
+  "action": "Luna Max assigned shared changed-path/version repair across interacting membership writers. Root rejected c3b; no deployment.",
   "hashes": {
     "observe.cjs": "8be0c1270ba98d2ddfcdd1b6cf185826d3cf0daf629af0211c0ae51f69eb93de",
     "observed-delta.json": "cc0a1a66dd2e294e4702117b6bb53f23ff951db99b8a602467d695ceb019e1d4"
   },
-  "rootReceiptSha256": "55bfdbb8eea36e3db84f84a857060789068dc22107e12f3cebe01e765ef152eb"
+  "rootReceiptSha256": "55bfdbb8eea36e3db84f84a857060789068dc22107e12f3cebe01e765ef152eb",
+  "candidateReview": {
+    "revision": "c3b7789a985795c358bd40e21e0af5280e5e3bef",
+    "status": "changes-required",
+    "findings": [
+      "Unchanged declined status gains a false version conflict after an overlapping append.",
+      "An array-removal operation fails to increment version, allowing a queued positional write to change another member."
+    ],
+    "evidence": "docs/parity/evidence/2026-09-08/invitation-concurrency-candidate-review/review.json"
+  }
 }

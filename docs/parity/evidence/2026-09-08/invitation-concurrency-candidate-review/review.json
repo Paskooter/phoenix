@@ -1,0 +1,22 @@
+{
+  "candidateRevision": "c3b7789a985795c358bd40e21e0af5280e5e3bef",
+  "status": "changes-required",
+  "findings": [
+    "No-op member status update is incorrectly given a version predicate, causing a false conflict with an overlapping append.",
+    "Synchronous member-array removal does not increment version; a pending positional write can accept a different member after its index shifts."
+  ],
+  "evidence": {
+    "source-save-v2.cjs": "5b359acab59725e481dabb5df45093f7d3159d652d2dbb41fb76c7e46ee5da43",
+    "source-save-v2.json": "06ea233f9182c46cc4ec5b2548cfb078e4b716b134bbdaf184c2866ce7c44668",
+    "candidate.mjs": "79bf7542ba780c80d4ad04e369eac3315b6048123a5ed52623ab9709e4151ced",
+    "candidate.json": "3fd194d75b43ae921bdc5ea74eab9a8a0b65a409b6f1058e01231566d95b6d2c"
+  },
+  "qualifications": [
+    "Source uses actual Mongoose4.9.8 Model.save on original Loop schema with recording collection callback.",
+    "Candidate uses synthetic direct function calls and durable JSON Store; no public HTTP or real robot.",
+    "First source assertion failure from omitted created fixture value preserved; corrected source fixture rerun passes."
+  ],
+  "nextAction": "Repair changed-path/version semantics across interacting membership writers, then verify public concurrent HTTP and persistence.",
+  "fullTaskComplete": false,
+  "deployed": false
+}
