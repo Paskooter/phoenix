@@ -56,7 +56,7 @@ export async function startAuthenticatedRobotStack({
   publicUrl = 'https://localhost', parakeetUrl = 'http://192.168.1.252:6972',
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
-  if (!runDir || !snapshotManifest) throw new Error('runDir and snapshotManifest are required');
+  if (!runDir) throw new Error('runDir is required');
 
   // The server owns its robot-facing certificate. Generating it here means a
   // first start is self-sufficient and the repoint script can simply read what
@@ -105,9 +105,14 @@ export async function startAuthenticatedRobotStack({
   for (const name of Object.keys(process.env)) {
     if (name.startsWith('PHOENIX_NLU_')) delete process.env[name];
   }
-  Object.assign(process.env, {
+  // The shipped default is the AST parser (DIVERGENCES.md N1). A compiled
+  // profile is opt-in: pass a snapshot manifest to select it. Running without
+  // one is the normal case and means this launcher exercises what we ship.
+  Object.assign(process.env, snapshotManifest ? {
     PHOENIX_NLU_RUNTIME: 'compiled-fst',
     PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST: resolve(snapshotManifest),
+  } : {});
+  Object.assign(process.env, {
     PHOENIX_SKILL_ID: '', PHOENIX_GQA_PROFILE: '', PHOENIX_GQA_DEFAULT_PROFILE: '',
     ETCO_parser_llmUrl: '', ETCO_answer_llmUrl: '',
     ETCO_account_dataFile: accountPath,
@@ -120,8 +125,11 @@ export async function startAuthenticatedRobotStack({
   });
   try {
     const { compiledFstRuntimeConfig } = await import('../../packages/nlu/src/compiledFstRuntime.js');
-    const compiledProfile = compiledFstRuntimeConfig();
-    if (!compiledProfile?.snapshotManifest) throw new Error('A validated portable compiled-parser profile is required');
+    const compiledProfile = snapshotManifest ? compiledFstRuntimeConfig() : null;
+    // Only validate the compiled profile when one was deliberately selected.
+    if (snapshotManifest && !compiledProfile?.snapshotManifest) {
+      throw new Error('A validated portable compiled-parser profile is required');
+    }
     // Open the actual service implementations, then bind their real addresses
     // into the downstream clients before importing/creating the Hub.
     for (const [name, offset] of [['nlu', 5], ['history', 6], ['data', 7], ['skills', 3]]) {
@@ -196,6 +204,7 @@ export async function startAuthenticatedRobotStack({
         publisherAttachedAfterClassicReady: typeof account.loopUpdatedOutbox.publisher === 'function',
         recovery: notificationRecovery,
       },
+      parserProfile: snapshotManifest ? 'compiled-fst' : 'ast',
       compiledProfile, capture: 'no launcher wire or audio capture',
       scope: 'Development process lifecycle. History and notification durability and host/robot reboot supervision remain separate work.',
     };
