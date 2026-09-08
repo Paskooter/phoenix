@@ -1,0 +1,36 @@
+{
+  "status": "verified-client-sequence-candidate-awaiting-final-acceptance",
+  "candidateRevision": "51c68f359815e753040a7c7d4e805432f4132291",
+  "client": {
+    "node": "8.9.4",
+    "jiboServerClient": "3.0.110",
+    "runtimeImage": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c"
+  },
+  "verification": {
+    "sdkCalls": 20,
+    "accountCalls": 10,
+    "classicCalls": 10,
+    "allSucceeded": true,
+    "classicBodyStatusAndAuthForwarding": "exact",
+    "invitationEventsPerFace": 9,
+    "smtpMessagesPerFace": 3,
+    "loopUpdatedPublisherCallsPerFace": 9,
+    "durableOutboxesDrained": true,
+    "reopenedMembershipStateMatches": true,
+    "rootHashChecks": 52,
+    "rootIndependentVerifierReceiptEqualsOriginal": true
+  },
+  "limitations": [
+    "Synthetic households with local RobotRead, SMTP and event publishers; no family changes or external mail.",
+    "Original generated client against Phoenix candidate; this sequence is not original Account server execution.",
+    "LoopUpdated publisher invocations are checked separately; no universal relative event order or network arrival order is required.",
+    "Earlier run loaded f740d356 rather than requested649da10 and included a self-mutating manifest log; retained privately. This isolated final run fixes both provenance issues."
+  ],
+  "evidenceSha256": {
+    "verification.json": "7dca10143ee677074bc6a19078e60a93cb41cab82d2aecf2105d0ad17c58d364",
+    "manifest.json": "ed7129f2df092c5d9bae7074d33739634c1542a5c99bbcacc0c09ae01e2d57dd",
+    "comparison-prior.json": "63f01c662ff2a7522e24dc87e6b4548bbf9da675ca660c38e1eaf98ea3e903d7",
+    "root-hash-review.json": "a427b0152f40243d5988f3ef32d396a305833b678869e4a12a7b5b84ec653d2e",
+    "root-verification.json": "7dca10143ee677074bc6a19078e60a93cb41cab82d2aecf2105d0ad17c58d364"
+  }
+}

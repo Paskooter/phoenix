@@ -1,3 +1,4 @@
+import { RobotReadClient } from './loopCreation.js';
 // @phoenix/account — the account / loop / OOBE Classic Service + the web portal.
 //
 // Three faces over one persistent store (see OOBE-PORTAL-HANDOFF.md):
@@ -19,6 +20,7 @@ import { MemberPhotoStorage } from './memberPhotoStorage.js';
 import { pipeline } from 'node:stream/promises';
 import { join, dirname } from 'node:path';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
+import { createConfiguredInvitationProviders } from './invitationDeployment.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -47,6 +49,26 @@ export {
 export * as settingsData from './settingsData.js';
 export { createSettingsProviders } from './settingsProviders.js';
 export { LoopUpdatedOutbox, buildLoopUpdatedPayload, buildLoopUpdatedNotification } from './loopUpdatedOutbox.js';
+export {
+  InvitedToJoinLoop,
+  dispatchInvitationSideEffects,
+  normalizeInvitationProviders,
+} from './invitationProviders.js';
+export {
+  createConfiguredInvitationProviders,
+} from './invitationDeployment.js';
+export {
+  InvitationEventOutbox,
+  createConfiguredInvitationEventSender,
+  createHttpInvitationEventPublisher,
+} from './invitationEventOutbox.js';
+export {
+  INVITATION_SUBJECT,
+  SmtpMailProvider,
+  createSmtpMailProviders,
+  normalizeSmtpConfig,
+  smtpConfigFromEnv,
+} from './smtpMail.js';
 export { staticRoutes } from './static.js';
 
 function isCreateHubTokenTarget(req) {
@@ -103,9 +125,45 @@ function photoConfiguration(loopConfig, store) {
   };
 }
 
-export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {}, agreementProvider, memberPhotoProvider } = {}) {
+export function createAccountService({
+  store = getStore(),
+  settingsProviders,
+  notificationPublisher,
+  loopConfig = {},
+  agreementProvider,
+  memberPhotoProvider,
+  invitationProviders,
+  robotReadClient = new RobotReadClient(),
+  invitationSmtp,
+  invitationEventFile,
+  invitationEventUrl,
+  invitationEventPublisher,
+  invitationEventTimeoutMs,
+  invitationEventHeaders,
+  invitationMailFrom,
+  invitationTemplateDir,
+} = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
+  // `invitationProviders` is an explicit deployment/test seam with the
+  // source contracts `{ send(to, options) }` for `invitation` and
+  // `invitationExistingUser`, plus `{ send(event) }` for `eventSender`.
+  // A normal launch fills missing mail providers from local SMTP settings and
+  // missing event delivery from the durable local event queue/HTTP sink. When
+  // neither is configured, the remaining no-op is an explicit unavailable
+  // provider boundary rather than a hidden external delivery claim.
+  const effectiveInvitationProviders = createConfiguredInvitationProviders({
+    store,
+    invitationProviders,
+    smtp: invitationSmtp,
+    eventFile: invitationEventFile,
+    eventUrl: invitationEventUrl,
+    eventPublisher: invitationEventPublisher,
+    eventTimeoutMs: invitationEventTimeoutMs,
+    eventHeaders: invitationEventHeaders,
+    fromAddress: invitationMailFrom,
+    templateDir: invitationTemplateDir,
+  });
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
   const photo = memberPhotoProvider ? null : photoConfiguration(loopConfig, store);
@@ -141,6 +199,8 @@ export function createAccountService({ store = getStore(), settingsProviders, no
         loopUpdatedOutbox,
         loopConfig,
         agreementProvider,
+        invitationProviders: effectiveInvitationProviders,
+        robotReadClient,
         memberPhotoProvider: photoProvider,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
@@ -148,7 +208,12 @@ export function createAccountService({ store = getStore(), settingsProviders, no
   // An injected publisher is the explicit Account -> notification boundary;
   // recover rows left by a prior process after construction.
   service.loopUpdatedOutbox = loopUpdatedOutbox;
+  service.invitationProviders = effectiveInvitationProviders;
   void loopUpdatedOutbox.recover();
+  const invitationEvents = effectiveInvitationProviders.eventSender;
+  if (invitationEvents && typeof invitationEvents.recover === 'function') {
+    void Promise.resolve(invitationEvents.recover()).catch(() => {});
+  }
   return service;
 }
 

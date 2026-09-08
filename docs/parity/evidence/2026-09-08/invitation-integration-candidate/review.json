@@ -1,0 +1,86 @@
+{
+  "status": "accepted-bounded-implementation",
+  "revision": "51c68f359815e753040a7c7d4e805432f4132291",
+  "baseRevision": "9aeb959e11832cec825da62d1aa21e5af6e1d6d6",
+  "sourceCandidates": [
+    "fbb3df5",
+    "ba0e3b4",
+    "19cace3",
+    "eaa6724",
+    "4eb6e91",
+    "2eaaea2",
+    "9e8bc5b",
+    "1565dbd",
+    "25f7ec3"
+  ],
+  "integrationResolutions": [
+    "Preserve accepted guardian provider alongside invitation providers.",
+    "Preserve primitive validation for agreement and list operations.",
+    "Return asynchronous membership handler results so CreateLoop completes before response finalization.",
+    "Retain configured photo storage and provider alongside agreement, invitation and robot-read providers.",
+    "Await asynchronous Loop dispatch inside photo digest-cleanup finally block.",
+    "Defer automatic LoopUpdated publication with setImmediate while preserving synchronous durable commit."
+  ],
+  "verification": {
+    "focusedBeforeRepairs": {
+      "passed": 16,
+      "failed": 0
+    },
+    "accountBeforeRepairs": {
+      "passed": 216,
+      "failed": 2,
+      "qualification": "fetch failures; subsequent diagnostic run reproduced socket timeouts coinciding with client requests"
+    },
+    "strictGateBeforeRepairs": {
+      "matched": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "focusedAfterRepairs": {
+      "passed": 21,
+      "failed": 0
+    },
+    "longLineEvidenceAndProductHashesVerified": 15,
+    "robotReadProductAndSourceHashesVerified": 6,
+    "fullCombinedSuite": {
+      "passed": 896,
+      "failed": 0,
+      "skipped": 7
+    },
+    "strictCombinedGate": {
+      "matched": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "capturedRevision": "49c4a84ec4aac31541cf64267941c7875ee65ddf"
+    },
+    "installedNode6SyntheticPhotoSequence": {
+      "passed": 6,
+      "clientVersion": "3.0.105",
+      "strictTls": true
+    },
+    "priorCombinedGate": "Capture rejected because root committed an evidence checkpoint while capture was active. Preserved as invalid; stable rerun above passed.",
+    "originalClientInvitationLifecycle": {
+      "calls": 20,
+      "passed": 20,
+      "rootHashChecks": 52,
+      "capturedRevision": "51c68f359815e753040a7c7d4e805432f4132291"
+    }
+  },
+  "pending": [],
+  "deployment": "No main production code or Moth changes. No real mail or family fixtures.",
+  "focusedLogSha256": "6b1fceb1d7eeec1e5ff30850b9ecc5cbcf112825c3cb60d59b59539dfc622332",
+  "evidenceSha256": {
+    "account.log": "8195dac4bb480cf6a65f83c775e38968bf36464db93cfa42f11a4af1a9e26209",
+    "gate.log": "f9418f3389ba698717e6d23b0fbcde84f180e51bf6a9cc4a8da7d5840e769af0",
+    "failed-files-diagnostic.log": "c7485e7e2a9a26bdb214e8a6875fed23afbbeaf5ad22296f4b0f95006cb7ee76",
+    "focused-repairs.log": "dc265e3de7abbd47130810feb8a6ffed4c46437d2ec008ad59867adb076ac815",
+    "full-combined.log": "593f3932cc7c28f77348b5ffcfb2677a404bc540f5334b5f3d1d2db284d2eec0",
+    "gate-combined.log": "faea96d98d10d4ab28d4b187e05a10d656d96f241583dd02c7e2e1874844c85c",
+    "gate-combined-stable.log": "a40463ffb8178b8748257d488efc44a9567c2686465ee6cd7382e2d946123e97"
+  },
+  "acceptedMainMerged": "037ba4557fca098d308c4ee705162aaf85702b4c",
+  "qualification": "Following the tested revision, only source-order documentation, a source comment and a test title/comment changed; executable production behavior and test assertions remain unchanged.",
+  "acceptanceEvidence": "../invitation-acceptance/review.json"
+}

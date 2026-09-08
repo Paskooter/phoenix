@@ -87,6 +87,7 @@ export class LoopUpdatedOutbox {
     this.publisher = typeof publisher === 'function' ? publisher : null;
     this.clock = clock;
     this.draining = null;
+    this.drainScheduled = null;
     this.drainRequested = false;
   }
 
@@ -143,6 +144,7 @@ export class LoopUpdatedOutbox {
   /** Drain once; failed publication retains the row for retry/recovery. */
   drain() {
     if (!this.publisher) return Promise.resolve({ published: 0, retained: this.pending().length });
+    if (this.drainScheduled) return this.drainScheduled;
     if (this.draining) {
       // A drain iterates a snapshot. A producer can append another event
       // while the current publisher is awaiting its bridge; remember that
@@ -151,6 +153,10 @@ export class LoopUpdatedOutbox {
       this.drainRequested = true;
       return this.draining;
     }
+    return this._drainNow();
+  }
+
+  _drainNow() {
     this.draining = (async () => {
       let published = 0;
       for (const entry of this.pending()) {
@@ -205,11 +211,49 @@ export class LoopUpdatedOutbox {
   }
 
   _startDrain() {
-    try {
-      void this.drain().catch(() => {});
-    } catch {
-      // The outbox row remains durable for an explicit recovery call.
+    if (!this.publisher) return Promise.resolve({ published: 0, retained: this.pending().length });
+    if (this.drainScheduled) return this.drainScheduled;
+    if (this.draining) {
+      this.drainRequested = true;
+      return this.draining;
     }
+
+    let resolveScheduled;
+    let rejectScheduled;
+    const scheduled = new Promise((resolve, reject) => {
+      resolveScheduled = resolve;
+      rejectScheduled = reject;
+    });
+    // Automatic publication is deliberately deferred until the next
+    // check phase. The source Loop post-save hook schedules LoopUpdated with
+    // setImmediate. LoopCreated follows asynchronous account population, so
+    // the source does not guarantee their relative order. Keep `draining` promise-shaped
+    // immediately so existing callers can await automatic delivery.
+    this.drainScheduled = scheduled;
+    this.draining = scheduled;
+    setImmediate(() => {
+      if (this.drainScheduled !== scheduled) return;
+      this.drainScheduled = null;
+      // The scheduled promise is only a handoff placeholder. Clear it before
+      // starting the real drain so _drainNow can own this.draining and its
+      // completion cleanup.
+      if (this.draining === scheduled) this.draining = null;
+      let running;
+      try {
+        running = this._drainNow();
+      } catch (error) {
+        rejectScheduled(error);
+        return;
+      }
+      running.then(resolveScheduled, rejectScheduled);
+    });
+    // record() intentionally does not await this promise. Keep an unexpected
+    // internal rejection from becoming an unhandled rejection; the durable
+    // row remains available to recover().
+    try {
+      void scheduled.catch(() => {});
+    } catch { /* Promise construction cannot normally throw. */ }
+    return scheduled;
   }
 
   /** Retry pending rows after account-service/repository restart. */

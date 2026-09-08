@@ -1,0 +1,3 @@
+{name} sent you an invite to their Jibo. Click the link below to join. If you don’t already have an account, you will need to create your account using this e-mail: {email}
+
+{url}

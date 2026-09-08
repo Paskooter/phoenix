@@ -1,0 +1,61 @@
+{
+  "status": "accepted-bounded-implementation",
+  "reviewedBy": "Codex root",
+  "candidateRevision": "db4cdf83076f334bbbfd9cc0573c1ee536e59e9a",
+  "testedProductionRevision": "51c68f359815e753040a7c7d4e805432f4132291",
+  "scope": [
+    "Invitation membership side effects and configured SMTP/event transport.",
+    "Acceptance, decline and removal event payloads and recipients.",
+    "CreateLoop robot-read suspension check, source-compatible transport handling and LoopCreated event.",
+    "Deferred LoopUpdated scheduling with durable recovery."
+  ],
+  "verification": {
+    "fullSuite": {
+      "passed": 896,
+      "failed": 0,
+      "skipped": 7
+    },
+    "strictGate": {
+      "matched": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "capturedRevision": "49c4a84ec4aac31541cf64267941c7875ee65ddf"
+    },
+    "finalOriginalClientCalls": 20,
+    "rootFinalClientArtifactChecks": 52,
+    "rootFinalClientVerifierReproduced": true,
+    "independentSchedulingTests": 15,
+    "independentOutboxControls": 7,
+    "rootPostCommentSchedulingTests": 10,
+    "rootExactSourcePopulationTimingCases": 2,
+    "longLineEvidenceAndProductHashes": 15,
+    "robotReadProductAndSourceHashes": 6
+  },
+  "sourceTiming": {
+    "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+    "runtime": "host-extracted Node8.9.4 with both pinned dependency directories",
+    "immediatePopulation": [
+      "LoopCreated",
+      "LoopUpdated"
+    ],
+    "delayedPopulation": [
+      "LoopUpdated",
+      "LoopCreated"
+    ],
+    "contract": "LoopUpdated is deferred through setImmediate; no universal relative sender or network arrival order."
+  },
+  "qualifications": [
+    "Full suite and strict gate predate only documentation, source-comment and test-title/comment corrections; production behavior and test assertions are unchanged.",
+    "An earlier strict capture was rejected after a concurrent evidence commit; the frozen rerun is the accepted result.",
+    "Root source rerun initially lacked the binary dependency path, then encountered dependency logging on stdout; both setup failures retained, successful rerun reads its separate output JSON.",
+    "Synthetic households and local provider peers; no external invitation mail or family mutations.",
+    "Moth deployment and remaining full A-04 operation/state/failure acceptance remain open."
+  ],
+  "evidenceSha256": {
+    "review.json": "782399b4134796933471d8f75a82d1774941627c994c02ca4268af54d2c1bd90",
+    "source-create-population-order.cjs": "a7ca8d5d8d48fc92a629cc888ddee9f034d04cdd4f8ca3f34759f25503e2b704",
+    "source-create-population-order.json": "2242838ada45ebc96dfc287dd5a683783400f2e37a369bdfedd61098c5bedf16",
+    "root-source-population-order.json": "2242838ada45ebc96dfc287dd5a683783400f2e37a369bdfedd61098c5bedf16"
+  }
+}
