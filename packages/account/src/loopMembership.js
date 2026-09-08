@@ -43,8 +43,28 @@ export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
     message: 'Only owner or robot can manipulate this loop',
     statusCode: 403,
   },
+  CAN_BE_ACCESSED_BY_LEGAL_GUARDIAN: {
+    code: 'CAN_BE_ACCESSED_BY_LEGAL_GUARDIAN',
+    message: 'Only legal guardian can update child profile',
+    statusCode: 403,
+  },
   MEMBER_EXISTS: { code: 'MEMBER_EXISTS', message: 'Member already exists', statusCode: 409 },
+  MEMBER_EMAIL_EXISTS: {
+    code: 'MEMBER_EMAIL_EXISTS',
+    message: 'Member with specified email already exists',
+    statusCode: 409,
+  },
   MEMBER_NOT_FOUND: { code: 'MEMBER_NOT_FOUND', message: 'Member not found', statusCode: 404 },
+  ONLY_INVITED_OR_CHILD_EDITABLE: {
+    code: 'ONLY_INVITED_OR_CHILD_EDITABLE',
+    message: 'Only invited member or child can be edited',
+    statusCode: 403,
+  },
+  EMAIL_CAN_BE_SET_ONCE: {
+    code: 'EMAIL_CAN_BE_SET_ONCE',
+    message: 'Email can only be set once for member',
+    statusCode: 403,
+  },
   INVITE_NOT_FOUND: { code: 'INVITE_NOT_FOUND', message: 'Invitation not found', statusCode: 404 },
   ACTIVE_LIMIT_REACHED: {
     code: 'ACTIVE_LIMIT_REACHED',
@@ -77,6 +97,7 @@ const HANDLERS = Object.freeze({
   updateloop: updateLoopHttp,
   removeloop: removeLoopHttp,
   clearrobot: clearRobotHttp,
+  updateloopmember: updateMemberHttp,
   setenrollment: setEnrollmentHttp,
   updatenickname: updateNicknameHttp,
   updatephoneticname: updatePhoneticNameHttp,
@@ -508,6 +529,92 @@ export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) 
   return populateLoop(store, loop);
 }
 
+/**
+ * UpdateLoopMember / LoopController.updateMember.
+ *
+ * Keep this separate from profileMember. The source looks up the member before
+ * checking ownership, lets a legal guardian edit a child, and does not reject
+ * a suspended loop here. Work on a request-local draft so an outbox/flush
+ * failure cannot expose the source document's unsaved member fields.
+ */
+export function updateMember(store, {
+  ownerId, loopId, id, email, firstName, lastName, gender, birthday, phoneNumber,
+}, loopUpdatedOutbox) {
+  const storedLoop = findById(store, loopId);
+  const storedMember = (storedLoop.members || []).find((member) => idsEqual(member._id || member.id, id));
+  if (!storedMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+
+  const { before, loop } = mutationDraft(storedLoop);
+  const member = (loop.members || []).find((item) => idsEqual(item._id || item.id, id));
+  // Mongoose materializes this nested schema object for valid members. Older
+  // imported Store records can omit it, so make the detached draft equivalent
+  // before evaluating the source's child/editability fields.
+  member.memberProperties = member.memberProperties || {};
+
+  if (member.memberProperties.isChild) {
+    const legalGuardianMember = (loop.members || []).find((item) =>
+      idsEqual(item._id || item.id, member.legalGuardianId));
+    if (!legalGuardianMember || !legalGuardianMember.accountId
+      || !idsEqual(legalGuardianMember.accountId, ownerId)) {
+      fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_LEGAL_GUARDIAN);
+    }
+  } else if (!idsEqual(loop.owner, ownerId) && !(loop.robot && idsEqual(loop.robot, ownerId))) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER_OR_ROBOT);
+  }
+
+  const invited = isMemberStatus(member.status, MEMBER_STATUS.INVITED);
+  const acceptedWithoutEmail = isMemberStatus(member.status, MEMBER_STATUS.ACCEPTED)
+    && !member.memberProperties.email;
+  if (!invited && !member.memberProperties.isChild && !acceptedWithoutEmail) {
+    fail(LOOP_MEMBERSHIP_ERRORS.ONLY_INVITED_OR_CHILD_EDITABLE);
+  }
+
+  // The source uses `||` for these assignments. Joi has already rejected
+  // false/zero/non-string values, but null/omitted values still preserve the
+  // previous field in exactly this way.
+  member.memberProperties.firstName = firstName || member.memberProperties.firstName;
+  member.memberProperties.lastName = lastName || member.memberProperties.lastName;
+  member.memberProperties.gender = gender || member.memberProperties.gender;
+  member.memberProperties.birthday = birthday || member.memberProperties.birthday;
+  member.memberProperties.phoneNumber = phoneNumber || member.memberProperties.phoneNumber;
+
+  // Set email only once. An incoming email is normalized by the HTTP handler,
+  // matching UpdateMember's source decorator method.
+  if (member.memberProperties.email && email) {
+    fail(LOOP_MEMBERSHIP_ERRORS.EMAIL_CAN_BE_SET_ONCE);
+  }
+  if (email) {
+    const existingMemberWithSameEmail = (loop.members || []).find((item) =>
+      item.memberProperties && item.memberProperties.email === email);
+    if (existingMemberWithSameEmail && (
+      isMemberStatus(existingMemberWithSameEmail.status, MEMBER_STATUS.REMOVED)
+      || isMemberStatus(existingMemberWithSameEmail.status, MEMBER_STATUS.DECLINED)
+    )) {
+      const duplicateId = existingMemberWithSameEmail._id || existingMemberWithSameEmail.id;
+      loop.members = loop.members.filter((item) => !idsEqual(item._id || item.id, duplicateId));
+    } else if (existingMemberWithSameEmail) {
+      fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_EMAIL_EXISTS);
+    }
+
+    // The source Account.findOne({ email }) has no isDeleted predicate. Keep
+    // Store.accountByEmail's direct lookup so this boundary does not silently
+    // invent an account or alter the source query's deletion semantics.
+    const existingAccountWithSameEmail = store.accountByEmail(email);
+    if (existingAccountWithSameEmail) member.accountId = existingAccountWithSameEmail._id;
+    member.memberProperties.email = email;
+    member.memberProperties.isChild = false;
+    member.status = MEMBER_STATUS.INVITED;
+    member.invitationCode = invitationCode();
+    // srv-account-ws sends an invitation mail and an InvitedToJoinLoop event
+    // through external providers before saving. Phoenix has no equivalent
+    // provider seam on this face; keep the loop mutation/outbox faithful and
+    // report those two unimplemented side effects rather than faking delivery.
+  }
+
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return populateLoop(store, loop);
+}
+
 // These three operations intentionally keep the source's duplicated ordering:
 // findById -> owner/robot authorization -> suspended guard -> member lookup.
 // In particular, an unauthorized caller does not learn whether a member id
@@ -775,6 +882,32 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
+function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => optionalNumberNull(body, 'birthday'),
+    () => optionalEmail(body, 'email'),
+    () => optionalString(body, 'firstName'),
+    () => optionalEnum(body, 'gender', GENDERS),
+    () => requiredString(body, 'id'),
+    () => optionalString(body, 'lastName'),
+    () => requiredString(body, 'loopId'),
+    () => optionalString(body, 'phoneNumber'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => updateMember(store, {
+    birthday: body.birthday,
+    email: body.email ? String(body.email).toLowerCase() : null,
+    firstName: body.firstName ? String(body.firstName).trim() : null,
+    gender: body.gender,
+    id: body.id,
+    lastName: body.lastName ? String(body.lastName).trim() : null,
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+    phoneNumber: body.phoneNumber,
+  }, loopUpdatedOutbox));
+}
+
 function setEnrollmentHttp({ store, req, res, body, loopUpdatedOutbox }) {
   const message = firstError(body, [
     () => optionalEnrollmentBoolean(body, 'face'),
@@ -872,16 +1005,6 @@ export function handleLoopMembership({ store, req, res, body, op, log, loopUpdat
   const handler = HANDLERS[String(op || '').toLowerCase()];
   if (!handler) return false;
   log?.info?.('loop membership request', { op });
-  // The source Hapi payload is the parsed JSON value. Joi rejects null,
-  // arrays, and primitives for the record schemas, so do not turn those values
-  // into `{}` before the operation-specific validator sees them. Existing
-  // membership handlers retain their historical empty-object default.
-  handler({
-    store,
-    req,
-    res,
-    body: isLoopRecordOperation(op) ? body : (body || {}),
-    loopUpdatedOutbox,
-  });
+  handler({ store, req, res, body: body === undefined ? {} : body, loopUpdatedOutbox });
   return true;
 }

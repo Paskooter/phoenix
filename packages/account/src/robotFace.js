@@ -133,7 +133,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         }
       }
       log.info('loop request', { op });
-      const validated = /^(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot)$/i.test(op);
+      const validated = /^(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
       return void loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
     }
 
