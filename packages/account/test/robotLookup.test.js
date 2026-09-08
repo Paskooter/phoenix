@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os';
 const { createAccountService } = await import('../src/index.js');
 const { Store } = await import('../src/store.js');
 const { createOwnerAccount, findOrCreateRobotAccount } = await import('../src/model.js');
+const { signSigV4 } = await import('@phoenix/common');
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-a04-robot-lookup-'));
 const store = new Store(join(dir, 'store.json'));
@@ -24,12 +25,21 @@ function authorization(accessKeyId) {
 }
 
 async function post(target, body, accessKeyId, extraHeaders = {}) {
-  const headers = {
+  let headers = {
     'content-type': 'application/x-amz-json-1.1',
     'x-amz-target': target,
     ...extraHeaders,
   };
-  if (accessKeyId) headers.authorization = authorization(accessKeyId);
+  if (accessKeyId && /\.getrobot$/i.test(target)) {
+    const account = store.accountByAccessKeyId(accessKeyId);
+    headers = signSigV4({
+      method: 'POST', path: '/',
+      body: body === undefined ? '' : JSON.stringify(body),
+      headers: { host: new URL(base).host, ...headers },
+      accessKeyId, secretAccessKey: account.secretAccessKey,
+      region: 'global', service: 'jibo',
+    }).headers;
+  } else if (accessKeyId) headers.authorization = authorization(accessKeyId);
   const response = await fetch(`${base}/`, {
     method: 'POST',
     headers,
@@ -114,8 +124,8 @@ test('GetRobot validates, authorizes the owner, and returns the unsafe RobotAcco
   assert.equal(denied.errorType, 'CAN_BE_ACCESSED_BY_OWNER');
 
   const anonymous = await post('Loop_20160324.GetRobot', { loopId: loop._id });
-  assert.equal(anonymous.status, 403);
-  assert.equal(anonymous.body.__type, 'CAN_BE_ACCESSED_BY_OWNER');
+  assert.equal(anonymous.status, 401);
+  assert.equal(anonymous.body.__type, 'MISSING_AUTH_HEADER');
 
   const missingLoop = await post('Loop_20160324.GetRobot', { loopId: 'a04-no-such-loop' }, other.accessKeyId);
   assert.equal(missingLoop.status, 404, 'source finds the loop before checking ownership');
@@ -184,7 +194,7 @@ test('FindOwner returns the first active loop owner for owner/member matches', a
 
   const unknown = await post('Loop_20160324.FindOwner', { accountId: 'a04-no-loop-account' });
   assert.equal(unknown.status, 200);
-  assert.deepEqual(unknown.body, {}, 'source JSON omits the undefined id');
+  assert.deepEqual(unknown.body, { id: null }, 'source Mongoose no-match preserves a null id');
 
   for (const body of [{}, { accountId: '' }, { accountId: null }, { accountId: 7 }, { accountId: [] }]) {
     const invalid = await post('Loop_20160324.FindOwner', body);
