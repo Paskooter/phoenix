@@ -60,9 +60,11 @@ The candidate's accepted durable `LoopUpdatedOutbox.record` starts its
 publisher during `saveLoop`, and an isolated control observed
 `LoopUpdated` before `LoopCreated`. Source `loopSchema.post('save')` schedules
 the LoopUpdated send with `setImmediate` (pinned `srv-account-ws` `index.ts`,
-lines 75-116), after `create` sends LoopCreated. This follow-up leaves that
-shared outbox/event region unchanged; root should decide whether delivery order
-is part of the deployed notification contract.
+lines 75-116). The source also awaits account population before sending
+LoopCreated, so either sender order is possible. The later event-scheduling
+follow-up implements the deferred hook; it does not impose a universal
+relative event order. This transport repair itself leaves that shared region
+unchanged.
 
 Full robot-read service implementation, public gateway authentication, and
 whole A-04 acceptance remain open.

@@ -8,7 +8,7 @@ import { createLoopFromApi } from '../src/loopMembership.js';
 import { createOwnerAccount, createLoop } from '../src/model.js';
 import { LoopUpdatedOutbox } from '../src/loopUpdatedOutbox.js';
 
-test('CreateLoop invokes LoopCreated before the deferred LoopUpdated publisher', async () => {
+test('CreateLoop with synchronous population precedes the deferred LoopUpdated publisher', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'phx-a04-create-order-'));
   try {
     const store = new Store(join(directory, 'account.json'));
@@ -40,8 +40,9 @@ test('CreateLoop invokes LoopCreated before the deferred LoopUpdated publisher',
       },
     );
 
-    // The controller sends LoopCreated on the current stack. The post-save
-    // LoopUpdated publisher is scheduled for the next check phase.
+    // This Phoenix control populates synchronously. Source population can
+    // await I/O, so this observed order is not a universal source guarantee.
+    // The post-save LoopUpdated publisher runs in the next check phase.
     assert.equal(result.name, 'Source order loop');
     assert.deepEqual(order, ['LoopCreated']);
     assert.equal(outbox.pending().length, 1, 'the event is durable before publication');

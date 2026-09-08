@@ -226,8 +226,8 @@ export class LoopUpdatedOutbox {
     });
     // Automatic publication is deliberately deferred until the next
     // check phase. The source Loop post-save hook schedules LoopUpdated with
-    // setImmediate, while LoopController sends LoopCreated on the current
-    // stack after saveAndPopulate returns. Keep `draining` promise-shaped
+    // setImmediate. LoopCreated follows asynchronous account population, so
+    // the source does not guarantee their relative order. Keep `draining` promise-shaped
     // immediately so existing callers can await automatic delivery.
     this.drainScheduled = scheduled;
     this.draining = scheduled;

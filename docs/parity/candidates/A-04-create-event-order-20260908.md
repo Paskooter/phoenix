@@ -12,10 +12,11 @@ hashes are recorded in
 `loop.ctrl.ts` lines 145-153 await `saveAndPopulate`, then construct and
 invoke the `LoopCreated` sender. The Loop save hook in `loop.ts` lines 76-82
 delegates to `index.ts` lines 75-116, where the `LoopUpdated` event sender is
-inside `setImmediate`. The source therefore establishes sender
-invocation/enqueue order: `LoopCreated` first, then `LoopUpdated` in the
-later check phase. It does not establish network arrival order after either
-sender returns.
+inside `setImmediate`. This establishes deferred `LoopUpdated` scheduling.
+`saveAndPopulate` also awaits member and robot account reads in `populateLoop`
+(lines 70-101), so `LoopCreated` may be sent before or after that callback
+depending on population timing. Neither universal sender order nor network
+arrival order is established.
 
 `LoopUpdatedOutbox.record()` still commits the event row synchronously with
 the successful loop snapshot. Automatic publication now hands off through a
@@ -27,7 +28,7 @@ preserved. A rejected outbox snapshot still rolls back the row and does not
 schedule a publisher, so `saveLoop` can restore the detached loop draft as
 before.
 
-The focused source-shaped control in
+The focused Phoenix control with synchronous in-memory population in
 `packages/account/test/loopCreationEventOrder.test.js` observes
 `LoopCreated` before the deferred `LoopUpdated` publisher and verifies a
 failed snapshot leaves the file, in-memory row set, and publisher state
@@ -35,7 +36,8 @@ unchanged. The fresh receipt is
 `.parity/reviews/a04-create-event-order-20260908/event-order-followup.json`;
 it records `beforeTurn=["LoopCreated"]`, one durable pending row,
 `afterDrain=["LoopCreated","LoopUpdated"]`, and zero pending rows. The
-receipt uses synthetic accounts/robots only.
+receipt uses synthetic accounts/robots only. Its observed order covers that
+population timing case, not every possible execution of the source server.
 
 Validation from this worktree:
 
