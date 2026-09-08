@@ -144,6 +144,131 @@ function loopName(store, owner) {
   for (let i = 2; ; i += 1) if (!names.has(`${base} ${i} Jibo`)) return `${base} ${i} Jibo`;
 }
 
+function defaultEnrollment() {
+  return { face: false, voice: false };
+}
+
+function newLoopMember(accountId, status = 'ACCEPTED') {
+  return {
+    _id: newId(),
+    accountId,
+    status,
+    enrolled: defaultEnrollment(),
+    created: Date.now(),
+  };
+}
+
+export function isAcceptedMemberStatus(status) {
+  return String(status || '').toLowerCase() === 'accepted';
+}
+
+/** Assign stable member subdocument ids, matching mongoose memberSchema._id. */
+export function ensureLoopMemberIds(loop) {
+  if (!loop || !Array.isArray(loop.members)) return false;
+  let changed = false;
+  for (const member of loop.members) {
+    if (!member._id && !member.id) {
+      member._id = newId();
+      changed = true;
+    }
+    if (!member.enrolled || typeof member.enrolled !== 'object') {
+      member.enrolled = defaultEnrollment();
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function copyAcceptedAccount(account, { includeFacebookToken = false } = {}) {
+  if (!account) return undefined;
+  const copy = {};
+  if (account.birthday != null) copy.birthday = Number(account.birthday);
+  if (account.email != null) copy.email = account.email;
+  if (includeFacebookToken) copy.facebookAccessToken = account.facebookAccessToken;
+  if (account.firstName != null) copy.firstName = account.firstName;
+  if (account.gender != null) copy.gender = account.gender;
+  if (account.lastName != null) copy.lastName = account.lastName;
+  if (account.phoneNumber != null) copy.phoneNumber = account.phoneNumber;
+  if (account.photoUrl != null) copy.photoUrl = account.photoUrl;
+  return copy;
+}
+
+/**
+ * LoopController.populateLoop for ListLoops. Does not invent household people;
+ * it only projects stored owner/robot/member accounts already on the loop.
+ */
+export function populateLoop(store, loop, { isRobotRequesting = false } = {}) {
+  ensureLoopMemberIds(loop);
+  const members = (loop.members || []).map((member) => {
+    const accountId = member.accountId;
+    const status = String(member.status || '').toLowerCase();
+    const accepted = status === 'accepted';
+    const accountRecord = accountId ? store.accounts.get(accountId) : null;
+    let account;
+    if (accepted && accountRecord) {
+      account = copyAcceptedAccount(accountRecord, { includeFacebookToken: isRobotRequesting });
+    } else if (member.memberProperties) {
+      account = { ...member.memberProperties };
+      if (account.birthday) account.birthday = Number(account.birthday);
+    } else {
+      // LoopManager._filterOutInvitedChildren reads member.account.isChild.
+      // Source always assigns account (accepted account or memberProperties).
+      account = {};
+    }
+    const wire = {
+      id: member._id || member.id,
+      memberId: accountId,
+      accountId,
+      loopId: loop._id,
+      type: accountId && accountId === loop.owner ? 'incoming' : 'outgoing',
+      status,
+      enrolled: member.enrolled || defaultEnrollment(),
+      account,
+    };
+    if (member.nickname !== undefined) wire.nickname = member.nickname;
+    if (member.phoneticName !== undefined) wire.phoneticName = member.phoneticName;
+    if (member.legalGuardianId !== undefined) wire.legalGuardianId = member.legalGuardianId;
+    if (member.agreementId !== undefined) wire.agreementId = member.agreementId;
+    if (member.created !== undefined) wire.created = member.created;
+    return wire;
+  });
+  const robot = loop.robot ? store.accounts.get(loop.robot) : null;
+  return {
+    id: loop._id,
+    name: loop.name,
+    owner: loop.owner,
+    robot: loop.robot,
+    robotFriendlyId: (robot && robot.friendlyId) || undefined,
+    members,
+    isSuspended: loop.isSuspended,
+    created: loop.created,
+    updated: loop.updated,
+  };
+}
+
+/** Account schema toJSON (safe): id from _id, no secrets, no created. */
+export function accountToPublicWire(account) {
+  if (!account) return null;
+  const wire = {
+    id: String(account._id),
+    email: account.email,
+    firstName: account.firstName,
+    lastName: account.lastName,
+    friendlyId: account.friendlyId,
+    gender: account.gender,
+    isActive: !!account.isActive,
+    isAdmin: !!account.isAdmin,
+    messagingAllowed: account.messagingAllowed === undefined ? true : !!account.messagingAllowed,
+    phoneNumber: account.phoneNumber,
+    photoUrl: account.photoUrl,
+    roles: account.roles || ['user'],
+    facebookConnected: !!account.facebookAccessToken,
+  };
+  if (account.birthday != null) wire.birthday = Number(account.birthday);
+  if (account.termsAccepted != null) wire.termsAccepted = Number(account.termsAccepted);
+  return wire;
+}
+
 /** loops.create({owner, robotId, name?}): find-or-create the robot account and attach it. */
 export function createLoop(store, { owner, robotId }) {
   const robot = findOrCreateRobotAccount(store, robotId);
@@ -155,8 +280,8 @@ export function createLoop(store, { owner, robotId }) {
     owner: owner._id,
     robot: robot._id,
     members: [
-      { accountId: owner._id, status: 'ACCEPTED' },
-      { accountId: robot._id, status: 'ACCEPTED' },
+      newLoopMember(owner._id, 'ACCEPTED'),
+      newLoopMember(robot._id, 'ACCEPTED'),
     ],
     isSuspended: false,
     created: Date.now(),

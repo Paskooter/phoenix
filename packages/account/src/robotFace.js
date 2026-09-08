@@ -22,6 +22,7 @@
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
   createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
+  populateLoop, ensureLoopMemberIds, isAcceptedMemberStatus, accountToPublicWire,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
@@ -46,6 +47,11 @@ const Errors = Object.freeze({
   },
   LOOP_VALIDATION: { code: 'ValidationException', message: 'Invalid payload', statusCode: 422 },
   VALIDATION: { code: 'ValidationException', message: 'Invalid payload', statusCode: 400 },
+  MEMBER_CAN_REQUEST: {
+    code: 'MEMBER_CAN_REQUEST',
+    message: 'You can only request members that are in your loops',
+    statusCode: 401,
+  },
 });
 
 export function sendAmz(res, status, obj) {
@@ -116,10 +122,17 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     }
 
     // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
-    // before Backup.new). v1 implements List; other loop ops are not needed for robot revival.
+    // before Backup.new). ListLoops now emits LoopController.populateLoop so SSM
+    // LoopManager can sync /jibo/loop. Other loop ops remain unimplemented.
     if (/^loop/i.test(prefix)) {
       log.info('loop request', { op });
       return void loopDispatch({ req, res, body: body || {}, op, log });
+    }
+
+    // Account_20151111.Get is the LoopManager fallback when the local KB root
+    // has no robot id yet: Account.get({}) returns the caller's account.
+    if (/^account/i.test(prefix) && op.toLowerCase() === 'get') {
+      return void accountGet({ req, res, body: body || {}, log });
     }
 
     const handler = ops[op.toLowerCase()];
@@ -293,20 +306,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   // -- Loop_* ------------------------------------------------------------------
 
-  /** loop-2016-03-24 Loop shape (members the robot's server-client reads: it needs `id`). */
-  function loopToWire(loop) {
-    const robot = store.accounts.get(loop.robot);
-    return {
-      id: loop._id,
-      name: loop.name,
-      owner: loop.owner,
-      robot: loop.robot,
-      robotFriendlyId: (robot && robot.friendlyId) || undefined,
-      members: loop.members,
-      isSuspended: loop.isSuspended,
-      created: loop.created,
-      updated: loop.updated,
-    };
+  /** LoopController.populateLoop: ListLoops members carry id/accountId/account/status. */
+  function loopToWire(loop, { isRobotRequesting = false } = {}) {
+    return populateLoop(store, loop, { isRobotRequesting });
   }
 
   function loopDispatch({ req, res, body, op, log }) {
@@ -336,11 +338,59 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // LoopController.list omits suspended loops from a robot's own list, while an owner
     // continues to see the suspended loop. A friendlyId is the source's robot-request hint;
     // the legacy no-credential LAN fallback intentionally retains every active loop.
-    const loops = account && account.friendlyId
+    const isRobotRequesting = !!(account && account.friendlyId);
+    const loops = isRobotRequesting
       ? visible.filter((l) => l.robot === account._id && l.isSuspended !== true)
       : visible;
+    let persisted = false;
+    const wired = loops.map((loop) => {
+      if (ensureLoopMemberIds(loop)) persisted = true;
+      return loopToWire(loop, { isRobotRequesting });
+    });
+    if (persisted) store.flush();
     log.info('Loop.List', { accessKeyId: accessKeyId || '(none)', accountFound: !!account, returned: loops.length });
-    return void sendAmz(res, 200, loops.map(loopToWire));
+    return void sendAmz(res, 200, wired);
+  }
+
+  /**
+   * AccountHandler.Get: empty ids means the caller. LoopManager uses this when
+   * the local /jibo/loop root has no robot id yet.
+   */
+  function accountGet({ req, res, body, log }) {
+    const caller = accountForClassicRequest(req);
+    if (!caller) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    if (body.ids !== undefined && !Array.isArray(body.ids)) {
+      return void sendValidationError(res, 'child "ids" fails because ["ids" must be an array]');
+    }
+    const ids = body.ids && body.ids.length ? body.ids.map(String) : [caller._id];
+    if (!caller.isAdmin && !idsBelongToCallerLoops(caller._id, ids)) {
+      log.info('Account.Get', { ownerId: caller._id, requested: ids.length, authorized: false });
+      return void sendAmzError(res, Errors.MEMBER_CAN_REQUEST);
+    }
+    const accounts = ids
+      .map((id) => store.accounts.get(id))
+      .filter((account) => account && account.isDeleted !== true)
+      .map(accountToPublicWire);
+    log.info('Account.Get', { ownerId: caller._id, requested: ids.length, returned: accounts.length });
+    return void sendAmz(res, 200, accounts);
+  }
+
+  function idsBelongToCallerLoops(ownerId, ids) {
+    const allowed = new Set([ownerId]);
+    for (const loop of store.loops.values()) {
+      if (loop.isDeleted === true) continue;
+      const visible = loop.owner === ownerId
+        || (Array.isArray(loop.members)
+          && loop.members.some((member) => member.accountId === ownerId
+            && isAcceptedMemberStatus(member.status)));
+      if (!visible) continue;
+      for (const member of loop.members || []) {
+        if (member.accountId && isAcceptedMemberStatus(member.status)) {
+          allowed.add(member.accountId);
+        }
+      }
+    }
+    return ids.every((id) => allowed.has(id));
   }
 
   /**
