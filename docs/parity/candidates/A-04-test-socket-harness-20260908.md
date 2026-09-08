@@ -1,6 +1,6 @@
 # A-04 test socket-harness repair
 
-Status: **test-harness candidate, unverified; root review is required.**
+Status: **bounded test-harness repair accepted by root with the photo integration.**
 
 This candidate starts from main `9aeb959e11832cec825da62d1aa21e5af6e1d6d6`.
 It changes only five synthetic Account test request helpers:
@@ -78,13 +78,13 @@ node idle-fetch-control.mjs close > close.json 2> close.err
 The affected test files were run with the existing socket diagnostic preload:
 
 ```text
-node --import /home/shell/work/phoenix/.parity/reviews/a04-photos-integration-root-20260908/socket-diagnostics.mjs --test packages/account/test/loopMemberUpdate.test.js packages/account/test/robotLookup.test.js
+node --import /home/shell/work/phoenix/.parity/reviews/a04-photos-integration-root-20260908/socket-diagnostics.mjs --test packages/account/test/loopMemberUpdate.test.js packages/account/test/robotLookup.test.js packages/account/test/loopMembership.test.js packages/account/test/loopHouseholdBootstrap.test.js packages/account/test/robotFace.test.js
 ```
 
 It exited `0` with 31 tests passed and 0 failed. The receipt is
-`/home/shell/work/phoenix/.parity/reviews/a04-socket-harness-20260908/affected-after.tap`.
+`/home/shell/work/phoenix/.parity/reviews/a04-socket-harness-20260908/five-helper-after.tap`.
 It contains no `SOCKET_DIAGNOSTIC`, `ECONNRESET`, or `fetch failed` record.
-The run took 47.8 seconds because the fixtures intentionally exercise source
+The run took 35.8 seconds because the fixtures intentionally exercise source
 failure and persistence boundaries; no external service was contacted.
 
 ## Hashes and limits
@@ -103,6 +103,8 @@ Candidate worktree:
 | `stale-default.json` | `0afe140edb8d284ee599d5c24069cac4192d578e003b1af4ea265cacdc696f7e` |
 | `stale-close.json` | `8c9abf4582a320554c50a93d6cb40e1f6079f9856105386fb90d9f12b1b3f07f` |
 | `affected-after.tap` | `a1b5a25ff73ca41fac12421acc5954707d4bb1692bdba91fbdd616d0cae8d6c7` |
+
+Five-helper log SHA-256: `a1b5a25ff73ca41fac12421acc5954707d4bb1692bdba91fbdd616d0cae8d6c7`.
 
 The synthetic stale control demonstrates why the repair removes this class of
 test flake, while the existing service diagnostics establish the observed
