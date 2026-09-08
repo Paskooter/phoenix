@@ -6,14 +6,51 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { signSigV4 } from '@phoenix/common';
 
 const { createAccountService } = await import('../src/index.js');
 const { Store } = await import('../src/store.js');
 const { createOwnerAccount, createLoop, findOrCreateRobotAccount } = await import('../src/model.js');
 const { clearRobot, removeLoop, updateLoop } = await import('../src/loopMembership.js');
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
+const credentialsByAccessKey = new Map();
+
+function signedRequest(accessKeyId, target, body, secretOverride) {
+  const account = credentialsByAccessKey.get(accessKeyId);
+  if (!account) {
+    return null;
+  }
+  const serialized = body === undefined ? '' : JSON.stringify(body);
+  return signSigV4({
+    method: 'POST',
+    path: '/',
+    headers: {
+      'content-type': 'application/x-amz-json-1.1',
+      'x-amz-target': target,
+    },
+    body: serialized,
+    accessKeyId,
+    secretAccessKey: secretOverride || account.secretAccessKey,
+    region: 'global',
+    service: 'jibo',
+  });
+}
+
+function authorization(accessKeyId, target, body, secretOverride) {
+  const signed = signedRequest(accessKeyId, target, body, secretOverride);
+  return signed
+    ? signed.authorization
+    : `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
+}
+
+function authHeaders(accessKeyId, target, body, secretOverride) {
+  const signed = signedRequest(accessKeyId, target, body, secretOverride);
+  return signed ? {
+    authorization: signed.authorization,
+    'x-amz-date': signed.headers['X-Amz-Date'],
+  } : {
+    authorization: authorization(accessKeyId, target, body, secretOverride),
+  };
 }
 
 async function closeServer(server) {
@@ -26,7 +63,7 @@ async function post(base, target, body, accessKeyId, extraHeaders = {}) {
     'x-amz-target': target,
     ...extraHeaders,
   };
-  if (accessKeyId) headers.authorization = authorization(accessKeyId);
+  if (accessKeyId && !headers.authorization) Object.assign(headers, authHeaders(accessKeyId, target, body));
   const response = await fetch(`${base}/`, {
     method: 'POST',
     headers,
@@ -41,6 +78,24 @@ async function post(base, target, body, accessKeyId, extraHeaders = {}) {
     body: bodyValue,
     rawBody,
   };
+}
+
+async function postRaw(base, target, rawBody, accessKeyId, extraHeaders = {}) {
+  const headers = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': target,
+    ...extraHeaders,
+  };
+  if (accessKeyId && !headers.authorization) Object.assign(headers, authHeaders(accessKeyId, target, rawBody));
+  const response = await fetch(`${base}/`, {
+    method: 'POST',
+    headers,
+    body: rawBody,
+  });
+  const raw = Buffer.from(await response.arrayBuffer()).toString('utf8');
+  let body;
+  try { body = JSON.parse(raw); } catch (_) { body = undefined; }
+  return { status: response.status, headers: Object.fromEntries(response.headers), body, rawBody: raw };
 }
 
 function fixture(label) {
@@ -65,6 +120,7 @@ function fixture(label) {
     lastName: 'Admin',
   });
   admin.isAdmin = true;
+  for (const account of [owner, outsider, admin]) credentialsByAccessKey.set(account.accessKeyId, account);
   const { loop, robot } = createLoop(store, { owner, robotId: `robot-${label}` });
   store.flush();
   return { dir, store, owner, outsider, admin, loop, robot };
@@ -142,6 +198,84 @@ test('UpdateLoop validation follows the source loopId/name Joi schema', async ()
       if (field === 'value') assert.equal(result.body.message, '"value" must be an object');
       else assert.match(result.body.message, new RegExp(`"${field}"`));
     }
+  });
+});
+
+test('record schemas see parsed primitive JSON and ClearRobot authenticates before validation', async () => {
+  await withService('primitive-bodies', async ({ store, owner, admin, loop, robot, base }) => {
+    const before = JSON.parse(JSON.stringify(store.loops.get(loop._id)));
+    const primitiveBodies = [null, 'not-an-object', 7, []];
+    const operations = [
+      ['UpdateLoop', owner.accessKeyId],
+      ['RemoveLoop', owner.accessKeyId],
+      ['ClearRobot', admin.accessKeyId],
+    ];
+
+    for (const [operation, accessKeyId] of operations) {
+      for (const body of primitiveBodies) {
+        const result = await post(base, `Loop_20160324.${operation}`, body, accessKeyId);
+        assert.equal(result.status, 422, `${operation} ${JSON.stringify(body)}`);
+        assert.equal(result.body.message, '"value" must be an object', `${operation} ${JSON.stringify(body)}`);
+        assert.deepEqual(JSON.parse(JSON.stringify(store.loops.get(loop._id))), before);
+      }
+    }
+
+    // @parseCredentials({ adminOnly: true }) is outside the payload validator
+    // in the source decorator stack. A non-admin therefore receives auth failure
+    // even when its parsed body is a primitive; an admin reaches Joi and gets 422.
+    const ownerNull = await post(base, 'Loop_20160324.ClearRobot', null, owner.accessKeyId);
+    assert.equal(ownerNull.status, 401);
+    assert.equal(ownerNull.body.__type, 'AUTHORIZED_UNDER_ADMIN');
+    const adminNull = await post(base, 'Loop_20160324.ClearRobot', null, admin.accessKeyId);
+    assert.equal(adminNull.status, 422);
+    assert.equal(adminNull.body.message, '"value" must be an object');
+
+    // Route-scoped loose JSON parsing does not make malformed JSON valid.
+    const malformed = await postRaw(base, 'Loop_20160324.UpdateLoop', '{', owner.accessKeyId);
+    assert.equal(malformed.status, 400);
+    assert.equal(store.loops.get(loop._id).isDeleted, undefined);
+    assert.equal(store.loops.get(loop._id).robot, robot._id);
+  });
+});
+
+test('record mutations require a valid SigV4 request before payload or ownership checks', async () => {
+  await withService('auth-boundary', async ({ store, owner, admin, loop, robot, base }) => {
+    const initialName = loop.name;
+    const invalidBody = null;
+    for (const [operation, account] of [
+      ['UpdateLoop', owner],
+      ['RemoveLoop', owner],
+      ['ClearRobot', admin],
+    ]) {
+      const target = `Loop_20160324.${operation}`;
+      const wrongSecret = await post(base, target, invalidBody, account.accessKeyId, {
+        ...authHeaders(account.accessKeyId, target, invalidBody, 'wrong-secret'),
+      });
+      assert.equal(wrongSecret.status, 401, `${operation} wrong secret`);
+      assert.equal(wrongSecret.body.__type, 'SIGNATURE_MISMATCH');
+    }
+
+    admin.isActive = false;
+    const inactive = await post(base, 'Loop_20160324.ClearRobot', null, admin.accessKeyId);
+    assert.equal(inactive.status, 403);
+    assert.equal(inactive.body.__type, 'ACCOUNT_NOT_ACTIVE');
+    admin.isActive = true;
+
+    const forged = await post(base, 'Loop_20160324.ClearRobot', { robotId: robot.friendlyId }, owner.accessKeyId, {
+      'x-amz-credentials': JSON.stringify({ id: admin._id, isAdmin: true }),
+    });
+    assert.equal(forged.status, 401);
+    assert.equal(forged.body.__type, 'AUTHORIZED_UNDER_ADMIN');
+
+    const target = 'Loop_20160324.UpdateLoop';
+    const signedBody = JSON.stringify({ loopId: loop._id, name: 'signed name' });
+    const signed = authHeaders(owner.accessKeyId, target, JSON.parse(signedBody));
+    const tampered = await postRaw(base, target, JSON.stringify({ loopId: loop._id, name: 'tampered name' }), owner.accessKeyId, {
+      ...signed,
+    });
+    assert.equal(tampered.status, 401);
+    assert.equal(tampered.body.__type, 'SIGNATURE_MISMATCH');
+    assert.equal(store.loops.get(loop._id).name, initialName);
   });
 });
 

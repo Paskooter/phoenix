@@ -82,6 +82,12 @@ const HANDLERS = Object.freeze({
   updatephoneticname: updatePhoneticNameHttp,
 });
 
+const LOOP_RECORD_OPERATIONS = new Set(['updateloop', 'removeloop', 'clearrobot']);
+
+export function isLoopRecordOperation(op) {
+  return LOOP_RECORD_OPERATIONS.has(String(op || '').toLowerCase());
+}
+
 export class LoopError extends Error {
   constructor({ code, message, statusCode }) {
     super(message);
@@ -866,6 +872,16 @@ export function handleLoopMembership({ store, req, res, body, op, log, loopUpdat
   const handler = HANDLERS[String(op || '').toLowerCase()];
   if (!handler) return false;
   log?.info?.('loop membership request', { op });
-  handler({ store, req, res, body: body || {}, loopUpdatedOutbox });
+  // The source Hapi payload is the parsed JSON value. Joi rejects null,
+  // arrays, and primitives for the record schemas, so do not turn those values
+  // into `{}` before the operation-specific validator sees them. Existing
+  // membership handlers retain their historical empty-object default.
+  handler({
+    store,
+    req,
+    res,
+    body: isLoopRecordOperation(op) ? body : (body || {}),
+    loopUpdatedOutbox,
+  });
   return true;
 }
