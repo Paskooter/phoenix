@@ -83,6 +83,20 @@ function smtpFixture() {
   return { server, messages };
 }
 
+function decodeQuotedPrintable(value) {
+  const text = String(value).replace(/=\r?\n/g, '');
+  const bytes = [];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === '=' && /^[0-9a-f]{2}$/i.test(text.slice(index + 1, index + 3))) {
+      bytes.push(Number.parseInt(text.slice(index + 1, index + 3), 16));
+      index += 2;
+    } else {
+      bytes.push(text.charCodeAt(index));
+    }
+  }
+  return Buffer.from(bytes).toString('utf8');
+}
+
 function eventFixture({ status = 202 } = {}) {
   const events = [];
   const server = http.createServer((req, res) => {
@@ -175,15 +189,16 @@ test('configured Account launch sends source templates to a local SMTP relay and
     await eventually(() => smtp.messages.length === 1 && event.events.length === 1);
 
     const message = smtp.messages[0];
+    const decodedMessage = decodeQuotedPrintable(message);
     assert.match(message, /^From: local-sender@fixture\.test\r?\n/m);
     assert.match(message, /^To: new\.person@fixture\.test\r?\n/m);
     assert.match(message, /^Subject: Invitation\r?\n/m);
-    assert.match(message, /deployment-owner@fixture\.test added you to their Loop/);
-    assert.match(message, /https:\/\/portal\.fixture\.test\/create\?email=new\.person%40fixture\.test&code=/);
+    assert.match(decodedMessage, /deployment-owner@fixture\.test added you to their Loop/);
+    assert.match(decodedMessage, /https:\/\/portal\.fixture\.test\/create\?email=new\.person%40fixture\.test&code=/);
     // MailController substitutes only HTML; source text content remains the
     // literal template text, which is useful for checking the body split.
-    assert.match(message, /\{name\} sent you an invite/);
-    assert.match(message, /Don't have an account\?[^\r\n]*new\.person@fixture\.test/);
+    assert.match(decodedMessage, /\{name\} sent you an invite/);
+    assert.match(decodedMessage, /Don't have an account\?[^\r\n]*new\.person@fixture\.test/);
 
     const existingResponse = await invite(store, base, owner, {
       loopId: loop._id,
@@ -193,10 +208,11 @@ test('configured Account launch sends source templates to a local SMTP relay and
     assert.equal(existingResponse.status, 200);
     await eventually(() => smtp.messages.length === 2 && event.events.length === 2);
     const existingMessage = smtp.messages[1];
+    const decodedExistingMessage = decodeQuotedPrintable(existingMessage);
     assert.match(existingMessage, /^To: known-member@fixture\.test\r?\n/m);
-    assert.match(existingMessage, /deployment-owner@fixture\.test added you to their Loop/);
-    assert.match(existingMessage, /https:\/\/portal\.fixture\.test\/home\?email=known-member%40fixture\.test/);
-    assert.doesNotMatch(existingMessage, /\/home\?email=known-member%40fixture\.test&code=/);
+    assert.match(decodedExistingMessage, /deployment-owner@fixture\.test added you to their Loop/);
+    assert.match(decodedExistingMessage, /https:\/\/portal\.fixture\.test\/home\?email=known-member%40fixture\.test/);
+    assert.doesNotMatch(decodedExistingMessage, /\/home\?email=known-member%40fixture\.test&code=/);
 
     assert.equal(event.events[0].method, 'POST');
     assert.equal(event.events[0].path, '/events');

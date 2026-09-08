@@ -70,6 +70,66 @@ function dotStuff(value) {
   return normalizeCrlf(value).replace(/^\./gm, '..');
 }
 
+function requiresQuotedPrintable(value) {
+  // Match libmime.isPlainText's substantive boundary: printable ASCII,
+  // tabs, and line breaks can be sent as 7bit; all other UTF-8 bytes need a
+  // transfer encoding that does not depend on the relay advertising 8BITMIME.
+  return /[\x00-\x08\x0b\x0c\x0e-\x1f\x80-\uFFFF]/.test(String(value));
+}
+
+function quotedPrintableEncode(value) {
+  const bytes = Buffer.from(normalizeCrlf(value), 'utf8');
+  let encoded = '';
+  for (let index = 0; index < bytes.length; index += 1) {
+    const byte = bytes[index];
+    const lineEnd = index === bytes.length - 1 || bytes[index + 1] === 0x0a || bytes[index + 1] === 0x0d;
+    const safe = byte === 0x09 || byte === 0x0a || byte === 0x0d
+      || (byte >= 0x20 && byte <= 0x3c) || (byte >= 0x3e && byte <= 0x7e);
+    if (safe && !((byte === 0x20 || byte === 0x09) && lineEnd)) {
+      encoded += String.fromCharCode(byte);
+    } else {
+      encoded += `=${byte.toString(16).toUpperCase().padStart(2, '0')}`;
+    }
+  }
+
+  // Keep each physical QP line within the RFC 2045 76-character limit. Only
+  // split between encoded tokens, never inside an =XX byte sequence.
+  let output = '';
+  let column = 0;
+  for (let index = 0; index < encoded.length;) {
+    if (encoded[index] === '\r' && encoded[index + 1] === '\n') {
+      output += '\r\n';
+      column = 0;
+      index += 2;
+      continue;
+    }
+    if (encoded[index] === '\n') {
+      output += '\n';
+      column = 0;
+      index += 1;
+      continue;
+    }
+    const token = encoded[index] === '=' ? encoded.slice(index, index + 3) : encoded[index];
+    if (column + token.length > 75) {
+      output += '=\r\n';
+      column = 0;
+    }
+    output += token;
+    column += token.length;
+    index += token.length;
+  }
+  return output;
+}
+
+function encodeMimePart(value) {
+  const text = String(value);
+  const encoded = requiresQuotedPrintable(text) ? quotedPrintableEncode(text) : normalizeCrlf(text);
+  return {
+    encoding: requiresQuotedPrintable(text) ? 'quoted-printable' : '7bit',
+    value: encoded,
+  };
+}
+
 function responseError(response, command) {
   const error = new Error(`SMTP ${command} failed (${response.code}): ${response.lines.join(' ')}`);
   error.code = `SMTP_${response.code}`;
@@ -450,6 +510,8 @@ function readTemplate(templateDir, template, extension) {
 function multipartMessage({ from, to, subject, text, html }) {
   const boundary = `=_phoenix_invitation_${randomBytes(12).toString('hex')}`;
   const messageId = `<${randomBytes(12).toString('hex')}@phoenix.local>`;
+  const textPart = encodeMimePart(text);
+  const htmlPart = encodeMimePart(html);
   const headers = [
     `From: ${rejectHeaderInjection(from, 'from')}`,
     `To: ${rejectHeaderInjection(to, 'to')}`,
@@ -464,14 +526,14 @@ function multipartMessage({ from, to, subject, text, html }) {
     '',
     `--${boundary}`,
     'Content-Type: text/plain; charset=utf-8',
-    'Content-Transfer-Encoding: 8bit',
+    `Content-Transfer-Encoding: ${textPart.encoding}`,
     '',
-    text,
+    textPart.value,
     `--${boundary}`,
     'Content-Type: text/html; charset=utf-8',
-    'Content-Transfer-Encoding: 8bit',
+    `Content-Transfer-Encoding: ${htmlPart.encoding}`,
     '',
-    html,
+    htmlPart.value,
     `--${boundary}--`,
     '',
   ].join('\r\n');

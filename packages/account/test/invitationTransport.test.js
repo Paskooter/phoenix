@@ -9,6 +9,7 @@ import tls from 'node:tls';
 import {
   mkdtempSync,
   readFileSync,
+  writeFileSync,
   rmSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -151,6 +152,71 @@ function noStartTlsFixture() {
   return { server, commands };
 }
 
+function noEightBitFixture() {
+  const messages = [];
+  const commands = [];
+  const server = net.createServer((socket) => {
+    let commandBuffer = Buffer.alloc(0);
+    let dataBuffer = Buffer.alloc(0);
+    let inData = false;
+    const reply = (value) => socket.write(`${value}\r\n`);
+    socket.on('data', (chunk) => {
+      if (inData) {
+        dataBuffer = Buffer.concat([dataBuffer, chunk]);
+        const marker = Buffer.from('\r\n.\r\n');
+        const end = dataBuffer.indexOf(marker);
+        if (end < 0) return;
+        const body = dataBuffer.subarray(0, end);
+        dataBuffer = dataBuffer.subarray(end + marker.length);
+        inData = false;
+        if (body.some((byte) => byte > 0x7f)) {
+          reply('550 5.6.7 8BITMIME is not supported');
+        } else {
+          messages.push(body);
+          reply('250 2.0.0 queued');
+        }
+        commandBuffer = Buffer.concat([commandBuffer, dataBuffer]);
+        dataBuffer = Buffer.alloc(0);
+      } else {
+        commandBuffer = Buffer.concat([commandBuffer, chunk]);
+      }
+      while (!inData) {
+        const end = commandBuffer.indexOf(Buffer.from('\r\n'));
+        if (end < 0) return;
+        const line = commandBuffer.subarray(0, end).toString('utf8');
+        commandBuffer = commandBuffer.subarray(end + 2);
+        commands.push(line);
+        const upper = line.toUpperCase();
+        if (upper.startsWith('EHLO') || upper.startsWith('HELO')) reply('250 fixture.smtp');
+        else if (upper.startsWith('MAIL FROM') || upper.startsWith('RCPT TO')) reply('250 OK');
+        else if (upper === 'DATA') {
+          inData = true;
+          reply('354 End data with <CR><LF>.<CR><LF>');
+          return;
+        } else if (upper === 'QUIT') reply('221 Bye');
+        else reply('250 OK');
+      }
+    });
+    socket.on('error', () => {});
+    reply('220 fixture.smtp ESMTP');
+  });
+  return { server, commands, messages };
+}
+
+function decodeQuotedPrintable(value) {
+  const text = String(value).replace(/=\r?\n/g, '');
+  const bytes = [];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === '=' && /^[0-9a-f]{2}$/i.test(text.slice(index + 1, index + 3))) {
+      bytes.push(Number.parseInt(text.slice(index + 1, index + 3), 16));
+      index += 2;
+    } else {
+      bytes.push(text.charCodeAt(index));
+    }
+  }
+  return Buffer.from(bytes).toString('utf8');
+}
+
 test('SMTP transport negotiates STARTTLS and the advertised LOGIN mechanism', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'phx-a04-smtp-starttls-'));
   const material = makeCertificate(directory);
@@ -214,5 +280,41 @@ test('SMTP requireTLS fails when the relay cannot upgrade', async () => {
     assert.deepEqual(relay.commands, ['EHLO localhost', 'STARTTLS']);
   } finally {
     await close(relay.server);
+  }
+});
+
+test('SMTP encodes Unicode parts for a relay without 8BITMIME', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'phx-a04-smtp-qp-'));
+  const text = 'Plain café 😀 — literal {name}\r\n';
+  const html = '<p>Owner café 😀 — {name}</p>\r\n';
+  writeFileSync(join(directory, 'invitation.txt'), text);
+  writeFileSync(join(directory, 'invitation.html'), html);
+  const relay = noEightBitFixture();
+  try {
+    const port = await listen(relay.server);
+    const provider = new SmtpMailProvider({
+      template: 'invitation',
+      smtp: { host: '127.0.0.1', port, timeoutMs: 1000 },
+      templateDir: directory,
+    });
+    const result = await provider.send('recipient@fixture.test', { name: 'Äda' });
+    assert.deepEqual(result.accepted, ['recipient@fixture.test']);
+    assert.equal(relay.messages.length, 1);
+    const raw = relay.messages[0];
+    assert.equal(raw.some((byte) => byte > 0x7f), false);
+    const decoded = decodeQuotedPrintable(raw.toString('ascii'));
+    assert.match(decoded, /Plain café 😀 — literal \{name\}/);
+    assert.match(decoded, /<p>Owner café 😀 — Äda<\/p>/);
+    assert.equal((raw.toString('ascii').match(/Content-Transfer-Encoding: quoted-printable/g) || []).length, 2);
+    assert.deepEqual(relay.commands, [
+      'EHLO localhost',
+      'MAIL FROM:<no-reply@jibo.com>',
+      'RCPT TO:<recipient@fixture.test>',
+      'DATA',
+      'QUIT',
+    ]);
+  } finally {
+    await close(relay.server);
+    rmSync(directory, { recursive: true, force: true });
   }
 });
