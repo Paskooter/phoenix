@@ -84,6 +84,7 @@ export function robotFaceRoutes(store, {
   loopUpdatedOutbox = new LoopUpdatedOutbox(store),
   loopConfig = {},
   invitationProviders = undefined,
+  robotReadClient,
 } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
@@ -146,7 +147,7 @@ export function robotFaceRoutes(store, {
       }
       log.info('loop request', { op });
       const validated = /^(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
-      return void loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
+      return loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
     }
 
     // Account_20151111.Get is the LoopManager fallback when the local KB root
@@ -336,7 +337,7 @@ export function robotFaceRoutes(store, {
     //   Loop.list()    -> "ListLoops"
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
-    if (handleLoopMembership({
+    const membership = handleLoopMembership({
       store,
       req,
       res,
@@ -346,7 +347,9 @@ export function robotFaceRoutes(store, {
       loopUpdatedOutbox,
       coppaEnabled,
       invitationProviders,
-    })) return;
+      robotReadClient,
+    });
+    if (membership !== false) return membership;
     if (handleRobotLookup({ store, req, res, body, op })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {

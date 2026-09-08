@@ -23,6 +23,7 @@ import {
   newId,
 } from './model.js';
 import { dispatchInvitationSideEffects } from './invitationProviders.js';
+import { dispatchLoopCreated } from './loopCreation.js';
 import { dispatchMembershipEvent } from './membershipEvents.js';
 
 const MAX_SIZE = 16;
@@ -399,7 +400,7 @@ function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
   }
 }
 
-export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdatedOutbox) {
+export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdatedOutbox, { invitationProviders } = {}) {
   if (!robotId) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_REQUIRED);
   if (!ownerId) fail(LOOP_MEMBERSHIP_ERRORS.CREDENTIALS_REQUIRED);
   const robotAccount = findOrCreateRobotAccount(store, robotId);
@@ -417,7 +418,9 @@ export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdated
     created: Date.now(),
   };
   saveLoop(store, loop, loopUpdatedOutbox);
-  return populateLoop(store, loop);
+  const populated = populateLoop(store, loop);
+  dispatchLoopCreated(loop, invitationProviders);
+  return populated;
 }
 
 function addMember(store, {
@@ -859,18 +862,23 @@ function respond(res, fn) {
   }
 }
 
-function createLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
+async function createLoopHttp({ store, req, res, body, loopUpdatedOutbox, invitationProviders, robotReadClient }) {
   const message = firstError(body, [
     () => requiredString(body, 'name'),
     () => requiredString(body, 'robotId'),
   ]);
   if (message) return void sendValidationError(res, message);
   const caller = callerAccount(store, req);
-  return respond(res, () => createLoopFromApi(store, {
+  let robot;
+  try { robot = await robotReadClient.getRobot(body.robotId); } catch { /* Source tolerates lookup failure. */ }
+  return respond(res, () => {
+    if (robot?.payload?.suspended === true) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_DISABLED);
+    return createLoopFromApi(store, {
     ownerId: caller && caller._id,
     name: body.name,
     robotId: body.robotId,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { invitationProviders });
+  });
 }
 
 function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled, invitationProviders }) {
@@ -1072,12 +1080,12 @@ function clearRobotHttp({ store, req, res, body, loopUpdatedOutbox }) {
 
 /** @returns {boolean} true when this Loop operation is a membership-lifecycle handler. */
 export function handleLoopMembership({
-  store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled = true, invitationProviders,
+  store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled = true, invitationProviders, robotReadClient,
 }) {
   const handler = HANDLERS[String(op || '').toLowerCase()];
   if (!handler) return false;
   log?.info?.('loop membership request', { op });
-  handler({
+  const result = handler({
     store,
     req,
     res,
@@ -1085,6 +1093,7 @@ export function handleLoopMembership({
     loopUpdatedOutbox,
     coppaEnabled,
     invitationProviders,
+    robotReadClient,
   });
-  return true;
+  return result && typeof result.then === 'function' ? result.then(() => true) : true;
 }
