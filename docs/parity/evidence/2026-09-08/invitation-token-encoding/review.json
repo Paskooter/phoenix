@@ -1,0 +1,32 @@
+{
+  "candidateRevision": "a5d04b5",
+  "disposition": "root accepted for invitation token encoding only",
+  "sourceAccountRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "sourceMethods": [
+    "LoopController.inviteMember -> Token.getRandomCode",
+    "LoopController.updateMember -> Token.getRandomCode"
+  ],
+  "regression": "Five zero bytes previously produced 1; original source and repaired candidate produce 11111.",
+  "vectorsThroughBothInvitationPaths": 6,
+  "persistedEmailAssignmentChecks": 6,
+  "focusedTestsPassed": 13,
+  "fullTests": {
+    "total": 931,
+    "passed": 924,
+    "failed": 0,
+    "skipped": 7
+  },
+  "strictSmoke": {
+    "cases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0,
+    "run": "ci-production-f2b14685-52c2-4c21-859a-22d1131a028f"
+  },
+  "fullLogSha256": "a6256f7a368bb8ae051ce16d99f6a54cfb54811a2f1dc14b58e283faa6a71585",
+  "limitations": [
+    "Not a full parity corpus run",
+    "No mail provider or native robot test",
+    "Remaining combined OOBE parser and membership concurrency review"
+  ]
+}
