@@ -18,7 +18,7 @@ The implementation follows the pinned source files from
 | `src/controllers/loop.ctrl.ts` | `8eab9312ba611b1dc5735599521bf73f1dbd2ede49f8da53ad3b4b543d729024` |
 | `src/controllers/base.loop.ctrl.ts` | `b85870f98589aa5c932d5b14942cae803cba355b7f8c15aacea2925192b1f3d9` |
 | `src/schemes/loop.ts` | `66148531c2308d76a281cc5e82bac2d70e0adf7de7e14d7997dbca83654649f3` |
-| `src/schemes/account.ts` | `1d69c02223ec3df088c8f1c8b29a4f003f9229fa89f3c531ee1f3b2c5` |
+| `src/schemes/account.ts` | `1d69c02223ec3df088bbfa10c1ff1c8b29a4f003f9229fa89f3c531ee1f3b2c5` |
 
 The generated API model is
 `jiborobot/srv-jibo-server-client@155d20a8102960b2aeb89c197bdf04dc1f1fc344`,
@@ -51,9 +51,9 @@ The relevant source lines are:
 
 ## Candidate behavior
 
-`GetRobot` validates a nonempty string `loopId`, resolves the loop before
-authorization, and permits only the loop owner identified by the Authorization
-Credential access key. It returns the three generated `RobotAccount` fields,
+`GetRobot` first verifies the public SigV4 request and active account using
+the existing source-backed verifier. It then validates a nonempty string
+`loopId`, resolves the loop, and checks the authenticated account is its owner. It returns the three generated `RobotAccount` fields,
 including the robot secret required by the source's unsafe serialization. An
 unknown or deleted loop returns `LOOP_NOT_FOUND` (404) before an owner check;
 an existing loop with a non-owner caller returns
@@ -65,8 +65,8 @@ unguarded `robotAccount.toJSON` boundary as a generic 500
 `FindOwner` validates a nonempty `accountId`, then scans active loops in store
 order for an owner or any member account ID. Member status is deliberately not
 filtered, matching the source query, so a removed membership can still resolve
-the active loop owner. No match serializes as `{}` because the source result's
-`id` is `undefined`. This operation does not use caller credentials.
+the active loop owner. No match serializes as `{"id":null}` because Mongoose `findOne` resolves
+to null and the source preserves that value. This operation does not use caller credentials.
 
 `ListOwnerRobots` accepts an optional nonempty string `accountId`; when present
 it selects that query identity even if it differs from the signed caller, as in
@@ -78,11 +78,10 @@ own unsuspended loop. Related robot accounts contribute their `friendlyId` in
 the same order. A stale relation is kept as the source's unexpected 500
 boundary instead of being converted to `ROBOT_NOT_FOUND`.
 
-The public face uses the existing Phoenix access-key lookup as the identity
-bridge. The source decorator itself parses the internal `x-amz-credentials`
-header; this candidate does not trust that header as a caller switch. Full
-public Classic SigV4 verification for these legacy operations remains outside
-this bounded slice and is an acceptance limitation.
+The public face verifies SigV4 for `GetRobot`. `ListOwnerRobots` still uses
+the existing Phoenix access-key lookup as the identity bridge. The source decorator itself parses the internal `x-amz-credentials`
+header; this candidate does not trust that header as a caller switch. Public
+SigV4 coverage beyond `GetRobot` remains an acceptance limitation.
 
 ## Controls
 
@@ -97,7 +96,7 @@ controls cover:
   optional Joi-shaped fields;
 - owner, accepted member, invited member, removed member, robot caller,
   supplied-account override, suspended/deleted loops, and stable list order;
-- first active owner resolution, no-match `{}`, and stale robot relations;
+- first active owner resolution, no-match `{"id":null}`, and stale robot relations;
 - no mutation or provider/event side effects on any lookup path.
 
 Executed command:
@@ -129,3 +128,23 @@ robot-account fallback is around 7628–7665, cloud loop/member projection is
 around 7768–7813, and `AccountUpdated`/`LoopUpdated` subscriptions are around
 7364–7366. That installed bundle path is a read-only deployment artifact, not a
 dependency of this candidate.
+
+## Root review repairs
+
+The unmerged implementation accepted a known owner access-key identifier
+without verifying its signature. Root reproduced the defect with synthetic
+credentials and added the existing source-backed SigV4 verifier before
+`GetRobot` validation and lookup. Wrong secrets, altered signed bodies/targets,
+expired dates, inactive accounts, and forged internal credential headers are
+covered through both Account and Classic. The original generated client
+3.0.110 running on Node 8.9.4 passed ten signed controls across those two
+entry points, with its default parameter validation enabled.
+
+Original method comparisons exposed the no-match null response and primitive
+JSON validation differences. Root repaired both and preserved parsed primitive
+values through Loop dispatch. The same Classic parser correction covers the
+three previously implemented profile operations. The source comparison uses
+controlled model seams; it does not prove full Mongo or live robot parity.
+
+These root repairs remain isolated pending integration review. No whole parity
+task is closed, and no household or robot state was changed.

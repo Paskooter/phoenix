@@ -8,6 +8,7 @@
 //   apis/loop-2016-03-24.normal.json.
 
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './loopHttp.js';
+import { verifySigV4, SigV4Error, SIGV4_ERRORS } from '@phoenix/common';
 
 const ERRORS = Object.freeze({
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
@@ -138,6 +139,25 @@ function robotAccountWire(account) {
 }
 
 function getRobot({ store, req, res, body }) {
+  // The source security gateway authenticates the owner before entering the
+  // Account handler. GetRobot returns the robot's secret, so a public access
+  // key identifier or caller-supplied gateway metadata cannot authorize it.
+  let caller;
+  try {
+    caller = verifySigV4({
+      method: req.method,
+      path: req.originalUrl || req.url || '/',
+      headers: req.headers,
+      body: req.rawBody === undefined
+        ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
+      resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+    }).credentials;
+  } catch (error) {
+    if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {
+      return sendAmzError(res, SIGV4_ERRORS[error.code]);
+    }
+    throw error;
+  }
   const validation = requiredString(body, 'loopId');
   if (validation) return sendValidationError(res, validation);
 
@@ -145,7 +165,6 @@ function getRobot({ store, req, res, body }) {
   const loop = activeLoopById(store, body.loopId);
   if (!loop) return sendAmzError(res, ERRORS.LOOP_NOT_FOUND);
 
-  const caller = accountForRequest(store, req);
   if (!caller || !idsEqual(loop.owner, caller._id)) {
     return sendAmzError(res, ERRORS.CAN_BE_ACCESSED_BY_OWNER);
   }
@@ -171,9 +190,9 @@ function findOwner({ store, res, body }) {
   const loop = activeLoops(store).find((candidate) => idsEqual(candidate.owner, body.accountId)
     || (Array.isArray(candidate.members)
       && candidate.members.some((member) => idsEqual(member && member.accountId, body.accountId))));
-  // Source returns `{ id: loop && loop.owner }`; JSON.stringify omits an
-  // undefined id when no loop matches, yielding `{}`.
-  return sendAmz(res, 200, { id: loop ? idString(loop.owner) : undefined });
+  // Mongoose findOne resolves to null when no loop matches; the source
+  // expression `{ id: loop && loop.owner }` therefore preserves a null id.
+  return sendAmz(res, 200, { id: loop ? idString(loop.owner) : null });
 }
 
 function visibleToOwner(loop, ownerId) {
