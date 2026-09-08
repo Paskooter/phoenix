@@ -1,0 +1,103 @@
+{
+  "kind": "n08-residual-families-classification",
+  "taskId": "N-08-residual-families-20260907",
+  "date": "2026-09-07",
+  "phoenixRevision": "21b957290e7989975a40c2ab97ff472eebebf739",
+  "baselineReplay": {
+    "path": "/home/shell/work/phoenix/.parity/worktrees/n08-punctuation-rule-literals-20260907/.parity/reviews/n08-punctuation-rule-literals-20260907/full-replay/replay.json",
+    "sha256": "3e1272da875c8084b9336ae82a4c9dc4ef2538c310b6bb7a76672322a738efb9",
+    "cases": 20528,
+    "matches": 20477,
+    "differences": 51
+  },
+  "originalInput": {
+    "path": "/home/shell/work/phoenix/.parity/reviews/full-original-parser.json",
+    "sha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d"
+  },
+  "astProbe": {
+    "path": ".parity/reviews/n08-residual-families-20260907/ast-probe.json",
+    "sha256": "b297963d3b413458209f6e9f12ebbca3135d2cbaa553f2c41c59ffc16fc526b6",
+    "uniqueTexts": 27,
+    "httpEqualsReplay": true
+  },
+  "sourcePins": {
+    "pegasus": "5c0a7390539663ba749d360de348a428c088505c",
+    "jiboNlu": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+    "chitchatLaunchSha256": "e6bab3053a0793c60da8ed19c47d0f53c4d30e3164020082c626d4c32c54049f",
+    "introductionsLaunchSha256": "a357775253c111d1b69f2f4312e66892863cfa3659e2824a79f5cec320b08cab"
+  },
+  "families": [
+    {
+      "id": "F1-launch-union-priority",
+      "count": 2,
+      "repairableInAst": "maybe \u2014 source-backed, measured on these 2, full replay required",
+      "ids": [
+        "chitchat:3989:0:base",
+        "hub-client:183:0:base"
+      ]
+    },
+    {
+      "id": "F2-optimized-graph-order",
+      "count": 47,
+      "repairableInAst": "no \u2014 requires native/compiled graph order after RmEpsilon/Determinize/Minimize/Push",
+      "ids": [
+        "chitchat:1096:3:base",
+        "chitchat:1096:3:condition:0",
+        "chitchat:1096:3:condition:1",
+        "chitchat:1096:3:condition:2",
+        "chitchat:1096:3:condition:3",
+        "chitchat:1096:3:condition:4",
+        "hub-client:2345:4:base",
+        "hub-client:2345:4:condition:0",
+        "hub-client:2345:4:condition:1",
+        "hub-client:2345:4:condition:2",
+        "hub-client:2345:4:condition:3",
+        "hub-client:2345:4:condition:4",
+        "chitchat:4532:1:base",
+        "chitchat:4532:5:base",
+        "chitchat:4532:6:base",
+        "chitchat:4532:7:base",
+        "chitchat:4532:9:base",
+        "chitchat:4532:10:base",
+        "hub-client:2300:1:base",
+        "hub-client:2300:2:base",
+        "hub-client:2300:3:base",
+        "chitchat:2201:0:base",
+        "chitchat:2201:1:base",
+        "hub-client:1748:0:base",
+        "hub-client:1748:1:base",
+        "chitchat:3435:0:base",
+        "chitchat:3435:1:base",
+        "hub-client:829:0:base",
+        "hub-client:829:1:base",
+        "chitchat:1926:4:base",
+        "hub-client:2419:4:base",
+        "chitchat:3336:0:base",
+        "hub-client:202:0:base",
+        "chitchat:4356:4:base",
+        "chitchat:4357:0:base",
+        "chitchat:4359:0:base",
+        "chitchat:4360:0:base",
+        "hub-client:2298:4:base",
+        "chitchat:1757:0:base",
+        "hub-client:2123:0:base",
+        "chitchat:2091:0:base",
+        "hub-client:1652:0:base",
+        "chitchat:2244:0:base",
+        "hub-client:1679:0:base",
+        "chitchat:4529:0:base",
+        "hub-client:1169:0:base",
+        "hub-client:1896:2:base"
+      ]
+    },
+    {
+      "id": "F3-ast-cost-vs-native-heuristic",
+      "count": 2,
+      "repairableInAst": "no \u2014 AST spec-cost already unequal and still wrong; wildcard heuristics rejected (700e40c)",
+      "ids": [
+        "chitchat:4268:0:base",
+        "chitchat:4292:1:base"
+      ]
+    }
+  ]
+}
