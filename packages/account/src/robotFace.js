@@ -21,13 +21,13 @@
 
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
-  createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
+  createAuthenticatedHubToken, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
   MEMBER_STATUS,
   populateLoop, ensureLoopMemberIds, isAcceptedMemberStatus, accountToPublicWire,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
-import { handleLoopMembership, removeRobotFromLoops } from './loopMembership.js';
+import { handleLoopMembership, removeRobotFromLoops, createLoopFromApi, LOOP_MEMBERSHIP_ERRORS } from './loopMembership.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
@@ -224,7 +224,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   /** oobe.ctrl.ts setupRobot — new setup, same-robot reissue, and suspended-loop replacement. */
-  function setupRobot({ res, body, log }) {
+  async function setupRobot({ res, body, log }) {
     const validationMessage = oobeTokenValidationMessage(body, { requiredId: true });
     if (validationMessage) return void sendValidationError(res, validationMessage);
     const { token: tokenId, id } = body;
@@ -271,10 +271,28 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         }
       }
     } else {
-      ({ loop } = createLoop(store, { owner: account, robotId: id }));
+      // OobeController chooses the name before LoopController.create checks
+      // robot-read and relocates an existing robot into a newly owned loop.
+      const name = setupLoopName(account);
+      let read;
+      try { read = await robotReadClient.getRobot(id); } catch { /* Source tolerates lookup failure. */ }
+      if (read?.payload?.suspended === true) {
+        return void sendAmzError(res, LOOP_MEMBERSHIP_ERRORS.ROBOT_DISABLED);
+      }
+      const created = createLoopFromApi(store, { ownerId: account._id, name, robotId: id },
+        loopUpdatedOutbox, { invitationProviders });
+      loop = activeLoopById(created.id);
     }
 
-    const robot = mapGetById(store.accounts, loop.robot) || findOrCreateRobotAccount(store, id);
+    // Source getRobot rereads the loop and checks its owner before returning
+    // credentials. It never invents an account for a missing robot relation.
+    loop = loop && activeLoopById(loop._id);
+    if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+    if (!idsEqual(loop.owner, account._id)) {
+      return void sendAmzError(res, LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
+    }
+    const robot = mapGetById(store.accounts, loop.robot);
+    if (!robot) throw new Error('Loop robot account is missing');
     deleteToken(store, token._id); // ONE-TIME
 
     const credentials = {
@@ -284,6 +302,17 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     };
     log.info('setupRobot complete', { friendlyId: id, loop: loop._id });
     return void sendAmz(res, 200, credentials);
+  }
+
+  function setupLoopName(account) {
+    const name = account.firstName || account.email;
+    const base = name.endsWith('s') ? `${name}'` : `${name}'s`;
+    const names = new Set([...store.loops.values()]
+      .filter(loop => loop.isDeleted !== true && idsEqual(loop.owner, account._id))
+      .map(loop => loop.name));
+    let candidate = `${base} Jibo`;
+    for (let suffix = 2; names.has(candidate); suffix += 1) candidate = `${base} ${suffix} Jibo`;
+    return candidate;
   }
 
   function removeRobotAssociation(robotAccountId) {
