@@ -176,6 +176,8 @@ run_client_patch_revert() {
   "
 }
 
+trap cleanup_client_patcher EXIT
+
 # ---------------------------------------------------------------- preflight
 say "preflight: connecting to $ROBOT"
 rsh true 2>/dev/null || die "cannot ssh to $ROBOT (need key-based access as root)"
