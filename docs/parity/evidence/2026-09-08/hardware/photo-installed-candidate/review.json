@@ -1,0 +1,24 @@
+{
+  "status": "installed-client-synthetic-photo-sequence-passed",
+  "revision": "49c4a84ec4aac31541cf64267941c7875ee65ddf",
+  "node": "v6.9.2",
+  "clientVersion": "3.0.105",
+  "checks": [
+    "installed-client-upload-public-url",
+    "exact-binary-download",
+    "untrusted-certificate-rejected",
+    "replace-removes-old-object",
+    "invalid-signature-preserves-photo",
+    "removal-clears-url-and-object"
+  ],
+  "strictTls": true,
+  "finalPhotoRemoved": true,
+  "scope": "Installed Moth client process against isolated synthetic Account/Classic candidate; Moth backend configuration and real household were not changed.",
+  "processes": "client and owned fixture server terminal",
+  "hashes": {
+    "client.cjs": "2bf4de3cafd3a710c71b3a81af4adc0901dbb498af74a5d756b674b986533f2d",
+    "server.mjs": "5c58a0af0f1e0865920238fd174d89267388a83df36ebe515dc7c9c2cd7eb62c",
+    "results.json": "68cf56ce1fc8580511bd3cfcdfa41a30d4cf427cad463dbddbd425672a3f86ad",
+    "final.json": "6a88b0d4161b9c7beca3eef8f9cdd9c8c20f7840d69a82ca9bf0a7d96c4c5312"
+  }
+}

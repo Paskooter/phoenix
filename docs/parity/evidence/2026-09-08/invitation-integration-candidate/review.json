@@ -48,12 +48,24 @@
       "failed": 0,
       "skipped": 7
     },
-    "strictCombinedGate": "running"
+    "strictCombinedGate": {
+      "matched": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "capturedRevision": "49c4a84ec4aac31541cf64267941c7875ee65ddf"
+    },
+    "installedNode6SyntheticPhotoSequence": {
+      "passed": 6,
+      "clientVersion": "3.0.105",
+      "strictTls": true
+    },
+    "priorCombinedGate": "Capture rejected because root committed an evidence checkpoint while capture was active. Preserved as invalid; stable rerun above passed."
   },
   "pending": [
     "Independent deferred-outbox scheduling review.",
-    "Original-client multi-actor lifecycle sequence.",
-    "Strict combined gate and final root acceptance."
+    "Original-client multi-actor invitation lifecycle sequence.",
+    "Final root acceptance."
   ],
   "deployment": "No main production code or Moth changes. No real mail or family fixtures.",
   "focusedLogSha256": "6b1fceb1d7eeec1e5ff30850b9ecc5cbcf112825c3cb60d59b59539dfc622332",
@@ -62,7 +74,9 @@
     "gate.log": "f9418f3389ba698717e6d23b0fbcde84f180e51bf6a9cc4a8da7d5840e769af0",
     "failed-files-diagnostic.log": "c7485e7e2a9a26bdb214e8a6875fed23afbbeaf5ad22296f4b0f95006cb7ee76",
     "focused-repairs.log": "dc265e3de7abbd47130810feb8a6ffed4c46437d2ec008ad59867adb076ac815",
-    "full-combined.log": "593f3932cc7c28f77348b5ffcfb2677a404bc540f5334b5f3d1d2db284d2eec0"
+    "full-combined.log": "593f3932cc7c28f77348b5ffcfb2677a404bc540f5334b5f3d1d2db284d2eec0",
+    "gate-combined.log": "faea96d98d10d4ab28d4b187e05a10d656d96f241583dd02c7e2e1874844c85c",
+    "gate-combined-stable.log": "a40463ffb8178b8748257d488efc44a9567c2686465ee6cd7382e2d946123e97"
   },
   "acceptedMainMerged": "037ba4557fca098d308c4ee705162aaf85702b4c"
 }
