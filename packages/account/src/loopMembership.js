@@ -418,7 +418,7 @@ export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdated
 
 function addMember(store, {
   ownerId, loopId, accountId, code, memberProperties, invitedAsLegalGuardian,
-}, loopUpdatedOutbox) {
+}, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
   const storedLoop = findById(store, loopId);
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
@@ -434,7 +434,7 @@ function addMember(store, {
   const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
     && (isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED)));
   if (existingAffectingSize >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
-  const memberIsChild = !!(memberProperties && memberProperties.isChild);
+  const memberIsChild = coppaEnabled && memberProperties && memberProperties.isChild;
   const memberStatus = memberProperties && !memberProperties.email && !memberIsChild
     ? MEMBER_STATUS.ACCEPTED
     : MEMBER_STATUS.INVITED;
@@ -452,7 +452,7 @@ function addMember(store, {
   return loop;
 }
 
-export function inviteMember(store, payload, loopUpdatedOutbox) {
+export function inviteMember(store, payload, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
   const loop = findById(store, payload.loopId);
   if (!idsEqual(loop.owner, payload.ownerId)) fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
   let targetAccount = null;
@@ -476,7 +476,7 @@ export function inviteMember(store, payload, loopUpdatedOutbox) {
       phoneNumber: payload.phoneNumber || null,
     },
     ownerId: payload.ownerId,
-  }, loopUpdatedOutbox);
+  }, loopUpdatedOutbox, { coppaEnabled });
   return populateLoop(store, findById(store, payload.loopId));
 }
 
@@ -544,7 +544,7 @@ export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) 
  */
 export function updateMember(store, {
   ownerId, loopId, id, email, firstName, lastName, gender, birthday, phoneNumber,
-}, loopUpdatedOutbox) {
+}, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
   const storedLoop = findById(store, loopId);
   const storedMember = (storedLoop.members || []).find((member) => idsEqual(member._id || member.id, id));
   if (!storedMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
@@ -556,7 +556,7 @@ export function updateMember(store, {
   // before evaluating the source's child/editability fields.
   member.memberProperties = member.memberProperties || {};
 
-  if (member.memberProperties.isChild) {
+  if (coppaEnabled && member.memberProperties.isChild) {
     const legalGuardianMember = (loop.members || []).find((item) =>
       idsEqual(item._id || item.id, member.legalGuardianId));
     if (!legalGuardianMember || !legalGuardianMember.accountId
@@ -841,7 +841,7 @@ function createLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
-function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled }) {
   const message = firstError(body, [
     () => optionalBoolean(body, 'asLegalGuardian'),
     () => optionalNumberNull(body, 'birthday'),
@@ -866,7 +866,7 @@ function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
     loopId: body.loopId,
     ownerId: caller && caller._id,
     phoneNumber: body.phoneNumber,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { coppaEnabled }));
 }
 
 function acceptInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
@@ -920,7 +920,7 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
-function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled }) {
   const message = firstError(body, [
     () => optionalSourceNumberNull(body, 'birthday'),
     () => optionalEmail(body, 'email'),
@@ -943,7 +943,7 @@ function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
     loopId: body.loopId,
     ownerId: caller && caller._id,
     phoneNumber: body.phoneNumber,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { coppaEnabled }));
 }
 
 function setEnrollmentHttp({ store, req, res, body, loopUpdatedOutbox }) {
@@ -1039,10 +1039,10 @@ function clearRobotHttp({ store, req, res, body, loopUpdatedOutbox }) {
 }
 
 /** @returns {boolean} true when this Loop operation is a membership-lifecycle handler. */
-export function handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox }) {
+export function handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled = true }) {
   const handler = HANDLERS[String(op || '').toLowerCase()];
   if (!handler) return false;
   log?.info?.('loop membership request', { op });
-  handler({ store, req, res, body: body === undefined ? {} : body, loopUpdatedOutbox });
+  handler({ store, req, res, body: body === undefined ? {} : body, loopUpdatedOutbox, coppaEnabled });
   return true;
 }
