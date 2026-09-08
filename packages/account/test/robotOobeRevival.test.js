@@ -16,10 +16,11 @@ import { createOwnerAccount, createLoop, mintSetupToken, ACCESS_TOKEN_LIFETIME_M
 async function withService(fn) {
   const dir = mkdtempSync(join(tmpdir(), 'phx-a05-oobe-'));
   const store = new Store(join(dir, 'store.json'));
-  const service = await createAccountService({ store }).listen(0);
+  const application = createAccountService({ store });
+  const service = await application.listen(0);
   const base = `http://127.0.0.1:${service.address().port}`;
   try {
-    await fn({ base, store });
+    await fn({ base, store, service, application });
   } finally {
     await new Promise((resolve, reject) => service.close((error) => (error ? reject(error) : resolve())));
     rmSync(dir, { recursive: true, force: true });
@@ -149,9 +150,59 @@ test('SetupRobot replaces the robot on an owner-owned suspended loop and unsuspe
     assert.equal(loop.robot, replacement._id);
     assert.equal(loop.members.some((member) => member.accountId === oldRobotId), false);
     assert.equal(loop.members.filter((member) => member.accountId === replacement._id).length, 1);
-    assert.equal(loop.members.find((member) => member.accountId === replacement._id).status, 'accepted');
+    const replacementMember = loop.members.find((member) => member.accountId === replacement._id);
+    assert.equal(replacementMember.status, 'accepted');
+    assert.equal(typeof replacementMember.created, 'number');
+    assert.deepEqual(replacementMember.enrolled, { face: false, voice: false });
+    assert.equal(replacementMember.invitedAsLegalGuardian, false);
+    assert.deepEqual(replacementMember.memberProperties, { isChild: false });
+    const reopened = new Store(store.file).loops.get(created.loop._id);
+    const reopenedMember = reopened.members.find((member) => member.accountId === replacement._id);
+    assert.deepEqual(reopenedMember, replacementMember, 'member defaults survive the persisted reopen');
     assert.equal(store.notificationOutbox.size, 1, 'the successful replacement save has one LoopUpdated row');
     assert.equal(store.notificationOutbox.values().next().value.notification.payload.robot, replacement._id);
+  });
+});
+
+test('SetupRobot preserves successful detach state and token after final Loop save failure', async () => {
+  await withService(async ({ base, store, application }) => {
+    const owner = createOwnerAccount(store, {
+      email: 'a05-final-save-owner@synthetic.invalid', password: 'synthetic-password', firstName: 'FinalSave',
+    });
+    const created = createLoop(store, { owner, robotId: 'a05-final-save-old-robot' });
+    created.loop.isSuspended = true;
+    store.flush();
+    const oldRobotId = created.robot._id;
+    const token = mintSetupToken(store, owner._id, created.loop._id);
+    const originalRecord = application.loopUpdatedOutbox.record.bind(application.loopUpdatedOutbox);
+    let recordCalls = 0;
+    application.loopUpdatedOutbox.record = (loop) => {
+      recordCalls += 1;
+      if (recordCalls === 2) throw new Error('synthetic final Loop save failure');
+      return originalRecord(loop);
+    };
+
+    const response = await amz(base, 'OOBE_20161026.SetupRobot', {
+      token: token._id, id: 'a05-final-save-new-robot',
+    });
+    assert.equal(response.status, 500);
+    assert.equal(recordCalls, 2, 'the first detach was committed before the final save failed');
+    assert.equal(store.tokens.has(token._id), true, 'token deletion follows the final save');
+
+    const inProcess = store.loops.get(created.loop._id);
+    assert.equal(inProcess.isSuspended, true);
+    assert.equal(inProcess.robot, undefined);
+    assert.equal(inProcess.members.some((member) => member.accountId === oldRobotId), false);
+    assert.equal(inProcess.members.some((member) => member.accountId === store.accountByFriendlyId('a05-final-save-new-robot')._id), false);
+
+    const reopenedStore = new Store(store.file);
+    const reopened = reopenedStore.loops.get(created.loop._id);
+    assert.equal(reopened.isSuspended, true);
+    assert.equal(reopened.robot, undefined);
+    assert.equal(reopened.members.some((member) => member.accountId === oldRobotId), false);
+    assert.equal(reopened.members.some((member) => member.accountId === reopenedStore.accountByFriendlyId('a05-final-save-new-robot')._id), false);
+    assert.equal(reopenedStore.tokens.has(token._id), true, 'reopen retains the setup token for retry');
+    assert.equal(reopenedStore.accountByFriendlyId('a05-final-save-new-robot').isActive, true);
   });
 });
 
