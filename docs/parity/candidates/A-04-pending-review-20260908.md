@@ -6,14 +6,23 @@ passing a candidate check does not mark the whole lifecycle verified.
 
 | Candidate | Revision | Current evidence and remaining work |
 | --- | --- | --- |
-| Photos | `0503964` | Independent source/wire/abort checks favorable; normal startup upload returns 500 because storage/public URL wiring is absent. Changes requested; repair in progress. |
+| Photos | `2bb7c34` | Normal-startup storage/public URL repair integrated in an isolated candidate. Original Node 8 client passed seven public HTTPS lifecycle checks, including restart persistence. Docker deployment review and final acceptance pending. |
 | ListLoopMembers | `660fe838` | Accepted after source/client/integration checks; deployed with installed-client membership/filter checks passed. |
-| Invitation transport | `ba0e3b4` | Local SMTP/event controls submitted; independent source/transport review in progress. |
+| Invitation transport | `2eaaea2` | STARTTLS/AUTH and sender Promise boundary repaired in candidate; one pinned-source Unicode MIME control matches decoded content, 210 Account tests pass. Root verified 13 evidence/product hashes; long ASCII SMTP line check and integration pending. |
 | Membership events | `19cace3` | Three original event payloads match; 873 tests pass, 7 skipped. Independent controller/client review and transport dependency acceptance pending. |
 | CreateLoop gate/event | `eaa6724` | Eight original controller controls, ten original SDK calls, ten HTTP peer checks; 874 tests pass, 7 skipped. Independent review and dependency acceptance pending. |
 
 Root verified all 27 photo review artifact hashes. Photo acceptance requires
 normal deployment to supply durable storage and robot-reachable public URLs.
+The combined candidate now passes seven original-client public HTTPS checks
+with normal Account startup, including exact object bytes and persistence
+after an Account restart. The first test attempts exposed a harness watchdog
+and a Node 8 helper signature issue; both are preserved in the qualified
+[public TLS evidence](../evidence/2026-09-08/photo-public-tls/review.json).
+The strict gate matches all 43 cases. Full default and serial candidate suites
+each report 874 passed, two failed, and seven skipped. Root reproduced the
+same idle-connection reset mechanism on unchanged main; those suite failures
+remain recorded and are not converted into passing results.
 Hashless binary staging remains an explicit extension; the original generated
 client sends a body hash. The exact deployed binary dependency version is still
 unresolved. See [photo review](../evidence/2026-09-08/photo-independent-review/review.json).
@@ -48,4 +57,6 @@ This does not establish an on-screen notification indicator. See
 The invitation transport review instead requires repairs for substantive
 SMTP negotiation and the event sender Promise boundary: synchronous storage
 errors must become rejected delivery promises so the completed membership
-save does not incorrectly turn into an HTTP failure. Those repairs are in progress.
+save does not incorrectly turn into an HTTP failure. The transport and Promise-boundary repairs are submitted as candidates.
+Root review remains open for long ASCII MIME lines that may exceed relay
+limits; incidental MIME formatting differences do not block acceptance.
