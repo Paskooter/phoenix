@@ -136,7 +136,7 @@ services:
     environment:
       - PORT=8080
       # ETCO_ota_publicUrl: set to the externally-reachable base URL if a robot can't reach
-      # the Host it used (e.g. behind NAT). Default: derived from the request Host header.
+      # the public origin when using a reverse proxy. Default: derived from the request Host header.
       - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:-}
     ports:
       - 9010:8080
