@@ -4,9 +4,37 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Store, createAccountService } from '../src/index.js';
-import { createOwnerAccount, mintSetupToken, verifyPassword, ACCESS_TOKEN_LIFETIME_MS } from '../src/model.js';
+import {
+  createOwnerAccount,
+  encodeTokenBytes,
+  mintSetupToken,
+  newTokenId,
+  verifyPassword,
+  ACCESS_TOKEN_LIFETIME_MS,
+} from '../src/model.js';
 import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 import { createServiceSetupToken } from '../src/serviceToken.js';
+
+test('service-token ids match pinned bs58 for five-byte values, including leading zeros', () => {
+  const vectors = [
+    ['0000000000', '11111'],
+    ['0000000001', '11112'],
+    ['000000ffff', '111LUv'],
+    ['0000010000', '11LUw'],
+    ['00ffffffff', '17YXq9G'],
+    ['ffffffffff', 'VtB5VXc'],
+  ];
+  for (const [hex, expected] of vectors) {
+    const bytes = Buffer.from(hex, 'hex');
+    assert.equal(encodeTokenBytes(bytes), expected, hex);
+    let requestedLength;
+    assert.equal(newTokenId(length => {
+      requestedLength = length;
+      return bytes;
+    }), expected, `newTokenId ${hex}`);
+    assert.equal(requestedLength, 5);
+  }
+});
 
 async function fixture(run) {
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-synthetic-service-token-'));

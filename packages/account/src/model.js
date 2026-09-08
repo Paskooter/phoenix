@@ -48,13 +48,37 @@ export function fillAccessKeys() {
   return { accessKeyId: randAlnum(20), secretAccessKey: randAlnum(40) };
 }
 
-/** Setup-token id — original: bs58(crypto.randomBytes(5)), ~7 chars. Base58 alphabet, no deps. */
-export function newTokenId() {
+/**
+ * Encode bytes with the bs58@3.1.0/base-x@1.1.0 semantics used by the
+ * pinned Account service.  In particular, base-x emits one leading alphabet
+ * leader for every leading zero byte, including the all-zero input case.
+ * Keeping this pure also gives the service-token path a narrow source-parity
+ * seam without changing production randomBytes(5) generation.
+ */
+export function encodeTokenBytes(bytes) {
+  const source = Buffer.from(bytes);
+  if (source.length === 0) return '';
+
   const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  let n = BigInt('0x' + randomBytes(5).toString('hex'));
-  let s = '';
-  while (n > 0n) { s = B58[Number(n % 58n)] + s; n /= 58n; }
-  return s || '1';
+  let leadingZeroes = 0;
+  while (leadingZeroes < source.length && source[leadingZeroes] === 0) leadingZeroes += 1;
+
+  let value = 0n;
+  for (const byte of source) value = (value << 8n) + BigInt(byte);
+
+  if (value === 0n) return B58[0].repeat(source.length);
+
+  let encoded = '';
+  while (value > 0n) {
+    encoded = B58[Number(value % 58n)] + encoded;
+    value /= 58n;
+  }
+  return B58[0].repeat(leadingZeroes) + encoded;
+}
+
+/** Setup-token id — original: bs58(crypto.randomBytes(5)), ~7 chars. */
+export function newTokenId(randomBytesSource = randomBytes) {
+  return encodeTokenBytes(randomBytesSource(5));
 }
 
 // -- passwords (scrypt) -------------------------------------------------------
