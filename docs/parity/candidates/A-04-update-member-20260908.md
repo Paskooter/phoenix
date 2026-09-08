@@ -106,3 +106,65 @@ Focused command result: `node --test packages/account/test/loopMemberUpdate.test
 → **20 passed, 0 failed**. The full unit command `npm run test:unit` completed
 with **833 passed, 0 failed, 7 skipped** (840 tests total). No main, robot,
 live store, private household data, shared cache, or remote was changed.
+
+## Follow-up: Joi conversion and public authentication
+
+This follow-up is a separate unverified repair on the candidate branch. It is
+based on the exact `srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2`
+controller and handler source, rather than the earlier b525 source-methods
+fixture. The exact source files used by the Node 8 control are:
+
+| Layer | SHA-256 |
+| --- | --- |
+| `source-6cea/loop.ctrl.ts` | `8eab9312ba611b1dc5735599521bf73f1dbd2ede49f8da53ad3b4b543d729024` |
+| `source-6cea/loop.handler.ts` | `abb558d7f7b873b80d765d6fde344d56876e408ce6bdf928be7a57b37605826d` |
+| transpiled `controllers/loop.ctrl.js` | `c7025c7ca9596ab24adb1f81b8a7ac3fd47c2b33b79428565f7e399dbd9f574f` |
+| transpiled `handlers/loop.handler.js` | `4f56d5053b3136c9130b9a4f5db1765b769d1500dab6ac504348d867aa3e0e15` |
+| transpiled `index.js` | `d825d1af6e5d347941207ca4f8d65128d9ebba124ca9d0597a55311f973a82c5` |
+
+The source layers were transpiled with the pinned TypeScript 2.5.3 compiler
+and executed in `node:8.9.4-slim` without network access. Model, event, and mail
+files in that runner are named controlled seams; this evidence does not claim
+a complete source-repository build. The source control ran 31 synthetic cases
+with exit status 0. Its private receipt records 12 successful cases, 19
+source validation/error cases, and three separate COPPA-off controls.
+
+The exact source handler declares `birthday: Joi.number().allow(null)` and the
+Jibo validation decorator passes the original request object to the controller
+after validation. Pinned Joi 10.5.2 accepts numeric strings such as `42`,
+trimmed numeric strings, zero, exponent, and hexadecimal forms, but rejects
+empty or whitespace-only strings, nonnumeric strings, booleans, and nonfinite
+values. The follow-up preserves that distinction: it validates the source
+domain without replacing the request value, then casts the assigned birthday
+at the plain-store persistence boundary to match Mongoose's Number cast. A
+real HTTP test covers the accepted numeric string and whitespace-only 422.
+
+The public `UpdateLoopMember` Account route now verifies the AWS SigV4
+Authorization credential before running the handler validation. Resolution is
+by the signed access-key id, excludes deleted accounts, and stores the verified
+account on the request; the legacy `x-amz-credentials` and `Credential=`
+fragments cannot replace it. The Classic proxy opts only this target into
+loose JSON parsing so null, arrays, numbers, and strings reach the Account
+boundary and receive the source-style 422 object error. It forwards the
+captured raw entity, so a body changed after signing fails signature
+verification.
+
+New synthetic signed controls in
+`packages/account/test/loopMemberPublicAuth.test.js` cover missing, unknown,
+wrong-secret, forged-identity, primitive-body, Classic-forwarding, and
+tampered-body cases. The focused command
+
+    node --test packages/account/test/loopMemberUpdate.test.js packages/account/test/loopMemberPublicAuth.test.js
+
+completed with **12 passed, 0 failed**. After the follow-up edits,
+`npm run test:unit` completed with **839 passed, 0 failed, 7 skipped** (846
+tests total). The exact 6cea source/candidate output comparison and Joi
+control are retained privately under
+`.parity/reviews/a04-update-member-auth-repair-20260908/`; its 31-case
+comparison has 28 equal statuses, with the three expected COPPA-off rows
+remaining as a separate configuration seam.
+
+This follow-up does not claim the full original public security gateway, a
+Mongo/Mongoose deployment, mail delivery, event-bus delivery, or COPPA-off
+configuration. Root's separate COPPA seam can be integrated independently.
+No household or other private data is present in this candidate or its tests.

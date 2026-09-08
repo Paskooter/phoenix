@@ -137,6 +137,11 @@ function invitationCode() {
 }
 
 function callerAccount(store, req) {
+  // Public UpdateLoopMember requests are authenticated at the robot face before
+  // validation. Keep the verified document as the identity source; parsing a
+  // Credential= fragment is retained only for the direct/LAN compatibility
+  // seam used by the older membership handlers and source controls.
+  if (req && req._phoenixVerifiedCredentials) return req._phoenixVerifiedCredentials;
   const accessKeyId = accessKeyIdFromAuth(req);
   return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
 }
@@ -578,6 +583,19 @@ export function updateMember(store, {
   member.memberProperties.birthday = birthday || member.memberProperties.birthday;
   member.memberProperties.phoneNumber = phoneNumber || member.memberProperties.phoneNumber;
 
+  // Joi.number() accepts a numeric string, but @jibo/server's validation
+  // decorator discards the converted callback value. The controller therefore
+  // assigns the original string and Mongoose casts the Number schema path when
+  // saveAndPopulate runs. Store uses plain objects, so perform that persistence
+  // cast at the same boundary while leaving the controller's `||` assignment
+  // semantics intact (notably, numeric zero still preserves the old value).
+  if (member.memberProperties.birthday !== null
+    && member.memberProperties.birthday !== undefined
+    && member.memberProperties.birthday !== '') {
+    const birthdayNumber = Number(member.memberProperties.birthday);
+    if (Number.isFinite(birthdayNumber)) member.memberProperties.birthday = birthdayNumber;
+  }
+
   // Set email only once. An incoming email is normalized by the HTTP handler,
   // matching UpdateMember's source decorator method.
   if (member.memberProperties.email && email) {
@@ -721,6 +739,26 @@ function optionalNumberNull(body, field) {
     return childFail(field, 'must be a number');
   }
   return null;
+}
+
+// The pinned UpdateMember handler declares Joi.number().allow(null). Joi 10.5.2
+// accepts numeric strings after conversion, while the validatePayload decorator
+// passes the original object to the controller. Validate the source domain here
+// without replacing the request value, so the subsequent controller assignment
+// and persistence cast remain observable separately.
+function optionalSourceNumberNull(body, field) {
+  if (!hasField(body, field)) return null;
+  if (body[field] === null) return null;
+  if (typeof body[field] === 'number') {
+    return Number.isFinite(body[field]) ? null : childFail(field, 'must be a number');
+  }
+  if (typeof body[field] === 'string') {
+    // Joi 10.5.2 does not accept an empty numeric string for this schema.
+    if (body[field].trim().length === 0) return childFail(field, 'must be a number');
+    const converted = Number(body[field]);
+    return Number.isFinite(converted) ? null : childFail(field, 'must be a number');
+  }
+  return childFail(field, 'must be a number');
 }
 
 function optionalEnum(body, field, values) {
@@ -884,7 +922,7 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
 
 function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
   const message = firstError(body, [
-    () => optionalNumberNull(body, 'birthday'),
+    () => optionalSourceNumberNull(body, 'birthday'),
     () => optionalEmail(body, 'email'),
     () => optionalString(body, 'firstName'),
     () => optionalEnum(body, 'gender', GENDERS),

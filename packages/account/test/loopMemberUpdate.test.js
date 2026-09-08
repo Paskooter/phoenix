@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { signSigV4 } from '@phoenix/common';
 
 const { createAccountService } = await import('../src/index.js');
 const { Store } = await import('../src/store.js');
@@ -24,19 +25,29 @@ function nextLabel(prefix) {
   return `${prefix}-${serial}`;
 }
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
-
 async function post(target, body, accessKeyId) {
+  const account = store.accountByAccessKeyId(accessKeyId);
+  assert.ok(account, `fixture account exists for ${accessKeyId}`);
+  const wire = body === undefined ? '' : JSON.stringify(body);
+  const signed = signSigV4({
+    method: 'POST',
+    path: '/',
+    body: wire,
+    headers: {
+      Host: new URL(base).host,
+      'Content-Type': 'application/x-amz-json-1.1',
+      'X-Amz-Target': target,
+    },
+    accessKeyId: account.accessKeyId,
+    secretAccessKey: account.secretAccessKey,
+    region: 'global',
+    service: 'jibo',
+    date: new Date(),
+  });
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      authorization: authorization(accessKeyId),
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    headers: signed.headers,
+    body: wire,
   });
   const raw = Buffer.from(await response.arrayBuffer()).toString('utf8');
   return {
@@ -294,10 +305,18 @@ test('UpdateLoopMember validates source fields, accepts unknown API-model fields
   assert.equal(store.loops.get(loop._id).members.find((member) => member._id === target._id)
     .memberProperties.birthday, 100, 'source `birthday || previous` preserves the existing value for null');
 
+  const numericString = await post('Loop_20160324.UpdateLoopMember', {
+    id: target._id, loopId: loop._id, birthday: '42',
+  }, owner.accessKeyId);
+  assert.equal(numericString.status, 200, 'Joi accepts a numeric string before the decorator discards conversion');
+  assert.equal(store.loops.get(loop._id).members.find((member) => member._id === target._id)
+    .memberProperties.birthday, 42, 'the persistence boundary casts the original string like Mongoose');
+
   const cases = [
     [{ loopId: loop._id }, 'id', 'is required'],
     [{ id: target._id }, 'loopId', 'is required'],
     [{ id: target._id, loopId: loop._id, birthday: 'old' }, 'birthday', 'must be a number'],
+    [{ id: target._id, loopId: loop._id, birthday: ' ' }, 'birthday', 'must be a number'],
     [{ id: target._id, loopId: loop._id, email: 'not-an-email' }, 'email', 'must be a valid email'],
     [{ id: target._id, loopId: loop._id, gender: 'unknown' }, 'gender', 'must be one of'],
     [{ id: target._id, loopId: loop._id, phoneNumber: 7 }, 'phoneNumber', 'must be a string'],
