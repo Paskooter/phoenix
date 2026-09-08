@@ -29,6 +29,7 @@ import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { handleLoopMembership } from './loopMembership.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
+import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
 
@@ -81,7 +82,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig) } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), memberPhotoProvider } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
@@ -124,10 +125,12 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ].includes(String(req.headers['x-amz-target'] || ''));
       if (!anonymousTarget || req.headers.authorization) {
         try {
+          if (isMemberPhotoUpload(req) && req.headers.authorization && !req.headers['x-amz-content-sha256']) await stagePhotoDigest(req);
           const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
             headers: req.headers,
+            bodyDigest: req.photoBodyDigest,
             body: req.rawBody === undefined
               ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
             resolveCredentials: (accessKeyId) => {
@@ -137,15 +140,16 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           });
           req._phoenixVerifiedCredentials = verification.credentials;
         } catch (error) {
+          if (req.photoCleanup) await req.photoCleanup();
           if (!(error instanceof SigV4Error) || !SIGV4_ERRORS[error.code]) throw error;
           return void sendAmzError(res, SIGV4_ERRORS[error.code]);
         }
       }
       log.info('loop request', { op });
       // Preserve primitive payloads for the source-validated Loop handlers.
-      // Preserve list-member primitives so invalid bodies reach source validation.
-      const validated = /^(setlegalguardian|updateagreementstatus|listloops|list|listmembers|listloopmembers|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
-      return loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
+      const validated = /^(removememberphoto|setlegalguardian|updateagreementstatus|listmembers|listloopmembers|listloops|list|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
+      try { return await loopDispatch({ req, res, body: validated ? body : (body || {}), op, log }); }
+      finally { if (req.photoCleanup) await req.photoCleanup(); }
     }
 
     // Account_20151111.Get is the LoopManager fallback when the local KB root
@@ -174,6 +178,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   };
   // Hapi presents an omitted request payload to CreateHubToken as null. Other
   // legacy robot handlers retain the service's historical object default.
+  dispatch.rawBody = isMemberPhotoUpload;
   dispatch.bodyDefault = (req) => {
     const target = parseTarget(req);
     if (target.op.toLowerCase() === 'createhubtoken') return null;
@@ -315,6 +320,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const o = op.toLowerCase();
     const agreement = handleLoopAgreements({ store, req, res, body, op, provider: agreementProvider, outbox: loopUpdatedOutbox });
     if (agreement !== false) return agreement;
+    const photo = handleMemberPhotos({ store, req, res, body, op, provider: memberPhotoProvider, outbox: loopUpdatedOutbox });
+    if (photo !== false) return photo;
     if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
     if (handleRobotLookup({ store, req, res, body, op })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, body, log });

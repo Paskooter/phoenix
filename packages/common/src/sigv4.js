@@ -184,16 +184,17 @@ function parseQuery(path) {
   }).join('&');
 }
 
-function bodyHash(headers, body) {
+function bodyHash(headers, body, bodyDigest) {
   // This is intentional source compatibility. srv-security-gw/v4.js trusts an
   // explicit x-amz-content-sha256 value and, in particular, supports the native
   // client which signs an empty StandardHttpRequest before it attaches `{}`.
   // Requests without the explicit header always hash the exact received bytes.
   const explicit = headerValue(headers, 'x-amz-content-sha256');
-  return explicit || hash(asBodyBuffer(body));
+  if (bodyDigest !== undefined && !/^[a-f0-9]{64}$/.test(bodyDigest)) throw new TypeError('Invalid precomputed body digest');
+  return explicit || bodyDigest || hash(asBodyBuffer(body));
 }
 
-export function canonicalRequest({ method = 'POST', path = '/', headers = {}, body = '', signedHeaders, service = 'jibo' } = {}) {
+export function canonicalRequest({ method = 'POST', path = '/', headers = {}, body = '', bodyDigest, signedHeaders, service = 'jibo' } = {}) {
   const normalized = normalizeHeaders(headers);
   const headerText = canonicalHeaders(normalized, signedHeaders);
   const signedText = signedHeaderNames(normalized, signedHeaders).join(';');
@@ -203,7 +204,7 @@ export function canonicalRequest({ method = 'POST', path = '/', headers = {}, bo
     parseQuery(path),
     `${headerText}\n`,
     signedText,
-    bodyHash(normalized, body),
+    bodyHash(normalized, body, bodyDigest),
   ].join('\n');
 }
 
@@ -347,6 +348,7 @@ export function verifySigV4({
   path = '/',
   headers = {},
   body = '',
+  bodyDigest,
   now = new Date(),
   resolveCredentials,
 } = {}) {
@@ -385,6 +387,7 @@ export function verifySigV4({
     path,
     headers: normalized,
     body,
+    bodyDigest,
     signedHeaders: parsed.signedHeaders,
     service: parsed.service,
   });

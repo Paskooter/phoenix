@@ -161,7 +161,7 @@ function routeMiddleware(name, handler) {
     const emptyEntity = Buffer.isBuffer(req.rawBody)
       ? req.rawBody.length === 0
       : req.rawBody === undefined && !requestHasEntity(req);
-    const body = handler.rawBody ? null : (emptyEntity || req.body === undefined ? bodyDefault : req.body);
+    const body = usesRawBody(handler, req) ? null : (emptyEntity || req.body === undefined ? bodyDefault : req.body);
     Promise.resolve()
       .then(() => handler({ req, res, url, body, trace, log: reqLog }))
       .then((result) => {
@@ -169,6 +169,10 @@ function routeMiddleware(name, handler) {
       })
       .catch(next);
   };
+}
+
+function usesRawBody(handler, req) {
+  return typeof handler?.rawBody === 'function' ? handler.rawBody(req) : !!handler?.rawBody;
 }
 
 function requestHasEntity(req) {
@@ -187,7 +191,7 @@ function findRoute(routes, req, { rawOnly = false } = {}) {
   const path = requestPath(req);
   const method = String(req.method || '').toUpperCase();
   for (const [key, handler] of Object.entries(routes)) {
-    if (rawOnly && !handler?.rawBody) continue;
+    if (rawOnly && !usesRawBody(handler, req)) continue;
     const separator = key.indexOf(' ');
     if (separator < 1) continue;
     const routeMethod = key.slice(0, separator).trim().toUpperCase();
