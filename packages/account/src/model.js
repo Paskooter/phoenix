@@ -366,7 +366,16 @@ export function takeValidToken(store, tokenId) {
 }
 
 export function deleteToken(store, tokenId) {
-  if (store.tokens.delete(tokenId)) store.flush();
+  const token = store.tokens.get(tokenId);
+  if (!store.tokens.delete(tokenId)) return;
+  try {
+    store.flush();
+  } catch (error) {
+    // Source TokenController awaits the persisted remove before succeeding.
+    // A failed write must leave the committed token available for a retry.
+    store.tokens.set(tokenId, token);
+    throw error;
+  }
 }
 
 /** Purge expired tokens (housekeeping; called opportunistically). */
