@@ -1,3 +1,4 @@
+import { RobotReadClient } from './loopCreation.js';
 // @phoenix/account — the account / loop / OOBE Classic Service + the web portal.
 //
 // Three faces over one persistent store (see OOBE-PORTAL-HANDOFF.md):
@@ -91,6 +92,7 @@ export function createAccountService({
   loopConfig = {},
   agreementProvider,
   invitationProviders,
+  robotReadClient = new RobotReadClient(),
   invitationSmtp,
   invitationEventFile,
   invitationEventUrl,
@@ -142,6 +144,7 @@ export function createAccountService({
         loopConfig,
         agreementProvider,
         invitationProviders: effectiveInvitationProviders,
+        robotReadClient,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });
