@@ -1,0 +1,40 @@
+{
+  "status": "candidate-awaiting-source-and-client-review",
+  "combinedRevision": "a59ae5946adda5bf985f1f8b2f00868e5c48e899",
+  "included": [
+    "ReconnectRobot and owner/deleted-loop/suspended setup handling",
+    "Suspended replacement member defaults and final-save failure boundaries",
+    "Token deletion rollback",
+    "Valid ObjectId query casing",
+    "Unbound setup source creation flow, robot-read check, owner-specific naming and relocation"
+  ],
+  "verification": {
+    "fullNpmTest": {
+      "exit": 0,
+      "tests": 919,
+      "passed": 912,
+      "failed": 0,
+      "skipped": 7
+    },
+    "strictGate": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0,
+      "run": "ci-production-56dd1183-00dc-4999-9085-c94bcb06cf1a"
+    },
+    "candidateStableThroughCapture": true,
+    "followupArtifactHashesVerified": 28,
+    "independentTokenReviewArtifactHashesVerified": 9
+  },
+  "pending": [
+    "Exact-source unbound setup sequence review",
+    "Independent original Node8 client review of unbound setup",
+    "Root acceptance after reviewing final evidence"
+  ],
+  "limitations": [
+    "No new robot deployment or household mutation.",
+    "Passing smoke corpus does not establish full A04/A05 or full Pegasus parity."
+  ],
+  "logSha256": "29a9b0dde5c040e4ca9e01badada48120f7082cb3ccc02cfd360768a4cef219b"
+}
