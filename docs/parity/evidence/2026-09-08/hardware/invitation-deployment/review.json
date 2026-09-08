@@ -1,0 +1,23 @@
+{
+  "status": "verified-deployment-preservation",
+  "revision": "96724673e8c47c9f8d29712ba25eadcb6ac97347",
+  "previousRevision": "0998f79df937858aaf3a686d552d8e05c6beec73",
+  "healthyServices": 6,
+  "wholeAccountStorePreserved": true,
+  "environmentUnchanged": true,
+  "beforeInstalledClientChecks": 8,
+  "afterInstalledClientChecks": 8,
+  "strictTls": true,
+  "explicitCa": true,
+  "nativeNotificationConnected": true,
+  "destructiveOperationsTestedOnRobot": false,
+  "liveInvitationMailConfigured": false,
+  "scope": "Backend checkout deployment with installed Node6.9.2/Jibo client3.0.105 read-only checks. No microphone, screen, ring, household mutation or full lifecycle acceptance claim. Invitation mail/provider lifecycle used isolated synthetic tests; live mail remains unconfigured.",
+  "evidenceSha256": {
+    "before.json": "4c8f7d26491950491c803485acb149060dee44207e206091052e0d476a725e78",
+    "after.json": "4c8f7d26491950491c803485acb149060dee44207e206091052e0d476a725e78",
+    "deployment.json": "852dbed64304f395639fa9402a6c72761c6a0c9d252dfc6a1dd7590a71ecd66c",
+    "preservation.json": "5edd34fe6ff6550b78a04e6abbb684e03b6e7eeae9b53113fabf1619440dbe0f",
+    "deploy.py": "8eb732cd6c1670cf810fe416670b9450904c435f8be6ef22f1685a9748fe010b"
+  }
+}

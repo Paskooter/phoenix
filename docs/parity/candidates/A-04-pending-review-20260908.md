@@ -15,11 +15,12 @@ and delayed population. No universal sender or network arrival order is claimed.
 Earlier failed captures and setup attempts remain qualified in the evidence.
 
 Photos and membership-list changes were previously accepted and deployed.
-Moth remains on `0998f79`, with eight installed-client read-only checks and two
-synthetic public-photo ingress checks verified. The newer candidate also passed
+Moth now runs `9672467`, with eight installed-client read-only checks passing
+before and after deployment, all six services healthy and the complete
+household store preserved. Invitation mail remains unconfigured on Moth. The newer candidate also passed
 six installed Node 6 client photo checks against an isolated synthetic backend.
-Deploying the combined invitation changes and completing the remaining A-04
-state, failure and persistence coverage remain open. Full checklist progress
+Completing the remaining A-04 state, failure and persistence coverage remains
+open. Full checklist progress
 is still 8/79 (10.1%); accepted pieces do not complete the entire lifecycle task.
 
 ## Account events and robot notifications
