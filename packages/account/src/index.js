@@ -66,13 +66,51 @@ function isLoopTarget(req) {
       .test(String(req.headers?.['x-amz-target'] || ''));
 }
 
+function firstNonEmpty(...values) {
+  return values.find((value) => typeof value === 'string' && value.trim() !== '') || null;
+}
+
+function photoPublicBaseUrl(...values) {
+  const configured = firstNonEmpty(...values);
+  if (!configured) return null;
+  const trimmed = configured.replace(/\/+$/, '');
+  let parsed;
+  try { parsed = new URL(trimmed); }
+  catch (error) { throw new Error(`Invalid photo public URL: ${error.message}`); }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`Invalid photo public URL protocol: ${parsed.protocol}`);
+  }
+  // The deployment setting is normally the public Classic origin. The local
+  // ingress owns this fixed path; retain an explicitly supplied path so a
+  // reverse proxy can mount the photo endpoint below its own prefix.
+  const path = parsed.pathname === '/' ? '/member-photos' : parsed.pathname;
+  return `${parsed.origin}${path}`;
+}
+
+function photoConfiguration(loopConfig, store) {
+  const server = loopConfig.server || {};
+  return {
+    publicBaseUrl: photoPublicBaseUrl(
+      server.photoBaseUrl,
+      process.env.ETCO_account_photoBaseUrl,
+      process.env.PHOTO_PUBLIC_URL,
+    ),
+    directory: firstNonEmpty(
+      server.photoDirectory,
+      process.env.ETCO_account_photoDirectory,
+      process.env.PHOTO_DIRECTORY,
+    ) || join(dirname(store.file), 'member-photos'),
+  };
+}
+
 export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {}, agreementProvider, memberPhotoProvider } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
-  const photoProvider = memberPhotoProvider || (loopConfig.server?.photoBaseUrl
-    ? new MemberPhotoStorage({ directory: loopConfig.server.photoDirectory || join(dirname(store.file), 'member-photos'), publicBaseUrl: loopConfig.server.photoBaseUrl }) : null);
+  const photo = memberPhotoProvider ? null : photoConfiguration(loopConfig, store);
+  const photoProvider = memberPhotoProvider || (photo.publicBaseUrl
+    ? new MemberPhotoStorage({ directory: photo.directory, publicBaseUrl: photo.publicBaseUrl }) : null);
   const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
   const service = createService({
     name: 'account',
