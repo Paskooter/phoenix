@@ -1409,7 +1409,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-08/invitation-acceptance/
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-Setup/prepare/status and QR flows exist. Reconnect/service-token and complete lifecycle semantics are not established.
+Root reproduced nine synthetic adoption/OOBE controls and verified six product hashes against fresh pinned source inspection. ReconnectRobot dispatch/token consumption, bound-loop owner authorization, suspended robot replacement and deleted-loop filtering have substantive gaps. Luna Max is implementing an isolated candidate; original source/runtime/client verification and root review are pending. A-03/A-04 dependencies still govern final acceptance. Operator REST adoption is a Phoenix extension, not an obligation to invent another route.
 
 Done when:
 
@@ -1422,6 +1422,14 @@ Source: [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](http
 Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/qrPayload.js](../../packages/account/src/qrPayload.js); [packages/account/portal/qr.js](../../packages/account/portal/qr.js).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair; Codex root.
+
+Candidate scope: Candidate repair in progress for four source-backed setup/reconnect gaps; no acceptance claimed.
+
+Candidate report: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
+
+Lead verification: pending. This candidate does not certify task parity.
 
 ### A-07 — Complete Robot records, provisioning and calibration/history behavior
 

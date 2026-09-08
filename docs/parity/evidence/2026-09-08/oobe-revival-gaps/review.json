@@ -1,0 +1,26 @@
+{
+  "status": "source-backed-gaps-candidate-repair-pending",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "observedRevision": "92791fb458f1417b42f830949fcb1d82f93f19cd",
+  "rootReproducedSyntheticControls": 9,
+  "rootProductHashesVerified": 6,
+  "gaps": [
+    "ReconnectRobot is undispatched; the source deletes its token and returns the command result.",
+    "SetupRobot omits the source owner check for a token bound to a loop.",
+    "SetupRobot rejects suspended-loop replacement instead of replacing the robot and unsuspending the loop.",
+    "SetupRobot directly accepts a deleted loop that the source query middleware excludes."
+  ],
+  "taskOwnership": "A-05 OOBE lifecycle; shared Account reactivation is separately assigned to A-04.",
+  "adoptionQualification": "Guarded staged household import preserves source IDs and rejects non-pristine conflicts. The operator admin adoption route is a Phoenix extension; absence of an invented /api/robots/adopt route is not a source parity gap. No new obsolete-Loop-ID acceptance mode is required by this evidence.",
+  "limits": [
+    "Synthetic candidate observations and fresh exact-source inspection; not original OOBE Node8 execution.",
+    "No robot or family data changes.",
+    "No acceptance or checklist completion claimed."
+  ],
+  "evidenceSha256": {
+    "root-oobe.ctrl.ts": "705ce9256771c7de199c94836a3549d2d8fe838ccc40d1dabda24bd922a9cbe9",
+    "controls.mjs": "8e8ddae5e6b596a30df9e48addf0fccd3ef9632c028c69a2e781c5d9cf2c4ff2",
+    "root-controls.json": "7cf2493d0e3c709995347a881704ac9c0bdc3f0c811710d178434ed19749646f",
+    "root-controls-output.json": "e083d41c608f14e86f0585d20cb8c8b2cfe55a9777f1a929b9a073edc6ffe6c6"
+  }
+}

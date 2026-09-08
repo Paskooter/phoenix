@@ -2936,13 +2936,20 @@
         "packages/account/src/qrPayload.js",
         "packages/account/portal/qr.js"
       ],
-      "finding": "Setup/prepare/status and QR flows exist. Reconnect/service-token and complete lifecycle semantics are not established.",
+      "finding": "Root reproduced nine synthetic adoption/OOBE controls and verified six product hashes against fresh pinned source inspection. ReconnectRobot dispatch/token consumption, bound-loop owner authorization, suspended robot replacement and deleted-loop filtering have substantive gaps. Luna Max is implementing an isolated candidate; original source/runtime/client verification and root review are pending. A-03/A-04 dependencies still govern final acceptance. Operator REST adoption is a Phoenix extension, not an obligation to invent another route.",
       "acceptance": [
         "Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.",
         "Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.",
         "Retain hardware evidence by robot/firmware/date; prior notes are not a fresh parity run."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "awaiting_review",
+        "assignee": "Luna Max / capture_writer_repair; Codex root",
+        "scope": "Candidate repair in progress for four source-backed setup/reconnect gaps; no acceptance claimed.",
+        "artifact": "packages/account/src/robotFace.js",
+        "reviewEvidence": "docs/parity/evidence/2026-09-08/oobe-revival-gaps/review.json"
+      }
     },
     {
       "id": "A-06",
