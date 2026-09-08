@@ -63,11 +63,15 @@ function runJson(args) {
 function makeCertificate(directory) {
   var key = path.join(directory, 'test.key');
   var cert = path.join(directory, 'test.crt');
+  if (process.env.PHOENIX_CA_TEST_CERTIFICATE) {
+    fs.writeFileSync(cert, fs.readFileSync(process.env.PHOENIX_CA_TEST_CERTIFICATE));
+  } else {
   var openssl = childProcess.spawnSync('openssl', [
     'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
     '-subj', '/CN=phoenix-installer-test', '-keyout', key, '-out', cert
   ], {encoding: 'utf8', stdio: 'ignore'});
-  assert.strictEqual(openssl.status, 0, 'openssl is required for the local certificate fixture');
+  assert.strictEqual(openssl.status, 0, 'openssl or PHOENIX_CA_TEST_CERTIFICATE is required');
+  }
   var bytes = fs.readFileSync(cert);
   var bundle = path.join(directory, 'system-ca-bundle.pem');
   // A bundle with two valid PEM blocks exercises the same parser used for a

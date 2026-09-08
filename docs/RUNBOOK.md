@@ -115,6 +115,8 @@ One run does everything on the robot:
 * redirects `<region>.jibo.com` and `<region>-socket.jibo.com` to the server,
 * installs the CA **the server generated** into the robot's trust store, so the
   redirect is actually accepted,
+* patches every installed Node `jibo-server-client` HTTP transport and installs
+  its CA bundle, with backups and a guarded revert,
 * points Jetstream's conversation hub at the server and restarts it, so speech
   reaches Phoenix too (`--hub-port`, default 9000; `--no-hub` to skip),
 * registers the robot in the Phoenix account store using its own existing
@@ -122,9 +124,9 @@ One run does everything on the robot:
   works here without re-running OOBE (`--no-adopt` to skip).
 
 The robot's secret key is streamed straight from the robot into the local
-adopter and never appears in a command line, a file or a log. Adoption is
-idempotent: a robot that already has an account is left alone rather than given
-a second loop.
+adopter without being printed in a command line or log. The private account
+store retains the credentials needed for authentication. Adoption is idempotent:
+an existing loop is reused; an account missing its loop can be repaired.
 
 Add `--classic-url http://<server>:9012` for a plain-HTTP deployment, which
 rewrites every `region_config.json`. A TLS deployment does not need it — the
@@ -158,8 +160,10 @@ Two things worth knowing about what it does:
   silently lost on reboot. The script detects this and installs into the real
   directory underneath, which persists.
 
-It only ever changes data — hosts entries, config files and certificates. It never
-patches robot code, so the robot stays a genuine unmodified client.
+The Node CA backport modifies robot client code. Its upstream source pin and
+patch hash are checked for every nested copy before installation; an unknown
+version stops the patch operation. API and BE logic remain those of the original
+client. The deployment records this qualification in its hardware evidence.
 
 ## 7. Verify
 
@@ -174,8 +178,10 @@ ssh root@<robot> 'curl -s -o /dev/null -w "%{http_code} via %{remote_ip}\n" http
 ssh root@<robot> 'grep NotificationSubsystem /var/log/messages | tail -5'
 ```
 
-You are looking for `established connection to server`, followed by **silence** —
-the retry timer only logs when it is disconnected, so quiet means connected.
+You are looking for `established connection to server`. Confirm the current
+connection with `netstat -tn` or the native Notification status WebSocket
+(`/server/notifications/status`, status `1`). Logs rotate; silence alone does
+not establish a connection.
 
 > A `curl` or Node TLS probe on the robot does **not** prove the native path works.
 > Node ships its own CA bundle and ignores the OpenSSL store the native service uses.
@@ -187,8 +193,24 @@ the retry timer only logs when it is disconnected, so quiet means connected.
 |---|---|---|
 | `Could not request robot token: SSL connection unexpectedly closed` | Certificate rejected, or nothing listening on 443 | Check SANs (step 3) and that the CA is installed (step 6) |
 | `Could not establish connection to server` | Hostname resolves somewhere wrong, or no server there | `ssh root@<robot> 'ping -c1 <region>-socket.jibo.com'` should show your server |
-| Nothing at all about notifications | The native service is not running | `ssh root@<robot> 'ps | grep jibo-server-service'` |
+| Nothing at all about notifications | Logs may have rotated, or the service may not be running | `ssh root@<robot> 'ps | grep jibo-server-service'` |
 | Connects, then reconnects every ~2 minutes | Server is not answering the client's pings | The client disconnects after 120s without traffic |
+
+The Node clients have a separate trust path. The repoint installer patches every
+nested `jibo-server-client` copy to load `lib/http/phoenix-ca.pem`, using the robot's
+system CA bundle with Phoenix's CA added. `JIBO_EXTRA_CA_CERTS` can override that
+path. Verification stays on; a configured but unreadable file is an error. Node 6
+replaces its built-in roots when `ca` is supplied, so use the complete bundle.
+Restart the processes using the package after installation; existing agents are
+cached. See [the client divergence](../DIVERGENCES.md#robot-deployment-client).
+
+Also confirm that a BE skill is running. A healthy hub and Notification socket do
+not establish that the robot's experience has started. On a developer-mode robot,
+`GET http://127.0.0.1:8779/skill/list` reports each skill's `running` state. Start
+the intended installed skill through `POST http://127.0.0.1:8686/run` with
+`{"dirName":"<installed package name>"}`. Moth's selected validation package is
+`@be/phoenix-parity-11-0-1`. Starting it restored a clock turn before the Node CA
+patch; do not attribute that failure to TLS merely because TLS errors also appear.
 
 Two failure modes worth calling out because they look like something else:
 
