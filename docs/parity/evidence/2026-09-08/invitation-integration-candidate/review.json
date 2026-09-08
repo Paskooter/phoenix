@@ -1,0 +1,32 @@
+{
+  "status": "candidate-unverified",
+  "revision": "afe50bc",
+  "baseRevision": "9aeb959e11832cec825da62d1aa21e5af6e1d6d6",
+  "sourceCandidates": [
+    "fbb3df5",
+    "ba0e3b4",
+    "19cace3",
+    "eaa6724",
+    "4eb6e91",
+    "2eaaea2"
+  ],
+  "integrationResolutions": [
+    "Preserve accepted guardian provider alongside invitation providers.",
+    "Preserve primitive validation for agreement and list operations.",
+    "Return asynchronous membership handler results so CreateLoop completes before response finalization."
+  ],
+  "verification": {
+    "focusedPassed": 16,
+    "focusedFailed": 0,
+    "privacyScannedChangedFiles": 24,
+    "privacyMatches": 0,
+    "accountSuite": "running"
+  },
+  "pending": [
+    "Independent CreateLoop review, including robot-read transport timeout semantics.",
+    "Long ASCII MIME line comparison and any required repair.",
+    "Account/integration acceptance checks and strict gate."
+  ],
+  "deployment": "No main production code or Moth changes. No real mail or family fixtures.",
+  "focusedLogSha256": "6b1fceb1d7eeec1e5ff30850b9ecc5cbcf112825c3cb60d59b59539dfc622332"
+}
