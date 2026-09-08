@@ -9,6 +9,7 @@
 
 import { sendAmz, sendAmzError } from './loopHttp.js';
 import { verifySigV4, SigV4Error, SIGV4_ERRORS } from '@phoenix/common';
+import { idsEqual, mapGetById } from './id.js';
 
 const ERRORS = Object.freeze({
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
@@ -103,13 +104,6 @@ function sendValidationError(res, message) {
 }
 
 
-function idsEqual(left, right) {
-  if (left === undefined || left === null || right === undefined || right === null) return false;
-  if (left && typeof left.equals === 'function') return left.equals(right);
-  if (right && typeof right.equals === 'function') return right.equals(left);
-  return String(left) === String(right);
-}
-
 function idString(value) {
   if (value === undefined || value === null) return value;
   return typeof value === 'string' ? value : value.toString();
@@ -120,7 +114,7 @@ function activeLoops(store) {
 }
 
 function activeLoopById(store, loopId) {
-  const direct = store.loops.get(String(loopId));
+  const direct = mapGetById(store.loops, loopId);
   if (direct && direct.isDeleted !== true) return direct;
   return activeLoops(store).find((loop) => idsEqual(loop._id, loopId)) || null;
 }

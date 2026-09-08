@@ -25,6 +25,7 @@ import {
 import { dispatchInvitationSideEffects } from './invitationProviders.js';
 import { dispatchLoopCreated } from './loopCreation.js';
 import { dispatchMembershipEvent } from './membershipEvents.js';
+import { idsEqual, mapGetById } from './id.js';
 
 const MAX_SIZE = 16;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
@@ -127,11 +128,6 @@ function fail(err) {
   throw new LoopError(err);
 }
 
-function idsEqual(a, b) {
-  if (a === undefined || a === null || b === undefined || b === null) return false;
-  return String(a) === String(b);
-}
-
 function invitationCode() {
   let n = BigInt(`0x${randomBytes(5).toString('hex')}`);
   let s = '';
@@ -152,7 +148,7 @@ function callerAccount(store, req) {
 }
 
 function activeLoopById(store, loopId) {
-  const loop = store.loops.get(loopId);
+  const loop = mapGetById(store.loops, loopId);
   return loop && loop.isDeleted !== true ? loop : null;
 }
 
