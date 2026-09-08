@@ -6,7 +6,8 @@ replay the 20,528-case corpus and does **not** claim that the default-AST
 51-residual baseline moved.
 
 Task id: `N-08-compiled-default-20260908`.
-Worktree head: `6b8a5d8be54faa49327d2fdb357176af7c169c15`.
+Implementation and residual measurement: `6b8a5d8be54faa49327d2fdb357176af7c169c15`.
+This write-up is the following docs commit on the same branch.
 Source revision: hashbrown/Pegasus `5c0a7390539663ba749d360de348a428c088505c`.
 Native library: ConvTech/jibo-nlu `91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e`.
 Node: `v22.22.0`.
