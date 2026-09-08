@@ -1,0 +1,27 @@
+{
+  "state": "accepted_bounded",
+  "subject": "N-08 family F1: launch-union scoring without the grammar-priority boost",
+  "reviewedBy": "Claude root",
+  "agentRuntime": "grok-4.6, worktree .parity/worktrees/n08-f1-launch-union-20260908",
+  "agentRevision": "27b9124edc68b",
+  "integrationRevision": "f3ed0c8",
+  "change": "packages/nlu/src/grammar/matcher.js scored launch union members as priorityRank(priority) * 1e6 + specificity - cost. The original native union score is input_length - heuristic and copies priority onto the result after selection, so priority is payload rather than a ranking term. The 1e6 boost is removed and priority is preserved as payload.",
+  "rootVerification": {
+    "fullReplay": {"cases": 20528, "matches": 20479, "differences": 49, "elapsedSeconds": 1007},
+    "baseline": {"matches": 20477, "differences": 51},
+    "idSetCheck": "Root compared residual id SETS rather than counts, because a change that fixes three rows and breaks one also shows a net gain of two. The new residual set is exactly the old set minus the two F1 ids.",
+    "f1Fixed": ["chitchat:3989:0:base", "hub-client:183:0:base"],
+    "newRegressions": [],
+    "unexpectedlyFixedNonF1": [],
+    "verdict": "PASS on the stated criterion: both F1 rows fixed, the other 49 unchanged, zero new or changed ids.",
+    "regressionGuard": "packages/nlu/test/wildcardRanking.test.js asserts rule 'a w03 c' still beats 'a * c' on input 'a one c'. This is the exact regression that got candidate 700e40c rejected. 9 focused tests pass.",
+    "integratedMain": {"unit": "797 tests, 789 pass, 0 fail, 8 skip", "strictGate": {"cases": 43, "differences": 0}}
+  },
+  "significance": "The default AST profile now retains 49 residuals rather than 51. This is a genuine but small improvement and does not change the strategic picture: the remaining 49 are families F2 and F3, which are not repairable in the AST parser, and the compiled runtime already matches all 20,528 cases.",
+  "notClaimed": [
+    "N-08 is not complete and stays in_progress.",
+    "The 49 remaining AST residuals are unchanged and are not addressable by further ranking work.",
+    "No robot run and no production-comparison claim."
+  ],
+  "ledgerEffect": "None. The checklist stays at 8/79."
+}
