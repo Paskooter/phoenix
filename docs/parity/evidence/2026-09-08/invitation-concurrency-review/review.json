@@ -1,0 +1,24 @@
+{
+  "status": "withheld-pending-actual-save-operator-controls",
+  "finding": "The agent concurrency control modeled whole-document last-write replacement. Actual Mongoose4.9.8 source-schema dirty-path generation emits $pushAll for new embedded members, so the claimed duplicate-invitation member count is not established by that control.",
+  "observed": {
+    "initialMemberAppend": "Each hydrated document emits $pushAll.members with one new member and $inc.__v:1; predicate contains _id without a version condition.",
+    "statusChange": "Existing member status emits a positional numeric-path $set with the hydrated version in the predicate."
+  },
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "runtime": {
+    "node": "v8.9.4",
+    "mongoose": "4.9.8"
+  },
+  "qualifications": [
+    "Fresh actual Mongoose model from the original exported Loop schema; query/model overrides on the old exported model are bypassed.",
+    "No Mongo execution or original controller invocation in this root delta probe.",
+    "The initial assertion expected $push rather than this version's $pushAll and failed; the preserved observation rerun records actual operators.",
+    "No production repair or complete concurrency parity conclusion follows from this probe alone."
+  ],
+  "action": "Agent must rerun exact controller with real Mongoose save update operators before root acceptance.",
+  "hashes": {
+    "observe.cjs": "8be0c1270ba98d2ddfcdd1b6cf185826d3cf0daf629af0211c0ae51f69eb93de",
+    "observed-delta.json": "cc0a1a66dd2e294e4702117b6bb53f23ff951db99b8a602467d695ceb019e1d4"
+  }
+}

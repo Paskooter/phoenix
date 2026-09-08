@@ -219,3 +219,5 @@ and [combined Account/Classic recovery](../evidence/2026-09-08/classic-loop-reco
 The recovery control uses a synthetic raw WebSocket peer and orderly service
 restarts. It does not establish arbitrary crash-point behavior or exactly-once
 network delivery.
+
+Root concurrency review: the initial overlap controls used whole-document replacement, while original Mongoose member insertion emits array-append operators. [Acceptance is withheld pending controls using actual save operators](../evidence/2026-09-08/invitation-concurrency-review/review.json). Sequential status matches do not close this item.
