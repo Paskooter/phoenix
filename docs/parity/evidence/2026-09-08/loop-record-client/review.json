@@ -1,0 +1,57 @@
+{
+  "state": "verified_client_layer_pending_integration",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T06:19:13.034337+00:00",
+  "candidateRevision": "49b7cdfd84518dbd999a8bedbf8e48066a34e212",
+  "operations": [
+    "UpdateLoop",
+    "RemoveLoop",
+    "ClearRobot"
+  ],
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "client": {
+    "version": "3.0.110",
+    "node": "8.9.4",
+    "calls": 58,
+    "captures": 87,
+    "faces": [
+      "Account",
+      "Classic"
+    ],
+    "timeouts": 0,
+    "bodyHashMismatches": 0
+  },
+  "rootReview": {
+    "artifactHashesVerified": 13,
+    "candidateSourceHashesVerified": 5,
+    "agentVerifierRerun": "pass",
+    "independentExpectedStatusAndCodeChecks": 58,
+    "observedPersistence": [
+      "updated loop name",
+      "soft deletion",
+      "cleared robot association"
+    ],
+    "invalidRequestsPreserveState": true
+  },
+  "combinedTests": {
+    "passed": 866,
+    "skipped": 7,
+    "failed": 0,
+    "strictSmokeCases": 43,
+    "strictSmokeDifferences": 0
+  },
+  "privateEvidence": ".parity/reviews/a04-loop-record-client-node8-20260908/run-4/",
+  "manifestSha256": "2a8061d30c05f371203d4cef943d6fa9c0ba95abb2f011372405633d1470c4ff",
+  "qualifications": [
+    "Synthetic stores and ephemeral listeners; no destructive real household testing.",
+    "Generated client response projection may omit unknown source metadata.",
+    "This checks the client layer; original controller comparison is separate evidence.",
+    "Other combined operations and invitation provider effects remain under review.",
+    "No full Mongo, hardware lifecycle or whole A-04 acceptance claim."
+  ],
+  "taskClosed": false,
+  "privacy": {
+    "fixtureData": "invented",
+    "realHouseholdDataIncluded": false
+  }
+}

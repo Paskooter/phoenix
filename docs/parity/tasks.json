@@ -2740,15 +2740,11 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "accepted",
-        "assignee": "Luna Max / http_contract_repair; Codex root",
-        "candidateRevision": "5a5265b4d0c531b06e9f30b0c585593c11545c32",
-        "reviewedCandidateRevision": "983318584799484455bc3ef2218a31320b076ed5",
-        "scope": "Bounded suspension HTTP/state behavior. Root 678 units, seven skips, strict43, isolated Node20 test, 87 original Node8 client calls and 21 actual original controller controls pass. Integrated package tree and test/dependency files equal tested983. LoopUpdated effects, full Classic signature verification and complete A-04 remain open.",
-        "artifact": "docs/parity/candidates/A-04-suspension-root-pending-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/account-suspension-pending/review.json",
-        "reviewedBy": "Codex root",
-        "integrationRevision": "d0ac8ce946a20430fa80cee724a344cb8ca7eaaa"
+        "state": "awaiting_review",
+        "assignee": "Luna Max team; Codex root",
+        "candidateRevision": "4d453eb8a85a0bebcac189a7dc643153d54ba35c",
+        "scope": "Combined record/member/COPPA/auth and Loop list candidates. Root verified 58 original-client record calls; list candidate passed 868 tests and strict43. Member/COPPA and list client reviews and invitation provider effects remain open. No deployment or whole-task acceptance.",
+        "artifact": "docs/parity/candidates/A-04-current-review-20260908.md"
       },
       "reviewHistory": [
         {
@@ -2803,6 +2799,26 @@
           "scope": "Root deployed reviewed shared Loop auth and lookups. Installed Node6 client3.0.105 passed household/owner/robot-list reads and expected owner-credential denial; native notification socket connected, strict TLS retained, and entire account store preserved. No new microphone, screen, profile-mutation or full A-04 acceptance claim.",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/hardware/loop-lookup-auth/review.json",
           "artifact": "packages/account/src/robotFace.js"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / http_contract_repair; Codex root",
+          "candidateRevision": "5a5265b4d0c531b06e9f30b0c585593c11545c32",
+          "reviewedCandidateRevision": "983318584799484455bc3ef2218a31320b076ed5",
+          "scope": "Bounded suspension HTTP/state behavior. Root 678 units, seven skips, strict43, isolated Node20 test, 87 original Node8 client calls and 21 actual original controller controls pass. Integrated package tree and test/dependency files equal tested983. LoopUpdated effects, full Classic signature verification and complete A-04 remain open.",
+          "artifact": "docs/parity/candidates/A-04-suspension-root-pending-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/account-suspension-pending/review.json",
+          "reviewedBy": "Codex root",
+          "integrationRevision": "d0ac8ce946a20430fa80cee724a344cb8ca7eaaa"
+        },
+        {
+          "state": "awaiting_review",
+          "assignee": "Luna Max / capture_writer_repair; Codex root",
+          "reviewedBy": "Codex root",
+          "candidateRevision": "49b7cdfd84518dbd999a8bedbf8e48066a34e212",
+          "scope": "Record-operation original-client layer verified with 58 calls and expected status/code/state checks; combined implementation acceptance and deployment remain pending.",
+          "artifact": "docs/parity/candidates/A-04-current-review-20260908.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/loop-record-client/review.json"
         }
       ]
     },

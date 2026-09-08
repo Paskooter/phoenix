@@ -1395,13 +1395,13 @@ Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFac
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
+- [x] Candidate implementation — **awaiting_review**; Luna Max team; Codex root.
 
-Candidate scope: Bounded suspension HTTP/state behavior. Root 678 units, seven skips, strict43, isolated Node20 test, 87 original Node8 client calls and 21 actual original controller controls pass. Integrated package tree and test/dependency files equal tested983. LoopUpdated effects, full Classic signature verification and complete A-04 remain open.
+Candidate scope: Combined record/member/COPPA/auth and Loop list candidates. Root verified 58 original-client record calls; list candidate passed 868 tests and strict43. Member/COPPA and list client reviews and invitation provider effects remain open. No deployment or whole-task acceptance.
 
-Candidate report: [docs/parity/candidates/A-04-suspension-root-pending-20260907.md](../../docs/parity/candidates/A-04-suspension-root-pending-20260907.md).
+Candidate report: [docs/parity/candidates/A-04-current-review-20260908.md](../../docs/parity/candidates/A-04-current-review-20260908.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/account-suspension-pending/review.json](../../docs/parity/evidence/2026-09-07/account-suspension-pending/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead verification: pending. This candidate does not certify task parity.
 
 ### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
 
