@@ -1,0 +1,87 @@
+{
+  "state": "verified_bounded",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T04:50:38.188082+00:00",
+  "subject": "Real robot profile saves and background LoopUpdated household synchronization",
+  "backendRevision": "d7934a6d1fb6ef92187bf6a2c54034aca4b3d295",
+  "deployment": {
+    "frozenCheckout": true,
+    "isolatedWorkspaceDependencies": true,
+    "allSixServicesHealthy": true,
+    "existingPersistentStoreRetained": true,
+    "parser": "default AST; accepted N1 divergence unchanged"
+  },
+  "robotClient": {
+    "node": "v6.9.2",
+    "jiboServerClient": "3.0.105",
+    "strictTlsVerification": true,
+    "explicitTrustedCa": true,
+    "operations": [
+      "SetEnrollment",
+      "UpdateNickname",
+      "UpdatePhoneticName"
+    ],
+    "control": "Each save targets the robot member and preserves existing values; no enrollment flags or names are changed.",
+    "eachOperationReturnedSuccess": true,
+    "clientReadbackPreservedAllFieldsExceptSaveTimestamp": true
+  },
+  "notification": {
+    "nativeFrameObserved": true,
+    "nativeFrameName": "LoopUpdated",
+    "nativeStatusConnected": true,
+    "originalDispatcherEventsObserved": 3,
+    "originalLoopManagerUpdatesObserved": 3,
+    "originalSaveCallbacksCompletedWithoutError": 3,
+    "canonicalKbReadbackMatchesSaveTimestampForEachOperation": true,
+    "outboxDrained": true,
+    "visibleNotificationExpected": false,
+    "behavior": "Original SDK handles these notifications by fetching ListLoops and saving household state in the background."
+  },
+  "preservation": {
+    "allAccountProfilesAndCredentialsPreserved": true,
+    "allLoopFieldsPreservedExceptSaveTimestamp": true,
+    "rootIdentityAndEdgesPreserved": true,
+    "rootFieldsPreserved": true,
+    "allMemberFieldsPreserved": true,
+    "allSpeakerEnrollmentsPreserved": true,
+    "accountOutboxDrained": true,
+    "allServicesHealthy": true
+  },
+  "clock": {
+    "input": "native clientASR text injection through original BE Jetstream SDK",
+    "clockSkillObserved": true,
+    "clockViewVisuallyReviewed": true,
+    "ttsActiveObserved": true,
+    "returnedToIdle": true
+  },
+  "source": {
+    "sdk": "sdk/sdk@c7e145c9731e3d3f92423950e18cf0e31ee76efa",
+    "files": [
+      "packages/skills-service-manager/src/services/kb/LoopManager.ts",
+      "packages/skills-service-manager/src/services/kb/SyncManager.ts"
+    ],
+    "installedCodeHashes": {
+      "ssm.installed.js": "88daae19883921238efbf2a56dd8e8670b89bec95d967953ab060b74db1b4e38",
+      "jibo-client-framework.installed.js": "ab375c3ee48b2e097d2fb79a2f696503ccfb62a46505831b324cb83aaf4aa628",
+      "jibo-kb.installed.js": "2fe5e6bdbc702da8f0d62e9c15959211b8b76021c5916cfb082757136f5e9e5f"
+    }
+  },
+  "verificationCorrection": {
+    "initialObservation": "A leading-slash KB name selected a second cached database instance and returned an old timestamp. Those failed checks are retained privately.",
+    "correctedPath": "/v1/kb/jibo%2Floop/node/loadRoot",
+    "basis": "Read the exact KB name and URL from the installed LoopManager model; original dispatcher, save callback and canonical HTTP reads then agreed.",
+    "serverPatchRequired": false
+  },
+  "cleanup": {
+    "forwardingObserverRestored": true,
+    "temporaryRobotScriptRemovedWithHashGuard": true,
+    "ownedDebugTunnelsStopped": true
+  },
+  "privacy": "Only generic outcomes and technical checks are published. Personal source values, household statistics, raw frames, SDK replies, KB captures, enrollment data and backups remain private.",
+  "limits": [
+    "Real robot controls preserve existing values; changed-name and boolean mutation semantics are covered by synthetic source/client controls.",
+    "No microphone recognition, physical blue ring, other skills or reboot acceptance is claimed.",
+    "Remaining Loop operations, complete notification failure/durability behavior and full Classic authentication remain open."
+  ],
+  "privateEvidence": ".parity/reviews/a04-robot-profile-root-20260908"
+}

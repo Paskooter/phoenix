@@ -1,8 +1,9 @@
 # Authenticated development robot stack
 
 `authenticated-stack.mjs` runs the reviewed Phoenix services with the actual
-signed Account token issuer, shared Hub JWT verification, and the installed
-portable parser profile. It keeps running until stopped. It does not install
+signed Account token issuer, shared Hub JWT verification, and the default AST
+parser. A compiled parser profile is optional. It keeps running until stopped.
+It does not install
 robot configuration, trust certificates, tunnels, or a boot supervisor.
 
 Supply an existing private Account store containing the robot's credentials,
@@ -18,15 +19,15 @@ PHOENIX_ROBOT_STORE_FILE=/private/phoenix/account.json \
 PHOENIX_ROBOT_SECRET_FILE=/private/phoenix/hub-secret \
 PHOENIX_ROBOT_TLS_KEY=/private/phoenix/server.key \
 PHOENIX_ROBOT_TLS_CERT=/private/phoenix/server.crt \
-PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=/private/phoenix/parser/profile.json \
 node scripts/parity-robot/authenticated-stack.mjs
 ```
 
-Install the parser bundle using the existing
+To opt into the compiled parser, install the bundle using the existing
 [portable parser deployment procedure](../../docs/parity/candidates/N-08-snapshot-deployment-20260907.md).
-The launcher verifies the snapshot before it opens services. It selects the
-compiled profile explicitly; it does not change the repository's default parser
-or enable a pending GQA profile or LLM fallback.
+Then set `PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST` to its private `profile.json`.
+The launcher verifies the snapshot before it opens services. Without that
+setting it uses AST, including the accepted N1 divergence. It does not enable
+a pending GQA profile or LLM fallback.
 
 The default Hub port is 19000; skills, parser, history and data use offsets
 3, 5, 6 and 7. Account binds to loopback at offset 11. The Classic TLS entrypoint listens on port 443 (all interfaces by default, so real robots on the LAN can reach it) and hosts both its
@@ -50,17 +51,27 @@ log retention. SIGINT/SIGTERM closes its sockets and listening servers.
 This is a development process launcher, not a claim of complete cloud parity.
 Only CreateHubToken has the reviewed Classic signature verifier; other Classic
 operations retain their documented boundaries. Account credentials/signing
-secret survive process restarts through the supplied files. History durability,
-automatic LoopUpdated delivery, and host/robot reboot
+secret survive process restarts through the supplied files. Complete history
+and notification durability, and host/robot reboot
 supervision remain separate tracked work. Inspect the current parity ledger
 before deploying a later integration.
 
 The launcher keeps notification tokens and pending source-shaped documents in
 `notifications.json` inside its private run directory. This supports process
 restart recovery. The launcher shares its Account Store with the signed
-Notification resolver and attaches the durable Loop suspension publisher after
-Classic is listening. Startup retries retained outbox rows. Other Loop-save
-producers, distributed transport and robot notification acceptance remain open.
+Notification resolver and attaches the durable Loop-save publisher after
+Classic is listening. Startup retries retained outbox rows.
+The profile operations have a bounded
+[real robot delivery check](../../docs/parity/evidence/2026-09-08/hardware/loop-profile/review.json):
+native frame, original dispatcher, household save and KB readback all agree.
+`LoopUpdated` is a background sync message; it does not display a popup.
+Other producers, distributed transport and complete failure/durability behavior
+remain open.
+
+For robot KB verification, use the exact slice name reported by the installed
+SDK. Its LoopManager uses `jibo/loop`, so the read endpoint is
+`/v1/kb/jibo%2Floop/node/loadRoot`. Adding a leading slash can select a second
+cached database instance and return stale state. Preserve captures privately.
 
 For a supervised Linux user service, install
 [`phoenix-robot@.service`](phoenix-robot@.service). Each instance reads only its

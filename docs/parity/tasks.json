@@ -2721,7 +2721,7 @@
         "packages/account/src/loopMembership.js",
         "packages/account/src/loopUpdatedOutbox.js"
       ],
-      "finding": "Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open. Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open.",
+      "finding": "Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open. Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open. Root deployed d7934a6 and verified all three profile operations on the installed Node6 client using value-preserving saves. Original native notification, dispatcher, household save and canonical KB readback agree; all household and enrollment preservation checks pass. Clock view/TTS/idle also pass. Other operations and full A-04 remain open.",
       "acceptance": [
         "Cover all 23 wire operations: creation/update/removal, invitations/membership, robot association, enrollment, names/photos, legal guardian/agreement and suspension.",
         "Match ownership, membership states, side effects, errors and persistence with real client sequences.",
@@ -2756,6 +2756,15 @@
           "scope": "Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open.",
           "artifact": "docs/parity/candidates/A-04-member-profile-20260908.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/account-profile/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "reviewedBy": "Codex root",
+          "candidateRevision": "d7934a6d1fb6ef92187bf6a2c54034aca4b3d295",
+          "scope": "Root deployed d7934a6 and verified all three profile operations on the installed Node6 client using value-preserving saves. Original native notification, dispatcher, household save and canonical KB readback agree; all household and enrollment preservation checks pass. Clock view/TTS/idle also pass. Other operations and full A-04 remain open.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/hardware/loop-profile/review.json",
+          "artifact": "scripts/parity-robot/authenticated-stack.mjs"
         }
       ]
     },
@@ -3003,7 +3012,7 @@
       "phoenix": [
         "packages/classic/src/notification.js"
       ],
-      "finding": "Root accepted durable local notification lifecycle, verified Account document identity, source validation and the authenticated launcher suspension bridge/startup recovery. Original23 Hapi controls, root23 signed HTTP comparisons, verifiedTLS isolation/restart and751 units/strict43 pass. Other Loop-save producers, distributed persistence/transport and real-robot notification delivery remain open.",
+      "finding": "Root accepted durable local notification lifecycle, verified Account document identity, source validation and the authenticated launcher suspension bridge/startup recovery. Original23 Hapi controls, root23 signed HTTP comparisons, verifiedTLS isolation/restart and751 units/strict43 pass. Other Loop-save producers, distributed persistence/transport and real-robot notification delivery remain open. Root verified the LoopUpdated path on the real robot: saved profile request, native notification frame, original dispatcher event, original LoopManager save callback and canonical KB readback. These are background sync messages without a visible popup. Full notification failure/durability and A-10 remain open.",
       "acceptance": [
         "Compare token issuance/reuse, socket authentication, status, framing, delivery/reconnect/expiry and queue behavior with the original consumer.",
         "Verify ordering, replay/ack behavior where present in source, persistence and multiple-device/account isolation.",
@@ -3066,7 +3075,18 @@
         "scope": "Bounded verified Notification account identity, source body validation, default colocated suspension publisher and startup recovery. Original23 Hapi cases, root23 signed HTTP cases, verifiedTLS bridge,751 units and strict43 pass. Full A-10 remains open.",
         "artifact": "docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md",
         "reviewEvidence": "docs/parity/evidence/2026-09-07/notification-authenticated-bridge/review.json"
-      }
+      },
+      "reviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "reviewedBy": "Codex root",
+          "candidateRevision": "d7934a6d1fb6ef92187bf6a2c54034aca4b3d295",
+          "scope": "Root verified the LoopUpdated path on the real robot: saved profile request, native notification frame, original dispatcher event, original LoopManager save callback and canonical KB readback. These are background sync messages without a visible popup. Full notification failure/durability and A-10 remain open.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/hardware/loop-profile/review.json",
+          "artifact": "scripts/parity-robot/authenticated-stack.mjs"
+        }
+      ]
     },
     {
       "id": "A-11",
@@ -3385,7 +3405,7 @@
         "scripts/run-sim-stack.sh",
         "README.md"
       ],
-      "finding": "The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open. Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open.",
+      "finding": "The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open. Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open. Root deployed frozen d7934a6 with isolated workspace dependencies while retaining the private persistent store. Six service health checks, real profile/notification controls, household preservation and clock view/TTS/idle pass. Full installation, migration, crash and reboot acceptance remain open.",
       "acceptance": [
         "Test a clean install and isolated native/compose deployments with correct service names, ports, configuration, startup/shutdown and readiness.",
         "Verify migration from the current Phoenix stores and, where available, original database fixtures with backup/restore and rollback.",
@@ -3419,6 +3439,15 @@
           "scope": "Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open.",
           "artifact": "scripts/import-household-snapshot.mjs",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/household-staging/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Codex root",
+          "reviewedBy": "Codex root",
+          "candidateRevision": "d7934a6d1fb6ef92187bf6a2c54034aca4b3d295",
+          "scope": "Root deployed frozen d7934a6 with isolated workspace dependencies while retaining the private persistent store. Six service health checks, real profile/notification controls, household preservation and clock view/TTS/idle pass. Full installation, migration, crash and reboot acceptance remain open.",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/hardware/loop-profile/review.json",
+          "artifact": "scripts/parity-robot/authenticated-stack.mjs"
         }
       ]
     },
