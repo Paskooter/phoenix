@@ -1,0 +1,84 @@
+{
+  "state": "verified_bounded",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T04:21:04.485622+00:00",
+  "subject": "Loop member enrollment and names; failed membership save isolation",
+  "baseRevision": "fbc27c41e5bd5f9e6d226661574dbbb983bce22c",
+  "candidateRevisions": [
+    "62fa849e6617f789251d3d73092001b8f148cc12",
+    "acbcb22a6991b7a801ab12a7dd2ccbd25327d1c0"
+  ],
+  "artifacts": {
+    "packages/account/src/index.js": "3e20d2d021b49fdcc0670a07768bba961846fd1f4ec790e09814b8b1d4121738",
+    "packages/account/src/loopMembership.js": "ef05e1439bf354a5e7c2055ebde89ac25db97b0e92b466a31e51878eac8c2038",
+    "packages/account/src/robotFace.js": "93d165d18cc1d74c4157509aad4a8e1dc79b20541a67a2eea04807ff0e69c956",
+    "packages/account/test/loopMemberProfile.test.js": "37679b3adc932880b64786ecca506a993ae939c78c74214024e6d6feae3c0418",
+    "packages/account/test/loopMembershipPersistence.test.js": "265a2bfba3b9676cd690b68b812d5f96f9d274075015d723d9ec2040e5789ef5"
+  },
+  "source": {
+    "account": "jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2",
+    "framework": "@jibo/server 4.0.12",
+    "node": "v8.9.4",
+    "runtimeImageId": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c"
+  },
+  "rootRepairs": [
+    "Detach profile mutations before persistence so rejected saves preserve shared state.",
+    "Accept source-valid string booleans without applying the discarded Joi conversion.",
+    "Parse valid JSON primitives before profile validation, preserving 422 versus malformed JSON 400.",
+    "Replace reconciled older source hashes with exact 6cea provenance in the candidate report."
+  ],
+  "verification": {
+    "sourceComparison": {
+      "operationControls": 16,
+      "operationDifferences": 0,
+      "validationControls": 22,
+      "validationDifferences": 0,
+      "compared": "Operation status/code, member state, normalized successful responses, save/event counts; validation status/save/event counts.",
+      "normalization": "Independent clock values and raw Loop _id/isDeleted metadata; error wording is not a parity requirement.",
+      "seams": "Exact source controller, handler and decorators executed with controlled Mongo query/save and event delivery seams."
+    },
+    "originalClient": {
+      "version": "3.0.110",
+      "node": "v8.9.4",
+      "controlsPassed": 8,
+      "controlsFailed": 0,
+      "loopModelSha256": "0abdc8481e512edeace21a90587177663bda69f4cbb1102dedfc1f8170648213",
+      "transport": "Generated client with ordinary parameter validation and request signing through isolated Phoenix Classic and Account."
+    },
+    "profileHttpTests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "membershipPersistenceTests": {
+      "beforeRepairFailed": 4,
+      "beforeRepairPassed": 1,
+      "afterRepairPassed": 5,
+      "afterRepairFailed": 0
+    },
+    "fullUnitSuite": {
+      "command": "node --test --test-concurrency=4",
+      "passed": 826,
+      "skipped": 8,
+      "failed": 0
+    },
+    "strictSmokeGate": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "privacy": "Synthetic fixtures only; captured family values, identifiers, statistics, credentials and raw household evidence are excluded from published changes."
+  },
+  "limits": [
+    "Source model queries and persistence use controlled seams; no real Mongo failure execution.",
+    "Raw Mongoose metadata and complete casting/serialization are not verified.",
+    "Complete Classic SigV4 verification and production notification delivery remain open.",
+    "No real robot deployment or acceptance of these new operations is claimed.",
+    "The other Loop operations and complete A-04 remain open."
+  ],
+  "privateEvidence": [
+    ".parity/reviews/a04-member-profile-root-20260908",
+    ".parity/reviews/a04-member-profile-review-20260908",
+    ".parity/reviews/a04-loop-persistence-root-20260908"
+  ]
+}

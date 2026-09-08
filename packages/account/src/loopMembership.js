@@ -4,7 +4,8 @@
 //   handlers/loop.handler.ts, controllers/loop.ctrl.ts, schemes/{loop,member.status,member.type}.ts,
 //   errors/loop.ts. API shapes: loop-2016-03-24.normal.json@155d20a8.
 //
-// This module implements those six operations on the public Classic face. Identity is the
+// This module implements the membership and bounded member-profile operations on the public
+// Classic face. Identity is the
 // stored access key (same as SuspendLoop); x-amz-credentials is not a caller switch.
 // Invitation mail, RobotClient, and EventSender are not invoked (no live providers).
 
@@ -22,6 +23,7 @@ import {
 const MAX_SIZE = 16;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const COMMAND_RESULT = Object.freeze({ result: 'Command accepted' });
 
 export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
@@ -34,6 +36,11 @@ export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
   CAN_BE_ACCESSED_BY_OWNER_OR_SELF: {
     code: 'CAN_BE_ACCESSED_BY_OWNER_OR_SELF',
     message: 'Only owner can manipulate this loop or account himself',
+    statusCode: 403,
+  },
+  CAN_BE_ACCESSED_BY_OWNER_OR_ROBOT: {
+    code: 'CAN_BE_ACCESSED_BY_OWNER_OR_ROBOT',
+    message: 'Only owner or robot can manipulate this loop',
     statusCode: 403,
   },
   MEMBER_EXISTS: { code: 'MEMBER_EXISTS', message: 'Member already exists', statusCode: 409 },
@@ -66,6 +73,9 @@ const HANDLERS = Object.freeze({
   listmembers: listMembersHttp,
   removeloopmember: removeMemberHttp,
   removemember: removeMemberHttp,
+  setenrollment: setEnrollmentHttp,
+  updatenickname: updateNicknameHttp,
+  updatephoneticname: updatePhoneticNameHttp,
 });
 
 export class LoopError extends Error {
@@ -115,25 +125,34 @@ function snapshotLoop(loop) {
   return JSON.parse(JSON.stringify(loop));
 }
 
-function restoreLoop(store, before) {
-  store.loops.set(before._id, before);
-}
-
-function saveLoop(store, loop, loopUpdatedOutbox) {
-  const before = store.loops.get(loop._id) ? snapshotLoop(store.loops.get(loop._id)) : null;
-  const previousUpdated = loop.updated;
+/**
+ * Persist a loop draft and its LoopUpdated row together.
+ *
+ * Mongoose gives each source request a document that is backed by the database;
+ * mutating that document before save() does not change the last committed
+ * snapshot when save() rejects.  Store maps contain plain shared objects, so
+ * callers must pass a pre-mutation snapshot and mutate a cloned draft.  Taking
+ * the snapshot here would be too late for an already-mutated map object.
+ */
+function saveLoop(store, loop, loopUpdatedOutbox, before = undefined) {
+  const priorStoredLoop = store.loops.get(loop._id);
+  const previous = before === undefined
+    ? (priorStoredLoop ? snapshotLoop(priorStoredLoop) : null)
+    : before;
   loop.updated = Date.now();
   store.loops.set(loop._id, loop);
   try {
     loopUpdatedOutbox.record(loop);
   } catch (error) {
-    if (before) restoreLoop(store, before);
+    if (previous) store.loops.set(previous._id, priorStoredLoop || previous);
     else store.loops.delete(loop._id);
-    if (previousUpdated === undefined) delete loop.updated;
-    else loop.updated = previousUpdated;
     throw error;
   }
   return loop;
+}
+
+function mutationDraft(loop) {
+  return { before: snapshotLoop(loop), loop: snapshotLoop(loop) };
 }
 
 function newMember({ accountId, status, memberProperties, invitationCode: code, invitedAsLegalGuardian }) {
@@ -281,13 +300,14 @@ function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
   const loops = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
     && idsEqual(loop.robot, robotAccountId)
     && (loop.members || []).some((member) => idsEqual(member.accountId, robotAccountId)));
-  for (const loop of loops) {
+  for (const storedLoop of loops) {
+    const { before, loop } = mutationDraft(storedLoop);
     if (loop.robot && idsEqual(loop.robot, robotAccountId)) {
       loop.robot = undefined;
       loop.isSuspended = true;
     }
     loop.members = (loop.members || []).filter((member) => !idsEqual(member.accountId, robotAccountId));
-    saveLoop(store, loop, loopUpdatedOutbox);
+    saveLoop(store, loop, loopUpdatedOutbox, before);
   }
 }
 
@@ -315,15 +335,16 @@ export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdated
 function addMember(store, {
   ownerId, loopId, accountId, code, memberProperties, invitedAsLegalGuardian,
 }, loopUpdatedOutbox) {
-  const loop = findById(store, loopId);
-  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const storedLoop = findById(store, loopId);
+  if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const { before, loop } = mutationDraft(storedLoop);
   const email = memberProperties && memberProperties.email;
   const existingMember = findMemberByIdOrEmail({ loop, accountId, email });
   if (existingMember) {
     if (isAcceptedStatus(existingMember.status)) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_EXISTS);
     existingMember.status = MEMBER_STATUS.INVITED;
     existingMember.invitationCode = code;
-    saveLoop(store, loop, loopUpdatedOutbox);
+    saveLoop(store, loop, loopUpdatedOutbox, before);
   }
   // Source compares the filtered array with MAX_SIZE, not `.length`. Preserve that.
   const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
@@ -341,7 +362,7 @@ function addMember(store, {
       invitationCode: code,
       invitedAsLegalGuardian,
     }));
-    saveLoop(store, loop, loopUpdatedOutbox);
+    saveLoop(store, loop, loopUpdatedOutbox, before);
   }
   void ownerId;
   return loop;
@@ -376,25 +397,27 @@ export function inviteMember(store, payload, loopUpdatedOutbox) {
 }
 
 export function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox) {
-  const loop = findById(store, loopId);
-  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const storedLoop = findById(store, loopId);
+  if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const { before, loop } = mutationDraft(storedLoop);
   const membership = (loop.members || []).find((member) => member.accountId
     && idsEqual(member.accountId, accountId)
     && isMemberStatus(member.status, MEMBER_STATUS.INVITED));
   if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
   membership.status = MEMBER_STATUS.ACCEPTED;
-  saveLoop(store, loop, loopUpdatedOutbox);
+  saveLoop(store, loop, loopUpdatedOutbox, before);
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   return loopToUnpopulated(loop);
 }
 
 export function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbox) {
-  const loop = findById(store, loopId);
-  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const storedLoop = findById(store, loopId);
+  if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const { before, loop } = mutationDraft(storedLoop);
   const membership = (loop.members || []).find((member) => member.accountId && idsEqual(member.accountId, accountId));
   if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
   membership.status = MEMBER_STATUS.DECLINED;
-  saveLoop(store, loop, loopUpdatedOutbox);
+  saveLoop(store, loop, loopUpdatedOutbox, before);
   return populateLoop(store, loop);
 }
 
@@ -414,7 +437,8 @@ export function listMembers(store, { ownerId, friendlyId = null, statusList = nu
 }
 
 export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) {
-  const loop = findById(store, loopId);
+  const storedLoop = findById(store, loopId);
+  const { before, loop } = mutationDraft(storedLoop);
   const targetMember = (loop.members || []).find((member) => idsEqual(member._id, id));
   if (!targetMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
   if (!idsEqual(loop.owner, ownerId) && !(targetMember.accountId && idsEqual(targetMember.accountId, ownerId))) {
@@ -422,8 +446,49 @@ export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) 
   }
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   targetMember.status = MEMBER_STATUS.REMOVED;
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return populateLoop(store, loop);
+}
+
+// These three operations intentionally keep the source's duplicated ordering:
+// findById -> owner/robot authorization -> suspended guard -> member lookup.
+// In particular, an unauthorized caller does not learn whether a member id
+// exists, and a suspended loop does not mutate profile state.
+function profileMember(store, { ownerId, loopId, id }) {
+  const loop = findById(store, loopId);
+  if (!idsEqual(loop.owner, ownerId) && !(loop.robot && idsEqual(loop.robot, ownerId))) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER_OR_ROBOT);
+  }
+  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const member = (loop.members || []).find((item) => idsEqual(item._id, id));
+  if (!member) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+  // Model queries in the source return a per-request document. Keep failed
+  // saves from exposing unsaved fields through the shared in-memory Store.
+  const detachedLoop = snapshotLoop(loop);
+  return { loop: detachedLoop, member: detachedLoop.members.find((item) => idsEqual(item._id, id)) };
+}
+
+export function setEnrollment(store, { ownerId, loopId, id, face, voice }, loopUpdatedOutbox) {
+  const { loop, member } = profileMember(store, { ownerId, loopId, id });
+  member.enrolled = member.enrolled || {};
+  if (typeof face === 'boolean') member.enrolled.face = face;
+  if (typeof voice === 'boolean') member.enrolled.voice = voice;
   saveLoop(store, loop, loopUpdatedOutbox);
   return populateLoop(store, loop);
+}
+
+export function updateNickname(store, { ownerId, loopId, id, nickname }, loopUpdatedOutbox) {
+  const { loop, member } = profileMember(store, { ownerId, loopId, id });
+  member.nickname = nickname;
+  saveLoop(store, loop, loopUpdatedOutbox);
+  return COMMAND_RESULT;
+}
+
+export function updatePhoneticName(store, { ownerId, loopId, id, phoneticName }, loopUpdatedOutbox) {
+  const { loop, member } = profileMember(store, { ownerId, loopId, id });
+  member.phoneticName = phoneticName;
+  saveLoop(store, loop, loopUpdatedOutbox);
+  return COMMAND_RESULT;
 }
 
 function childFail(field, reason) {
@@ -453,6 +518,12 @@ function optionalString(body, field) {
   return null;
 }
 
+function optionalNullableString(body, field) {
+  if (!hasField(body, field)) return null;
+  if (body[field] === null) return null;
+  return optionalString(body, field);
+}
+
 function optionalEmail(body, field) {
   const base = optionalString(body, field);
   if (base) return base;
@@ -468,6 +539,14 @@ function optionalBoolean(body, field) {
   if (!hasField(body, field)) return null;
   if (typeof body[field] !== 'boolean') return childFail(field, 'must be a boolean');
   return null;
+}
+
+// The original Joi decorator accepts these string forms but discards its
+// converted result. Pass the original value through so the controller's
+// boolean-only assignments leave enrollment unchanged while still saving.
+function optionalEnrollmentBoolean(body, field) {
+  if (hasField(body, field) && typeof body[field] === 'string' && /^(true|false)$/i.test(body[field])) return null;
+  return optionalBoolean(body, field);
 }
 
 function optionalNumberNull(body, field) {
@@ -634,6 +713,56 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
   return respond(res, () => removeMember(store, {
     id: body.id,
     loopId: body.loopId,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+function setEnrollmentHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => optionalEnrollmentBoolean(body, 'face'),
+    () => requiredString(body, 'id'),
+    () => requiredString(body, 'loopId'),
+    () => optionalEnrollmentBoolean(body, 'voice'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => setEnrollment(store, {
+    face: body.face,
+    id: body.id,
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+    voice: body.voice,
+  }, loopUpdatedOutbox));
+}
+
+function updateNicknameHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => requiredString(body, 'id'),
+    () => requiredString(body, 'loopId'),
+    () => optionalNullableString(body, 'nickname'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => updateNickname(store, {
+    id: body.id,
+    loopId: body.loopId,
+    nickname: body.nickname,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+function updatePhoneticNameHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => requiredString(body, 'id'),
+    () => requiredString(body, 'loopId'),
+    () => optionalNullableString(body, 'phoneticName'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => updatePhoneticName(store, {
+    id: body.id,
+    loopId: body.loopId,
+    phoneticName: body.phoneticName,
     ownerId: caller && caller._id,
   }, loopUpdatedOutbox));
 }

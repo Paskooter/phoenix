@@ -1267,7 +1267,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "in_progress",
+      "status": "todo",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1549,8 +1549,8 @@
         }
       ],
       "nextImplementation": {
-        "state": "working",
-        "assignee": "Claude root / grok agents",
+        "state": "deferred",
+        "assignee": "Codex root",
         "scope": "The parser-runtime question is CLOSED: AST stays default, 49 residuals accepted as divergence N1. Remaining N-08 work is the other acceptance criteria (original empty shapes and clean entity payloads, original routing as the compatibility behavior), external coverage and deployment. Do not reopen AST ranking or the compiled-default decision."
       }
     },
@@ -2705,7 +2705,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "in_progress",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2717,9 +2717,11 @@
       "phoenix": [
         "packages/account/src/robotFace.js",
         "packages/account/src/model.js",
-        "packages/account/src/store.js"
+        "packages/account/src/store.js",
+        "packages/account/src/loopMembership.js",
+        "packages/account/src/loopUpdatedOutbox.js"
       ],
-      "finding": "Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open.",
+      "finding": "Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open. Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open.",
       "acceptance": [
         "Cover all 23 wire operations: creation/update/removal, invitations/membership, robot association, enrollment, names/photos, legal guardian/agreement and suspension.",
         "Match ownership, membership states, side effects, errors and persistence with real client sequences.",
@@ -2746,6 +2748,14 @@
           "scope": "Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open.",
           "artifact": "scripts/parity-robot/patch-server-client-ca.cjs",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/hardware/client-ca-household/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max team; Codex root",
+          "reviewedBy": "Codex root",
+          "scope": "Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open.",
+          "artifact": "docs/parity/candidates/A-04-member-profile-20260908.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/account-profile/review.json"
         }
       ]
     },

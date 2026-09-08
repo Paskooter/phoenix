@@ -10,12 +10,12 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 1 | 46 | 1 | 0 |
-| classic | 0 | 20 | 0 | 0 |
+| pegasus | 1 | 46 | 0 | 0 |
+| classic | 0 | 20 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
-Current task: **N-08 — Restore exact NLU outputs and close corpus mismatches**.
+Current task: **A-04 — Complete Loop operations and membership lifecycle**.
 
 Next ready task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
 
@@ -689,7 +689,7 @@ Evidence: pending.
 
 ### N-08 — Restore exact NLU outputs and close corpus mismatches
 
-- [ ] **in_progress** · P0 · pegasus · implementation: partial
+- [ ] **todo** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
@@ -1377,11 +1377,11 @@ Lead verification: pending. This candidate does not certify task parity.
 
 ### A-04 — Complete Loop operations and membership lifecycle
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [ ] **in_progress** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-03.
 
-Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open.
+Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open. Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open.
 
 Done when:
 
@@ -1391,7 +1391,7 @@ Done when:
 
 Source: [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](https://pvindex.org/gitea/jiborobot/srv-jibo-server-client/src/commit/155d20a8102960b2aeb89c197bdf04dc1f1fc344/apis/loop-2016-03-24.normal.json).
 
-Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/model.js](../../packages/account/src/model.js); [packages/account/src/store.js](../../packages/account/src/store.js).
+Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/model.js](../../packages/account/src/model.js); [packages/account/src/store.js](../../packages/account/src/store.js); [packages/account/src/loopMembership.js](../../packages/account/src/loopMembership.js); [packages/account/src/loopUpdatedOutbox.js](../../packages/account/src/loopUpdatedOutbox.js).
 
 Evidence: pending.
 

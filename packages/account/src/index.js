@@ -56,6 +56,13 @@ function isSettingsTarget(req) {
     && /^settings/i.test(String(req.headers?.['x-amz-target'] || '').split('.').slice(0, -1).join('.'));
 }
 
+function isLoopProfileTarget(req) {
+  return req.method === 'POST'
+    && new URL(req.originalUrl || req.url, 'http://localhost').pathname === '/'
+    && /^loop[^.]*\.(setenrollment|updatenickname|updatephoneticname)$/i
+      .test(String(req.headers?.['x-amz-target'] || ''));
+}
+
 export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -65,10 +72,10 @@ export function createAccountService({ store = getStore(), settingsProviders, no
   const service = createService({
     name: 'account',
     // Hapi/Joi validates JSON primitives at the CreateHubToken handler.
-    // Hapi also parses Settings payloads as JSON values before Joi rejects
+    // Hapi also parses Settings and Loop profile payloads as JSON values before Joi rejects
     // top-level primitives with the source "value must be an object" error.
     // Keep the common strict parser for every other route.
-    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req),
+    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopProfileTarget(req),
     routes: {
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
       ...portalRoutes(store),     // REST /api/* (sessions)
