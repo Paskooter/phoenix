@@ -1,0 +1,47 @@
+{
+  "state": "verified_bounded",
+  "subject": "The compiled graph runtime matches the original on the complete pinned parser corpus",
+  "reviewedBy": "Claude root",
+  "at": "2026-09-08T00:47:00+00:00",
+  "result": {
+    "cases": 20528,
+    "matches": 20528,
+    "differences": 0,
+    "groups": {
+      "boundary": {
+        "cases": 21,
+        "matches": 21
+      },
+      "chitchat": {
+        "cases": 11432,
+        "matches": 11432
+      },
+      "hub-client": {
+        "cases": 9002,
+        "matches": 9002
+      },
+      "report": {
+        "cases": 73,
+        "matches": 73
+      }
+    }
+  },
+  "replaySha256": "7e972bc11958e76dd9f9e9df93aebad2989d29a3e946dd31185738ad43f52b3d",
+  "referenceSha256": "8bb0695da62dd5685149b0ffdfca440e023a5ec3c7cebe076f92b0bbf170c292",
+  "runtime": "PHOENIX_NLU_RUNTIME=compiled-fst with PHOENIX_NLU_COMPILED_HOME pointing at an install-nlu-compiled-graphs.mjs output (98 approved graphs, launch sha256 2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a)",
+  "scope": "Full frozen HTTP parser replay: status plus parser data, comparing intent, entities and rules on every captured request.",
+  "howThisWasReached": [
+    "Agent E classified the 51 default-AST residuals into three source-backed families and established that 47 of them are graph-ordering effects that cannot be repaired in the AST parser at all.",
+    "Agent F then built a source-backed installer for the approved compiled graphs and measured the 51 residual ids under both runtimes.",
+    "Root independently reran the focused probe (compiled 51/51, AST 0/51 as a discriminating control) and then this full replay."
+  ],
+  "priorState": "The default AST profile matches 20,477 of 20,528 with 51 residuals. That baseline is unchanged by this work.",
+  "explicitlyNotClaimed": [
+    "N-08 is NOT complete and remains in_progress. This satisfies the corpus-mismatch criterion for the compiled profile only; the other acceptance criteria are not demonstrated here.",
+    "The repo default is still the AST profile. Compiled is servable as a provisioned deployment default, not as the default of a fresh git clone with no graph bundle.",
+    "This is the parser corpus. The separate production comparison with its eight unhosted external-service cases is a different artifact and still fails.",
+    "No robot run, and no claim about microphone, wake word or physical ring.",
+    "Phoenix cannot rebuild launch.fst from vendored .rule files; that needs native grm2fst plus OpenFST UNION, which is not implemented."
+  ],
+  "ledgerEffect": "None. N-08 stays in_progress and the checklist stays at 8/79."
+}

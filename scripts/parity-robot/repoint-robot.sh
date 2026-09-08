@@ -3,11 +3,12 @@
 # Phoenix instance and installs the Phoenix CA into the robot's REAL, boot
 # persistent OpenSSL trust store.
 #
-# It also creates the certificates. The robot builds its own hostnames from the
-# region stored on it, so the set of names the serving certificate must carry is
-# knowable only after talking to the robot. This script discovers the region and
-# then issues a CA and a matching serving certificate itself, because getting
-# those names subtly wrong is the most common way this setup fails.
+# Certificates come from the server, which generates them on its first start.
+# This script reads them, and checks that they actually cover the region the
+# robot reports - a certificate missing that name is rejected by the robot no
+# matter what it trusts, and it is the most common way this setup fails. If the
+# names do not match it says exactly what to set on the server, rather than
+# reissuing behind the server's back and leaving it serving the old certificate.
 #
 # On the robot it changes exactly two things, both data (never robot code):
 #   1. /etc/hosts  (a symlink to /var/etc/hosts, on the rw /var partition):
@@ -35,7 +36,8 @@
 #   --robot <host>      robot ssh target, e.g. root@moth-....jibo   (required)
 #   --phoenix <ip>      Phoenix host IP as seen from the robot      (required to apply)
 #   --ca <path>         CA PEM to trust (default: <cert-dir>/ca.crt)
-#   --cert-dir <dir>    where certificates live (default: ~/.local/share/phoenix/moth)
+#   --cert-dir <dir>    where certificates live (default: the server's TLS home,
+#                       $PHOENIX_TLS_HOME or ~/.local/share/phoenix/tls)
 #   --public-name <fqdn>  extra SAN, repeatable — use for internet-facing hostnames
 #   --regenerate-cert   reissue the serving certificate even if it already matches
 #   --cert-only         discover the region and issue certificates, then stop
@@ -47,7 +49,7 @@
 #   --revert            restore the hosts block and remove the Phoenix CA
 set -euo pipefail
 
-ROBOT=""; PHOENIX=""; CERT_DIR="${HOME}/.local/share/phoenix/moth"; CA=""
+ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/phoenix/tls}"; CA=""
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
 EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0
 MARK_BEGIN="# >>> phoenix-repoint >>>"
@@ -139,7 +141,12 @@ if [ "$REVERT" -eq 0 ]; then
 
   mkdir -p -m 700 "$CERT_DIR"
 
-  if [ ! -r "$CA" ] || [ ! -r "$CA_KEY" ]; then
+  if [ -r "$CA" ] && [ -r "$SERVER_CRT" ]; then
+    ok "using the certificates the server generated in $CERT_DIR"
+  elif [ ! -r "$CA" ] || [ ! -r "$CA_KEY" ]; then
+    # Normally the server creates these on its first start and we just read
+    # them. Generating here is the fallback for a robot-first workflow.
+    warn "no certificates in $CERT_DIR - the server normally creates these on startup"
     [ "$DRY" -eq 1 ] && say "would create a CA at $CA" || {
       say "creating a CA at $CA"
       openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
@@ -164,6 +171,17 @@ if [ "$REVERT" -eq 0 ]; then
           | grep -q "DNS:${n}\([,[:space:]]\|$\)" || { NEED_CERT=1; break; }
       done
       openssl x509 -in "$SERVER_CRT" -noout -checkend 604800 >/dev/null 2>&1 || NEED_CERT=1
+    fi
+
+    if [ "$NEED_CERT" -eq 1 ] && [ -r "$SERVER_CRT" ] && [ "$REGEN" -eq 0 ]; then
+      REGION_CSV="$(printf '%s' "$REGIONS" | tr -s ' ' ',' | sed -e 's/^,//' -e 's/,$//')"
+      warn "the server certificate does not cover every name this robot needs."
+      warn "region ${LIVE_REGION:-unknown} needs: $SAN"
+      warn "The server owns this certificate, so fix it there and restart. Otherwise"
+      warn "the server keeps serving the old one and the robot still refuses it:"
+      warn "  PHOENIX_TLS_REGIONS=${REGION_CSV}"
+      warn "Then re-run this script. Pass --regenerate-cert to reissue here instead."
+      die "certificate does not cover the region this robot reports"
     fi
 
     if [ "$NEED_CERT" -eq 1 ] && [ "$DRY" -eq 0 ]; then
@@ -206,11 +224,25 @@ if [ "$REVERT" -eq 0 ]; then
     ok "robot reached https://${PHOENIX}:443 (HTTP $REACH)"
   fi
 
-  # Warn loudly if the serving cert cannot satisfy the native hostname check.
+  # The decisive check: the CA we are about to install into the robot must
+  # actually verify what the server is serving right now, under the hostname the
+  # robot will use. This catches the case where the server was configured with a
+  # different certificate directory than the one we are reading, which would
+  # otherwise install trust for a CA the server never uses and leave the robot
+  # rejecting it for reasons that look like anything but this.
   for r in $REGIONS; do
-    if ! openssl s_client -connect "${PHOENIX}:443" -servername "${r}.jibo.com" </dev/null 2>/dev/null \
-        | openssl x509 -noout -ext subjectAltName 2>/dev/null | grep -q "${r}.jibo.com"; then
-      warn "Phoenix's serving certificate has no SAN for ${r}.jibo.com — the native client verifies CN/SAN and will REJECT it"
+    CHAIN_OK="$(echo | openssl s_client -connect "${PHOENIX}:443" -servername "${r}.jibo.com" \
+      -verify_hostname "${r}.jibo.com" -CAfile "$CA" 2>/dev/null | grep -c 'Verify return code: 0 (ok)' || true)"
+    if [ "${CHAIN_OK:-0}" -gt 0 ]; then
+      ok "the server presents a certificate this CA verifies for ${r}.jibo.com"
+    else
+      warn "the certificate the server is serving is NOT verified by $CA for ${r}.jibo.com."
+      warn "Installing this CA would not make the robot trust that server."
+      warn "Point the server at these files and restart it:"
+      warn "  PHOENIX_ROBOT_TLS_CERT=$SERVER_CRT"
+      warn "  PHOENIX_ROBOT_TLS_KEY=$SERVER_KEY"
+      warn "or re-run with --cert-dir set to whatever the server actually loads."
+      die "the CA does not verify the running server for ${r}.jibo.com"
     fi
   done
 fi

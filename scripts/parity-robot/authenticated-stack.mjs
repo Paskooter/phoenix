@@ -47,6 +47,8 @@ function closeServer(server) {
   });
 }
 
+import { ensureTlsCertificates } from '../ensure-tls-certs.mjs';
+
 /** Run in a dedicated process: service modules read process.env at import time. */
 export async function startAuthenticatedRobotStack({
   runDir, secretFile, storeFile, keyFile, certFile, snapshotManifest,
@@ -55,6 +57,16 @@ export async function startAuthenticatedRobotStack({
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
   if (!runDir || !snapshotManifest) throw new Error('runDir and snapshotManifest are required');
+
+  // The server owns its robot-facing certificate. Generating it here means a
+  // first start is self-sufficient and the repoint script can simply read what
+  // we made, rather than the operator running openssl and having to get the
+  // robot's hostnames exactly right. Explicit paths always win.
+  if (!certFile || !keyFile) {
+    const tls = ensureTlsCertificates({ log: message => console.error(JSON.stringify({ ns: 'tls', msg: message })) });
+    certFile = certFile || tls.cert;
+    keyFile = keyFile || tls.key;
+  }
   const base = port(basePort, 'basePort');
   if (base > 65524) throw new Error('basePort leaves no room for the service ports');
   const tlsPort = port(entrypointPort, 'entrypointPort');

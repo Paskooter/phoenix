@@ -53,30 +53,26 @@ redirect them (step 5) and serve a certificate that matches them (step 3).
 > The `/credentials` response also contains the robot's access key and secret.
 > Don't paste it anywhere. You only need `region`.
 
-## 3. Create the certificates
+## 3. Tell the server which regions to serve
 
-Don't hand-run `openssl` for this. The robot verifies the certificate chain **and**
-the hostname, and the names it will demand are derived from the region you just
-read — getting them subtly wrong is the most common way this setup fails. The
-repoint script discovers the region itself and issues everything:
+You do not create certificates by hand. The server generates a CA and a serving
+certificate on its first start and reuses them afterwards.
+
+It only needs to know which regions to cover, because it cannot ask the robot at
+startup. The default is `api`, which is what a stock robot reports. If step 2
+showed something else, or you want one server to accept robots with different
+regions, set:
 
 ```bash
-./scripts/parity-robot/repoint-robot.sh \
-  --robot root@<robot> --phoenix 192.168.1.182 --cert-only
+export PHOENIX_TLS_REGIONS=api,someotherregion
 ```
 
-That creates a CA and a serving certificate under
-`~/.local/share/phoenix/moth/` (override with `--cert-dir`) carrying
-`localhost`, `<region>.jibo.com`, `<region>-socket.jibo.com`, `127.0.0.1` and
-your server's IP. `--cert-only` stops before touching the robot, so you can set
-the server up first.
+Optionally add internet-facing names with `PHOENIX_TLS_EXTRA_NAMES=hub.example.com`.
 
-It is idempotent: run it again and it reports that the existing certificate
-already covers every required name. It reissues only when a name is missing, the
-certificate is within a week of expiry, or you pass `--regenerate-cert`. Add
-`--public-name <fqdn>` for any internet-facing hostname (see step 10).
-
-The command prints the two environment variables the server needs. Note them.
+Certificates land in `~/.local/share/phoenix/tls` (override with
+`PHOENIX_TLS_HOME`), and every local IP address is included automatically. To
+use your own certificate instead, set `PHOENIX_ROBOT_TLS_CERT` and
+`PHOENIX_ROBOT_TLS_KEY`; explicit paths always win.
 
 ## 4. Let the server bind port 443
 
@@ -97,10 +93,11 @@ it applies to every Node process and is lost on upgrade.
 443 on all interfaces is the default, so the robot on your LAN can reach it.
 
 ```bash
-export PHOENIX_ROBOT_TLS_CERT=~/.local/share/phoenix/moth/server.crt   # as printed in step 3
-export PHOENIX_ROBOT_TLS_KEY=~/.local/share/phoenix/moth/server.key
 bash scripts/run-compose-stack.sh
 ```
+
+On the first start it creates the CA and certificate described in step 3 and
+logs that it did so.
 
 Confirm it is listening and answering:
 
@@ -113,9 +110,16 @@ If binding fails with a privileged-port error, step 4 did not take effect.
 
 ## 6. Point the robot at the server
 
-The same script now does the robot half: it redirects the hostnames and installs
-the CA it created in step 3 into the robot's trust store, so the redirect is
-actually accepted.
+One run does everything on the robot: it redirects the hostnames and installs the
+CA **the server generated** into the robot's trust store, so the redirect is
+actually accepted. It reads the server's certificates rather than making its own.
+
+Before writing anything it confirms that the CA it is about to install genuinely
+verifies the certificate the running server is presenting, under the hostname the
+robot will use. If the server is loading a different certificate directory, it
+says so and stops rather than installing trust for a CA the server never uses —
+which would leave the robot rejecting the server for reasons that look like
+anything but that.
 
 ```bash
 ./scripts/parity-robot/repoint-robot.sh \
@@ -219,11 +223,10 @@ it is what the rest of this runbook assumes.
 
 **B. Internet.** Use this when the robot is somewhere the server is not.
 
-1. **Issue certificates including your public names.** Public hostnames are extra
-   SANs on the same certificate:
+1. **Include your public names in the server's certificate.** Set them before
+   the server starts:
    ```bash
-   ./scripts/parity-robot/repoint-robot.sh --robot root@<robot> \
-     --phoenix <your-public-ip> --public-name hub.example.com --cert-only
+   export PHOENIX_TLS_EXTRA_NAMES=hub.example.com
    ```
    The `.jibo.com` names are still signed by your own CA. Only the names you own
    can also be served by a public certificate, via a reverse proxy.
