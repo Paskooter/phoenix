@@ -16,6 +16,9 @@ import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
+import { MemberPhotoStorage } from './memberPhotoStorage.js';
+import { pipeline } from 'node:stream/promises';
+import { join, dirname } from 'node:path';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { createConfiguredInvitationProviders } from './invitationDeployment.js';
 
@@ -85,12 +88,50 @@ function isLoopTarget(req) {
       .test(String(req.headers?.['x-amz-target'] || ''));
 }
 
+function firstNonEmpty(...values) {
+  return values.find((value) => typeof value === 'string' && value.trim() !== '') || null;
+}
+
+function photoPublicBaseUrl(...values) {
+  const configured = firstNonEmpty(...values);
+  if (!configured) return null;
+  const trimmed = configured.replace(/\/+$/, '');
+  let parsed;
+  try { parsed = new URL(trimmed); }
+  catch (error) { throw new Error(`Invalid photo public URL: ${error.message}`); }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`Invalid photo public URL protocol: ${parsed.protocol}`);
+  }
+  // The deployment setting is normally the public Classic origin. The local
+  // ingress owns this fixed path; retain an explicitly supplied path so a
+  // reverse proxy can mount the photo endpoint below its own prefix.
+  const path = parsed.pathname === '/' ? '/member-photos' : parsed.pathname;
+  return `${parsed.origin}${path}`;
+}
+
+function photoConfiguration(loopConfig, store) {
+  const server = loopConfig.server || {};
+  return {
+    publicBaseUrl: photoPublicBaseUrl(
+      server.photoBaseUrl,
+      process.env.ETCO_account_photoBaseUrl,
+      process.env.PHOTO_PUBLIC_URL,
+    ),
+    directory: firstNonEmpty(
+      server.photoDirectory,
+      process.env.ETCO_account_photoDirectory,
+      process.env.PHOTO_DIRECTORY,
+    ) || join(dirname(store.file), 'member-photos'),
+  };
+}
+
 export function createAccountService({
   store = getStore(),
   settingsProviders,
   notificationPublisher,
   loopConfig = {},
   agreementProvider,
+  memberPhotoProvider,
   invitationProviders,
   robotReadClient = new RobotReadClient(),
   invitationSmtp,
@@ -125,6 +166,9 @@ export function createAccountService({
   });
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
+  const photo = memberPhotoProvider ? null : photoConfiguration(loopConfig, store);
+  const photoProvider = memberPhotoProvider || (photo.publicBaseUrl
+    ? new MemberPhotoStorage({ directory: photo.directory, publicBaseUrl: photo.publicBaseUrl }) : null);
   const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
   const service = createService({
     name: 'account',
@@ -134,6 +178,18 @@ export function createAccountService({
     // Keep the common strict parser for every other route.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req),
     routes: {
+      'GET /member-photos/:key': async ({ req, res }) => {
+        if (!photoProvider?.open) { res.writeHead(404); res.end(); return; }
+        try {
+          const stream = photoProvider.open(req.params.key);
+          await new Promise((resolve, reject) => { stream.once('open', resolve); stream.once('error', reject); });
+          res.setHeader('content-type', 'application/octet-stream');
+          await pipeline(stream, res);
+        } catch (error) {
+          if (!res.headersSent && !res.destroyed) { res.writeHead(404); res.end(); }
+          else res.destroy(error);
+        }
+      },
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
       ...portalRoutes(store),     // REST /api/* (sessions)
       ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
@@ -145,6 +201,7 @@ export function createAccountService({
         agreementProvider,
         invitationProviders: effectiveInvitationProviders,
         robotReadClient,
+        memberPhotoProvider: photoProvider,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });

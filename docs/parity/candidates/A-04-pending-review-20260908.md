@@ -1,14 +1,15 @@
 # A-04 pending implementation reviews
 
 Main contains accepted guardian/agreement and membership-list work. Moth is
-on `fb79e6d`, verified with eight installed-client read-only checks. The candidates below are separate worktrees;
+on `0998f79`, verified with eight installed-client read-only checks and two
+synthetic public-photo ingress checks. The candidates below are separate worktrees;
 passing a candidate check does not mark the whole lifecycle verified.
 
 | Candidate | Revision | Current evidence and remaining work |
 | --- | --- | --- |
-| Photos | `2bb7c34` | Normal-startup storage/public URL repair integrated in an isolated candidate. Original Node 8 client passed seven public HTTPS lifecycle checks, including restart persistence. Docker deployment review and final acceptance pending. |
+| Photos | `4e581d0` | Accepted and integrated into main after source/client/Docker checks and 876 unit passes. Deployed on Moth with read-only client and synthetic public-photo ingress checks passed; full lifecycle remains open. |
 | ListLoopMembers | `660fe838` | Accepted after source/client/integration checks; deployed with installed-client membership/filter checks passed. |
-| Invitation transport | `2eaaea2` | STARTTLS/AUTH and sender Promise boundary repaired in candidate; one pinned-source Unicode MIME control matches decoded content, 210 Account tests pass. Root verified 13 evidence/product hashes; long ASCII SMTP line check and integration pending. |
+| Invitation transport | `9e8bc5b` | STARTTLS/AUTH, sender Promise boundary, Unicode and long ASCII MIME repairs submitted. Strict relay control reproduced the old failure and passes with matching decoded source content after repair. Root verified 15 long-line evidence/product hashes; final integration acceptance pending. |
 | Membership events | `19cace3` | Three original event payloads match; 873 tests pass, 7 skipped. Independent controller/client review and transport dependency acceptance pending. |
 | CreateLoop gate/event | `eaa6724` | Eight original controller controls, ten original SDK calls, ten HTTP peer checks; 874 tests pass, 7 skipped. Independent review and dependency acceptance pending. |
 
@@ -19,7 +20,11 @@ with normal Account startup, including exact object bytes and persistence
 after an Account restart. The first test attempts exposed a harness watchdog
 and a Node 8 helper signature issue; both are preserved in the qualified
 [public TLS evidence](../evidence/2026-09-08/photo-public-tls/review.json).
-The strict gate matches all 43 cases. Full default and serial candidate suites
+[Root photo acceptance](../evidence/2026-09-08/photo-acceptance/review.json)
+records the subsequent full suite: 876 passed, zero failed, seven skipped after
+the five observed synthetic test helpers were repaired. Production code matches
+the strict-gate and original-client candidate.
+The strict gate matches all 43 cases. Earlier full default and serial candidate suites
 each report 874 passed, two failed, and seven skipped. Root reproduced the
 same idle-connection reset mechanism on unchanged main; those suite failures
 remain recorded and are not converted into passing results.
@@ -58,5 +63,14 @@ The invitation transport review instead requires repairs for substantive
 SMTP negotiation and the event sender Promise boundary: synchronous storage
 errors must become rejected delivery promises so the completed membership
 save does not incorrectly turn into an HTTP failure. The transport and Promise-boundary repairs are submitted as candidates.
-Root review remains open for long ASCII MIME lines that may exceed relay
-limits; incidental MIME formatting differences do not block acceptance.
+Root verified the long-line repair after a strict relay accepted the source,
+rejected the old candidate, and accepted the repaired candidate with matching
+decoded content. Incidental MIME formatting differences do not block acceptance.
+
+The combined invitation branch at `649da10` includes the MIME repair and
+source-compatible robot-read timeout/redirect/body handling from `1565dbd`.
+Root focused checks pass 21/21. Before those repairs, the strict gate matched
+43 cases and the Account suite passed 216/218; socket diagnostics reproduced
+idle-connection failures. Source event invocation ordering and a test-only
+connection harness repair remain under review. No full lifecycle acceptance
+or hardware/provider deployment is claimed.

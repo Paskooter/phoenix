@@ -16,6 +16,7 @@ import { KeyStore, makeKeyHandler } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { stubRegistrations } from './stubs.js';
+import { proxyMemberPhoto } from './photoProxy.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
@@ -91,6 +92,15 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     routes: {
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }], {
         notificationAccountResolver,
+      }),
+      // Account owns the photo objects. Keep the URL on the same public
+      // Classic/TLS origin that the robot already reaches.
+      'GET /member-photos/:key': ({ req, res, log }) => proxyMemberPhoto({
+        baseUrl: netUrl('account', DefaultPort.account),
+        key: req.params.key,
+        req,
+        res,
+        log,
       }),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).

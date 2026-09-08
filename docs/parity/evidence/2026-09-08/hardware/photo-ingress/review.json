@@ -1,0 +1,25 @@
+{
+  "status": "bounded-photo-deployment-verified",
+  "revision": "0998f79df937858aaf3a686d552d8e05c6beec73",
+  "hardware": "Moth",
+  "checks": {
+    "installedClientReads": 8,
+    "publicPhotoDownloadExactBytes": true,
+    "removedSyntheticPhotoReturns404": true,
+    "strictTlsWithExplicitCa": true,
+    "nativeNotificationConnected": true,
+    "allSixServicesHealthy": true,
+    "completeHouseholdStorePreserved": true,
+    "syntheticObjectRemoved": true
+  },
+  "scope": "Installed Node6 Jibo client read paths and public HTTPS object ingress. Synthetic object only; no member photo/profile mutation.",
+  "qualification": "The first deployment attempt rolled back because a guard expected the lazily-created photo directory at startup. The corrected deployment creates the private directory explicitly. Household store equality holds across both attempts. No new microphone, screen, ring or full lifecycle claim.",
+  "evidenceSha256": {
+    "before.json": "4c8f7d26491950491c803485acb149060dee44207e206091052e0d476a725e78",
+    "after.json": "4c8f7d26491950491c803485acb149060dee44207e206091052e0d476a725e78",
+    "photo-get.json": "8e3a7ce5d2de5f9c094f3f644eff9b9710f819c52ff9f92a5e1eac192b5a397d",
+    "photo-missing.json": "0884a1f7b6448c9ed349ff36ddffdfe7cdc587f69c1c98a740ec0ae4bae44b2a",
+    "deployment.json": "32aff461ef885035a5c04dd384802ad185217a04fafccb32ede651635117040f",
+    "preservation.json": "44d84b09cec376fa973ea80f64fc85f36c2ba6a969e666f4df1dc77932558300"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "status": "candidate-awaiting-root-acceptance",
+  "integrationCodeRevision": "18963fa7f43b075ee80387cd3f0406168fdb0bfc",
+  "baseRevision": "313d66cc666881560e92fcae8d833b7cc56de6bc",
+  "verification": {
+    "strictParityCases": 43,
+    "strictParityDifferences": 0,
+    "defaultSuite": {
+      "passed": 874,
+      "failed": 2,
+      "skipped": 7
+    },
+    "serialSuite": {
+      "passed": 874,
+      "failed": 2,
+      "skipped": 7
+    },
+    "focusedDiagnosticSuite": {
+      "passed": 23,
+      "failed": 0
+    },
+    "repeatedFocusedSuite": "connection reset reproduced; server idle timeout fired immediately after client request initiation, with no new server request event",
+    "unchangedMainComparison": "Two targeted runs passed; the third reproduced ECONNRESET with a server idle timeout immediately after fetch initiation and before the next server request event. The same failure mechanism exists on unchanged main."
+  },
+  "qualification": "The observed idle-connection reset predates the photo integration. Broad suites remain recorded as failed, without retries or production timeout changes. Docker and original-client public TLS verification remain pending. No new hardware or full A-04 parity claim.",
+  "evidenceSha256": {
+    "full.log": "1d419c7f63f9ba9f1610714a48c1ede3e11c037d78ae0a6afb24d3348034c7c6",
+    "full-serial.log": "627c9b336e87ffa8124800816cf814994a1594e1b8e6aa73f2af39146c9e6a0c",
+    "gate.log": "fb49c8a02f3592514f93d20f29dd838503424d23884da6f2255cb6b5fcd28d96",
+    "socket-diagnostic.log": "320ddc8664a8318ba7de33d2201a77b36f94567c1f835df67f845d06400d921a",
+    "socket-repeat-1.log": "ea89ee7d00ecb27f464127e3697963706873abbe6c142d35bcd11e405fabdc6d",
+    "main-socket-repeat-1.log": "6f02c1174e790f4708958a9b421e737464c9a80c7fde12e721612986194cdbde",
+    "main-socket-repeat-2.log": "f8dc7ad0199304607ccf8d188d62e23745423116e7758ec29df0b75a83fae497",
+    "main-socket-repeat-3.log": "c10fdd00aef716d57c470cc5b7b00b6895355619af600d5f855fcd9081be4bee",
+    "socket-diagnostics.mjs": "1c8d7d9149c6270d484065927972783dbda7303768fcc5fcd649d99984b8c437"
+  }
+}

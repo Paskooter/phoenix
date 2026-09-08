@@ -22,7 +22,13 @@ let base;
 async function post(target, body, accessKeyId, extraHeaders = {}) {
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: signedLoopHeaders(store, base, target, body, accessKeyId, extraHeaders),
+    // Membership controls perform synchronous store/outbox work between
+    // requests. Avoid stale keep-alive reuse in this test helper without
+    // retrying a mutating request or changing the service timeout.
+    headers: {
+      ...signedLoopHeaders(store, base, target, body, accessKeyId, extraHeaders),
+      connection: 'close',
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const bytes = Buffer.from(await response.arrayBuffer());

@@ -1,0 +1,39 @@
+{
+  "status": "bounded-photo-implementation-accepted-by-root",
+  "codeRevision": "18963fa7f43b075ee80387cd3f0406168fdb0bfc",
+  "testedRevision": "38b7c399f36ecffc617d3067f575dae4b79f79e2",
+  "verification": {
+    "fullSuite": {
+      "passed": 876,
+      "failed": 0,
+      "skipped": 7
+    },
+    "strictGate": {
+      "matched": 43,
+      "differences": 0,
+      "productionCodeUnchangedSinceGate": true
+    },
+    "originalNode8ClientPublicTlsChecks": 7,
+    "dockerImageDigest": "sha256:23212e3284b71383cc51e99c712ae7de36fe73bb8f0b14dc395d2b3398f2bd63",
+    "dockerBuildInputHashesVerified": 3,
+    "dockerCleanup": "complete"
+  },
+  "scope": [
+    "UpdateMemberPhoto and RemoveMemberPhoto source authorization/state ordering and byte transport.",
+    "Normal-startup durable object storage and configured public Classic ingress.",
+    "Original client strict TLS, replacement/removal and Account restart persistence."
+  ],
+  "qualifications": [
+    "Exact deployed binary dependency version remains unresolved; reviewed pinned source and runtime controls are retained.",
+    "Hashless staging is an explicit extension; original client sends a body hash.",
+    "Docker build exported the validated image before its lingering wrapper was terminated; isolated runtime used host networking after bridge publish timeout.",
+    "Earlier broad fetch failures are preserved. Five affected synthetic helpers now close test connections; production timeouts and retry policy are unchanged.",
+    "No new Moth photo mutation, live-provider or whole A-04 acceptance claim."
+  ],
+  "evidenceSha256": {
+    "fullSuite": "2fa89ca2bdc77140224a919af393c73912600cd0df73845c99b3ee9e53e0ff62",
+    "strictGate": "fb49c8a02f3592514f93d20f29dd838503424d23884da6f2255cb6b5fcd28d96",
+    "dockerReceipt": "076c22a311970f7db027e8defeb1eb3ee0b3523d69c8c749c971ac7897084cc8"
+  },
+  "progress": "8/79 verified; A-04 remains in progress"
+}
