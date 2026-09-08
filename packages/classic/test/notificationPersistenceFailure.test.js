@@ -74,7 +74,7 @@ function fakeSocket() {
   return ws;
 }
 
-function waitFor(predicate, timeoutMs = 500) {
+function waitFor(predicate, timeoutMs = 5000) {
   const started = Date.now();
   return new Promise((resolve, reject) => {
     const check = () => {

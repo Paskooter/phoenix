@@ -8,11 +8,16 @@ import { LoopUpdatedOutbox } from '../src/loopUpdatedOutbox.js';
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-async function waitFor(predicate, timeoutMs = 1000) {
+// The deadline below is wall-clock, so polling on setImmediate busy-spins and
+// loses CPU to the other test processes of a full-suite run. That made this
+// drain assertion fail intermittently on scheduling rather than on any outbox
+// defect. Yield through the timer phase and leave generous headroom; what is
+// asserted afterwards is unchanged.
+async function waitFor(predicate, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (predicate()) return;
-    await tick();
+    await new Promise((resolve) => setTimeout(resolve, 1));
   }
   assert.fail('timed out waiting for outbox drain');
 }

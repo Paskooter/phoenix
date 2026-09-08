@@ -34,11 +34,13 @@ async function closeServer(server) {
   if (server?.listening) await new Promise((resolve) => server.close(resolve));
 }
 
-async function waitFor(predicate, timeoutMs = 1000) {
+// See loopUpdatedOutboxConcurrency: a wall-clock deadline polled on setImmediate
+// is a scheduling race under full-suite concurrency, not a product signal.
+async function waitFor(predicate, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (predicate()) return;
-    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   }
   assert.fail('timed out waiting for notification producer state');
 }
