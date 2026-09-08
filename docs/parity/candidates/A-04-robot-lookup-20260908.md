@@ -1,11 +1,10 @@
 # A-04 candidate: robot lookup operations
 
-Status: **implementation candidate, unverified; A-04 remains open.**
+Status: **root accepted bounded implementation; A-04 remains open.**
 
 This isolated candidate adds `Loop.GetRobot`, `Loop.FindOwner`, and
 `Loop.ListOwnerRobots` to the Classic AWS-JSON dispatcher. It is based on
-`d7934a6d1fb6ef92187bf6a2c54034aca4b3d295` and is intended for root review;
-it has not been integrated into main or exercised against a live robot.
+`d7934a6d1fb6ef92187bf6a2c54034aca4b3d295` and has completed root software review. Live robot acceptance remains pending.
 
 ## Source contract
 
@@ -149,8 +148,8 @@ values through Loop dispatch. The same Classic parser correction covers the
 three previously implemented profile operations. The source comparison uses
 controlled model seams; it does not prove full Mongo or live robot parity.
 
-These root repairs remain isolated pending integration review. No whole parity
-task is closed, and no household or robot state was changed.
+Root accepted these repairs for integration after the original-client review.
+No whole parity task is closed, and no household or robot state was changed.
 
 The subsequent integration review extended signature verification to
 `FindOwner` and `ListOwnerRobots` after inspecting the gateway exception lists.
@@ -158,3 +157,16 @@ Both entry points reject wrong secrets, modified signed payloads, inactive
 accounts, and unsigned requests with forged internal metadata. Authenticated
 query semantics, including selecting another account in the payload, remain
 those of the source controller.
+
+## Root acceptance
+
+The final reviewed package tree is `9e28499`. The original Node 8.9.4 client
+3.0.110 completed 22 signed calls through Account and Classic. Root unit tests
+passed 837 with seven skips; all 43 strict smoke cases matched. The source
+framework generic error check confirms HTTP 500 and retryable behavior match,
+while the client error code differs (`Internal Server Error` versus
+`InternalFailure`). That qualification is retained rather than claimed equal.
+
+The sanitized acceptance receipt is
+[account-lookup/review.json](../evidence/2026-09-08/account-lookup/review.json).
+Live robot lookup acceptance, other operations, and full A-04 remain open.

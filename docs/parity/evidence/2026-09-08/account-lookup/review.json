@@ -1,0 +1,73 @@
+{
+  "state": "accepted_bounded_implementation",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T05:34:13.348812+00:00",
+  "subject": "GetRobot, FindOwner and ListOwnerRobots with public SigV4 authentication",
+  "reviewedRevision": "9e28499b651d4c9c156db5d6fb79742efb7ab0ed",
+  "artifacts": {
+    "packages/account/src/robotLookup.js": "19739c6c5062de8cd66be41e37d00330d1a3698e40a544efda22afb285a5f556",
+    "packages/account/src/robotFace.js": "fd698137116a9ff1e1b398c619e67c3539e2f226549a6feb13f3edd73e1f2507",
+    "packages/account/src/index.js": "be9108e6e44bfcde4938f6aa114933ea8c466f6b6febaabf9f087c213a8ee66b",
+    "packages/classic/src/index.js": "869b29275729c22c857ae106d9a14984380ec4cd236ce72c6052589f69f1c498",
+    "packages/account/test/robotLookup.test.js": "265213eb8d776faafa61076dadc1f7bac1c613a8eb6f0c1e056d173565ba6a6e",
+    "packages/account/test/robotLookupSigv4.test.js": "667350480545ce69d9b1c0d207b4052b534e556c07caeaca0110f20e3442f56c"
+  },
+  "source": {
+    "account": "jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2",
+    "gateway": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+    "framework": "@jibo/server 4.0.12; Hapi 16.4.1",
+    "node": "8.9.4"
+  },
+  "review": {
+    "initialSourceMatrix": {
+      "rows": 47,
+      "comparable": 45,
+      "matches": 37,
+      "differences": 8,
+      "candidateRevision": "d6720fc78dcfe271611a1ea51f5fc32458daac91",
+      "qualification": "Initial controlled source handler/model versus frozen candidate comparison; not relabeled as a final 47-row replay."
+    },
+    "repairs": [
+      "Verify signatures and active accounts before all three public lookup handlers.",
+      "Preserve null FindOwner no-match result.",
+      "Preserve primitive JSON through Account and Classic validation.",
+      "Correct source-file provenance."
+    ],
+    "originalClient": {
+      "version": "3.0.110",
+      "node": "8.9.4",
+      "calls": 22,
+      "endpoints": [
+        "Account",
+        "Classic"
+      ],
+      "result": "All expected signed controls passed; generated output, missing matches, authorization errors and generic500 behavior observed.",
+      "signedBodyHashesMatched": true
+    },
+    "unit": {
+      "passed": 837,
+      "skipped": 7,
+      "failed": 0
+    },
+    "focusedLookupTests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0
+    }
+  },
+  "qualifications": [
+    "Original controller/model controls use controlled Mongo seams, not a live Mongo deployment.",
+    "Source unsafe account serialization has additional metadata beyond the three generated RobotAccount fields; generated client reads the implemented fields.",
+    "Stale robot relations produce HTTP500 with retryable=true in both clients; source code is Internal Server Error while Phoenix uses InternalFailure. This remains an explicit machine-code difference, not a raw-wire equality claim.",
+    "Real robot acceptance for these lookup operations is pending.",
+    "Other Loop operations, shared legacy authentication repairs, provider effects and full A-04 remain open."
+  ],
+  "privacy": {
+    "fixtures": "invented",
+    "privateCaptureValuesIncluded": false
+  },
+  "taskClosed": false
+}
