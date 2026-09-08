@@ -389,7 +389,10 @@ function listLoopsForAccount(store, { ownerId, friendlyId = null, loopId = null 
   return { isRobotRequesting, items: result };
 }
 
-function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
+// OOBE.SetupRobot uses the same controller helper when replacing a robot on a
+// suspended loop. Keep this export narrow so the OOBE face can reuse the
+// source-shaped detached mutation and LoopUpdated persistence behavior.
+export function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
   // Source query is `$or: [{ robot, members.accountId }]` — a one-element $or, so AND.
   const loops = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
     && idsEqual(loop.robot, robotAccountId)

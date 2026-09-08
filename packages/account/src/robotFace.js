@@ -12,21 +12,22 @@
 //                                           resolve ownership from this stored access key;
 //                                           CreateHubToken verifies SigV4)
 //
-// Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus;
+// Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus,
+// reconnectRobot;
 // Account_20151111.CreateHubToken is handled by the bounded A-02 path below.
-// (reconnectRobot/getServiceToken deferred — v1 is the new-robot path per the handoff).
 // Error envelope: {__type:<code>, message} + x-amzn-errortype, statusCode from src/errors/*.
 // Account_20151111.CreateHubToken is the bounded A-02 sensitive operation and
 // never uses the public x-amz-credentials header as its identity.
 
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
-  createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
+  createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
+  MEMBER_STATUS,
   populateLoop, ensureLoopMemberIds, isAcceptedMemberStatus, accountToPublicWire,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
-import { handleLoopMembership } from './loopMembership.js';
+import { handleLoopMembership, removeRobotFromLoops } from './loopMembership.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
@@ -42,7 +43,9 @@ const Errors = Object.freeze({
   TOKEN_NOT_FOUND: { code: 'TOKEN_NOT_FOUND', message: 'Token not found', statusCode: 404 },
   TOKEN_EXPIRED: { code: 'TOKEN_EXPIRED', message: 'Token expired', statusCode: 401 },
   ACCOUNT_NOT_FOUND: { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found', statusCode: 404 },
-  LOOP_MUST_BE_SUSPENDED: { code: 'LOOP_MUST_BE_SUSPENDED', message: 'Loop must be suspended', statusCode: 409 },
+  ACCOUNT_IS_DELETED: { code: 'ACCOUNT_IS_DELETED', message: 'Account is removed', statusCode: 404 },
+  OWNER_CAN_MANIPULATE: { code: 'OWNER_CAN_MANIPULATE', message: 'Only owner can manipulate loop or members', statusCode: 401 },
+  LOOP_MUST_BE_SUSPENDED: { code: 'LOOP_MUST_BE_SUSPENDED', message: 'Loop must be suspended prior to robot change', statusCode: 409 },
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
   AUTHORIZED_UNDER_ADMIN: { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 },
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
@@ -91,6 +94,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     setuprobot: setupRobot,
     preparerobot: prepareRobot,
     getstatus: getStatus,
+    reconnectrobot: reconnectRobot,
     createhubtoken: issueHubToken,
   };
 
@@ -202,26 +206,68 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   // -- operations -------------------------------------------------------------
 
-  /** oobe.ctrl.ts setupRobot — the robot's one OOBE call. v1: new-robot + same-robot-reissue. */
+  /**
+   * oobe.ctrl.ts reconnectRobot — the handler validates token (+ optional id),
+   * then TokenController.deleteToken performs the source lookup/expiry checks
+   * before consuming the setup token. The controller intentionally ignores id
+   * and caller identity and returns CommandResponse.
+   */
+  function reconnectRobot({ res, body }) {
+    const validationMessage = oobeTokenValidationMessage(body, { optionalId: true });
+    if (validationMessage) return void sendValidationError(res, validationMessage);
+
+    const { error } = findToken(store, body.token);
+    if (error) return void sendAmzError(res, Errors[error]);
+    deleteToken(store, body.token);
+    return void sendAmz(res, 200, { result: 'Command accepted' });
+  }
+
+  /** oobe.ctrl.ts setupRobot — new setup, same-robot reissue, and suspended-loop replacement. */
   function setupRobot({ res, body, log }) {
+    const validationMessage = oobeTokenValidationMessage(body, { requiredId: true });
+    if (validationMessage) return void sendValidationError(res, validationMessage);
     const { token: tokenId, id } = body;
-    if (!tokenId || !id) return void sendAmzError(res, Errors.VALIDATION, 'token and id are required');
 
     const { token, error } = findToken(store, tokenId);
     if (error) return void sendAmzError(res, Errors[error]);
 
     const account = store.accounts.get(token.accountId);
     if (!account) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
+    if (account.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
 
     let loop;
     if (token.loopId) {
-      // Re-setup of an existing loop. v1 supports the same-robot-reconnect path; a different
-      // robot against a live loop is rejected exactly like the original.
-      loop = store.loops.get(token.loopId);
-      if (!loop) return void sendAmzError(res, { code: 'LOOP_NOT_FOUND', message: 'Loop not found', statusCode: 404 });
-      const currentRobot = store.accounts.get(loop.robot);
-      if (!currentRobot || currentRobot.friendlyId !== id) {
-        return void sendAmzError(res, Errors.LOOP_MUST_BE_SUSPENDED);
+      // BaseLoopController.findById uses Loop.findById, and the source schema's
+      // findOne middleware excludes soft-deleted loops before this owner check.
+      loop = activeLoopById(token.loopId);
+      if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+      if (!idsEqual(loop.owner, account._id)) {
+        return void sendAmzError(res, Errors.OWNER_CAN_MANIPULATE);
+      }
+      if (loop.isSuspended) {
+        // Keep the source sequence: find/create and save the replacement robot,
+        // detach old and new robot associations, reread the loop, then attach
+        // the replacement and unsuspend it.
+        const newRobotAccount = findOrCreateRobotAccount(store, id);
+        removeRobotAssociation(loop.robot);
+        removeRobotAssociation(newRobotAccount._id);
+        loop = activeLoopById(token.loopId);
+        if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+        const before = cloneLoop(loop);
+        loop.isSuspended = false;
+        loop.robot = newRobotAccount._id;
+        loop.members = Array.isArray(loop.members) ? loop.members : [];
+        loop.members.push({ _id: newId(), accountId: newRobotAccount._id, status: MEMBER_STATUS.ACCEPTED });
+        saveOobeLoop(loop, before);
+      } else {
+        // A different robot may only take over a suspended loop. Same-robot
+        // re-setup returns its existing credentials.
+        const currentRobot = store.accounts.get(loop.robot);
+        if (!currentRobot) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
+        if (currentRobot.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
+        if (currentRobot.friendlyId !== id) {
+          return void sendAmzError(res, Errors.LOOP_MUST_BE_SUSPENDED);
+        }
       }
     } else {
       ({ loop } = createLoop(store, { owner: account, robotId: id }));
@@ -237,6 +283,49 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     };
     log.info('setupRobot complete', { friendlyId: id, loop: loop._id });
     return void sendAmz(res, 200, credentials);
+  }
+
+  function removeRobotAssociation(robotAccountId) {
+    if (!robotAccountId) return;
+    removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox);
+  }
+
+  function saveOobeLoop(loop, before) {
+    loop.updated = Date.now();
+    store.loops.set(loop._id, loop);
+    try {
+      loopUpdatedOutbox.record(loop);
+    } catch (error) {
+      store.loops.set(loop._id, before);
+      throw error;
+    }
+  }
+
+  function cloneLoop(loop) {
+    return JSON.parse(JSON.stringify(loop));
+  }
+
+  function idsEqual(left, right) {
+    return left !== undefined && left !== null && right !== undefined && right !== null
+      && String(left) === String(right);
+  }
+
+  function oobeTokenValidationMessage(body, { optionalId = false, requiredId = false } = {}) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+    if (!Object.prototype.hasOwnProperty.call(body, 'token')) {
+      return 'child "token" fails because ["token" is required]';
+    }
+    if (typeof body.token !== 'string') return 'child "token" fails because ["token" must be a string]';
+    if (body.token.length === 0) return 'child "token" fails because ["token" is not allowed to be empty]';
+    const hasId = Object.prototype.hasOwnProperty.call(body, 'id');
+    if (requiredId && (!hasId || body.id === undefined)) {
+      return 'child "id" fails because ["id" is required]';
+    }
+    if ((optionalId || requiredId) && hasId && body.id !== undefined) {
+      if (typeof body.id !== 'string') return 'child "id" fails because ["id" must be a string]';
+      if (body.id.length === 0) return 'child "id" fails because ["id" is not allowed to be empty]';
+    }
+    return null;
   }
 
   /** oobe.handler.ts PrepareRobot — authed: accountId from the SigV4 Credential accessKeyId. */
