@@ -1,0 +1,84 @@
+{
+  "state": "accepted_bounded_implementation",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T06:36:47.419316+00:00",
+  "candidateRevision": "4d453eb8a85a0bebcac189a7dc643153d54ba35c",
+  "membershipClientRevision": "49b7cdfd84518dbd999a8bedbf8e48066a34e212",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "scope": [
+    "UpdateLoop/RemoveLoop/ClearRobot",
+    "UpdateLoopMember state and authorization",
+    "COPPA feature configuration",
+    "ListLoops validation, member visibility and robot inference",
+    "deleted-account credential exclusion"
+  ],
+  "verification": {
+    "recordClient": {
+      "calls": 58,
+      "captures": 87,
+      "rootExpectedStatusCodeChecks": 58,
+      "evidence": "docs/parity/evidence/2026-09-08/loop-record-client/review.json"
+    },
+    "memberClient": {
+      "calls": 22,
+      "captures": 33,
+      "successes": 16,
+      "expectedErrors": 6,
+      "rootExpectedOutcomeChecks": 22,
+      "finalDurableTargetsChecked": 2,
+      "loopUpdatedOutboxEntries": 16,
+      "artifactHashesVerified": 26
+    },
+    "coppa": {
+      "profiles": 6,
+      "sourceAndCandidateUpdateComparisons": 18,
+      "differences": 0
+    },
+    "listClientAndRawControls": {
+      "calls": 66,
+      "captures": 98,
+      "successes": 40,
+      "expectedParserErrors": 2,
+      "expectedAuthErrors": 8,
+      "expectedValidationErrors": 16,
+      "stateChanged": false,
+      "artifactHashesVerified": 16
+    },
+    "runtime": {
+      "clientVersion": "3.0.110",
+      "node": "8.9.4"
+    },
+    "combinedUnit": {
+      "passed": 868,
+      "skipped": 7,
+      "failed": 0
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0
+    },
+    "integrationProductionSourceAndDependenciesMatchTestedCandidate": true
+  },
+  "qualifications": [
+    "Mail and invitation-event side effects remain an explicit unfinished implementation increment.",
+    "Member per-call state is checked through returned Loop values; final durable state is separately checked, without a per-call database transaction trace.",
+    "Source controller controls use controlled model/save/provider seams and do not establish complete Mongo behavior.",
+    "Source queries have no explicit sort; candidate insertion order is not a cross-database ordering guarantee.",
+    "Legacy uppercase status normalization is a storage adaptation.",
+    "SDK birthday integer serialization and raw Joi conversion are separately tested, not conflated.",
+    "New guardian/agreement implementation is a separate unaccepted candidate and is not part of this integration.",
+    "No new robot deployment, destructive household operation or whole A-04 acceptance claim.",
+    "Integration removes one trailing blank line in a test file; executable test content is unchanged."
+  ],
+  "privateEvidence": [
+    ".parity/reviews/a04-update-member-sdk-node8-20260908/root-verification.json",
+    ".parity/reviews/a04-update-member-sdk-node8-20260908/root-coppa-review.json",
+    ".parity/reviews/a04-loop-list-client-node8-20260908/run-1/",
+    ".parity/reviews/a04-list-validation-20260908/"
+  ],
+  "taskClosed": false,
+  "privacy": {
+    "fixtureData": "invented",
+    "realHouseholdDataIncluded": false
+  }
+}

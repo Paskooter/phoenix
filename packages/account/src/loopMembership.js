@@ -1,4 +1,4 @@
-// Loop membership lifecycle — Create/Invite/Accept/Decline/ListMembers/RemoveMember.
+// Loop lifecycle — membership, record, and bounded member-profile operations.
 //
 // Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
 //   handlers/loop.handler.ts, controllers/loop.ctrl.ts, schemes/{loop,member.status,member.type}.ts,
@@ -43,8 +43,28 @@ export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
     message: 'Only owner or robot can manipulate this loop',
     statusCode: 403,
   },
+  CAN_BE_ACCESSED_BY_LEGAL_GUARDIAN: {
+    code: 'CAN_BE_ACCESSED_BY_LEGAL_GUARDIAN',
+    message: 'Only legal guardian can update child profile',
+    statusCode: 403,
+  },
   MEMBER_EXISTS: { code: 'MEMBER_EXISTS', message: 'Member already exists', statusCode: 409 },
+  MEMBER_EMAIL_EXISTS: {
+    code: 'MEMBER_EMAIL_EXISTS',
+    message: 'Member with specified email already exists',
+    statusCode: 409,
+  },
   MEMBER_NOT_FOUND: { code: 'MEMBER_NOT_FOUND', message: 'Member not found', statusCode: 404 },
+  ONLY_INVITED_OR_CHILD_EDITABLE: {
+    code: 'ONLY_INVITED_OR_CHILD_EDITABLE',
+    message: 'Only invited member or child can be edited',
+    statusCode: 403,
+  },
+  EMAIL_CAN_BE_SET_ONCE: {
+    code: 'EMAIL_CAN_BE_SET_ONCE',
+    message: 'Email can only be set once for member',
+    statusCode: 403,
+  },
   INVITE_NOT_FOUND: { code: 'INVITE_NOT_FOUND', message: 'Invitation not found', statusCode: 404 },
   ACTIVE_LIMIT_REACHED: {
     code: 'ACTIVE_LIMIT_REACHED',
@@ -56,6 +76,7 @@ export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
     message: 'Robot is required for loop creation',
     statusCode: 422,
   },
+  ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
   ROBOT_DISABLED: { code: 'ROBOT_DISABLED', message: 'Robot disabled', statusCode: 409 },
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
 });
@@ -73,10 +94,20 @@ const HANDLERS = Object.freeze({
   listmembers: listMembersHttp,
   removeloopmember: removeMemberHttp,
   removemember: removeMemberHttp,
+  updateloop: updateLoopHttp,
+  removeloop: removeLoopHttp,
+  clearrobot: clearRobotHttp,
+  updateloopmember: updateMemberHttp,
   setenrollment: setEnrollmentHttp,
   updatenickname: updateNicknameHttp,
   updatephoneticname: updatePhoneticNameHttp,
 });
+
+const LOOP_RECORD_OPERATIONS = new Set(['updateloop', 'removeloop', 'clearrobot']);
+
+export function isLoopRecordOperation(op) {
+  return LOOP_RECORD_OPERATIONS.has(String(op || '').toLowerCase());
+}
 
 export class LoopError extends Error {
   constructor({ code, message, statusCode }) {
@@ -106,6 +137,10 @@ function invitationCode() {
 }
 
 function callerAccount(store, req) {
+  // Public Loop requests are authenticated by the shared robot face before
+  // validation. Direct source-method controls may supply a synthetic request
+  // without that gateway; the fallback below is only their internal identity seam.
+  if (req && req._phoenixVerifiedCredentials) return req._phoenixVerifiedCredentials;
   const accessKeyId = accessKeyIdFromAuth(req);
   return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
 }
@@ -149,6 +184,54 @@ function saveLoop(store, loop, loopUpdatedOutbox, before = undefined) {
     throw error;
   }
   return loop;
+}
+
+/** Source LoopController.update: owner-only name change with a command result. */
+export function updateLoop(store, { ownerId, loopId, name }, loopUpdatedOutbox) {
+  const storedLoop = findById(store, loopId);
+  if (!idsEqual(storedLoop.owner, ownerId)) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
+  }
+  // The source assigns `name` before checking suspension on the request-local
+  // Mongoose document. A rejected request does not save that assignment. Use a
+  // detached draft so the in-memory Store has the same externally visible
+  // result when a suspended loop is rejected.
+  if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const { before, loop } = mutationDraft(storedLoop);
+  loop.name = name;
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return COMMAND_RESULT;
+}
+
+function removeLoopRecord(store, { ownerId = null, loopId, isAdmin = false }, loopUpdatedOutbox) {
+  const storedLoop = findById(store, loopId);
+  if (!idsEqual(storedLoop.owner, ownerId) && !isAdmin) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
+  }
+  const { before, loop } = mutationDraft(storedLoop);
+  // The source removes the association by assigning undefined, then soft
+  // deletes the document. Do not remove the member account row.
+  loop.isDeleted = true;
+  loop.robot = undefined;
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return loop;
+}
+
+/** Source LoopController.remove: owner-only soft deletion returning a Loop. */
+export function removeLoop(store, { ownerId = null, loopId }, loopUpdatedOutbox) {
+  const loop = removeLoopRecord(store, { ownerId, loopId, isAdmin: false }, loopUpdatedOutbox);
+  return populateLoop(store, loop);
+}
+
+/** Source LoopController.clearRobot: one active loop found by robot account. */
+export function clearRobot(store, { robotId }, loopUpdatedOutbox) {
+  const robot = store.accountByFriendlyId(robotId);
+  if (!robot) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_NOT_FOUND);
+  const loop = [...store.loops.values()].find((item) => item.isDeleted !== true
+    && idsEqual(item.robot, robot._id));
+  if (!loop) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_NOT_FOUND);
+  const removed = removeLoopRecord(store, { loopId: loop._id, isAdmin: true }, loopUpdatedOutbox);
+  return populateLoop(store, removed);
 }
 
 function mutationDraft(loop) {
@@ -334,7 +417,7 @@ export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdated
 
 function addMember(store, {
   ownerId, loopId, accountId, code, memberProperties, invitedAsLegalGuardian,
-}, loopUpdatedOutbox) {
+}, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
   const storedLoop = findById(store, loopId);
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
@@ -350,7 +433,7 @@ function addMember(store, {
   const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
     && (isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED)));
   if (existingAffectingSize >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
-  const memberIsChild = !!(memberProperties && memberProperties.isChild);
+  const memberIsChild = coppaEnabled && memberProperties && memberProperties.isChild;
   const memberStatus = memberProperties && !memberProperties.email && !memberIsChild
     ? MEMBER_STATUS.ACCEPTED
     : MEMBER_STATUS.INVITED;
@@ -368,7 +451,7 @@ function addMember(store, {
   return loop;
 }
 
-export function inviteMember(store, payload, loopUpdatedOutbox) {
+export function inviteMember(store, payload, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
   const loop = findById(store, payload.loopId);
   if (!idsEqual(loop.owner, payload.ownerId)) fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
   let targetAccount = null;
@@ -392,7 +475,7 @@ export function inviteMember(store, payload, loopUpdatedOutbox) {
       phoneNumber: payload.phoneNumber || null,
     },
     ownerId: payload.ownerId,
-  }, loopUpdatedOutbox);
+  }, loopUpdatedOutbox, { coppaEnabled });
   return populateLoop(store, findById(store, payload.loopId));
 }
 
@@ -446,6 +529,105 @@ export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) 
   }
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   targetMember.status = MEMBER_STATUS.REMOVED;
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return populateLoop(store, loop);
+}
+
+/**
+ * UpdateLoopMember / LoopController.updateMember.
+ *
+ * Keep this separate from profileMember. The source looks up the member before
+ * checking ownership, lets a legal guardian edit a child, and does not reject
+ * a suspended loop here. Work on a request-local draft so an outbox/flush
+ * failure cannot expose the source document's unsaved member fields.
+ */
+export function updateMember(store, {
+  ownerId, loopId, id, email, firstName, lastName, gender, birthday, phoneNumber,
+}, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
+  const storedLoop = findById(store, loopId);
+  const storedMember = (storedLoop.members || []).find((member) => idsEqual(member._id || member.id, id));
+  if (!storedMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+
+  const { before, loop } = mutationDraft(storedLoop);
+  const member = (loop.members || []).find((item) => idsEqual(item._id || item.id, id));
+  // Mongoose materializes this nested schema object for valid members. Older
+  // imported Store records can omit it, so make the detached draft equivalent
+  // before evaluating the source's child/editability fields.
+  member.memberProperties = member.memberProperties || {};
+
+  if (coppaEnabled && member.memberProperties.isChild) {
+    const legalGuardianMember = (loop.members || []).find((item) =>
+      idsEqual(item._id || item.id, member.legalGuardianId));
+    if (!legalGuardianMember || !legalGuardianMember.accountId
+      || !idsEqual(legalGuardianMember.accountId, ownerId)) {
+      fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_LEGAL_GUARDIAN);
+    }
+  } else if (!idsEqual(loop.owner, ownerId) && !(loop.robot && idsEqual(loop.robot, ownerId))) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER_OR_ROBOT);
+  }
+
+  const invited = isMemberStatus(member.status, MEMBER_STATUS.INVITED);
+  const acceptedWithoutEmail = isMemberStatus(member.status, MEMBER_STATUS.ACCEPTED)
+    && !member.memberProperties.email;
+  if (!invited && !member.memberProperties.isChild && !acceptedWithoutEmail) {
+    fail(LOOP_MEMBERSHIP_ERRORS.ONLY_INVITED_OR_CHILD_EDITABLE);
+  }
+
+  // The source uses `||` for these assignments. Joi has already rejected
+  // false/zero/non-string values, but null/omitted values still preserve the
+  // previous field in exactly this way.
+  member.memberProperties.firstName = firstName || member.memberProperties.firstName;
+  member.memberProperties.lastName = lastName || member.memberProperties.lastName;
+  member.memberProperties.gender = gender || member.memberProperties.gender;
+  member.memberProperties.birthday = birthday || member.memberProperties.birthday;
+  member.memberProperties.phoneNumber = phoneNumber || member.memberProperties.phoneNumber;
+
+  // Joi.number() accepts a numeric string, but @jibo/server's validation
+  // decorator discards the converted callback value. The controller therefore
+  // assigns the original string and Mongoose casts the Number schema path when
+  // saveAndPopulate runs. Store uses plain objects, so perform that persistence
+  // cast at the same boundary while leaving the controller's `||` assignment
+  // semantics intact (notably, numeric zero still preserves the old value).
+  if (member.memberProperties.birthday !== null
+    && member.memberProperties.birthday !== undefined
+    && member.memberProperties.birthday !== '') {
+    const birthdayNumber = Number(member.memberProperties.birthday);
+    if (Number.isFinite(birthdayNumber)) member.memberProperties.birthday = birthdayNumber;
+  }
+
+  // Set email only once. An incoming email is normalized by the HTTP handler,
+  // matching UpdateMember's source decorator method.
+  if (member.memberProperties.email && email) {
+    fail(LOOP_MEMBERSHIP_ERRORS.EMAIL_CAN_BE_SET_ONCE);
+  }
+  if (email) {
+    const existingMemberWithSameEmail = (loop.members || []).find((item) =>
+      item.memberProperties && item.memberProperties.email === email);
+    if (existingMemberWithSameEmail && (
+      isMemberStatus(existingMemberWithSameEmail.status, MEMBER_STATUS.REMOVED)
+      || isMemberStatus(existingMemberWithSameEmail.status, MEMBER_STATUS.DECLINED)
+    )) {
+      const duplicateId = existingMemberWithSameEmail._id || existingMemberWithSameEmail.id;
+      loop.members = loop.members.filter((item) => !idsEqual(item._id || item.id, duplicateId));
+    } else if (existingMemberWithSameEmail) {
+      fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_EMAIL_EXISTS);
+    }
+
+    // The source Account.findOne({ email }) has no isDeleted predicate. Keep
+    // Store.accountByEmail's direct lookup so this boundary does not silently
+    // invent an account or alter the source query's deletion semantics.
+    const existingAccountWithSameEmail = store.accountByEmail(email);
+    if (existingAccountWithSameEmail) member.accountId = existingAccountWithSameEmail._id;
+    member.memberProperties.email = email;
+    member.memberProperties.isChild = false;
+    member.status = MEMBER_STATUS.INVITED;
+    member.invitationCode = invitationCode();
+    // srv-account-ws sends an invitation mail and an InvitedToJoinLoop event
+    // through external providers before saving. Phoenix has no equivalent
+    // provider seam on this face; keep the loop mutation/outbox faithful and
+    // report those two unimplemented side effects rather than faking delivery.
+  }
+
   saveLoop(store, loop, loopUpdatedOutbox, before);
   return populateLoop(store, loop);
 }
@@ -558,6 +740,26 @@ function optionalNumberNull(body, field) {
   return null;
 }
 
+// The pinned UpdateMember handler declares Joi.number().allow(null). Joi 10.5.2
+// accepts numeric strings after conversion, while the validatePayload decorator
+// passes the original object to the controller. Validate the source domain here
+// without replacing the request value, so the subsequent controller assignment
+// and persistence cast remain observable separately.
+function optionalSourceNumberNull(body, field) {
+  if (!hasField(body, field)) return null;
+  if (body[field] === null) return null;
+  if (typeof body[field] === 'number') {
+    return Number.isFinite(body[field]) ? null : childFail(field, 'must be a number');
+  }
+  if (typeof body[field] === 'string') {
+    // Joi 10.5.2 does not accept an empty numeric string for this schema.
+    if (body[field].trim().length === 0) return childFail(field, 'must be a number');
+    const converted = Number(body[field]);
+    return Number.isFinite(converted) ? null : childFail(field, 'must be a number');
+  }
+  return childFail(field, 'must be a number');
+}
+
 function optionalEnum(body, field, values) {
   const base = optionalString(body, field);
   if (base) return base;
@@ -638,7 +840,7 @@ function createLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
-function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled }) {
   const message = firstError(body, [
     () => optionalBoolean(body, 'asLegalGuardian'),
     () => optionalNumberNull(body, 'birthday'),
@@ -663,7 +865,7 @@ function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
     loopId: body.loopId,
     ownerId: caller && caller._id,
     phoneNumber: body.phoneNumber,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { coppaEnabled }));
 }
 
 function acceptInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
@@ -717,6 +919,32 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
+function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled }) {
+  const message = firstError(body, [
+    () => optionalSourceNumberNull(body, 'birthday'),
+    () => optionalEmail(body, 'email'),
+    () => optionalString(body, 'firstName'),
+    () => optionalEnum(body, 'gender', GENDERS),
+    () => requiredString(body, 'id'),
+    () => optionalString(body, 'lastName'),
+    () => requiredString(body, 'loopId'),
+    () => optionalString(body, 'phoneNumber'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => updateMember(store, {
+    birthday: body.birthday,
+    email: body.email ? String(body.email).toLowerCase() : null,
+    firstName: body.firstName ? String(body.firstName).trim() : null,
+    gender: body.gender,
+    id: body.id,
+    lastName: body.lastName ? String(body.lastName).trim() : null,
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+    phoneNumber: body.phoneNumber,
+  }, loopUpdatedOutbox, { coppaEnabled }));
+}
+
 function setEnrollmentHttp({ store, req, res, body, loopUpdatedOutbox }) {
   const message = firstError(body, [
     () => optionalEnrollmentBoolean(body, 'face'),
@@ -767,11 +995,53 @@ function updatePhoneticNameHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
+function updateLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  // Handler schema order is loopId, then name (loop.handler.ts:53-56).
+  const message = firstError(body, [
+    () => requiredString(body, 'loopId'),
+    () => requiredString(body, 'name'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => updateLoop(store, {
+    loopId: body.loopId,
+    name: body.name,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+function removeLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [() => requiredString(body, 'loopId')]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => removeLoop(store, {
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+function clearRobotHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const caller = callerAccount(store, req);
+  // @parseCredentials({ adminOnly: true }) runs before @validatePayload in
+  // the source handler. The public face resolves this from the signed access
+  // key; x-amz-credentials cannot turn an ordinary account into an admin.
+  if (!caller || !caller.isAdmin) {
+    return void sendAmzError(res, {
+      code: 'AUTHORIZED_UNDER_ADMIN',
+      message: 'Must be authorized under admin account',
+      statusCode: 401,
+    });
+  }
+  const message = firstError(body, [() => requiredString(body, 'robotId')]);
+  if (message) return void sendValidationError(res, message);
+  return respond(res, () => clearRobot(store, { robotId: body.robotId }, loopUpdatedOutbox));
+}
+
 /** @returns {boolean} true when this Loop operation is a membership-lifecycle handler. */
-export function handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox }) {
+export function handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled = true }) {
   const handler = HANDLERS[String(op || '').toLowerCase()];
   if (!handler) return false;
   log?.info?.('loop membership request', { op });
-  handler({ store, req, res, body: body || {}, loopUpdatedOutbox });
+  handler({ store, req, res, body: body === undefined ? {} : body, loopUpdatedOutbox, coppaEnabled });
   return true;
 }

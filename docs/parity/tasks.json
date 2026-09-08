@@ -2732,7 +2732,7 @@
         "packages/account/src/loopMembership.js",
         "packages/account/src/loopUpdatedOutbox.js"
       ],
-      "finding": "Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open. Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open. Root deployed d7934a6 and verified all three profile operations on the installed Node6 client using value-preserving saves. Original native notification, dispatcher, household save and canonical KB readback agree; all household and enrollment preservation checks pass. Clock view/TTS/idle also pass. Other operations and full A-04 remain open. Root accepted GetRobot, FindOwner and ListOwnerRobots with verified public signatures. Original Node8 client completed 22 signed calls through Account/Classic; 837 unit tests and strict 43 pass. Stale-relation 500 code differs while retryable status matches; live robot lookup acceptance and full A-04 remain open. Root accepted shared public Loop signature verification before handler execution. Original Node8 client made 36 signed calls plus 8 anonymous-policy controls; 68 root outcome/state checks, 839 combined unit tests and strict 43 pass. Non-Loop auth, unimplemented handlers and live robot acceptance remain open. Root deployed reviewed shared Loop auth and lookups. Installed Node6 client3.0.105 passed household/owner/robot-list reads and expected owner-credential denial; native notification socket connected, strict TLS retained, and entire account store preserved. No new microphone, screen, profile-mutation or full A-04 acceptance claim.",
+      "finding": "Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open. Root accepted bounded SetEnrollment, UpdateNickname and UpdatePhoneticName, plus failed membership save isolation. Exact source Node 8 comparison matches 16 operation and 22 validation controls; eight original client controls, 826 unit tests and strict43 pass. Remaining operations, full signature verification, production delivery and new-operation robot acceptance remain open. Root deployed d7934a6 and verified all three profile operations on the installed Node6 client using value-preserving saves. Original native notification, dispatcher, household save and canonical KB readback agree; all household and enrollment preservation checks pass. Clock view/TTS/idle also pass. Other operations and full A-04 remain open. Root accepted GetRobot, FindOwner and ListOwnerRobots with verified public signatures. Original Node8 client completed 22 signed calls through Account/Classic; 837 unit tests and strict 43 pass. Stale-relation 500 code differs while retryable status matches; live robot lookup acceptance and full A-04 remain open. Root accepted shared public Loop signature verification before handler execution. Original Node8 client made 36 signed calls plus 8 anonymous-policy controls; 68 root outcome/state checks, 839 combined unit tests and strict 43 pass. Non-Loop auth, unimplemented handlers and live robot acceptance remain open. Root deployed reviewed shared Loop auth and lookups. Installed Node6 client3.0.105 passed household/owner/robot-list reads and expected owner-credential denial; native notification socket connected, strict TLS retained, and entire account store preserved. No new microphone, screen, profile-mutation or full A-04 acceptance claim. Root accepted bounded record/member/COPPA/auth and Loop list behavior: 58 record client calls, 22 member client calls, six COPPA profiles and 66 list SDK/raw controls. Integrated production source/dependencies match the candidate868-pass/strict43 tree; only test trailing whitespace was normalized. Mail/invitation effects, guardian/agreement review, Mongo behavior, deployment and full A-04 remain open.",
       "acceptance": [
         "Cover all 23 wire operations: creation/update/removal, invitations/membership, robot association, enrollment, names/photos, legal guardian/agreement and suspension.",
         "Match ownership, membership states, side effects, errors and persistence with real client sequences.",
@@ -2740,11 +2740,13 @@
       ],
       "verification": [],
       "implementationReview": {
-        "state": "awaiting_review",
+        "state": "accepted",
         "assignee": "Luna Max team; Codex root",
+        "reviewedBy": "Codex root",
         "candidateRevision": "4d453eb8a85a0bebcac189a7dc643153d54ba35c",
-        "scope": "Combined record/member/COPPA/auth and Loop list candidates. Root verified 58 original-client record calls; list candidate passed 868 tests and strict43. Member/COPPA and list client reviews and invitation provider effects remain open. No deployment or whole-task acceptance.",
-        "artifact": "docs/parity/candidates/A-04-current-review-20260908.md"
+        "scope": "Root accepted bounded record/member/COPPA/auth and Loop list behavior: 58 record client calls, 22 member client calls, six COPPA profiles and 66 list SDK/raw controls. Integrated production source/dependencies match the candidate868-pass/strict43 tree; only test trailing whitespace was normalized. Mail/invitation effects, guardian/agreement review, Mongo behavior, deployment and full A-04 remain open.",
+        "artifact": "docs/parity/candidates/A-04-current-review-20260908.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-08/loop-membership-list/review.json"
       },
       "reviewHistory": [
         {
@@ -2819,6 +2821,15 @@
           "scope": "Record-operation original-client layer verified with 58 calls and expected status/code/state checks; combined implementation acceptance and deployment remain pending.",
           "artifact": "docs/parity/candidates/A-04-current-review-20260908.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/loop-record-client/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max team; Codex root",
+          "reviewedBy": "Codex root",
+          "candidateRevision": "4d453eb8a85a0bebcac189a7dc643153d54ba35c",
+          "scope": "Root accepted bounded record/member/COPPA/auth and Loop list behavior: 58 record client calls, 22 member client calls, six COPPA profiles and 66 list SDK/raw controls. Integrated production source/dependencies match the candidate868-pass/strict43 tree; only test trailing whitespace was normalized. Mail/invitation effects, guardian/agreement review, Mongo behavior, deployment and full A-04 remain open.",
+          "artifact": "docs/parity/candidates/A-04-current-review-20260908.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/loop-membership-list/review.json"
         }
       ]
     },

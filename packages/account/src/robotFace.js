@@ -79,7 +79,10 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store) } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {} } = {}) {
+  // LoopController snapshots this feature flag at construction; only literal
+  // lowercase 'off' disables COPPA, matching the source configuration.
+  const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
   // oobe.handler.ts mapping keys (lowercased for the prefix-tolerant match).
   const ops = {
     setuprobot: setupRobot,
@@ -105,8 +108,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
     // before Backup.new). ListLoops emits LoopController.populateLoop so SSM LoopManager
     // can sync /jibo/loop. Membership lifecycle (Create/Invite/Accept/Decline/ListMembers/
-    // RemoveMember) and bounded profile/enrollment operations are A-04 increments; the
-    // remaining loop ops are unimplemented.
+    // RemoveMember), bounded member-profile operations, and the record operations
+    // UpdateLoop/RemoveLoop/ClearRobot are A-04 increments; the remaining loop ops
+    // are unimplemented.
     if (/^loop/i.test(prefix)) {
       // Source security gateway authenticates Loop operations before forwarding
       // to Account. Only the exact invitation/agreement targets below permit
@@ -118,21 +122,26 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ].includes(String(req.headers['x-amz-target'] || ''));
       if (!anonymousTarget || req.headers.authorization) {
         try {
-          verifySigV4({
+          const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
             headers: req.headers,
             body: req.rawBody === undefined
               ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
-            resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+            resolveCredentials: (accessKeyId) => {
+              const account = store.accountByAccessKeyId(accessKeyId);
+              return account && account.isDeleted !== true ? account : null;
+            },
           });
+          req._phoenixVerifiedCredentials = verification.credentials;
         } catch (error) {
           if (!(error instanceof SigV4Error) || !SIGV4_ERRORS[error.code]) throw error;
           return void sendAmzError(res, SIGV4_ERRORS[error.code]);
         }
       }
       log.info('loop request', { op });
-      const validated = /^(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots)$/i.test(op);
+      // Preserve primitive payloads for the source-validated Loop handlers.
+      const validated = /^(listloops|list|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
       return void loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
     }
 
@@ -323,9 +332,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     //   Loop.list()    -> "ListLoops"
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
-    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox })) return;
+    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
     if (handleRobotLookup({ store, req, res, body, op })) return;
-    if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
+    if (o === 'listloops' || o === 'list') return void loopList({ req, res, body, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {
       return void loopSuspend({ req, res, body, op, log });
     }
@@ -334,23 +343,31 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   /** Loop.List/ListLoops: "loops for the current account." */
-  function loopList({ req, res, log }) {
-    // The robot signs with its own credentials, so resolve the account from the SigV4 accessKeyId
-    // and return the loop(s) it owns/belongs to. With auth disabled (dev/LAN), fall back to every
-    // loop — a single-robot deployment has one, which is what jibo-system-backup.js requires.
+  function loopList({ req, res, body, log }) {
+    // srv-account-ws@6cea434's ListLoops decorator validates
+    // Joi.validate(request.payload, { loopId: Joi.string() },
+    // { allowUnknown: true }) and discards the converted value. The handler
+    // still reads the original request.payload, so unknown properties are
+    // accepted and loopId must remain an optional, non-empty string.
+    const validation = listLoopsValidationMessage(body);
+    if (validation) return void sendValidationError(res, validation);
+
+    // LoopController.list first selects owner or accepted/invited membership,
+    // then infers robot mode from that selection (or the credential hint).
     const accessKeyId = accessKeyIdFromAuth(req);
-    const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-    const visible = account
-      ? [...store.loops.values()].filter((l) => l.isDeleted !== true
-        && (l.robot === account._id || l.owner === account._id))
-      : [...store.loops.values()].filter((l) => l.isDeleted !== true);
-    // LoopController.list omits suspended loops from a robot's own list, while an owner
-    // continues to see the suspended loop. A friendlyId is the source's robot-request hint;
-    // the legacy no-credential LAN fallback intentionally retains every active loop.
-    const isRobotRequesting = !!(account && account.friendlyId);
-    const loops = isRobotRequesting
-      ? visible.filter((l) => l.robot === account._id && l.isSuspended !== true)
+    const account = req._phoenixVerifiedCredentials;
+    const visible = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
+      && (loop.owner === account._id || (loop.members || []).some((member) =>
+        member.accountId === account._id
+        && ['accepted', 'invited'].includes(String(member.status || '').toLowerCase()))));
+    const requested = body.loopId
+      ? visible.filter((loop) => String(loop._id) === body.loopId)
       : visible;
+    const isRobotRequesting = !!account.friendlyId
+      || requested.some((loop) => loop.robot && loop.robot === account._id);
+    const loops = isRobotRequesting
+      ? requested.filter((loop) => loop.robot === account._id && !loop.isSuspended)
+      : requested;
     let persisted = false;
     const wired = loops.map((loop) => {
       if (ensureLoopMemberIds(loop)) persisted = true;
@@ -512,6 +529,17 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (body[field].length === 0) {
       return `child "${field}" fails because ["${field}" is not allowed to be empty]`;
     }
+    return null;
+  }
+
+  function listLoopsValidationMessage(body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+    // Joi treats an explicit undefined as an omitted optional property. JSON
+    // cannot carry undefined, but retaining the rule keeps this helper aligned
+    // with the source decorator for direct callers.
+    if (!Object.prototype.hasOwnProperty.call(body, 'loopId') || body.loopId === undefined) return null;
+    if (typeof body.loopId !== 'string') return 'child "loopId" fails because ["loopId" must be a string]';
+    if (body.loopId.length === 0) return 'child "loopId" fails because ["loopId" is not allowed to be empty]';
     return null;
   }
 
