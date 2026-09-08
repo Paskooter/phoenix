@@ -352,24 +352,21 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const validation = listLoopsValidationMessage(body);
     if (validation) return void sendValidationError(res, validation);
 
-    // The robot signs with its own credentials, so resolve the account from the SigV4 accessKeyId
-    // and return the loop(s) it owns/belongs to. With auth disabled (dev/LAN), fall back to every
-    // loop — a single-robot deployment has one, which is what jibo-system-backup.js requires.
+    // LoopController.list first selects owner or accepted/invited membership,
+    // then infers robot mode from that selection (or the credential hint).
     const accessKeyId = accessKeyIdFromAuth(req);
-    const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-    const visible = account
-      ? [...store.loops.values()].filter((l) => l.isDeleted !== true
-        && (l.robot === account._id || l.owner === account._id))
-      : [...store.loops.values()].filter((l) => l.isDeleted !== true);
+    const account = req._phoenixVerifiedCredentials;
+    const visible = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
+      && (loop.owner === account._id || (loop.members || []).some((member) =>
+        member.accountId === account._id
+        && ['accepted', 'invited'].includes(String(member.status || '').toLowerCase()))));
     const requested = body.loopId
-      ? visible.filter((l) => String(l._id) === body.loopId)
+      ? visible.filter((loop) => String(loop._id) === body.loopId)
       : visible;
-    // LoopController.list omits suspended loops from a robot's own list, while an owner
-    // continues to see the suspended loop. A friendlyId is the source's robot-request hint;
-    // the legacy no-credential LAN fallback intentionally retains every active loop.
-    const isRobotRequesting = !!(account && account.friendlyId);
+    const isRobotRequesting = !!account.friendlyId
+      || requested.some((loop) => loop.robot && loop.robot === account._id);
     const loops = isRobotRequesting
-      ? requested.filter((l) => l.robot === account._id && l.isSuspended !== true)
+      ? requested.filter((loop) => loop.robot === account._id && !loop.isSuspended)
       : requested;
     let persisted = false;
     const wired = loops.map((loop) => {

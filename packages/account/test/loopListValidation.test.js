@@ -8,7 +8,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createAccountService, Store } from '../src/index.js';
-import { createOwnerAccount, createLoop } from '../src/model.js';
+import { createOwnerAccount, createLoop, newId } from '../src/model.js';
 import { createClassicEntrypoint } from '../../classic/src/index.js';
 import { signSigV4 } from '@phoenix/common';
 
@@ -142,6 +142,62 @@ test('ListLoops preserves source object validation on Account and Classic faces'
     ]);
     if (previousNetAccount === undefined) delete process.env.NET_account;
     else process.env.NET_account = previousNetAccount;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('ListLoops selects membership before inferring robot mode and optional loop selection', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-list-visibility-'));
+  const store = new Store(join(dir, 'account.json'));
+  const owner = createOwnerAccount(store, { email: 'visibility-owner@synthetic.invalid', password: 'synthetic-password' });
+  const visitor = createOwnerAccount(store, { email: 'visibility-visitor@synthetic.invalid', password: 'synthetic-password' });
+  const cases = ['accepted', 'invited', 'declined', 'removed', 'deleted', 'suspended'];
+  const fixtures = {};
+  for (const status of cases) {
+    const { loop } = createLoop(store, { owner, robotId: `synthetic-visibility-${status}` });
+    loop.members.push({ _id: newId(), accountId: visitor._id,
+      status: ['deleted', 'suspended'].includes(status) ? 'accepted' : status,
+      enrolled: { face: false, voice: false } });
+    loop.isDeleted = status === 'deleted';
+    loop.isSuspended = status === 'suspended';
+    fixtures[status] = loop;
+  }
+  store.flush();
+  const accountService = await createAccountService({ store }).listen(0);
+  const previous = process.env.NET_account;
+  process.env.NET_account = `127.0.0.1:${accountService.address().port}`;
+  const classicService = await createClassicEntrypoint({ notificationFile: join(dir, 'notifications.json'), notificationPollIntervalMs: 60000 }).listen(0);
+  try {
+    for (const service of [accountService, classicService]) {
+      const base = `http://127.0.0.1:${service.address().port}`;
+      const list = async (body = {}) => {
+        const response = await post(base, JSON.stringify(body), visitor);
+        assert.equal(response.status, 200);
+        return response.body.map((loop) => loop.id);
+      };
+      const originalRobot = fixtures.accepted.robot;
+      assert.deepEqual(await list(), ['accepted', 'invited', 'suspended'].map((key) => fixtures[key]._id));
+      // A robot relation alone cannot bypass the source owner/member query.
+      fixtures.removed.robot = visitor._id;
+      assert.deepEqual(await list(), ['accepted', 'invited', 'suspended'].map((key) => fixtures[key]._id));
+      // A matching relation in a selected loop implies robot mode, even when
+      // this account has no friendlyId hint. Other visible loops disappear.
+      fixtures.accepted.robot = visitor._id;
+      assert.deepEqual(await list(), [fixtures.accepted._id]);
+      fixtures.accepted.isSuspended = true;
+      assert.deepEqual(await list(), []);
+      // The loopId query is applied before robot inference.
+      assert.deepEqual(await list({ loopId: fixtures.invited._id }), [fixtures.invited._id]);
+      visitor.friendlyId = 'synthetic-explicit-robot-hint';
+      assert.deepEqual(await list({ loopId: fixtures.invited._id }), []);
+      delete visitor.friendlyId;
+      fixtures.accepted.isSuspended = false;
+      fixtures.accepted.robot = originalRobot;
+    }
+  } finally {
+    await Promise.all([accountService, classicService].map((service) => new Promise((resolve) => service.close(resolve))));
+    if (previous === undefined) delete process.env.NET_account;
+    else process.env.NET_account = previous;
     rmSync(dir, { recursive: true, force: true });
   }
 });
