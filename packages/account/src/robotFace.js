@@ -27,6 +27,8 @@ import {
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { handleLoopMembership } from './loopMembership.js';
+import { handleLoopAgreements } from './loopAgreements.js';
+import { EchoSignProvider } from './echoSignProvider.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError } from './loopHttp.js';
 
@@ -79,7 +81,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {} } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig) } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
@@ -141,8 +143,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       }
       log.info('loop request', { op });
       // Preserve primitive payloads for the source-validated Loop handlers.
-      const validated = /^(listloops|list|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
-      return void loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
+      const validated = /^(setlegalguardian|updateagreementstatus|listloops|list|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
+      return loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
     }
 
     // Account_20151111.Get is the LoopManager fallback when the local KB root
@@ -332,6 +334,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     //   Loop.list()    -> "ListLoops"
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
+    const agreement = handleLoopAgreements({ store, req, res, body, op, provider: agreementProvider, outbox: loopUpdatedOutbox });
+    if (agreement !== false) return agreement;
     if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
     if (handleRobotLookup({ store, req, res, body, op })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, body, log });
