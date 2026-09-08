@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "changes_requested",
+  "candidateRevision": "05039642b2829db3ff7cd82ae754c445fa0458ba",
+  "reviewer": "Luna Max; root evidence review",
+  "rootVerifiedHashes": 27,
+  "passed": [
+    "Source controller ordering and authorization review",
+    "Original binary client wire shape",
+    "Byte-preserving upload/download with configured provider",
+    "Bounded abort cleanup"
+  ],
+  "finding": "Normal Account startup has no photo provider or public URL; authenticated upload returns 500 InternalFailure. Deployment wiring must be repaired before acceptance.",
+  "qualifications": [
+    "Hashless binary staging is a Phoenix extension",
+    "Exact deployed binary dependency version unresolved",
+    "No real photos or robot operations"
+  ]
+}

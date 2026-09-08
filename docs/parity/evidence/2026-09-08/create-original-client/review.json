@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate-client-checks-passed",
+  "candidateRevision": "eaa67241d1908916fd6525105a27a9c8e62e5c6e",
+  "reviewer": "Codex root",
+  "client": {
+    "version": "3.0.110",
+    "node": "8.9.4"
+  },
+  "faces": [
+    "Account",
+    "Classic"
+  ],
+  "operationCalls": 10,
+  "resultGroups": 8,
+  "robotReadRequests": 6,
+  "createdLoops": 4,
+  "creationEvents": 4,
+  "saveEvents": 4,
+  "checks": [
+    "Explicitly suspended robot rejected without mutation",
+    "Active and unavailable robot-read cases create a loop",
+    "Bad signatures and missing parameters rejected before robot read"
+  ],
+  "qualifications": [
+    "Synthetic local peer and accounts",
+    "Independent review and dependency acceptance pending",
+    "Not integrated or deployed",
+    "Whole A-04 remains incomplete"
+  ]
+}
