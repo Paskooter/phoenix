@@ -78,7 +78,7 @@ test('Classic forwards profile JSON primitives to the same 422 validation bounda
   const base=endpoints[1];
   for(const operation of ['SetEnrollment','UpdateNickname','UpdatePhoneticName']) {
     for(const body of ['null','false','7','"text"','[]']) {
-      const result=await post(base,{body,headers:{'content-type':'application/x-amz-json-1.1','x-amz-target':'Loop_20160324.'+operation}});
+      const result=await post(base,signed(base,body,owner,{headers:{'x-amz-target':'Loop_20160324.'+operation}}));
       assert.equal(result.status,422);
     }
   }
