@@ -26,3 +26,26 @@ See [client evidence](../evidence/2026-09-08/create-original-client/review.json)
 
 No real provisioning, family data, or live mail was used in these controls.
 The verified checklist remains 8/79 (10.1%).
+
+## Account events and robot notifications
+
+The pinned notification service `e42bfe01506a8febf3005ac536fda735bba49d0d`
+registers 16 event handlers. It has no direct handler for `InvitedToJoinLoop`,
+`InvitationToLoopAccepted`, `InvitationToLoopDeclined`, `MemberRemovedFromLoop`,
+or `LoopCreated`. Missing direct robot delivery of these five events is
+therefore not a parity defect at this service boundary. General event
+publication remains required; this finding does not exclude consumers in
+other services.
+
+Household saves separately emit `LoopUpdated`. Its source handler targets
+`evt.payload.robot`, uses skill ID `-1`, and forwards the event payload under
+notification name `LoopUpdated`. Phoenix uses that same mapping in
+`packages/account/src/loopUpdatedOutbox.js`; installed-client checks and the
+earlier canonical robot KB readback cover separate portions of its delivery.
+This does not establish an on-screen notification indicator. See
+[event registration evidence](../evidence/2026-09-08/event-routing/review.json).
+
+The invitation transport review instead requires repairs for substantive
+SMTP negotiation and the event sender Promise boundary: synchronous storage
+errors must become rejected delivery promises so the completed membership
+save does not incorrectly turn into an HTTP failure. Those repairs are in progress.

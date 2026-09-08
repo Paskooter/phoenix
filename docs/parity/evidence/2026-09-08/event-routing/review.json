@@ -1,0 +1,32 @@
+{
+  "sourceRepository": "jiborobot/srv-notification-ws",
+  "sourceRevision": "e42bfe01506a8febf3005ac536fda735bba49d0d",
+  "file": "src/index.ts",
+  "sha256": "deaf57b8aee03089b0f522f08f76ae4d7007336113210d88a4946ea60c8c0946",
+  "registeredEvents": [
+    "AccountUpdated",
+    "ActionCreated",
+    "LoopUpdated",
+    "RobotUpdated",
+    "RobotVerbosityChanged",
+    "RomConnectionRequested",
+    "MediaCreated",
+    "MediaDeleted",
+    "KeyNeeded",
+    "KeyShared",
+    "KeyTimeout",
+    "BinaryNeeded",
+    "SocketConnected",
+    "SocketDisconnected",
+    "HolidayUpdated",
+    "LoopPropertyUpdated"
+  ],
+  "accountLifecycleEventsWithoutDirectHandler": [
+    "InvitedToJoinLoop",
+    "InvitationToLoopAccepted",
+    "InvitationToLoopDeclined",
+    "MemberRemovedFromLoop",
+    "LoopCreated"
+  ],
+  "scope": "Static pinned handler registration; does not claim no downstream consumer in other services"
+}
