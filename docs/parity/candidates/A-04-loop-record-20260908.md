@@ -99,7 +99,9 @@ Use this exact comparison command:
 python3 /home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/compare-exact-candidate-final.py
 ```
 
-The final candidate commit is `906a998dee73fe1978a5ec1365734df34fd256d7`. The
+The implementation commit for this follow-up is
+`906a998dee73fe1978a5ec1365734df34fd256d7`; the current branch also contains
+the documentation-only commit immediately on top. The
 candidate file SHA-256 values are:
 
 | Candidate file | SHA-256 |
