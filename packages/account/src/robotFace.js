@@ -27,6 +27,7 @@ import {
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { handleLoopMembership } from './loopMembership.js';
+import { handleRobotLookup } from './robotLookup.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError } from './loopHttp.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
@@ -299,6 +300,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
     if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox })) return;
+    if (handleRobotLookup({ store, req, res, body, op })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {
       return void loopSuspend({ req, res, body, op, log });
