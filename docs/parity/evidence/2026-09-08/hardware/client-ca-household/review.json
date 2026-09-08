@@ -1,0 +1,63 @@
+{
+  "state": "verified_bounded",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T03:23:28.533992+00:00",
+  "subject": "All installed Moth Node client copies trust Phoenix with TLS verification; historical household preserved before enabling sync",
+  "backendRevision": "f8aabf16142cf1e2fd6257eea1b9863713895269",
+  "installerRevision": "1fd0a75",
+  "be": "11.0.1, original selected parity slot",
+  "source": {
+    "clientBase": "jiborobot/srv-jibo-server-client@dd4594bfb8554034075632a9bcc3499732a1d599",
+    "installedPackageVersion": "3.0.105",
+    "sourceSha256": "c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a",
+    "patchedSha256": "29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac",
+    "forkRevision": "a07785a53549ce13375201e2b9028d73224579f1",
+    "gitea": "https://pvindex.org/gitea/jibo/phoenix-jibo-server-client",
+    "github": "https://github.com/Paskooter/phoenix-jibo-server-client",
+    "accountController": "jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2 src/controllers/loop.ctrl.ts"
+  },
+  "clientChecks": {
+    "installedCopies": 27,
+    "independentlyEnumerated": true,
+    "beforeTlsFailures": 27,
+    "afterTls200": 27,
+    "rejectUnauthorized": true,
+    "fullSystemCaBundleWithPhoenix": true,
+    "freshSignedLoopList": {
+      "error": null,
+      "preservationCheck": "passed; payload and household statistics retained privately"
+    },
+    "originalFileBackups": true,
+    "persistentReceipt": "/var/lib/phoenix/jibo-server-client-ca.json",
+    "rootAndUsrLocalReadOnlyAfterApply": true,
+    "unchangedConfigCredentialAndRegionHashes": 32,
+    "node6Controls": "trusted CA accepted; wrong CA, absent trust, hostname mismatch and missing explicit CA rejected; cache/options behavior retained",
+    "installerControls": "apply/reapply/revert, preflight failures, ownership, rollback and restrictive umask passed on real Node 6.9.2"
+  },
+  "household": {
+    "authorization": "User authorized import and preservation",
+    "source": "Private real-robot KB captures",
+    "backup": "Private exact pre-import store plus KB and identity/ASR archives",
+    "verification": "Source projection and real-robot post-restart checks passed for member identities, status and enrollment preservation",
+    "privacy": "No personal profiles, household identifiers, household statistics, enrollment data or capture-derived fixtures are published"
+  },
+  "robotChecks": {
+    "loopManager": "Original SSM restarted and logged initial background cloud sync",
+    "notificationStatus": {
+      "status": 1
+    },
+    "nativeNotificationLanTlsSocket": true,
+    "clock": "Native clientASR text injection succeeded with askForTime and @be/clock; root viewed clock screenshot, observed TTS isTalking and return to @be/idle",
+    "observerGlobalsCleaned": true
+  },
+  "qualifications": [
+    "Original unpatched BE also completed a clock control after starting it. At handoff all skills were stopped; Node CA failure was real but was not proven to cause the previous conversation failure.",
+    "First deployment controller checked nonexistent /health and failed; /healthcheck on all six actual services returned 200. No migration rollback/redeployment occurred.",
+    "Native Jetstream stalled on TERM; exact verified PID required KILL under its supervisor. SSM was restarted again after native readiness.",
+    "First clock was sent during BE startup and failed missing runtime.loop; once BE reached idle, the next original SDK control succeeded. No server contract was changed to mask this.",
+    "Default npm test hit two pre-existing 3-second audio deadlines; bounded concurrency rerun passed 803 tests, 8 skipped, 0 failures. Initial strict gate hit Docker inspect timeout; retry passed all 43 cases.",
+    "Microphone recognition, physical blue ring, all skills, notification delivery and reboot persistence of the new per-package CA patch are not accepted by this checkpoint."
+  ],
+  "parity": "A-04 and R-02 remain open; 8/79 tasks fully verified (10.1%).",
+  "privateEvidence": ".parity/reviews/node-client-ca-root-20260908 (contains personal profiles, enrollment archives and credentials; never publish)"
+}

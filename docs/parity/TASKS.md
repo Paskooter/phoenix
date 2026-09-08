@@ -1381,7 +1381,7 @@ Lead verification: pending. This candidate does not certify task parity.
 
 Owner: Codex. Dependencies: A-03.
 
-Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open.
+Root accepted and integrated bounded suspension HTTP/state behavior at d0ac8ce: missing-loop/robot errors, caller lookup and robot/admin checks, source validation/success envelopes, durable suspension timestamps and robot list filtering. Its package tree matches the root-tested 678-unit/strict43 integration. Root executed 87 original-client calls and 21 actual original controller controls. LoopUpdated notification effects, full signature verification, remaining Loop operations and complete A-04 remain open. Root verified a guarded household migration against private source captures and the real robot, with identity and enrollment preservation checks. Personal source data and household statistics remain private; full membership lifecycle parity remains open.
 
 Done when:
 
@@ -1692,7 +1692,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: R-01, A-02, A-06, A-09.
 
-The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open.
+The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open.
 
 Done when:
 
