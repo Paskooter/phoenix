@@ -122,14 +122,18 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ].includes(String(req.headers['x-amz-target'] || ''));
       if (!anonymousTarget || req.headers.authorization) {
         try {
-          verifySigV4({
+          const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
             headers: req.headers,
             body: req.rawBody === undefined
               ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
-            resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+            resolveCredentials: (accessKeyId) => {
+              const account = store.accountByAccessKeyId(accessKeyId);
+              return account && account.isDeleted !== true ? account : null;
+            },
           });
+          req._phoenixVerifiedCredentials = verification.credentials;
         } catch (error) {
           if (!(error instanceof SigV4Error) || !SIGV4_ERRORS[error.code]) throw error;
           return void sendAmzError(res, SIGV4_ERRORS[error.code]);
@@ -327,11 +331,6 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     //   Loop.list()    -> "ListLoops"
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
-    // srv-security-gw authenticates UpdateMember before the Account handler's
-    // Joi decorator runs. Do the same at this public boundary, and retain the
-    // resolved account on the request so the handler cannot be redirected by a
-    // caller-supplied x-amz-credentials header or a mere Credential= fragment.
-    if (o === 'updateloopmember' && !verifyLoopMemberRequest(req, res, body)) return;
     if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
     if (handleRobotLookup({ store, req, res, body, op })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
@@ -340,35 +339,6 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     }
     log.warn('unimplemented Loop op', { op });
     return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unimplemented Loop op ${op}`);
-  }
-
-  function verifyLoopMemberRequest(req, res, body) {
-    try {
-      const verification = verifySigV4({
-        method: req.method,
-        path: req.originalUrl || req.url || '/',
-        headers: req.headers,
-        // Verify the exact received entity. This preserves JSON whitespace and
-        // primitive bodies across both the Account face and Classic proxy.
-        body: req.rawBody === undefined
-          ? (body === null || body === undefined ? '' : JSON.stringify(body))
-          : req.rawBody,
-        // AccountController.findByAccessKeyId excludes deleted accounts before
-        // the source handler receives credentials.
-        resolveCredentials: (accessKeyId) => {
-          const account = store.accountByAccessKeyId(accessKeyId);
-          return account && account.isDeleted !== true ? account : null;
-        },
-      });
-      req._phoenixVerifiedCredentials = verification.credentials;
-      return true;
-    } catch (error) {
-      if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {
-        sendAmzError(res, SIGV4_ERRORS[error.code]);
-        return false;
-      }
-      throw error;
-    }
   }
 
   /** Loop.List/ListLoops: "loops for the current account." */

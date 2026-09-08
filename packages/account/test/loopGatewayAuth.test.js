@@ -53,6 +53,11 @@ test('Loop gateway authenticates before household reads, mutations, and validati
           assert.equal(inactive.status, 403);
           assert.equal(inactive.body.__type, 'ACCOUNT_NOT_ACTIVE');
         } finally { owner.isActive = true; }
+        owner.isDeleted = true;
+        try {
+          const deleted = await post(body, signed(owner.secretAccessKey));
+          assert.equal(deleted.status, 401, 'deleted active account is not an authentication identity');
+        } finally { owner.isDeleted = false; }
         assert.deepEqual(readFileSync(store.file), before);
         assert.equal(JSON.stringify([...store.loops]), beforeMemory);
         assert.equal(JSON.stringify(store.notificationOutbox), beforeOutbox);

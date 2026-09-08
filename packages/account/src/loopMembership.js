@@ -137,10 +137,9 @@ function invitationCode() {
 }
 
 function callerAccount(store, req) {
-  // Public UpdateLoopMember requests are authenticated at the robot face before
-  // validation. Keep the verified document as the identity source; parsing a
-  // Credential= fragment is retained only for the direct/LAN compatibility
-  // seam used by the older membership handlers and source controls.
+  // Public Loop requests are authenticated by the shared robot face before
+  // validation. Direct source-method controls may supply a synthetic request
+  // without that gateway; the fallback below is only their internal identity seam.
   if (req && req._phoenixVerifiedCredentials) return req._phoenixVerifiedCredentials;
   const accessKeyId = accessKeyIdFromAuth(req);
   return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
