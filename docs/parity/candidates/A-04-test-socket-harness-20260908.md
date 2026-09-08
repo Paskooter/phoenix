@@ -89,8 +89,8 @@ Candidate worktree:
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `packages/account/test/loopMemberUpdate.test.js` | pending after commit |
-| `packages/account/test/robotLookup.test.js` | pending after commit |
+| `packages/account/test/loopMemberUpdate.test.js` | `71dcf696137c754c6c81b73824c96e15bb6c7b0f2a142d444a07703587617d8d` |
+| `packages/account/test/robotLookup.test.js` | `771903b5b117a67eeaca2421bd873a9cdd5e79e3409b1121f0816d3f2347eb30` |
 | `stale-pool-control.mjs` | `30bc4e591d8faf5aedf1389ead770e6018a8f83e9e159f54fb187acb078c17ea` |
 | `stale-default.json` | `0afe140edb8d284ee599d5c24069cac4192d578e003b1af4ea265cacdc696f7e` |
 | `stale-close.json` | `8c9abf4582a320554c50a93d6cb40e1f6079f9856105386fb90d9f12b1b3f07f` |
