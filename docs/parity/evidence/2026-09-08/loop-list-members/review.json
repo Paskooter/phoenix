@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "status": "accepted-bounded-root-review",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "candidateRevision": "660fe83867520656f6c0319859c9c53a647df5da",
+  "integrationRevision": "03c06cd9796b24d37ffa448b65e6e1095a7f7fd7",
+  "reviewer": "Codex root; independent Luna Max controls",
+  "sourceChecks": {
+    "validationRows": 14,
+    "populationModes": 2,
+    "filterRows": 6,
+    "visibilityRows": 8
+  },
+  "originalClient": {
+    "node": "8.9.4",
+    "version": "3.0.110",
+    "calls": 22,
+    "successes": 16,
+    "expected422": 6,
+    "faces": [
+      "Account",
+      "Classic"
+    ]
+  },
+  "unitTests": {
+    "passed": 871,
+    "skipped": 7,
+    "failed": 0
+  },
+  "strictGate": {
+    "cases": 43,
+    "differences": 0
+  },
+  "qualifications": [
+    "Source model seams do not prove complete Mongo query ordering",
+    "Absent versus undefined accountId differs before JSON serialization but is omitted in both wire responses",
+    "Legacy uppercase status normalization remains a storage adaptation",
+    "Not yet deployed; whole A-04 remains incomplete"
+  ]
+}

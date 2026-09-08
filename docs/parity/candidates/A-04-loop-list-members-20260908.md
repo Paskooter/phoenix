@@ -124,3 +124,15 @@ under `.parity/reviews/a04-list-members-integration-root-20260908/`.
 The independent source review is still being finalized. These integration
 checks do not yet mark this candidate accepted, deployed, or fully verified
 for A-04. No real household or robot state was used.
+
+## Root acceptance
+
+The bounded implementation is accepted after root source/evidence review.
+All 14 source validation statuses match; invalid inputs make no source
+controller calls. Both account projection modes match at the JSON boundary,
+as do six filter and eight visibility controls. The remaining projection
+comparison flag represents only absent versus undefined `accountId`, which
+JSON omits in both cases. Combined integration and original-client checks
+above passed. See [acceptance evidence](../evidence/2026-09-08/loop-list-members/review.json).
+This supersedes the pending-review status above for this bounded change.
+Full Mongo behavior, deployment, and whole A-04 acceptance remain open.
