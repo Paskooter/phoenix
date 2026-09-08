@@ -10,7 +10,8 @@
 # names do not match it says exactly what to set on the server, rather than
 # reissuing behind the server's back and leaving it serving the old certificate.
 #
-# On the robot it changes only data, never robot code:
+# On the robot it changes deployment data plus the reviewed Node client trust
+# helper:
 #   1. /etc/hosts  (a symlink to /var/etc/hosts, on the rw /var partition):
 #      a managed block mapping <region>.jibo.com and <region>-socket.jibo.com
 #      to the Phoenix host for every region you list, so the robot reaches
@@ -18,6 +19,10 @@
 #   2. The OpenSSL default trust store: the Phoenix CA is written into the real
 #      /etc/ssl/certs on the root filesystem, with the subject-hash symlink and
 #      an appended ca-certificates.crt entry.
+#   3. Every supported @jibo/jibo-server-client copy is checked against the
+#      pinned upstream source, backed up, and patched with strict TLS plus the
+#      full system CA bundle in lib/http/phoenix-ca.pem. The patcher never
+#      disables verification and never kills a running client process.
 #
 # Why the trust store needs care: on a robot already set up by hand,
 # /etc/ssl/certs is often a BIND MOUNT over the real directory. Writing through
@@ -26,7 +31,8 @@
 # bind, and leaves the result boot persistent.
 #
 # Nothing is changed without showing you a plan first. Every edited file is
-# backed up. Re-running is idempotent. --revert undoes it.
+# backed up. Re-running is idempotent. --revert undoes it, including the
+# hash-guarded Node client patch when its receipt is present.
 #
 # Usage:
 #   scripts/parity-robot/repoint-robot.sh --robot <host> --phoenix <ip> [options]
@@ -62,6 +68,7 @@ ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.lo
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
 EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0
 HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""; ACCOUNT_STORE=""
+CLIENT_CA_RECEIPT="/var/lib/phoenix/jibo-server-client-ca.json"
 MARK_BEGIN="# >>> phoenix-repoint >>>"
 MARK_END="# <<< phoenix-repoint <<<"
 STAMP="$(date -u +%Y%m%d-%H%M%S)"
@@ -95,6 +102,10 @@ done
 CA_KEY="${CERT_DIR}/ca.key"
 [ -n "$SERVER_CRT" ] || SERVER_CRT="${CERT_DIR}/server.crt"
 [ -n "$SERVER_KEY" ] || SERVER_KEY="${CERT_DIR}/server.key"
+PATCHER="$(cd "$(dirname "$0")/../.." && pwd)/scripts/parity-robot/patch-server-client-ca.cjs"
+CLIENT_PATCH_TMP="/tmp/.phoenix-patch-server-client-ca-${STAMP}-$$.cjs"
+CLIENT_NODE_BUNDLE_TMP="/tmp/.phoenix-node-ca-${STAMP}-$$.pem"
+REMOTE_CA_TMP="/tmp/.phoenix-ca-${STAMP}-$$.crt"
 
 say()  { printf '\033[36m[repoint]\033[0m %s\n' "$*" >&2; }
 warn() { printf '\033[33m[repoint] WARN:\033[0m %s\n' "$*" >&2; }
@@ -102,8 +113,66 @@ die()  { printf '\033[31m[repoint] ERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 ok()   { printf '\033[32m[repoint] OK:\033[0m %s\n' "$*" >&2; }
 
 [ -n "$ROBOT" ] || die "--robot is required"
+[ -r "$PATCHER" ] || die "Node client patch utility is missing or unreadable: $PATCHER"
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
 rsh() { timeout 90 "${SSH[@]}" "$@"; }
+
+# Upload only this run's utility to an unguessable temporary path. A stale path
+# is an error rather than a reason to remove another invocation's file.
+upload_client_patcher() {
+  if ! rsh "test ! -e '$CLIENT_PATCH_TMP' && cat > '$CLIENT_PATCH_TMP'" < "$PATCHER"; then
+    rsh "rm -f '$CLIENT_PATCH_TMP'" 2>/dev/null || true
+    die "could not upload the reviewed Node client patch utility"
+  fi
+}
+
+cleanup_client_patcher() {
+  rsh "rm -f '$CLIENT_PATCH_TMP' '$CLIENT_NODE_BUNDLE_TMP' '$REMOTE_CA_TMP'" 2>/dev/null || true
+}
+
+run_client_patch_apply() {
+  rsh "set -eu
+    PATCH='$CLIENT_PATCH_TMP'
+    BUNDLE='$CLIENT_NODE_BUNDLE_TMP'
+    RECEIPT='$CLIENT_CA_RECEIPT'
+    cleanup() {
+      status=\$?
+      trap - EXIT HUP INT TERM
+      rm -f \"\$PATCH\" \"\$BUNDLE\" \"$REMOTE_CA_TMP\"
+      mount -o remount,ro /usr/local 2>/dev/null || true
+      mount -o remount,ro / 2>/dev/null || true
+      exit \$status
+    }
+    trap cleanup EXIT HUP INT TERM
+    if ! jibo-mount --rw >/dev/null 2>&1; then
+      mount -o remount,rw /usr/local 2>/dev/null || true
+      mount -o remount,rw / 2>/dev/null || true
+    fi
+    test -r \"\$BUNDLE\"
+    node \"\$PATCH\" --ca-bundle \"\$BUNDLE\" --receipt \"\$RECEIPT\" --json
+  "
+}
+
+run_client_patch_revert() {
+  rsh "set -eu
+    PATCH='$CLIENT_PATCH_TMP'
+    RECEIPT='$CLIENT_CA_RECEIPT'
+    cleanup() {
+      status=\$?
+      trap - EXIT HUP INT TERM
+      rm -f \"\$PATCH\"
+      mount -o remount,ro /usr/local 2>/dev/null || true
+      mount -o remount,ro / 2>/dev/null || true
+      exit \$status
+    }
+    trap cleanup EXIT HUP INT TERM
+    if ! jibo-mount --rw >/dev/null 2>&1; then
+      mount -o remount,rw /usr/local 2>/dev/null || true
+      mount -o remount,rw / 2>/dev/null || true
+    fi
+    node \"\$PATCH\" --revert --receipt \"\$RECEIPT\" --json
+  "
+}
 
 # ---------------------------------------------------------------- preflight
 say "preflight: connecting to $ROBOT"
@@ -270,6 +339,7 @@ say "PLAN for $ROBOT"
 if [ "$REVERT" -eq 1 ]; then
   echo "  - remove the managed hosts block from $HOSTS_TARGET (restores prior lines)"
   echo "  - remove the Phoenix CA from the real /etc/ssl/certs and its hash symlink"
+  echo "  - restore every Node client source owned by $CLIENT_CA_RECEIPT and remove only its installed CA files"
 else
   echo "  - hosts file: $HOSTS_TARGET"
   for r in $REGIONS; do
@@ -279,6 +349,7 @@ else
   echo "  - install CA into the real /etc/ssl/certs as phoenix-ca.crt + ${CA_HASH:-<hash of the CA to be created>}.0"
   echo "  - append it to ca-certificates.crt (backed up first)"
   [ "$DO_HUB" -eq 1 ] && echo "  - point Jetstream's conversation hub at ${PHOENIX}:${HUB_PORT} and restart it"
+  echo "  - patch every supported Node client copy and install the robot's full CA bundle beside it (receipt: $CLIENT_CA_RECEIPT)"
   [ -n "$CLASSIC_URL" ] && echo "  - rewrite every region_config.json to $CLASSIC_URL"
   [ "$DO_ADOPT" -eq 1 ] && echo "  - register this robot in the Phoenix account store using its existing credentials"
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 1 ] && echo "  - unmount the /etc/ssl/certs bind afterwards"
@@ -287,7 +358,19 @@ fi
 echo "  - every edited file is backed up with suffix .phx-bak-$STAMP"
 echo
 
-if [ "$DRY" -eq 1 ]; then say "--dry-run: nothing was changed"; exit 0; fi
+# Always reject an unsupported nested client before changing hosts or trust.
+# Reading the utility from stdin also keeps dry-run free of remote temp files.
+say "checking every installed Node client against the reviewed source"
+if [ "$REVERT" -eq 1 ]; then
+  if rsh "test -f '$CLIENT_CA_RECEIPT'"; then
+    rsh "node - --dry-run --revert --receipt '$CLIENT_CA_RECEIPT' --json" < "$PATCHER"
+  else
+    warn "no Node client patch receipt; only deployment data can be reverted"
+  fi
+else
+  rsh "node - --dry-run --receipt '$CLIENT_CA_RECEIPT' --json" < "$PATCHER"
+fi
+if [ "$DRY" -eq 1 ]; then say "--dry-run: no deployment files changed"; exit 0; fi
 if [ "$ASSUME_YES" -eq 0 ]; then
   printf 'Proceed? [y/N] ' >&2; read -r reply </dev/tty
   case "$reply" in y|Y|yes|YES) ;; *) say "aborted; nothing changed"; exit 1 ;; esac
@@ -295,19 +378,54 @@ fi
 
 # ---------------------------------------------------------------- apply
 if [ "$REVERT" -eq 1 ]; then
+  if rsh "test -f '$CLIENT_CA_RECEIPT'" 2>/dev/null; then
+    say "reverting the hash-guarded Node client trust patch"
+    upload_client_patcher
+    if run_client_patch_revert; then
+      ok "Node client sources and owned package CA files restored"
+    else
+      cleanup_client_patcher
+      die "Node client patch revert failed; refusing to remove the host/trust changes"
+    fi
+  else
+    warn "no Node client patch receipt at $CLIENT_CA_RECEIPT; skipping Node source revert"
+  fi
   say "reverting hosts block"
   rsh "cp -p '$HOSTS_TARGET' '${HOSTS_TARGET}.phx-bak-${STAMP}' && sed -i '/${MARK_BEGIN}/,/${MARK_END}/d' '$HOSTS_TARGET'"
   ok "hosts block removed (backup ${HOSTS_TARGET}.phx-bak-${STAMP})"
   say "removing Phoenix CA from the real trust store"
   rsh "set -e
-    jibo-mount --rw >/dev/null 2>&1 || mount -o remount,rw / 2>/dev/null || true
-    mkdir -p /tmp/.phoenix-rootfs && mount --bind / /tmp/.phoenix-rootfs
+    MOUNTED=0
+    cleanup() {
+      status=\$?
+      trap - EXIT HUP INT TERM
+      if [ \"\$MOUNTED\" -eq 1 ]; then
+        sync || true
+        umount /tmp/.phoenix-rootfs 2>/dev/null || true
+        rmdir /tmp/.phoenix-rootfs 2>/dev/null || true
+      fi
+      mount -o remount,ro /usr/local 2>/dev/null || true
+      mount -o remount,ro / 2>/dev/null || true
+      exit \$status
+    }
+    trap cleanup EXIT HUP INT TERM
+    if ! jibo-mount --rw >/dev/null 2>&1; then
+      mount -o remount,rw /usr/local 2>/dev/null || true
+      mount -o remount,rw / 2>/dev/null || true
+    fi
+    mkdir -p /tmp/.phoenix-rootfs
+    if mount | grep -Fq ' on /tmp/.phoenix-rootfs '; then
+      echo 'temporary rootfs mount is already in use' >&2
+      exit 1
+    fi
+    mount --bind / /tmp/.phoenix-rootfs
+    MOUNTED=1
     R=/tmp/.phoenix-rootfs/etc/ssl/certs
+    [ -d \$R ] || { echo 'real /etc/ssl/certs missing' >&2; exit 1; }
     rm -f \$R/phoenix-ca.crt \$R/*.0.phoenix 2>/dev/null || true
     for l in \$R/*.0; do [ -L \"\$l\" ] && [ \"\$(readlink \$l)\" = phoenix-ca.crt ] && rm -f \$l; done 2>/dev/null || true
-    [ -f \$R/ca-certificates.crt.phx-orig ] && mv -f \$R/ca-certificates.crt.phx-orig \$R/ca-certificates.crt
-    sync; umount /tmp/.phoenix-rootfs; rmdir /tmp/.phoenix-rootfs
-    mount -o remount,ro / 2>/dev/null || true"
+    [ -f \$R/ca-certificates.crt.phx-orig ] && mv -f \$R/ca-certificates.crt.phx-orig \$R/ca-certificates.crt || true
+    sync"
   ok "revert complete"
   exit 0
 fi
@@ -344,24 +462,56 @@ ok "hosts updated (backup ${HOSTS_TARGET}.phx-bak-${STAMP})"
 
 [ -n "${CA_HASH:-}" ] || die "no CA hash: the CA was not created or read"
 say "installing CA into the real (persistent) trust store"
-rsh "cat > /tmp/.phoenix-ca.crt" < "$CA"
+rsh "test ! -e '$REMOTE_CA_TMP' && cat > '$REMOTE_CA_TMP'" < "$CA"
 rsh "set -e
-  jibo-mount --rw >/dev/null 2>&1 || mount -o remount,rw / 2>/dev/null || true
-  mkdir -p /tmp/.phoenix-rootfs && mount --bind / /tmp/.phoenix-rootfs
+  MOUNTED=0
+  cleanup() {
+    status=\$?
+    trap - EXIT HUP INT TERM
+    if [ \"\$MOUNTED\" -eq 1 ]; then
+      sync || true
+      umount /tmp/.phoenix-rootfs 2>/dev/null || true
+      rmdir /tmp/.phoenix-rootfs 2>/dev/null || true
+    fi
+    rm -f '$REMOTE_CA_TMP'
+    mount -o remount,ro /usr/local 2>/dev/null || true
+    mount -o remount,ro / 2>/dev/null || true
+    exit \$status
+  }
+  trap cleanup EXIT HUP INT TERM
+  if ! jibo-mount --rw >/dev/null 2>&1; then
+    mount -o remount,rw /usr/local 2>/dev/null || true
+    mount -o remount,rw / 2>/dev/null || true
+  fi
+  mkdir -p /tmp/.phoenix-rootfs
+  if mount | grep -Fq ' on /tmp/.phoenix-rootfs '; then
+    echo 'temporary rootfs mount is already in use' >&2
+    exit 1
+  fi
+  mount --bind / /tmp/.phoenix-rootfs
+  MOUNTED=1
   R=/tmp/.phoenix-rootfs/etc/ssl/certs
-  [ -d \$R ] || { echo 'real /etc/ssl/certs missing'; exit 1; }
-  cp /tmp/.phoenix-ca.crt \$R/phoenix-ca.crt
+  [ -d \$R ] || { echo 'real /etc/ssl/certs missing' >&2; exit 1; }
+  cp '$REMOTE_CA_TMP' \$R/phoenix-ca.crt
   chmod 644 \$R/phoenix-ca.crt
   ln -sf phoenix-ca.crt \$R/${CA_HASH}.0
-  if [ -f \$R/ca-certificates.crt ]; then
-    [ -f \$R/ca-certificates.crt.phx-orig ] || cp -p \$R/ca-certificates.crt \$R/ca-certificates.crt.phx-orig
-    grep -q \"\$(head -2 /tmp/.phoenix-ca.crt | tail -1)\" \$R/ca-certificates.crt || cat /tmp/.phoenix-ca.crt >> \$R/ca-certificates.crt
-  fi
-  sync
-  umount /tmp/.phoenix-rootfs; rmdir /tmp/.phoenix-rootfs
-  mount -o remount,ro / 2>/dev/null || true
-  rm -f /tmp/.phoenix-ca.crt"
+  [ -f \$R/ca-certificates.crt ] || { echo 'real ca-certificates.crt missing; refusing Node client patch' >&2; exit 1; }
+  [ -f \$R/ca-certificates.crt.phx-orig ] || cp -p \$R/ca-certificates.crt \$R/ca-certificates.crt.phx-orig
+  grep -q \"\$(head -2 '$REMOTE_CA_TMP' | tail -1)\" \$R/ca-certificates.crt || cat '$REMOTE_CA_TMP' >> \$R/ca-certificates.crt
+  cp -p \$R/ca-certificates.crt '$CLIENT_NODE_BUNDLE_TMP'
+  chmod 600 '$CLIENT_NODE_BUNDLE_TMP'
+  sync"
 ok "CA installed persistently as phoenix-ca.crt + ${CA_HASH}.0"
+
+say "patching every supported Node client copy with the full system CA bundle"
+upload_client_patcher
+if run_client_patch_apply; then
+  ok "Node client patch applied (receipt ${CLIENT_CA_RECEIPT})"
+  warn "no Node client process was killed by the patch; restart loaded Node consumers under their supervisor"
+else
+  cleanup_client_patcher
+  die "Node client patch failed; package transaction was rolled back where safe and mounts were restored"
+fi
 
 # ---------------------------------------------------------------- hub, classic, adoption
 if [ "$DO_HUB" -eq 1 ]; then
