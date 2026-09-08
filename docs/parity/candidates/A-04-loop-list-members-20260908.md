@@ -109,3 +109,18 @@ handler, filter, visibility, and projection rules but do not claim complete
 Mongoose query ordering, Hapi framing, or live robot acceptance. Public
 SigV4 authentication is inherited from the separately reviewed Loop gateway
 boundary. Event, mail, and other Loop operations remain outside this slice.
+
+## Root integration checks
+
+Root applied this change to main `0bc6370` in isolated integration revision
+`03c06cd9796b24d37ffa448b65e6e1095a7f7fd7`. The overlap with the guardian
+change was resolved by preserving both primitive-validation branches and the
+asynchronous dispatch return. On that combined tree, 871 tests passed (7
+skipped), all 43 strict smoke cases matched, and original Node 8.9.4 client
+3.0.110 completed 22 Account/Classic calls: 16 successes and 6 expected 422
+responses. Root checked each outcome and result count. Synthetic evidence is
+under `.parity/reviews/a04-list-members-integration-root-20260908/`.
+
+The independent source review is still being finalized. These integration
+checks do not yet mark this candidate accepted, deployed, or fully verified
+for A-04. No real household or robot state was used.
