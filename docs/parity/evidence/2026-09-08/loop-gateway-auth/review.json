@@ -1,0 +1,59 @@
+{
+  "state": "accepted_bounded_implementation",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T05:47:27.632134+00:00",
+  "subject": "Shared public Loop signature verification",
+  "isolatedRevision": "650cc70d086d640853b9d003d30b8a8be1d6730d",
+  "combinedRevision": "4d55637cbd344a747bf51c879aff5e18ac127b00",
+  "artifacts": {
+    "packages/account/src/robotFace.js": "9dd598c1188bb077abdd2c1ed4d55e74a8494c23b7b5db8ad5840b711b177f70",
+    "packages/account/src/index.js": "0e7f30338e37a360946e3420a1210b580a9dc07c113137f933c814d7f5526a45",
+    "packages/classic/src/index.js": "2780aacf0c27de8df600678699260bfe212c3e5231cd977be03e379cdd518462"
+  },
+  "sourceGateway": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+  "verification": {
+    "originalClient": {
+      "node": "8.9.4",
+      "version": "3.0.110",
+      "signedCalls": 36,
+      "unsignedPolicyCalls": 8,
+      "faces": [
+        "Account",
+        "Classic"
+      ],
+      "signedBodyHashMismatches": 0,
+      "scope": "Household reads, profile updates, invitation/removal, suspension, auth errors and exact anonymous exceptions."
+    },
+    "rootSemanticChecks": {
+      "passed": 68,
+      "failed": 0,
+      "scope": "Expected error codes and status, saved profile values, invitation/removal states, suspension responses and owner/robot visibility."
+    },
+    "isolatedUnit": {
+      "passed": 829,
+      "skipped": 7,
+      "failed": 0
+    },
+    "combinedUnit": {
+      "passed": 839,
+      "skipped": 7,
+      "failed": 0
+    },
+    "strictSmoke": {
+      "cases": 43,
+      "differences": 0
+    },
+    "baseline": "An incorrect secret could previously obtain ListLoops data; the new boundary rejects it."
+  },
+  "qualifications": [
+    "The original-client control uses synthetic stores and ephemeral listeners; this is not real robot deployment verification.",
+    "The three anonymous target handlers remain unimplemented; their tests verify only the exact public authentication exceptions.",
+    "Shared Loop auth does not close non-Loop authentication, full gateway policy, or full membership lifecycle parity.",
+    "Existing verifier retains source declared-body-hash semantics; this repair does not impose a new native signing protocol."
+  ],
+  "privacy": {
+    "fixtureData": "invented",
+    "realHouseholdDataIncluded": false
+  },
+  "taskClosed": false
+}

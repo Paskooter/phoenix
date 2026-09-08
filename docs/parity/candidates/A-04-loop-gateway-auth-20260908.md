@@ -1,6 +1,6 @@
 # A-04 candidate: shared public Loop authentication
 
-Status: **root implementation candidate; original-client review and integration pending.** A-02 and A-04 remain open.
+Status: **root accepted bounded implementation; real robot acceptance pending.** A-02 and A-04 remain open.
 
 The existing Loop dispatcher resolved an account from the access-key identifier
 without verifying the request signature. A synthetic baseline control showed
@@ -39,3 +39,14 @@ All fixtures are synthetic. Original Node 8 client replay, combined candidate
 integration, and live robot verification are separate acceptance work; no real
 household or deployment was modified. This change does not claim authentication
 parity for non-Loop services or completion of the internal handler contracts.
+
+## Root acceptance
+
+The original generated client on Node 8 completed 36 signed calls through
+Account and Classic, plus eight raw anonymous-policy controls. Root checked
+68 expected outcomes and saved-state properties, all passing. The combined
+lookup/authentication package tree at `4d55637` passed 839 unit tests with
+seven skips and all 43 strict smoke cases. These controls verify this request
+boundary; they do not claim completion of all Loop handlers or all services.
+
+See [the acceptance receipt](../evidence/2026-09-08/loop-gateway-auth/review.json).
