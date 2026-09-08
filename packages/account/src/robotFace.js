@@ -140,7 +140,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         }
       }
       log.info('loop request', { op });
-      const validated = /^(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
+      // Preserve primitive payloads for the source-validated Loop handlers.
+      const validated = /^(listloops|list|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
       return void loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
     }
 
@@ -333,7 +334,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const o = op.toLowerCase();
     if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
     if (handleRobotLookup({ store, req, res, body, op })) return;
-    if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
+    if (o === 'listloops' || o === 'list') return void loopList({ req, res, body, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {
       return void loopSuspend({ req, res, body, op, log });
     }
@@ -342,7 +343,15 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   /** Loop.List/ListLoops: "loops for the current account." */
-  function loopList({ req, res, log }) {
+  function loopList({ req, res, body, log }) {
+    // srv-account-ws@6cea434's ListLoops decorator validates
+    // Joi.validate(request.payload, { loopId: Joi.string() },
+    // { allowUnknown: true }) and discards the converted value. The handler
+    // still reads the original request.payload, so unknown properties are
+    // accepted and loopId must remain an optional, non-empty string.
+    const validation = listLoopsValidationMessage(body);
+    if (validation) return void sendValidationError(res, validation);
+
     // The robot signs with its own credentials, so resolve the account from the SigV4 accessKeyId
     // and return the loop(s) it owns/belongs to. With auth disabled (dev/LAN), fall back to every
     // loop — a single-robot deployment has one, which is what jibo-system-backup.js requires.
@@ -352,13 +361,16 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ? [...store.loops.values()].filter((l) => l.isDeleted !== true
         && (l.robot === account._id || l.owner === account._id))
       : [...store.loops.values()].filter((l) => l.isDeleted !== true);
+    const requested = body.loopId
+      ? visible.filter((l) => String(l._id) === body.loopId)
+      : visible;
     // LoopController.list omits suspended loops from a robot's own list, while an owner
     // continues to see the suspended loop. A friendlyId is the source's robot-request hint;
     // the legacy no-credential LAN fallback intentionally retains every active loop.
     const isRobotRequesting = !!(account && account.friendlyId);
     const loops = isRobotRequesting
-      ? visible.filter((l) => l.robot === account._id && l.isSuspended !== true)
-      : visible;
+      ? requested.filter((l) => l.robot === account._id && l.isSuspended !== true)
+      : requested;
     let persisted = false;
     const wired = loops.map((loop) => {
       if (ensureLoopMemberIds(loop)) persisted = true;
@@ -520,6 +532,17 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (body[field].length === 0) {
       return `child "${field}" fails because ["${field}" is not allowed to be empty]`;
     }
+    return null;
+  }
+
+  function listLoopsValidationMessage(body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+    // Joi treats an explicit undefined as an omitted optional property. JSON
+    // cannot carry undefined, but retaining the rule keeps this helper aligned
+    // with the source decorator for direct callers.
+    if (!Object.prototype.hasOwnProperty.call(body, 'loopId') || body.loopId === undefined) return null;
+    if (typeof body.loopId !== 'string') return 'child "loopId" fails because ["loopId" must be a string]';
+    if (body.loopId.length === 0) return 'child "loopId" fails because ["loopId" is not allowed to be empty]';
     return null;
   }
 
