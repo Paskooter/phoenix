@@ -39,14 +39,20 @@ const store = getStore();
 // Idempotent: this runs from the repoint script, which is meant to be safely
 // re-runnable. Creating a second loop for a robot that already has one would
 // break Loop.List, which the backup flow requires to return exactly one.
+// Only a robot that already has a LOOP is fully adopted. An account without one
+// still fails Loop.List, which the hub needs to resolve a conversation, and that
+// surfaces as a failed transaction rather than as anything about adoption.
 const existing = store.accountByAccessKeyId(accessKeyId);
 if (existing) {
   const loop = [...store.loops.values()].find((entry) => entry.robot === existing._id) || null;
-  console.log(JSON.stringify({
-    ok: true, alreadyAdopted: true, robotAccountId: existing._id,
-    friendlyId: existing.friendlyId, loopId: loop ? loop._id : null,
-  }, null, 2));
-  process.exit(0);
+  if (loop) {
+    console.log(JSON.stringify({
+      ok: true, alreadyAdopted: true, robotAccountId: existing._id,
+      friendlyId: existing.friendlyId, loopId: loop._id,
+    }, null, 2));
+    process.exit(0);
+  }
+  if (!friendlyId) friendlyId = existing.friendlyId;
 }
 
 const owner = store.accountByEmail('owner@phoenix.local')

@@ -44,6 +44,9 @@
 #   --hub-port <n>      conversation hub port to point Jetstream at (default 9000)
 #   --no-hub            leave the conversation hub target alone
 #   --no-adopt          do not register the robot in the Phoenix account store
+#   --account-store <p> the account store the SERVER reads, so adoption lands where
+#                       the server will look. Defaults to $ETCO_account_dataFile or
+#                       $PHOENIX_ROBOT_STORE_FILE.
 #   --classic-url <url> also rewrite every region_config.json to this URL. Only for
 #                       plain-HTTP deployments; a TLS deployment is already handled
 #                       by the hosts entries, and rewriting would break it.
@@ -58,7 +61,7 @@ set -euo pipefail
 ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/phoenix/tls}"; CA=""
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
 EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0
-HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""
+HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""; ACCOUNT_STORE=""
 MARK_BEGIN="# >>> phoenix-repoint >>>"
 MARK_END="# <<< phoenix-repoint <<<"
 STAMP="$(date -u +%Y%m%d-%H%M%S)"
@@ -76,6 +79,7 @@ while [ $# -gt 0 ]; do
     --no-hub) DO_HUB=0; shift ;;
     --no-adopt) DO_ADOPT=0; shift ;;
     --classic-url) CLASSIC_URL="${2:-}"; shift 2 ;;
+    --account-store) ACCOUNT_STORE="${2:-}"; shift 2 ;;
     --regions) EXTRA_REGIONS="${2:-}"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     --yes) ASSUME_YES=1; shift ;;
@@ -413,8 +417,21 @@ if [ "$DO_ADOPT" -eq 1 ]; then
   else
     # The secret is streamed from the robot straight into the adopter's stdin.
     # It is never an argument and never written to a file or a log.
+    # Adoption must land in the store the SERVER reads. Writing to the adopter's
+    # own default looks like success and leaves the robot with no loop, which
+    # surfaces much later as a failed conversation transaction rather than as
+    # anything to do with adoption.
+    STORE="$ACCOUNT_STORE"
+    [ -n "$STORE" ] || STORE="${ETCO_account_dataFile:-}"
+    [ -n "$STORE" ] || STORE="${PHOENIX_ROBOT_STORE_FILE:-}"
+    if [ -z "$STORE" ]; then
+      warn "no account store given (--account-store, \$ETCO_account_dataFile or \$PHOENIX_ROBOT_STORE_FILE)."
+      warn "Adoption will use the adopter's default store, which may NOT be the one the server reads."
+    else
+      ok "adopting into the server's account store: $STORE"
+    fi
     if rsh "cat /var/jibo/credentials.json" 2>/dev/null \
-        | PHOENIX_ENV_FILE=/dev/null node "$ADOPTER" --stdin "${IDENTITY_NAME:-$ROBOT}" >/dev/null 2>&1; then
+        | PHOENIX_ENV_FILE=/dev/null ETCO_account_dataFile="$STORE" node "$ADOPTER" --stdin "${IDENTITY_NAME:-$ROBOT}" >/dev/null 2>&1; then
       ok "robot registered in the account store as ${IDENTITY_NAME:-$ROBOT}"
     else
       warn "adoption did not complete. The robot may already be registered, or it may have no"
