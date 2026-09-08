@@ -81,7 +81,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig) } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
@@ -315,7 +315,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const o = op.toLowerCase();
     const agreement = handleLoopAgreements({ store, req, res, body, op, provider: agreementProvider, outbox: loopUpdatedOutbox });
     if (agreement !== false) return agreement;
-    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
+    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled, invitationProviders })) return;
     if (handleRobotLookup({ store, req, res, body, op })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, body, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {

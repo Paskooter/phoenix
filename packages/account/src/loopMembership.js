@@ -7,7 +7,9 @@
 // This module implements the membership and bounded member-profile operations on the public
 // Classic face. Identity is the
 // stored access key (same as SuspendLoop); x-amz-credentials is not a caller switch.
-// Invitation mail, RobotClient, and EventSender are not invoked (no live providers).
+// Invitation mail and InvitedToJoinLoop are explicit provider seams. The
+// default seams are no-ops because Phoenix has no SMTP/SES or SNS deployment
+// credentials; configured providers retain the source fire-and-forget calls.
 
 import { randomBytes } from 'node:crypto';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './loopHttp.js';
@@ -19,6 +21,7 @@ import {
   MEMBER_TYPE,
   newId,
 } from './model.js';
+import { dispatchInvitationSideEffects } from './invitationProviders.js';
 
 const MAX_SIZE = 16;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
@@ -422,7 +425,7 @@ export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdated
 
 function addMember(store, {
   ownerId, loopId, accountId, code, memberProperties, invitedAsLegalGuardian,
-}, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
+}, loopUpdatedOutbox, { coppaEnabled = true, invitationProviders } = {}) {
   const storedLoop = findById(store, loopId);
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
@@ -452,11 +455,24 @@ function addMember(store, {
     }));
     saveLoop(store, loop, loopUpdatedOutbox, before);
   }
-  void ownerId;
+  if (email) {
+    dispatchInvitationSideEffects(store, {
+      accountId,
+      code,
+      email,
+      loopId,
+      loopOwnerId: loop.owner,
+      memberProperties,
+      ownerId,
+    }, invitationProviders);
+  }
   return loop;
 }
 
-export function inviteMember(store, payload, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
+export function inviteMember(store, payload, loopUpdatedOutbox, {
+  coppaEnabled = true,
+  invitationProviders,
+} = {}) {
   const loop = findById(store, payload.loopId);
   if (!idsEqual(loop.owner, payload.ownerId)) fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
   let targetAccount = null;
@@ -480,7 +496,7 @@ export function inviteMember(store, payload, loopUpdatedOutbox, { coppaEnabled =
       phoneNumber: payload.phoneNumber || null,
     },
     ownerId: payload.ownerId,
-  }, loopUpdatedOutbox, { coppaEnabled });
+  }, loopUpdatedOutbox, { coppaEnabled, invitationProviders });
   return populateLoop(store, findById(store, payload.loopId));
 }
 
@@ -548,7 +564,7 @@ export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) 
  */
 export function updateMember(store, {
   ownerId, loopId, id, email, firstName, lastName, gender, birthday, phoneNumber,
-}, loopUpdatedOutbox, { coppaEnabled = true } = {}) {
+}, loopUpdatedOutbox, { coppaEnabled = true, invitationProviders } = {}) {
   const storedLoop = findById(store, loopId);
   const storedMember = (storedLoop.members || []).find((member) => idsEqual(member._id || member.id, id));
   if (!storedMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
@@ -627,10 +643,19 @@ export function updateMember(store, {
     member.memberProperties.isChild = false;
     member.status = MEMBER_STATUS.INVITED;
     member.invitationCode = invitationCode();
-    // srv-account-ws sends an invitation mail and an InvitedToJoinLoop event
-    // through external providers before saving. Phoenix has no equivalent
-    // provider seam on this face; keep the loop mutation/outbox faithful and
-    // report those two unimplemented side effects rather than faking delivery.
+    // Source UpdateMember invokes the mail and event providers before its
+    // final saveAndPopulate. Each source provider is fire-and-forget after
+    // invocation; a malformed seam that throws before returning a Promise is
+    // allowed to reject the call.
+    dispatchInvitationSideEffects(store, {
+      accountId: member.accountId,
+      code: member.invitationCode,
+      email,
+      loopId,
+      loopOwnerId: loop.owner,
+      memberProperties: member.memberProperties,
+      ownerId,
+    }, invitationProviders);
   }
 
   saveLoop(store, loop, loopUpdatedOutbox, before);
@@ -845,7 +870,7 @@ function createLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
-function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled }) {
+function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled, invitationProviders }) {
   const message = firstError(body, [
     () => optionalBoolean(body, 'asLegalGuardian'),
     () => optionalNumberNull(body, 'birthday'),
@@ -870,7 +895,7 @@ function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabl
     loopId: body.loopId,
     ownerId: caller && caller._id,
     phoneNumber: body.phoneNumber,
-  }, loopUpdatedOutbox, { coppaEnabled }));
+  }, loopUpdatedOutbox, { coppaEnabled, invitationProviders }));
 }
 
 function acceptInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
@@ -924,7 +949,7 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
   }, loopUpdatedOutbox));
 }
 
-function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled }) {
+function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled, invitationProviders }) {
   const message = firstError(body, [
     () => optionalSourceNumberNull(body, 'birthday'),
     () => optionalEmail(body, 'email'),
@@ -947,7 +972,7 @@ function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabl
     loopId: body.loopId,
     ownerId: caller && caller._id,
     phoneNumber: body.phoneNumber,
-  }, loopUpdatedOutbox, { coppaEnabled }));
+  }, loopUpdatedOutbox, { coppaEnabled, invitationProviders }));
 }
 
 function setEnrollmentHttp({ store, req, res, body, loopUpdatedOutbox }) {
@@ -1043,10 +1068,20 @@ function clearRobotHttp({ store, req, res, body, loopUpdatedOutbox }) {
 }
 
 /** @returns {boolean} true when this Loop operation is a membership-lifecycle handler. */
-export function handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled = true }) {
+export function handleLoopMembership({
+  store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled = true, invitationProviders,
+}) {
   const handler = HANDLERS[String(op || '').toLowerCase()];
   if (!handler) return false;
   log?.info?.('loop membership request', { op });
-  handler({ store, req, res, body: body === undefined ? {} : body, loopUpdatedOutbox, coppaEnabled });
+  handler({
+    store,
+    req,
+    res,
+    body: body === undefined ? {} : body,
+    loopUpdatedOutbox,
+    coppaEnabled,
+    invitationProviders,
+  });
   return true;
 }

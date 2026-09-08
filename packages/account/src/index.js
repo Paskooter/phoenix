@@ -44,6 +44,11 @@ export {
 export * as settingsData from './settingsData.js';
 export { createSettingsProviders } from './settingsProviders.js';
 export { LoopUpdatedOutbox, buildLoopUpdatedPayload, buildLoopUpdatedNotification } from './loopUpdatedOutbox.js';
+export {
+  InvitedToJoinLoop,
+  dispatchInvitationSideEffects,
+  normalizeInvitationProviders,
+} from './invitationProviders.js';
 export { staticRoutes } from './static.js';
 
 function isCreateHubTokenTarget(req) {
@@ -63,9 +68,14 @@ function isLoopTarget(req) {
       .test(String(req.headers?.['x-amz-target'] || ''));
 }
 
-export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {}, agreementProvider } = {}) {
+export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {}, agreementProvider, invitationProviders } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
+  // `invitationProviders` is an explicit deployment/test seam with the
+  // source contracts `{ send(to, options) }` for `invitation` and
+  // `invitationExistingUser`, plus `{ send(event) }` for `eventSender`.
+  // The default implementations are contained no-ops because Phoenix does
+  // not own the source SMTP/SES or SNS transports.
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
   const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
@@ -86,6 +96,7 @@ export function createAccountService({ store = getStore(), settingsProviders, no
         loopUpdatedOutbox,
         loopConfig,
         agreementProvider,
+        invitationProviders,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });
