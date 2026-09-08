@@ -15,6 +15,9 @@ import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
+import { MemberPhotoStorage } from './memberPhotoStorage.js';
+import { pipeline } from 'node:stream/promises';
+import { join, dirname } from 'node:path';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 
 export { Store, getStore, resetStore } from './store.js';
@@ -63,11 +66,13 @@ function isLoopTarget(req) {
       .test(String(req.headers?.['x-amz-target'] || ''));
 }
 
-export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {} } = {}) {
+export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {}, memberPhotoProvider } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
+  const photoProvider = memberPhotoProvider || (loopConfig.server?.photoBaseUrl
+    ? new MemberPhotoStorage({ directory: loopConfig.server.photoDirectory || join(dirname(store.file), 'member-photos'), publicBaseUrl: loopConfig.server.photoBaseUrl }) : null);
   const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
   const service = createService({
     name: 'account',
@@ -77,6 +82,18 @@ export function createAccountService({ store = getStore(), settingsProviders, no
     // Keep the common strict parser for every other route.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req),
     routes: {
+      'GET /member-photos/:key': async ({ req, res }) => {
+        if (!photoProvider?.open) { res.writeHead(404); res.end(); return; }
+        try {
+          const stream = photoProvider.open(req.params.key);
+          await new Promise((resolve, reject) => { stream.once('open', resolve); stream.once('error', reject); });
+          res.setHeader('content-type', 'application/octet-stream');
+          await pipeline(stream, res);
+        } catch (error) {
+          if (!res.headersSent && !res.destroyed) { res.writeHead(404); res.end(); }
+          else res.destroy(error);
+        }
+      },
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
       ...portalRoutes(store),     // REST /api/* (sessions)
       ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
@@ -85,6 +102,7 @@ export function createAccountService({ store = getStore(), settingsProviders, no
         settingsProviders: effectiveSettingsProviders,
         loopUpdatedOutbox,
         loopConfig,
+        memberPhotoProvider: photoProvider,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });
