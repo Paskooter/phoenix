@@ -15,7 +15,7 @@ and delayed population. No universal sender or network arrival order is claimed.
 Earlier failed captures and setup attempts remain qualified in the evidence.
 
 Photos and membership-list changes were previously accepted and deployed.
-Moth now runs `9672467`, with eight installed-client read-only checks passing
+Moth now runs `e77a2c0`, including the reviewed Account reactivation repair, with eight installed-client read-only checks passing
 before and after deployment, all six services healthy and the complete
 household store preserved. Invitation mail remains unconfigured on Moth. The newer candidate also passed
 six installed Node 6 client photo checks against an isolated synthetic backend.

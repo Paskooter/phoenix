@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "revision": "e77a2c0fe9bfa79b9885ff916a4f8149173f4e4f",
+  "checks": [
+    "signed Classic mutation succeeds and Account retains event when Classic persistence fails",
+    "Account mutation and pending event survive restart",
+    "recovery commits one notification to real Classic storage and acknowledges Account row",
+    "Classic notification survives a second service restart",
+    "real WebSocket receives source-shaped LoopUpdated with correct robot token, skill and saved state",
+    "successful WebSocket write removes durable Classic notification",
+    "following signed Classic read observes recovered state"
+  ],
+  "limitations": [
+    "Synthetic fixture and Node22 raw WebSocket peer, not a robot.",
+    "Classic persistence failure plus orderly service restarts; no claim of arbitrary process-kill timing or exactly-once transport.",
+    "Notification token inspected through local store; public token authentication is outside this control."
+  ],
+  "status": "verified-bounded-combined-recovery",
+  "reviewedBy": "Codex root",
+  "runtime": "Node22.22.0; raw WebSocket client",
+  "sourceContext": "LoopUpdated routing uses the pinned notification handler mapping already recorded in event-routing/review.json. This receipt exercises Phoenix integration and does not claim original server execution.",
+  "evidenceSha256": {
+    "control.mjs": "b1b2bfc0c154c7d55edd2c08819e892cdc30ed27fe93ab0d8906e67af5e5466e",
+    "control.log": "ffd84ee9e5540427cfed0f68e730930a18182052397ad5e777bc2209783ac9ec",
+    "result.json": "47537e0a318df7c9b24fc7ccc0020f76e094015d1c92e5715a3dc1f9631e0e65"
+  },
+  "priorAttempt": "Initial harness confused service objects with listening server objects, failed before mutation and exited. Preserved separately; corrected isolated rerun passed without production changes."
+}

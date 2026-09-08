@@ -203,12 +203,19 @@ that cannot be produced through the source contract.
 
 | Item | Concrete next evidence | Current state / owner |
 | --- | --- | --- |
-| Existing robot reactivation | Original controller activation/save boundary, unchanged credentials after creation/restart, failed Account save and later failed Loop save | Root accepted `3e0976b` after independent review, three source controls, eight original-client checks, full 901 pass / seven skip and strict43; deployment remains pending. |
+| Existing robot reactivation | Original controller activation/save boundary, unchanged credentials after creation/restart, failed Account save and later failed Loop save | Root accepted `3e0976b` after independent review, three source controls, eight original-client checks, full 901 pass / seven skip and strict43; deployed as `e77a2c0` with eight installed-client read checks and household preservation. |
 | Duplicate and repeated invitations | Same-email duplicate, declined/removed reinvite; compare source membership identity/status, mail/event recipients and next read | Averroes executing source/candidate sequences in isolation. |
 | Simultaneous membership transitions | Two source-reachable requests on one membership; compare allowed success/error and durable outcomes rather than inventing one deterministic order | Pending source control after the sequential transition cases. |
 | Remaining query projections | Identify an uncovered source-reachable dangling/soft-deleted reference case, compare source projection and valid follow-up; avoid redoing covered null/casting cases | Root reproduced valid uppercase ObjectId lookup mismatch; Euclid is preparing an isolated source-backed repair. |
-| Interruption/recovery combination | Account mutation plus publisher disconnect/reconnect; compare durable state and replay behavior, retaining the source's delivery guarantees | Pending combined control; standalone outbox recovery is already verified. |
+| Interruption/recovery combination | Account mutation plus publisher disconnect/reconnect; compare durable state and replay behavior, retaining the source's delivery guarantees | Seven combined recovery checks passed with signed Classic mutation, failed Classic storage, restart and real WebSocket delivery; arbitrary process-kill timing remains outside that evidence. |
 
 The separate OOBE candidate is owned by Feynman under A-05. Its owner check,
 suspended replacement, deleted-loop lookup and reconnect-token behavior must
 not be counted as completed A-04 work or silently folded into a new REST API.
+
+Root deployment and recovery receipts:
+[reactivation deployment](../evidence/2026-09-08/hardware/reactivation-deployment/review.json)
+and [combined Account/Classic recovery](../evidence/2026-09-08/classic-loop-recovery/review.json).
+The recovery control uses a synthetic raw WebSocket peer and orderly service
+restarts. It does not establish arbitrary crash-point behavior or exactly-once
+network delivery.

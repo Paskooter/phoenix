@@ -1,0 +1,21 @@
+{
+  "status": "verified-deployment-preservation",
+  "revision": "e77a2c0fe9bfa79b9885ff916a4f8149173f4e4f",
+  "previousRevision": "96724673e8c47c9f8d29712ba25eadcb6ac97347",
+  "healthyServices": 6,
+  "wholeAccountStorePreserved": true,
+  "environmentUnchanged": true,
+  "beforeInstalledClientChecks": 8,
+  "afterInstalledClientChecks": 8,
+  "strictTls": true,
+  "explicitCa": true,
+  "nativeNotificationConnected": true,
+  "scope": "Installed Node6.9.2/Jibo client3.0.105 read-only deployment checks. Inactive-account creation/reactivation was tested with synthetic original Node8 clients; no live household state, microphone, screen or ring mutation test is claimed.",
+  "evidenceSha256": {
+    "before.json": "4c8f7d26491950491c803485acb149060dee44207e206091052e0d476a725e78",
+    "after.json": "4c8f7d26491950491c803485acb149060dee44207e206091052e0d476a725e78",
+    "deployment.json": "9f041de7ee8466153a4c0cd601fc3c3c7df52d67d674a4d87ec20dfe78d7c02c",
+    "preservation.json": "8f5c7eb73bc42f68a17354279a16f95b674e94d0013c4bd4c3fab570e7c1ee98",
+    "deploy.py": "0cf4a3fe2228335950c1af98f7497aea510893c66e37d74c3785ca7468b196d6"
+  }
+}
