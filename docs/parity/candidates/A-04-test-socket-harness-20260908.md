@@ -96,9 +96,9 @@ Candidate worktree:
 | --- | --- |
 | `packages/account/test/loopMemberUpdate.test.js` | `71dcf696137c754c6c81b73824c96e15bb6c7b0f2a142d444a07703587617d8d` |
 | `packages/account/test/robotLookup.test.js` | `771903b5b117a67eeaca2421bd873a9cdd5e79e3409b1121f0816d3f2347eb30` |
-| `packages/account/test/loopMembership.test.js` | pending after commit |
-| `packages/account/test/loopHouseholdBootstrap.test.js` | pending after commit |
-| `packages/account/test/robotFace.test.js` | pending after commit |
+| `packages/account/test/loopMembership.test.js` | `f49daec7a37751c453843d7e09fa18230cbc9760b06eb152bca8121510cdec69` |
+| `packages/account/test/loopHouseholdBootstrap.test.js` | `9c20ea58416161727a0ba3ca5a4e50e348eab2c8603b38c17dfc583f32808ca0` |
+| `packages/account/test/robotFace.test.js` | `4e2e166f19efa5ed7a5185b94106ca0f215fc549367482bde485592d12b6317c` |
 | `stale-pool-control.mjs` | `30bc4e591d8faf5aedf1389ead770e6018a8f83e9e159f54fb187acb078c17ea` |
 | `stale-default.json` | `0afe140edb8d284ee599d5c24069cac4192d578e003b1af4ea265cacdc696f7e` |
 | `stale-close.json` | `8c9abf4582a320554c50a93d6cb40e1f6079f9856105386fb90d9f12b1b3f07f` |
