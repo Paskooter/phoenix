@@ -1,0 +1,648 @@
+// Loop membership lifecycle — Create/Invite/Accept/Decline/ListMembers/RemoveMember.
+//
+// Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
+//   handlers/loop.handler.ts, controllers/loop.ctrl.ts, schemes/{loop,member.status,member.type}.ts,
+//   errors/loop.ts. API shapes: loop-2016-03-24.normal.json@155d20a8.
+//
+// This module implements those six operations on the public Classic face. Identity is the
+// stored access key (same as SuspendLoop); x-amz-credentials is not a caller switch.
+// Invitation mail, RobotClient, and EventSender are not invoked (no live providers).
+
+import { randomBytes } from 'node:crypto';
+import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './loopHttp.js';
+import {
+  findOrCreateRobotAccount,
+  isAcceptedStatus,
+  isMemberStatus,
+  MEMBER_STATUS,
+  MEMBER_TYPE,
+  newId,
+} from './model.js';
+
+const MAX_SIZE = 16;
+const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
+  LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
+  LOOP_SUSPENDED: { code: 'LOOP_SUSPENDED', message: 'Loop is suspended and cannot be modified', statusCode: 403 },
+  CAN_BE_ACCESSED_BY_OWNER: {
+    code: 'CAN_BE_ACCESSED_BY_OWNER',
+    message: 'Only owner can manipulate this loop',
+    statusCode: 403,
+  },
+  CAN_BE_ACCESSED_BY_OWNER_OR_SELF: {
+    code: 'CAN_BE_ACCESSED_BY_OWNER_OR_SELF',
+    message: 'Only owner can manipulate this loop or account himself',
+    statusCode: 403,
+  },
+  MEMBER_EXISTS: { code: 'MEMBER_EXISTS', message: 'Member already exists', statusCode: 409 },
+  MEMBER_NOT_FOUND: { code: 'MEMBER_NOT_FOUND', message: 'Member not found', statusCode: 404 },
+  INVITE_NOT_FOUND: { code: 'INVITE_NOT_FOUND', message: 'Invitation not found', statusCode: 404 },
+  ACTIVE_LIMIT_REACHED: {
+    code: 'ACTIVE_LIMIT_REACHED',
+    message: 'Reached limit for active members',
+    statusCode: 409,
+  },
+  ROBOT_REQUIRED: {
+    code: 'ROBOT_REQUIRED',
+    message: 'Robot is required for loop creation',
+    statusCode: 422,
+  },
+  ROBOT_DISABLED: { code: 'ROBOT_DISABLED', message: 'Robot disabled', statusCode: 409 },
+  CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
+});
+
+const HANDLERS = Object.freeze({
+  createloop: createLoopHttp,
+  create: createLoopHttp,
+  inviteloopmember: inviteMemberHttp,
+  invitemember: inviteMemberHttp,
+  acceptloopinvitation: acceptInvitationHttp,
+  acceptinvitation: acceptInvitationHttp,
+  declineloopinvitation: declineInvitationHttp,
+  declineinvitation: declineInvitationHttp,
+  listloopmembers: listMembersHttp,
+  listmembers: listMembersHttp,
+  removeloopmember: removeMemberHttp,
+  removemember: removeMemberHttp,
+});
+
+export class LoopError extends Error {
+  constructor({ code, message, statusCode }) {
+    super(message);
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
+function fail(err) {
+  throw new LoopError(err);
+}
+
+function idsEqual(a, b) {
+  if (a === undefined || a === null || b === undefined || b === null) return false;
+  return String(a) === String(b);
+}
+
+function invitationCode() {
+  let n = BigInt(`0x${randomBytes(5).toString('hex')}`);
+  let s = '';
+  while (n > 0n) {
+    s = B58[Number(n % 58n)] + s;
+    n /= 58n;
+  }
+  return s || '1';
+}
+
+function callerAccount(store, req) {
+  const accessKeyId = accessKeyIdFromAuth(req);
+  return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+}
+
+function activeLoopById(store, loopId) {
+  const loop = store.loops.get(loopId);
+  return loop && loop.isDeleted !== true ? loop : null;
+}
+
+function findById(store, loopId) {
+  const loop = activeLoopById(store, loopId);
+  if (!loop) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_NOT_FOUND);
+  return loop;
+}
+
+function snapshotLoop(loop) {
+  return JSON.parse(JSON.stringify(loop));
+}
+
+function restoreLoop(store, before) {
+  store.loops.set(before._id, before);
+}
+
+function saveLoop(store, loop, loopUpdatedOutbox) {
+  const before = store.loops.get(loop._id) ? snapshotLoop(store.loops.get(loop._id)) : null;
+  const previousUpdated = loop.updated;
+  loop.updated = Date.now();
+  store.loops.set(loop._id, loop);
+  try {
+    loopUpdatedOutbox.record(loop);
+  } catch (error) {
+    if (before) restoreLoop(store, before);
+    else store.loops.delete(loop._id);
+    if (previousUpdated === undefined) delete loop.updated;
+    else loop.updated = previousUpdated;
+    throw error;
+  }
+  return loop;
+}
+
+function newMember({ accountId, status, memberProperties, invitationCode: code, invitedAsLegalGuardian }) {
+  return {
+    _id: newId(),
+    accountId: accountId || undefined,
+    status,
+    invitationCode: code,
+    invitedAsLegalGuardian: invitedAsLegalGuardian === true,
+    memberProperties: memberProperties || {},
+    enrolled: { face: false, voice: false },
+    created: Date.now(),
+  };
+}
+
+function memberToJson(member) {
+  const accountId = member.accountId || undefined;
+  const result = {
+    id: member._id,
+    accountId,
+    memberId: accountId,
+    status: isMemberStatus(member.status) ? String(member.status).toLowerCase() : member.status,
+    invitedAsLegalGuardian: member.invitedAsLegalGuardian === true,
+    enrolled: member.enrolled || { face: false, voice: false },
+  };
+  if (member.memberProperties) result.memberProperties = { ...member.memberProperties };
+  if (member.created != null) result.created = Number(member.created);
+  if (member.agreementId !== undefined) result.agreementId = member.agreementId;
+  if (member.legalGuardianId !== undefined) result.legalGuardianId = member.legalGuardianId;
+  if (member.nickname !== undefined) result.nickname = member.nickname;
+  if (member.phoneticName !== undefined) result.phoneticName = member.phoneticName;
+  return result;
+}
+
+function accountPublic(account, isRobotRequesting) {
+  if (!account) return undefined;
+  const copy = {
+    birthday: account.birthday,
+    email: account.email,
+    firstName: account.firstName,
+    gender: account.gender,
+    lastName: account.lastName,
+    phoneNumber: account.phoneNumber,
+    photoUrl: account.photoUrl,
+  };
+  if (isRobotRequesting && account.facebookAccessToken) {
+    copy.facebookAccessToken = account.facebookAccessToken;
+  }
+  if (copy.birthday != null) copy.birthday = Number(copy.birthday);
+  return copy;
+}
+
+function loadAcceptedAccounts(store, members) {
+  const found = {};
+  for (const member of members) {
+    if (member.accountId && isAcceptedStatus(member.status)) {
+      const account = store.accounts.get(member.accountId);
+      if (account) found[String(account._id)] = account;
+    }
+  }
+  return found;
+}
+
+export function populateLoop(store, loop, isRobotRequesting = false) {
+  if (!loop) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_NOT_FOUND);
+  const existingAccounts = loadAcceptedAccounts(store, loop.members || []);
+  const members = (loop.members || []).map((member) => {
+    const json = memberToJson(member);
+    json.loopId = loop._id;
+    json.type = member.accountId && idsEqual(member.accountId, loop.owner)
+      ? MEMBER_TYPE.INCOMING
+      : MEMBER_TYPE.OUTGOING;
+    const acc = member.accountId && existingAccounts[String(member.accountId)];
+    if (isAcceptedStatus(member.status) && acc) {
+      json.account = accountPublic(acc, isRobotRequesting);
+    } else {
+      json.account = member.memberProperties ? { ...member.memberProperties } : undefined;
+    }
+    if (json.account && json.account.birthday != null) {
+      json.account.birthday = Number(json.account.birthday);
+    }
+    json.enrolled = member.enrolled || { face: false, voice: false };
+    delete json.memberProperties;
+    return json;
+  });
+  const robot = loop.robot ? store.accounts.get(loop.robot) : null;
+  const result = {
+    id: loop._id,
+    name: loop.name,
+    owner: loop.owner,
+    robot: loop.robot,
+    members,
+    isSuspended: !!loop.isSuspended,
+    created: loop.created,
+  };
+  if (loop.updated != null) result.updated = loop.updated;
+  if (robot && robot.friendlyId) result.robotFriendlyId = robot.friendlyId;
+  return result;
+}
+
+function loopToUnpopulated(loop) {
+  const result = {
+    id: loop._id,
+    name: loop.name,
+    owner: loop.owner,
+    robot: loop.robot,
+    members: (loop.members || []).map(memberToJson),
+    isSuspended: !!loop.isSuspended,
+    created: loop.created,
+  };
+  if (loop.updated != null) result.updated = loop.updated;
+  return result;
+}
+
+function findMemberByIdOrEmail({ loop, accountId, email }) {
+  return (loop.members || []).find((member) => (member.accountId && idsEqual(member.accountId, accountId))
+    || (member.memberProperties && member.memberProperties.email && member.memberProperties.email === email)) || null;
+}
+
+function loopsVisibleToAccount(store, ownerId) {
+  return [...store.loops.values()].filter((loop) => {
+    if (loop.isDeleted === true) return false;
+    if (idsEqual(loop.owner, ownerId)) return true;
+    return (loop.members || []).some((member) => member.accountId && idsEqual(member.accountId, ownerId)
+      && (isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED)));
+  });
+}
+
+function listLoopsForAccount(store, { ownerId, friendlyId = null, loopId = null }) {
+  let loops = loopsVisibleToAccount(store, ownerId);
+  if (loopId) loops = loops.filter((loop) => idsEqual(loop._id, loopId));
+  const isRobotRequesting = loops.some((loop) => loop.robot && idsEqual(loop.robot, ownerId)) || !!friendlyId;
+  const result = [];
+  for (const loop of loops) {
+    if (isRobotRequesting) {
+      if (loop.isSuspended || !loop.robot || !idsEqual(loop.robot, ownerId)) continue;
+    }
+    result.push({ loop, populated: populateLoop(store, loop, isRobotRequesting) });
+  }
+  return { isRobotRequesting, items: result };
+}
+
+function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
+  // Source query is `$or: [{ robot, members.accountId }]` — a one-element $or, so AND.
+  const loops = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
+    && idsEqual(loop.robot, robotAccountId)
+    && (loop.members || []).some((member) => idsEqual(member.accountId, robotAccountId)));
+  for (const loop of loops) {
+    if (loop.robot && idsEqual(loop.robot, robotAccountId)) {
+      loop.robot = undefined;
+      loop.isSuspended = true;
+    }
+    loop.members = (loop.members || []).filter((member) => !idsEqual(member.accountId, robotAccountId));
+    saveLoop(store, loop, loopUpdatedOutbox);
+  }
+}
+
+export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdatedOutbox) {
+  if (!robotId) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_REQUIRED);
+  if (!ownerId) fail(LOOP_MEMBERSHIP_ERRORS.CREDENTIALS_REQUIRED);
+  const robotAccount = findOrCreateRobotAccount(store, robotId);
+  removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
+  const loop = {
+    _id: newId(),
+    name,
+    owner: ownerId,
+    robot: robotAccount._id,
+    members: [
+      newMember({ accountId: ownerId, status: MEMBER_STATUS.ACCEPTED }),
+      newMember({ accountId: robotAccount._id, status: MEMBER_STATUS.ACCEPTED }),
+    ],
+    isSuspended: false,
+    created: Date.now(),
+  };
+  saveLoop(store, loop, loopUpdatedOutbox);
+  return populateLoop(store, loop);
+}
+
+function addMember(store, {
+  ownerId, loopId, accountId, code, memberProperties, invitedAsLegalGuardian,
+}, loopUpdatedOutbox) {
+  const loop = findById(store, loopId);
+  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const email = memberProperties && memberProperties.email;
+  const existingMember = findMemberByIdOrEmail({ loop, accountId, email });
+  if (existingMember) {
+    if (isAcceptedStatus(existingMember.status)) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_EXISTS);
+    existingMember.status = MEMBER_STATUS.INVITED;
+    existingMember.invitationCode = code;
+    saveLoop(store, loop, loopUpdatedOutbox);
+  }
+  // Source compares the filtered array with MAX_SIZE, not `.length`. Preserve that.
+  const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
+    && (isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED)));
+  if (existingAffectingSize >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
+  const memberIsChild = !!(memberProperties && memberProperties.isChild);
+  const memberStatus = memberProperties && !memberProperties.email && !memberIsChild
+    ? MEMBER_STATUS.ACCEPTED
+    : MEMBER_STATUS.INVITED;
+  if (!existingMember) {
+    loop.members.push(newMember({
+      accountId,
+      status: memberStatus,
+      memberProperties,
+      invitationCode: code,
+      invitedAsLegalGuardian,
+    }));
+    saveLoop(store, loop, loopUpdatedOutbox);
+  }
+  void ownerId;
+  return loop;
+}
+
+export function inviteMember(store, payload, loopUpdatedOutbox) {
+  const loop = findById(store, payload.loopId);
+  if (!idsEqual(loop.owner, payload.ownerId)) fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
+  let targetAccount = null;
+  if (payload.email) {
+    targetAccount = store.accountByEmail(payload.email);
+    if (targetAccount && targetAccount.isDeleted === true) targetAccount = null;
+  }
+  const code = invitationCode();
+  addMember(store, {
+    accountId: targetAccount && targetAccount._id,
+    code,
+    invitedAsLegalGuardian: payload.asLegalGuardian === true,
+    loopId: payload.loopId,
+    memberProperties: {
+      email: payload.email || null,
+      firstName: payload.firstName || null,
+      lastName: payload.lastName || null,
+      gender: payload.gender,
+      birthday: payload.birthday,
+      isChild: payload.isChild === true,
+      phoneNumber: payload.phoneNumber || null,
+    },
+    ownerId: payload.ownerId,
+  }, loopUpdatedOutbox);
+  return populateLoop(store, findById(store, payload.loopId));
+}
+
+export function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox) {
+  const loop = findById(store, loopId);
+  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const membership = (loop.members || []).find((member) => member.accountId
+    && idsEqual(member.accountId, accountId)
+    && isMemberStatus(member.status, MEMBER_STATUS.INVITED));
+  if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
+  membership.status = MEMBER_STATUS.ACCEPTED;
+  saveLoop(store, loop, loopUpdatedOutbox);
+  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  return loopToUnpopulated(loop);
+}
+
+export function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbox) {
+  const loop = findById(store, loopId);
+  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const membership = (loop.members || []).find((member) => member.accountId && idsEqual(member.accountId, accountId));
+  if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
+  membership.status = MEMBER_STATUS.DECLINED;
+  saveLoop(store, loop, loopUpdatedOutbox);
+  return populateLoop(store, loop);
+}
+
+export function listMembers(store, { ownerId, friendlyId = null, statusList = null, typeList = null }) {
+  const statuses = (!statusList || statusList.length === 0)
+    ? [MEMBER_STATUS.INVITED, MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.DECLINED, MEMBER_STATUS.REMOVED]
+    : statusList.map((item) => String(item).toLowerCase());
+  const types = (!typeList || typeList.length === 0)
+    ? [MEMBER_TYPE.INCOMING, MEMBER_TYPE.OUTGOING]
+    : typeList.map((item) => String(item).toLowerCase());
+  const { items } = listLoopsForAccount(store, { ownerId, friendlyId });
+  let members = [];
+  for (const item of items) {
+    members = [...members, ...item.populated.members.filter((member) => statuses.includes(member.status))];
+  }
+  return members.filter((member) => types.includes(member.type));
+}
+
+export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) {
+  const loop = findById(store, loopId);
+  const targetMember = (loop.members || []).find((member) => idsEqual(member._id, id));
+  if (!targetMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+  if (!idsEqual(loop.owner, ownerId) && !(targetMember.accountId && idsEqual(targetMember.accountId, ownerId))) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER_OR_SELF);
+  }
+  if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  targetMember.status = MEMBER_STATUS.REMOVED;
+  saveLoop(store, loop, loopUpdatedOutbox);
+  return populateLoop(store, loop);
+}
+
+function childFail(field, reason) {
+  return `child "${field}" fails because ["${field}" ${reason}]`;
+}
+
+function objectMessage(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+  return null;
+}
+
+function hasField(body, field) {
+  return Object.prototype.hasOwnProperty.call(body, field) && body[field] !== undefined;
+}
+
+function requiredString(body, field) {
+  if (!hasField(body, field)) return childFail(field, 'is required');
+  if (typeof body[field] !== 'string') return childFail(field, 'must be a string');
+  if (body[field].length === 0) return childFail(field, 'is not allowed to be empty');
+  return null;
+}
+
+function optionalString(body, field) {
+  if (!hasField(body, field)) return null;
+  if (typeof body[field] !== 'string') return childFail(field, 'must be a string');
+  if (body[field].length === 0) return childFail(field, 'is not allowed to be empty');
+  return null;
+}
+
+function optionalEmail(body, field) {
+  const base = optionalString(body, field);
+  if (base) return base;
+  if (!hasField(body, field)) return null;
+  // Joi.string().email({ minDomainAtoms: 2 }) — domain must contain a dot.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body[field])) {
+    return childFail(field, 'must be a valid email');
+  }
+  return null;
+}
+
+function optionalBoolean(body, field) {
+  if (!hasField(body, field)) return null;
+  if (typeof body[field] !== 'boolean') return childFail(field, 'must be a boolean');
+  return null;
+}
+
+function optionalNumberNull(body, field) {
+  if (!hasField(body, field)) return null;
+  if (body[field] === null) return null;
+  if (typeof body[field] !== 'number' || !Number.isFinite(body[field])) {
+    return childFail(field, 'must be a number');
+  }
+  return null;
+}
+
+function optionalEnum(body, field, values) {
+  const base = optionalString(body, field);
+  if (base) return base;
+  if (!hasField(body, field)) return null;
+  if (!values.includes(body[field])) {
+    return childFail(field, `must be one of [${values.join(', ')}]`);
+  }
+  return null;
+}
+
+function optionalStringArrayEnum(body, field, values) {
+  if (!hasField(body, field)) return null;
+  if (!Array.isArray(body[field])) return childFail(field, 'must be an array');
+  for (let i = 0; i < body[field].length; i += 1) {
+    const item = body[field][i];
+    if (typeof item !== 'string') {
+      return `child "${field}" fails because ["${field}" at position ${i} fails because ["${i}" must be a string]]`;
+    }
+    if (item.length === 0) {
+      return `child "${field}" fails because ["${field}" at position ${i} fails because ["${i}" is not allowed to be empty]]`;
+    }
+    if (!values.includes(item)) {
+      return `child "${field}" fails because ["${field}" at position ${i} fails because ["${i}" must be one of [${values.join(', ')}]]]`;
+    }
+  }
+  return null;
+}
+
+function firstError(body, checks) {
+  const objectErr = objectMessage(body);
+  if (objectErr) return objectErr;
+  for (const check of checks) {
+    const err = check();
+    if (err) return err;
+  }
+  return null;
+}
+
+function sendValidationError(res, message) {
+  const body = JSON.stringify({
+    statusCode: 422,
+    error: 'Unprocessable Entity',
+    message,
+  });
+  res.removeHeader('x-powered-by');
+  res.removeHeader('keep-alive');
+  res.writeHead(422, {
+    connection: res.shouldKeepAlive ? 'keep-alive' : 'close',
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': Buffer.byteLength(body),
+    'cache-control': 'no-cache',
+    vary: 'accept-encoding',
+  });
+  res.end(body);
+}
+
+function respond(res, fn) {
+  try {
+    const result = fn();
+    return void sendAmz(res, 200, result);
+  } catch (error) {
+    if (error instanceof LoopError) return void sendAmzError(res, error);
+    throw error;
+  }
+}
+
+function createLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => requiredString(body, 'name'),
+    () => requiredString(body, 'robotId'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => createLoopFromApi(store, {
+    ownerId: caller && caller._id,
+    name: body.name,
+    robotId: body.robotId,
+  }, loopUpdatedOutbox));
+}
+
+function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => optionalBoolean(body, 'asLegalGuardian'),
+    () => optionalNumberNull(body, 'birthday'),
+    () => optionalEmail(body, 'email'),
+    () => optionalString(body, 'firstName'),
+    () => optionalEnum(body, 'gender', GENDERS),
+    () => optionalBoolean(body, 'isChild'),
+    () => optionalString(body, 'lastName'),
+    () => requiredString(body, 'loopId'),
+    () => optionalString(body, 'phoneNumber'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => inviteMember(store, {
+    asLegalGuardian: body.asLegalGuardian,
+    birthday: body.birthday,
+    email: body.email ? String(body.email).toLowerCase() : null,
+    firstName: body.firstName ? String(body.firstName).trim() : null,
+    gender: body.gender,
+    isChild: body.isChild,
+    lastName: body.lastName ? String(body.lastName).trim() : null,
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+    phoneNumber: body.phoneNumber,
+  }, loopUpdatedOutbox));
+}
+
+function acceptInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [() => requiredString(body, 'loopId')]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => acceptInvitation(store, {
+    accountId: caller && caller._id,
+    loopId: body.loopId,
+  }, loopUpdatedOutbox));
+}
+
+function declineInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [() => requiredString(body, 'loopId')]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => declineInvitation(store, {
+    accountId: caller && caller._id,
+    loopId: body.loopId,
+  }, loopUpdatedOutbox));
+}
+
+function listMembersHttp({ store, req, res, body }) {
+  const message = firstError(body, [
+    () => optionalStringArrayEnum(body, 'statusList', [
+      MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.DECLINED, MEMBER_STATUS.REMOVED, MEMBER_STATUS.INVITED,
+    ]),
+    () => optionalStringArrayEnum(body, 'typeList', [MEMBER_TYPE.INCOMING, MEMBER_TYPE.OUTGOING]),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => listMembers(store, {
+    friendlyId: caller && caller.friendlyId,
+    ownerId: caller && caller._id,
+    statusList: body.statusList,
+    typeList: body.typeList,
+  }));
+}
+
+function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [
+    () => requiredString(body, 'id'),
+    () => requiredString(body, 'loopId'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => removeMember(store, {
+    id: body.id,
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+/** @returns {boolean} true when this Loop operation is a membership-lifecycle handler. */
+export function handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox }) {
+  const handler = HANDLERS[String(op || '').toLowerCase()];
+  if (!handler) return false;
+  log?.info?.('loop membership request', { op });
+  handler({ store, req, res, body: body || {}, loopUpdatedOutbox });
+  return true;
+}

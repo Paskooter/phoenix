@@ -26,8 +26,11 @@ import {
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
+import { handleLoopMembership } from './loopMembership.js';
+import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError } from './loopHttp.js';
 
-export const AMZ_JSON = 'application/x-amz-json-1.1';
+export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
+
 const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-';
 
 // errors/{token,account,loop}.ts — exact {code, statusCode} pairs.
@@ -54,12 +57,6 @@ const Errors = Object.freeze({
   },
 });
 
-export function sendAmz(res, status, obj) {
-  const body = JSON.stringify(obj);
-  res.writeHead(status, { 'content-type': AMZ_JSON, 'content-length': Buffer.byteLength(body) });
-  res.end(body);
-}
-
 function sendAmzEmpty(res, status = 200) {
   // LoopHandler.SuspendRobotLoop does not return the delegated command result. Hapi's
   // `reply()` therefore emits a successful zero-length response (the API model declares
@@ -68,28 +65,11 @@ function sendAmzEmpty(res, status = 200) {
   res.end();
 }
 
-export function sendAmzError(res, err, message) {
-  const body = JSON.stringify({ __type: err.code, message: message || err.message });
-  res.writeHead(err.statusCode, {
-    'content-type': AMZ_JSON,
-    'content-length': Buffer.byteLength(body),
-    'x-amzn-errortype': err.code,
-  });
-  res.end(body);
-}
-
 /** "<Prefix>.<Operation>" -> { prefix, op } (op matched case-insensitively downstream). */
 export function parseTarget(req) {
   const t = (req.headers && req.headers['x-amz-target']) || '';
   const dot = t.lastIndexOf('.');
   return { prefix: dot >= 0 ? t.slice(0, dot) : '', op: (dot >= 0 ? t.slice(dot + 1) : t) };
-}
-
-/** Legacy LAN-trust handlers extract an access key only for their compatibility lookup. */
-export function accessKeyIdFromAuth(req) {
-  const auth = (req.headers && req.headers.authorization) || '';
-  const m = /Credential=([^/,\s]+)\//.exec(auth);
-  return m ? m[1] : null;
 }
 
 function otaBase() {
@@ -122,8 +102,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     }
 
     // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
-    // before Backup.new). ListLoops now emits LoopController.populateLoop so SSM
-    // LoopManager can sync /jibo/loop. Other loop ops remain unimplemented.
+    // before Backup.new). ListLoops emits LoopController.populateLoop so SSM LoopManager
+    // can sync /jibo/loop. Membership lifecycle (Create/Invite/Accept/Decline/ListMembers/
+    // RemoveMember) is the A-04 increment; the remaining loop ops are unimplemented.
     if (/^loop/i.test(prefix)) {
       log.info('loop request', { op });
       return void loopDispatch({ req, res, body: body || {}, op, log });
@@ -316,6 +297,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     //   Loop.list()    -> "ListLoops"
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
+    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {
       return void loopSuspend({ req, res, body, op, log });

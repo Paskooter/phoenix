@@ -13,6 +13,7 @@ import { parse as legacyUrlParse, resolve as legacyUrlResolve } from 'node:url';
 import { logger } from '@phoenix/common';
 
 import { getSettingsData, setSettingsData } from './settingsData.js';
+import { isAcceptedStatus } from './model.js';
 
 const REPORT_SKILL = 'report-skill';
 const PERSON_JSON_MIME = /^application\/(?:[a-z0-9.]*[+-]json|json)$/i;
@@ -945,7 +946,7 @@ function localAccount(store) {
     async checkUserBelongsToLoop(context) {
       const loop = context.loopId && store.loops.get(context.loopId);
       const member = loop && context.userId && Array.isArray(loop.members)
-        && loop.members.some((item) => item.accountId === context.userId && item.status === 'ACCEPTED');
+        && loop.members.some((item) => item.accountId === context.userId && isAcceptedStatus(item.status));
       if (!member) throw sourceLoopMemberError();
     },
     async getFriendlyId(context) {

@@ -17,6 +17,32 @@ function randAlnum(n) {
 
 export const newId = () => randomBytes(12).toString('hex');
 
+/** schemes/member.status.ts — stored and wire values are lowercase. */
+export const MEMBER_STATUS = Object.freeze({
+  INVITED: 'invited',
+  ACCEPTED: 'accepted',
+  DECLINED: 'declined',
+  REMOVED: 'removed',
+});
+
+/** schemes/member.type.ts */
+export const MEMBER_TYPE = Object.freeze({
+  INCOMING: 'incoming',
+  OUTGOING: 'outgoing',
+});
+
+export function isMemberStatus(value, expected) {
+  const actual = String(value || '').toLowerCase();
+  if (expected === undefined) {
+    return Object.values(MEMBER_STATUS).includes(actual);
+  }
+  return actual === String(expected).toLowerCase();
+}
+
+export function isAcceptedStatus(status) {
+  return isMemberStatus(status, MEMBER_STATUS.ACCEPTED);
+}
+
 /** account.ts fillAccessKeys: accessKeyId 20 alnum, secretAccessKey 40 alnum. */
 export function fillAccessKeys() {
   return { accessKeyId: randAlnum(20), secretAccessKey: randAlnum(40) };

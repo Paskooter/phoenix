@@ -14,6 +14,7 @@
 
 import { createService, sendJson } from '@phoenix/common';
 import { getSettingsData, setSettingsData, dataToFriendly, friendlyToData } from './settingsData.js';
+import { isAcceptedStatus } from './model.js';
 import { getSession } from './sessions.js';
 import { createSettingsProviders, isPersonRequestFatal } from './settingsProviders.js';
 import { getStore } from './store.js';
@@ -938,7 +939,7 @@ export function settingsPeerRoutes(store) {
       const loopId = url.searchParams.get('loopId');
       const loop = loopId ? store.loops.get(loopId) : null;
       const result = Boolean(loop && accountId && Array.isArray(loop.members)
-        && loop.members.some((item) => item.accountId === accountId && item.status === 'ACCEPTED'));
+        && loop.members.some((item) => item.accountId === accountId && isAcceptedStatus(item.status)));
       return { result };
     },
     'GET /loopPopulated': ({ url, res }) => {
