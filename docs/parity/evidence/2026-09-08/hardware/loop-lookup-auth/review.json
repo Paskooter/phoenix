@@ -1,0 +1,41 @@
+{
+  "state": "verified_bounded",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T05:54:09.593598+00:00",
+  "runtimeRevision": "03e6a01",
+  "subject": "Installed robot client lookup operations after shared Loop authentication deployment",
+  "runtime": {
+    "node": "6.9.2",
+    "clientVersion": "3.0.105",
+    "strictTls": true,
+    "explicitCa": true
+  },
+  "baseline": {
+    "householdReadPassed": true,
+    "newLookupOperations": "UnknownOperationException on the previous deployed runtime"
+  },
+  "afterDeployment": {
+    "householdReadPassed": true,
+    "ownerLookupMatchedHousehold": true,
+    "robotListMatchedHousehold": true,
+    "robotCallerDeniedOwnerCredentialLookup": true,
+    "nativeNotificationSocketConnected": true,
+    "readOnlyProbes": true,
+    "allSixBackendHealthchecksPassed": true
+  },
+  "preservation": {
+    "accountsAndCredentials": true,
+    "loopsAndMembers": true,
+    "entireAccountStoreEqualsStoppedBackup": true,
+    "storeReplaced": false,
+    "robotFilesInstalled": false
+  },
+  "boundaries": [
+    "GetRobot owner success was covered with synthetic original-client controls; this real-robot probe verifies denial to the robot identity.",
+    "Notification socket connectivity was checked; a new profile mutation/delivery cycle was not run in this review.",
+    "No microphone, light-ring, screen, or reboot verification is claimed.",
+    "The deployed build retains open handler/provider differences, including ListLoops primitive-payload validation under separate repair.",
+    "No complete parity task is closed."
+  ],
+  "privateEvidencePublished": false
+}
