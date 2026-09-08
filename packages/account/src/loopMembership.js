@@ -12,7 +12,6 @@
 // absent, the unavailable deployment boundary remains explicit and calls keep
 // the source fire-and-forget behavior.
 
-import { randomBytes } from 'node:crypto';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './loopHttp.js';
 import {
   findOrCreateRobotAccount,
@@ -21,6 +20,7 @@ import {
   MEMBER_STATUS,
   MEMBER_TYPE,
   newId,
+  newTokenId,
 } from './model.js';
 import { dispatchInvitationSideEffects } from './invitationProviders.js';
 import { dispatchLoopCreated } from './loopCreation.js';
@@ -29,7 +29,6 @@ import { idsEqual, mapGetById } from './id.js';
 
 const MAX_SIZE = 16;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
-const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const COMMAND_RESULT = Object.freeze({ result: 'Command accepted' });
 
 export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
@@ -128,15 +127,6 @@ function fail(err) {
   throw new LoopError(err);
 }
 
-function invitationCode() {
-  let n = BigInt(`0x${randomBytes(5).toString('hex')}`);
-  let s = '';
-  while (n > 0n) {
-    s = B58[Number(n % 58n)] + s;
-    n /= 58n;
-  }
-  return s || '1';
-}
 
 function callerAccount(store, req) {
   // Public Loop requests are authenticated by the shared robot face before
@@ -484,7 +474,7 @@ export function inviteMember(store, payload, loopUpdatedOutbox, {
     targetAccount = store.accountByEmail(payload.email);
     if (targetAccount && targetAccount.isDeleted === true) targetAccount = null;
   }
-  const code = invitationCode();
+  const code = newTokenId();
   addMember(store, {
     accountId: targetAccount && targetAccount._id,
     code,
@@ -652,7 +642,7 @@ export function updateMember(store, {
     member.memberProperties.email = email;
     member.memberProperties.isChild = false;
     member.status = MEMBER_STATUS.INVITED;
-    member.invitationCode = invitationCode();
+    member.invitationCode = newTokenId();
     // Source UpdateMember invokes the mail and event providers before its
     // final saveAndPopulate. Each source provider is fire-and-forget after
     // invocation; a malformed seam that throws before returning a Promise is
