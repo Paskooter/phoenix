@@ -33,6 +33,7 @@ import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
+import { idsEqual, mapGetById } from './id.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
 
@@ -262,7 +263,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       } else {
         // A different robot may only take over a suspended loop. Same-robot
         // re-setup returns its existing credentials.
-        const currentRobot = store.accounts.get(loop.robot);
+        const currentRobot = mapGetById(store.accounts, loop.robot);
         if (!currentRobot) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
         if (currentRobot.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
         if (currentRobot.friendlyId !== id) {
@@ -273,7 +274,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ({ loop } = createLoop(store, { owner: account, robotId: id }));
     }
 
-    const robot = store.accounts.get(loop.robot) || findOrCreateRobotAccount(store, id);
+    const robot = mapGetById(store.accounts, loop.robot) || findOrCreateRobotAccount(store, id);
     deleteToken(store, token._id); // ONE-TIME
 
     const credentials = {
@@ -303,11 +304,6 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   function cloneLoop(loop) {
     return JSON.parse(JSON.stringify(loop));
-  }
-
-  function idsEqual(left, right) {
-    return left !== undefined && left !== null && right !== undefined && right !== null
-      && String(left) === String(right);
   }
 
   function oobeTokenValidationMessage(body, { optionalId = false, requiredId = false } = {}) {
@@ -458,16 +454,16 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const accessKeyId = accessKeyIdFromAuth(req);
     const account = req._phoenixVerifiedCredentials;
     const visible = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
-      && (loop.owner === account._id || (loop.members || []).some((member) =>
-        member.accountId === account._id
+      && (idsEqual(loop.owner, account._id) || (loop.members || []).some((member) =>
+        idsEqual(member.accountId, account._id)
         && ['accepted', 'invited'].includes(String(member.status || '').toLowerCase()))));
     const requested = body.loopId
-      ? visible.filter((loop) => String(loop._id) === body.loopId)
+      ? visible.filter((loop) => idsEqual(loop._id, body.loopId))
       : visible;
     const isRobotRequesting = !!account.friendlyId
-      || requested.some((loop) => loop.robot && loop.robot === account._id);
+      || requested.some((loop) => loop.robot && idsEqual(loop.robot, account._id));
     const loops = isRobotRequesting
-      ? requested.filter((loop) => loop.robot === account._id && !loop.isSuspended)
+      ? requested.filter((loop) => idsEqual(loop.robot, account._id) && !loop.isSuspended)
       : requested;
     let persisted = false;
     const wired = loops.map((loop) => {
@@ -570,7 +566,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         log.info('Loop.Suspend', { op, loopId: body.loopId, found: false, reason: 'loop-not-found' });
         return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
       }
-      if (!caller || (loop.robot !== caller._id && !caller.isAdmin)) {
+      if (!caller || (!idsEqual(loop.robot, caller._id) && !caller.isAdmin)) {
         log.info('Loop.Suspend', { op, loopId: body.loopId, found: true, authorized: false });
         return void sendAmzError(res, Errors.ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND);
       }
@@ -611,12 +607,12 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   function activeLoopById(loopId) {
-    const loop = store.loops.get(loopId);
+    const loop = mapGetById(store.loops, loopId);
     return loop && loop.isDeleted !== true ? loop : null;
   }
 
   function activeLoopForRobot(robotId) {
-    return [...store.loops.values()].find((loop) => loop.isDeleted !== true && loop.robot === robotId) || null;
+    return [...store.loops.values()].find((loop) => loop.isDeleted !== true && idsEqual(loop.robot, robotId)) || null;
   }
 
   function requiredStringValidationMessage(body, field) {

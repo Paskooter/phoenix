@@ -8,6 +8,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { idsEqual, mapGetById } from './id.js';
 
 // Requests without an explicit payload hash must be hashed from received bytes.
 // Spool to private disk so verification and later upload do not buffer a 1 GB body.
@@ -28,10 +29,10 @@ export async function stagePhotoDigest(req) {
 }
 
 function fail(code) { throw Object.assign(new Error(code), LOOP_MEMBERSHIP_ERRORS[code]); }
-const sameId = (a, b) => a != null && b != null && String(a) === String(b);
+const sameId = idsEqual;
 
 function target(store, { ownerId, loopId, id }) {
-  const loop = store.loops.get(loopId);
+  const loop = mapGetById(store.loops, loopId);
   if (!loop || loop.isDeleted === true) fail('LOOP_NOT_FOUND');
   if (!sameId(loop.owner, ownerId) && !sameId(loop.robot, ownerId)) fail('CAN_BE_ACCESSED_BY_OWNER_OR_ROBOT');
   const member = loop.members.find((item) => sameId(item._id, id));

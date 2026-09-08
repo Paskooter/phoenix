@@ -1,5 +1,6 @@
 // Source: srv-account-ws@6cea434, LoopController.setLegalGuardian/updateAgreementStatus.
 import { sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
+import { idsEqual, mapGetById } from './id.js';
 
 const COMMAND = Object.freeze({ result: 'Command accepted' });
 const STATUS = {
@@ -10,7 +11,7 @@ const STATUS = {
 };
 function fail(code) { throw Object.assign(new Error(code), { code, statusCode: STATUS[code] }); }
 const clone = (value) => JSON.parse(JSON.stringify(value));
-const equal = (left, right) => left != null && right != null && String(left) === String(right);
+const equal = idsEqual;
 
 function persist(store, previous, next, outbox) {
   store.loops.set(previous._id, next);
@@ -24,7 +25,7 @@ function persist(store, previous, next, outbox) {
 }
 
 export async function setLegalGuardian(store, { ownerId, loopId, parentId, childId }, provider) {
-  const loop = store.loops.get(loopId);
+  const loop = mapGetById(store.loops, loopId);
   if (!loop || loop.isDeleted === true) fail('LOOP_NOT_FOUND');
   if (!equal(loop.owner, ownerId)) fail('CAN_BE_ACCESSED_BY_OWNER');
   if (loop.isSuspended) fail('LOOP_SUSPENDED');
@@ -40,7 +41,7 @@ export async function setLegalGuardian(store, { ownerId, loopId, parentId, child
   const agreementId = await provider.send(account.email, account.firstName, account.lastName, childName);
   // Source uses Loop.update, not save: no save timestamp or LoopUpdated hook.
   // Recheck the query after awaiting the provider, as Mongo does for the update.
-  const current = store.loops.get(loopId);
+  const current = mapGetById(store.loops, loopId);
   if (current && current.isDeleted !== true && current.members.some((member) => equal(member._id, childId))) {
     const next = clone(current);
     const target = next.members.find((member) => equal(member._id, childId));
