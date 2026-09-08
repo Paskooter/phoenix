@@ -120,7 +120,9 @@ rsh() { timeout 90 "${SSH[@]}" "$@"; }
 # Upload only this run's utility to an unguessable temporary path. A stale path
 # is an error rather than a reason to remove another invocation's file.
 upload_client_patcher() {
-  if ! rsh "test ! -e '$CLIENT_PATCH_TMP' && cat > '$CLIENT_PATCH_TMP'" < "$PATCHER"; then
+  CLIENT_PATCH_TMP="$(rsh 'mktemp /tmp/phoenix-client-ca.XXXXXX')"
+  [[ "$CLIENT_PATCH_TMP" =~ ^/tmp/phoenix-client-ca\.[a-zA-Z0-9]+$ ]] || die "invalid remote temporary path"
+  if ! rsh "cat > '$CLIENT_PATCH_TMP'" < "$PATCHER"; then
     rsh "rm -f '$CLIENT_PATCH_TMP'" 2>/dev/null || true
     die "could not upload the reviewed Node client patch utility"
   fi
@@ -359,17 +361,19 @@ echo "  - every edited file is backed up with suffix .phx-bak-$STAMP"
 echo
 
 # Always reject an unsupported nested client before changing hosts or trust.
-# Reading the utility from stdin also keeps dry-run free of remote temp files.
+# Node 6 has no `node -` stdin mode; use an owned temporary script and remove it.
 say "checking every installed Node client against the reviewed source"
+upload_client_patcher
 if [ "$REVERT" -eq 1 ]; then
   if rsh "test -f '$CLIENT_CA_RECEIPT'"; then
-    rsh "node - --dry-run --revert --receipt '$CLIENT_CA_RECEIPT' --json" < "$PATCHER"
+    rsh "node '$CLIENT_PATCH_TMP' --dry-run --revert --receipt '$CLIENT_CA_RECEIPT' --json"
   else
     warn "no Node client patch receipt; only deployment data can be reverted"
   fi
 else
-  rsh "node - --dry-run --receipt '$CLIENT_CA_RECEIPT' --json" < "$PATCHER"
+  rsh "node '$CLIENT_PATCH_TMP' --dry-run --receipt '$CLIENT_CA_RECEIPT' --json"
 fi
+cleanup_client_patcher
 if [ "$DRY" -eq 1 ]; then say "--dry-run: no deployment files changed"; exit 0; fi
 if [ "$ASSUME_YES" -eq 0 ]; then
   printf 'Proceed? [y/N] ' >&2; read -r reply </dev/tty
