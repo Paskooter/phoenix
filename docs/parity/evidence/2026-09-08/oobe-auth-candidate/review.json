@@ -1,0 +1,52 @@
+{
+  "status": "candidate-awaiting-independent-source-and-client-review",
+  "implementationRevision": "3f09e39",
+  "baseCandidate": "621bbc1ddebb609cddb9a157a25ccb25aeb2ae36",
+  "source": {
+    "repository": "jiborobot/srv-security-gw",
+    "revision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
+    "path": "src/controllers/auth.ctrl.ts",
+    "sha256": "776c0908cbb5e842fe7866e7d1e6640578c390d604536c76652707b50785881d"
+  },
+  "policy": {
+    "unsignedExceptions": [
+      "OOBE_20161026.SetupRobot",
+      "OOBE_20161026.GetStatus"
+    ],
+    "signatureRequired": [
+      "PrepareRobot",
+      "ReconnectRobot"
+    ],
+    "suppliedSignaturesVerifiedOnExceptions": true,
+    "callerForwardingMetadataCannotAuthorize": true
+  },
+  "checks": {
+    "focusedTests": 20,
+    "matrixCases": 17,
+    "fullTests": 921,
+    "passed": 914,
+    "failed": 0,
+    "skipped": 7,
+    "strictCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictCoverageGaps": 0,
+    "strictRun": "ci-production-8f737c1f-7268-4159-ac99-7d4e4479d985"
+  },
+  "baseline": "New boundary test failed on the previous candidate. Initial repaired test had a harness-only authorization header casing error; corrected harness passes.",
+  "testCorrections": "Earlier operation tests now use original target date and actual signatures instead of fabricated signature strings or unsigned Reconnect calls.",
+  "remaining": [
+    "Independent exact gateway OOBE matrix",
+    "Independent original Node8 client against Account and Classic",
+    "Prepare/GetStatus validation review",
+    "GetServiceToken implementation and full A05 acceptance"
+  ],
+  "robotDeploymentChanged": false,
+  "hashes": {
+    "baseline.log": "478fa709a7b9dc355192c47f3c93ab12d06e69c4fd3e74a0ef3d0bfa35ac7142",
+    "auth.log": "65e98ac7ee80c220c4002b81e822b18262a1688ab34d139db9e8b26f2da110ac",
+    "auth-corrected.log": "49dd3d4d137e4375ce1d4738383d0da4c3c443df2dd4e2353aaf40f57c8521dc",
+    "focused.log": "1ef3e6483454e3139091b31610d4b1fd40dd2413b87b7c78b4958cf9365ff8c2",
+    "full.log": "f81646850b1b03800574e4140cfaeff5924f6e10be7116cece40030f966ca760"
+  }
+}
