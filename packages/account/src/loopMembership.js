@@ -23,6 +23,7 @@ import {
   newId,
 } from './model.js';
 import { dispatchInvitationSideEffects } from './invitationProviders.js';
+import { dispatchMembershipEvent } from './membershipEvents.js';
 
 const MAX_SIZE = 16;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
@@ -501,7 +502,7 @@ export function inviteMember(store, payload, loopUpdatedOutbox, {
   return populateLoop(store, findById(store, payload.loopId));
 }
 
-export function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox) {
+export function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox, { invitationProviders } = {}) {
   const storedLoop = findById(store, loopId);
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
@@ -512,10 +513,12 @@ export function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox
   membership.status = MEMBER_STATUS.ACCEPTED;
   saveLoop(store, loop, loopUpdatedOutbox, before);
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const firstMembership = loop.members.find((member) => member.accountId && idsEqual(member.accountId, accountId));
+  dispatchMembershipEvent('InvitationToLoopAccepted', loop, { accountId, invitedAsLegalGuardian: firstMembership.invitedAsLegalGuardian }, invitationProviders);
   return loopToUnpopulated(loop);
 }
 
-export function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbox) {
+export function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbox, { invitationProviders } = {}) {
   const storedLoop = findById(store, loopId);
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
@@ -523,7 +526,9 @@ export function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbo
   if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
   membership.status = MEMBER_STATUS.DECLINED;
   saveLoop(store, loop, loopUpdatedOutbox, before);
-  return populateLoop(store, loop);
+  const populated = populateLoop(store, loop);
+  dispatchMembershipEvent('InvitationToLoopDeclined', loop, { accountId }, invitationProviders);
+  return populated;
 }
 
 export function listMembers(store, { ownerId, friendlyId = null, statusList = null, typeList = null }) {
@@ -541,7 +546,7 @@ export function listMembers(store, { ownerId, friendlyId = null, statusList = nu
   return members.filter((member) => types.includes(member.type));
 }
 
-export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) {
+export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox, { invitationProviders } = {}) {
   const storedLoop = findById(store, loopId);
   const { before, loop } = mutationDraft(storedLoop);
   const targetMember = (loop.members || []).find((member) => idsEqual(member._id, id));
@@ -552,7 +557,9 @@ export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox) 
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   targetMember.status = MEMBER_STATUS.REMOVED;
   saveLoop(store, loop, loopUpdatedOutbox, before);
-  return populateLoop(store, loop);
+  const populated = populateLoop(store, loop);
+  dispatchMembershipEvent('MemberRemovedFromLoop', loop, { targetMember }, invitationProviders);
+  return populated;
 }
 
 /**
@@ -899,24 +906,24 @@ function inviteMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabl
   }, loopUpdatedOutbox, { coppaEnabled, invitationProviders }));
 }
 
-function acceptInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
+function acceptInvitationHttp({ store, req, res, body, loopUpdatedOutbox, invitationProviders }) {
   const message = firstError(body, [() => requiredString(body, 'loopId')]);
   if (message) return void sendValidationError(res, message);
   const caller = callerAccount(store, req);
   return respond(res, () => acceptInvitation(store, {
     accountId: caller && caller._id,
     loopId: body.loopId,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { invitationProviders }));
 }
 
-function declineInvitationHttp({ store, req, res, body, loopUpdatedOutbox }) {
+function declineInvitationHttp({ store, req, res, body, loopUpdatedOutbox, invitationProviders }) {
   const message = firstError(body, [() => requiredString(body, 'loopId')]);
   if (message) return void sendValidationError(res, message);
   const caller = callerAccount(store, req);
   return respond(res, () => declineInvitation(store, {
     accountId: caller && caller._id,
     loopId: body.loopId,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { invitationProviders }));
 }
 
 function listMembersHttp({ store, req, res, body }) {
@@ -936,7 +943,7 @@ function listMembersHttp({ store, req, res, body }) {
   }));
 }
 
-function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
+function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox, invitationProviders }) {
   const message = firstError(body, [
     () => requiredString(body, 'id'),
     () => requiredString(body, 'loopId'),
@@ -947,7 +954,7 @@ function removeMemberHttp({ store, req, res, body, loopUpdatedOutbox }) {
     id: body.id,
     loopId: body.loopId,
     ownerId: caller && caller._id,
-  }, loopUpdatedOutbox));
+  }, loopUpdatedOutbox, { invitationProviders }));
 }
 
 function updateMemberHttp({ store, req, res, body, loopUpdatedOutbox, coppaEnabled, invitationProviders }) {
