@@ -1,5 +1,5 @@
 // Source: srv-account-ws@6cea434, LoopController.setLegalGuardian/updateAgreementStatus.
-import { sendAmz, sendAmzError } from './loopHttp.js';
+import { sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
 
 const COMMAND = Object.freeze({ result: 'Command accepted' });
 const STATUS = {
@@ -81,18 +81,18 @@ export function handleLoopAgreements({ store, req, res, body, op, provider, outb
   const operation = String(op).toLowerCase();
   if (!['setlegalguardian', 'updateagreementstatus'].includes(operation)) return false;
   const message = validation(body, operation === 'setlegalguardian' ? ['childId', 'loopId', 'parentId'] : ['agreementId']);
-  if (message) {
-    const payload = JSON.stringify({ statusCode: 422, error: 'Unprocessable Entity', message });
-    res.writeHead(422, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(payload) });
-    res.end(payload);
-    return true;
-  }
+  if (message) return void sendValidationError(res, message);
   const result = operation === 'setlegalguardian'
     ? setLegalGuardian(store, { ...body, ownerId: req._phoenixVerifiedCredentials._id }, provider)
     : updateAgreementStatus(store, body, provider, outbox);
   return result.then((data) => sendAmz(res, 200, data)).catch((error) => {
     if (STATUS[error.code]) return sendAmzError(res, error);
     if (error.code === 'Service Unavailable' && error.statusCode === 503) return sendAmzError(res, error);
+    if (Number.isInteger(error.statusCode) && error.statusCode >= 400 && error.statusCode < 600) {
+      // Preserve source Wreck/Boom status while keeping the AWS error type
+      // generic; diagnostic wording is not part of the provider contract.
+      return sendAmzError(res, { code: 'InternalFailure', statusCode: error.statusCode }, 'Internal server error');
+    }
     return sendAmzError(res, { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
   });
 }

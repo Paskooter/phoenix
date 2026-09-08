@@ -19,6 +19,26 @@ export function sendAmzError(res, err, message) {
   res.end(body);
 }
 
+// @jibo/server's Boom.badData response used by the source Hapi handlers.
+// Keep this shared so every AWS-facing Joi boundary emits the same headers.
+export function sendValidationError(res, message) {
+  const body = JSON.stringify({
+    statusCode: 422,
+    error: 'Unprocessable Entity',
+    message,
+  });
+  res.removeHeader('x-powered-by');
+  res.removeHeader('keep-alive');
+  res.writeHead(422, {
+    connection: res.shouldKeepAlive ? 'keep-alive' : 'close',
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': Buffer.byteLength(body),
+    'cache-control': 'no-cache',
+    vary: 'accept-encoding',
+  });
+  res.end(body);
+}
+
 export function accessKeyIdFromAuth(req) {
   const auth = (req.headers && req.headers.authorization) || '';
   const m = /Credential=([^/,\s]+)\//.exec(auth);

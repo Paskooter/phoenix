@@ -30,7 +30,7 @@ import { handleLoopMembership } from './loopMembership.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
 import { handleRobotLookup } from './robotLookup.js';
-import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError } from './loopHttp.js';
+import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
 
@@ -298,28 +298,6 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       return 'child "payload" fails because ["payload" is not allowed to be empty]';
     }
     return null;
-  }
-
-  function sendValidationError(res, message) {
-    const body = JSON.stringify({
-      statusCode: 422,
-      error: 'Unprocessable Entity',
-      message,
-    });
-    // Match Hapi 16's Boom response used by the source Account route. The
-    // common Express service still supplies its normal headers elsewhere.
-    res.removeHeader('x-powered-by');
-    res.removeHeader('keep-alive');
-    res.writeHead(422, {
-      // Node 8 did not synthesize Node 22's Keep-Alive timeout header.
-      // Explicitly preserve the request's connection policy to avoid it.
-      connection: res.shouldKeepAlive ? 'keep-alive' : 'close',
-      'content-type': 'application/json; charset=utf-8',
-      'content-length': Buffer.byteLength(body),
-      'cache-control': 'no-cache',
-      vary: 'accept-encoding',
-    });
-    res.end(body);
   }
 
   // -- Loop_* ------------------------------------------------------------------
