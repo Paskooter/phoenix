@@ -4,16 +4,18 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Store, createAccountService } from '../src/index.js';
-import { createOwnerAccount, createLoop, mintSetupToken } from '../src/model.js';
+import { createOwnerAccount, createLoop, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } from '../src/model.js';
 
 async function fixture(run) {
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-synthetic-unbound-'));
   const store = new Store(join(dir, 'store.json'));
   const events = [], reads = [];
   let mode = 'active';
+  let onRead = () => {};
   const server = await createAccountService({ store,
     robotReadClient: { async getRobot(id) {
       reads.push(id);
+      onRead();
       if (mode === 'unavailable') throw new Error('synthetic unavailable');
       return { payload: { suspended: mode === 'disabled' } };
     } },
@@ -26,7 +28,7 @@ async function fixture(run) {
     });
     return { status: response.status, body: await response.json() };
   };
-  try { await run({ store, events, reads, setup, mode(value) { mode = value; } }); }
+  try { await run({ store, events, reads, setup, mode(value) { mode = value; }, onRead(callback) { onRead = callback; } }); }
   finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     rmSync(dir, { recursive: true, force: true });
@@ -76,3 +78,25 @@ test('unbound setup rejects disabled robots before mutation and tolerates robot-
   assert.equal((await setup(token, 'synthetic-disabled-robot')).status, 200);
   assert.equal(new Store(store.file).tokens.has(token._id), false);
 }));
+
+test('setup rechecks token expiry after robot-read and preserves earlier successful creation', async () => {
+  const originalNow = Date.now;
+  let now = originalNow();
+  Date.now = () => now;
+  try {
+    await fixture(async ({ store, setup, onRead }) => {
+      const owner = createOwnerAccount(store, { email: 'expires-during-read@synthetic.invalid', password: 'synthetic-password' });
+      const token = mintSetupToken(store, owner._id);
+      onRead(() => { now += ACCESS_TOKEN_LIFETIME_MS + 1; });
+      const result = await setup(token, 'synthetic-expiring-robot');
+      assert.equal(result.status, 401);
+      assert.equal(result.body.__type, 'TOKEN_EXPIRED');
+      const reopened = new Store(store.file);
+      assert(reopened.tokens.has(token._id), 'expiry must not consume the token');
+      const robot = reopened.accountByFriendlyId('synthetic-expiring-robot');
+      assert(robot, 'successful earlier Account save remains committed');
+      assert([...reopened.loops.values()].some(loop => loop.owner === owner._id && loop.robot === robot._id),
+        'successful earlier Loop save remains committed');
+    });
+  } finally { Date.now = originalNow; }
+});
