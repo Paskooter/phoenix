@@ -108,7 +108,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // remaining loop ops are unimplemented.
     if (/^loop/i.test(prefix)) {
       log.info('loop request', { op });
-      return void loopDispatch({ req, res, body: body || {}, op, log });
+      return void loopDispatch({ req, res, body, op, log });
     }
 
     // Account_20151111.Get is the LoopManager fallback when the local KB root

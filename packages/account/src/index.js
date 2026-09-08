@@ -59,7 +59,7 @@ function isSettingsTarget(req) {
 function isLoopProfileTarget(req) {
   return req.method === 'POST'
     && new URL(req.originalUrl || req.url, 'http://localhost').pathname === '/'
-    && /^loop[^.]*\.(setenrollment|updatenickname|updatephoneticname)$/i
+    && /^loop[^.]*\.(setenrollment|updatenickname|updatephoneticname|updateloopmember)$/i
       .test(String(req.headers?.['x-amz-target'] || ''));
 }
 
