@@ -1,4 +1,4 @@
-// Loop membership lifecycle — Create/Invite/Accept/Decline/ListMembers/RemoveMember.
+// Loop lifecycle — membership, record, and bounded member-profile operations.
 //
 // Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
 //   handlers/loop.handler.ts, controllers/loop.ctrl.ts, schemes/{loop,member.status,member.type}.ts,
@@ -56,6 +56,7 @@ export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
     message: 'Robot is required for loop creation',
     statusCode: 422,
   },
+  ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
   ROBOT_DISABLED: { code: 'ROBOT_DISABLED', message: 'Robot disabled', statusCode: 409 },
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
 });
@@ -73,6 +74,9 @@ const HANDLERS = Object.freeze({
   listmembers: listMembersHttp,
   removeloopmember: removeMemberHttp,
   removemember: removeMemberHttp,
+  updateloop: updateLoopHttp,
+  removeloop: removeLoopHttp,
+  clearrobot: clearRobotHttp,
   setenrollment: setEnrollmentHttp,
   updatenickname: updateNicknameHttp,
   updatephoneticname: updatePhoneticNameHttp,
@@ -149,6 +153,54 @@ function saveLoop(store, loop, loopUpdatedOutbox, before = undefined) {
     throw error;
   }
   return loop;
+}
+
+/** Source LoopController.update: owner-only name change with a command result. */
+export function updateLoop(store, { ownerId, loopId, name }, loopUpdatedOutbox) {
+  const storedLoop = findById(store, loopId);
+  if (!idsEqual(storedLoop.owner, ownerId)) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
+  }
+  // The source assigns `name` before checking suspension on the request-local
+  // Mongoose document. A rejected request does not save that assignment. Use a
+  // detached draft so the in-memory Store has the same externally visible
+  // result when a suspended loop is rejected.
+  if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
+  const { before, loop } = mutationDraft(storedLoop);
+  loop.name = name;
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return COMMAND_RESULT;
+}
+
+function removeLoopRecord(store, { ownerId = null, loopId, isAdmin = false }, loopUpdatedOutbox) {
+  const storedLoop = findById(store, loopId);
+  if (!idsEqual(storedLoop.owner, ownerId) && !isAdmin) {
+    fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
+  }
+  const { before, loop } = mutationDraft(storedLoop);
+  // The source removes the association by assigning undefined, then soft
+  // deletes the document. Do not remove the member account row.
+  loop.isDeleted = true;
+  loop.robot = undefined;
+  saveLoop(store, loop, loopUpdatedOutbox, before);
+  return loop;
+}
+
+/** Source LoopController.remove: owner-only soft deletion returning a Loop. */
+export function removeLoop(store, { ownerId = null, loopId }, loopUpdatedOutbox) {
+  const loop = removeLoopRecord(store, { ownerId, loopId, isAdmin: false }, loopUpdatedOutbox);
+  return populateLoop(store, loop);
+}
+
+/** Source LoopController.clearRobot: one active loop found by robot account. */
+export function clearRobot(store, { robotId }, loopUpdatedOutbox) {
+  const robot = store.accountByFriendlyId(robotId);
+  if (!robot) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_NOT_FOUND);
+  const loop = [...store.loops.values()].find((item) => item.isDeleted !== true
+    && idsEqual(item.robot, robot._id));
+  if (!loop) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_NOT_FOUND);
+  const removed = removeLoopRecord(store, { loopId: loop._id, isAdmin: true }, loopUpdatedOutbox);
+  return populateLoop(store, removed);
 }
 
 function mutationDraft(loop) {
@@ -765,6 +817,48 @@ function updatePhoneticNameHttp({ store, req, res, body, loopUpdatedOutbox }) {
     phoneticName: body.phoneticName,
     ownerId: caller && caller._id,
   }, loopUpdatedOutbox));
+}
+
+function updateLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  // Handler schema order is loopId, then name (loop.handler.ts:53-56).
+  const message = firstError(body, [
+    () => requiredString(body, 'loopId'),
+    () => requiredString(body, 'name'),
+  ]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => updateLoop(store, {
+    loopId: body.loopId,
+    name: body.name,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+function removeLoopHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const message = firstError(body, [() => requiredString(body, 'loopId')]);
+  if (message) return void sendValidationError(res, message);
+  const caller = callerAccount(store, req);
+  return respond(res, () => removeLoop(store, {
+    loopId: body.loopId,
+    ownerId: caller && caller._id,
+  }, loopUpdatedOutbox));
+}
+
+function clearRobotHttp({ store, req, res, body, loopUpdatedOutbox }) {
+  const caller = callerAccount(store, req);
+  // @parseCredentials({ adminOnly: true }) runs before @validatePayload in
+  // the source handler. The public face resolves this from the signed access
+  // key; x-amz-credentials cannot turn an ordinary account into an admin.
+  if (!caller || !caller.isAdmin) {
+    return void sendAmzError(res, {
+      code: 'AUTHORIZED_UNDER_ADMIN',
+      message: 'Must be authorized under admin account',
+      statusCode: 401,
+    });
+  }
+  const message = firstError(body, [() => requiredString(body, 'robotId')]);
+  if (message) return void sendValidationError(res, message);
+  return respond(res, () => clearRobot(store, { robotId: body.robotId }, loopUpdatedOutbox));
 }
 
 /** @returns {boolean} true when this Loop operation is a membership-lifecycle handler. */

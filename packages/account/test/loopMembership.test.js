@@ -562,7 +562,7 @@ test('RemoveLoopMember is owner-or-self, soft-deletes, and keeps persistence', a
   assert.equal(durable.loops.get(loopId).members.find((m) => m._id === guestMember.id).status, MEMBER_STATUS.REMOVED);
 });
 
-test('Existing ListLoops/SuspendLoop handlers and unimplemented ops are unchanged', async () => {
+test('Existing ListLoops/SuspendLoop handlers remain unchanged and record ops dispatch', async () => {
   const owner = createOwnerAccount(store, {
     email: 'a04-preserve-owner@example.test',
     password: 'owner-password',
@@ -594,6 +594,6 @@ test('Existing ListLoops/SuspendLoop handlers and unimplemented ops are unchange
   assert.equal(remove.body.__type, 'UnknownOperationException');
 
   const update = await post('Loop_20160324.UpdateLoop', { loopId: loop._id, name: 'Nope' }, owner.accessKeyId);
-  assert.equal(update.status, 400);
-  assert.equal(update.body.__type, 'UnknownOperationException');
+  assert.equal(update.status, 403);
+  assert.equal(update.body.__type, 'LOOP_SUSPENDED');
 });

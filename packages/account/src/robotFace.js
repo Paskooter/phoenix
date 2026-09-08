@@ -105,8 +105,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
     // before Backup.new). ListLoops emits LoopController.populateLoop so SSM LoopManager
     // can sync /jibo/loop. Membership lifecycle (Create/Invite/Accept/Decline/ListMembers/
-    // RemoveMember) and bounded profile/enrollment operations are A-04 increments; the
-    // remaining loop ops are unimplemented.
+    // RemoveMember), bounded member-profile operations, and the record operations
+    // UpdateLoop/RemoveLoop/ClearRobot are A-04 increments; the remaining loop ops
+    // are unimplemented.
     if (/^loop/i.test(prefix)) {
       // Source security gateway authenticates Loop operations before forwarding
       // to Account. Only the exact invitation/agreement targets below permit
