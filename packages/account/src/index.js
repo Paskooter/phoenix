@@ -63,7 +63,7 @@ function isLoopTarget(req) {
       .test(String(req.headers?.['x-amz-target'] || ''));
 }
 
-export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {} } = {}) {
+export function createAccountService({ store = getStore(), settingsProviders, notificationPublisher, loopConfig = {}, agreementProvider } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
   const effectiveSettingsProviders = settingsProviders === undefined
@@ -85,6 +85,7 @@ export function createAccountService({ store = getStore(), settingsProviders, no
         settingsProviders: effectiveSettingsProviders,
         loopUpdatedOutbox,
         loopConfig,
+        agreementProvider,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
     },
   });
