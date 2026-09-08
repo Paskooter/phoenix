@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // Synthetic failure controls for the Loop membership persistence boundary.
 // All identifiers and profiles in this file are invented fixtures.
 
@@ -146,19 +147,12 @@ async function close(server) {
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
-async function post(base, target, body, accessKeyId) {
+async function post(store, base, target, body, accessKeyId) {
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      authorization: authorization(accessKeyId),
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-    },
-    body: JSON.stringify(body),
+    headers: signedLoopHeaders(store, base, target, body, accessKeyId),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const raw = Buffer.from(await response.arrayBuffer());
   return {
@@ -357,7 +351,7 @@ test('HTTP membership failure returns its error while preserving loop state afte
     };
     const before = snapshot(state.store);
     const diskBefore = readFileSync(state.file);
-    const response = await post(
+    const response = await post(state.store,
       `http://127.0.0.1:${server.address().port}`,
       'Loop_20160324.RemoveLoopMember',
       { loopId: state.loop._id, id: 'a04-guest-member' },

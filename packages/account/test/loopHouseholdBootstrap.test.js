@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // KB household bootstrap: ListLoops must emit LoopController.populateLoop so
 // SSM LoopManager can sync /jibo/loop. Account.Get is the empty-KB fallback
 // that returns the caller's account as data[0].id.
@@ -27,20 +28,12 @@ const store = new Store(join(dir, 'store.json'));
 let server;
 let base;
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
 async function post(target, body, accessKeyId) {
-  const headers = {
-    'content-type': 'application/x-amz-json-1.1',
-    'x-amz-target': target,
-  };
-  if (accessKeyId) headers.authorization = authorization(accessKeyId);
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers,
-    body: JSON.stringify(body),
+    headers: signedLoopHeaders(store, base, target, body, accessKeyId),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const bytes = Buffer.from(await response.arrayBuffer());
   let parsed = null;

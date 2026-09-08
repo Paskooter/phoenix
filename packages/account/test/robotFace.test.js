@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // G.2 — robot-facing AWS-JSON face: setupRobot happy path, exact error envelopes, prefix
 // tolerance, prepareRobot via SigV4 Credential parse, getStatus, Update_* proxy to a mock OTA.
 
@@ -142,14 +143,13 @@ test('Update_* targets proxy through to the OTA service untouched', async () => 
 
 test('Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.js reads)', async () => {
   const store = getStore();
-  const owner = createOwnerAccount(store, { email: 'george@jetson.test', password: 'spacely-sprockets', firstName: 'George' });
+  const owner = createOwnerAccount(store, { email: 'SyntheticFixturePerson@jetson.test', password: 'spacely-sprockets', firstName: 'SyntheticFixturePerson' });
   const token = mintSetupToken(store, owner._id);
   await amz('OOBE_20170101.SetupRobot', { token: token._id, id: 'rocket-maple-pixel-comet' });
   const robot = store.accountByFriendlyId('rocket-maple-pixel-comet');
-  const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=feedface`;
 
   // the robot's client sends the wire op name "ListLoops" (loop-2016-03-24: List -> name ListLoops)
-  const r = await amz('Loop_20160324.ListLoops', {}, { authorization: sig(robot.accessKeyId) });
+  const r = await amz('Loop_20160324.ListLoops', {}, signedLoopHeaders(store, base, 'Loop_20160324.ListLoops', {}, robot.accessKeyId));
   assert.equal(r.status, 200);
   const mine = r.body.filter((l) => l.robot === robot._id);
   assert.equal(mine.length, 1, 'exactly one loop for the robot (backup script requires length === 1)');
@@ -158,23 +158,23 @@ test('Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.
   assert.equal(mine[0].owner, owner._id);
 
   // owner credentials see the same loop; the bare "List" alias also works
-  const asOwner = await amz('Loop_20160324.List', {}, { authorization: sig(owner.accessKeyId) });
+  const asOwner = await amz('Loop_20160324.List', {}, signedLoopHeaders(store, base, 'Loop_20160324.List', {}, owner.accessKeyId));
   assert.ok(asOwner.body.some((l) => l.id === mine[0].id));
 
   // SuspendLoop — the robot's WipeUtil gate. Must succeed (CommandResponse) and mark the loop.
-  const susp = await amz('Loop_20160324.SuspendLoop', { loopId: mine[0].id }, { authorization: sig(robot.accessKeyId) });
+  const susp = await amz('Loop_20160324.SuspendLoop', { loopId: mine[0].id }, signedLoopHeaders(store, base, 'Loop_20160324.SuspendLoop', { loopId: mine[0].id }, robot.accessKeyId));
   assert.equal(susp.status, 200);
   assert.equal(susp.body.result, 'Command accepted');
   assert.equal(getStore().loops.get(mine[0].id).isSuspended, true);
   // SuspendRobotLoop is admin-only in the source handler and has a null output.
   owner.isAdmin = true;
   getStore().flush();
-  const suspR = await amz('Loop_20160324.SuspendRobotLoop', { friendlyId: 'rocket-maple-pixel-comet' }, { authorization: sig(owner.accessKeyId) });
+  const suspR = await amz('Loop_20160324.SuspendRobotLoop', { friendlyId: 'rocket-maple-pixel-comet' }, signedLoopHeaders(store, base, 'Loop_20160324.SuspendRobotLoop', { friendlyId: 'rocket-maple-pixel-comet' }, owner.accessKeyId));
   assert.equal(suspR.status, 200);
   assert.equal(suspR.body, null);
 
   // a still-unimplemented loop op is a clean UnknownOperationException, not a 500
-  const rm = await amz('Loop_20160324.Remove', { loopId: mine[0].id }, { authorization: sig(robot.accessKeyId) });
+  const rm = await amz('Loop_20160324.Remove', { loopId: mine[0].id }, signedLoopHeaders(store, base, 'Loop_20160324.Remove', { loopId: mine[0].id }, robot.accessKeyId));
   assert.equal(rm.status, 400);
   assert.equal(rm.body.__type, 'UnknownOperationException');
 });
