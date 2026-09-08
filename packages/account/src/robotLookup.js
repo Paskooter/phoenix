@@ -7,7 +7,7 @@
 // Wire shapes: jiborobot/srv-jibo-server-client@155d20a8102960b2aeb89c197bdf04dc1f1fc344
 //   apis/loop-2016-03-24.normal.json.
 
-import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './loopHttp.js';
+import { sendAmz, sendAmzError } from './loopHttp.js';
 import { verifySigV4, SigV4Error, SIGV4_ERRORS } from '@phoenix/common';
 
 const ERRORS = Object.freeze({
@@ -26,19 +26,29 @@ const ERRORS = Object.freeze({
  * response was produced; false leaves dispatch to the next Loop handler.
  */
 export function handleRobotLookup({ store, req, res, body, op }) {
-  switch (String(op || '').toLowerCase()) {
-    case 'getrobot':
-      getRobot({ store, req, res, body });
-      return true;
-    case 'findowner':
-      findOwner({ store, res, body });
-      return true;
-    case 'listownerrobots':
-      listOwnerRobots({ store, req, res, body });
-      return true;
-    default:
-      return false;
+  const operation = String(op || '').toLowerCase();
+  if (!['getrobot', 'findowner', 'listownerrobots'].includes(operation)) return false;
+  // srv-security-gw@43a692f has no anonymous or unsigned exception for these
+  // operations. Authenticate before the internal Account handler validates.
+  let caller;
+  try {
+    caller = verifySigV4({
+      method: req.method,
+      path: req.originalUrl || req.url || '/',
+      headers: req.headers,
+      body: req.rawBody === undefined
+        ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
+      resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+    }).credentials;
+  } catch (error) {
+    if (!(error instanceof SigV4Error) || !SIGV4_ERRORS[error.code]) throw error;
+    sendAmzError(res, SIGV4_ERRORS[error.code]);
+    return true;
   }
+  if (operation === 'getrobot') getRobot({ store, caller, res, body });
+  else if (operation === 'findowner') findOwner({ store, res, body });
+  else listOwnerRobots({ store, caller, res, body });
+  return true;
 }
 
 function objectValidation(body) {
@@ -92,10 +102,6 @@ function sendValidationError(res, message) {
   res.end(payload);
 }
 
-function accountForRequest(store, req) {
-  const accessKeyId = accessKeyIdFromAuth(req);
-  return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-}
 
 function idsEqual(left, right) {
   if (left === undefined || left === null || right === undefined || right === null) return false;
@@ -138,26 +144,7 @@ function robotAccountWire(account) {
   };
 }
 
-function getRobot({ store, req, res, body }) {
-  // The source security gateway authenticates the owner before entering the
-  // Account handler. GetRobot returns the robot's secret, so a public access
-  // key identifier or caller-supplied gateway metadata cannot authorize it.
-  let caller;
-  try {
-    caller = verifySigV4({
-      method: req.method,
-      path: req.originalUrl || req.url || '/',
-      headers: req.headers,
-      body: req.rawBody === undefined
-        ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
-      resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
-    }).credentials;
-  } catch (error) {
-    if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {
-      return sendAmzError(res, SIGV4_ERRORS[error.code]);
-    }
-    throw error;
-  }
+function getRobot({ store, caller, res, body }) {
   const validation = requiredString(body, 'loopId');
   if (validation) return sendValidationError(res, validation);
 
@@ -201,10 +188,9 @@ function visibleToOwner(loop, ownerId) {
     && ['accepted', 'invited'].includes(String(member.status || '').toLowerCase()));
 }
 
-function listOwnerRobots({ store, req, res, body }) {
+function listOwnerRobots({ store, caller, res, body }) {
   const validation = optionalString(body, 'accountId');
   if (validation) return sendValidationError(res, validation);
-  const caller = accountForRequest(store, req);
   // ListOwnerRobots does not compare a supplied accountId with the caller in
   // the source handler. An omitted/falsy accountId falls back to credentials.
   const ownerId = body.accountId ? body.accountId : caller && caller._id;

@@ -20,9 +20,6 @@ const store = new Store(join(dir, 'store.json'));
 let server;
 let base;
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
 async function post(target, body, accessKeyId, extraHeaders = {}) {
   let headers = {
@@ -30,7 +27,7 @@ async function post(target, body, accessKeyId, extraHeaders = {}) {
     'x-amz-target': target,
     ...extraHeaders,
   };
-  if (accessKeyId && /\.getrobot$/i.test(target)) {
+  if (accessKeyId) {
     const account = store.accountByAccessKeyId(accessKeyId);
     headers = signSigV4({
       method: 'POST', path: '/',
@@ -39,7 +36,7 @@ async function post(target, body, accessKeyId, extraHeaders = {}) {
       accessKeyId, secretAccessKey: account.secretAccessKey,
       region: 'global', service: 'jibo',
     }).headers;
-  } else if (accessKeyId) headers.authorization = authorization(accessKeyId);
+  }
   const response = await fetch(`${base}/`, {
     method: 'POST',
     headers,
@@ -178,26 +175,26 @@ test('FindOwner returns the first active loop owner for owner/member matches', a
     isDeleted: true,
   });
 
-  const ownerResult = await post('Loop_20160324.FindOwner', { accountId: owner._id });
+  const ownerResult = await post('Loop_20160324.FindOwner', { accountId: owner._id }, owner.accessKeyId);
   assert.equal(ownerResult.status, 200);
   assert.deepEqual(ownerResult.body, { id: owner._id });
 
-  const memberResult = await post('Loop_20160324.FindOwner', { accountId: memberAccount._id });
+  const memberResult = await post('Loop_20160324.FindOwner', { accountId: memberAccount._id }, owner.accessKeyId);
   assert.equal(memberResult.status, 200);
   assert.deepEqual(memberResult.body, { id: owner._id });
 
   // The source query does not filter member status; a removed member still has
   // a membership accountId and therefore resolves the containing active loop.
-  const removedResult = await post('Loop_20160324.FindOwner', { accountId: removed._id });
+  const removedResult = await post('Loop_20160324.FindOwner', { accountId: removed._id }, owner.accessKeyId);
   assert.equal(removedResult.status, 200);
   assert.deepEqual(removedResult.body, { id: owner._id });
 
-  const unknown = await post('Loop_20160324.FindOwner', { accountId: 'a04-no-loop-account' });
+  const unknown = await post('Loop_20160324.FindOwner', { accountId: 'a04-no-loop-account' }, owner.accessKeyId);
   assert.equal(unknown.status, 200);
   assert.deepEqual(unknown.body, { id: null }, 'source Mongoose no-match preserves a null id');
 
   for (const body of [{}, { accountId: '' }, { accountId: null }, { accountId: 7 }, { accountId: [] }]) {
-    const invalid = await post('Loop_20160324.FindOwner', body);
+    const invalid = await post('Loop_20160324.FindOwner', body, owner.accessKeyId);
     assert.equal(invalid.status, 422, `FindOwner validation: ${JSON.stringify(body)}`);
   }
 });

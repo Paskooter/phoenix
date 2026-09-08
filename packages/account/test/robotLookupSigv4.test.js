@@ -95,3 +95,20 @@ test('lookup JSON primitives reach handler validation on Account and Classic', a
     }
   }
 });
+
+test('FindOwner and ListOwnerRobots enforce the source public gateway authentication', async () => {
+  for (const base of endpoints) {
+    for (const operation of ['FindOwner', 'ListOwnerRobots']) {
+      const headers = { 'x-amz-target': 'Loop_20160324.' + operation };
+      const body = JSON.stringify({ accountId: owner._id });
+      assert.equal((await post(base, signed(base, body, owner, { headers }))).status, 200);
+      error(await post(base, signed(base, body, owner, { headers, secret: outsider.secretAccessKey })), 401, 'SIGNATURE_MISMATCH');
+      error(await post(base, { body: 'null', headers: { ...headers, 'content-type': 'application/x-amz-json-1.1', 'x-amz-credentials': JSON.stringify({ id: owner._id }) } }), 401, 'MISSING_AUTH_HEADER');
+      const request = signed(base, body, owner, { headers });
+      error(await post(base, { ...request, body: '{}' }), 401, 'SIGNATURE_MISMATCH');
+      owner.isActive = false;
+      try { error(await post(base, signed(base, body, owner, { headers })), 403, 'ACCOUNT_NOT_ACTIVE'); }
+      finally { owner.isActive = true; }
+    }
+  }
+});

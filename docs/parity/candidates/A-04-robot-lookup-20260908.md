@@ -66,7 +66,8 @@ unguarded `robotAccount.toJSON` boundary as a generic 500
 order for an owner or any member account ID. Member status is deliberately not
 filtered, matching the source query, so a removed membership can still resolve
 the active loop owner. No match serializes as `{"id":null}` because Mongoose `findOne` resolves
-to null and the source preserves that value. This operation does not use caller credentials.
+to null and the source preserves that value. The internal query does not use caller credentials; the public route still
+requires a valid signed request.
 
 `ListOwnerRobots` accepts an optional nonempty string `accountId`; when present
 it selects that query identity even if it differs from the signed caller, as in
@@ -78,10 +79,12 @@ own unsuspended loop. Related robot accounts contribute their `friendlyId` in
 the same order. A stale relation is kept as the source's unexpected 500
 boundary instead of being converted to `ROBOT_NOT_FOUND`.
 
-The public face verifies SigV4 for `GetRobot`. `ListOwnerRobots` still uses
-the existing Phoenix access-key lookup as the identity bridge. The source decorator itself parses the internal `x-amz-credentials`
-header; this candidate does not trust that header as a caller switch. Public
-SigV4 coverage beyond `GetRobot` remains an acceptance limitation.
+The public face verifies SigV4 for all three operations. The pinned gateway
+`jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c`
+(`src/controllers/auth.ctrl.ts`, SHA-256
+`776c0908cbb5e842fe7866e7d1e6640578c390d604536c76652707b50785881d`)
+has no anonymous exception for them and its unsigned-method list is empty.
+The source handler's internal credential metadata is not a public caller switch.
 
 ## Controls
 
@@ -114,7 +117,7 @@ TCP replay.
 
 This candidate does not implement the other Loop operations, Mongo query/index
 behavior, Mongoose account serialization beyond the generated robot fields,
-the original Hapi route, or full Classic SigV4 verification. Store insertion
+the original Hapi route, or full Classic gateway policy beyond these three operations. Store insertion
 order is used as the deterministic stand-in for Mongo's natural query order.
 The source's `RobotClient`/disabled-robot path is not involved in these three
 handlers. No real credentials, household data, robots, live services, or
@@ -148,3 +151,10 @@ controlled model seams; it does not prove full Mongo or live robot parity.
 
 These root repairs remain isolated pending integration review. No whole parity
 task is closed, and no household or robot state was changed.
+
+The subsequent integration review extended signature verification to
+`FindOwner` and `ListOwnerRobots` after inspecting the gateway exception lists.
+Both entry points reject wrong secrets, modified signed payloads, inactive
+accounts, and unsigned requests with forged internal metadata. Authenticated
+query semantics, including selecting another account in the payload, remain
+those of the source controller.
