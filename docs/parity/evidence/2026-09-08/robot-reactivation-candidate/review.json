@@ -1,0 +1,52 @@
+{
+  "status": "accepted-bounded-implementation",
+  "baseRevision": "92791fb458f1417b42f830949fcb1d82f93f19cd",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "sourceMethod": "LoopController.findOrCreateRobotAccount",
+  "behavior": "Existing robot accounts are reactivated and saved without replacing identity or credentials. Failed Account saves restore the prior memory snapshot. A successful Account save survives a later failed Loop save.",
+  "sourceControls": {
+    "runtime": "Node8.9.4",
+    "cases": 3,
+    "scope": "Exact compiled controller with controlled Account query/save seams; not a Mongo execution."
+  },
+  "verification": {
+    "oldCodeRegressionTestsFailed": 3,
+    "focusedPassed": 11,
+    "fullTests": 908,
+    "fullPassed": 901,
+    "fullFailed": 0,
+    "fullSkipped": 7,
+    "strictGateMatches": 43,
+    "strictGateDifferences": 0,
+    "originalNode8ClientChecks": 8,
+    "originalClientScope": "Account and Classic: inactive credentials denied, CreateLoop reactivates with the same identity, original credentials authenticate, and authentication survives service/store restart.",
+    "independentFocusedTests": 10,
+    "independentReviewArtifactHashesVerified": 11,
+    "rootEvidenceAndClientArtifactHashesVerified": 12
+  },
+  "pending": [
+    "Moth deployment; complete A-04 remains open."
+  ],
+  "evidenceSha256": {
+    "source.cjs": "84a0195f361e6316c911d0bbe12f6280aee617a7147c582f469366cb4a8a250d",
+    "source.json": "f7efdf8b1c6dc8277608b8c6546a0418d24fb4a101ea1c2da8796c97a5c63ebc",
+    "baseline.log": "21997caeeeb73a69f06246cff793b42391844e04318bddf8035fae79b3e586f7",
+    "focused.log": "eb26975163eab52e0ab17324eadeef7115bde79d89c0f238d64748d34077ad91",
+    "focused-corrected.log": "a745b11e84f1c1df84f0ce42121336baa35a0cc67802a68268a3037eaebee780",
+    "full.log": "17b35f6948534e4685a2215f55c9af7a25ac706e30505d35f74de09a293e444a"
+  },
+  "priorFocusedFailure": "Existing Create relocation test incorrectly required the Account snapshot to remain unchanged after its successful save and a later Loop save failure. Replaced with explicit assertions preserving only the successful Account change.",
+  "privacy": "Synthetic controls only; no live robot or household changes.",
+  "candidateRevision": "792af68",
+  "clientHarnessQualification": "Initial SDK control incorrectly expected401 for inactive credentials; source-compatible existing auth returns403 ACCOUNT_NOT_ACTIVE. Initial failure retained, corrected isolated rerun passed without production changes.",
+  "clientEvidenceSha256": {
+    "client.cjs": "a3fa3f8e6db4e3488fcca3e8c7796149292cabba24da89961f1e9aea69214b12",
+    "client-run.mjs": "6da27ef1dba803fa3943f70b785346665461ffde8c540b3d3cff0f49a0dca20c",
+    "sdk-initial-result.json": "51f991c75c94b7b38272ddf852e66f5bc63cadc2b09975cdb33be5d734fac7e8",
+    "sdk-restart-result.json": "f4964134ffef26c6b6384c58528f58cffb95b19d1b286f782040a6f7bd0286de",
+    "sdk-verification.json": "a57f6c3461bc85ca3c79bfc27b11917d1d9c85798e2504be0296060bf4218264"
+  },
+  "reviewedBy": "Codex root",
+  "independentReviewSha256": "d256e4f347b64cfa255a8b22d2e41a3b6cad5b85aa5f02fd9624224c435adf42",
+  "objectReferenceQualification": "Source can retain a mutated request-local document after a rejected save. Phoenix restores its shared Store map to committed state. These internal object references differ; the verified HTTP/client/restart flows preserve the intended external behavior."
+}
