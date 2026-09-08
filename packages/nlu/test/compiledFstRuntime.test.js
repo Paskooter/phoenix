@@ -97,6 +97,23 @@ test('explicit compiled-FST profile connects the real /v1/parse path', { skip: !
     intent: 'requestTellJiboContent',
     entities: { JiboContent: 'Joke', union_original_fst_name: 'handle:chitchat/launch' },
   });
+  // Family 2 residuals: optimized-graph equal-cost selection. AST keeps the
+  // other arm; the compiled launch graph keeps the original winner.
+  assert.deepEqual(parseRequest({ text: 'what were you doing', rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'doesJiboHavePlansForEvent',
+    entities: { Timeframe: 'Now', union_original_fst_name: 'handle:chitchat/launch' },
+  });
+  assert.deepEqual(parseRequest({ text: "what should i get dad for father's day", rules: ['launch'] }), {
+    rules: ['launch'],
+    intent: 'whatGiftShouldUserGiveHoliday',
+    entities: {
+      FamilyMember: 'SomeFamilyMember',
+      GivenName: '',
+      Holiday: 'FathersDay',
+      union_original_fst_name: 'handle:chitchat/launch',
+    },
+  });
   // The original RobustParserClient sends every requested graph independently and
   // compares native heuristic scores. Launch score 13 must beat the global stop score
   // 7 even when the global graph is listed first.

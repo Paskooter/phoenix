@@ -1,12 +1,14 @@
 // Explicit compiled-FST bridge into the HTTP request parser.
 //
 // The request parser remains AST-backed unless PHOENIX_NLU_RUNTIME is exactly
-// "compiled-fst". That flag then requires one of three mutually exclusive
+// "compiled-fst". That flag then requires one of four mutually exclusive
 // acquisition contracts:
 //   1. Closed approved binary pins (launch hash + inventory).
 //   2. Closed approved JSON/gzip snapshot manifest.
 //   3. Source-faithful directory glob of existing .fst files
 //      (PHOENIX_NLU_COMPILED_FST_DIRECTORIES), matching RulesRegistry.
+//   4. A provisioned approved-binary home (PHOENIX_NLU_COMPILED_HOME, or
+//      runtime/nlu-compiled when a valid installer receipt is present).
 
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -31,12 +33,15 @@ import {
   ruleHandle,
   splitFstDirectories,
 } from './compiledFstAcquisition.js';
+import { resolveProvisionedApprovedHome } from './compiledFstHome.js';
 
 const ENABLED = COMPILED_FST_PROFILE.runtime;
 const APPROVED_LAUNCH_SHA256 = COMPILED_FST_PROFILE.approvedLaunchSha256;
 export const APPROVED_INVENTORY_SHA256 = COMPILED_FST_PROFILE.approvedInventorySha256;
 const APPROVED_SNAPSHOT_HASH_ANCHOR_SHA256 = COMPILED_FST_PROFILE.decodedHashAnchorSha256;
-const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
+const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
+const RESOURCE_ROOT = join(MODULE_DIR, '..', 'resources');
+const REPO_ROOT = join(MODULE_DIR, '..', '..', '..');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
 const SNAPSHOT_HASH_ANCHOR_PATH = join(RESOURCE_ROOT, 'compiled-fst-snapshot-hashes.json');
 
@@ -491,16 +496,17 @@ function config() {
   const factoryDir = process.env.PHOENIX_NLU_COMPILED_FACTORY_DIR;
   const rulesDir = process.env.PHOENIX_NLU_COMPILED_RULES_DIR;
   const expectedFstSha256 = process.env.PHOENIX_NLU_COMPILED_FST_SHA256;
+  const compiledHome = process.env.PHOENIX_NLU_COMPILED_HOME;
   const fstDirectories = splitFstDirectories(fstDirectoriesValue);
   if (snapshotManifest) {
-    if (fstPath || factoryDir || rulesDir || expectedFstSha256 || fstDirectoriesValue) {
+    if (fstPath || factoryDir || rulesDir || expectedFstSha256 || fstDirectoriesValue || compiledHome) {
       throw new Error('compiled-fst runtime cannot combine a JSON snapshot manifest with binary graph settings');
     }
     if (!existsSync(snapshotManifest)) throw new Error(`Compiled NLU snapshot profile is unavailable: ${snapshotManifest}`);
     return { snapshotManifest: resolve(snapshotManifest) };
   }
   if (fstDirectoriesValue) {
-    if (fstPath || rulesDir || expectedFstSha256) {
+    if (fstPath || rulesDir || expectedFstSha256 || compiledHome) {
       throw new Error('compiled-fst runtime cannot combine directory discovery with closed binary graph settings');
     }
     if (!fstDirectories.length) {
@@ -512,21 +518,44 @@ function config() {
       acquisition: 'fst-directories',
     };
   }
-  if (!fstPath || !factoryDir || !rulesDir || !expectedFstSha256) {
-    throw new Error(
-      'compiled-fst runtime requires PHOENIX_NLU_COMPILED_FST_DIRECTORIES, '
-      + 'a snapshot manifest, or PHOENIX_NLU_COMPILED_FST, '
-      + 'PHOENIX_NLU_COMPILED_FACTORY_DIR, PHOENIX_NLU_COMPILED_RULES_DIR, '
-      + 'and PHOENIX_NLU_COMPILED_FST_SHA256',
-    );
+  if (fstPath || factoryDir || rulesDir || expectedFstSha256) {
+    if (compiledHome) {
+      throw new Error('compiled-fst runtime cannot combine a provisioned home with closed binary graph settings');
+    }
+    if (!fstPath || !factoryDir || !rulesDir || !expectedFstSha256) {
+      throw new Error(
+        'compiled-fst runtime requires PHOENIX_NLU_COMPILED_HOME, '
+        + 'PHOENIX_NLU_COMPILED_FST_DIRECTORIES, '
+        + 'a snapshot manifest, or PHOENIX_NLU_COMPILED_FST, '
+        + 'PHOENIX_NLU_COMPILED_FACTORY_DIR, PHOENIX_NLU_COMPILED_RULES_DIR, '
+        + 'and PHOENIX_NLU_COMPILED_FST_SHA256',
+      );
+    }
+    if (expectedFstSha256 !== APPROVED_LAUNCH_SHA256) {
+      throw new Error('Unsupported compiled NLU launch profile: expected hash must identify the approved launch artifact');
+    }
+    if (!existsSync(fstPath)) throw new Error(`Compiled NLU FST is unavailable: ${fstPath}`);
+    if (!existsSync(factoryDir)) throw new Error(`Compiled NLU factory directory is unavailable: ${factoryDir}`);
+    if (!existsSync(rulesDir)) throw new Error(`Compiled NLU graph directory is unavailable: ${rulesDir}`);
+    return { fstPath, factoryDir, rulesDir, expectedFstSha256 };
   }
-  if (expectedFstSha256 !== APPROVED_LAUNCH_SHA256) {
-    throw new Error('Unsupported compiled NLU launch profile: expected hash must identify the approved launch artifact');
+  const provisioned = resolveProvisionedApprovedHome({ env: process.env, repoRoot: REPO_ROOT });
+  if (provisioned) {
+    return {
+      fstPath: provisioned.fstPath,
+      factoryDir: provisioned.factoryDir,
+      rulesDir: provisioned.rulesDir,
+      expectedFstSha256: provisioned.expectedFstSha256,
+      compiledHome: provisioned.home,
+    };
   }
-  if (!existsSync(fstPath)) throw new Error(`Compiled NLU FST is unavailable: ${fstPath}`);
-  if (!existsSync(factoryDir)) throw new Error(`Compiled NLU factory directory is unavailable: ${factoryDir}`);
-  if (!existsSync(rulesDir)) throw new Error(`Compiled NLU graph directory is unavailable: ${rulesDir}`);
-  return { fstPath, factoryDir, rulesDir, expectedFstSha256 };
+  throw new Error(
+    'compiled-fst runtime requires PHOENIX_NLU_COMPILED_HOME, '
+    + 'PHOENIX_NLU_COMPILED_FST_DIRECTORIES, '
+    + 'a snapshot manifest, or PHOENIX_NLU_COMPILED_FST, '
+    + 'PHOENIX_NLU_COMPILED_FACTORY_DIR, PHOENIX_NLU_COMPILED_RULES_DIR, '
+    + 'and PHOENIX_NLU_COMPILED_FST_SHA256',
+  );
 }
 
 function createPortableRuntime(selected, key) {
@@ -660,6 +689,7 @@ export function getCompiledFstRuntime() {
     fstPath: selected.fstPath,
     factoryDir: selected.factoryDir,
     rulesDir: selected.rulesDir,
+    compiledHome: selected.compiledHome || null,
     fstSha256,
     ruleCount: rules.ruleCount,
     ruleManifestSha256: rules.manifestSha256,
@@ -677,7 +707,8 @@ export function getCompiledFstRuntime() {
  * The Phoenix default is AST when no compiled artifacts are selected. Original
  * production default.json always uses compiled graphs from fstDirectories.
  * Phoenix cannot silently switch that default: the repo does not ship the
- * binary graphs. Deployment selects compiled-fst after provisioning.
+ * binary graphs. After `scripts/install-nlu-compiled-graphs.mjs`, set
+ * PHOENIX_NLU_RUNTIME=compiled-fst and optionally PHOENIX_NLU_COMPILED_HOME.
  */
 export function defaultParserProfile() {
   if (process.env.PHOENIX_NLU_RUNTIME !== ENABLED) return 'ast';
@@ -771,10 +802,12 @@ export function compiledFstRuntimeConfig() {
     snapshotManifest: runtime.snapshotManifest,
     snapshotHashAnchorSha256: runtime.snapshotHashAnchorSha256,
   };
-  return {
+  const binary = {
     ...metadata,
     fstPath: runtime.fstPath,
     factoryDir: runtime.factoryDir,
     rulesDir: runtime.rulesDir,
   };
+  if (runtime.compiledHome) binary.compiledHome = runtime.compiledHome;
+  return binary;
 }

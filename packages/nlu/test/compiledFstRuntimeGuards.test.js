@@ -9,7 +9,7 @@ import { APPROVED_INVENTORY_SHA256 } from '../src/compiledFstRuntime.js';
 const keys = ['PHOENIX_NLU_RUNTIME', 'PHOENIX_NLU_COMPILED_FST',
   'PHOENIX_NLU_COMPILED_FACTORY_DIR', 'PHOENIX_NLU_COMPILED_RULES_DIR',
   'PHOENIX_NLU_COMPILED_FST_SHA256', 'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST',
-  'PHOENIX_NLU_COMPILED_FST_DIRECTORIES'];
+  'PHOENIX_NLU_COMPILED_FST_DIRECTORIES', 'PHOENIX_NLU_COMPILED_HOME'];
 const original = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 const configured = original.PHOENIX_NLU_RUNTIME === 'compiled-fst'
   && keys.slice(1, 5).every(key => original[key]);
@@ -51,6 +51,38 @@ test('explicit compiled runtime rejects each missing artifact setting', async ()
       assert.throws(getCompiledFstRuntime, /compiled-fst runtime requires/);
     });
   }
+});
+
+test('compiled-fst with no acquisition contract still requires graphs', async () => {
+  await withConfig({ PHOENIX_NLU_RUNTIME: 'compiled-fst' }, ({ getCompiledFstRuntime }) => {
+    assert.throws(getCompiledFstRuntime, /compiled-fst runtime requires/);
+  });
+});
+
+test('a missing explicit compiled home is rejected', async () => {
+  await withConfig({
+    PHOENIX_NLU_RUNTIME: 'compiled-fst',
+    PHOENIX_NLU_COMPILED_HOME: '/no-such-phoenix-nlu-compiled-home',
+  }, ({ getCompiledFstRuntime }) => {
+    assert.throws(getCompiledFstRuntime, /install home is unavailable/);
+  });
+});
+
+test('a provisioned home cannot mix with snapshot or directory discovery', async () => {
+  await withConfig({
+    PHOENIX_NLU_RUNTIME: 'compiled-fst',
+    PHOENIX_NLU_COMPILED_HOME: '/unused/home',
+    PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST: '/unused/profile.json',
+  }, ({ getCompiledFstRuntime }) => {
+    assert.throws(getCompiledFstRuntime, /cannot combine a JSON snapshot manifest/);
+  });
+  await withConfig({
+    PHOENIX_NLU_RUNTIME: 'compiled-fst',
+    PHOENIX_NLU_COMPILED_HOME: '/unused/home',
+    PHOENIX_NLU_COMPILED_FST_DIRECTORIES: '/unused/rules',
+  }, ({ getCompiledFstRuntime }) => {
+    assert.throws(getCompiledFstRuntime, /cannot combine directory discovery/);
+  });
 });
 
 test('a caller cannot attach the approved provenance to an arbitrary graph hash', async () => {

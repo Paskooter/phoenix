@@ -1,0 +1,18 @@
+# Optional approved-binary compiled parser. Install the original 98-rule tree
+# first, then run:
+#   PHOENIX_NLU_COMPILED_HOME=./runtime/nlu-compiled docker compose \
+#     -f docker-compose.yml -f docker-compose.nlu-compiled.yml up
+# The base Compose file continues to use the AST parser when this overlay is
+# not selected. Phoenix still does not ship the binary graphs in git.
+services:
+  parser:
+    volumes:
+      - type: bind
+        source: ${PHOENIX_NLU_COMPILED_HOME:?Set PHOENIX_NLU_COMPILED_HOME to an installed graph directory}
+        target: /phoenix/runtime/nlu-compiled
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      - PHOENIX_NLU_RUNTIME=compiled-fst
+      - PHOENIX_NLU_COMPILED_HOME=/phoenix/runtime/nlu-compiled

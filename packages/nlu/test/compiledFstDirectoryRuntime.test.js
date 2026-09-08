@@ -12,6 +12,7 @@ const keys = [
   'PHOENIX_NLU_COMPILED_FST_SHA256',
   'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST',
   'PHOENIX_NLU_COMPILED_FST_DIRECTORIES',
+  'PHOENIX_NLU_COMPILED_HOME',
 ];
 const original = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 let instance = 0;
