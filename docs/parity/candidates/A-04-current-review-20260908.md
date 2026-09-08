@@ -1,6 +1,10 @@
 # A-04 current integration review
 
-Status: **bounded membership and list implementation accepted by root**.
+Status: **bounded implementations accepted; full A-04 lifecycle remains open**.
+
+This document records the earlier membership/list integration. For the latest
+accepted deployment and pending photo, invitation, and creation candidates,
+see [the pending-review record](A-04-pending-review-20260908.md).
 
 Root accepted the combined candidate
 `4d453eb8a85a0bebcac189a7dc643153d54ba35c`: record operations, member update
@@ -15,8 +19,9 @@ records 58 record-operation client calls, 22 member-update client calls, six
 COPPA profiles with 18 source/candidate comparisons, and 66 list SDK/raw
 controls. The full combined suite passed 868 tests and the strict 43-case gate.
 
-Mail/invitation-event effects remain under implementation. The guardian and
-agreement candidate is undergoing independent review in its own branch.
-Mongo behavior, remaining operations and full lifecycle acceptance remain
-open. This integration does not deploy the new code to the robot. Whole-task
-progress stays at 8 of 79 verified tasks (10.1%).
+Guardian/agreement and ListLoopMembers increments were subsequently accepted.
+Moth runs `fb79e6d`; its installed-client read-only membership, filter, lookup,
+and notification checks passed with the household store preserved.
+Photo and invitation/creation candidates remain separate and unaccepted.
+Mongo behavior, remaining lifecycle acceptance and provider verification remain
+open. Whole-task progress stays at 8 of 79 verified tasks (10.1%).
