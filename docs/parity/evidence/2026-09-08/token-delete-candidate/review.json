@@ -1,0 +1,44 @@
+{
+  "status": "candidate-awaiting-review",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "sourcePath": "src/controllers/token.ctrl.ts",
+  "finding": "A failed persistent token deletion removed the token from the shared in-memory map, so the next ReconnectRobot returned TOKEN_NOT_FOUND while the durable token still existed.",
+  "change": "Restore the committed token on flush rejection; a successful retry durably consumes it once.",
+  "sourceControl": {
+    "runtime": "Node 8.9.4 extracted host executable",
+    "checks": 3,
+    "qualification": "Exact transpiled TokenController with controlled findById/remove seams; no Mongo or public transport."
+  },
+  "candidateChecks": {
+    "baselineHTTPTest": "failed as expected on missing in-memory token",
+    "focused": {
+      "passed": 16,
+      "failed": 0
+    },
+    "accountSuite": {
+      "passed": 241,
+      "failed": 0
+    },
+    "httpSequence": [
+      "failed write returns 500 and preserves memory/disk token",
+      "retry returns 200 and removes memory/disk token",
+      "replay returns 404 TOKEN_NOT_FOUND"
+    ]
+  },
+  "hashes": {
+    "token.ctrl.ts": "e066c20be0d572c39db37e8e317d9e53d148467e731fc6afd7a5868e9bcfeb77",
+    "token.ctrl.js": "d6d9615bc75c31e2e247507c099e4f4f6ea55e6de707364fe686fe29d941c5ff",
+    "source.cjs": "c74b95c7601abf7d381fd823dc2678e64cb780898e56f0021bd943bc94bdc588",
+    "source.json": "797bbb2630a8a3fee4272ea3e7ccf878f228cc780b1ace1190b7fda9687c7c2d",
+    "baseline.log": "e7e7d8f7b406fd115ab1954c5ede0c81e1389c83b6b1cbd671b0a7a9197dda2c",
+    "focused.log": "ce778581f155985f8184a4bba3f98b418d7a4a7a8d37cd6e4b9730a5f517a227",
+    "account.log": "d7f725e6c083fd249e0f3cb6a16988454e4796515cf3c4cf55597c4229fdad30"
+  },
+  "productionModelSha256": "ff38ff7cdf69d7b01e9ca05a974a84b363d2bb551782815e41d0b532ad13d0c2",
+  "testSha256": "a0229ee90617b6e7f8dc117b3b29dbefbe0e62cb32439b69d8702eefa76f34cc",
+  "limitations": [
+    "No arbitrary crash-point guarantee.",
+    "No robot or family mutation.",
+    "Full A05 and combined release gate remain open."
+  ]
+}
