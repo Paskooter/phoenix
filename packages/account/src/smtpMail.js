@@ -70,11 +70,14 @@ function dotStuff(value) {
   return normalizeCrlf(value).replace(/^\./gm, '..');
 }
 
-function requiresQuotedPrintable(value) {
-  // Match libmime.isPlainText's substantive boundary: printable ASCII,
-  // tabs, and line breaks can be sent as 7bit; all other UTF-8 bytes need a
-  // transfer encoding that does not depend on the relay advertising 8BITMIME.
-  return /[\x00-\x08\x0b\x0c\x0e-\x1f\x80-\uFFFF]/.test(String(value));
+function isPlainText(value) {
+  // This is libmime.isPlainText's exact character boundary. DEL (0x7f) is
+  // intentionally omitted from the source expression and remains 7bit.
+  return typeof value === 'string' && !/[\x00-\x08\x0b\x0c\x0e-\x1f\u0080-\uFFFF]/.test(value);
+}
+
+function hasLongerLines(value, lineLength = 76) {
+  return new RegExp(`^.{${lineLength + 1},}`, 'm').test(value);
 }
 
 function quotedPrintableEncode(value) {
@@ -121,12 +124,54 @@ function quotedPrintableEncode(value) {
   return output;
 }
 
-function encodeMimePart(value) {
+function foldFlowedLine(value, lineLength = 76) {
+  let position = 0;
+  let result = '';
+  while (position < value.length) {
+    let line = value.substr(position, lineLength);
+    if (line.length < lineLength) {
+      result += line;
+      break;
+    }
+    let match = line.match(/^[^\n\r]*(\r?\n|\r)/);
+    if (match) {
+      line = match[0];
+      result += line;
+      position += line.length;
+      continue;
+    }
+    match = line.match(/(\s+)[^\s]*$/);
+    if (match && match[0].length - match[1].length < line.length) {
+      line = line.substr(0, line.length - (match[0].length - match[1].length));
+    } else {
+      match = value.substr(position + line.length).match(/^[^\s]+(\s*)/);
+      if (match) line += match[0];
+    }
+    result += line;
+    position += line.length;
+    if (position < value.length) result += '\r\n';
+  }
+  return result;
+}
+
+function encodeFlowed(value) {
+  return String(value).split(/\r?\n/).map((line) => foldFlowedLine(
+    line.replace(/^( |From|>)/igm, ' $1'), 76,
+  )).join('\r\n');
+}
+
+function encodeMimePart(value, type) {
   const text = String(value);
-  const encoded = requiresQuotedPrintable(text) ? quotedPrintableEncode(text) : normalizeCrlf(text);
+  const plain = isPlainText(text);
+  const flowed = plain && hasLongerLines(text);
+  const quoted = !plain || (type === 'html' && flowed);
+  const encoded = quoted
+    ? quotedPrintableEncode(text)
+    : (type === 'text' && flowed ? encodeFlowed(text) : normalizeCrlf(text));
   return {
-    encoding: requiresQuotedPrintable(text) ? 'quoted-printable' : '7bit',
+    encoding: quoted ? 'quoted-printable' : '7bit',
     value: encoded,
+    contentType: `${type === 'text' ? 'text/plain' : 'text/html'}${plain ? '' : '; charset=utf-8'}${type === 'text' && flowed ? '; format=flowed' : ''}`,
   };
 }
 
@@ -510,8 +555,8 @@ function readTemplate(templateDir, template, extension) {
 function multipartMessage({ from, to, subject, text, html }) {
   const boundary = `=_phoenix_invitation_${randomBytes(12).toString('hex')}`;
   const messageId = `<${randomBytes(12).toString('hex')}@phoenix.local>`;
-  const textPart = encodeMimePart(text);
-  const htmlPart = encodeMimePart(html);
+  const textPart = encodeMimePart(text, 'text');
+  const htmlPart = encodeMimePart(html, 'html');
   const headers = [
     `From: ${rejectHeaderInjection(from, 'from')}`,
     `To: ${rejectHeaderInjection(to, 'to')}`,
@@ -525,12 +570,12 @@ function multipartMessage({ from, to, subject, text, html }) {
     ...headers,
     '',
     `--${boundary}`,
-    'Content-Type: text/plain; charset=utf-8',
+    `Content-Type: ${textPart.contentType}`,
     `Content-Transfer-Encoding: ${textPart.encoding}`,
     '',
     textPart.value,
     `--${boundary}`,
-    'Content-Type: text/html; charset=utf-8',
+    `Content-Type: ${htmlPart.contentType}`,
     `Content-Transfer-Encoding: ${htmlPart.encoding}`,
     '',
     htmlPart.value,

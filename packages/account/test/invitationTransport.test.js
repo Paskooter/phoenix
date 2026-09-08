@@ -152,9 +152,10 @@ function noStartTlsFixture() {
   return { server, commands };
 }
 
-function noEightBitFixture() {
+function noEightBitFixture({ maxLineLength = Infinity } = {}) {
   const messages = [];
   const commands = [];
+  const rejectedLineLengths = [];
   const server = net.createServer((socket) => {
     let commandBuffer = Buffer.alloc(0);
     let dataBuffer = Buffer.alloc(0);
@@ -169,8 +170,13 @@ function noEightBitFixture() {
         const body = dataBuffer.subarray(0, end);
         dataBuffer = dataBuffer.subarray(end + marker.length);
         inData = false;
+        for (const line of body.toString('binary').split('\r\n')) {
+          if (line.length > maxLineLength) rejectedLineLengths.push(line.length);
+        }
         if (body.some((byte) => byte > 0x7f)) {
           reply('550 5.6.7 8BITMIME is not supported');
+        } else if (rejectedLineLengths.length) {
+          reply('550 5.6.3 line too long');
         } else {
           messages.push(body);
           reply('250 2.0.0 queued');
@@ -200,7 +206,7 @@ function noEightBitFixture() {
     socket.on('error', () => {});
     reply('220 fixture.smtp ESMTP');
   });
-  return { server, commands, messages };
+  return { server, commands, messages, rejectedLineLengths };
 }
 
 function decodeQuotedPrintable(value) {
@@ -313,6 +319,35 @@ test('SMTP encodes Unicode parts for a relay without 8BITMIME', async () => {
       'DATA',
       'QUIT',
     ]);
+  } finally {
+    await close(relay.server);
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('SMTP wraps long ASCII HTML before the SMTP line-length limit', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'phx-a04-smtp-longline-'));
+  const html = `<p>${'A'.repeat(1200)}</p>\r\n`;
+  writeFileSync(join(directory, 'invitation.txt'), 'plain\r\n');
+  writeFileSync(join(directory, 'invitation.html'), html);
+  const relay = noEightBitFixture({ maxLineLength: 998 });
+  try {
+    const port = await listen(relay.server);
+    const provider = new SmtpMailProvider({
+      template: 'invitation',
+      smtp: { host: '127.0.0.1', port, timeoutMs: 1000 },
+      fromAddress: 'owner@fixture.test',
+      templateDir: directory,
+    });
+    const result = await provider.send('recipient@fixture.test');
+    assert.deepEqual(result.accepted, ['recipient@fixture.test']);
+    assert.equal(relay.messages.length, 1);
+    assert.deepEqual(relay.rejectedLineLengths, []);
+    const raw = relay.messages[0];
+    assert.equal(raw.some((byte) => byte > 0x7f), false);
+    const decoded = decodeQuotedPrintable(raw.toString('ascii'));
+    assert.match(decoded, new RegExp(`<p>${'A'.repeat(1200)}<\\/p>`));
+    assert.match(raw.toString('ascii'), /Content-Transfer-Encoding: quoted-printable/);
   } finally {
     await close(relay.server);
     rmSync(directory, { recursive: true, force: true });
