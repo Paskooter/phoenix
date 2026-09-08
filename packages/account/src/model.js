@@ -136,7 +136,12 @@ export function createOwnerAccount(store, { email, password, firstName = '', las
     created: Date.now(),
   };
   store.accounts.set(account._id, account);
-  store.flush();
+  try {
+    store.flush();
+  } catch (error) {
+    store.accounts.delete(account._id);
+    throw error;
+  }
   return account;
 }
 
@@ -336,16 +341,26 @@ export function createLoop(store, { owner, robotId }) {
 export function mintSetupToken(store, accountId, loopId = null, extra = {}) {
   const live = [...store.tokens.values()].find((t) =>
     t.accountId === accountId && (t.loopId || null) === (loopId || null)
-    && Date.now() - t.created <= ACCESS_TOKEN_LIFETIME_MS);
+    && Date.now() - t.created < ACCESS_TOKEN_LIFETIME_MS);
   if (live) {
-    live.created = Date.now();
-    Object.assign(live, extra);
-    store.flush();
-    return live;
+    const refreshed = { ...live, created: Date.now(), ...extra };
+    store.tokens.set(live._id, refreshed);
+    try {
+      store.flush();
+    } catch (error) {
+      store.tokens.set(live._id, live);
+      throw error;
+    }
+    return refreshed;
   }
   const token = { _id: newTokenId(), accountId, loopId, created: Date.now(), ...extra };
   store.tokens.set(token._id, token);
-  store.flush();
+  try {
+    store.flush();
+  } catch (error) {
+    store.tokens.delete(token._id);
+    throw error;
+  }
   return token;
 }
 
