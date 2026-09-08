@@ -1,0 +1,12 @@
+{
+  "status": "withheld-pending-correct-source-rerun",
+  "reviewer": "root",
+  "sourceRevisionClaimed": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "claimedControllerSha256": "c7025c7ca9596ab24adb1f81b8a7ac3fd47c2b33b79428565f7e399dbd9f574f",
+  "executedControllerSha256": "0f92f1e78e83b023a0630459712c446dfe70f5d973003ba3e025927283adc534",
+  "finding": "The supplied source controller hash did not match the executed file. The first root rerun reproduced the nine-case sequence but cannot establish claimed source parity.",
+  "correctedTreeAttempt": "Pinned controller bytes verified before execution. The source process exited zero but case assertions failed: eight LOOP_NOT_FOUND responses and one validation response. Controlled query seams require correction before acceptance.",
+  "action": "Agent assigned to repair the isolated source harness and rerun with hashes checked from executed files. Existing attempts retained.",
+  "fullA04Complete": false,
+  "privacy": "Synthetic fixture controls only; no robot or household mutation."
+}
