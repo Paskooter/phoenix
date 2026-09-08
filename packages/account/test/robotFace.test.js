@@ -20,7 +20,15 @@ let server; let base; let mockOta; let otaHits = [];
 async function amz(target, body, headers = {}) {
   const res = await fetch(`${base}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target, ...headers },
+    // Robot-face controls also do synchronous fixture/OTA work between
+    // requests. Close each local test connection to avoid stale pool reuse;
+    // no mutating request is retried and production transport is unchanged.
+    headers: {
+      'content-type': 'application/x-amz-json-1.1',
+      'x-amz-target': target,
+      ...headers,
+      connection: 'close',
+    },
     body: JSON.stringify(body),
   });
   return { status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) };
