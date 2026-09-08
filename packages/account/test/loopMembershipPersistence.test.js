@@ -161,18 +161,35 @@ async function post(store, base, target, body, accessKeyId) {
   };
 }
 
-test('Create/Invite/Accept/Decline/Remove drafts do not leak failed loop mutations', () => {
+test('Create relocation preserves its prior Account save when the Loop save fails', () => {
+  const state = tempFixture();
+  try {
+    state.robot.isActive = false;
+    state.store.flush();
+    const before = JSON.parse(readFileSync(state.file));
+    const outbox = rejectingOutbox();
+    assert.throws(() => createLoopFromApi(state.store, {
+      ownerId: state.owner._id,
+      name: 'Replacement Loop',
+      robotId: state.robot.friendlyId,
+    }, outbox), /injected loop persistence failure/);
+    const savedRobot = state.store.accounts.get(state.robot._id);
+    assert.equal(savedRobot.isActive, true);
+    assert(Number.isFinite(savedRobot.updated));
+    // Source awaits the Account save before relocating Loops. Only that
+    // successful Account change survives the later rejected Loop save.
+    const expectedRobot = before.accounts.find(account => account._id === state.robot._id);
+    expectedRobot.isActive = true;
+    expectedRobot.updated = savedRobot.updated;
+    assert.deepEqual(JSON.parse(readFileSync(state.file)), before);
+    assert.deepEqual(new Store(state.file).loops.get(state.loop._id), state.loop);
+    assert.equal(state.store.loops.get(state.loop._id), state.loop);
+    assert.equal(outbox.calls, 1);
+  } finally { rmSync(state.dir, { recursive: true, force: true }); }
+});
+
+test('Invite/Accept/Decline/Remove drafts do not leak failed loop mutations', () => {
   const cases = [
-    {
-      name: 'Create relocation',
-      run({ store, owner, robot }, outbox) {
-        return createLoopFromApi(store, {
-          ownerId: owner._id,
-          name: 'Replacement Loop',
-          robotId: robot.friendlyId,
-        }, outbox);
-      },
-    },
     {
       name: 'Invite new member',
       run({ store, owner, loop }, outbox) {

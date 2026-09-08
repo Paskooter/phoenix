@@ -143,8 +143,7 @@ export function createOwnerAccount(store, { email, password, firstName = '', las
 /** loop.ctrl.ts findOrCreateRobotAccount: a robot is an Account with a friendlyId + its own keys. */
 export function findOrCreateRobotAccount(store, friendlyId) {
   const existing = store.accountByFriendlyId(friendlyId);
-  if (existing) return existing;
-  const robot = {
+  const robot = existing ? { ...existing } : {
     _id: newId(),
     email: null,
     password: null,
@@ -154,8 +153,19 @@ export function findOrCreateRobotAccount(store, friendlyId) {
     isActive: true,
     created: Date.now(),
   };
+  // The source saves even an existing robot account, reactivating it while
+  // retaining its identity and keys. Keep the draft detached until persistence
+  // succeeds so a rejected save cannot activate an account only in memory.
+  robot.isActive = true;
+  robot.updated = Date.now();
   store.accounts.set(robot._id, robot);
-  store.flush();
+  try {
+    store.flush();
+  } catch (error) {
+    if (existing) store.accounts.set(existing._id, existing);
+    else store.accounts.delete(robot._id);
+    throw error;
+  }
   return robot;
 }
 

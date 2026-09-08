@@ -1,0 +1,37 @@
+{
+  "status": "candidate-awaiting-independent-review",
+  "baseRevision": "92791fb458f1417b42f830949fcb1d82f93f19cd",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "sourceMethod": "LoopController.findOrCreateRobotAccount",
+  "behavior": "Existing robot accounts are reactivated and saved without replacing identity or credentials. Failed Account saves restore the prior memory snapshot. A successful Account save survives a later failed Loop save.",
+  "sourceControls": {
+    "runtime": "Node8.9.4",
+    "cases": 3,
+    "scope": "Exact compiled controller with controlled Account query/save seams; not a Mongo execution."
+  },
+  "verification": {
+    "oldCodeRegressionTestsFailed": 3,
+    "focusedPassed": 11,
+    "fullTests": 908,
+    "fullPassed": 901,
+    "fullFailed": 0,
+    "fullSkipped": 7,
+    "strictGateMatches": 43,
+    "strictGateDifferences": 0
+  },
+  "pending": [
+    "Independent source/implementation review.",
+    "Original generated-client inactive-account creation and authentication sequence.",
+    "Root acceptance and deployment."
+  ],
+  "evidenceSha256": {
+    "source.cjs": "84a0195f361e6316c911d0bbe12f6280aee617a7147c582f469366cb4a8a250d",
+    "source.json": "f7efdf8b1c6dc8277608b8c6546a0418d24fb4a101ea1c2da8796c97a5c63ebc",
+    "baseline.log": "21997caeeeb73a69f06246cff793b42391844e04318bddf8035fae79b3e586f7",
+    "focused.log": "eb26975163eab52e0ab17324eadeef7115bde79d89c0f238d64748d34077ad91",
+    "focused-corrected.log": "a745b11e84f1c1df84f0ce42121336baa35a0cc67802a68268a3037eaebee780",
+    "full.log": "17b35f6948534e4685a2215f55c9af7a25ac706e30505d35f74de09a293e444a"
+  },
+  "priorFocusedFailure": "Existing Create relocation test incorrectly required the Account snapshot to remain unchanged after its successful save and a later Loop save failure. Replaced with explicit assertions preserving only the successful Account change.",
+  "privacy": "Synthetic controls only; no live robot or household changes."
+}
