@@ -1409,7 +1409,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-08/robot-reactivation-can
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-An isolated published candidate implements setup/reconnect, suspended replacement defaults, failed token-deletion rollback, unbound robot relocation and token expiry after robot-read. Full combined verification passes 913 tests (7 skipped) and 43 strict smoke cases. Root reproduced source defaults/final-save boundaries; independent unbound source/client reviews remain pending. Service-token/admin targets and full QR/consumer/hardware coverage remain open; A-03/A-04 dependencies still govern full acceptance.
+Published isolated candidate now includes setup/reconnect, suspended replacement, unbound relocation, token save/delete rollback, source expiry boundaries, verified OOBE authentication and administrator service-token issuance. Combined tests pass 920 with 7 skipped plus 43 strict smoke cases. Root reran 16 original gateway auth controls, 31 original handler validation cases and seven unbound source cases. Final service-token/client/parser reviews, QR coverage, safe deployment and A-03/A-04 dependencies remain open.
 
 Done when:
 
@@ -1425,7 +1425,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Combined setup/reconnect candidate tested and published; final independent source/client reviews and root acceptance pending. Service-token/admin scope remains open.
+Candidate scope: Combined service-token/setup/authentication candidate is tested and published at 66c89bfd; original source controls root-verified. Final independent service-token and parser reviews, root acceptance and deployment remain pending.
 
 Candidate report: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
 

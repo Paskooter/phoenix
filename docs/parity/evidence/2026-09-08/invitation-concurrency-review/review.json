@@ -1,9 +1,43 @@
 {
-  "status": "withheld-pending-actual-save-operator-controls",
-  "finding": "The agent concurrency control modeled whole-document last-write replacement. Actual Mongoose4.9.8 source-schema dirty-path generation emits $pushAll for new embedded members, so the claimed duplicate-invitation member count is not established by that control.",
+  "status": "substantive-mismatch-confirmed-repair-in-progress",
+  "finding": "Root reran exact source controllers with actual Mongoose dirty-path operators and separately invoked Mongoose Model.save using a recording collection callback. Two overlapping initial invitations append two distinct members; source accepts both overlapping accept/decline requests. Current Phoenix serial behavior differs.",
   "observed": {
-    "initialMemberAppend": "Each hydrated document emits $pushAll.members with one new member and $inc.__v:1; predicate contains _id without a version condition.",
-    "statusChange": "Existing member status emits a positional numeric-path $set with the hydrated version in the predicate."
+    "sourceDuplicateInitial": {
+      "responses": [
+        200,
+        200
+      ],
+      "finalMemberCount": 4,
+      "operators": [
+        "$pushAll.members",
+        "$inc.__v"
+      ]
+    },
+    "phoenixDuplicateInitial": {
+      "responses": [
+        200,
+        200
+      ],
+      "finalMemberCount": 3
+    },
+    "sourceOverlappingAcceptDecline": {
+      "responses": [
+        200,
+        200
+      ],
+      "allowedFinalStatus": [
+        "accepted",
+        "declined"
+      ],
+      "operator": "$set.members.2.status with version predicate and no version increment"
+    },
+    "phoenixDeclineThenAccept": {
+      "responses": [
+        200,
+        404
+      ],
+      "finalStatus": "declined"
+    }
   },
   "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
   "runtime": {
@@ -11,14 +45,15 @@
     "mongoose": "4.9.8"
   },
   "qualifications": [
-    "Fresh actual Mongoose model from the original exported Loop schema; query/model overrides on the old exported model are bypassed.",
-    "No Mongo execution or original controller invocation in this root delta probe.",
-    "The initial assertion expected $push rather than this version's $pushAll and failed; the preserved observation rerun records actual operators.",
-    "No production repair or complete concurrency parity conclusion follows from this probe alone."
+    "Actual Mongoose 4.9.8 Model.save invoked four times; collection.update was a recording callback, not a Mongo server.",
+    "Exact source controller interleaving applies only observed modified-path operators through controlled persistence seams.",
+    "Candidate comparison uses direct functions from clean 80b12bd, not public HTTP.",
+    "Historical whole-document-save control and failed attempts remain preserved."
   ],
-  "action": "Agent must rerun exact controller with real Mongoose save update operators before root acceptance.",
+  "action": "Luna Max agent implementing bounded request snapshot and modified-path persistence behavior; root review and HTTP verification remain required.",
   "hashes": {
     "observe.cjs": "8be0c1270ba98d2ddfcdd1b6cf185826d3cf0daf629af0211c0ae51f69eb93de",
     "observed-delta.json": "cc0a1a66dd2e294e4702117b6bb53f23ff951db99b8a602467d695ceb019e1d4"
-  }
+  },
+  "rootReceiptSha256": "55bfdbb8eea36e3db84f84a857060789068dc22107e12f3cebe01e765ef152eb"
 }

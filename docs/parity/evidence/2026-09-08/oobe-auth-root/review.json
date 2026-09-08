@@ -1,0 +1,67 @@
+{
+  "syntheticOnly": true,
+  "compiledSourceChecks": [
+    {
+      "file": "gateway/compiled-gateway/auth.scheme.js",
+      "sha256": "0699644db8640c2b8fcb4e71b64b8f2fefdaba8839a2339eb7646a8ff9cff272",
+      "matchesFreshTranspile": true
+    },
+    {
+      "file": "gateway/compiled-gateway/clients/account.client.js",
+      "sha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230",
+      "matchesFreshTranspile": true
+    },
+    {
+      "file": "gateway/compiled-gateway/clients/account.http.client.js",
+      "sha256": "2c860b6894dda069d62bc8d20ac8e4c7f291f9df4d614421b4e40edcc7675bba",
+      "matchesFreshTranspile": true
+    },
+    {
+      "file": "gateway/compiled-gateway/controllers/auth.ctrl.js",
+      "sha256": "fecd9293e758ed6e1bdaf59b2068e189ffe2af83699590d96a3a312825994389",
+      "matchesFreshTranspile": true
+    },
+    {
+      "file": "gateway/compiled-gateway/errors/account.js",
+      "sha256": "f1392097600db1bcddbef9c18cfb3dd0a049c6a8a7573095bfea14ed494bb6da",
+      "matchesFreshTranspile": true
+    },
+    {
+      "file": "gateway/compiled-gateway/routes/gw.route.js",
+      "sha256": "3d5a0d57a20dd814420dc61662b46c5391410970741fa6e264d498439d18b96a",
+      "matchesFreshTranspile": true
+    },
+    {
+      "file": "handler/handler/handlers/oobe.handler.js",
+      "sha256": "d880bd72dab4c9c0074a97aedea148cd118d9dbfeb61a65a50bdfb236c0b5f31",
+      "matchesFreshTranspile": true
+    }
+  ],
+  "gatewayControls": 16,
+  "gatewayFailures": 0,
+  "handlerCases": 31,
+  "handlerStatusAssertions": 31,
+  "handlerControllerCalls": 9,
+  "qualifications": [
+    "Original gateway Account lookup and handler controllers are controlled synthetic seams.",
+    "No real Mongo, deployed TLS gateway, robot or private household was tested."
+  ],
+  "status": "source-controls-root-verified-candidate-review-pending",
+  "sourceRevisions": {
+    "securityGateway": "43a692fe7670660aaed6ab5979c6c83039eb711c",
+    "account": "6cea43470825657d6a5722162f28c8f233153ee2"
+  },
+  "candidateAuthReview": {
+    "revision": "3f09e393d15009a1bef97485331c3ed31e84ebcd",
+    "independentOriginalNode8SdkCalls": 12,
+    "rawAssertions": 30,
+    "qualification": "Includes four observations of the then-missing GetServiceToken operation. That operation and later parser changes have separate pending reviews; no final candidate acceptance."
+  },
+  "rootHashes": {
+    "root-review.json": "28af7bfdaab302234f3de20c4d19057f10dbf37651a127439599150790f59536",
+    "hash-review.json": "bdf77c431e2abfa35c2348732a98bbfed30d1e03adb9cf53689c0c067e1f7d2b",
+    "verify.cjs": "69d38d1df1da3b7888098cb6a317037163b9c170a231668f79e24f12802bab9e",
+    "gateway/root-output.json": "89de4b2195d30ec792d5d1fa29346cebd205bba4b80f3b9286b930ca36c78c59",
+    "handler/root-output.json": "9cdcd0cefecaa5f00a795821f2110329d734f1ee2bae3c34e950752b22507a74"
+  }
+}
