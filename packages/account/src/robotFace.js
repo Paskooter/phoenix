@@ -78,7 +78,10 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store) } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {} } = {}) {
+  // LoopController snapshots this feature flag at construction; only literal
+  // lowercase 'off' disables COPPA, matching the source configuration.
+  const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
   // oobe.handler.ts mapping keys (lowercased for the prefix-tolerant match).
   const ops = {
     setuprobot: setupRobot,
@@ -298,7 +301,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     //   Loop.list()    -> "ListLoops"
     //   kb.loop.suspend -> "SuspendLoop" {loopId} / "SuspendRobotLoop" {friendlyId}  (the WIPE gate)
     const o = op.toLowerCase();
-    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox })) return;
+    if (handleLoopMembership({ store, req, res, body, op, log, loopUpdatedOutbox, coppaEnabled })) return;
     if (o === 'listloops' || o === 'list') return void loopList({ req, res, log });
     if (o === 'suspendloop' || o === 'suspendrobotloop') {
       return void loopSuspend({ req, res, body, op, log });
