@@ -1,0 +1,60 @@
+{
+  "status": "candidate-awaiting-independent-review",
+  "implementationRevision": "5e48d5e69f62fbfa0a83857a8eb1503f57cd17f5",
+  "baseRevision": "66c89bfd56f2737deaa33fb8aa4873af8e248200",
+  "problem": "Character-count frame splitting can exceed QR byte capacity for valid UTF-8 Wi-Fi fields and split surrogate pairs, corrupting the rendered payload.",
+  "change": "Split XOR-scrambled content into at most90UTF-8-byte chunks without splitting Unicode code points; retain original index/total frame framing and whole-payload XOR.",
+  "baseline": {
+    "tests": 8,
+    "passed": 6,
+    "failed": 2,
+    "failures": [
+      "UTF-8 frame exceeds v6-M byte capacity",
+      "Surrogate pair split becomes replacement character during QR encoding"
+    ]
+  },
+  "sourceConsumer": {
+    "repository": "skills/oobe-config",
+    "revision": "57e1d82f78729aa554234d741a280a86d08c25ad",
+    "path": "src/behaviors/oobe/config.bt",
+    "runtime": "Node8.9.4",
+    "cases": 7,
+    "scope": [
+      "ASCII DHCP",
+      "UTF-8 SSID and passphrase",
+      "Surrogate-pair boundary",
+      "Empty passphrase",
+      "Static network fields",
+      "Default DNS behavior",
+      "Empty static IP behavior"
+    ],
+    "qualification": "Actual barcode accumulation and parse callback strings executed after Phoenix QR rendering and jsQR image decoding; duplicate/out-of-order frames included. No native camera, Wi-Fi connection, robot or household mutation."
+  },
+  "checks": {
+    "focused": 13,
+    "fullTests": 929,
+    "passed": 922,
+    "failed": 0,
+    "skipped": 7,
+    "strictCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictCoverageGaps": 0,
+    "strictRun": "ci-production-96a91520-c435-45bd-89f9-f7d797ac1fe1"
+  },
+  "pending": [
+    "Independent QR review",
+    "Final combined OOBE candidate acceptance and safe deployment",
+    "Native camera/optical scan acceptance without resetting existing household"
+  ],
+  "hashes": {
+    "config.bt": "4079a6faf12ab1028626ca7cc07cb8dc206924d198b0ea3615a4de24de88f6dc",
+    "source-consumer.cjs": "3c1e0610cdfbd5b2b5c7c074fb18f532907a9dbe85564f24eeb6978e1cabec7a",
+    "run.mjs": "bb457e7a628bd142c3de24e99179b2e2ee4abefcb2f8eeb127ff7e6d4847dc14",
+    "manifest.json": "f3d95c72f7dc344e5a1e90c79ffaed21e3f165ae87694615c45a0e1e3d563b8c",
+    "source-output.json": "af202194fb5a46fb99ab224cdd50e2a72a7b728be9b0edaeeb6fd021897df6da",
+    "baseline-tests.log": "cc9be3f722bc8cefb842fe151efa0e38c5971e11d2b37b45b8cf64831e97c373",
+    "focused.log": "9891c1c1b2e91707a7b729fe8853477fa921f494b997242fe1d888cb22ae3986",
+    "full.log": "5572ea853d758eb4c9ecbdf29bc0e4ec4e721077ba0d71c1e44c1bb37743604d"
+  }
+}
