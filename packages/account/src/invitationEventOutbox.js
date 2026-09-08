@@ -202,27 +202,35 @@ export class InvitationEventOutbox {
   }
 
   send(event) {
-    const value = sourceEvent(event);
-    const now = new Date(this.clock()).toISOString();
-    const row = this._commit(() => {
-      const next = {
-        _id: newId(),
-        created: now,
-        updated: now,
-        attempts: 0,
-        event: value,
-      };
-      this.events.push(next);
-      return next;
-    });
-    if (!this.publisher) return Promise.resolve({ queued: row._id });
+    // @jibo/server EventSender.send() constructs a Promise before it touches
+    // event validation or SNS. Keep that boundary for local persistence too:
+    // a synchronous validation/serialization/filesystem failure is observed by
+    // callers as a rejected Promise rather than an escaping throw.
+    try {
+      const value = sourceEvent(event);
+      const now = new Date(this.clock()).toISOString();
+      const row = this._commit(() => {
+        const next = {
+          _id: newId(),
+          created: now,
+          updated: now,
+          attempts: 0,
+          event: value,
+        };
+        this.events.push(next);
+        return next;
+      });
+      if (!this.publisher) return Promise.resolve({ queued: row._id });
 
-    const drain = this.drain();
-    return drain.then((result) => {
-      const current = this.events.find((item) => item._id === row._id);
-      if (current) throw failureFromRow(current);
-      return result;
-    });
+      const drain = this.drain();
+      return drain.then((result) => {
+        const current = this.events.find((item) => item._id === row._id);
+        if (current) throw failureFromRow(current);
+        return result;
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /** Publish a snapshot and delete each row only after a successful ack. */

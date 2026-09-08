@@ -263,12 +263,43 @@ test('durable event sender retains failed local consumers and recovers after reo
   }
 });
 
+test('event sender turns synchronous validation and persistence failures into rejected promises', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-a04-event-promise-boundary-'));
+  try {
+    const validationSender = new InvitationEventOutbox(join(dir, 'validation.json'));
+    const invalid = {
+      payload: { eventKey: 'InvitedToJoinLoop' },
+      validate() {
+        throw new Error('synthetic event validation failed');
+      },
+    };
+    const validationResult = validationSender.send(invalid);
+    assert.equal(validationResult instanceof Promise, true);
+    await assert.rejects(validationResult, /synthetic event validation failed/);
+
+    const persistenceSender = new InvitationEventOutbox(join(dir, 'persistence.json'), {
+      persistence: {
+        rename() {
+          throw new Error('synthetic event commit failed');
+        },
+      },
+    });
+    const persistenceResult = persistenceSender.send(sourceEvent('persist@fixture.test'));
+    assert.equal(persistenceResult instanceof Promise, true);
+    await assert.rejects(persistenceResult, /synthetic event commit failed/);
+    assert.deepEqual(persistenceSender.pending(), []);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('configured providers expose an explicit unavailable boundary and reject partial SMTP configuration', () => {
   const dir = mkdtempSync(join(tmpdir(), 'phx-a04-provider-config-'));
   const envKeys = [
     'ETCO_account_mailSmtpUrl', 'ETCO_account_mailSmtpHost', 'ETCO_account_mailSmtpPort',
     'ETCO_account_mailSmtpSecure', 'ETCO_account_mailSmtpUser', 'ETCO_account_mailSmtpPassword',
-    'ETCO_account_mailSmtpTimeoutMs', 'ETCO_account_mailSmtpServername',
+    'ETCO_account_mailSmtpIgnoreTLS', 'ETCO_account_mailSmtpRequireTLS',
+    'ETCO_account_mailSmtpAuthMethod', 'ETCO_account_mailSmtpTimeoutMs', 'ETCO_account_mailSmtpServername',
     'ETCO_account_mailSmtpRejectUnauthorized',
   ];
   const saved = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));

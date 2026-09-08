@@ -8,7 +8,7 @@
 import { createConnection as createTcpConnection } from 'node:net';
 import { connect as createTlsConnection } from 'node:tls';
 import { readFileSync } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
@@ -82,6 +82,11 @@ function accepted(response, command, codes) {
   return response;
 }
 
+function accepted2xx(response, command) {
+  if (response.code < 200 || response.code >= 300) throw responseError(response, command);
+  return response;
+}
+
 /** A line-oriented SMTP response reader supporting multiline 220/250 replies. */
 class SmtpReader {
   constructor(socket, timeoutMs) {
@@ -95,10 +100,21 @@ class SmtpReader {
     this.closed = null;
     this.timer = null;
 
-    socket.on('data', (chunk) => this._consume(chunk));
-    socket.on('error', (error) => this._fail(error));
-    socket.on('close', () => this._fail(new Error('SMTP connection closed')));
+    this.onData = (chunk) => this._consume(chunk);
+    this.onError = (error) => this._fail(error);
+    this.onClose = () => this._fail(new Error('SMTP connection closed'));
+    socket.on('data', this.onData);
+    socket.on('error', this.onError);
+    socket.on('close', this.onClose);
     socket.setTimeout(timeoutMs, () => this._fail(new Error(`SMTP response timeout after ${timeoutMs}ms`)));
+  }
+
+  /** Detach the reader before wrapping its socket in a TLS stream. */
+  dispose() {
+    this.socket.removeListener('data', this.onData);
+    this.socket.removeListener('error', this.onError);
+    this.socket.removeListener('close', this.onClose);
+    this.socket.setTimeout(0);
   }
 
   _consume(chunk) {
@@ -173,6 +189,7 @@ class SmtpReader {
 function connectSocket(config) {
   return config.secure
     ? createTlsConnection({
+      ...(config.tls && typeof config.tls === 'object' ? config.tls : {}),
       host: config.host,
       port: config.port,
       servername: config.servername || config.host,
@@ -186,25 +203,112 @@ function closeSocket(socket) {
   try { socket.destroy(); } catch (_) { /* cleanup is best effort */ }
 }
 
-async function authenticate(reader, config) {
+function authCapabilities(response) {
+  const supported = [];
+  const lines = response?.lines || [];
+  for (const mechanism of ['PLAIN', 'LOGIN', 'CRAM-MD5', 'XOAUTH2']) {
+    const pattern = new RegExp(`^AUTH(?:\\s+|=).*\\b${escapeRegex(mechanism)}\\b`, 'i');
+    if (lines.some((line) => pattern.test(String(line).trim()))) supported.push(mechanism);
+  }
+  return supported;
+}
+
+function chooseAuthMethod(response, config) {
+  if (config.authMethod) return String(config.authMethod).toUpperCase().trim();
+  // smtp-connection@1.2.0 records mechanisms in this fixed order after
+  // parsing EHLO, then chooses the first one. XOAUTH2 is selected only when
+  // its token provider is present.
+  const supported = authCapabilities(response);
+  if (config.auth.xoauth2 && supported.includes('XOAUTH2')) return 'XOAUTH2';
+  return supported[0] || 'PLAIN';
+}
+
+function loginPrompt(response, expected, command) {
+  if (response.code !== 334 || response.lines.join('\n') !== expected) {
+    throw responseError(response, command);
+  }
+  return response;
+}
+
+async function authenticate(reader, config, ehloResponse) {
   if (!config.auth || !config.auth.user) return;
   const user = String(config.auth.user);
   const password = String(config.auth.pass === undefined ? '' : config.auth.pass);
-  const plain = Buffer.from(`\u0000${user}\u0000${password}`).toString('base64');
-  let response = await reader.write(`AUTH PLAIN ${plain}`);
-  if (response.code === 502 || response.code === 504 || response.code === 534) {
+  const method = chooseAuthMethod(ehloResponse, config);
+  let response;
+  if (method === 'PLAIN') {
+    const plain = Buffer.from(`\u0000${user}\u0000${password}`).toString('base64');
+    response = await reader.write(`AUTH PLAIN ${plain}`);
+    // smtp-connection responds to a challenge with an empty continuation.
+    while (response.code === 334) response = await reader.write('');
+  } else if (method === 'LOGIN') {
     response = await reader.write('AUTH LOGIN');
-    accepted(response, 'AUTH LOGIN', [334]);
+    loginPrompt(response, 'VXNlcm5hbWU6', 'AUTH LOGIN user');
     response = await reader.write(Buffer.from(user).toString('base64'));
-    accepted(response, 'AUTH LOGIN user', [334]);
+    loginPrompt(response, 'UGFzc3dvcmQ6', 'AUTH LOGIN password');
     response = await reader.write(Buffer.from(password).toString('base64'));
+  } else if (method === 'CRAM-MD5') {
+    response = await reader.write('AUTH CRAM-MD5');
+    accepted(response, 'AUTH CRAM-MD5', [334]);
+    const challenge = Buffer.from(response.lines.join(' ').trim(), 'base64');
+    const digest = createHmac('md5', password).update(challenge).digest('hex');
+    response = await reader.write(Buffer.from(`${user} ${digest}`).toString('base64'));
+  } else if (method === 'XOAUTH2') {
+    const token = config.auth.accessToken;
+    if (!token) throw new Error('SMTP XOAUTH2 requires auth.accessToken');
+    const value = Buffer.from(`user=${user}\u0001auth=Bearer ${token}\u0001\u0001`).toString('base64');
+    response = await reader.write(`AUTH XOAUTH2 ${value}`);
+    while (response.code === 334) response = await reader.write('');
+  } else {
+    throw new Error(`Unknown SMTP authentication method "${method}"`);
   }
   accepted(response, 'AUTH', [235]);
 }
 
+function ehloSupportsStartTls(response) {
+  return (response?.lines || []).some((line) => /^STARTTLS(?:\s|$)/i.test(String(line).trim()));
+}
+
+async function sayHello(reader, config) {
+  let response = await reader.write(`EHLO ${config.helo}`);
+  if (response.code >= 400) {
+    if (config.requireTLS) throw responseError(response, 'EHLO');
+    response = await reader.write(`HELO ${config.helo}`);
+  }
+  return accepted(response, 'EHLO', [250]);
+}
+
+function upgradeToTls(socket, config) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      ...(config.tls && typeof config.tls === 'object' ? config.tls : {}),
+      socket,
+      servername: config.servername || config.host,
+      rejectUnauthorized: config.rejectUnauthorized,
+    };
+    const secured = createTlsConnection(options);
+    let settled = false;
+    const finish = (error) => {
+      if (settled) return;
+      settled = true;
+      secured.removeListener('secureConnect', onSecureConnect);
+      secured.removeListener('error', onError);
+      secured.removeListener('close', onClose);
+      if (error) reject(error);
+      else resolve(secured);
+    };
+    const onSecureConnect = () => finish();
+    const onError = (error) => finish(error);
+    const onClose = () => finish(new Error('SMTP TLS connection closed'));
+    secured.once('secureConnect', onSecureConnect);
+    secured.once('error', onError);
+    secured.once('close', onClose);
+  });
+}
+
 async function smtpSend(config, message) {
-  const socket = connectSocket(config);
-  const reader = new SmtpReader(socket, config.timeoutMs);
+  let socket = connectSocket(config);
+  let reader = new SmtpReader(socket, config.timeoutMs);
   const deadline = setTimeout(() => {
     const error = new Error(`SMTP operation timeout after ${config.timeoutMs}ms`);
     error.code = 'SMTP_TIMEOUT';
@@ -214,10 +318,19 @@ async function smtpSend(config, message) {
   deadline.unref?.();
   try {
     await accepted(await reader.wait(), 'greeting', [220]);
-    let response = await reader.write(`EHLO ${config.helo}`);
-    if (response.code >= 400) response = await reader.write(`HELO ${config.helo}`);
-    accepted(response, 'EHLO', [250]);
-    await authenticate(reader, config);
+    let response = await sayHello(reader, config);
+    // smtp-connection@1.2.0 upgrades whenever STARTTLS is advertised, and
+    // also sends STARTTLS when requireTLS is set so the server can reject it
+    // explicitly. The EHLO capability response is repeated after the TLS
+    // handshake because authentication capabilities may change.
+    if (!config.secure && !config.ignoreTLS && (ehloSupportsStartTls(response) || config.requireTLS)) {
+      accepted2xx(await reader.write('STARTTLS'), 'STARTTLS');
+      reader.dispose();
+      socket = await upgradeToTls(socket, config);
+      reader = new SmtpReader(socket, config.timeoutMs);
+      response = await sayHello(reader, config);
+    }
+    await authenticate(reader, config, response);
     accepted(await reader.write(`MAIL FROM:<${envelopeAddress(message.from, 'from')}>`), 'MAIL FROM', [250]);
     accepted(await reader.write(`RCPT TO:<${envelopeAddress(message.to, 'to')}>`), 'RCPT TO', [250, 251]);
     accepted(await reader.write('DATA'), 'DATA', [354]);
@@ -247,8 +360,14 @@ export function normalizeSmtpConfig(input) {
       host: url.hostname,
       port: numberOption(url.port, url.protocol === 'smtps:' ? 465 : 25),
       secure: url.protocol === 'smtps:',
+      ignoreTLS: false,
+      requireTLS: false,
+      authMethod: undefined,
+      tls: undefined,
       timeoutMs: DEFAULT_TIMEOUT_MS,
       helo: 'localhost',
+      servername: url.hostname,
+      rejectUnauthorized: true,
     };
     if (url.username || url.password) {
       result.auth = {
@@ -273,15 +392,22 @@ export function normalizeSmtpConfig(input) {
     : undefined);
   const host = String(input.host || input.hostname || '');
   if (!host) throw new TypeError('SMTP host is required');
+  const tlsOptions = input.tls && typeof input.tls === 'object' ? { ...input.tls } : undefined;
   return {
     host,
     port,
     secure,
     auth,
+    ignoreTLS: boolOption(input.ignoreTLS, false),
+    requireTLS: boolOption(input.requireTLS, false),
+    authMethod: input.authMethod,
+    tls: tlsOptions,
     timeoutMs: numberOption(input.timeoutMs ?? input.connectionTimeout, DEFAULT_TIMEOUT_MS),
     helo: String(input.helo || 'localhost'),
-    servername: input.servername,
-    rejectUnauthorized: input.rejectUnauthorized === undefined ? true : boolOption(input.rejectUnauthorized, true),
+    servername: input.servername || tlsOptions?.servername,
+    rejectUnauthorized: input.rejectUnauthorized === undefined
+      ? (tlsOptions?.rejectUnauthorized === undefined ? true : boolOption(tlsOptions.rejectUnauthorized, true))
+      : boolOption(input.rejectUnauthorized, true),
   };
 }
 
@@ -291,7 +417,9 @@ export function smtpConfigFromEnv(env = process.env) {
   if (url) return normalizeSmtpConfig(url);
   const configured = ['ETCO_account_mailSmtpHost', 'ETCO_account_mailSmtpPort',
     'ETCO_account_mailSmtpSecure', 'ETCO_account_mailSmtpUser',
-    'ETCO_account_mailSmtpPassword'].some((key) => own(env, key) && env[key] !== '');
+    'ETCO_account_mailSmtpPassword', 'ETCO_account_mailSmtpIgnoreTLS',
+    'ETCO_account_mailSmtpRequireTLS', 'ETCO_account_mailSmtpAuthMethod']
+    .some((key) => own(env, key) && env[key] !== '');
   if (!configured) return null;
   if (!env.ETCO_account_mailSmtpHost) {
     throw new Error('ETCO_account_mailSmtpHost is required when SMTP environment is configured');
@@ -302,6 +430,9 @@ export function smtpConfigFromEnv(env = process.env) {
     secure: env.ETCO_account_mailSmtpSecure,
     user: env.ETCO_account_mailSmtpUser,
     password: env.ETCO_account_mailSmtpPassword,
+    ignoreTLS: env.ETCO_account_mailSmtpIgnoreTLS,
+    requireTLS: env.ETCO_account_mailSmtpRequireTLS,
+    authMethod: env.ETCO_account_mailSmtpAuthMethod,
     timeoutMs: env.ETCO_account_mailSmtpTimeoutMs,
     servername: env.ETCO_account_mailSmtpServername,
     rejectUnauthorized: env.ETCO_account_mailSmtpRejectUnauthorized,
