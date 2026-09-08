@@ -1,12 +1,13 @@
 # A-04 pending implementation reviews
 
 Main contains accepted guardian/agreement and membership-list work. Moth is
-on `fb79e6d`, verified with eight installed-client read-only checks. The candidates below are separate worktrees;
+on `0998f79`, verified with eight installed-client read-only checks and two
+synthetic public-photo ingress checks. The candidates below are separate worktrees;
 passing a candidate check does not mark the whole lifecycle verified.
 
 | Candidate | Revision | Current evidence and remaining work |
 | --- | --- | --- |
-| Photos | `4e581d0` | Accepted and integrated into main after source/client/Docker checks and 876 unit passes. Guarded Moth deployment pending; full lifecycle remains open. |
+| Photos | `4e581d0` | Accepted and integrated into main after source/client/Docker checks and 876 unit passes. Deployed on Moth with read-only client and synthetic public-photo ingress checks passed; full lifecycle remains open. |
 | ListLoopMembers | `660fe838` | Accepted after source/client/integration checks; deployed with installed-client membership/filter checks passed. |
 | Invitation transport | `9e8bc5b` | STARTTLS/AUTH, sender Promise boundary, Unicode and long ASCII MIME repairs submitted. Strict relay control reproduced the old failure and passes with matching decoded source content after repair. Root verified 15 long-line evidence/product hashes; final integration acceptance pending. |
 | Membership events | `19cace3` | Three original event payloads match; 873 tests pass, 7 skipped. Independent controller/client review and transport dependency acceptance pending. |

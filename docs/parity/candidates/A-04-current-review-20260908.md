@@ -20,8 +20,9 @@ COPPA profiles with 18 source/candidate comparisons, and 66 list SDK/raw
 controls. The full combined suite passed 868 tests and the strict 43-case gate.
 
 Guardian/agreement and ListLoopMembers increments were subsequently accepted.
-Moth runs `fb79e6d`; its installed-client read-only membership, filter, lookup,
+Moth runs `0998f79`; its installed-client read-only membership, filter, lookup,
 and notification checks passed with the household store preserved.
-Photo and invitation/creation candidates remain separate and unaccepted.
+Photo behavior is now accepted and deployed, with synthetic public HTTPS
+object checks passed. Invitation/creation candidates remain separate and unaccepted.
 Mongo behavior, remaining lifecycle acceptance and provider verification remain
 open. Whole-task progress stays at 8 of 79 verified tasks (10.1%).
