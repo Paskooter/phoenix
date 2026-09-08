@@ -3,7 +3,13 @@
 # Phoenix instance and installs the Phoenix CA into the robot's REAL, boot
 # persistent OpenSSL trust store.
 #
-# It changes exactly two things, both data (never robot code):
+# It also creates the certificates. The robot builds its own hostnames from the
+# region stored on it, so the set of names the serving certificate must carry is
+# knowable only after talking to the robot. This script discovers the region and
+# then issues a CA and a matching serving certificate itself, because getting
+# those names subtly wrong is the most common way this setup fails.
+#
+# On the robot it changes exactly two things, both data (never robot code):
 #   1. /etc/hosts  (a symlink to /var/etc/hosts, on the rw /var partition):
 #      a managed block mapping <region>.jibo.com and <region>-socket.jibo.com
 #      to the Phoenix host for every region you list, so the robot reaches
@@ -28,7 +34,11 @@
 # Options:
 #   --robot <host>      robot ssh target, e.g. root@moth-....jibo   (required)
 #   --phoenix <ip>      Phoenix host IP as seen from the robot      (required to apply)
-#   --ca <path>         Phoenix CA PEM (default: ~/.local/share/phoenix/moth/ca.crt)
+#   --ca <path>         CA PEM to trust (default: <cert-dir>/ca.crt)
+#   --cert-dir <dir>    where certificates live (default: ~/.local/share/phoenix/moth)
+#   --public-name <fqdn>  extra SAN, repeatable — use for internet-facing hostnames
+#   --regenerate-cert   reissue the serving certificate even if it already matches
+#   --cert-only         discover the region and issue certificates, then stop
 #   --regions a,b,c     extra regions to map (the live region is always included)
 #   --dry-run           run every check, print the plan, change nothing
 #   --yes               skip the confirmation prompt
@@ -37,8 +47,9 @@
 #   --revert            restore the hosts block and remove the Phoenix CA
 set -euo pipefail
 
-ROBOT=""; PHOENIX=""; CA="${HOME}/.local/share/phoenix/moth/ca.crt"
-EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0
+ROBOT=""; PHOENIX=""; CERT_DIR="${HOME}/.local/share/phoenix/moth"; CA=""
+SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
+EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0
 MARK_BEGIN="# >>> phoenix-repoint >>>"
 MARK_END="# <<< phoenix-repoint <<<"
 STAMP="$(date -u +%Y%m%d-%H%M%S)"
@@ -48,6 +59,10 @@ while [ $# -gt 0 ]; do
     --robot) ROBOT="${2:-}"; shift 2 ;;
     --phoenix) PHOENIX="${2:-}"; shift 2 ;;
     --ca) CA="${2:-}"; shift 2 ;;
+    --cert-dir) CERT_DIR="${2:-}"; shift 2 ;;
+    --public-name) EXTRA_NAMES="${EXTRA_NAMES}${EXTRA_NAMES:+,}${2:-}"; shift 2 ;;
+    --regenerate-cert) REGEN=1; shift ;;
+    --cert-only) CERT_ONLY=1; shift ;;
     --regions) EXTRA_REGIONS="${2:-}"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     --yes) ASSUME_YES=1; shift ;;
@@ -58,6 +73,11 @@ while [ $# -gt 0 ]; do
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+[ -n "$CA" ] || CA="${CERT_DIR}/ca.crt"
+CA_KEY="${CERT_DIR}/ca.key"
+[ -n "$SERVER_CRT" ] || SERVER_CRT="${CERT_DIR}/server.crt"
+[ -n "$SERVER_KEY" ] || SERVER_KEY="${CERT_DIR}/server.key"
 
 say()  { printf '\033[36m[repoint]\033[0m %s\n' "$*" >&2; }
 warn() { printf '\033[33m[repoint] WARN:\033[0m %s\n' "$*" >&2; }
@@ -107,14 +127,76 @@ fi
 
 if [ "$REVERT" -eq 0 ]; then
   [ -n "$PHOENIX" ] || die "--phoenix <ip> is required to apply (use --revert to undo)"
-  [ -r "$CA" ] || die "CA not readable: $CA"
-  openssl x509 -in "$CA" -noout >/dev/null 2>&1 || die "not a PEM certificate: $CA"
-  openssl x509 -in "$CA" -noout -checkend 0 >/dev/null 2>&1 || warn "the CA certificate is expired"
-  CA_HASH="$(openssl x509 -in "$CA" -noout -subject_hash)"
-  CA_FP="$(openssl x509 -in "$CA" -noout -fingerprint -sha256 | cut -d= -f2)"
-  CA_SUBJ="$(openssl x509 -in "$CA" -noout -subject | sed 's/^subject=//')"
-  ok "CA: $CA_SUBJ"
-  ok "CA sha256: $CA_FP"
+  # The robot builds its own hostnames, so the certificate it will accept is
+  # fully determined by the region we just discovered. Derive the SAN list and
+  # issue the certificate here rather than making the operator hand-run openssl
+  # and get the names subtly wrong, which is the single most common failure.
+  SAN="DNS:localhost"
+  for r in $REGIONS; do SAN="${SAN},DNS:${r}.jibo.com,DNS:${r}-socket.jibo.com"; done
+  for n in $(echo "$EXTRA_NAMES" | tr ',' ' '); do [ -n "$n" ] && SAN="${SAN},DNS:${n}"; done
+  SAN="${SAN},IP:127.0.0.1"
+  case "$PHOENIX" in [0-9]*.[0-9]*.[0-9]*.[0-9]*) SAN="${SAN},IP:${PHOENIX}" ;; esac
+
+  mkdir -p -m 700 "$CERT_DIR"
+
+  if [ ! -r "$CA" ] || [ ! -r "$CA_KEY" ]; then
+    [ "$DRY" -eq 1 ] && say "would create a CA at $CA" || {
+      say "creating a CA at $CA"
+      openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+        -keyout "$CA_KEY" -out "$CA" -subj "/CN=Phoenix development CA" 2>/dev/null
+      chmod 600 "$CA_KEY" "$CA"
+      ok "CA created"
+    }
+  fi
+  [ -r "$CA" ] || { [ "$DRY" -eq 1 ] && say "(dry run: no CA yet, skipping certificate checks)"; }
+
+  if [ -r "$CA" ]; then
+    openssl x509 -in "$CA" -noout >/dev/null 2>&1 || die "not a PEM certificate: $CA"
+    openssl x509 -in "$CA" -noout -checkend 0 >/dev/null 2>&1 || warn "the CA certificate is expired"
+
+    # Reissue when the serving certificate is missing, expiring, or lacks any
+    # name the robot will ask for. A chain that verifies is not enough: the
+    # native client also checks the hostname.
+    NEED_CERT=0
+    if [ "$REGEN" -eq 1 ] || [ ! -r "$SERVER_CRT" ]; then NEED_CERT=1; else
+      for n in $(echo "$SAN" | tr ',' '\n' | sed -n 's/^DNS://p'); do
+        openssl x509 -in "$SERVER_CRT" -noout -ext subjectAltName 2>/dev/null \
+          | grep -q "DNS:${n}\([,[:space:]]\|$\)" || { NEED_CERT=1; break; }
+      done
+      openssl x509 -in "$SERVER_CRT" -noout -checkend 604800 >/dev/null 2>&1 || NEED_CERT=1
+    fi
+
+    if [ "$NEED_CERT" -eq 1 ] && [ "$DRY" -eq 0 ]; then
+      say "issuing a serving certificate for: $SAN"
+      [ -r "$SERVER_KEY" ] || { openssl genrsa -out "$SERVER_KEY" 2048 2>/dev/null; chmod 600 "$SERVER_KEY"; }
+      [ -r "$SERVER_CRT" ] && cp -p "$SERVER_CRT" "${SERVER_CRT}.phx-bak-${STAMP}"
+      openssl req -new -key "$SERVER_KEY" -out "${CERT_DIR}/server.csr" -subj "/CN=localhost" 2>/dev/null
+      printf 'subjectAltName=%s\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\n' \
+        "$SAN" > "${CERT_DIR}/server.ext"
+      openssl x509 -req -in "${CERT_DIR}/server.csr" -CA "$CA" -CAkey "$CA_KEY" -CAcreateserial \
+        -days 825 -sha256 -extfile "${CERT_DIR}/server.ext" -out "$SERVER_CRT" 2>/dev/null
+      chmod 600 "$SERVER_CRT"
+      ok "issued $SERVER_CRT"
+      warn "the server must now load this certificate and be restarted:"
+      warn "  PHOENIX_ROBOT_TLS_CERT=$SERVER_CRT"
+      warn "  PHOENIX_ROBOT_TLS_KEY=$SERVER_KEY"
+    elif [ "$NEED_CERT" -eq 1 ]; then
+      say "would issue a serving certificate for: $SAN"
+    else
+      ok "existing certificate already covers every required name"
+    fi
+
+    CA_HASH="$(openssl x509 -in "$CA" -noout -subject_hash)"
+    CA_FP="$(openssl x509 -in "$CA" -noout -fingerprint -sha256 | cut -d= -f2)"
+    CA_SUBJ="$(openssl x509 -in "$CA" -noout -subject | sed 's/^subject=//')"
+    ok "CA: $CA_SUBJ"
+    ok "CA sha256: $CA_FP"
+  fi
+
+  if [ "$CERT_ONLY" -eq 1 ]; then
+    say "--cert-only: certificates are ready; the robot was not modified"
+    exit 0
+  fi
 
   # Phoenix must actually be reachable from the robot, or we would strand it.
   REACH="$(rsh "curl -s -m 6 -o /dev/null -w '%{http_code}' -k https://${PHOENIX}:443/healthcheck 2>/dev/null; true" 2>/dev/null)"
@@ -145,7 +227,7 @@ else
     printf '      %-15s -> %s\n' "${r}.jibo.com" "$PHOENIX"
     printf '      %-15s -> %s\n' "${r}-socket.jibo.com" "$PHOENIX"
   done
-  echo "  - install CA into the real /etc/ssl/certs as phoenix-ca.crt + ${CA_HASH}.0"
+  echo "  - install CA into the real /etc/ssl/certs as phoenix-ca.crt + ${CA_HASH:-<hash of the CA to be created>}.0"
   echo "  - append it to ca-certificates.crt (backed up first)"
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 1 ] && echo "  - unmount the /etc/ssl/certs bind afterwards"
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 0 ] && echo "  - LEAVE the existing bind mounted (pass --drop-bind to remove it)"
@@ -208,6 +290,7 @@ rsh "set -e
   rm -f /tmp/.phoenix-hosts-sed /tmp/.phoenix-hosts-block"
 ok "hosts updated (backup ${HOSTS_TARGET}.phx-bak-${STAMP})"
 
+[ -n "${CA_HASH:-}" ] || die "no CA hash: the CA was not created or read"
 say "installing CA into the real (persistent) trust store"
 rsh "cat > /tmp/.phoenix-ca.crt" < "$CA"
 rsh "set -e

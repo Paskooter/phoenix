@@ -6,7 +6,9 @@ than a procedure, see [Operations](OPERATIONS.md).
 
 **What you need**
 
-- A Linux host on the same network as the robot. This guide calls it the *server*.
+- A Linux host to run Phoenix on. This guide calls it the *server*. Steps 1–9
+  assume it shares a network with the robot; step 10 covers hosting it on the
+  internet instead.
 - Node.js ≥ 20 on the server.
 - `root` SSH access to the robot, key-based. (Stock robots ship with `root:jibo`;
   copy your key over with `ssh-copy-id` so the scripts can run unattended.)
@@ -51,43 +53,30 @@ redirect them (step 5) and serve a certificate that matches them (step 3).
 > The `/credentials` response also contains the robot's access key and secret.
 > Don't paste it anywhere. You only need `region`.
 
-## 3. Create a CA and a server certificate
+## 3. Create the certificates
 
-The robot's native client verifies the certificate chain **and** the hostname, and
-it only trusts CAs in its OpenSSL store. So the certificate must carry Subject
-Alternative Names for both hostnames from step 2. A certificate for `localhost`
-will be rejected no matter what you install.
-
-```bash
-mkdir -p ~/.local/share/phoenix/moth && cd ~/.local/share/phoenix/moth
-
-# A CA. Keep ca.key private; it is what the robot will trust.
-openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-  -keyout ca.key -out ca.crt -subj "/CN=Phoenix development CA"
-
-# A server key and request.
-openssl req -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/CN=localhost"
-
-# The SANs are the part that matters. Use YOUR region and server IP.
-cat > server.ext <<'EXT'
-subjectAltName=DNS:localhost,DNS:api.jibo.com,DNS:api-socket.jibo.com,IP:127.0.0.1,IP:192.168.1.182
-basicConstraints=CA:FALSE
-keyUsage=digitalSignature,keyEncipherment
-extendedKeyUsage=serverAuth
-EXT
-
-openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial \
-  -days 825 -sha256 -extfile server.ext -out server.crt
-chmod 600 server.key server.crt ca.key
-```
-
-Check it before continuing:
+Don't hand-run `openssl` for this. The robot verifies the certificate chain **and**
+the hostname, and the names it will demand are derived from the region you just
+read — getting them subtly wrong is the most common way this setup fails. The
+repoint script discovers the region itself and issues everything:
 
 ```bash
-openssl x509 -in server.crt -noout -ext subjectAltName
+./scripts/parity-robot/repoint-robot.sh \
+  --robot root@<robot> --phoenix 192.168.1.182 --cert-only
 ```
 
-Both `<region>.jibo.com` and `<region>-socket.jibo.com` must appear.
+That creates a CA and a serving certificate under
+`~/.local/share/phoenix/moth/` (override with `--cert-dir`) carrying
+`localhost`, `<region>.jibo.com`, `<region>-socket.jibo.com`, `127.0.0.1` and
+your server's IP. `--cert-only` stops before touching the robot, so you can set
+the server up first.
+
+It is idempotent: run it again and it reports that the existing certificate
+already covers every required name. It reissues only when a name is missing, the
+certificate is within a week of expiry, or you pass `--regenerate-cert`. Add
+`--public-name <fqdn>` for any internet-facing hostname (see step 10).
+
+The command prints the two environment variables the server needs. Note them.
 
 ## 4. Let the server bind port 443
 
@@ -108,7 +97,7 @@ it applies to every Node process and is lost on upgrade.
 443 on all interfaces is the default, so the robot on your LAN can reach it.
 
 ```bash
-export PHOENIX_ROBOT_TLS_CERT=~/.local/share/phoenix/moth/server.crt
+export PHOENIX_ROBOT_TLS_CERT=~/.local/share/phoenix/moth/server.crt   # as printed in step 3
 export PHOENIX_ROBOT_TLS_KEY=~/.local/share/phoenix/moth/server.key
 bash scripts/run-compose-stack.sh
 ```
@@ -124,8 +113,9 @@ If binding fails with a privileged-port error, step 4 did not take effect.
 
 ## 6. Point the robot at the server
 
-One script does both halves: it redirects the hostnames and installs your CA into
-the robot's trust store so the redirect is actually accepted.
+The same script now does the robot half: it redirects the hostnames and installs
+the CA it created in step 3 into the robot's trust store, so the redirect is
+actually accepted.
 
 ```bash
 ./scripts/parity-robot/repoint-robot.sh \
@@ -198,6 +188,71 @@ timestamped `.phx-bak-*` backup beside it on the robot.
 
 ---
 
+## 10. Hosting on the internet instead of a LAN
+
+Everything above assumes the robot and the server share a network. Putting the
+server on the public internet works, but one constraint drives the whole design
+and surprises people:
+
+> **You cannot get a publicly trusted certificate for `<region>.jibo.com`,**
+> because you do not own `jibo.com`. And you cannot change that hostname — the
+> robot's native client builds it from its region and hardcodes the `.jibo.com`
+> suffix and port 443.
+
+So the robot's cloud API and notification socket need **your own CA installed on
+the robot, whether you are on a LAN or on the internet**. Public hosting does not
+remove that step. What changes is only *where the names point* and *how traffic
+reaches you*.
+
+It helps to split the hostnames into two groups:
+
+| Group | Hostnames | Certificate | Why |
+|---|---|---|---|
+| **Baked into the robot** | `<region>.jibo.com`, `<region>-socket.jibo.com` | **Your own CA**, installed on the robot | You cannot own the name, so no public CA will issue for it |
+| **Chosen by you** | hub, web portal | A normal public certificate (Let's Encrypt) | These hostnames are configuration, not hardcoded |
+
+### The two ways to do it
+
+**A. LAN (steps 1–9 above).** The robot reaches the server by private IP. Nothing
+is exposed to the internet. This is the right choice for a robot in your home, and
+it is what the rest of this runbook assumes.
+
+**B. Internet.** Use this when the robot is somewhere the server is not.
+
+1. **Issue certificates including your public names.** Public hostnames are extra
+   SANs on the same certificate:
+   ```bash
+   ./scripts/parity-robot/repoint-robot.sh --robot root@<robot> \
+     --phoenix <your-public-ip> --public-name hub.example.com --cert-only
+   ```
+   The `.jibo.com` names are still signed by your own CA. Only the names you own
+   can also be served by a public certificate, via a reverse proxy.
+
+2. **Make port 443 reachable.** Forward TCP 443 from your router or open it in the
+   cloud firewall. The port is not negotiable; the robot hardcodes it.
+
+3. **Point the robot at your public address.** Run the repoint script with
+   `--phoenix <your-public-ip>`. It writes the same hosts entries, just with a
+   routable address. Public DNS is not involved and cannot help you here: those
+   names belong to someone else.
+
+4. **Restrict who can reach it.** The entrypoint is now internet-facing. At
+   minimum, firewall 443 to the robot's source address if it is static. Read the
+   authentication caveats in [Operations](OPERATIONS.md) before exposing it —
+   several Classic routes still rely on network trust, so "it is behind TLS" is
+   not the same as "it is authenticated".
+
+5. **Optionally give the hub and portal real certificates.** Those hostnames *are*
+   configurable, so they can sit behind a normal reverse proxy with Let's Encrypt.
+   [Operations](OPERATIONS.md) has a worked Caddy configuration.
+
+### A dynamic address
+
+If your public IP changes, the hosts entries the robot holds go stale and it
+silently stops connecting. Either use a static address, or re-run the repoint
+script when the address changes — it is idempotent and replaces the managed block
+in place.
+
 ## What this does not do
 
 Getting the robot connected is not the same as a fully working robot.
@@ -207,7 +262,5 @@ Getting the robot connected is not the same as a fully working robot.
 - **A robot that never paired with Phoenix** has no account here. Pair it through
   the portal, or adopt an already-credentialed robot with
   `scripts/adopt-existing-robot.mjs`.
-- **Public exposure** over the internet is a different setup — DNS, a real
-  certificate and a reverse proxy. [Operations](OPERATIONS.md) covers it.
 - Microphone/wake-word and physical-ring behavior are **not verified** by this
   procedure, and are still open work in the parity ledger.
