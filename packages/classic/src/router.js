@@ -70,6 +70,7 @@ async function proxy(baseUrl, req, res, body, log) {
     const upstream = await requestUpstream(`${base.replace(/\/$/, '')}/`, requestBody, forwardHeaders(req.headers));
     const text = upstream.body.toString('utf8');
     const headers = { 'content-type': upstream.headers['content-type'] || AMZ_JSON, 'content-length': Buffer.byteLength(text) };
+    if (requestBody === req && upstream.headers.connection === 'close') headers.connection = 'close';
     if (upstream.status === 422) {
       headers.connection = res.shouldKeepAlive ? 'keep-alive' : 'close';
       if (upstream.headers['cache-control']) headers['cache-control'] = upstream.headers['cache-control'];
@@ -93,7 +94,9 @@ function requestUpstream(url, body, headers) {
   const target = new URL(url);
   const streaming = body && typeof body.pipe === 'function';
   const payload = streaming ? body : Buffer.isBuffer(body) ? body : Buffer.from(String(body));
-  const requestHeaders = streaming ? { ...headers } : { ...headers, 'content-length': payload.length };
+  const requestHeaders = streaming
+    ? { ...headers, ...(body.headers?.['content-length'] !== undefined ? { 'content-length': body.headers['content-length'] } : {}) }
+    : { ...headers, 'content-length': payload.length };
   const transport = target.protocol === 'https:' ? https : http;
   const timeoutMS = upstreamTimeoutMS();
   return new Promise((resolve, reject) => {
@@ -150,7 +153,7 @@ function requestUpstream(url, body, headers) {
         request.destroy(new Error(`upstream request timeout after ${timeoutMS}ms`));
       });
       request.on('error', rejectOnce);
-      if (streaming) { payload.on('error', (error) => request.destroy(error)); payload.pipe(request); }
+      if (streaming) { request.flushHeaders(); payload.on('error', (error) => request.destroy(error)); payload.pipe(request); }
       else request.end(payload);
     } catch (error) {
       rejectOnce(error);

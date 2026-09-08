@@ -1,6 +1,6 @@
 # A-04 member photo implementation in progress
 
-Status: **HTTP/storage candidate implemented; original-client verification and independent review pending; not deployed**.
+Status: **HTTP/storage candidate implemented; bounded original-client checks pass; final revision and independent review pending; not deployed**.
 
 Adds source-shaped update/remove photo functions and a local public-object
 storage adapter. The controller authorizes an owner or robot, finds the member,
@@ -40,7 +40,22 @@ requests without that header are hashed while spooling to private disk and
 verified without adding a synthetic signed header. The temporary body is removed
 after completion or authentication failure.
 
-Next: original generated-client controls, actual source controller photo
-controls, one-gigabyte limit/error framing, interrupted HTTP uploads, and
-independent review.
+The original generated client 3.0.110 under Node 8.9.4 passed ten operation
+checks against revision `54d331b8f09613a3b723db624a01ae353aa6c6b4`, covering
+upload/download, replacement/deletion, removal, wrong-secret denial and missing
+header validation on both endpoints. Byte comparisons, cleared final photo URL
+and six durable save/outbox entries passed. These used synthetic photos only.
+Private evidence: `.parity/reviews/a04-photo-client-node8-20260908/`.
+
+Further exact Hapi socket controls with a reduced test threshold demonstrated
+HTTP 400 for excessive declared Content-Length and acceptance of chunked data
+beyond that threshold. The production declaration is 1,000,000,000 bytes. The
+candidate now checks that declared length and removes the invented cumulative
+chunked limit. Classic retains the original length when streaming, flushes
+headers before body data, and propagates connection closure for rejected uploads.
+This fixes a regression where an oversized incomplete request could stall later
+requests on a reused socket. Account/Classic limit and recovery checks pass.
+
+Next: repeat the original-client checks on the final revision, actual source
+controller photo controls, interrupted HTTP uploads, and independent review.
 No real household photos were read or modified. Whole A-04 remains open.

@@ -96,6 +96,16 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   const dispatch = async ({ req, res, body, log }) => {
     const { prefix, op } = parseTarget(req);
+    // Hapi's binary stream route checks the declared length before dispatch.
+    // Its stream output does not impose a cumulative limit on chunked bodies.
+    if (isMemberPhotoUpload(req) && Number(req.headers['content-length']) > 1000000000) {
+      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: 'Payload content length greater than maximum allowed: 1000000000' });
+      res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
+      res.end(data);
+      req.resume();
+      return;
+    }
+
 
     // Update_* (and any future classic prefix we host elsewhere) -> proxy to OTA, so the
     // robot's region_config can point every service at this one endpoint.

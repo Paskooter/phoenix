@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import { createHash } from 'node:crypto';
+import { request as httpRequest } from 'node:http';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -34,6 +35,21 @@ test('Account and Classic preserve signed binary photo bytes, validate headers a
           accessKeyId: owner.accessKeyId, secretAccessKey: secret, region: 'global', service: 'Loop' }).headers;
         return fetch(`${base}/`, { method: 'POST', headers, body });
       };
+      const overLimit = await new Promise((resolve, reject) => {
+        const request = httpRequest(`${base}/`, { method: 'POST', headers: {
+          'x-amz-target': 'Loop_20160324.UpdateMemberPhoto', 'content-length': '1000000001',
+          'content-type': 'application/octet-stream',
+        } }, (response) => {
+          const chunks = [];
+          response.on('data', (chunk) => chunks.push(chunk));
+          response.on('end', () => { resolve({ status: response.statusCode, body: JSON.parse(Buffer.concat(chunks).toString()) }); request.destroy(); });
+        });
+        request.on('error', reject);
+        request.setTimeout(5000, () => request.destroy(new Error('oversize response deadline')));
+        request.end();
+      });
+      assert.equal(overLimit.status, 400);
+      assert.equal(overLimit.body.error, 'Bad Request');
       const binary = Buffer.from([255, 0, 10, 128, 1]);
       const headers = { 'x-id': memberId, 'x-loop-id': loop._id };
       const wrong = await post('UpdateMemberPhoto', binary, headers, 'synthetic-wrong-secret');
