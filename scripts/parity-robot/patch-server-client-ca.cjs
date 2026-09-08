@@ -386,8 +386,11 @@ function ensureDirectory(directory) {
 
 function atomicWrite(filename, bytes, mode) {
   var temporary = filename + '.phoenix-ca.tmp-' + process.pid;
+  var previousStat = fs.existsSync(filename) ? fs.statSync(filename) : null;
   try {
     fs.writeFileSync(temporary, bytes, { mode: mode || 0o600, flag: 'wx' });
+    if (previousStat) fs.chownSync(temporary, previousStat.uid, previousStat.gid);
+    fs.chmodSync(temporary, mode === undefined ? 0o600 : mode);
     fs.renameSync(temporary, filename);
   } finally {
     try { fs.unlinkSync(temporary); } catch (error) { /* already renamed */ }

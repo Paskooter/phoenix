@@ -89,6 +89,7 @@ function assertSourceState(root, relativeDirectory, expectedHash) {
 }
 
 function main() {
+  var originalUmask = process.umask(0o077);
   assert.strictEqual(hashFile(CANONICAL), ORIGINAL_SHA256, 'fixture source hash drifted');
   var temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-node-ca-test-'));
   try {
@@ -216,6 +217,7 @@ function main() {
     }) + '\n');
   } finally {
     removeTree(temporary);
+    process.umask(originalUmask);
   }
 }
 
