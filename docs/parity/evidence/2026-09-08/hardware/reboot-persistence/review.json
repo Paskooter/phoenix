@@ -1,0 +1,38 @@
+{
+  "state": "verified_bounded",
+  "subject": "Robot trust and hostname redirection survive a cold reboot",
+  "reviewedBy": "Claude root",
+  "at": "2026-09-08T00:35:00+00:00",
+  "robot": "Moth (armv7l, BE 11.0.1)",
+  "phoenix": "192.168.1.182, entrypoint 0.0.0.0:443",
+  "whyThisWasOpen": "Trust was previously supplied by a bind mount over /etc/ssl/certs sourced from /opt. That mount is not in fstab, so it could not survive a reboot, and reboot readiness was explicitly unclaimed. repoint-robot.sh instead installs the CA into the real root-filesystem store underneath the bind.",
+  "testDesign": "Before the reboot the CA existed ONLY in the masked real directory, not in the active bind store. A reboot therefore tested exactly the persistence claim: if the CA had been written through the bind, as the earlier manual setup did, the robot would return with no Phoenix CA at all.",
+  "before": {
+    "mountOverSslCerts": "/dev/mmcblk0p6 on /etc/ssl/certs type ext4 (bind, masking the real directory)",
+    "caInActiveStore": "absent",
+    "caInRealStore": "phoenix-ca.crt present plus ad76badb.0 subject-hash symlink",
+    "resolution": "api.jibo.com and api-socket.jibo.com -> 192.168.1.182",
+    "socket": "192.168.1.217:49558 -> 192.168.1.182:443 ESTABLISHED",
+    "robotFetch": "https://api.jibo.com/healthcheck 200 with system trust"
+  },
+  "after": {
+    "downSeconds": 33,
+    "backAfterSeconds": 89,
+    "mountOverSslCerts": "none - the bind is gone and the real store is active",
+    "caInActiveStore": "phoenix-ca.crt present plus ad76badb.0 symlink",
+    "hostsBlock": "managed block intact, both names resolve to 192.168.1.182",
+    "robotFetch": "https://api.jibo.com/healthcheck 200 via 192.168.1.182, robot system trust, no -k",
+    "socket": "192.168.1.217:34725 -> 192.168.1.182:443 ESTABLISHED, fresh service PID 1283",
+    "notificationLog": "Connecting to api-socket.jibo.com:443/<token> then 'established connection to server'",
+    "failuresSinceBoot": 0,
+    "timeToReconnect": "about one minute after boot, on the first attempt"
+  },
+  "significance": "Before this work the same service logged 50 consecutive connection failures. After a cold boot with no manual intervention it connected on the first attempt, through the persistent trust store and the persistent hosts block.",
+  "explicitlyNotVerified": [
+    "Notification DELIVERY end to end. Only the WebSocket upgrade, its persistence and its recovery across a reboot.",
+    "Microphone, wake word and physical ring behavior.",
+    "Conversation after reboot: the hub still reaches Phoenix through the SSH reverse tunnel, which is not part of this persistence claim.",
+    "Any Classic operation beyond the notification token request."
+  ],
+  "ledgerEffect": "None. A-10 remains todo and the checklist stays at 8/79. This closes the specific reboot-persistence question for robot trust and hostname redirection, not the parent task."
+}
