@@ -6,7 +6,8 @@ This is a source-backed contract write-up plus a bounded Phoenix
 does not touch the robot.
 
 Base: worktree branch `grok/candidate-kb-household-bootstrap-20260908` from
-`1b68bf1e14afdbfc0996a9761680305d2bbb040d`. Hashbrown baseline remains
+`1b68bf1e14afdbfc0996a9761680305d2bbb040d`. Candidate commit
+`ffdd68e98f9aa3d56759c8b6ebb52b15d77aa1a5`. Hashbrown baseline remains
 `5c0a7390539663ba749d360de348a428c088505c`.
 
 ## What failed on hardware (root observation, not re-run here)
