@@ -6,7 +6,7 @@
 
 export const XOR_KEY = 'Wow, you cracked our secret code. Impressive. Maybe you should check out jibo.com/jobs.';
 
-/** Keep each frame comfortably inside a version-6/EC-M byte-mode QR. */
+/** UTF-8 content bytes, leaving room for the frame header in a version-6/M QR. */
 const MAX_CHUNK = 90;
 
 export function xorScramble(text) {
@@ -38,12 +38,23 @@ export function buildPlaintext({ ssid, password, staticConfig = null, token }) {
 export function buildQrCodes(opts) {
   const payload = buildPlaintext(opts);
   const scrambled = xorScramble(payload);
-  const n = Math.max(1, Math.ceil(scrambled.length / MAX_CHUNK));
-  const size = Math.ceil(scrambled.length / n);
-  const codes = [];
-  for (let i = 0; i < n; i += 1) {
-    codes.push(`${i + 1}/${n}\n${scrambled.slice(i * size, (i + 1) * size)}`);
+  const chunks = [];
+  let chunk = '';
+  let bytes = 0;
+  // QR byte mode encodes UTF-8. Iterating code points also keeps surrogate pairs
+  // together so encoding a frame cannot replace half of a pair with U+FFFD.
+  for (const character of scrambled) {
+    const length = Buffer.byteLength(character, 'utf8');
+    if (bytes + length > MAX_CHUNK) {
+      chunks.push(chunk);
+      chunk = '';
+      bytes = 0;
+    }
+    chunk += character;
+    bytes += length;
   }
+  if (chunk || chunks.length === 0) chunks.push(chunk);
+  const codes = chunks.map((value, i) => `${i + 1}/${chunks.length}\n${value}`);
   return { payload, codes };
 }
 
