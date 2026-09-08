@@ -1,3 +1,4 @@
+import { createClassicEntrypoint } from '../../classic/src/index.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -48,6 +49,41 @@ test('OOBE public authentication uses exact unsigned exceptions and verifies sup
     assert.equal((await response.json()).__type, 'MISSING_AUTH_HEADER');
   } finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('PrepareRobot and GetStatus reject source-invalid payload types without changing tokens', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-synthetic-oobe-validation-'));
+  const store = new Store(join(dir, 'store.json'));
+  const owner = createOwnerAccount(store, { email: 'oobe-validation@synthetic.invalid', password: 'synthetic-password' });
+  const server = await createAccountService({ store }).listen(0);
+  let base = `http://127.0.0.1:${server.address().port}`;
+  const priorAccount = process.env.NET_account;
+  process.env.NET_account = base;
+  const classic = await createClassicEntrypoint({ notificationFile: join(dir, 'notifications.json') }).listen(0);
+  try {
+    for (const face of [server, classic]) {
+      base = `http://127.0.0.1:${face.address().port}`;
+    for (const op of ['PrepareRobot', 'GetStatus']) {
+      const invalid = [null, [], true, 7, 'text', ...(op === 'PrepareRobot'
+        ? [{ loopId: null }, { loopId: 7 }, { loopId: '' }]
+        : [{}, { token: null }, { token: 7 }, { token: '' }])];
+      for (const body of invalid) {
+        const target = `OOBE_20161026.${op}`;
+        const before = [...store.tokens];
+        const headers = signedLoopHeaders(store, base, target, body, op === 'PrepareRobot' ? owner.accessKeyId : undefined, { connection: 'close' });
+        const response = await fetch(base, { method: 'POST', headers, body: JSON.stringify(body) });
+        assert.equal(response.status, 422, `${op}/${JSON.stringify(body)}: ${await response.text()}`);
+        assert.deepEqual([...store.tokens], before);
+        assert.deepEqual([...new Store(store.file).tokens], before);
+      }
+    }
+    }
+  } finally {
+    await Promise.all([server, classic].map(face => new Promise((resolve, reject) => face.close(error => error ? reject(error) : resolve()))));
+    if (priorAccount === undefined) delete process.env.NET_account;
+    else process.env.NET_account = priorAccount;
     rmSync(dir, { recursive: true, force: true });
   }
 });

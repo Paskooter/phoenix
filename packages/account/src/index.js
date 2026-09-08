@@ -81,6 +81,10 @@ function isSettingsTarget(req) {
     && /^settings/i.test(String(req.headers?.['x-amz-target'] || '').split('.').slice(0, -1).join('.'));
 }
 
+function isOobeTarget(req) {
+  return /^oobe[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
 function isLoopTarget(req) {
   return req.method === 'POST'
     && new URL(req.originalUrl || req.url, 'http://localhost').pathname === '/'
@@ -173,10 +177,10 @@ export function createAccountService({
   const service = createService({
     name: 'account',
     // Hapi/Joi validates JSON primitives at the CreateHubToken handler.
-    // Hapi also parses Settings and Loop payloads as JSON values before Joi rejects
+    // Hapi also parses Settings, Loop and OOBE payloads as JSON values before Joi rejects
     // top-level primitives with the source "value must be an object" error.
     // Keep the common strict parser for every other route.
-    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req),
+    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req) && !isOobeTarget(req),
     routes: {
       'GET /member-photos/:key': async ({ req, res }) => {
         if (!photoProvider?.open) { res.writeHead(404); res.end(); return; }
