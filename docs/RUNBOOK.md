@@ -110,9 +110,25 @@ If binding fails with a privileged-port error, step 4 did not take effect.
 
 ## 6. Point the robot at the server
 
-One run does everything on the robot: it redirects the hostnames and installs the
-CA **the server generated** into the robot's trust store, so the redirect is
-actually accepted. It reads the server's certificates rather than making its own.
+One run does everything on the robot:
+
+* redirects `<region>.jibo.com` and `<region>-socket.jibo.com` to the server,
+* installs the CA **the server generated** into the robot's trust store, so the
+  redirect is actually accepted,
+* points Jetstream's conversation hub at the server and restarts it, so speech
+  reaches Phoenix too (`--hub-port`, default 9000; `--no-hub` to skip),
+* registers the robot in the Phoenix account store using its own existing
+  credentials, so a robot that paired with the original Jibo cloud years ago
+  works here without re-running OOBE (`--no-adopt` to skip).
+
+The robot's secret key is streamed straight from the robot into the local
+adopter and never appears in a command line, a file or a log. Adoption is
+idempotent: a robot that already has an account is left alone rather than given
+a second loop.
+
+Add `--classic-url http://<server>:9012` for a plain-HTTP deployment, which
+rewrites every `region_config.json`. A TLS deployment does not need it — the
+hosts entries already cover it — and rewriting would break it.
 
 Before writing anything it confirms that the CA it is about to install genuinely
 verifies the certificate the running server is presenting, under the hostname the
@@ -260,10 +276,9 @@ in place.
 
 Getting the robot connected is not the same as a fully working robot.
 
-- **Conversation** needs the robot's hub target pointed at the server as well. See
-  [Operations](OPERATIONS.md) for `point-robot-at-phoenix.sh` and the hub port.
-- **A robot that never paired with Phoenix** has no account here. Pair it through
-  the portal, or adopt an already-credentialed robot with
-  `scripts/adopt-existing-robot.mjs`.
+- **A robot that never paired with anything** has no credentials to adopt. Pair it
+  through the portal's QR flow first; the script adopts a robot that already has
+  `/var/jibo/credentials.json`, which includes any robot that paired with the
+  original Jibo cloud.
 - Microphone/wake-word and physical-ring behavior are **not verified** by this
   procedure, and are still open work in the parity ledger.

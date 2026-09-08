@@ -10,7 +10,7 @@
 # names do not match it says exactly what to set on the server, rather than
 # reissuing behind the server's back and leaving it serving the old certificate.
 #
-# On the robot it changes exactly two things, both data (never robot code):
+# On the robot it changes only data, never robot code:
 #   1. /etc/hosts  (a symlink to /var/etc/hosts, on the rw /var partition):
 #      a managed block mapping <region>.jibo.com and <region>-socket.jibo.com
 #      to the Phoenix host for every region you list, so the robot reaches
@@ -41,6 +41,12 @@
 #   --public-name <fqdn>  extra SAN, repeatable — use for internet-facing hostnames
 #   --regenerate-cert   reissue the serving certificate even if it already matches
 #   --cert-only         discover the region and issue certificates, then stop
+#   --hub-port <n>      conversation hub port to point Jetstream at (default 9000)
+#   --no-hub            leave the conversation hub target alone
+#   --no-adopt          do not register the robot in the Phoenix account store
+#   --classic-url <url> also rewrite every region_config.json to this URL. Only for
+#                       plain-HTTP deployments; a TLS deployment is already handled
+#                       by the hosts entries, and rewriting would break it.
 #   --regions a,b,c     extra regions to map (the live region is always included)
 #   --dry-run           run every check, print the plan, change nothing
 #   --yes               skip the confirmation prompt
@@ -52,6 +58,7 @@ set -euo pipefail
 ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/phoenix/tls}"; CA=""
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
 EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0
+HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""
 MARK_BEGIN="# >>> phoenix-repoint >>>"
 MARK_END="# <<< phoenix-repoint <<<"
 STAMP="$(date -u +%Y%m%d-%H%M%S)"
@@ -65,6 +72,10 @@ while [ $# -gt 0 ]; do
     --public-name) EXTRA_NAMES="${EXTRA_NAMES}${EXTRA_NAMES:+,}${2:-}"; shift 2 ;;
     --regenerate-cert) REGEN=1; shift ;;
     --cert-only) CERT_ONLY=1; shift ;;
+    --hub-port) HUB_PORT="${2:-}"; shift 2 ;;
+    --no-hub) DO_HUB=0; shift ;;
+    --no-adopt) DO_ADOPT=0; shift ;;
+    --classic-url) CLASSIC_URL="${2:-}"; shift 2 ;;
     --regions) EXTRA_REGIONS="${2:-}"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     --yes) ASSUME_YES=1; shift ;;
@@ -109,6 +120,8 @@ ok "hosts file: $HOSTS_TARGET (writable)"
 SM_PORT="$(rsh "curl -s -m 5 http://127.0.0.1:8181/registry | tr ',' '\n' | grep -A2 'system-manager' | grep port | tr -dc '0-9'" 2>/dev/null || true)"
 [ -n "$SM_PORT" ] || SM_PORT=8585
 LIVE_REGION="$(rsh "curl -s -m 5 -H 'Authentication: foobar' http://127.0.0.1:${SM_PORT}/credentials | sed -n 's/.*\"region\"[^\"]*\"\\([^\"]*\\)\".*/\\1/p'" 2>/dev/null || true)"
+IDENTITY_NAME="$(rsh "curl -s -m 5 -H 'Authentication: foobar' http://127.0.0.1:${SM_PORT}/identity | sed -n 's/.*\"name\"[^\"]*\"\\([^\"]*\\)\".*/\\1/p'" 2>/dev/null || true)"
+[ -n "$IDENTITY_NAME" ] && ok "robot identity: $IDENTITY_NAME"
 if [ -n "$LIVE_REGION" ]; then ok "live region from system-manager: $LIVE_REGION"
 else warn "could not read the live region; falling back to --regions only"; fi
 
@@ -261,6 +274,9 @@ else
   done
   echo "  - install CA into the real /etc/ssl/certs as phoenix-ca.crt + ${CA_HASH:-<hash of the CA to be created>}.0"
   echo "  - append it to ca-certificates.crt (backed up first)"
+  [ "$DO_HUB" -eq 1 ] && echo "  - point Jetstream's conversation hub at ${PHOENIX}:${HUB_PORT} and restart it"
+  [ -n "$CLASSIC_URL" ] && echo "  - rewrite every region_config.json to $CLASSIC_URL"
+  [ "$DO_ADOPT" -eq 1 ] && echo "  - register this robot in the Phoenix account store using its existing credentials"
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 1 ] && echo "  - unmount the /etc/ssl/certs bind afterwards"
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 0 ] && echo "  - LEAVE the existing bind mounted (pass --drop-bind to remove it)"
 fi
@@ -342,6 +358,70 @@ rsh "set -e
   mount -o remount,ro / 2>/dev/null || true
   rm -f /tmp/.phoenix-ca.crt"
 ok "CA installed persistently as phoenix-ca.crt + ${CA_HASH}.0"
+
+# ---------------------------------------------------------------- hub, classic, adoption
+if [ "$DO_HUB" -eq 1 ]; then
+  say "pointing the conversation hub at ${PHOENIX}:${HUB_PORT}"
+  # Piped as a script rather than quoted inline: nesting a node -e program
+  # inside a double-quoted ssh argument mangles the escaping and fails silently.
+  {
+    printf '%s\n' 'set -e'
+    printf '%s\n' 'JET=/usr/local/etc/jibo-jetstream-service.json'
+    printf '%s\n' 'if [ ! -f $JET ]; then echo "jetstream config not found; skipped"; exit 0; fi'
+    printf '%s\n' 'jibo-mount --rw >/dev/null 2>&1 || mount -o remount,rw /usr/local 2>/dev/null || true'
+    printf '[ -f $JET.phx-bak-%s ] || cp -p $JET $JET.phx-bak-%s\n' "$STAMP" "$STAMP"
+    printf '%s\n' 'node -e '"'"''
+    printf '%s\n' '  var fs=require("fs"), p=process.argv[1], host=process.argv[2], port=parseInt(process.argv[3],10);'
+    printf '%s\n' '  var region="api"; try{ region=(JSON.parse(fs.readFileSync("/var/jibo/credentials.json","utf8")).region)||"api"; }catch(e){}'
+    printf '%s\n' '  var c=JSON.parse(fs.readFileSync(p,"utf8")); c.HubClient=c.HubClient||{};'
+    printf '%s\n' '  c.HubClient.override={ hub_port:port, hub_hostname:host, entrypoint_hostname:region+".jibo.com" };'
+    printf '%s\n' '  fs.writeFileSync(p, JSON.stringify(c,null,"\t"));'
+    printf "%s\n" "' \$JET '${PHOENIX}' '${HUB_PORT}'"
+    printf '%s\n' 'mount -o remount,ro /usr/local 2>/dev/null || true'
+    printf '%s\n' 'pkill -9 -f jibo-jetstream-service 2>/dev/null || true'
+    printf '%s\n' 'exit 0'
+  } | rsh 'sh -s' \
+    && ok "hub repointed to ${PHOENIX}:${HUB_PORT}; Jetstream restarted (it is supervised and respawns)" \
+    || warn "hub repoint failed; conversation may still use the old target"
+fi
+
+if [ -n "$CLASSIC_URL" ]; then
+  say "rewriting every region_config.json to $CLASSIC_URL"
+  {
+    printf '%s\n' 'jibo-mount --rw >/dev/null 2>&1 || true'
+    printf '%s\n' 'find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -name region_config.json -print 2>/dev/null | while IFS= read -r f; do'
+    printf '%s\n' '  grep -q globalSSL "$f" 2>/dev/null || continue'
+    printf '  [ -f "$f.phx-bak-%s" ] || cp -p "$f" "$f.phx-bak-%s"\n' "$STAMP" "$STAMP"
+    printf '%s\n' '  node -e '"'"''
+    printf '%s\n' '    var fs=require("fs"), file=process.argv[1], ep=process.argv[2];'
+    printf '%s\n' '    var j=JSON.parse(fs.readFileSync(file,"utf8"));'
+    printf '%s\n' '    function setEp(o){ if(o&&typeof o==="object"&&typeof o.endpoint==="string"){o.endpoint=ep; if("globalEndpoint" in o)o.globalEndpoint=true;} }'
+    printf '%s\n' '    if(j.rules)Object.keys(j.rules).forEach(function(k){setEp(j.rules[k]);});'
+    printf '%s\n' '    if(j.patterns)Object.keys(j.patterns).forEach(function(k){setEp(j.patterns[k]);});'
+    printf '%s\n' '    fs.writeFileSync(file, JSON.stringify(j,null,2));'
+    printf "%s\n" "  ' \"\$f\" '${CLASSIC_URL}'"
+    printf '%s\n' 'done'
+    printf '%s\n' 'exit 0'
+  } | rsh 'sh -s' && ok "region_config rewritten to $CLASSIC_URL" || warn "region_config rewrite failed"
+fi
+
+if [ "$DO_ADOPT" -eq 1 ]; then
+  say "registering the robot in the Phoenix account store"
+  ADOPTER="$(cd "$(dirname "$0")/../.." && pwd)/scripts/adopt-existing-robot.mjs"
+  if [ ! -r "$ADOPTER" ]; then
+    warn "adopter not found at $ADOPTER; skipping adoption"
+  else
+    # The secret is streamed from the robot straight into the adopter's stdin.
+    # It is never an argument and never written to a file or a log.
+    if rsh "cat /var/jibo/credentials.json" 2>/dev/null \
+        | PHOENIX_ENV_FILE=/dev/null node "$ADOPTER" --stdin "${IDENTITY_NAME:-$ROBOT}" >/dev/null 2>&1; then
+      ok "robot registered in the account store as ${IDENTITY_NAME:-$ROBOT}"
+    else
+      warn "adoption did not complete. The robot may already be registered, or it may have no"
+      warn "/var/jibo/credentials.json yet (a never-paired robot pairs through the portal instead)."
+    fi
+  fi
+fi
 
 if [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 1 ]; then
   say "unmounting the /etc/ssl/certs bind"
