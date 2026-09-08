@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "status": "passed-bounded-hardware-review",
+  "revision": "fb79e6d80fbad10323153819ad7170e258f39d7f",
+  "previousRevision": "380642559f31056a4bcd32598b4f04b4d5ca3acd",
+  "reviewer": "Codex root",
+  "runtime": {
+    "node": "6.9.2",
+    "client": "3.0.105"
+  },
+  "checks": [
+    "ListLoops",
+    "ListLoopMembers matches listed loop members",
+    "Accepted-member filter",
+    "Native notification socket connected",
+    "FindOwner",
+    "ListOwnerRobots",
+    "Expected owner-only GetRobot denial",
+    "Household unchanged by reads"
+  ],
+  "outcomes": {
+    "allChecksPassed": true,
+    "strictTls": true,
+    "explicitCa": true,
+    "allSixBackendServicesHealthy": true,
+    "accountStorePreserved": true,
+    "storeReplaced": false,
+    "rollbackNeeded": false
+  },
+  "limits": [
+    "Read-only installed client verification",
+    "No new screen, microphone, light-ring or reboot verification",
+    "Guardian external provider behavior not exercised",
+    "Other candidates remain separate; whole A-04 incomplete"
+  ]
+}
