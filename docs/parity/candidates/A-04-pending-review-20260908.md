@@ -6,7 +6,7 @@ passing a candidate check does not mark the whole lifecycle verified.
 
 | Candidate | Revision | Current evidence and remaining work |
 | --- | --- | --- |
-| Photos | `2bb7c34` | Normal-startup storage/public URL repair integrated in an isolated candidate. Original Node 8 client passed seven public HTTPS lifecycle checks, including restart persistence. Docker deployment review and final acceptance pending. |
+| Photos | `4e581d0` | Accepted and integrated into main after source/client/Docker checks and 876 unit passes. Guarded Moth deployment pending; full lifecycle remains open. |
 | ListLoopMembers | `660fe838` | Accepted after source/client/integration checks; deployed with installed-client membership/filter checks passed. |
 | Invitation transport | `9e8bc5b` | STARTTLS/AUTH, sender Promise boundary, Unicode and long ASCII MIME repairs submitted. Strict relay control reproduced the old failure and passes with matching decoded source content after repair. Root verified 15 long-line evidence/product hashes; final integration acceptance pending. |
 | Membership events | `19cace3` | Three original event payloads match; 873 tests pass, 7 skipped. Independent controller/client review and transport dependency acceptance pending. |
@@ -19,7 +19,11 @@ with normal Account startup, including exact object bytes and persistence
 after an Account restart. The first test attempts exposed a harness watchdog
 and a Node 8 helper signature issue; both are preserved in the qualified
 [public TLS evidence](../evidence/2026-09-08/photo-public-tls/review.json).
-The strict gate matches all 43 cases. Full default and serial candidate suites
+[Root photo acceptance](../evidence/2026-09-08/photo-acceptance/review.json)
+records the subsequent full suite: 876 passed, zero failed, seven skipped after
+the five observed synthetic test helpers were repaired. Production code matches
+the strict-gate and original-client candidate.
+The strict gate matches all 43 cases. Earlier full default and serial candidate suites
 each report 874 passed, two failed, and seven skipped. Root reproduced the
 same idle-connection reset mechanism on unchanged main; those suite failures
 remain recorded and are not converted into passing results.
