@@ -1,0 +1,47 @@
+{
+  "status": "candidate-awaiting-independent-review",
+  "implementationRevision": "4a5ae0a",
+  "baseRevision": "2ee089e1f8e825eb4fbe273127df54fa477033cc",
+  "scope": [
+    "Administrator-only GetServiceToken with verified caller identity",
+    "Fresh service-mode account and unbound setup token per call",
+    "Source account-before-token persistence order and first matching invitation binding",
+    "Failed account/token save rollback in shared memory; prior successful saves retained",
+    "Token refresh rollback and strict source token-reuse expiry boundary"
+  ],
+  "sourceControl": {
+    "revision": "6cea43470825657d6a5722162f28c8f233153ee2",
+    "runtime": "Node8.9.4",
+    "cases": 4,
+    "qualification": "Exact OOBE handler/controller/admin decorator; Account.create and Token.create controlled seams. Source AccountController.create and LoopController.updateInvitationsByEmail inspected separately."
+  },
+  "checks": {
+    "focused": 8,
+    "fullTests": 927,
+    "passed": 920,
+    "failed": 0,
+    "skipped": 7,
+    "strictCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictCoverageGaps": 0,
+    "strictRun": "ci-production-a0db3a7a-585f-4ac5-af9b-5ab3b58e6c8f"
+  },
+  "pending": [
+    "Independent service-token source/schema/save-boundary review",
+    "Original Node8 OOBEAdmin SDK across Account and Classic",
+    "Final root acceptance; account-level A03 and A04 dependencies remain open"
+  ],
+  "limitations": [
+    "No whole Account.create parity claim; service account creation uses Phoenix account storage and password encoding.",
+    "No real robot, administrator account or household mutation.",
+    "Full A05 and project completion are not claimed."
+  ],
+  "hashes": {
+    "source.cjs": "6f098b82a126834d9318205b46ae91e95d810e7d273d1a735475dd2c87e848a4",
+    "source.json": "f1455d9c526051340f38d190d21f37e46745700fcf40d210d6e0067b14f0108b",
+    "account.ctrl.ts": "7c9a890eda4c2b621c8a96cbbc8b3f6c4d272ba2fdc66a7a5cf5bbb717f4e523",
+    "focused-final.log": "502da4d334056311d9fa20baf4a5e8b5121ff54eec0a9329f9c4311448fd02bb",
+    "full.log": "10698b4e71ab9a0229eb3407a8f2555d60143cd3d1776778986489cc43318023"
+  }
+}
