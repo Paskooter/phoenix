@@ -1,6 +1,12 @@
 # A-05 service-token Base58 encoding follow-up
 
-Status: **unverified; pending root review**.
+Status: **root accepted for token encoding only; full A-05 remains unverified**.
+
+Root verified the pinned package archive integrity and compared 1,030 deterministic
+vectors against the actual archived encoder under Node 8.9.4. All matched the
+integrated candidate. The combined candidate passed 923 tests with seven skips
+and the 43-case strict smoke gate. See the [root integration review](../evidence/2026-09-08/oobe-integration-root/review.json)
+for installed-client controls and outstanding acceptance limits.
 
 This candidate is based on `9d333c99a773427dfe3bc9715b396103e2bddf07` and
 keeps the service-token flow unchanged except for the token byte encoder. It

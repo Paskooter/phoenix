@@ -1,0 +1,47 @@
+{
+  "candidateRevision": "3467001ff5e889d160e4c864258cfc9ab5656e90",
+  "disposition": "token encoder accepted within reviewed scope; combined OOBE candidate remains pending public parser review and native robot acceptance",
+  "sourceAccountRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "tokenEncoding": {
+    "archivedPackages": [
+      "bs58@3.1.0",
+      "base-x@1.1.0"
+    ],
+    "archiveIntegrityVerified": true,
+    "sourceRuntime": "Node 8.9.4",
+    "deterministicVectors": 1030,
+    "matches": 1030,
+    "exhaustive": false
+  },
+  "automated": {
+    "tests": 930,
+    "passed": 923,
+    "failed": 0,
+    "skipped": 7,
+    "strictSmokeCases": 43,
+    "strictSmokeDifferences": 0,
+    "fullCorpusClaim": false
+  },
+  "installedClient": {
+    "runtime": "Node 6.9.2",
+    "version": "3.0.117",
+    "initialChecksPassed": 18,
+    "afterOrderlyServerRestartChecksPassed": 10,
+    "syntheticStoreMapsMatchDisk": true,
+    "readOnlyRestartChecksPreservedStore": true,
+    "scope": "Isolated installed-client process on the robot against ephemeral Account and Classic HTTP listeners using invented accounts. No production household mutation.",
+    "harnessCorrections": "Two retained restart attempts incorrectly assumed the typed Account.Get return shape; final run uses its array of Account records and id field. These were harness errors, not product repairs."
+  },
+  "remaining": [
+    "Stitched original gateway-to-handler parser edge review",
+    "Native pairing, TLS ingress, camera, microphone, screen and notification acceptance",
+    "A-03 account lifecycle dependencies and full A-05 closure"
+  ],
+  "privateEvidenceSha256": {
+    "a05-service-token-encoding-20260908/root-package-review.json": "767057ace45a2bab541487fbb91c278f1ed5ae68916b36cfeec2a79397734e5b",
+    "a05-service-token-encoding-20260908/root-controls.json": "051e36e4808fcc402f363518396cd48f12406c508bf55a163fed5875fce30f5e",
+    "a05-installed-client-root-20260908/review.json": "4b22634820baf1f9f3e2b1f9f141c3502ee2e9932bb35650f8c01b4a6a4791cd",
+    "a05-installed-client-root-20260908/restart-review-v3.json": "b91d8e4e74c5fbf1ebf4895ddbdbfc6fc6fcf56cfc107ee8feb10be3c3ae894c",
+    "a05-final-root-20260908/full-token.log": "fdb091a4112e232bd472465206bcb3303c416d96e20733b0f4ed4f4856c3baa1"
+  }
+}
