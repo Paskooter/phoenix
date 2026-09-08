@@ -210,18 +210,20 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (prefix && !/^oobe/i.test(prefix) && !/^account/i.test(prefix)) {
       log.info('classic target with unexpected prefix (serving anyway)', { prefix, op });
     }
-    // AccountHandler's Joi payload decorator sees the original value for
-    // CreateHubToken: null, arrays, and primitive JSON values are validation
-    // errors, while the other legacy robot handlers use an object default.
-    const handlerBody = op.toLowerCase() === 'createhubtoken' ? body : (body || {});
+    // Source Joi decorators validate the original JSON value, including
+    // null, arrays and primitives, before the controller executes.
+    const sourceValidated = ['createhubtoken', 'setuprobot', 'getstatus', 'preparerobot', 'reconnectrobot']
+      .includes(op.toLowerCase());
+    const handlerBody = sourceValidated ? body : (body || {});
     return handler({ req, res, body: handlerBody, log });
   };
-  // Hapi presents an omitted request payload to CreateHubToken as null. Other
-  // legacy robot handlers retain the service's historical object default.
+  // Hapi presents an omitted request payload as null to source-validated
+  // handlers. Other legacy routes retain the historical object default.
   dispatch.rawBody = isMemberPhotoUpload;
   dispatch.bodyDefault = (req) => {
     const target = parseTarget(req);
     if (target.op.toLowerCase() === 'createhubtoken') return null;
+    if (['setuprobot', 'getstatus', 'preparerobot', 'reconnectrobot'].includes(target.op.toLowerCase())) return null;
     if (/^settings/i.test(target.prefix)) return null;
     return {};
   };
@@ -396,6 +398,12 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   /** oobe.handler.ts PrepareRobot — accountId comes from verified gateway credentials. */
   function prepareRobot({ req, res, body }) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return void sendValidationError(res, '"value" must be an object');
+    }
+    if (body.loopId !== undefined && (typeof body.loopId !== 'string' || body.loopId.length === 0)) {
+      return void sendValidationError(res, '"loopId" must be a nonempty string');
+    }
     const account = req._phoenixVerifiedCredentials;
     if (!account) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
     const token = mintSetupToken(store, account._id, (body && body.loopId) || null);
@@ -404,7 +412,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   /** oobe.ctrl.ts getStatus: complete = the token no longer exists/is invalid. */
   function getStatus({ res, body }) {
-    if (!body || !body.token) return void sendAmzError(res, Errors.VALIDATION, 'token is required');
+    const validationMessage = oobeTokenValidationMessage(body);
+    if (validationMessage) return void sendValidationError(res, validationMessage);
     const { token } = findToken(store, body.token);
     return void sendAmz(res, 200, { complete: !token });
   }
