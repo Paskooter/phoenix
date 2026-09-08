@@ -203,10 +203,10 @@ that cannot be produced through the source contract.
 
 | Item | Concrete next evidence | Current state / owner |
 | --- | --- | --- |
-| Existing robot reactivation | Original controller activation/save boundary, unchanged credentials after creation/restart, failed Account save and later failed Loop save | Root candidate `9185f93`; three source controls, eight original-client checks, full 901 pass / seven skip and strict43 passed; independent review pending with Euclid. |
+| Existing robot reactivation | Original controller activation/save boundary, unchanged credentials after creation/restart, failed Account save and later failed Loop save | Root accepted `3e0976b` after independent review, three source controls, eight original-client checks, full 901 pass / seven skip and strict43; deployment remains pending. |
 | Duplicate and repeated invitations | Same-email duplicate, declined/removed reinvite; compare source membership identity/status, mail/event recipients and next read | Averroes executing source/candidate sequences in isolation. |
 | Simultaneous membership transitions | Two source-reachable requests on one membership; compare allowed success/error and durable outcomes rather than inventing one deterministic order | Pending source control after the sequential transition cases. |
-| Remaining query projections | Identify an uncovered source-reachable dangling/soft-deleted reference case, compare source projection and valid follow-up; avoid redoing covered null/casting cases | Pending root selection from existing matrix evidence. |
+| Remaining query projections | Identify an uncovered source-reachable dangling/soft-deleted reference case, compare source projection and valid follow-up; avoid redoing covered null/casting cases | Root reproduced valid uppercase ObjectId lookup mismatch; Euclid is preparing an isolated source-backed repair. |
 | Interruption/recovery combination | Account mutation plus publisher disconnect/reconnect; compare durable state and replay behavior, retaining the source's delivery guarantees | Pending combined control; standalone outbox recovery is already verified. |
 
 The separate OOBE candidate is owned by Feynman under A-05. Its owner check,
