@@ -69,3 +69,20 @@ test('valid introductions still win their source-backed utterances', () => {
     assert.equal(result.entities.GivenName, name, text);
   }
 });
+
+test('launch union scores without grammar-priority boost so the sorry utterance stays chitchat', () => {
+  // Original HTTP data for chitchat:3989:0:base and hub-client:183:0:base.
+  // Introductions HIGH + GivenName=so previously beat chitchat only because
+  // parseScore mixed priorityRank * 1e6 into the union score. Native copies
+  // priority onto NLParse after selection; native-like spec-cost already
+  // prefers userIsSorryAboutThing (19 vs 13).
+  const result = parseRequest({
+    text: "i am so sorry that everyone thinks you're dumb",
+    rules: ['launch'],
+  });
+  assert.deepEqual(result, {
+    rules: ['launch'],
+    intent: 'userIsSorryAboutThing',
+    entities: { union_original_fst_name: 'handle:chitchat/launch' },
+  });
+});

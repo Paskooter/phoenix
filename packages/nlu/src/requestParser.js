@@ -174,7 +174,7 @@ function unsupportedDependencies(name, state) {
   return [...new Set(publicRule.sources.flatMap(source => state.inventory.ruleDependencies[source]?.unsupported || []))].sort();
 }
 
-function matchNamedRule(name, text, state) {
+function matchNamedRule(name, text, state, options = {}) {
   const entry = state.rules.get(name);
   if (!entry) throw new Error(`Missing loaded NLU rule: ${name}`);
   // The matcher compiles the source heuristic/reference tree behind a WeakMap
@@ -195,9 +195,21 @@ function matchNamedRule(name, text, state) {
   const match = matchRule(entry.ast.rules.TopRule, tokenize(text), ctx);
   if (!match || !match.entities || !match.entities.intent) return null;
   const entities = Object.assign({}, match.entities);
+  const priority = typeof match.entities.priority === 'string' ? match.entities.priority : '';
   delete entities.intent;
   delete entities.priority;
-  return { rule: name, entities, intent: match.entities.intent, score: parseScore(match.entities, match.specificity, match.cost) };
+  // Launch is a native UNION of every */launch graph. Native scores that union
+  // as input_length - heuristic and copies priority onto NLParse after
+  // selection. Do not mix priorityRank * 1e6 into the launch-member score.
+  return {
+    rule: name,
+    entities,
+    intent: match.entities.intent,
+    priority,
+    score: parseScore(match.entities, match.specificity, match.cost, {
+      includePriority: options.includePriority !== false,
+    }),
+  };
 }
 
 function chooseBest(requested, text, state, compiledRuntime) {
@@ -205,7 +217,9 @@ function chooseBest(requested, text, state, compiledRuntime) {
     const candidates = [];
     for (const requestedEntry of requested) {
       for (const name of requestedEntry.names) {
-        const candidate = matchNamedRule(name, text, state);
+        const candidate = matchNamedRule(name, text, state, {
+          includePriority: requestedEntry.name !== 'launch',
+        });
         if (!candidate) continue;
         if (requestedEntry.name !== name) candidate.requestedName = requestedEntry.name;
         candidates.push(candidate);

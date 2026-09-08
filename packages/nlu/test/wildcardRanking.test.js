@@ -12,3 +12,12 @@ test('wildcard arbitration follows native byte cost when token counts tie', () =
   const result = matchRule(grammar.rules.TopRule, tokenize('i enormous huge x'), { rules: grammar.rules });
   assert.equal(result.entities.intent, 'long_literals');
 });
+
+test('a w03 c still beats a * c on input a one c', () => {
+  // Root rejected 700e40c for flipping this native-confirmed contrast from
+  // w03 to star. Launch-union scoring must not change intra-grammar wildcard
+  // ranking. Native and the accepted AST baseline both select w03.
+  const grammar = parse("TopRule = ((a $w03 c){% intent='w03' %}|(a $* c){% intent='star' %});");
+  const result = matchRule(grammar.rules.TopRule, tokenize('a one c'), { rules: grammar.rules });
+  assert.equal(result.entities.intent, 'w03');
+});

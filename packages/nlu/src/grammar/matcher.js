@@ -705,10 +705,11 @@ function expandCharClass(body, eq = null) {
 // full-input match — highest grammar specificity minus accumulated arc cost. On
 // ties, returns the first one discovered, mirroring the
 // cloud's first-best behaviour. Returns null when no full match exists.
-// Rank a parse the way the real engine's union arbitration does: by the
-// `priority` the grammar assigned (HIGH > unset > LOW), then by the bounded
-// source-like wildcard heuristic score. LOW is the deflector/catch-all tier
-// (`{% intent='idle' %}`, generic GQA) — it only wins when nothing better matches.
+// Native result_fst scores a path as input_string.length() - heuristic
+// (ConvTech/jibo-nlu@91b1bb6 result_fst.cpp). Grammar `priority` is copied onto
+// NLParse after selection (pegasus@5c0a739 RobustParserClient.ts) and is not a
+// ranking term. The optional `priorityRank * 1e6` boost is a Phoenix fullParse
+// layer; launch-union request arbitration must opt out of it.
 export function priorityRank(p) {
   // Source rule files contain both the legacy upper-case spelling and the
   // lower-case spelling used by newer skill grammars. The reference treats
@@ -717,11 +718,10 @@ export function priorityRank(p) {
   const priority = typeof p === 'string' ? p.trim().toUpperCase() : '';
   return priority === 'HIGH' ? 2 : (priority === 'LOW' ? 0 : 1);
 }
-// The bounded matcher score keeps its existing grammar-word specificity and
-// now uses the native wildcard arc heuristic for its accumulated cost. The
-// priority term remains the Phoenix cross-grammar arbitration layer.
-export function parseScore(entities, specificity, cost = 0) {
-  return priorityRank(entities && entities.priority) * 1e6 + (specificity || 0) - (cost || 0);
+export function parseScore(entities, specificity, cost = 0, options = {}) {
+  const base = (specificity || 0) - (cost || 0);
+  if (options.includePriority === false) return base;
+  return priorityRank(entities && entities.priority) * 1e6 + base;
 }
 
 export function matchRule(node, tokens, ctx) {
@@ -738,8 +738,8 @@ export function matchRule(node, tokens, ctx) {
   // (specificity - cost). `priority` is hub-level arbitration metadata carried in
   // the tags — the FST never sees it, so it must NOT bias which arm wins here
   // ("can you see the moon" must take the specific CanYouSeeThing arm over the
-  // HIGH-tagged generic AreYouAbleTo catch-all). Cross-grammar ranking (fullParse)
-  // applies priority via parseScore on the winner this returns.
+  // HIGH-tagged generic AreYouAbleTo catch-all). Launch-union request scoring
+  // also omits the priority term; fullParse still applies it via parseScore.
   let best = null; let bestScore = -Infinity;
   for (const m of match(compiledNode, 0, fullCtx, 0, 0)) {
     if (m.end !== tokens.length) continue;
