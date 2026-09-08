@@ -1,0 +1,33 @@
+{
+  "status": "root-reviewed-candidate-awaiting-combined-gate",
+  "candidateImplementation": "3f21594d9fc41c6561d009a3c10b4a68cada1438",
+  "combinedImplementation": "2e18624",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "sourceChecks": [
+    "Six prior runner/output artifact hashes verified; actual compiled handler hash verified.",
+    "Pinned Node8 Docker source handler and original client serialization controls rerun successfully.",
+    "Fresh original Mongoose4.9.8 model: uppercase query casting, owner equality, embedded member lookup all pass."
+  ],
+  "combinedChecks": {
+    "accountTests": 243,
+    "failed": 0,
+    "originalNode8ClientCalls": 5,
+    "originalClientScenario": "Uppercase UpdateLoop/ListLoops/GetRobot on real Account HTTP; Store/service reopen then ListLoops/GetRobot retain updated state."
+  },
+  "mergeReview": "Retained A05 owner/deleted-loop/suspended replacement behavior and removed its nested exact-string equality helper so shared ObjectId-aware equality is used.",
+  "qualifications": [
+    "Valid24hex identifiers only; 12-byte/invalid casting remains outside this candidate.",
+    "Original Mongoose query casting checked without Mongo execution.",
+    "Five client calls use actual Account service and synthetic accounts; no Classic or real robot claim.",
+    "Full A04/A05 and combined release gate remain open."
+  ],
+  "hashes": {
+    "execution.json": "150647b15e8e5663f772577d0d2fd9541e84455b2f50af6978fc4920bf58e0c4",
+    "query-cast.cjs": "400e0ec7b3aac1641fe9b8a4ba9b8cfae8a2ca7af052c1c1f31590fe25c9bcd2",
+    "query-cast.json": "e3d2eb5829541b982f786c4e5e13281a23e4e617216e112e591c28cec0270dee",
+    "client-integrated.cjs": "193ab52fa9bc02e6f2a41d562eaf63f62eb43de27f2b2872514e8d9a350eb271",
+    "integrated-sdk.mjs": "530926ba49495278b20393ebd85ebd4071d5f539ee1c9c4bb0f8d4accba3f725",
+    "integrated-sdk.json": "0b378cd844fe8f1ac6f470f04a861bc2af5333a04b1f3ac857659c1a44543f6b",
+    "combined-account.log": "ab44b47efa35a9102d7bc6435ec99e50a71881b381bedccb8083591e5e78b71d"
+  }
+}
