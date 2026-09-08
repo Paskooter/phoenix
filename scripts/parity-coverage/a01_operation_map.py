@@ -139,6 +139,7 @@ NON_MUTATING_VERIFICATION = {
     ("Loop_20160324", "ListLoopMembers"),
     ("Loop_20160324", "ListLoops"),
     ("Loop_20160324", "ListOwnerRobots"),
+    ("OOBE_20161026", "GetStatus"),
 }
 
 JOT_ARCHIVE_REVIEW_PATH = ".parity/reviews/a01-root/source-2.js"
@@ -390,10 +391,13 @@ def common_auth(kind: str) -> dict:
         }
     if kind == "legacy-settings":
         return {
-            "method": "original consumers send x-amz-credentials JSON; source Settings handler uses parseCredentials",
-            "identity": "account id from the credentials header",
-            "ownership": "controller checks accepted loop membership",
-            "unknowns": ["no formal Settings_20160801 API model was recovered"],
+            "method": "original consumers send x-amz-credentials JSON {id}; 2018 Settings handler uses parseCredentials. No 20160801 API model was recovered to confirm the original auth decorator.",
+            "identity": "account id from the credentials header in both original consumers",
+            "ownership": "2018 controller checks accepted loop membership; 20160801-era ownership rule is not independently proven",
+            "unknowns": [
+                "no formal Settings_20160801 API model was recovered",
+                "gateway routing of Settings_20160801 versus Settings_20171219 is not proven",
+            ],
         }
     return {
         "method": "LAN-trusted Classic compatibility handler; no SigV4 verification in the current handler",
@@ -525,12 +529,17 @@ def source_for(prefix: str, op: str) -> dict:
     if prefix == "OOBE_20161026":
         handlers = [classic("packages/classic/src/index.js", "classicRoutes /^oobe/i proxyTo NET_account")]
         symbols = {"SetupRobot": "robotFaceRoutes -> setupRobot", "PrepareRobot": "robotFaceRoutes -> prepareRobot", "GetStatus": "robotFaceRoutes -> getStatus"}
+        phoenix_status = PHOENIX_OOBE_HANDLERS[op]
         if op in symbols:
             handlers.append(account("packages/account/src/robotFace.js", symbols[op]))
-            status = "implemented-bounded"
         else:
-            status = "proxy-only"
-        return {"status": status, "handlers": handlers, "unknowns": ["ReconnectRobot/GetServiceToken source handlers are not implemented in the current Phoenix robot face"]}
+            handlers.append(account("packages/account/src/robotFace.js", "robotFaceRoutes ops map: no " + op + "; unknown target returns UnknownOperationException 400"))
+        unknowns = []
+        if phoenix_status == "absent-operation-handler":
+            unknowns.append("Phoenix robotFace has no handler for this operation; Classic still forwards /^oobe/i to the account service which returns UnknownOperationException")
+        else:
+            unknowns.append("Phoenix robotFace implements a bounded subset of the source OobeController; source-vs-Phoenix runtime remains unverified")
+        return {"status": phoenix_status, "handlers": handlers, "unknowns": unknowns}
     if prefix == "Person_20160801":
         return {"status": "stub-ephemeral", "handlers": [classic("packages/classic/src/stubs.js", "defineStubs().person")], "unknowns": ["source data categories, membership and durable properties"]}
     if prefix == "Push_20160729":
@@ -937,6 +946,260 @@ LOOP_SIDE_EFFECTS = {
     "UpdatePhoneticName": "emits LoopUpdated command",
 }
 
+OOBE_HANDLER_METHODS = {
+    "GetServiceToken": "GetServiceToken",
+    "GetStatus": "GetStatus",
+    "PrepareRobot": "PrepareRobot",
+    "ReconnectRobot": "ReconnectRobot",
+    "SetupRobot": "SetupRobot",
+}
+
+OOBE_CONTROLLER_METHODS = {
+    "GetServiceToken": "getServiceToken",
+    "GetStatus": "getStatus",
+    "PrepareRobot": "prepareRobot",
+    "ReconnectRobot": "reconnectRobot",
+    "SetupRobot": "setupRobot",
+}
+
+OOBE_ADMIN = {"GetServiceToken"}
+
+OOBE_VALIDATION = {
+    "GetServiceToken": {"required": [], "optional": [], "transforms": []},
+    "GetStatus": {"required": ["token"], "optional": [], "transforms": []},
+    "PrepareRobot": {"required": [], "optional": ["loopId"], "transforms": []},
+    "ReconnectRobot": {"required": ["token"], "optional": ["id"], "transforms": ["handler Joi accepts optional id; controller ignores it"]},
+    "SetupRobot": {"required": ["token", "id"], "optional": [], "transforms": []},
+}
+
+OOBE_OWNERSHIP = {
+    "GetServiceToken": "admin credential required; creates a new service-mode owner account and setup token",
+    "GetStatus": "parseCredentials decorator is present; controller does not use the authenticated identity and keys only on the setup token",
+    "PrepareRobot": "authenticated account is the token subject; optional loopId is stored on the token",
+    "ReconnectRobot": "parseCredentials decorator is present; controller deletes the setup token and ignores caller identity and optional id",
+    "SetupRobot": "parseCredentials decorator is present; token selects the owner account; loop owner must match that account",
+}
+
+OOBE_ERRORS = {
+    "GetServiceToken": [],
+    "GetStatus": [],
+    "PrepareRobot": [],
+    "ReconnectRobot": ["TOKEN_NOT_FOUND 404", "TOKEN_EXPIRED 401"],
+    "SetupRobot": ["TOKEN_NOT_FOUND 404", "TOKEN_EXPIRED 401", "ACCOUNT_NOT_FOUND 404", "OWNER_CAN_MANIPULATE 401", "LOOP_MUST_BE_SUSPENDED 409"],
+}
+
+OOBE_PERSISTENCE = {
+    "GetServiceToken": "creates an Account document and a Token document",
+    "GetStatus": "token read only; no write",
+    "PrepareRobot": "Token document is created or reused and saved with a refreshed created timestamp",
+    "ReconnectRobot": "setup Token document is removed",
+    "SetupRobot": "Loop/robot members are saved when creating or unsuspending; setup Token is deleted",
+}
+
+OOBE_SIDE_EFFECTS = {
+    "GetServiceToken": "creates a service-mode account with email prefix service-mode- and a random password; issues a setup token with no loopId",
+    "GetStatus": "none beyond token lookup; missing/expired tokens are treated as complete:true rather than errors",
+    "PrepareRobot": "issues or refreshes a 15-minute setup token for the authenticated account",
+    "ReconnectRobot": "deletes the setup token and returns {result: 'Command accepted'}; does not mutate loop/robot membership",
+    "SetupRobot": "creates or reuses a loop, may replace the robot on a suspended loop, deletes the setup token, returns robot accessKeyId/secretAccessKey and optional serviceMode; a Loop save schedules LoopUpdated through the startup hook",
+}
+
+OOBE_ERROR_UNKNOWNS = {
+    "GetServiceToken": ["admin decorator failure envelope and Account.create collision path remain unverified"],
+    "GetStatus": ["the controller catch swallows TOKEN_NOT_FOUND, TOKEN_EXPIRED and any other findById error; decorator credential failures remain unverified"],
+    "PrepareRobot": ["decorator credential failure envelope remains unverified"],
+    "ReconnectRobot": ["decorator credential failure envelope remains unverified"],
+    "SetupRobot": ["loop.create/getRobot/findOrCreateRobotAccount error precedence beyond the controller's explicit throws remains unverified"],
+}
+
+OOBE_SOURCE_EVIDENCE = {
+    "GetServiceToken": {
+        "handler": {"path": "src/handlers/oobe.handler.ts", "lineRefs": [11, 12, 62, 63, 64, 65]},
+        "controller": {"path": "src/controllers/oobe.ctrl.ts", "lineRefs": [109, 110, 111, 112, 113, 114, 115, 116, 117]},
+    },
+    "GetStatus": {
+        "handler": {"path": "src/handlers/oobe.handler.ts", "lineRefs": [19, 20, 21, 22, 23, 24, 25, 26, 27]},
+        "controller": {"path": "src/controllers/oobe.ctrl.ts", "lineRefs": [98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108]},
+        "errors": {"path": "src/controllers/token.ctrl.ts", "lineRefs": [23, 24, 25, 26, 27, 28, 29, 30, 31]},
+    },
+    "PrepareRobot": {
+        "handler": {"path": "src/handlers/oobe.handler.ts", "lineRefs": [30, 31, 32, 33, 34, 35, 36, 37, 38]},
+        "controller": {"path": "src/controllers/oobe.ctrl.ts", "lineRefs": [29, 30, 31, 32]},
+        "token": {"path": "src/controllers/token.ctrl.ts", "lineRefs": list(range(33, 51))},
+    },
+    "ReconnectRobot": {
+        "handler": {"path": "src/handlers/oobe.handler.ts", "lineRefs": [41, 42, 43, 44, 45, 46, 47, 48, 49]},
+        "controller": {"path": "src/controllers/oobe.ctrl.ts", "lineRefs": [94, 95, 96, 97]},
+        "errors": {"path": "src/controllers/token.ctrl.ts", "lineRefs": [23, 24, 25, 26, 27, 28, 29, 30, 31, 61, 62, 63, 64]},
+    },
+    "SetupRobot": {
+        "handler": {"path": "src/handlers/oobe.handler.ts", "lineRefs": [52, 53, 54, 55, 56, 57, 58, 59, 60]},
+        "controller": {"path": "src/controllers/oobe.ctrl.ts", "lineRefs": list(range(47, 94))},
+        "errors": {"path": "src/errors/loop.ts", "lineRefs": [6, 7, 8, 9, 10]},
+    },
+}
+
+PHOENIX_OOBE_HANDLERS = {
+    "GetServiceToken": "absent-operation-handler",
+    "GetStatus": "implemented-bounded",
+    "PrepareRobot": "implemented-bounded",
+    "ReconnectRobot": "absent-operation-handler",
+    "SetupRobot": "implemented-bounded",
+}
+
+API_MODEL_PATHS = {
+    "Account_20151111": {
+        "ActivateById": "apis/accountadmin-2015-11-11.normal.json",
+        "ResetEmail": "apis/accountadmin-2015-11-11.normal.json",
+        "default": "apis/account-2015-11-11.normal.json",
+    },
+    "Loop_20160324": {"default": "apis/loop-2016-03-24.normal.json"},
+    "OOBE_20161026": {
+        "GetServiceToken": "apis/oobeadmin-2016-10-26.normal.json",
+        "default": "apis/oobe-2016-10-26.normal.json",
+    },
+}
+
+# Archive searches for a formal Settings_20160801 API model. None recovered a
+# settings-2016-08-01.normal.json or any other model whose targetPrefix is
+# Settings_20160801. Do not treat the later 20171219 model or the 2018 handler
+# as that missing file.
+SETTINGS_20160801_SEARCHES = [
+    {
+        "tool": "gitea_browse",
+        "repo": "jiborobot/srv-jibo-server-client",
+        "ref": SDK_REF,
+        "path": "apis",
+        "result": "28 entries; settings-2017-12-19.normal.json present; no settings-2016-08-01.normal.json",
+    },
+    {
+        "tool": "gitea_browse",
+        "repo": "jiborobot/srv-jibo-server-client",
+        "ref": "master",
+        "path": "apis",
+        "result": "same 28 entries; no settings-2016 file",
+    },
+    {
+        "tool": "gitea_code_search",
+        "repo": "jiborobot/srv-jibo-server-client",
+        "query": "settings-2016",
+        "result": "no matching results",
+    },
+    {
+        "tool": "gitea_file_history",
+        "repo": "jiborobot/srv-jibo-server-client",
+        "path": "apis/settings-2017-12-19.normal.json",
+        "result": "22 commits; first add is 2a4e46beb586d17ffac5f1601855ce96773e06f9 on 2017-12-21 with targetPrefix Settings_20171219 and request members robotID/userID, not 20160801",
+    },
+    {
+        "tool": "gitea_browse",
+        "repo": "server/jibo-server-client",
+        "path": "apis",
+        "result": "16 files; no settings API file at all",
+    },
+    {
+        "tool": "gitea_code_search",
+        "repo": "jiborobot/srv-security-gw",
+        "query": "Settings_20160801",
+        "result": "no matching results",
+    },
+    {
+        "tool": "jibo_search",
+        "query": "Settings_20160801",
+        "sources": "all",
+        "result": "0 indexed hits; Pegasus source still contains the string when read directly",
+    },
+    {
+        "tool": "jibo_search",
+        "query": "settings-2016-08-01.normal.json",
+        "sources": "all",
+        "result": "no source/API-model hits; Confluence noise only",
+    },
+    {
+        "tool": "gitea_read_file",
+        "repo": "jiboV2/pegasus",
+        "ref": PEGASUS_REF,
+        "path": "packages/hub/src/utils/SettingsClient.ts",
+        "result": "hardcoded SETTINGS_API_VERSION='20160801'; axios POST, not an SDK model",
+    },
+    {
+        "tool": "gitea_read_file",
+        "repo": "jiboV2/pegasus",
+        "ref": PEGASUS_REF,
+        "path": "packages/report-skill/src/SettingsClient.ts",
+        "result": "same hardcoded target; skills sent as the string 'report-skill'",
+    },
+    {
+        "tool": "gitea_file_history",
+        "repo": "jiboV2/pegasus",
+        "path": "packages/hub/src/utils/SettingsClient.ts",
+        "result": "first commit ec61042c1c1c084191d32ad3edac3c8a1aaed781 on 2018-04-24 already uses 20160801; later than the 2017-12-19 SDK model",
+    },
+]
+
+SETTINGS_20160801_CONSUMER_CONTRACT = {
+    "formalApiModel": None,
+    "formalApiModelStatus": "unrecovered",
+    "note": "Original hub/report clients construct Settings_20160801.GetSettings with axios. No SDK normal.json with that targetPrefix was found. The 20171219 model remains a separate mapped surface.",
+    "hub": {
+        "repository": "pegasus",
+        "revision": PEGASUS_REF,
+        "path": "packages/hub/src/utils/SettingsClient.ts",
+        "symbol": "SettingsClient.getSettings",
+        "lineRefs": [4, 17, 29, 30, 31, 34, 35, 36, 37, 38, 39, 45],
+        "headers": {
+            "x-amz-credentials": "JSON.stringify({ id: accountId })",
+            "x-amz-target": "Settings_20160801.GetSettings",
+        },
+        "requestBody": {
+            "loopId": {"type": "string", "source": "caller argument; client throws if missing"},
+            "transId": {"type": "string", "source": "caller argument; client warns if missing but still sends the field"},
+            "skills": {"type": "string[]", "source": "caller argument; empty array short-circuits with no HTTP call"},
+            "getView": {"type": "boolean", "literal": False},
+        },
+        "responseConsumption": "array of objects; Map(skillId -> data); other members are not read",
+    },
+    "report": {
+        "repository": "pegasus",
+        "revision": PEGASUS_REF,
+        "path": "packages/report-skill/src/SettingsClient.ts",
+        "symbol": "SettingsClient.getSettings",
+        "lineRefs": [12, 176, 177, 178, 179, 180, 181, 182, 183, 184],
+        "headers": {
+            "x-amz-credentials": "JSON.stringify({ id: accountId })",
+            "x-amz-target": "Settings_20160801.GetSettings",
+        },
+        "requestBody": {
+            "loopId": {"type": "string", "source": "runtime.loop.loopId; client throws if missing"},
+            "transId": {"type": "string", "source": "data.req.jibo.transID; client warns if missing but still sends the field"},
+            "getView": {"type": "boolean", "literal": False},
+            "skills": {"type": "string", "literal": "report-skill", "note": "not an array"},
+        },
+        "responseConsumption": "array of objects; find skillId === 'report-skill' and use that object's data",
+    },
+}
+
+SETTINGS_20160801_LATER_HANDLER = {
+    "status": "later-source-not-a-20160801-model",
+    "repository": "jiborobot/srv-settings-ws",
+    "revision": SETTINGS_REF,
+    "note": "Pinned 2018 SettingsHandler.GetSettings shares the operation name with the legacy target. It is not a recovered Settings_20160801 API model.",
+    "handler": "src/handlers/settings.handler.ts SettingsHandler.GetSettings",
+    "handlerLineRefs": [33, 34, 35, 36, 37, 38, 39, 40, 41, 42],
+    "controller": "src/controllers/settings.ctrl.ts SettingsController.getSettings",
+    "controllerLineRefs": [42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56],
+    "auth": "parseCredentials; identity request.auth.credentials.id; controller.checkUserBelongsToLoop",
+    "joiRequired": ["loopId"],
+    "joiOptional": ["transId", "skills", "settings", "getView"],
+    "getViewDefaultWhenAbsent": True,
+    "errors": ["LOOP_MEMBER_ONLY 403", "UNKNOWN_DATA_SERVICE 422"],
+    "outputMembers": ["skillId", "view", "data", "errors"],
+    "unknowns": [
+        "whether the deployed 2016-era Settings process accepted this later Joi/schema is not proven",
+        "report-skill sending skills as a string versus the TypeScript skills?: string[] interface is unresolved at the 20160801 boundary",
+    ],
+}
+
 
 def _original_source_pin(path: str, symbol: str | None = None) -> dict:
     return pin(ACCOUNT_REPOSITORY, ACCOUNT_SOURCE_REF, path, symbol)
@@ -1090,14 +1353,93 @@ def _original_loop_contract(op: str) -> dict:
     }
 
 
+def _original_oobe_source(op: str) -> dict:
+    if op not in OOBE_HANDLER_METHODS:
+        raise KeyError(f"unmapped original OOBE operation: {op}")
+    handler_method = OOBE_HANDLER_METHODS[op]
+    controller_method = OOBE_CONTROLLER_METHODS[op]
+    admin_only = op in OOBE_ADMIN
+    return {
+        "status": "mapped-original",
+        "repository": ACCOUNT_REPOSITORY,
+        "revision": ACCOUNT_SOURCE_REF,
+        "entrypoint": _original_source_pin("src/index.ts", "App handlerFactory: OobeHandler"),
+        "route": _original_source_pin("src/index.ts", "no dedicated OobeRoute; AWS-JSON handler mapping only"),
+        "handler": _original_source_pin("src/handlers/oobe.handler.ts", f"OobeHandler.{handler_method}"),
+        "controller": _original_source_pin("src/controllers/oobe.ctrl.ts", f"OobeController.{controller_method}"),
+        "tokenController": _original_source_pin("src/controllers/token.ctrl.ts", "TokenController"),
+        "schemas": [
+            _original_source_pin("src/schemes/token.ts", "TokenSchema"),
+            _original_source_pin("src/schemes/account.ts", "AccountSchema"),
+            _original_source_pin("src/schemes/loop.ts", "LoopSchema"),
+        ],
+        "errors": _original_source_pin("src/errors/token.ts", "TokenError") if op in {"GetStatus", "ReconnectRobot", "SetupRobot"} else _original_source_pin("src/errors/account.ts", "AccountError"),
+        "config": _original_source_pin("config/config.json", "sanitized runtime dependency/configuration evidence"),
+        "sourceEvidence": copy.deepcopy(OOBE_SOURCE_EVIDENCE.get(op, {})),
+        "legacySource": pin(ACCOUNT_LEGACY_REPOSITORY, ACCOUNT_LEGACY_REF, "src/controllers", "legacy JavaScript chronology tree; OOBE controller presence is not asserted here"),
+        "auth": {
+            "decorator": "parseCredentials",
+            "adminOnly": admin_only,
+            "identity": "request.auth.credentials.id" if op == "PrepareRobot" else ("admin credentials.id" if admin_only else "decorator requires credentials; controller does not use credentials.id"),
+            "unknowns": ["outer deployed gateway authentication and target alias were not replayed"],
+        },
+        "validation": copy.deepcopy(OOBE_VALIDATION[op]),
+        "unknowns": [
+            "source revision is pinned, but the deployed service revision/route alias for this historical SDK target is not independently proven",
+            "runtime source-vs-Phoenix scenario is not run in this candidate",
+        ],
+    }
+
+
+def _original_oobe_contract(op: str) -> dict:
+    source = _original_oobe_source(op)
+    error_unknowns = ["exact framework envelope and deployed alias remain unverified"] + OOBE_ERROR_UNKNOWNS.get(op, [])
+    return {
+        "sourceRevision": ACCOUNT_SOURCE_REF,
+        "handlerMethod": source["handler"]["symbol"],
+        "controllerMethod": source["controller"]["symbol"],
+        "auth": copy.deepcopy(source["auth"]),
+        "ownership": OOBE_OWNERSHIP[op],
+        "schema": {"validation": copy.deepcopy(OOBE_VALIDATION[op]), "model": "src/schemes/token.ts"},
+        "errors": {
+            "observed": OOBE_ERRORS[op],
+            "unknowns": error_unknowns,
+        },
+        "persistence": {"observed": OOBE_PERSISTENCE[op], "unknowns": ["restart/transaction behavior was not exercised"]},
+        "sideEffects": {
+            "observed": OOBE_SIDE_EFFECTS[op],
+            "unknowns": ["external provider/event delivery was not exercised"],
+            "startupHook": {
+                "source": _original_source_pin("src/index.ts", "setupAccountEntityTriggers/loopSchema.postSave"),
+                "lineRefs": [33, 74, 75, 104, 105, 107, 108, 114],
+                "condition": "a Loop document is saved after service startup installs the hook",
+                "behavior": "schedules LoopUpdated using setImmediate; next() continues immediately; send/serialization failures are logged",
+                "runtimeStatus": "not-run",
+                "appliesToThisOperation": op == "SetupRobot",
+            },
+        },
+        "sourceEvidence": copy.deepcopy(source["sourceEvidence"]),
+        "sourcePins": {
+            "route": source["route"],
+            "handler": source["handler"],
+            "controller": source["controller"],
+            "config": source["config"],
+            "legacyComparison": source["legacySource"],
+        },
+    }
+
+
 def attach_original_source(prefix: str, op: str, source: dict, contract: dict) -> tuple[dict, dict]:
-    """Attach recovered Account/Loop source while preserving local Phoenix facts."""
+    """Attach recovered Account/Loop/OOBE source while preserving local Phoenix facts."""
     if prefix == "Account_20151111":
         original = _original_account_source(op)
         original_contract = _original_account_contract(op)
     elif prefix == "Loop_20160324":
         original = _original_loop_source(op)
         original_contract = _original_loop_contract(op)
+    elif prefix == "OOBE_20161026":
+        original = _original_oobe_source(op)
+        original_contract = _original_oobe_contract(op)
     else:
         return source, contract
     local_status = source["status"]
@@ -1131,6 +1473,74 @@ def attach_original_source(prefix: str, op: str, source: dict, contract: dict) -
     return source, contract
 
 
+def api_model_ref(prefix: str, op: str, inventory_operation: dict) -> dict:
+    paths = API_MODEL_PATHS[prefix]
+    path = paths.get(op, paths["default"])
+    return {
+        "repository": "jiborobot/srv-jibo-server-client",
+        "revision": SDK_REF,
+        "path": path,
+        "inputShape": inventory_operation.get("input"),
+        "outputShape": inventory_operation.get("output"),
+        "requiredInput": copy.deepcopy(inventory_operation.get("requiredInput", [])),
+        "declaredModelErrors": copy.deepcopy(inventory_operation.get("errors", [])),
+        "note": "Pinned API JSON declares no error shapes for this family; controller error codes are recorded separately",
+    }
+
+
+def phoenix_handler_attribute(prefix: str, op: str, phoenix_status: str) -> dict:
+    if prefix == "OOBE_20161026":
+        present = phoenix_status != "absent-operation-handler"
+        if present:
+            note = "packages/account/src/robotFace.js implements a bounded subset of OobeController"
+        else:
+            note = "packages/account/src/robotFace.js ops map has setuprobot/preparerobot/getstatus only; this operation returns UnknownOperationException 400"
+        return {"present": present, "status": phoenix_status, "path": "packages/account/src/robotFace.js", "note": note}
+    if prefix == "Account_20151111":
+        present = op == "CreateHubToken"
+        return {
+            "present": present,
+            "status": phoenix_status,
+            "path": "packages/account/src/robotFace.js" if present else "packages/classic/src/index.js",
+            "note": "Phoenix robotFace implements CreateHubToken only; other Account operations are proxied with no local AccountHandler" if not present else "bounded CreateHubToken compatibility route",
+        }
+    if prefix == "Loop_20160324":
+        present = op in {"ListLoops", "SuspendLoop", "SuspendRobotLoop"}
+        return {
+            "present": present,
+            "status": phoenix_status,
+            "path": "packages/account/src/robotFace.js" if present else "packages/classic/src/index.js",
+            "note": "Phoenix loopDispatch implements ListLoops/SuspendLoop/SuspendRobotLoop only; other Loop operations are proxied with no local LoopHandler" if not present else "bounded Loop compatibility dispatch",
+        }
+    raise KeyError(prefix)
+
+
+def family_attributes(prefix: str, op: str, inventory_operation: dict, original_contract: dict, phoenix_status: str) -> dict:
+    """Canonical per-operation attributes sourced from API JSON + original controllers."""
+    return {
+        "authenticationMode": copy.deepcopy(original_contract["auth"]),
+        "ownershipRule": original_contract["ownership"],
+        "requestSchema": {
+            "apiModel": api_model_ref(prefix, op, inventory_operation),
+            "handlerValidation": copy.deepcopy(original_contract["schema"]["validation"]),
+        },
+        "responseSchema": {
+            "apiModelOutputShape": inventory_operation.get("output"),
+            "sourceModel": original_contract["schema"].get("model"),
+        },
+        "declaredErrorCodes": {
+            "apiModel": copy.deepcopy(inventory_operation.get("errors", [])),
+            "controller": copy.deepcopy(original_contract["errors"]["observed"]),
+            "unknowns": copy.deepcopy(original_contract["errors"].get("unknowns", [])),
+        },
+        "persistenceEffects": copy.deepcopy(original_contract["persistence"]),
+        "observableSideEffects": copy.deepcopy(original_contract["sideEffects"]),
+        "phoenixHandler": phoenix_handler_attribute(prefix, op, phoenix_status),
+        "source": "pinned API JSON plus original srv-account-ws controllers; not inferred from Phoenix behavior",
+        "runtimeStatus": "not-run",
+    }
+
+
 def original_verification(prefix: str, op: str) -> dict:
     """Build a concrete, source-backed scenario without claiming it ran."""
     if prefix == "Account_20151111":
@@ -1139,6 +1549,9 @@ def original_verification(prefix: str, op: str) -> dict:
     elif prefix == "Loop_20160324":
         source = _original_loop_source(op)
         contract = _original_loop_contract(op)
+    elif prefix == "OOBE_20161026":
+        source = _original_oobe_source(op)
+        contract = _original_oobe_contract(op)
     else:
         return {}
     validation = source["validation"]
@@ -1319,11 +1732,18 @@ def service_contract(prefix: str, op: str) -> dict:
         c["persistence"] = {"observed": "Phoenix account store is used only by bounded compatibility dispatch", "unknowns": ["source persistence is recorded in originalSource"]}
         c["sideEffects"] = {"observed": "Phoenix bounded compatibility dispatch only", "unknowns": ["source side effects are recorded in originalSource"]}
     elif prefix == "OOBE_20161026":
+        phoenix_status = PHOENIX_OOBE_HANDLERS[op]
         c["auth"] = common_auth("proxy")
-        c["ownership"] = "bounded robotFace paths use account store; other operations are upstream-only"
-        c["errors"] = {"observed": ["bounded OOBE errors TOKEN_NOT_FOUND, TOKEN_EXPIRED, ACCOUNT_NOT_FOUND, CREDENTIALS_REQUIRED, LOOP_MUST_BE_SUSPENDED, ValidationException"], "unknowns": ["full upstream operation errors"]}
-        c["persistence"] = {"observed": "account store persists loops/accounts/tokens; bounded dispatch mutates it", "unknowns": ["full upstream operation durability"]}
-        c["sideEffects"] = {"observed": "bounded OOBE setup consumes token and creates/reuses loop credentials; bounded Loop suspend mutates loop", "unknowns": ["full lifecycle side effects"]}
+        if phoenix_status == "absent-operation-handler":
+            c["ownership"] = "no Phoenix operation handler; Classic forwards /^oobe/i and robotFace returns UnknownOperationException"
+            c["errors"] = {"observed": ["Phoenix UnknownOperationException 400"], "unknowns": ["source controller errors are recorded in originalSource"]}
+            c["persistence"] = {"observed": "no Phoenix handler persistence", "unknowns": ["source persistence is recorded in originalSource"]}
+            c["sideEffects"] = {"observed": "no Phoenix handler side effect", "unknowns": ["source side effects are recorded in originalSource"]}
+        else:
+            c["ownership"] = "bounded robotFace paths use the account store; source ownership is recorded separately"
+            c["errors"] = {"observed": ["bounded OOBE errors TOKEN_NOT_FOUND, TOKEN_EXPIRED, ACCOUNT_NOT_FOUND, CREDENTIALS_REQUIRED, LOOP_MUST_BE_SUSPENDED, ValidationException"], "unknowns": ["Phoenix does not execute the recovered source controller on this route"]}
+            c["persistence"] = {"observed": "bounded account-store token/loop/credential mutation", "unknowns": ["source persistence is recorded in originalSource"]}
+            c["sideEffects"] = {"observed": "bounded OOBE setup consumes token and creates/reuses loop credentials", "unknowns": ["source side effects are recorded in originalSource"]}
     elif prefix == "GQA_20160930" or prefix in {"Lps_20171201", "OauthClients_20171108"}:
         c["auth"] = common_auth("unregistered")
         c["ownership"] = "unknown"
@@ -1346,17 +1766,18 @@ def scenario(prefix: str, op: str, required: list[str], *, kind: str = "current"
             "send a bounded synthetic multipart/stream request with x-amz-credentials and compare the Hapi status/body",
             "exercise an unknown method and the historical UploadFile alias separately; preserve the observed 404 rather than assuming an alias",
         ]
-    elif kind == "historical-settings":
+    elif kind in {"historical-settings", "historical-legacy-settings"}:
         assertions = [
-            "send both report string-skills and hub array-skills requests with a synthetic accepted loop member",
-            "compare view filtering, data-service errors and a non-member request against the pinned Settings source",
+            "send the hub array-skills request and the report string-skills='report-skill' request with x-amz-target Settings_20160801.GetSettings",
+            "do not treat settings-2017-12-19.normal.json as this contract; keep that four-operation surface independently mapped",
+            "compare status/body against original consumer field consumption (skillId/data) and record that no 20160801 API model was recovered",
         ]
     elif source_status == "unregistered":
         assertions = [
             "send the model-shaped request to the documented Classic endpoint and record the actual no-route/upstream response",
             "do not treat a dispatch-only 400 as implementation evidence; locate the source service before closing the task",
         ]
-    elif source_status in {"proxy-only", "unimplemented", "proxy-with-original-controller"}:
+    elif source_status in {"proxy-only", "unimplemented", "proxy-with-original-controller", "absent-operation-handler"}:
         assertions = [
             "send the model-shaped request through Classic with synthetic credentials and compare it with the pinned original handler/controller",
             "capture upstream availability, status, error envelope and body schema before assigning implementation credit",
@@ -1439,7 +1860,11 @@ def source_pin_for_historical(kind: str, prefix: str, op: str) -> dict:
             pin("jiborobot/srv-settings-ws", SETTINGS_REF, "src/controllers/update.ctrl.ts", "UpdateController"),
             pin("jiborobot/srv-settings-ws", SETTINGS_REF, "src/controllers/delete.ctrl.ts", "DeleteController"),
         ],
-        "unknowns": ["no formal Settings_20160801 API model and no separately pinned historical controller revision"]
+        "unknowns": [
+            "no formal Settings_20160801 API model was recovered after the recorded archive searches",
+            "2018 SettingsHandler.GetSettings is a later same-name handler, not a 20160801 model",
+        ],
+        "apiModelSearch": copy.deepcopy(SETTINGS_20160801_SEARCHES),
     }
 
 
@@ -1469,15 +1894,32 @@ def historical_contract(kind: str, prefix: str, op: dict) -> dict:
     else:
         auth = common_auth("legacy-settings")
         errors = {
-            "observed": ["LOOP_MEMBER_ONLY 403", "UNKNOWN_DATA_SERVICE 422", "capture original framework/Joi validation status and envelope"],
-            "unknowns": ["formal legacy wire error headers/body and absent model errors"],
+            "observed": [],
+            "unknowns": [
+                "no 20160801 API model error shapes exist to cite",
+                "2018 handler codes LOOP_MEMBER_ONLY 403 and UNKNOWN_DATA_SERVICE 422 are later-source, not proven 20160801 wire errors",
+            ],
         }
-        persistence = {"observed": "controller reads/writes downstream Person/Lasso/Hub data; exact legacy persistence is delegated", "unknowns": ["legacy transaction boundaries"]}
-        side = {"observed": "GetSettings filters skill configs and optionally includes views", "unknowns": ["legacy update/delete operations are not in this one-pair surface"]}
+        persistence = {
+            "observed": "original consumers perform a read; they do not write settings",
+            "unknowns": ["20160801-era persistence/transaction boundaries are unrecovered without a model or contemporaneous controller"],
+        }
+        side = {
+            "observed": "hub maps skillId->data; report reads report-skill data. Neither consumer requests views (getView: false)",
+            "unknowns": ["update/delete are not part of this one-pair consumer surface"],
+        }
+    schema = op
+    if kind == "legacy-settings":
+        schema = {
+            "formalApiModel": None,
+            "formalApiModelStatus": "unrecovered",
+            "consumerObserved": copy.deepcopy(SETTINGS_20160801_CONSUMER_CONTRACT),
+            "laterSameNameHandler": copy.deepcopy(SETTINGS_20160801_LATER_HANDLER),
+        }
     return {
         "auth": auth,
         "ownership": auth["ownership"],
-        "schema": op,
+        "schema": schema,
         "errors": errors,
         "persistence": persistence,
         "sideEffects": side,
@@ -1537,19 +1979,22 @@ def build() -> dict:
                 "operation": copy.deepcopy(operation),
             })
 
-    # The legacy Settings target is source/consumer evidence, not an API model.
+    # The legacy Settings target is consumer/source evidence. Archive searches
+    # did not recover a Settings_20160801 API model; do not invent one.
     historical_by_pair["Settings_20160801.GetSettings"].append({
-        "path": "source-observed: Pegasus SettingsClient + srv-settings-ws",
-        "revision": f"{PEGASUS_REF}+{SETTINGS_REF}",
+        "path": "source-observed: Pegasus SettingsClient; no recovered API model",
+        "revision": PEGASUS_REF,
         "service": "settings",
-        "role": "legacy source/consumer contract (no recovered API model)",
+        "role": "legacy source/consumer contract (formal API model unrecovered)",
         "filenameLabel": None,
         "metadataApiVersion": "2016-08-01",
         "targetPrefix": "Settings_20160801",
         "operation": {
             "name": "GetSettings",
-            "input": {"type": "structure", "required": ["loopId"], "members": {"loopId": "string", "transId": "string", "skills": "string|string[]", "settings": "array", "getView": "boolean"}},
-            "output": {"type": "list", "members": {"skillId": "string", "data": "object", "view": "object", "errors": "object"}},
+            "formalApiModel": None,
+            "consumerObserved": copy.deepcopy(SETTINGS_20160801_CONSUMER_CONTRACT),
+            "laterSameNameHandler": copy.deepcopy(SETTINGS_20160801_LATER_HANDLER),
+            "searches": copy.deepcopy(SETTINGS_20160801_SEARCHES),
         },
     })
 
@@ -1577,8 +2022,16 @@ def build() -> dict:
         original_unknowns = source.get("original", {}).get("unknowns", [])
         original_contract_unknowns = contract.get("originalSource", {}).get("auth", {}).get("unknowns", [])
         verification = scenario(prefix, op, operation.get("requiredInput", []), source_status=source["status"])
-        if prefix in {"Account_20151111", "Loop_20160324"}:
+        attributes = None
+        if prefix in {"Account_20151111", "Loop_20160324", "OOBE_20161026"}:
             verification["originalSource"] = original_verification(prefix, op)
+            attributes = family_attributes(
+                prefix,
+                op,
+                operation,
+                contract["originalSource"],
+                source.get("phoenixStatus", source["status"]),
+            )
         row = {
             "id": f"current:{target}",
             "kind": "current",
@@ -1590,6 +2043,7 @@ def build() -> dict:
             "consumers": consumers,
             "task": task_for(prefix, op),
             "contract": contract,
+            "attributes": attributes,
             "verification": verification,
             "unknowns": list(dict.fromkeys(source_unknowns + original_unknowns + original_contract_unknowns + contract["auth"].get("unknowns", []) + contract["errors"].get("unknowns", []))),
         }
@@ -1602,7 +2056,7 @@ def build() -> dict:
             kind = "legacy-settings"
             source = source_pin_for_historical(kind, prefix, op)
             op_schema = evidence[0]["operation"]
-            required = ["loopId"]
+            required = ["loopId", "transId"]
             source_status = source["status"]
             alternate = []
         else:
@@ -1651,6 +2105,32 @@ def build() -> dict:
             "verification": scenario(prefix, op, required, kind=f"historical-{kind}", source_status=source_status),
             "unknowns": list(dict.fromkeys(source.get("unknowns", []) + contract["auth"].get("unknowns", []) + contract["errors"].get("unknowns", []))),
         }
+        if target == "Settings_20160801.GetSettings":
+            row["attributes"] = {
+                "authenticationMode": copy.deepcopy(contract["auth"]),
+                "ownershipRule": contract["ownership"],
+                "requestSchema": {
+                    "formalApiModel": None,
+                    "consumerObserved": copy.deepcopy(SETTINGS_20160801_CONSUMER_CONTRACT),
+                },
+                "responseSchema": {
+                    "formalApiModel": None,
+                    "hubConsumption": SETTINGS_20160801_CONSUMER_CONTRACT["hub"]["responseConsumption"],
+                    "reportConsumption": SETTINGS_20160801_CONSUMER_CONTRACT["report"]["responseConsumption"],
+                },
+                "declaredErrorCodes": copy.deepcopy(contract["errors"]),
+                "persistenceEffects": copy.deepcopy(contract["persistence"]),
+                "observableSideEffects": copy.deepcopy(contract["sideEffects"]),
+                "phoenixHandler": {
+                    "present": True,
+                    "status": "implemented-report-bounded",
+                    "path": "packages/account/src/settingsFace.js",
+                    "note": "Phoenix settingsAwsDispatch is prefix-tolerant and will accept Settings_20160801; that is not verification of the unrecovered 20160801 model",
+                },
+                "apiModelSearch": copy.deepcopy(SETTINGS_20160801_SEARCHES),
+                "laterSameNameHandler": copy.deepcopy(SETTINGS_20160801_LATER_HANDLER),
+                "runtimeStatus": "not-run",
+            }
         rows.append(row)
 
     task_ids = {item["id"] for item in tasks["tasks"]}
@@ -1672,7 +2152,7 @@ def build() -> dict:
         "status": "working-source-map-unverified",
         "task": "A-01",
         "baseRevision": phoenix_revision(),
-        "generatedAt": "2026-09-06",
+        "generatedAt": "2026-09-07",
         "inputs": {
             "inventory": {"path": str(INVENTORY_PATH.relative_to(ROOT)), "sha256": sha256(INVENTORY_PATH), "resolvedCommit": inventory["resolvedCommit"]},
             "discoveryManifest": {"path": str(DISCOVERY_PATH.relative_to(ROOT)), "sha256": sha256(DISCOVERY_PATH), "review": "docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json"},
@@ -1696,7 +2176,20 @@ def build() -> dict:
                 "deploymentUnknowns": ["deployed target alias and service revision are not proven", "outer gateway authentication and exact Hapi/framework envelope are not runtime-replayed"],
             },
             "legacyComparison": {"repository": ACCOUNT_LEGACY_REPOSITORY, "revision": ACCOUNT_LEGACY_REF, "status": "chronology-only; later operations are absent"},
+            "oobe": {
+                "repository": ACCOUNT_REPOSITORY,
+                "revision": ACCOUNT_SOURCE_REF,
+                "paths": ["src/index.ts", "src/handlers/oobe.handler.ts", "src/controllers/oobe.ctrl.ts", "src/controllers/token.ctrl.ts", "src/schemes/token.ts", "src/errors/token.ts", "src/errors/account.ts", "src/errors/loop.ts", "config/config.json"],
+                "mappedOperations": sorted(OOBE_HANDLER_METHODS),
+                "phoenixAbsentOperations": ["GetServiceToken", "ReconnectRobot"],
+                "deploymentUnknowns": ["deployed target alias and service revision are not proven", "outer gateway authentication and exact Hapi/framework envelope are not runtime-replayed"],
+            },
             "settingsConsumer": {"repository": "pegasus", "revision": PEGASUS_REF, "originalRevision": True, "paths": ["packages/report-skill/src/SettingsClient.ts", "packages/hub/src/utils/SettingsClient.ts"], "evidence": PEGASUS_SETTINGS_EVIDENCE},
+            "settings20160801ApiModel": {
+                "status": "unrecovered",
+                "searches": copy.deepcopy(SETTINGS_20160801_SEARCHES),
+                "independentlyMappedFrom": "Settings_20171219 remains a separate current SDK surface",
+            },
         },
         "denominator": {
             "currentPairCount": len(current_by_pair),
@@ -1744,7 +2237,8 @@ def build() -> dict:
             "Phoenix stubs and compatibility handlers are dispatch/shape evidence only; they do not establish original ownership, persistence, errors or provider side effects.",
             "Jot_20160126 in the 2016-05-12 model conflicts with Jot_20160512 in the archived integration test; four alternate targets are literal in the archived review artifact, while NumberOfUnreadMessagesInLoops remains model-only inferred. Arithmetic is recorded separately as literal model union 169, prefix substitution 170, directly observed additional client-prefix union 173, or hypothetical five-pair union 174.",
             "VoiceTraining historical SDK names UploadFile/RemoveFile/ListFiles/GetFile do not match the pinned current Hapi handler exports; version-specific source paths and deployed aliases remain open.",
-            "Settings_20160801.GetSettings is source/consumer observed without a formal SDK API model; the legacy row intentionally uses a source-derived schema.",
+            "Settings_20160801.GetSettings remains independently mapped from Settings_20171219. Archive searches listed on that row did not recover a formal 20160801 API model; the recorded request/response is consumer-observed plus a later same-name handler, not an invented normal.json.",
+            "Account, Loop and OOBE rows now carry per-operation attributes from the pinned API JSON and original srv-account-ws controllers. Phoenix-absent OOBE operations GetServiceToken and ReconnectRobot are explicit. All scenarios remain not-run.",
         ],
         "validator": {"command": "python3 scripts/parity-coverage/a01_operation_map.py validate", "runtimeScenarios": "not-run"},
     }
@@ -1826,12 +2320,17 @@ def validate(data: dict) -> list[str]:
     elif pegasus_pins[0].get("evidence") != PEGASUS_SETTINGS_EVIDENCE:
         errors.append("Settings consumer evidence must cite constructed Settings target lines")
     recovery = data.get("originalControllerRecovery", {})
-    for family, mapping in (("account", ACCOUNT_HANDLER_METHODS), ("loop", LOOP_HANDLER_METHODS)):
+    for family, mapping in (("account", ACCOUNT_HANDLER_METHODS), ("loop", LOOP_HANDLER_METHODS), ("oobe", OOBE_HANDLER_METHODS)):
         record = recovery.get(family, {})
         if record.get("repository") != ACCOUNT_REPOSITORY or record.get("revision") != ACCOUNT_SOURCE_REF:
             errors.append(f"originalControllerRecovery.{family} is not pinned to the source service")
         if set(record.get("mappedOperations", [])) != set(mapping):
             errors.append(f"originalControllerRecovery.{family}.mappedOperations is incomplete")
+    if recovery.get("oobe", {}).get("phoenixAbsentOperations") != ["GetServiceToken", "ReconnectRobot"]:
+        errors.append("originalControllerRecovery.oobe must name Phoenix-absent operations GetServiceToken and ReconnectRobot")
+    settings_model = recovery.get("settings20160801ApiModel", {})
+    if settings_model.get("status") != "unrecovered" or not settings_model.get("searches"):
+        errors.append("Settings_20160801 API model must remain unrecovered with recorded searches")
     settings_recovery = recovery.get("settingsConsumer", {})
     if settings_recovery.get("revision") != PEGASUS_REF or settings_recovery.get("evidence") != PEGASUS_SETTINGS_EVIDENCE:
         errors.append("originalControllerRecovery.settingsConsumer must retain original target-construction evidence")
@@ -1856,7 +2355,7 @@ def validate(data: dict) -> list[str]:
         for handler in source.get("handlers", []):
             if not handler.get("repository") or not handler.get("revision") or "path" not in handler:
                 errors.append(f"{row.get('id')}: unpinned source handler")
-        if row.get("kind") == "current" and row.get("targetPrefix") in {"Account_20151111", "Loop_20160324"}:
+        if row.get("kind") == "current" and row.get("targetPrefix") in {"Account_20151111", "Loop_20160324", "OOBE_20161026"}:
             original = source.get("original", {})
             original_contract = row.get("contract", {}).get("originalSource", {})
             if original.get("status") != "mapped-original":
@@ -1875,6 +2374,37 @@ def validate(data: dict) -> list[str]:
             original_verification_record = row.get("verification", {}).get("originalSource", {})
             if original_verification_record.get("status") != "not-run" or len(original_verification_record.get("cases", [])) != 4:
                 errors.append(f"{row.get('id')}: source-backed verification cases are incomplete or marked run")
+            attributes = row.get("attributes") or {}
+            for field in ("authenticationMode", "ownershipRule", "requestSchema", "responseSchema", "declaredErrorCodes", "persistenceEffects", "observableSideEffects", "phoenixHandler"):
+                if field not in attributes:
+                    errors.append(f"{row.get('id')}: per-operation attributes missing {field}")
+            if attributes.get("runtimeStatus") != "not-run":
+                errors.append(f"{row.get('id')}: attributes must remain not-run")
+            api_model = (attributes.get("requestSchema") or {}).get("apiModel") or {}
+            if api_model.get("repository") != "jiborobot/srv-jibo-server-client" or api_model.get("revision") != SDK_REF or not api_model.get("path"):
+                errors.append(f"{row.get('id')}: request schema must cite the pinned API JSON")
+            if attributes.get("declaredErrorCodes", {}).get("apiModel") != []:
+                errors.append(f"{row.get('id')}: pinned API JSON for this family declares no error shapes")
+            if attributes.get("declaredErrorCodes", {}).get("controller") != original_contract.get("errors", {}).get("observed"):
+                errors.append(f"{row.get('id')}: declared controller error codes must match originalSource")
+        if row.get("wireTarget") in {"OOBE_20161026.GetServiceToken", "OOBE_20161026.ReconnectRobot"}:
+            phoenix_handler = (row.get("attributes") or {}).get("phoenixHandler") or {}
+            if phoenix_handler.get("present") is not False or phoenix_handler.get("status") != "absent-operation-handler":
+                errors.append(f"{row.get('id')}: Phoenix-absent OOBE operation must be recorded as absent-operation-handler")
+        if row.get("wireTarget") == "Settings_20160801.GetSettings":
+            schema = row.get("contract", {}).get("schema") or {}
+            if schema.get("formalApiModel") is not None or schema.get("formalApiModelStatus") != "unrecovered":
+                errors.append("Settings_20160801.GetSettings must not invent a formal API model")
+            if "required" in schema or "members" in schema or schema.get("input"):
+                errors.append("Settings_20160801.GetSettings must not keep an invented merged input schema")
+            consumer = schema.get("consumerObserved") or {}
+            if consumer.get("hub", {}).get("requestBody", {}).get("skills", {}).get("type") != "string[]":
+                errors.append("Settings_20160801 hub consumer skills type is missing")
+            if consumer.get("report", {}).get("requestBody", {}).get("skills", {}).get("literal") != "report-skill":
+                errors.append("Settings_20160801 report consumer skills literal is missing")
+            searches = (row.get("source") or {}).get("apiModelSearch") or (row.get("attributes") or {}).get("apiModelSearch") or []
+            if len(searches) < 8:
+                errors.append("Settings_20160801 API-model searches are incomplete")
         if row.get("verification", {}).get("status") != "not-run":
             errors.append(f"{row.get('id')}: runtime verification must remain not-run")
         if not row.get("unknowns"):
@@ -1949,6 +2479,26 @@ def validate(data: dict) -> list[str]:
             "controller": "LoopController.remove",
             "ownershipMustContain": "owner only through this handler",
             "evidence": {"handler": "src/handlers/loop.handler.ts", "controller": "src/controllers/loop.ctrl.ts"},
+        },
+        "current:OOBE_20161026.GetStatus": {
+            "controller": "OobeController.getStatus",
+            "errors": [],
+            "sideEffectsMustContain": "complete:true",
+            "evidence": {"handler": "src/handlers/oobe.handler.ts", "controller": "src/controllers/oobe.ctrl.ts"},
+        },
+        "current:OOBE_20161026.SetupRobot": {
+            "controller": "OobeController.setupRobot",
+            "errors": ["TOKEN_NOT_FOUND 404", "TOKEN_EXPIRED 401", "ACCOUNT_NOT_FOUND 404", "OWNER_CAN_MANIPULATE 401", "LOOP_MUST_BE_SUSPENDED 409"],
+            "evidence": {"handler": "src/handlers/oobe.handler.ts", "controller": "src/controllers/oobe.ctrl.ts"},
+        },
+        "current:OOBE_20161026.GetServiceToken": {
+            "controller": "OobeController.getServiceToken",
+            "evidence": {"handler": "src/handlers/oobe.handler.ts", "controller": "src/controllers/oobe.ctrl.ts"},
+        },
+        "current:OOBE_20161026.ReconnectRobot": {
+            "controller": "OobeController.reconnectRobot",
+            "errors": ["TOKEN_NOT_FOUND 404", "TOKEN_EXPIRED 401"],
+            "evidence": {"handler": "src/handlers/oobe.handler.ts", "controller": "src/controllers/oobe.ctrl.ts"},
         },
     }
     for row_id, fact in source_fact_rows.items():

@@ -29,6 +29,22 @@ The deduplicated Jot model counts are `Jot_20160126: 10` and `Jot_20160310: 14`,
 
 Chronology labels use each model's `metadata.apiVersion`; filename dates remain audit fields. The three mismatches are retained explicitly: Jot `jot-2016-03-10` metadata `2016-04-10`, Jot `jot-2016-05-10` metadata `2016-03-10`, and VoiceTraining `voicetraining-2015-06-17` metadata `2015-10-20`.
 
+## Per-operation attributes (Account, Loop, OOBE)
+
+This candidate adds an `attributes` object on every current Account, Loop and OOBE row, sourced from the pinned API JSON (`account-2015-11-11`, `accountadmin-2015-11-11`, `loop-2016-03-24`, `oobe-2016-10-26`, `oobeadmin-2016-10-26`) and original `jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2` controllers. Phoenix code is recorded only as `phoenixHandler` presence/absence. The pinned API JSON declares **no error shapes** for these families; declared error codes are controller-sourced.
+
+Each attributes object records: authentication mode, ownership/authorization rule, request schema (API input shape + handler Joi), response schema (API output shape), declared error codes, persistence effects, observable side effects, and whether a Phoenix handler exists.
+
+Phoenix-absent operations are explicit, not blank:
+
+| Family | Phoenix handler present | Phoenix handler absent |
+| --- | --- | --- |
+| Account (28) | `CreateHubToken` only | the other 27 Account/Admin operations (Classic proxies `/^account/i` with no local `AccountHandler`) |
+| Loop (23) | `ListLoops`, `SuspendLoop`, `SuspendRobotLoop` | the other 20 Loop operations |
+| OOBE (5) | `SetupRobot`, `PrepareRobot`, `GetStatus` | `GetServiceToken`, `ReconnectRobot` (`UnknownOperationException` 400) |
+
+OOBE original mapping is now the same shape as Account/Loop: `OobeHandler` / `OobeController` at the pinned account-service revision, plus `TokenController` for setup-token create/find/delete. Notable source facts that are **not** Phoenix claims: `GetStatus` swallows `TOKEN_NOT_FOUND`/`TOKEN_EXPIRED` and returns `{complete: true}`; `ReconnectRobot` deletes the token and ignores optional `id`; `GetServiceToken` is `adminOnly` and creates a `service-mode-` account.
+
 ## Original Account/Admin and Loop recovery
 
 The current SDK inventory supplied the operation names and schemas. The follow-up now maps every current `Account_20151111` and `Loop_20160324` pair to the source service handler, controller, schema/error files, configuration entrypoint, auth decorator, ownership rule, persistence observation, and side effects from `jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2`. Account/Admin operations share `AccountHandler`; `ActivateById` and `ResetEmail` carry `adminOnly: true`. Loop operations share `LoopHandler`; `ClearRobot` and `SuspendRobotLoop` carry `adminOnly: true`.
@@ -45,7 +61,8 @@ Every row records:
 
 - the exact wire target and inventory/model schema, including required input members;
 - a pinned Phoenix route/handler observation, retaining `proxy-only`, `stub`, or no-registration facts where applicable;
-- the original Account/Admin or Loop handler/controller mapping where recovered;
+- the original Account/Admin, Loop or OOBE handler/controller mapping where recovered;
+- per-operation `attributes` for Account/Loop/OOBE (auth, ownership, API JSON schema refs, controller errors, persistence, side effects, Phoenix handler presence);
 - SDK models and direct tests/source consumers;
 - an existing functional task, with registered historical ownership `A-19` for Jot and `A-20` for VoiceTraining;
 - auth and identity source, ownership checks, source errors, persistence, side effects, and an operation-specific verification request;
@@ -58,8 +75,8 @@ Current functional ownership remains with existing task families: Account A-03/A
 | Source | Revision | Scope |
 | --- | --- | --- |
 | `jiborobot/srv-jibo-server-client` | `155d20a8102960b2aeb89c197bdf04dc1f1fc344` | current API files and SDK model consumers |
-| Phoenix source snapshot | `fabfa26a6c01b98ade592544d1878174e3570cbb` | local handler/source observations; each generated row retains its revision |
-| `jiborobot/srv-account-ws` | `6cea43470825657d6a5722162f28c8f233153ee2` | Account/Admin and Loop handlers/controllers/schemas/errors/config entrypoint |
+| Phoenix source snapshot | generated `baseRevision` in the JSON | local handler/source observations; each generated row retains its revision |
+| `jiborobot/srv-account-ws` | `6cea43470825657d6a5722162f28c8f233153ee2` | Account/Admin, Loop and OOBE handlers/controllers/schemas/errors/config entrypoint |
 | `server/account-ws` | `20c768d098e4e23255bd85322625b2547213674c` | legacy JavaScript chronology comparison; incomplete later operation set |
 | `pegasus` | `5c0a7390539663ba749d360de348a428c088505c` | **original** legacy Settings consumers |
 | `jiborobot/srv-settings-ws` | `0d37e1fd2f4fca40538fb470194a3c5daf2c9830` | Settings handler/controllers/errors |
@@ -72,6 +89,8 @@ The frozen discovery record used a restored Pegasus tree for earlier evidence. T
 
 ## Remaining source and runtime gaps
 
-Historical Jot and VoiceTraining model schemas are pinned, but their version-specific controllers and deployed target aliases are not all recovered. In particular, the old VoiceTraining names `UploadFile`, `RemoveFile`, `ListFiles`, and `GetFile` do not match the current Hapi handler exports; A-20 retains that gap. `Settings_20160801.GetSettings` is observed in original source and Pegasus consumers but has no recovered formal SDK API model. All rows remain unverified until root runs the listed scenarios against source-compatible fixtures or the integrated service.
+Historical Jot and VoiceTraining model schemas are pinned, but their version-specific controllers and deployed target aliases are not all recovered. In particular, the old VoiceTraining names `UploadFile`, `RemoveFile`, `ListFiles`, and `GetFile` do not match the current Hapi handler exports; A-20 retains that gap.
+
+`Settings_20160801.GetSettings` is independently mapped from `Settings_20171219`. Archive searches (SDK `apis/` at the pin and default branch, file history of `settings-2017-12-19.normal.json` first added 2017-12-21 as `Settings_20171219`, `server/jibo-server-client` with no settings file, security-gw code search, and Pegasus consumer history) did **not** recover a formal `settings-2016-08-01` API model. The row records consumer-observed request/response from original hub/report `SettingsClient` (hub sends `skills: string[]`; report sends `skills: 'report-skill'`) plus the later 2018 `SettingsHandler.GetSettings` as a same-name handler, not as a 20160801 model. The previous invented merged schema was removed. All rows remain unverified until root runs the listed scenarios against source-compatible fixtures or the integrated service.
 
 The generator uses the reviewed historical-model artifact directly and requires every operation to belong to a registered task. Broader schema, error, ownership and provider assertions remain provisional unless a separate root review explicitly verifies them. Rebuild the snapshot with `python3 scripts/parity-coverage/a01_operation_map.py build` after updating its source observations; rebuilding alone is not a parity test.
