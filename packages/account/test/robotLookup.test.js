@@ -39,7 +39,10 @@ async function post(target, body, accessKeyId, extraHeaders = {}) {
   }
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers,
+    // Keep these local mutation/lookup controls independent of stale
+    // keep-alive sockets after synchronous fixture work. This is test-only
+    // transport hygiene and intentionally does not retry a request.
+    headers: { ...headers, connection: 'close' },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const bytes = Buffer.from(await response.arrayBuffer());

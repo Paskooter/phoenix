@@ -46,7 +46,11 @@ async function post(target, body, accessKeyId) {
   });
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: signed.headers,
+    // These tests deliberately do synchronous store/outbox work between
+    // requests. Close each test connection so Node's fetch pool cannot race
+    // the server's idle-socket expiry and turn a later mutation into an
+    // unrelated ECONNRESET. There is no retry of the mutating request.
+    headers: { ...signed.headers, connection: 'close' },
     body: wire,
   });
   const raw = Buffer.from(await response.arrayBuffer()).toString('utf8');
