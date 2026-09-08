@@ -1,0 +1,29 @@
+{
+  "status": "candidate-root-tls-check-passed-awaiting-deployment-review",
+  "revision": "37e8888e6d8568abdae135bbf64afeefb9a87769",
+  "runtime": {
+    "node": "v8.9.4",
+    "originalClientVersion": "3.0.110"
+  },
+  "passedChecks": [
+    "original-client-upload-public-https-url",
+    "public-https-download-exact-bytes",
+    "untrusted-certificate-rejected",
+    "normal-account-restart-preserves-url-and-bytes",
+    "replacement-removes-old-public-object",
+    "invalid-signature-preserves-existing-photo",
+    "remove-clears-url-and-public-object"
+  ],
+  "finalPhotoRemoved": true,
+  "fixture": "isolated synthetic household; normal Account startup configuration, public Classic TLS, private local object storage; no Moth changes",
+  "qualification": "First attempt expired before Docker client startup. Second attempt uploaded successfully but the test GET helper used an unsupported Node8 signature. The corrected complete run reused that synthetic store and passed all seven checks. No test retries or production changes were used within the successful run. This does not claim whole A-04 parity.",
+  "processes": "original client and fixture server exited successfully; owned fixture server stopped",
+  "evidenceSha256": {
+    "server.mjs": "06d70e5a7d044e2c52cc3b466557a656b1a320770e30ccb656155599a1057440",
+    "client.cjs": "6c8d2baf6ca583d77e9ff62622b969055f1002b23b5c4e7810c6ae671e68f7a3",
+    "results.json": "053f165e4eae213dfdb0769d6c3edb7fea53b7743fe2a88c76c148ec83e30115",
+    "final.json": "1f2757be9c8f3b955504106922c09193aad490d4351e09c040e06156edea36ae",
+    "restart.done": "e46519f061750f1bee0e0d541b320fc272b8d9b75eef26437a1792ac926f5a01",
+    "client-fixed.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
