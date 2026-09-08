@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import jsQR from 'jsqr';
 import { qrMatrix, qrSvg } from '../portal/qr.js';
+import { buildQrCodes, robotDecode } from '../src/qrPayload.js';
 
 function decode(text) {
   const { size, rows } = qrMatrix(text);
@@ -44,3 +45,22 @@ test('qrSvg produces a valid square SVG with a quiet zone', () => {
   assert.match(svg, /<rect[^>]*fill="#fff"/, 'white background');
   assert.ok(svg.includes('fill="#000"'), 'dark modules');
 });
+
+for (const input of [
+  { ssid: '網'.repeat(10), password: 'ü'.repeat(30), token: 't'.repeat(32) },
+  { ssid: 's'.repeat(32), password: '😀'.repeat(15), token: 't'.repeat(32) },
+]) {
+  test(`UTF-8 setup frames survive QR rendering and decoding (${Buffer.byteLength(input.password)} password bytes)`, () => {
+    const { codes } = buildQrCodes(input);
+    const scanned = codes.map(code => {
+      const result = decode(code);
+      assert.ok(result, 'QR image can be read');
+      assert.equal(result.data, code, 'UTF-8 survives the actual encoder and image decoder');
+      return result.data;
+    });
+    const decoded = robotDecode(scanned.reverse());
+    assert.equal(decoded.ssid, input.ssid);
+    assert.equal(decoded.password, input.password);
+    assert.equal(decoded.token, input.token);
+  });
+}
