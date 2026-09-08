@@ -2,9 +2,9 @@
 //
 // srv-account-ws@6cea creates two MailController instances (the `invitation`
 // and `invitationExistingUser` templates) and one @jibo/server EventSender.
-// Phoenix does not ship the SMTP/SES or SNS credentials, so construction of
-// those transports stays outside the account service.  The service accepts
-// the same small send contracts here and keeps their source ordering.
+// The deployment layer may fill these contracts with a local SMTP relay and
+// durable event consumer.  This low-level module keeps the source send shapes
+// and ordering independent of the selected transport.
 
 import querystring from 'node:querystring';
 
