@@ -583,8 +583,14 @@ test('Existing ListLoops/SuspendLoop handlers and unimplemented ops are unchange
   assert.equal(listed.status, 200);
   assert.equal(listed.body.length, 1);
   assert.equal(listed.body[0].id, loop._id);
-  assert.equal(listed.body[0].members[0].status, 'ACCEPTED');
-  assert.ok(listed.body[0].members[0]._id);
+  // Source member status values are lowercase (schemes/member.status.ts:
+  // ACCEPTED = "accepted"), and the mongoose toJSON transform renames _id to id
+  // and adds memberId as a 2.x fallback (schemes/loop.ts). ListLoops emits that
+  // shape, so this asserts the source contract rather than Phoenix's earlier
+  // uppercase spelling.
+  assert.equal(listed.body[0].members[0].status, 'accepted');
+  assert.ok(listed.body[0].members[0].id);
+  assert.equal(listed.body[0].members[0].memberId, listed.body[0].members[0].accountId);
 
   const suspended = await post('Loop_20160324.SuspendLoop', { loopId: loop._id }, robot.accessKeyId);
   assert.equal(suspended.status, 200);
