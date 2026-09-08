@@ -1,5 +1,5 @@
 {
-  "status": "candidate-awaiting-independent-review",
+  "status": "accepted-bounded-implementation",
   "baseRevision": "92791fb458f1417b42f830949fcb1d82f93f19cd",
   "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
   "sourceMethod": "LoopController.findOrCreateRobotAccount",
@@ -19,11 +19,13 @@
     "strictGateMatches": 43,
     "strictGateDifferences": 0,
     "originalNode8ClientChecks": 8,
-    "originalClientScope": "Account and Classic: inactive credentials denied, CreateLoop reactivates with the same identity, original credentials authenticate, and authentication survives service/store restart."
+    "originalClientScope": "Account and Classic: inactive credentials denied, CreateLoop reactivates with the same identity, original credentials authenticate, and authentication survives service/store restart.",
+    "independentFocusedTests": 10,
+    "independentReviewArtifactHashesVerified": 11,
+    "rootEvidenceAndClientArtifactHashesVerified": 12
   },
   "pending": [
-    "Independent source/implementation review.",
-    "Root acceptance and deployment."
+    "Moth deployment; complete A-04 remains open."
   ],
   "evidenceSha256": {
     "source.cjs": "84a0195f361e6316c911d0bbe12f6280aee617a7147c582f469366cb4a8a250d",
@@ -43,5 +45,8 @@
     "sdk-initial-result.json": "51f991c75c94b7b38272ddf852e66f5bc63cadc2b09975cdb33be5d734fac7e8",
     "sdk-restart-result.json": "f4964134ffef26c6b6384c58528f58cffb95b19d1b286f782040a6f7bd0286de",
     "sdk-verification.json": "a57f6c3461bc85ca3c79bfc27b11917d1d9c85798e2504be0296060bf4218264"
-  }
+  },
+  "reviewedBy": "Codex root",
+  "independentReviewSha256": "d256e4f347b64cfa255a8b22d2e41a3b6cad5b85aa5f02fd9624224c435adf42",
+  "objectReferenceQualification": "Source can retain a mutated request-local document after a rejected save. Phoenix restores its shared Store map to committed state. These internal object references differ; the verified HTTP/client/restart flows preserve the intended external behavior."
 }

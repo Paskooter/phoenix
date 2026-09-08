@@ -1,6 +1,7 @@
 # A-04 existing robot reactivation
 
-Status: candidate awaiting independent review and final client verification.
+Status: root accepted for the bounded Account activation/save boundary;
+deployment and whole A-04 remain open.
 
 The source `LoopController.findOrCreateRobotAccount` at `6cea434` always sets
 `isActive = true` and saves the robot Account, including an existing account.
@@ -21,3 +22,14 @@ by the 43-case strict gate. These controls use synthetic fixtures; they do not
 claim Mongo concurrency or real-robot reactivation acceptance.
 
 See [candidate receipt](../evidence/2026-09-08/robot-reactivation-candidate/review.json).
+
+Root verified the independent review (ten focused checks and 11 artifact/source
+hashes), then accepted the change after eight original Node 8 client checks
+across Account/Classic and service/store restart. Credentials were rejected
+while inactive and accepted after creation with the same identity and keys.
+
+The source may retain its mutated request-local document when save rejects.
+Phoenix restores its shared Store map to the last committed account. This is
+an internal reference difference, not a claim that the source rewinds its
+request-local object. The client and persistence checks cover the external
+behavior of this repair.
