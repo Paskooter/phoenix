@@ -136,7 +136,7 @@ services:
     environment:
       - PORT=8080
       # ETCO_ota_publicUrl: set to the externally-reachable base URL if a robot can't reach
-      # the Host it used (e.g. behind NAT). Default: derived from the request Host header.
+      # the public origin when using a reverse proxy. Default: derived from the request Host header.
       - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:-}
     ports:
       - 9010:8080
@@ -157,6 +157,11 @@ services:
       - PORT=8080
       - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
       - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
+      # PHOTO_PUBLIC_URL must be the externally reachable Classic/TLS origin
+      # (for example https://region.example), never account:8080 or localhost.
+      # Classic forwards GET /member-photos/:key to this Account container.
+      - ETCO_account_photoBaseUrl=${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-${CLASSIC_PUBLIC_URL:-}}}
+      - ETCO_account_photoDirectory=${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-/phoenix/packages/account/data/member-photos}}
     ports:
       - 9011:8080
 
@@ -173,6 +178,7 @@ services:
       - PORT=8080
       - NET_account=account:8080
       - NET_ota=ota:8080
+      - ETCO_classic_publicUrl=${CLASSIC_PUBLIC_URL:-}
     depends_on:
       - account
       - ota

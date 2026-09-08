@@ -32,7 +32,12 @@ let base;
 async function post(target, body, accessKeyId) {
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: signedLoopHeaders(store, base, target, body, accessKeyId),
+    // Keep bootstrap requests independent of the fetch pool while the
+    // synchronous fixture store is being populated between calls.
+    headers: {
+      ...signedLoopHeaders(store, base, target, body, accessKeyId),
+      connection: 'close',
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const bytes = Buffer.from(await response.arrayBuffer());

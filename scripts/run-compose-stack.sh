@@ -19,6 +19,9 @@ PARAKEET_URL="${PARAKEET_URL:-}"
 REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
 REPORT_LASSO="${NET_lasso:-localhost:9007}"
 REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
+CLASSIC_PUBLIC_URL="${CLASSIC_PUBLIC_URL:-${ETCO_classic_publicUrl:-}}"
+PHOTO_PUBLIC_URL="${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-$CLASSIC_PUBLIC_URL}}"
+PHOTO_DIRECTORY="${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-$PWD/packages/account/data/member-photos}}"
 
 PORT=9005 ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
   node packages/nlu/src/index.js      > /tmp/phx-compose-parser.log  2>&1 &
@@ -54,6 +57,8 @@ if [ "${ACCOUNT:-1}" != "0" ]; then
   ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
   ETCO_account_region="${ETCO_account_region:-}" \
   ETCO_account_secureCookies="${ETCO_account_secureCookies:-}" \
+  ETCO_account_photoBaseUrl="$PHOTO_PUBLIC_URL" \
+  ETCO_account_photoDirectory="$PHOTO_DIRECTORY" \
   NET_ota=localhost:9010 \
     node packages/account/src/index.js > /tmp/phx-compose-account.log 2>&1 &
   ACCOUNT_URL="http://localhost:9011"
@@ -79,6 +84,7 @@ if [ "${CLASSIC:-1}" != "0" ]; then
   PORT=9012 \
   NET_account=localhost:9011 \
   NET_ota=localhost:9010 \
+  ETCO_classic_publicUrl="$CLASSIC_PUBLIC_URL" \
     node packages/classic/src/index.js > /tmp/phx-compose-classic.log 2>&1 &
   CLASSIC_NOTE=" · classic-entrypoint:9012"
 fi
