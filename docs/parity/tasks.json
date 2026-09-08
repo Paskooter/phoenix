@@ -3375,7 +3375,7 @@
         "scripts/run-sim-stack.sh",
         "README.md"
       ],
-      "finding": "The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open.",
+      "finding": "The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open. Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open.",
       "acceptance": [
         "Test a clean install and isolated native/compose deployments with correct service names, ports, configuration, startup/shutdown and readiness.",
         "Verify migration from the current Phoenix stores and, where available, original database fixtures with backup/restore and rollback.",
@@ -3401,6 +3401,14 @@
           "scope": "Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open.",
           "artifact": "scripts/parity-robot/patch-server-client-ca.cjs",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/hardware/client-ca-household/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; Codex root",
+          "reviewedBy": "Codex root",
+          "scope": "Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open.",
+          "artifact": "scripts/import-household-snapshot.mjs",
+          "reviewEvidence": "docs/parity/evidence/2026-09-08/household-staging/review.json"
         }
       ]
     },

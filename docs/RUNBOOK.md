@@ -128,6 +128,14 @@ adopter without being printed in a command line or log. The private account
 store retains the credentials needed for authentication. Adoption is idempotent:
 an existing loop is reused; an account missing its loop can be repaired.
 
+For a robot with an existing household, preserve its KB root/member snapshots
+and enrollment storage before enabling cloud sync against a newly adopted
+server account. The [household snapshot staging tool](parity/candidates/KB-household-import-20260908.md)
+prepares a private store and exact backup using the original household IDs.
+It refuses ambiguous or destructive merges and leaves deployment to a guarded,
+stopped-backend replacement. Keep all captures, output and command receipts in
+private storage; publish only generic verification outcomes.
+
 Add `--classic-url http://<server>:9012` for a plain-HTTP deployment, which
 rewrites every `region_config.json`. A TLS deployment does not need it — the
 hosts entries already cover it — and rewriting would break it.

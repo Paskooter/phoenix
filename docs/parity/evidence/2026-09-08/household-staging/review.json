@@ -1,0 +1,53 @@
+{
+  "state": "verified_bounded",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T03:52:56.972429+00:00",
+  "subject": "Private local household snapshot staging and exact backup",
+  "baseRevision": "503edcc40d815679a396af79c00ee8c3097d5f4d",
+  "source": {
+    "account": "jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2",
+    "sdk": "sdk/sdk@c7e145c9731e3d3f92423950e18cf0e31ee76efa"
+  },
+  "artifacts": {
+    "packages/account/src/householdImport.js": "daece50e93d48220bfbde5e50f41aebd30b687366310a73ac06ceb2888b2630f",
+    "packages/account/test/householdImport.test.js": "68fb61e399126bb5fcab072fe6ad3ab0d08d3d6c87f6f31d0fd4eec9656caccf",
+    "scripts/import-household-snapshot.mjs": "d2256bfdf772324f82d8d45ec34536fbab0f561730eff6d68b4f488732a2ddea"
+  },
+  "reviewRepairs": [
+    "Removed capture-derived status-count defaults; all source membership statuses are accepted.",
+    "Reject duplicate source account IDs and duplicate store records before Map construction.",
+    "Reject unsupported top-level store collections that runtime save would discard.",
+    "Reject source reuse of the old robot identity as a human account.",
+    "Preserve shared profiles in unrelated loops and reject conflicting imported values.",
+    "Replace only pristine bootstrap membership or allow a serialized no-op import; refuse loss of existing household state.",
+    "New profile-only human accounts use the original inactive default; existing account activation and signing keys are retained.",
+    "Use complete file writes, exclusive mode0600 output and backup, fsync, and file-identity guards during failed-write cleanup."
+  ],
+  "verification": {
+    "focusedTests": {
+      "passed": 11,
+      "failed": 0
+    },
+    "fullUnitSuite": {
+      "command": "node --test --test-concurrency=4",
+      "passed": 814,
+      "skipped": 8,
+      "failed": 0
+    },
+    "privateSourceComparison": {
+      "serializedWireMatchesPriorVerifiedMigration": true,
+      "exactBackupBytes": true,
+      "storeFlushAndReloadPreserveKnownCollections": true
+    },
+    "injectedRaces": "Competing exclusive output and replacement during failed backup are retained.",
+    "privacy": "No captured personal values in added source, tests or documentation; private statistics and source snapshots are not published."
+  },
+  "limits": [
+    "Stages private files only; does not capture robot data or replace a running store.",
+    "Existing household changes and conflicting identities require explicit migration resolution.",
+    "KB snapshots cannot reconstruct missing human credentials or a complete cloud Account database.",
+    "The deployed robot migration used the earlier independent private controller; this utility was tested without changing the robot or live backend.",
+    "A-04 and R-02 remain open."
+  ],
+  "privateEvidence": ".parity/reviews/household-import-root-20260908/final"
+}
