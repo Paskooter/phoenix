@@ -41,3 +41,7 @@ delivery, concurrent save behavior, and deployment credentials remain outside
 this candidate's verification. Node runtime default connection policy is explicitly set to
 the source `close` behavior in the default transport; an injected test
 transport remains unchanged.
+
+## Root acceptance
+
+The repaired candidate `486933265bc55444255832a1ed4563db3ee4a812` passed bounded root review and integration checks: 10 original Node 8 SDK operation checks through Account and Classic, 871 unit tests passed (7 skipped), and all 43 strict smoke cases matched. Root independently checked source transport behavior and 30 source/candidate/evidence hashes. See [review evidence](../evidence/2026-09-08/loop-agreements/review.json). This supersedes the pending-review status above for this bounded implementation. Live providers, full Mongo concurrency, deployment, and whole A-04 acceptance remain open.

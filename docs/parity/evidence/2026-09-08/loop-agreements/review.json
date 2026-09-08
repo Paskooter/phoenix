@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "status": "accepted-bounded-root-review",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "candidateRevision": "486933265bc55444255832a1ed4563db3ee4a812",
+  "integrationCodeRevision": "dbdd112",
+  "reviewer": "Codex root",
+  "verification": {
+    "sourceAndEvidenceHashes": 30,
+    "originalClient": {
+      "node": "8.9.4",
+      "version": "3.0.110",
+      "operationChecks": 10,
+      "faces": [
+        "Account",
+        "Classic"
+      ],
+      "localProviderRequests": 10,
+      "durableSaveEvents": 2
+    },
+    "sourceTransportControls": [
+      "Exact OAuth form bytes",
+      "Empty GET body and headers",
+      "Text MIME remains unparsed",
+      "Provider HTTP status preservation"
+    ],
+    "focusedTestsPassed": 3,
+    "integrationUnitTests": {
+      "passed": 871,
+      "skipped": 7,
+      "failed": 0
+    },
+    "strictSmokeGate": {
+      "cases": 43,
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    }
+  },
+  "scope": [
+    "Guardian assignment checks and provider ordering",
+    "Direct guardian update without save timestamp or notification",
+    "Signed agreement acceptance with save hook",
+    "Anonymous callback policy in focused HTTP controls",
+    "Original signed client success, authentication and validation boundaries"
+  ],
+  "limits": [
+    "Local synthetic provider only; no live agreements sent",
+    "Source controller model seams do not prove full Mongo concurrency",
+    "Not deployed to Moth",
+    "Whole A-04 remains in progress"
+  ]
+}
