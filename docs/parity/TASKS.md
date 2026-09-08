@@ -1409,7 +1409,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-08/robot-reactivation-can
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-Root reproduced nine synthetic adoption/OOBE controls and verified six product hashes against fresh pinned source inspection. ReconnectRobot dispatch/token consumption, bound-loop owner authorization, suspended robot replacement and deleted-loop filtering have substantive gaps. Luna Max is implementing an isolated candidate; original source/runtime/client verification and root review are pending. A-03/A-04 dependencies still govern final acceptance. Operator REST adoption is a Phoenix extension, not an obligation to invent another route.
+An isolated published candidate implements setup/reconnect, suspended replacement defaults, failed token-deletion rollback, unbound robot relocation and token expiry after robot-read. Full combined verification passes 913 tests (7 skipped) and 43 strict smoke cases. Root reproduced source defaults/final-save boundaries; independent unbound source/client reviews remain pending. Service-token/admin targets and full QR/consumer/hardware coverage remain open; A-03/A-04 dependencies still govern full acceptance.
 
 Done when:
 
@@ -1425,7 +1425,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Candidate repair in progress for four source-backed setup/reconnect gaps; no acceptance claimed.
+Candidate scope: Combined setup/reconnect candidate tested and published; final independent source/client reviews and root acceptance pending. Service-token/admin scope remains open.
 
 Candidate report: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
 

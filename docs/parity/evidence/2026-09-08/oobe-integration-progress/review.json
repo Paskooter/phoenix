@@ -1,0 +1,34 @@
+{
+  "status": "candidate-awaiting-final-independent-review",
+  "branch": "codex/review-a05-integration-20260908",
+  "publishedRevision": "621bbc1ddebb609cddb9a157a25ccb25aeb2ae36",
+  "testedProductionRevision": "b9ae349",
+  "implemented": [
+    "ReconnectRobot token consumption and errors",
+    "Setup owner/deleted-loop checks and suspended robot replacement",
+    "Persisted replacement member defaults",
+    "Token deletion rollback on persistence failure",
+    "Unbound setup robot-read, relocation, owner naming and credential return",
+    "Token expiry recheck after awaited robot-read"
+  ],
+  "verification": {
+    "fullTests": 920,
+    "passed": 913,
+    "failed": 0,
+    "skipped": 7,
+    "strictCases": 43,
+    "strictDifferences": 0,
+    "strictInvariants": 0,
+    "strictCoverageGaps": 0,
+    "rootRepeatedSourceDefaultsAndFinalSaveControls": true
+  },
+  "sourceRerunReceiptSha256": "8c1579dd549098ab7ca633dcb89c40e81ede1dd89a41c941f6b7647ce6557e10",
+  "pending": [
+    "Independent exact-source unbound setup and expiry review",
+    "Independent original Node8 client unbound setup review",
+    "Root acceptance and subsequent safe deployment checks",
+    "Remaining service-token and administrative OOBE targets and QR/consumer coverage"
+  ],
+  "fullTaskComplete": false,
+  "robotDeploymentChanged": false
+}
