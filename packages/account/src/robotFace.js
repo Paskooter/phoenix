@@ -305,6 +305,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     }
     const robot = mapGetById(store.accounts, loop.robot);
     if (!robot) throw new Error('Loop robot account is missing');
+    // TokenController.deleteToken performs a fresh lookup: the token may
+    // expire while setup awaits robot-read, after earlier saves succeeded.
+    const completionToken = findToken(store, token._id);
+    if (completionToken.error) return void sendAmzError(res, Errors[completionToken.error]);
     deleteToken(store, token._id); // ONE-TIME
 
     const credentials = {
