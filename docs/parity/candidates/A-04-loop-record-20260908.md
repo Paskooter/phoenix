@@ -90,17 +90,31 @@ node /home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-2
 The candidate and comparison commands used for the fresh rows were:
 
 ```text
-CANDIDATE_ROOT=/home/shell/work/phoenix/.parity/worktrees/a04-loop-record-20260908 \
-CANDIDATE_REVISION=working-tree \
-OUTPUT=/home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/controls/candidate-loop-record-node22.json \
-node /home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/candidate-loop-record-node22.mjs
+node /home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/run-candidate.cjs
 ```
 
-Use this exact comparison path:
+Use this exact comparison command:
 
 ```text
-python3 /home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/compare-exact-candidate.py
+python3 /home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/compare-exact-candidate-final.py
 ```
+
+The final candidate commit is `906a998dee73fe1978a5ec1365734df34fd256d7`. The
+candidate file SHA-256 values are:
+
+| Candidate file | SHA-256 |
+| --- | --- |
+| `packages/account/src/index.js` | `0c063246ac1f20cc7140af52bfc5056c8d00e0ae26e1ffb862f84cd7e4243973` |
+| `packages/account/src/loopMembership.js` | `2d607e09c54b5e9183f8ecedc12b8db99af94e495f6837fff567b6ce5541f492` |
+| `packages/account/src/robotFace.js` | `c309147c7085dc5aee4c6a0590b8b067eb6e86099e9b7eda72cb1a3d8fa7ea0d` |
+| `packages/classic/src/index.js` | `3adebf3c840d12129dbf9af34cfb754694d4549c3b9e0baf00a2bcfee67f7b56` |
+
+The final private evidence hashes are `source-loop-record-exact-node8.json`
+`5bbaf20d4f1149709ea0e10c5290603bde1f0cc6abc7411a9ad0a5419b639218`,
+`candidate-loop-record-node22-final.json`
+`9329c47cc8bec4a7b65e221b4620cc514cd6ba722fae5059930d279af5061e58`, and
+`comparison-exact-candidate-final.json`
+`2c9a21715e78fe42f1f63a0ea3904d8adcf1d886ffc69fd0d602c59380611492`.
 
 ## Source behavior and limits
 
