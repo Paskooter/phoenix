@@ -4,7 +4,8 @@ Task ID: `A-04-loop-operations-20260908`
 Worktree: `.parity/worktrees/a04-loop-operations-20260908`  
 Branch: `grok/candidate-a04-loop-operations-20260908`  
 Parent: `1b68bf1e14afdbfc0996a9761680305d2bbb040d`  
-Candidate revision: `078cd8978435f757471d3ada78dc4a765f05d806`  
+Implementation revision: `078cd8978435f757471d3ada78dc4a765f05d806` (`npm test` was run on this tree)  
+Write-up revision: this file, committed after that run  
 Status: **implementation candidate, unverified.** A-04 is not closed. No original Loop runtime, original Node 8 client, or gateway SigV4 replay was executed.
 
 ## Subset and why
