@@ -1,5 +1,5 @@
 {
-  "status": "candidate-unverified",
+  "status": "accepted-bounded-implementation",
   "revision": "51c68f359815e753040a7c7d4e805432f4132291",
   "baseRevision": "9aeb959e11832cec825da62d1aa21e5af6e1d6d6",
   "sourceCandidates": [
@@ -68,10 +68,7 @@
       "capturedRevision": "51c68f359815e753040a7c7d4e805432f4132291"
     }
   },
-  "pending": [
-    "Independent source population timing controls and deferred-outbox review conclusion.",
-    "Final root acceptance."
-  ],
+  "pending": [],
   "deployment": "No main production code or Moth changes. No real mail or family fixtures.",
   "focusedLogSha256": "6b1fceb1d7eeec1e5ff30850b9ecc5cbcf112825c3cb60d59b59539dfc622332",
   "evidenceSha256": {
@@ -84,5 +81,6 @@
     "gate-combined-stable.log": "a40463ffb8178b8748257d488efc44a9567c2686465ee6cd7382e2d946123e97"
   },
   "acceptedMainMerged": "037ba4557fca098d308c4ee705162aaf85702b4c",
-  "qualification": "Following the tested revision, only source-order documentation, a source comment and a test title/comment changed; executable production behavior and test assertions remain unchanged."
+  "qualification": "Following the tested revision, only source-order documentation, a source comment and a test title/comment changed; executable production behavior and test assertions remain unchanged.",
+  "acceptanceEvidence": "../invitation-acceptance/review.json"
 }
