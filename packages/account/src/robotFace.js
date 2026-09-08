@@ -20,6 +20,7 @@
 // never uses the public x-amz-credentials header as its identity.
 
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
+import { createServiceSetupToken } from './serviceToken.js';
 import {
   createAuthenticatedHubToken, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
   MEMBER_STATUS,
@@ -96,6 +97,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     preparerobot: prepareRobot,
     getstatus: getStatus,
     reconnectrobot: reconnectRobot,
+    getservicetoken: getServiceToken,
     createhubtoken: issueHubToken,
   };
 
@@ -233,6 +235,15 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   };
 
   // -- operations -------------------------------------------------------------
+
+  /** OobeHandler adminOnly check precedes creation of a fresh service account. */
+  function getServiceToken({ req, res }) {
+    if (!req._phoenixVerifiedCredentials?.isAdmin) {
+      return void sendAmzError(res, Errors.AUTHORIZED_UNDER_ADMIN);
+    }
+    const token = createServiceSetupToken(store);
+    return void sendAmz(res, 200, { token: token._id, expires: token.created + 15 * 60 * 1000 });
+  }
 
   /**
    * oobe.ctrl.ts reconnectRobot — the handler validates token (+ optional id),
