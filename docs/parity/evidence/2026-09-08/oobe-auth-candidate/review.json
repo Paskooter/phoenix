@@ -1,6 +1,6 @@
 {
   "status": "candidate-awaiting-independent-source-and-client-review",
-  "implementationRevision": "3f09e39",
+  "implementationRevision": "eddc19b",
   "baseCandidate": "621bbc1ddebb609cddb9a157a25ccb25aeb2ae36",
   "source": {
     "repository": "jiborobot/srv-security-gw",
@@ -23,22 +23,22 @@
   "checks": {
     "focusedTests": 20,
     "matrixCases": 17,
-    "fullTests": 921,
-    "passed": 914,
+    "fullTests": 922,
+    "passed": 915,
     "failed": 0,
     "skipped": 7,
     "strictCases": 43,
     "strictDifferences": 0,
     "strictInvariants": 0,
     "strictCoverageGaps": 0,
-    "strictRun": "ci-production-8f737c1f-7268-4159-ac99-7d4e4479d985"
+    "strictRun": "ci-production-e6d87a6d-21f1-4524-a82c-7d27e4741f51",
+    "invalidPayloadCasesAcrossAccountAndClassic": 34
   },
   "baseline": "New boundary test failed on the previous candidate. Initial repaired test had a harness-only authorization header casing error; corrected harness passes.",
   "testCorrections": "Earlier operation tests now use original target date and actual signatures instead of fabricated signature strings or unsigned Reconnect calls.",
   "remaining": [
-    "Independent exact gateway OOBE matrix",
+    "Independent exact gateway OOBE matrix and payload validation",
     "Independent original Node8 client against Account and Classic",
-    "Prepare/GetStatus validation review",
     "GetServiceToken implementation and full A05 acceptance"
   ],
   "robotDeploymentChanged": false,
@@ -47,6 +47,15 @@
     "auth.log": "65e98ac7ee80c220c4002b81e822b18262a1688ab34d139db9e8b26f2da110ac",
     "auth-corrected.log": "49dd3d4d137e4375ce1d4738383d0da4c3c443df2dd4e2353aaf40f57c8521dc",
     "focused.log": "1ef3e6483454e3139091b31610d4b1fd40dd2413b87b7c78b4958cf9365ff8c2",
-    "full.log": "f81646850b1b03800574e4140cfaeff5924f6e10be7116cece40030f966ca760"
+    "full.log": "f81646850b1b03800574e4140cfaeff5924f6e10be7116cece40030f966ca760",
+    "full-validation.log": "5e89e03a1fe534ef213fe2cc4f4915bf78087c78174f8ea5e5fb1cecc091fd0c"
+  },
+  "previousImplementationRevision": "3f09e39",
+  "payloadValidation": "PrepareRobot optional loopId and GetStatus required token must be nonempty strings. Original JSON values including null/arrays/primitives reach validation through Account and Classic.",
+  "rootUnboundSourceRerun": {
+    "cases": 7,
+    "verifiedSemanticFlags": 24,
+    "errorAndTokenStateSequenceVerified": true,
+    "receiptSha256": "929650201e3d8442edf9765c785ad86983f5e343909028df5526b8500c68f627"
   }
 }
