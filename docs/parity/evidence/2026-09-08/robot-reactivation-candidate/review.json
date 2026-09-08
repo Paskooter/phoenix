@@ -17,11 +17,12 @@
     "fullFailed": 0,
     "fullSkipped": 7,
     "strictGateMatches": 43,
-    "strictGateDifferences": 0
+    "strictGateDifferences": 0,
+    "originalNode8ClientChecks": 8,
+    "originalClientScope": "Account and Classic: inactive credentials denied, CreateLoop reactivates with the same identity, original credentials authenticate, and authentication survives service/store restart."
   },
   "pending": [
     "Independent source/implementation review.",
-    "Original generated-client inactive-account creation and authentication sequence.",
     "Root acceptance and deployment."
   ],
   "evidenceSha256": {
@@ -33,5 +34,14 @@
     "full.log": "17b35f6948534e4685a2215f55c9af7a25ac706e30505d35f74de09a293e444a"
   },
   "priorFocusedFailure": "Existing Create relocation test incorrectly required the Account snapshot to remain unchanged after its successful save and a later Loop save failure. Replaced with explicit assertions preserving only the successful Account change.",
-  "privacy": "Synthetic controls only; no live robot or household changes."
+  "privacy": "Synthetic controls only; no live robot or household changes.",
+  "candidateRevision": "792af68",
+  "clientHarnessQualification": "Initial SDK control incorrectly expected401 for inactive credentials; source-compatible existing auth returns403 ACCOUNT_NOT_ACTIVE. Initial failure retained, corrected isolated rerun passed without production changes.",
+  "clientEvidenceSha256": {
+    "client.cjs": "a3fa3f8e6db4e3488fcca3e8c7796149292cabba24da89961f1e9aea69214b12",
+    "client-run.mjs": "6da27ef1dba803fa3943f70b785346665461ffde8c540b3d3cff0f49a0dca20c",
+    "sdk-initial-result.json": "51f991c75c94b7b38272ddf852e66f5bc63cadc2b09975cdb33be5d734fac7e8",
+    "sdk-restart-result.json": "f4964134ffef26c6b6384c58528f58cffb95b19d1b286f782040a6f7bd0286de",
+    "sdk-verification.json": "a57f6c3461bc85ca3c79bfc27b11917d1d9c85798e2504be0296060bf4218264"
+  }
 }
