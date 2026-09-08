@@ -1,18 +1,19 @@
 {
   "status": "candidate-awaiting-source-and-client-review",
-  "combinedRevision": "a59ae5946adda5bf985f1f8b2f00868e5c48e899",
+  "combinedRevision": "b9ae349",
   "included": [
     "ReconnectRobot and owner/deleted-loop/suspended setup handling",
     "Suspended replacement member defaults and final-save failure boundaries",
     "Token deletion rollback",
     "Valid ObjectId query casing",
-    "Unbound setup source creation flow, robot-read check, owner-specific naming and relocation"
+    "Unbound setup source creation flow, robot-read check, owner-specific naming and relocation",
+    "Token expiry rechecked after awaited robot-read; earlier saves retained on expiry"
   ],
   "verification": {
     "fullNpmTest": {
       "exit": 0,
-      "tests": 919,
-      "passed": 912,
+      "tests": 920,
+      "passed": 913,
       "failed": 0,
       "skipped": 7
     },
@@ -21,7 +22,7 @@
       "differences": 0,
       "invariants": 0,
       "coverageGaps": 0,
-      "run": "ci-production-56dd1183-00dc-4999-9085-c94bcb06cf1a"
+      "run": "ci-production-c7e23b53-0a12-402d-b6ea-efc237b49bd4"
     },
     "candidateStableThroughCapture": true,
     "followupArtifactHashesVerified": 28,
@@ -36,5 +37,6 @@
     "No new robot deployment or household mutation.",
     "Passing smoke corpus does not establish full A04/A05 or full Pegasus parity."
   ],
-  "logSha256": "29a9b0dde5c040e4ca9e01badada48120f7082cb3ccc02cfd360768a4cef219b"
+  "logSha256": "a044795708e1f1f4a54bf843a2be9d7adfd89d52bc93fec55fcb5db03f320732",
+  "previousVerifiedRevision": "a59ae5946adda5bf985f1f8b2f00868e5c48e899"
 }
