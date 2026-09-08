@@ -1395,13 +1395,13 @@ Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFac
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root; Luna Max independent review.
+- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Root accepted existing robot Account reactivation and save boundary after three exact source controller controls, eight originalNode8client checks across Account/Classic and restart, independent review,901unit passes/seven skips andstrict43. Existing identity/keys persist; failed Account save restores committed map state; a successful Account save survives later Loop save failure. Deployment and complete A-04 remain open.
+Candidate scope: Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code encoder still needs the same source-backed leading-zero fix as setup tokens.
 
-Candidate report: [packages/account/src/model.js](../../packages/account/src/model.js).
+Candidate report: [packages/account/src/loopMembership.js](../../packages/account/src/loopMembership.js).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-08/robot-reactivation-candidate/review.json](../../docs/parity/evidence/2026-09-08/robot-reactivation-candidate/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead verification: pending. This candidate does not certify task parity.
 
 ### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
 
@@ -1409,7 +1409,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-08/robot-reactivation-can
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-Published isolated candidate includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Full tests pass 922 with 7 skipped plus 43 strict smoke cases. Root reproduced original gateway, handler, unbound setup, service-account creation and QR consumer controls. Independent review found leading-zero Base58 token encoding to repair; final parser review, combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.
+Published isolated candidate3fc197e includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Root accepted leading-zero Base58 repair after1,030 original encoder matches; combined product3467001 passes923 tests with7 skips and43 strict smoke cases. Installed robot SDK passed28 synthetic checks, including orderly server restart. Public parser candidate7cf0cba awaits root review; combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.
 
 Done when:
 
@@ -1425,7 +1425,7 @@ Evidence: pending.
 
 - [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair; Codex root.
 
-Candidate scope: Latest published QR/OOBE candidate9d333c9 passes full922/7skip andstrict43. Root accepted bounded UTF-8 QR fix; service-token encoding repair and final parser review precede combined acceptance/deployment.
+Candidate scope: Published combined candidate3fc197e passes923/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.
 
 Candidate report: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
 

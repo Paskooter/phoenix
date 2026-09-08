@@ -1,0 +1,20 @@
+{
+  "candidateRevision": "9f00907a3d3c0034e8f3ba2add67fbbaba774e45",
+  "state": "awaiting_review",
+  "rootRegressionsRepaired": 2,
+  "focusedTestsPassed": 8,
+  "source": "Actual pinned Node8/Mongoose4.9.8 Model.save with original Loop schema and recording collection callback, no Mongo server.",
+  "ordering": "Root queues member-array replacement before positional accept; the positional save rejects without accepting a different member. Unchanged declined status and append both succeed.",
+  "remaining": [
+    "Mixed membership and profile/photo persistence interactions",
+    "Combined integration and complete source/HTTP error boundary review",
+    "Real robot and complete A-04 acceptance"
+  ],
+  "privateEvidenceSha256": {
+    "candidate.mjs": "15f668003f5908060fd4b98d7e70a1b94df3cb71ff15b94d571ad4d6b9a97b3a",
+    "candidate.json": "e5c5610de6b8527d4f903fa6b845769d1d6b432ac01a8172a70e259a720b3a26",
+    "source-save-v2.cjs": "5b359acab59725e481dabb5df45093f7d3159d652d2dbb41fb76c7e46ee5da43",
+    "source-save-v2.json": "a3ffeeb6ed114db673982d9f792ff1fed5aad56af02e2041fb99088b1fe59968",
+    "focused.log": "3e2355de726981381b0b1fbd34e1e5a451e51d060b7494ab4d51e664a2ad3500"
+  }
+}
