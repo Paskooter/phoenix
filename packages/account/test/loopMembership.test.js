@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // A-04 membership lifecycle through the Phoenix AWS-JSON face.
 // Source: srv-account-ws@6cea4347 loop.handler.ts / loop.ctrl.ts / errors/loop.ts.
 // Original runtime was not executed; expected codes and shapes are controller-sourced.
@@ -17,20 +18,11 @@ const store = new Store(join(dir, 'store.json'));
 let server;
 let base;
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
 async function post(target, body, accessKeyId, extraHeaders = {}) {
-  const headers = {
-    'content-type': 'application/x-amz-json-1.1',
-    'x-amz-target': target,
-    ...extraHeaders,
-  };
-  if (accessKeyId) headers.authorization = authorization(accessKeyId);
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers,
+    headers: signedLoopHeaders(store, base, target, body, accessKeyId, extraHeaders),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const bytes = Buffer.from(await response.arrayBuffer());
@@ -129,8 +121,8 @@ test('CreateLoop matches source owner/robot members, name, persistence, and vali
 
   const anon = await post('Loop_20160324.CreateLoop', { name: 'Anon', robotId: 'a04-create-anon-robot' });
   assert.equal(anon.status, 401);
-  assert.equal(anon.body.__type, 'CREDENTIALS_REQUIRED');
-  assert.equal(anon.headers['x-amzn-errortype'], 'CREDENTIALS_REQUIRED');
+  assert.equal(anon.body.__type, 'MISSING_AUTH_HEADER');
+  assert.equal(anon.headers['x-amzn-errortype'], 'MISSING_AUTH_HEADER');
 
   for (const item of validationCases('name')) {
     const invalid = await post('Loop_20160324.CreateLoop', { ...item.body, robotId: 'x' }, owner.accessKeyId);

@@ -236,7 +236,8 @@ test('signed notification validation, shared Account outbox, account isolation, 
       accessKeyId: 'A10-UNKNOWN',
       secretAccessKey: 'unknown-secret',
     }));
-    assert.equal(rejectedSuspend.status, 403);
+    assert.equal(rejectedSuspend.status, 401);
+    assert.equal(rejectedSuspend.body.__type, 'ACCESS_KEY_NOT_FOUND');
     assert.equal(loopA.isSuspended, false);
     assert.equal(accountService.loopUpdatedOutbox.pending().length, 0);
 

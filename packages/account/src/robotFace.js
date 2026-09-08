@@ -108,6 +108,29 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // RemoveMember) and bounded profile/enrollment operations are A-04 increments; the
     // remaining loop ops are unimplemented.
     if (/^loop/i.test(prefix)) {
+      // Source security gateway authenticates Loop operations before forwarding
+      // to Account. Only the exact invitation/agreement targets below permit
+      // an absent Authorization header; a supplied header is always verified.
+      const anonymousTarget = [
+        'Loop_20160324.AcceptInvitationByCode',
+        'Loop_20160324.DeclineInvitationByCode',
+        'Loop_20160324.UpdateAgreementStatus',
+      ].includes(String(req.headers['x-amz-target'] || ''));
+      if (!anonymousTarget || req.headers.authorization) {
+        try {
+          verifySigV4({
+            method: req.method,
+            path: req.originalUrl || req.url || '/',
+            headers: req.headers,
+            body: req.rawBody === undefined
+              ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
+            resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+          });
+        } catch (error) {
+          if (!(error instanceof SigV4Error) || !SIGV4_ERRORS[error.code]) throw error;
+          return void sendAmzError(res, SIGV4_ERRORS[error.code]);
+        }
+      }
       log.info('loop request', { op });
       const validated = /^(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots)$/i.test(op);
       return void loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });

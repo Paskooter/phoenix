@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // A-04 bounded suspend contract through the Phoenix AWS-JSON face.
 // Original Node 8 client/gateway differential controls are separately pinned in
 // the parity evidence; this unit suite requires only declared workspace dependencies.
@@ -21,20 +22,12 @@ const store = new Store(join(dir, 'store.json'));
 let server;
 let base;
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260907/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
 async function post(target, body, accessKeyId) {
-  const headers = {
-    'content-type': 'application/x-amz-json-1.1',
-    'x-amz-target': target,
-  };
-  if (accessKeyId) headers.authorization = authorization(accessKeyId);
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers,
-    body: JSON.stringify(body),
+    headers: signedLoopHeaders(store, base, target, body, accessKeyId),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const bytes = Buffer.from(await response.arrayBuffer());
   let parsed = null;

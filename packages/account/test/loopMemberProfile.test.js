@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // A-04 bounded profile/enrollment operations through the source Loop face.
 // The fixtures use synthetic accounts and member ids; no live account store is
 // involved. Source Node 8 controls for these methods remain a separate seam.
@@ -17,19 +18,12 @@ const store = new Store(join(dir, 'store.json'));
 let server;
 let base;
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260908/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
 async function post(target, body, accessKeyId) {
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      authorization: authorization(accessKeyId),
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-    },
-    body: JSON.stringify(body),
+    headers: signedLoopHeaders(store, base, target, body, accessKeyId),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const rawBody = Buffer.from(await response.arrayBuffer()).toString('utf8');
   return {
@@ -313,11 +307,12 @@ test('source-valid string booleans save without changing enrollment values', asy
 });
 
 test('valid JSON primitives reach profile validation without changing state', async () => {
+  const caller = createOwnerAccount(store, { email: 'primitive-auth@fixture.test', password: 'fixture-password' });
   const beforeDisk = readFileSync(store.file);
   const beforeOutbox = JSON.parse(JSON.stringify([...store.notificationOutbox]));
   for (const operation of ['SetEnrollment', 'UpdateNickname', 'UpdatePhoneticName']) {
     for (const payload of [null, false, true, 0, 7, 'text', []]) {
-      const response = await post('Loop_20160324.' + operation, payload, 'fixture-access-key');
+      const response = await post('Loop_20160324.' + operation, payload, caller.accessKeyId);
       assert.equal(response.status, 422);
     }
   }

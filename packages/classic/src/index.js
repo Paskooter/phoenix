@@ -41,9 +41,8 @@ function isCreateHubTokenTarget(req) {
   return /\.createhubtoken$/i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
 
-function isValidatedLoopTarget(req) {
-  return /^loop[^.]*\.(setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots)$/i
-    .test(String(req?.headers?.['x-amz-target'] || ''));
+function isLoopTarget(req) {
+  return /^loop[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
@@ -88,7 +87,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     // The Hapi-backed Account boundary validates primitive JSON values after
     // parsing. Notification's Hapi validator also needs null/scalar payloads
     // intact to reject them before token mutation. Other routes stay strict.
-    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isValidatedLoopTarget(req),
+    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req),
     routes: {
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }], {
         notificationAccountResolver,

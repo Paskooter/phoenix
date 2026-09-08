@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // A-10 bounded LoopUpdated producer -> notification account-ID seam.
 // The publisher is an explicit local seam for the later Classic/event bridge;
 // no public access-key text is used as the notification account identity.
@@ -12,19 +13,12 @@ const { createAccountService, Store } = await import('../src/index.js');
 const { createOwnerAccount, createLoop, findOrCreateRobotAccount } = await import('../src/model.js');
 const { LoopUpdatedOutbox } = await import('../src/loopUpdatedOutbox.js');
 
-function authorization(accessKeyId) {
-  return `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260907/us-east-1/loop/aws4_request, SignedHeaders=host, Signature=fixture`;
-}
 
-async function post(base, target, body, accessKeyId) {
+async function post(store, base, target, body, accessKeyId) {
   const response = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      authorization: authorization(accessKeyId),
-    },
-    body: JSON.stringify(body),
+    headers: signedLoopHeaders(store, base, target, body, accessKeyId),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   const rawBody = Buffer.from(await response.arrayBuffer()).toString('utf8');
   return { status: response.status, rawBody, body: rawBody ? JSON.parse(rawBody) : null };
@@ -77,13 +71,13 @@ test('successful suspension publishes source LoopUpdated with the robot account 
     server = await service.listen(0);
     const base = `http://127.0.0.1:${server.address().port}`;
 
-    const denied = await post(base, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, owner.accessKeyId);
+    const denied = await post(store, base, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, owner.accessKeyId);
     assert.equal(denied.status, 403);
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(published.length, 0, 'a rejected suspend does not create an event');
     assert.equal(service.loopUpdatedOutbox.pending().length, 0);
 
-    const suspended = await post(base, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, robotA.accessKeyId);
+    const suspended = await post(store, base, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, robotA.accessKeyId);
     assert.equal(suspended.status, 200);
     await waitFor(() => published.length === 1);
     assert.equal(published[0].accountId, robotA._id, 'routing uses loop.robot, not the caller access key');
@@ -101,7 +95,7 @@ test('successful suspension publishes source LoopUpdated with the robot account 
     ]);
     assert.equal(service.loopUpdatedOutbox.pending().length, 0, 'successful publisher acknowledges the outbox row');
 
-    const adminSuspended = await post(
+    const adminSuspended = await post(store,
       base,
       'Loop_20160324.SuspendRobotLoop',
       { friendlyId: 'a10-producer-robot-b' },
@@ -118,7 +112,7 @@ test('successful suspension publishes source LoopUpdated with the robot account 
     // target. Preserve the state without inventing one from the admin key.
     loopA.robot = undefined;
     store.flush();
-    const noRobot = await post(base, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, admin.accessKeyId);
+    const noRobot = await post(store, base, 'Loop_20160324.SuspendLoop', { loopId: loopA._id }, admin.accessKeyId);
     assert.equal(noRobot.status, 200);
     assert.equal(store.loops.get(loopA._id).isSuspended, true);
     await new Promise((resolve) => setImmediate(resolve));
@@ -146,7 +140,7 @@ test('failed publication is durable and recovers after an Account service restar
     });
     server = await firstService.listen(0);
     const base = `http://127.0.0.1:${server.address().port}`;
-    const response = await post(base, 'Loop_20160324.SuspendLoop', { loopId: loop._id }, robot.accessKeyId);
+    const response = await post(store, base, 'Loop_20160324.SuspendLoop', { loopId: loop._id }, robot.accessKeyId);
     assert.equal(response.status, 200);
     await waitFor(() => attempts === 1 && firstService.loopUpdatedOutbox.draining === null);
     const pending = firstService.loopUpdatedOutbox.pending();
@@ -267,7 +261,7 @@ test('a rejected Account snapshot does not leave a suspended loop without its ev
     store.flush = () => { throw new Error('synthetic account snapshot failure'); };
     const service = createAccountService({ store, notificationPublisher: async () => {} });
     server = await service.listen(0);
-    const response = await post(
+    const response = await post(store,
       `http://127.0.0.1:${server.address().port}`,
       'Loop_20160324.SuspendLoop',
       { loopId: loop._id },
