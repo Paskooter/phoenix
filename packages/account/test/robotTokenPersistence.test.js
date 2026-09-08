@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -16,7 +17,8 @@ test('ReconnectRobot preserves a token after failed deletion and permits one dur
   const server = await createAccountService({ store }).listen(0);
   const request = () => fetch(`http://127.0.0.1:${server.address().port}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'OOBE_20161026.ReconnectRobot', connection: 'close' },
+    headers: signedLoopHeaders(store, `http://127.0.0.1:${server.address().port}`,
+      'OOBE_20161026.ReconnectRobot', { token: token._id }, owner.accessKeyId, { connection: 'close' }),
     body: JSON.stringify({ token: token._id }),
   });
   const flush = store.flush.bind(store);
