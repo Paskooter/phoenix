@@ -464,9 +464,29 @@ test('ListLoopMembers filters by status/type and uses source loop visibility', a
   assert.equal(asOutsider.body.some((m) => m.loopId === loopId), false);
 
   const robot = store.accountByFriendlyId('a04-list-robot');
+  // loop.ctrl.ts projects `facebookAccessToken` for robot requests even when
+  // the account has no token.  Mongoose's undefined value disappears during
+  // JSON serialization, while an explicit null remains in the source key
+  // order.  Keep this boundary separate from human account projection.
+  robot.facebookAccessToken = null;
+  store.flush();
   const asRobot = await post('Loop_20160324.ListLoopMembers', {}, robot.accessKeyId);
   assert.equal(asRobot.status, 200);
-  assert.ok(asRobot.body.some((m) => m.loopId === loopId));
+  const robotMember = asRobot.body.find((m) => m.loopId === loopId && m.accountId === robot._id);
+  assert.ok(robotMember);
+  assert.equal(robotMember.account.facebookAccessToken, null);
+  assert.deepEqual(Object.keys(robotMember.account), [
+    'email', 'facebookAccessToken', 'firstName', 'lastName',
+  ]);
+
+  const robotViewOfHuman = asRobot.body.find((m) => m.loopId === loopId && m.accountId === owner._id);
+  assert.ok(robotViewOfHuman);
+  assert.equal(Object.hasOwn(robotViewOfHuman.account, 'facebookAccessToken'), false);
+
+  const asGuestAfterRobotToken = await post('Loop_20160324.ListLoopMembers', {}, guest.accessKeyId);
+  const guestOwnerMember = asGuestAfterRobotToken.body.find((m) => m.loopId === loopId && m.accountId === owner._id);
+  assert.ok(guestOwnerMember);
+  assert.equal(Object.hasOwn(guestOwnerMember.account, 'facebookAccessToken'), false);
 
   await post('Loop_20160324.SuspendLoop', { loopId }, robot.accessKeyId);
   const robotAfter = await post('Loop_20160324.ListLoopMembers', {}, robot.accessKeyId);
@@ -481,6 +501,21 @@ test('ListLoopMembers filters by status/type and uses source loop visibility', a
   const notArray = await post('Loop_20160324.ListLoopMembers', { statusList: 'accepted' }, owner.accessKeyId);
   assert.equal(notArray.status, 422);
   assert.equal(notArray.body.message, 'child "statusList" fails because ["statusList" must be an array]');
+
+  const invalidType = await post('Loop_20160324.ListLoopMembers', { typeList: ['bogus'] }, owner.accessKeyId);
+  assert.equal(invalidType.status, 422);
+  assert.equal(invalidType.body.message, 'child "typeList" fails because ["typeList" at position 0 fails because ["0" must be one of [incoming, outgoing]]]');
+  const typeNotArray = await post('Loop_20160324.ListLoopMembers', { typeList: 'incoming' }, owner.accessKeyId);
+  assert.equal(typeNotArray.status, 422);
+  assert.equal(typeNotArray.body.message, 'child "typeList" fails because ["typeList" must be an array]');
+  const topLevel = [null, [], 7, 'raw'];
+  for (const value of topLevel) {
+    const response = await post('Loop_20160324.ListLoopMembers', value, owner.accessKeyId);
+    assert.equal(response.status, 422);
+    assert.equal(response.body.message, '"value" must be an object');
+  }
+  const unknownField = await post('Loop_20160324.ListLoopMembers', { ignored: true }, owner.accessKeyId);
+  assert.equal(unknownField.status, 200);
 
   const emptyFilters = await post('Loop_20160324.ListLoopMembers', { statusList: [], typeList: [] }, owner.accessKeyId);
   assert.equal(emptyFilters.status, 200);

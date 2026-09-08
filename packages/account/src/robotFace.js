@@ -143,7 +143,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       }
       log.info('loop request', { op });
       // Preserve primitive payloads for the source-validated Loop handlers.
-      const validated = /^(setlegalguardian|updateagreementstatus|listloops|list|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
+      // Preserve list-member primitives so invalid bodies reach source validation.
+      const validated = /^(setlegalguardian|updateagreementstatus|listloops|list|listmembers|listloopmembers|setenrollment|updatenickname|updatephoneticname|getrobot|findowner|listownerrobots|updateloop|removeloop|clearrobot|updateloopmember)$/i.test(op);
       return loopDispatch({ req, res, body: validated ? body : (body || {}), op, log });
     }
 

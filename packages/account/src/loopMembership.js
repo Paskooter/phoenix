@@ -275,13 +275,18 @@ function accountPublic(account, isRobotRequesting) {
   const copy = {
     birthday: account.birthday,
     email: account.email,
+    // loop.ctrl.ts: loadMembers creates this key before the remaining
+    // projection fields. It is undefined for a human request (and therefore
+    // omitted by JSON.stringify), but robot requests assign the raw source
+    // value, including null.
+    facebookAccessToken: undefined,
     firstName: account.firstName,
     gender: account.gender,
     lastName: account.lastName,
     phoneNumber: account.phoneNumber,
     photoUrl: account.photoUrl,
   };
-  if (isRobotRequesting && account.facebookAccessToken) {
+  if (isRobotRequesting) {
     copy.facebookAccessToken = account.facebookAccessToken;
   }
   if (copy.birthday != null) copy.birthday = Number(copy.birthday);
