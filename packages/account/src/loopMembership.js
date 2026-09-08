@@ -7,9 +7,10 @@
 // This module implements the membership and bounded member-profile operations on the public
 // Classic face. Identity is the
 // stored access key (same as SuspendLoop); x-amz-credentials is not a caller switch.
-// Invitation mail and InvitedToJoinLoop are explicit provider seams. The
-// default seams are no-ops because Phoenix has no SMTP/SES or SNS deployment
-// credentials; configured providers retain the source fire-and-forget calls.
+// Invitation mail and InvitedToJoinLoop are explicit provider seams. Normal
+// service construction can fill them from local SMTP/event configuration; when
+// absent, the unavailable deployment boundary remains explicit and calls keep
+// the source fire-and-forget behavior.
 
 import { randomBytes } from 'node:crypto';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './loopHttp.js';
