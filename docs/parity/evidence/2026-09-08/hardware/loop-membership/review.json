@@ -1,0 +1,31 @@
+{
+  "state": "verified_bounded_hardware_behavior",
+  "reviewedBy": "Codex root",
+  "at": "2026-09-08T06:42:24.167552+00:00",
+  "deployedRevision": "380642559f31056a4bcd32598b4f04b4d5ca3acd",
+  "runtime": {
+    "node": "6.9.2",
+    "installedClient": "3.0.105"
+  },
+  "checks": {
+    "allSixServicesHealthy": true,
+    "strictTlsRetained": true,
+    "ListLoops": true,
+    "FindOwner": true,
+    "ListOwnerRobots": true,
+    "GetRobotRobotCallerDeniedAsExpected": true,
+    "nativeNotificationConnection": true,
+    "valuePreservingUpdateLoopMember": true,
+    "savedTimestampObservedInCanonicalRobotKB": true,
+    "householdCredentialsAndProfileValuesPreserved": true
+  },
+  "privateEvidence": ".parity/reviews/a04-robot-membership-hardware-20260908/",
+  "qualifications": [
+    "No destructive Loop removal or robot clearing was performed against the household.",
+    "Preservation comparison excludes Loop updated timestamps and notification outbox changes caused by the value-preserving save.",
+    "No new microphone, ring, screen, reboot or whole lifecycle acceptance claim.",
+    "Other newly integrated mutation paths retain synthetic original-client verification; this hardware update verifies one eligible existing member."
+  ],
+  "taskClosed": false,
+  "realHouseholdDataIncluded": false
+}
