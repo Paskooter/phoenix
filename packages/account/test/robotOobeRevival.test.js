@@ -1,3 +1,4 @@
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 // A-05 bounded OOBE recovery controls against the pinned
 // srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2 source.
 // These tests use synthetic accounts/loops and an in-memory Store; no robot or
@@ -27,13 +28,14 @@ async function withService(fn) {
   }
 }
 
-async function amz(base, target, body) {
+async function amz(base, target, body, signedHeaders = {}) {
   const response = await fetch(`${base}/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1',
       'x-amz-target': target,
       connection: 'close',
+      ...signedHeaders,
     },
     body: JSON.stringify(body),
   });
@@ -54,9 +56,11 @@ test('ReconnectRobot consumes a valid token, ignores optional id, and preserves 
     const owner = createOwnerAccount(store, {
       email: 'a05-reconnect-owner@synthetic.invalid', password: 'synthetic-password', firstName: 'Reconnect',
     });
+    const reconnect = body => amz(base, 'OOBE_20161026.ReconnectRobot', body,
+      signedLoopHeaders(store, base, 'OOBE_20161026.ReconnectRobot', body, owner.accessKeyId));
     const token = mintSetupToken(store, owner._id);
 
-    const accepted = await amz(base, 'OOBE_20161026.ReconnectRobot', {
+    const accepted = await reconnect( {
       token: token._id, id: 'optional-id-is-ignored',
     });
     assert.equal(accepted.status, 200);
@@ -65,20 +69,20 @@ test('ReconnectRobot consumes a valid token, ignores optional id, and preserves 
     assert.equal(accepted.contentType, 'application/x-amz-json-1.1');
     assert.equal(store.tokens.has(token._id), false);
 
-    const replay = await amz(base, 'OOBE_20161026.ReconnectRobot', { token: token._id });
+    const replay = await reconnect( { token: token._id });
     assert.equal(replay.status, 404);
     assert.equal(replay.errorType, 'TOKEN_NOT_FOUND');
     assert.equal(replay.body.__type, 'TOKEN_NOT_FOUND');
 
     const expired = mintSetupToken(store, owner._id);
     store.tokens.get(expired._id).created = Date.now() - ACCESS_TOKEN_LIFETIME_MS - 1;
-    const expiredResponse = await amz(base, 'OOBE_20161026.ReconnectRobot', { token: expired._id });
+    const expiredResponse = await reconnect( { token: expired._id });
     assert.equal(expiredResponse.status, 401);
     assert.equal(expiredResponse.errorType, 'TOKEN_EXPIRED');
     assert.equal(store.tokens.has(expired._id), true, 'expiry must not consume the token');
 
     const invalidOptionalId = mintSetupToken(store, owner._id);
-    const invalid = await amz(base, 'OOBE_20161026.ReconnectRobot', {
+    const invalid = await reconnect( {
       token: invalidOptionalId._id, id: 7,
     });
     assert.equal(invalid.status, 422);

@@ -82,7 +82,7 @@ test('end-to-end: signup -> setup QR -> robot redeems -> status flips -> robot l
   // the robot decodes the QR, joins WiFi, and calls OOBE.setupRobot with the token + its name
   const decoded = robotDecode(setup.body.qr.codes);
   assert.equal(decoded.token, setup.body.token);
-  const creds = await amz('OOBE.SetupRobot', { token: decoded.token, id: 'castle-cylinder-fig-quilt' });
+  const creds = await amz('OOBE_20161026.SetupRobot', { token: decoded.token, id: 'castle-cylinder-fig-quilt' });
   assert.equal(creds.status, 200);
   assert.match(creds.body.accessKeyId, /^[A-Za-z0-9]{20}$/);
 

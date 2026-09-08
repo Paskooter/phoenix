@@ -173,6 +173,31 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       return void accountGet({ req, res, body: body || {}, log });
     }
 
+    // srv-security-gw permits anonymous calls only for these exact targets.
+    // A supplied signature is verified even for an anonymous exception.
+    if (['setuprobot', 'getstatus', 'preparerobot', 'reconnectrobot', 'getservicetoken'].includes(op.toLowerCase())) {
+      const anonymous = ['OOBE_20161026.SetupRobot', 'OOBE_20161026.GetStatus']
+        .includes(String(req.headers['x-amz-target'] || ''));
+      if (!anonymous || req.headers.authorization) {
+        try {
+          const verification = verifySigV4({
+            method: req.method,
+            path: req.originalUrl || req.url || '/',
+            headers: req.headers,
+            body: req.rawBody === undefined ? (body == null ? '' : JSON.stringify(body)) : req.rawBody,
+            resolveCredentials: accessKeyId => {
+              const account = store.accountByAccessKeyId(accessKeyId);
+              return account && account.isDeleted !== true ? account : null;
+            },
+          });
+          req._phoenixVerifiedCredentials = verification.credentials;
+        } catch (error) {
+          if (!(error instanceof SigV4Error) || !SIGV4_ERRORS[error.code]) throw error;
+          return void sendAmzError(res, SIGV4_ERRORS[error.code]);
+        }
+      }
+    }
+
     const handler = ops[op.toLowerCase()];
     if (!handler) {
       log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
@@ -369,10 +394,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     return null;
   }
 
-  /** oobe.handler.ts PrepareRobot — authed: accountId from the SigV4 Credential accessKeyId. */
+  /** oobe.handler.ts PrepareRobot — accountId comes from verified gateway credentials. */
   function prepareRobot({ req, res, body }) {
-    const accessKeyId = accessKeyIdFromAuth(req);
-    const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+    const account = req._phoenixVerifiedCredentials;
     if (!account) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
     const token = mintSetupToken(store, account._id, (body && body.loopId) || null);
     return void sendAmz(res, 200, { token: token._id, expires: token.created + 15 * 60 * 1000 });
@@ -387,9 +411,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   /**
    * Account_20151111.CreateHubToken is the first sensitive robot-face
-   * operation that requires a verified AWS V4 identity. Existing OOBE/Loop
-   * operations intentionally retain their LAN-trust behavior until their
-   * source gateway path is implemented; this operation never falls back to a
+   * operation that requires a verified AWS V4 identity. OOBE and Loop
+   * operations also verify signatures at their source gateway boundaries.
+   * This operation never falls back to a
    * Credential= substring or the public x-amz-credentials forwarding header.
    */
   function issueHubToken({ req, res, body }) {
