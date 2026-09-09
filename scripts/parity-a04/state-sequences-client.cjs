@@ -91,6 +91,7 @@ function record(face, id, method, actor, params, response) {
       });
     }
     ownerRobot = {
+      id: data.id || null,
       owner: data.owner || null,
       robot: data.robot || null,
       isDeleted: data.isDeleted === true,
@@ -246,6 +247,20 @@ function memberIdByAccount(data, accountId) {
   return member && (member.id || member._id) || null;
 }
 
+function storeLoops(face) {
+  var path = '/review/' + face + '-store.json';
+  return JSON.parse(fs.readFileSync(path, 'utf8')).loops || [];
+}
+
+function survivingLoopId(listedLoops) {
+  var rows = listedLoops.ownerRobot || [];
+  return rows.length ? rows[0].id : null;
+}
+
+function deletedLoopIds(face) {
+  return storeLoops(face).filter(function (loop) { return loop.isDeleted === true; }).map(function (loop) { return loop._id; });
+}
+
 async function runPostFace(face, port, fixture, pre) {
   var owner = makeClient(port, fixture.owner);
   var listed = await invoke(owner, 'listMembers', {});
@@ -254,17 +269,16 @@ async function runPostFace(face, port, fixture, pre) {
   var listedLoops = await invoke(owner, 'list', {});
   record(face, 'post-02-list-loops', 'list', 'owner', {}, listedLoops);
 
-  var createdClear = preRow(pre, face, 's3-01-create-clear');
-  var clearLoopId = createdClear && createdClear.data && createdClear.data.id;
+  var deleted = deletedLoopIds(face);
+  var clearLoopId = deleted[0];
   var getAfterClear = await invoke(owner, 'getRobot', { loopId: clearLoopId });
   record(face, 'post-03-get-after-clear', 'getRobot', 'owner', { loopId: clearLoopId }, getAfterClear);
 
-  var createdRemove = preRow(pre, face, 's3-05-create-remove-loop');
-  var removeLoopId = createdRemove && createdRemove.data && createdRemove.data.id;
+  var removeLoopId = deleted[1] || deleted[0];
   var getAfterRemove = await invoke(owner, 'getRobot', { loopId: removeLoopId });
   record(face, 'post-04-get-after-remove-loop', 'getRobot', 'owner', { loopId: removeLoopId }, getAfterRemove);
 
-  var inviteLoopId = preRow(pre, face, 's1-01-create').data && preRow(pre, face, 's1-01-create').data.id;
+  var inviteLoopId = survivingLoopId(listedLoops);
   var nextEmail = face + '-post-restart@synthetic.invalid';
   var nextInvite = await invoke(owner, 'inviteMember', {
     loopId: inviteLoopId, email: nextEmail, firstName: 'Post', lastName: 'Restart',
@@ -296,10 +310,11 @@ async function runPostFace(face, port, fixture, pre) {
   var listedAfterGuardian = await invoke(owner, 'listMembers', {});
   record(face, 'post-09-list-after-guardian', 'listMembers', 'owner', {}, listedAfterGuardian);
   var agreementId = null;
-  var listedMembers = listedAfterGuardian.data || [];
-  for (var j = 0; j < listedMembers.length; j += 1) {
-    if (listedMembers[j].id === childId || listedMembers[j].agreementId) {
-      agreementId = listedMembers[j].agreementId || agreementId;
+  var persisted = storeLoops(face);
+  for (var li = 0; li < persisted.length; li += 1) {
+    var persistedMembers = persisted[li].members || [];
+    for (var mi = 0; mi < persistedMembers.length; mi += 1) {
+      if (persistedMembers[mi].agreementId) agreementId = persistedMembers[mi].agreementId;
     }
   }
 
