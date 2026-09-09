@@ -638,3 +638,12 @@ export function createSmtpMailProviders({ smtp, fromAddress, templateDir } = {})
     passwordReset: new SmtpMailProvider({ template: 'passwordReset', smtp: config, fromAddress, templateDir }),
   };
 }
+
+export function createSmtpAccountMailProviders({ smtp, fromAddress, templateDir } = {}) {
+  const config = normalizeSmtpConfig(smtp);
+  return {
+    ...createSmtpMailProviders({ smtp: config, fromAddress, templateDir }),
+    emailReset: new SmtpMailProvider({ template: 'emailReset', smtp: config, fromAddress, templateDir }),
+    emailResetComplete: new SmtpMailProvider({ template: 'emailResetComplete', smtp: config, fromAddress, templateDir }),
+  };
+}

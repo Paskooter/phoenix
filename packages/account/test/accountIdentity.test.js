@@ -517,11 +517,10 @@ test('Create/Login/Get/Update/CheckEmail/ChangePassword share the Classic proxy 
   assert.equal(relogin.status, 200);
 });
 
+// ChangeEmail is implemented by the email/phone/terms slice; Account.Remove
+// remains unimplemented and is the proxy-fallback control.
 test('unimplemented Account operations keep the unknown-target response', async () => {
-  const response = await post(accountBase, 'Account_20151111.ChangeEmail', {
-    email: 'other@synthetic.invalid',
-    password: PASSWORD,
-  }, owner);
+  const response = await post(accountBase, 'Account_20151111.Remove', {}, owner);
   assert.equal(response.status, 400);
   assert.equal(response.body.__type, 'UnknownOperationException');
 });

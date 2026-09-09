@@ -32,7 +32,7 @@ import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { handleAccountIdentity } from './accountIdentity.js';
-import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
+import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzEmpty, sendAmzError, sendValidationError } from './loopHttp.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
 
@@ -62,14 +62,6 @@ const Errors = Object.freeze({
   },
 });
 
-function sendAmzEmpty(res, status = 200) {
-  // LoopHandler.SuspendRobotLoop does not return the delegated command result. Hapi's
-  // `reply()` therefore emits a successful zero-length response (the API model declares
-  // a null output), while SuspendLoop itself returns CommandResponse.
-  res.writeHead(status, { 'content-length': 0 });
-  res.end();
-}
-
 /** "<Prefix>.<Operation>" -> { prefix, op } (op matched case-insensitively downstream). */
 export function parseTarget(req) {
   const t = (req.headers && req.headers['x-amz-target']) || '';
@@ -83,7 +75,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, robotReadClient, memberPhotoProvider } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
@@ -163,17 +155,19 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       finally { if (req.photoCleanup) await req.photoCleanup(); }
     }
 
-    // Account identity core plus activation/recovery. CreateHubToken stays on
-    // the bounded A-02 SigV4 path below. Unimplemented Account operations keep
-    // the existing unknown-target response so Classic still proxies them
-    // without a local handler.
+    // Account identity core plus activation/recovery and the email/phone/terms
+    // slice. CreateHubToken stays on the bounded A-02 SigV4 path below.
+    // Unimplemented Account operations keep the existing unknown-target
+    // response so Classic still proxies them without a local handler.
     if (/^account/i.test(prefix)) {
-      const identity = handleAccountIdentity({
-        store, req, res, body, log, mailProviders: invitationProviders, loopConfig,
+      const identity = await handleAccountIdentity({
+        store, req, res, body, log,
+        mailProviders: invitationProviders,
+        loopConfig,
+        identityProviders,
       });
       if (identity !== false) return identity;
     }
-
     const handler = ops[op.toLowerCase()];
     if (!handler) {
       log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });

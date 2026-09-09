@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/store.json');
 // `settings` holds per-account report-skill PersonalReportSettingsData (keyed by _id = accountId).
-const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets'];
+const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'phoneVerifications'];
 
 export class Store {
   /** @param {string} [file] JSON file path (ETCO_account_dataFile overrides the default) */

@@ -639,11 +639,11 @@ test('exact-target anonymous list; extra-dot ActivateByCode still requires a sig
   assert.equal(extra.body.__type, 'MISSING_AUTH_HEADER');
 });
 
-test('ChangeEmail remains unimplemented so Classic keeps proxying it', async () => {
-  const response = await post(accountBase, 'Account_20151111.ChangeEmail', {
-    email: 'other@synthetic.invalid',
-    password: PASSWORD,
-  }, owner);
+// ChangeEmail is implemented by the email/phone/terms slice, so this
+// proxy-fallback assertion now targets an operation that is genuinely
+// unimplemented (Account.Remove).
+test('unimplemented Account operations keep the unknown-target response', async () => {
+  const response = await post(accountBase, 'Account_20151111.Remove', {}, owner);
   assert.equal(response.status, 400);
   assert.equal(response.body.__type, 'UnknownOperationException');
 });
