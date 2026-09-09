@@ -1,4 +1,6 @@
-// Account identity core — Create, Login, Get, Update, CheckEmail, ChangePassword.
+// Account identity core — Create, Login, Get, Update, CheckEmail, ChangePassword
+// plus the activation/recovery slice: ActivateByCode, ActivateById,
+// ResendActivationCode, SendPasswordReset, PasswordResetByCode.
 //
 // Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
 //   handlers/account.handler.ts, controllers/account.ctrl.ts, schemes/account.ts,
@@ -6,13 +8,15 @@
 // Framework: jiborobot/srv-server parseCredentials.ts / validate.ts / server.ts
 //   lowerMethodName = split('.')[1], first character lowercased.
 // Gateway: jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c
-//   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail.
+//   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail and the four
+//   public activation/recovery targets. ActivateById is not on that list.
 //
 // Public Classic/Account identity is the signed access key (A-04 Loop pattern).
 // parseCredentials still reads only x-amz-credentials and is tested as the
 // original internal boundary; it is not a public caller switch.
 
 import { pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import querystring from 'node:querystring';
 import { SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import { sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
 import { fillAccessKeys, isAcceptedStatus, newId, verifyPassword } from './model.js';
@@ -29,6 +33,10 @@ export const ACCOUNT_ANONYMOUS_TARGETS = Object.freeze([
   'Account_20151111.CheckEmail',
   'Account_20151111.Create',
   'Account_20151111.Login',
+  'Account_20151111.ResendActivationCode',
+  'Account_20151111.ActivateByCode',
+  'Account_20151111.SendPasswordReset',
+  'Account_20151111.PasswordResetByCode',
 ]);
 
 export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
@@ -38,6 +46,11 @@ export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
   'update',
   'checkEmail',
   'changePassword',
+  'activateByCode',
+  'activateById',
+  'resendActivationCode',
+  'sendPasswordReset',
+  'passwordResetByCode',
 ]);
 
 export const ACCOUNT_ERRORS = Object.freeze({
@@ -84,6 +97,26 @@ export const ACCOUNT_ERRORS = Object.freeze({
     code: 'CHILD_NOT_ALLOWED_TO_CREATE',
     message: 'Child is not allowed to create his own account.',
     statusCode: 403,
+  },
+  ACCOUNT_ACTIVATED: {
+    code: 'ACCOUNT_ACTIVATED',
+    message: 'Account is already active',
+    statusCode: 409,
+  },
+  ACTIVATION_CODE_NOT_FOUND: {
+    code: 'ACTIVATION_CODE_NOT_FOUND',
+    message: 'Activation code not found',
+    statusCode: 404,
+  },
+  PASSWORD_CODE_WRONG: {
+    code: 'PASSWORD_CODE_WRONG',
+    message: 'Password reset code is wrong',
+    statusCode: 404,
+  },
+  AUTHORIZED_UNDER_ADMIN: {
+    code: 'AUTHORIZED_UNDER_ADMIN',
+    message: 'Must be authorized under admin account',
+    statusCode: 401,
   },
 });
 
@@ -177,9 +210,10 @@ function snapshotAccount(account) {
 }
 
 /**
- * schemes/account.ts toJSON transform. unsafe Create/Login keep access keys;
- * Get/Update/ChangePassword omit them. password/activation/reset codes never
- * leave. created is deleted. _id is retained and copied to id.
+ * schemes/account.ts toJSON transform. unsafe Create/Login/ActivateByCode/
+ * PasswordResetByCode keep access keys; Get/Update/ChangePassword and the
+ * remaining activation/recovery handlers omit them. password/activation/reset
+ * codes never leave. created is deleted. _id is retained and copied to id.
  */
 export function accountToSourceJson(account, { unsafe = false } = {}) {
   if (!account) return null;
@@ -415,6 +449,44 @@ function validateChangePassword(body) {
   return joiString(body.oldPassword, 'oldPassword', { required: true });
 }
 
+function validateActivateByCode(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.code, 'code', { required: true });
+}
+
+function validateActivateById(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.id, 'id', { required: true });
+}
+
+function validateResendActivationCode(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  const email = joiEmailString(body.email, 'email', { required: true });
+  if (email) return email;
+  if (body.campaign !== undefined) return joiString(body.campaign, 'campaign');
+  return null;
+}
+
+function validateSendPasswordReset(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  const email = joiRequiredAny(body.email, 'email');
+  if (email) return email;
+  if (body.campaign !== undefined) return joiString(body.campaign, 'campaign');
+  return null;
+}
+
+function validatePasswordResetByCode(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  const code = joiString(body.code, 'code', { required: true });
+  if (code) return code;
+  return joiRequiredAny(body.password, 'password');
+}
+
 function loopIsVisibleTo(loop, ownerId) {
   if (!loop || loop.isDeleted === true) return false;
   if (idsEqual(loop.owner, ownerId)) return true;
@@ -487,14 +559,124 @@ function updateInvitationsByEmail(store, { email, accountId }) {
   }
 }
 
-function saveActivationCode(store, account) {
+function sendMethod(provider, args) {
+  if (typeof provider === 'function') return provider(...args);
+  if (provider && typeof provider.send === 'function') return provider.send(...args);
+  return Promise.resolve(undefined);
+}
+
+function observeMailRejection(result, onError, kind) {
+  Promise.resolve(result).catch((error) => {
+    if (typeof onError !== 'function') return;
+    try { onError(error, kind); } catch {
+      // Preserve the source fire-and-forget boundary even when a test logger is
+      // deliberately faulty.
+    }
+  });
+}
+
+function resolveMailContext(mailProviders, loopConfig) {
+  const providers = mailProviders || {};
+  const server = (loopConfig && loopConfig.server) || {};
+  const portalUrl = providers.portalUrl
+    ? String(providers.portalUrl)
+    : (server.portalUrl === undefined ? '' : String(server.portalUrl));
+  return {
+    activation: providers.activation || providers.mailActivation || null,
+    passwordReset: providers.passwordReset || providers.mailPasswordReset || null,
+    onError: providers.onError,
+    portalUrl,
+    campaign: providers.campaign || (loopConfig && loopConfig.campaign) || {},
+  };
+}
+
+function campaignLandingUrl(mail, campaign, kind, fallbackPath, query) {
+  const mapped = campaign && mail.campaign && mail.campaign[campaign] && mail.campaign[campaign][kind];
+  const baseUrl = mapped || `${mail.portalUrl || ''}${fallbackPath}`;
+  return `${baseUrl}?${querystring.stringify(query)}`;
+}
+
+function sendActivation(store, account, campaign, mail) {
+  if (account.isActive) fail(ACCOUNT_ERRORS.ACCOUNT_ACTIVATED);
   const previous = snapshotAccount(account);
   account.activationCode = dashlessUuid();
   account.updated = Date.now();
+  const context = mail || {};
+  const url = campaignLandingUrl(
+    context,
+    campaign,
+    'activation',
+    '/activate',
+    { code: account.activationCode, email: account.email },
+  );
+  observeMailRejection(sendMethod(context.activation, [account.email, {
+    email: account.email,
+    firstName: account.firstName || 'There',
+    url,
+  }]), context.onError, 'activation-mail');
   persistAccount(store, account, previous);
+  return account;
 }
 
-function createAccount(store, payload) {
+function resendActivation(store, email, campaign, mail) {
+  const account = findByEmail(store, email);
+  return sendActivation(store, account, campaign, mail);
+}
+
+function activateById(store, accountId) {
+  const account = findById(store, accountId);
+  if (account.isActive) fail(ACCOUNT_ERRORS.ACCOUNT_ACTIVATED);
+  const previous = snapshotAccount(account);
+  delete account.activationCode;
+  account.isActive = true;
+  account.updated = Date.now();
+  persistAccount(store, account, previous);
+  return account;
+}
+
+function activateByCode(store, activationCode) {
+  if (!activationCode) fail(ACCOUNT_ERRORS.ACTIVATION_CODE_NOT_FOUND);
+  const account = [...store.accounts.values()].find((row) => row.activationCode === activationCode);
+  if (!account) fail(ACCOUNT_ERRORS.ACTIVATION_CODE_NOT_FOUND);
+  return activateById(store, account._id);
+}
+
+function sendPasswordReset(store, email, campaign, mail) {
+  const account = findByEmail(store, email);
+  const previous = snapshotAccount(account);
+  account.passwordResetCode = dashlessUuid();
+  account.updated = Date.now();
+  const context = mail || {};
+  const url = campaignLandingUrl(
+    context,
+    campaign,
+    'resetPassword',
+    '/reset',
+    { email: account.email, code: account.passwordResetCode },
+  );
+  observeMailRejection(sendMethod(context.passwordReset, [account.email, {
+    email,
+    firstName: account.firstName || 'There',
+    url,
+  }]), context.onError, 'password-reset-mail');
+  persistAccount(store, account, previous);
+  return account;
+}
+
+function passwordReset(store, code, password) {
+  if (!code) fail(ACCOUNT_ERRORS.PASSWORD_CODE_WRONG);
+  const account = [...store.accounts.values()].find((row) => row.passwordResetCode === code);
+  if (!account) fail(ACCOUNT_ERRORS.PASSWORD_CODE_WRONG);
+  const previous = snapshotAccount(account);
+  account.password = hashAccountPassword(password);
+  delete account.passwordResetCode;
+  account.isActive = true;
+  account.updated = Date.now();
+  persistAccount(store, account, previous);
+  return account;
+}
+
+function createAccount(store, payload, mail) {
   if (payload.birthday) {
     if (childAge(payload.birthday) < ACCOUNT_MINIMAL_AGE) fail(ACCOUNT_ERRORS.CHILD_NOT_ALLOWED_TO_CREATE);
   }
@@ -528,7 +710,7 @@ function createAccount(store, payload) {
   try {
     applyInvitation(store, account, payload.invitationCode);
     persistAccount(store, account, null);
-    if (!account.isActive) saveActivationCode(store, account);
+    if (!account.isActive) sendActivation(store, account, payload.campaign, mail);
     updateInvitationsByEmail(store, { email: account.email, accountId: account._id });
     store.flush();
   } catch (error) {
@@ -619,12 +801,12 @@ const OPS = {
   create: {
     auth: 'none',
     validate: validateCreate,
-    run({ store, body }) {
+    run({ store, body, mail }) {
       if (!joiEmail(body.email)) fail(ACCOUNT_ERRORS.EMAIL_NOT_VALID);
       if (String(body.password).length < 8) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_LENGTH);
       if (!ACCOUNT_PASSWORD_REGEX.test(String(body.password))) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_STRING);
       const payload = { ...body, email: String(body.email).toLowerCase() };
-      return { value: accountToSourceJson(createAccount(store, payload), { unsafe: true }) };
+      return { value: accountToSourceJson(createAccount(store, payload, mail), { unsafe: true }) };
     },
   },
   login: {
@@ -679,9 +861,59 @@ const OPS = {
       };
     },
   },
+  activateByCode: {
+    auth: 'none',
+    validate: validateActivateByCode,
+    run({ store, body }) {
+      return { value: accountToSourceJson(activateByCode(store, body.code), { unsafe: true }) };
+    },
+  },
+  activateById: {
+    auth: 'parseCredentials',
+    adminOnly: true,
+    validate: validateActivateById,
+    run({ store, body }) {
+      return { value: accountToSourceJson(activateById(store, body.id), { unsafe: false }) };
+    },
+  },
+  resendActivationCode: {
+    auth: 'none',
+    validate: validateResendActivationCode,
+    run({ store, body, mail }) {
+      return {
+        value: accountToSourceJson(
+          resendActivation(store, String(body.email).toLowerCase(), body.campaign, mail),
+          { unsafe: false },
+        ),
+      };
+    },
+  },
+  sendPasswordReset: {
+    auth: 'none',
+    validate: validateSendPasswordReset,
+    run({ store, body, mail }) {
+      if (!joiEmail(body.email)) fail(ACCOUNT_ERRORS.EMAIL_NOT_VALID);
+      return {
+        value: accountToSourceJson(
+          sendPasswordReset(store, String(body.email).toLowerCase(), body.campaign, mail),
+          { unsafe: false },
+        ),
+      };
+    },
+  },
+  passwordResetByCode: {
+    auth: 'none',
+    validate: validatePasswordResetByCode,
+    run({ store, body }) {
+      if (!ACCOUNT_PASSWORD_REGEX.test(String(body.password))) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_STRING);
+      return {
+        value: accountToSourceJson(passwordReset(store, body.code, body.password), { unsafe: true }),
+      };
+    },
+  },
 };
 
-export function handleAccountIdentity({ store, req, res, body, log }) {
+export function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig }) {
   const target = String(req.headers && req.headers['x-amz-target'] || '');
   const methodName = accountMethodName(target);
   const spec = OPS[methodName];
@@ -689,9 +921,14 @@ export function handleAccountIdentity({ store, req, res, body, log }) {
   try {
     const auth = authenticatePublicAccount({ store, req, body, target, auth: spec.auth });
     if (auth.error) return void sendAmzError(res, auth.error);
+    // parseCredentials({ adminOnly }) wraps the method before validatePayload.
+    if (spec.adminOnly && (!auth.credentials || !auth.credentials.isAdmin)) {
+      return void sendAmzError(res, ACCOUNT_ERRORS.AUTHORIZED_UNDER_ADMIN);
+    }
     const validation = spec.validate(body);
     if (validation) return void sendValidationError(res, validation);
-    const result = spec.run({ store, body, credentials: auth.credentials, req });
+    const mail = resolveMailContext(mailProviders, loopConfig);
+    const result = spec.run({ store, body, credentials: auth.credentials, req, mail });
     log.info('account identity', { op: methodName });
     return void sendAmz(res, 200, result.value);
   } catch (error) {

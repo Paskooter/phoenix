@@ -89,6 +89,9 @@ export function normalizeInvitationProviders(input = undefined) {
     portalUrl: options.portalUrl === undefined ? '' : String(options.portalUrl),
     invitation: options.invitation || options.mailInvitation || null,
     invitationExistingUser: options.invitationExistingUser || options.mailInvitationExisting || null,
+    activation: options.activation || options.mailActivation || null,
+    passwordReset: options.passwordReset || options.mailPasswordReset || null,
+    campaign: options.campaign || null,
     eventSender: options.eventSender || null,
     onError: options.onError,
   };
