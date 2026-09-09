@@ -1,0 +1,11 @@
+{
+  "reviewedBy": "Claude root",
+  "task": "C-01",
+  "scope": "Boundary dimensions not covered by the accepted 317-case JSON-body review: handler errors, unknown routes, trailing slashes, HTTP methods, content types, response headers.",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "referenceRuntime": "node:8.9.4-slim (v8.9.4), pinned reference express/body-parser",
+  "cases": 47,
+  "differences": [],
+  "observations": [],
+  "falsifyRun": false
+}

@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-09",
+  "task": "C-01",
+  "result": "pass",
+  "reviewer": "Claude root",
+  "basis": "Executable differential between the pinned original shared HTTP boundary (real Node 8.9.4 with the pinned reference express/body-parser) and Phoenix packages/common/src/service.js, covering the C-01 acceptance dimensions the earlier bounded 317-case review did not reach.",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "phoenixRevision": "8795d10c47aa42ed6f0a4bc3736daf87f654d255",
+  "command": "docker run --rm --network none --mount type=bind,source=<reference>,target=/reference,readonly --mount type=bind,source=<review>,target=/review node:8.9.4-slim node /review/original-boundary.cjs && node phoenix-boundary.mjs /home/shell/work/phoenix phoenix-boundary.json && node compare-boundary.mjs",
+  "artifact": "docs/parity/evidence/2026-09-09/c01-http-boundary/review.json",
+  "referenceRuntime": "node:8.9.4-slim, process.version v8.9.4",
+  "cases": 47,
+  "differences": 0,
+  "observations": 0,
+  "acceptanceReview": [
+    {
+      "criterion": 1,
+      "text": "Compare null, undefined, arrays, empty bodies, malformed JSON, handler errors, unknown routes, trailing slashes and supported HTTP methods.",
+      "result": "pass",
+      "evidence": "Body dimensions (null/undefined/arrays/empty/malformed JSON) were already covered by the accepted 317-case review at .parity/reviews/http-json-errors (0 differences, hashes re-verified by this root). This run adds the remaining five dimensions as 47 executable cases: 12 unknown-route cases, 8 trailing-slash cases, 14 HTTP-method cases across GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS on both known and unknown routes, 2 handler-error cases (uncoded throw -> 500, statusCode-carrying throw -> 418), plus healthcheck ordering. All 47 identical."
+    },
+    {
+      "criterion": 2,
+      "text": "Preserve reference status codes, response bodies, content types and headers on all service boundaries.",
+      "result": "pass",
+      "evidence": "Every case compares status code, response body, content-type and the Allow header. 47/47 identical, including the OPTIONS Allow value \"GET,HEAD,POST,PUT,DELETE\" and the exact 404 error envelope {type:ERROR, msgID, ts, final:true, data:{message:\"URL not found: <path>\"}} produced by the source app.use 404 + buildErrorMessage pair.",
+      "qualification": "\"All service boundaries\" is verified at the SHARED boundary that every service is built on (packages/common/src/service.js vs BaseService.ts), not by enumerating each deployed service. Per-service route contracts are owned by their own tasks (A-01 mapping, A-02 dispatch/auth, S-*, Q-*)."
+    }
+  ],
+  "comparatorHonesty": {
+    "method": "Ran the comparator with --falsify, corrupting every source status to 599 and every source body.",
+    "result": "reported 94 differences, so the comparator is not vacuously passing.",
+    "artifact": "comparison-falsified.json"
+  },
+  "correctionsMade": [
+    "First run reported 2 body differences on /healthcheck (source \"OK\" vs phoenix \"ok\"). Root read BaseService.getHealthcheckResponse, which returns {statusCode:200, body:'ok'} lowercase. The HARNESS was wrong and Phoenix was right; the harness was corrected and the original capture re-run. Recorded here rather than silently fixed."
+  ],
+  "normalisation": {
+    "msgID/ts": "Nondeterministic in both implementations (source uses getUUID() and Date.now()); replaced with placeholders on both sides.",
+    "x-powered-by": "Express banner, not a product contract. Compared but reported as observation only; 0 observed.",
+    "content-length": "Derived from the body; compared via the body itself so an identical body cannot fail twice."
+  },
+  "limitations": [
+    "Shared boundary only. Per-service route/auth contracts belong to A-01, A-02 and the service tasks.",
+    "HTTPS/TLS framing, websocket upgrade paths and streaming/raw-upload routes are not exercised here.",
+    "The source app is reconstructed from BaseService.ts middleware order rather than booting a full Pegasus service; the reconstruction is in original-boundary.cjs and is reviewable.",
+    "Body-parser limit/charset/encoding edge cases beyond the accepted 317-case set are not re-tested."
+  ],
+  "inputSha256": {
+    "boundary-cases.json": "72fd1a3dd30d04cca825471dcafca40f7a3aa72c443e50a2d310cc2d62bfd7b1",
+    "compare-boundary.mjs": "ba4294a38d1cb414c5f23de04596bc28e70fa438316e5a7b8de61236770c02f9",
+    "comparison-falsified.json": "23f8caab1adf192ba1faae60cd10101a994a1f2b6acc0f63df6fe57480739501",
+    "comparison.json": "eb23ee3b6e5c8b42310e1f2af68f8d6f9d56058d9ed7e2df3284b7193d91031e",
+    "original-boundary.cjs": "8a5340b06081823be342feed6986d1d6f6aa80abedc25a7fd3ff6f486645300f",
+    "original-boundary.json": "678cf56b002bee48f98e2a0cfb09c3ef0ea40328b683dc47392b9e0f5805adaf",
+    "phoenix-boundary.json": "4b29a51db56dfde5ed1b08ffdeef5058495336e453dae47094646b937c055aa1",
+    "phoenix-boundary.mjs": "bbc5a5ef9d7c7e2ddfb84b33d9ba1cdeb5f22da6a91ed61079181b737440319c"
+  }
+}

@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 1 | 46 | 0 | 0 |
+| pegasus | 2 | 46 | 0 | 0 |
 | classic | 0 | 20 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -203,11 +203,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/classic-operation-map/
 
 ### C-01 — Match the shared HTTP response and error contract
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: V-02.
 
-Shared HTTP boundary candidate now matches the expanded malformed JSON and serialization/routing fixtures, including the root317-case mutation review. Accepted for integration; authentication and broader service boundaries remain unverified.
+Shared HTTP boundary candidate now matches the expanded malformed JSON and serialization/routing fixtures, including the root317-case mutation review. Accepted for integration; authentication and broader service boundaries remain unverified. Root verified 2026-09-09: the accepted candidate review covered JSON body parsing only (317 cases, one synthetic route). Root added 47 executable cases for handler errors, unknown routes, trailing slashes, HTTP methods, content types and response headers against the pinned Node 8.9.4 runtime - 0 differences. One harness error was found and corrected in root's favour of Phoenix (healthcheck body is lowercase "ok" per BaseService.getHealthcheckResponse).
 
 Done when:
 
@@ -218,7 +218,7 @@ Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvi
 
 Phoenix: [packages/common/src/service.js](../../packages/common/src/service.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-09/c01-http-boundary/review.json](../../docs/parity/evidence/2026-09-09/c01-http-boundary/review.json) (2026-09-09; Executable original/Phoenix shared HTTP boundary differential on the dimensions the bounded 317-case review did not cover).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair.
 

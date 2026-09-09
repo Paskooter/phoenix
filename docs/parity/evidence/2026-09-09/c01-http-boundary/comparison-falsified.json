@@ -1,0 +1,1111 @@
+{
+  "reviewedBy": "Claude root",
+  "task": "C-01",
+  "scope": "Boundary dimensions not covered by the accepted 317-case JSON-body review: handler errors, unknown routes, trailing slashes, HTTP methods, content types, response headers.",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "referenceRuntime": "node:8.9.4-slim (v8.9.4), pinned reference express/body-parser",
+  "cases": 47,
+  "differences": [
+    {
+      "id": "unknown/nope",
+      "kind": "status",
+      "method": "POST",
+      "path": "/nope",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown/nope",
+      "kind": "body",
+      "method": "POST",
+      "path": "/nope",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nope"
+        }
+      }
+    },
+    {
+      "id": "unknown-get/nope",
+      "kind": "status",
+      "method": "GET",
+      "path": "/nope",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown-get/nope",
+      "kind": "body",
+      "method": "GET",
+      "path": "/nope",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nope"
+        }
+      }
+    },
+    {
+      "id": "unknown/echo/extra",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo/extra",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown/echo/extra",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo/extra",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /echo/extra"
+        }
+      }
+    },
+    {
+      "id": "unknown-get/echo/extra",
+      "kind": "status",
+      "method": "GET",
+      "path": "/echo/extra",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown-get/echo/extra",
+      "kind": "body",
+      "method": "GET",
+      "path": "/echo/extra",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /echo/extra"
+        }
+      }
+    },
+    {
+      "id": "unknown/a/b/c",
+      "kind": "status",
+      "method": "POST",
+      "path": "/a/b/c",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown/a/b/c",
+      "kind": "body",
+      "method": "POST",
+      "path": "/a/b/c",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /a/b/c"
+        }
+      }
+    },
+    {
+      "id": "unknown-get/a/b/c",
+      "kind": "status",
+      "method": "GET",
+      "path": "/a/b/c",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown-get/a/b/c",
+      "kind": "body",
+      "method": "GET",
+      "path": "/a/b/c",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /a/b/c"
+        }
+      }
+    },
+    {
+      "id": "unknown/",
+      "kind": "status",
+      "method": "POST",
+      "path": "/",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown/",
+      "kind": "body",
+      "method": "POST",
+      "path": "/",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /"
+        }
+      }
+    },
+    {
+      "id": "unknown-get/",
+      "kind": "status",
+      "method": "GET",
+      "path": "/",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown-get/",
+      "kind": "body",
+      "method": "GET",
+      "path": "/",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /"
+        }
+      }
+    },
+    {
+      "id": "unknown/healthcheck/x",
+      "kind": "status",
+      "method": "POST",
+      "path": "/healthcheck/x",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown/healthcheck/x",
+      "kind": "body",
+      "method": "POST",
+      "path": "/healthcheck/x",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /healthcheck/x"
+        }
+      }
+    },
+    {
+      "id": "unknown-get/healthcheck/x",
+      "kind": "status",
+      "method": "GET",
+      "path": "/healthcheck/x",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "unknown-get/healthcheck/x",
+      "kind": "body",
+      "method": "GET",
+      "path": "/healthcheck/x",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /healthcheck/x"
+        }
+      }
+    },
+    {
+      "id": "unknown/ECHO",
+      "kind": "status",
+      "method": "POST",
+      "path": "/ECHO",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "unknown/ECHO",
+      "kind": "body",
+      "method": "POST",
+      "path": "/ECHO",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "unknown-get/ECHO",
+      "kind": "status",
+      "method": "GET",
+      "path": "/ECHO",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "unknown-get/ECHO",
+      "kind": "body",
+      "method": "GET",
+      "path": "/ECHO",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "slash-post/echo/",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo/",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "slash-post/echo/",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo/",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "slash-get/echo/",
+      "kind": "status",
+      "method": "GET",
+      "path": "/echo/",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "slash-get/echo/",
+      "kind": "body",
+      "method": "GET",
+      "path": "/echo/",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "slash-post/echo//",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo//",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "slash-post/echo//",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo//",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /echo//"
+        }
+      }
+    },
+    {
+      "id": "slash-get/echo//",
+      "kind": "status",
+      "method": "GET",
+      "path": "/echo//",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "slash-get/echo//",
+      "kind": "body",
+      "method": "GET",
+      "path": "/echo//",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /echo//"
+        }
+      }
+    },
+    {
+      "id": "slash-post/healthcheck/",
+      "kind": "status",
+      "method": "POST",
+      "path": "/healthcheck/",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "slash-post/healthcheck/",
+      "kind": "body",
+      "method": "POST",
+      "path": "/healthcheck/",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /healthcheck/"
+        }
+      }
+    },
+    {
+      "id": "slash-get/healthcheck/",
+      "kind": "status",
+      "method": "GET",
+      "path": "/healthcheck/",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "slash-get/healthcheck/",
+      "kind": "body",
+      "method": "GET",
+      "path": "/healthcheck/",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": "ok"
+    },
+    {
+      "id": "slash-post//echo",
+      "kind": "status",
+      "method": "POST",
+      "path": "//echo",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "slash-post//echo",
+      "kind": "body",
+      "method": "POST",
+      "path": "//echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: //echo"
+        }
+      }
+    },
+    {
+      "id": "slash-get//echo",
+      "kind": "status",
+      "method": "GET",
+      "path": "//echo",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "slash-get//echo",
+      "kind": "body",
+      "method": "GET",
+      "path": "//echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: //echo"
+        }
+      }
+    },
+    {
+      "id": "method-GET-echo",
+      "kind": "status",
+      "method": "GET",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "method-GET-echo",
+      "kind": "body",
+      "method": "GET",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "method-POST-echo",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "method-POST-echo",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "method-PUT-echo",
+      "kind": "status",
+      "method": "PUT",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "method-PUT-echo",
+      "kind": "body",
+      "method": "PUT",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "method-DELETE-echo",
+      "kind": "status",
+      "method": "DELETE",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "method-DELETE-echo",
+      "kind": "body",
+      "method": "DELETE",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "method-PATCH-echo",
+      "kind": "status",
+      "method": "PATCH",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-PATCH-echo",
+      "kind": "body",
+      "method": "PATCH",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /echo"
+        }
+      }
+    },
+    {
+      "id": "method-HEAD-echo",
+      "kind": "status",
+      "method": "HEAD",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "method-HEAD-echo",
+      "kind": "body",
+      "method": "HEAD",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": ""
+    },
+    {
+      "id": "method-OPTIONS-echo",
+      "kind": "status",
+      "method": "OPTIONS",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "method-OPTIONS-echo",
+      "kind": "body",
+      "method": "OPTIONS",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": "GET,HEAD,POST,PUT,DELETE"
+    },
+    {
+      "id": "method-GET-unknown",
+      "kind": "status",
+      "method": "GET",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-GET-unknown",
+      "kind": "body",
+      "method": "GET",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nothing-here"
+        }
+      }
+    },
+    {
+      "id": "method-POST-unknown",
+      "kind": "status",
+      "method": "POST",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-POST-unknown",
+      "kind": "body",
+      "method": "POST",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nothing-here"
+        }
+      }
+    },
+    {
+      "id": "method-PUT-unknown",
+      "kind": "status",
+      "method": "PUT",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-PUT-unknown",
+      "kind": "body",
+      "method": "PUT",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nothing-here"
+        }
+      }
+    },
+    {
+      "id": "method-DELETE-unknown",
+      "kind": "status",
+      "method": "DELETE",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-DELETE-unknown",
+      "kind": "body",
+      "method": "DELETE",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nothing-here"
+        }
+      }
+    },
+    {
+      "id": "method-PATCH-unknown",
+      "kind": "status",
+      "method": "PATCH",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-PATCH-unknown",
+      "kind": "body",
+      "method": "PATCH",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nothing-here"
+        }
+      }
+    },
+    {
+      "id": "method-HEAD-unknown",
+      "kind": "status",
+      "method": "HEAD",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-HEAD-unknown",
+      "kind": "body",
+      "method": "HEAD",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": ""
+    },
+    {
+      "id": "method-OPTIONS-unknown",
+      "kind": "status",
+      "method": "OPTIONS",
+      "path": "/nothing-here",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "method-OPTIONS-unknown",
+      "kind": "body",
+      "method": "OPTIONS",
+      "path": "/nothing-here",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /nothing-here"
+        }
+      }
+    },
+    {
+      "id": "handler-throws",
+      "kind": "status",
+      "method": "POST",
+      "path": "/throws",
+      "source": 599,
+      "phoenix": 500
+    },
+    {
+      "id": "handler-throws",
+      "kind": "body",
+      "method": "POST",
+      "path": "/throws",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "handler exploded"
+        }
+      }
+    },
+    {
+      "id": "handler-throws-coded",
+      "kind": "status",
+      "method": "POST",
+      "path": "/throws-coded",
+      "source": 599,
+      "phoenix": 418
+    },
+    {
+      "id": "handler-throws-coded",
+      "kind": "body",
+      "method": "POST",
+      "path": "/throws-coded",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "teapot"
+        }
+      }
+    },
+    {
+      "id": "ctype-application/json",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-application/json",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "ctype-application/json; charset=utf-8",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-application/json; charset=utf-8",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "ctype-text/plain",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-text/plain",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "ctype-application/x-www-form-urlencoded",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-application/x-www-form-urlencoded",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "{\"a\":1}": ""
+        }
+      }
+    },
+    {
+      "id": "ctype-application/octet-stream",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-application/octet-stream",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "ctype-none",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-none",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "ctype-application/JSON",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-application/JSON",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "ctype-text/json",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "ctype-text/json",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {}
+      }
+    },
+    {
+      "id": "urlencoded-body",
+      "kind": "status",
+      "method": "POST",
+      "path": "/echo",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "urlencoded-body",
+      "kind": "body",
+      "method": "POST",
+      "path": "/echo",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "value": {
+          "a": "1",
+          "b": "2"
+        }
+      }
+    },
+    {
+      "id": "healthcheck",
+      "kind": "status",
+      "method": "GET",
+      "path": "/healthcheck",
+      "source": 599,
+      "phoenix": 200
+    },
+    {
+      "id": "healthcheck",
+      "kind": "body",
+      "method": "GET",
+      "path": "/healthcheck",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": "ok"
+    },
+    {
+      "id": "healthcheck-post",
+      "kind": "status",
+      "method": "POST",
+      "path": "/healthcheck",
+      "source": 599,
+      "phoenix": 404
+    },
+    {
+      "id": "healthcheck-post",
+      "kind": "body",
+      "method": "POST",
+      "path": "/healthcheck",
+      "source": {
+        "WRECKED_BY_ROOT": true
+      },
+      "phoenix": {
+        "type": "ERROR",
+        "msgID": "<normalised>",
+        "ts": "<normalised>",
+        "final": true,
+        "data": {
+          "message": "URL not found: /healthcheck"
+        }
+      }
+    }
+  ],
+  "observations": [],
+  "falsifyRun": true
+}

@@ -1,0 +1,288 @@
+[
+  {
+    "id": "unknown/nope",
+    "method": "POST",
+    "path": "/nope",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "unknown-get/nope",
+    "method": "GET",
+    "path": "/nope"
+  },
+  {
+    "id": "unknown/echo/extra",
+    "method": "POST",
+    "path": "/echo/extra",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "unknown-get/echo/extra",
+    "method": "GET",
+    "path": "/echo/extra"
+  },
+  {
+    "id": "unknown/a/b/c",
+    "method": "POST",
+    "path": "/a/b/c",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "unknown-get/a/b/c",
+    "method": "GET",
+    "path": "/a/b/c"
+  },
+  {
+    "id": "unknown/",
+    "method": "POST",
+    "path": "/",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "unknown-get/",
+    "method": "GET",
+    "path": "/"
+  },
+  {
+    "id": "unknown/healthcheck/x",
+    "method": "POST",
+    "path": "/healthcheck/x",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "unknown-get/healthcheck/x",
+    "method": "GET",
+    "path": "/healthcheck/x"
+  },
+  {
+    "id": "unknown/ECHO",
+    "method": "POST",
+    "path": "/ECHO",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "unknown-get/ECHO",
+    "method": "GET",
+    "path": "/ECHO"
+  },
+  {
+    "id": "slash-post/echo/",
+    "method": "POST",
+    "path": "/echo/",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "slash-get/echo/",
+    "method": "GET",
+    "path": "/echo/"
+  },
+  {
+    "id": "slash-post/echo//",
+    "method": "POST",
+    "path": "/echo//",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "slash-get/echo//",
+    "method": "GET",
+    "path": "/echo//"
+  },
+  {
+    "id": "slash-post/healthcheck/",
+    "method": "POST",
+    "path": "/healthcheck/",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "slash-get/healthcheck/",
+    "method": "GET",
+    "path": "/healthcheck/"
+  },
+  {
+    "id": "slash-post//echo",
+    "method": "POST",
+    "path": "//echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "slash-get//echo",
+    "method": "GET",
+    "path": "//echo"
+  },
+  {
+    "id": "method-GET-echo",
+    "method": "GET",
+    "path": "/echo"
+  },
+  {
+    "id": "method-POST-echo",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "method-PUT-echo",
+    "method": "PUT",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "method-DELETE-echo",
+    "method": "DELETE",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "method-PATCH-echo",
+    "method": "PATCH",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "method-HEAD-echo",
+    "method": "HEAD",
+    "path": "/echo"
+  },
+  {
+    "id": "method-OPTIONS-echo",
+    "method": "OPTIONS",
+    "path": "/echo"
+  },
+  {
+    "id": "method-GET-unknown",
+    "method": "GET",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "method-POST-unknown",
+    "method": "POST",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "method-PUT-unknown",
+    "method": "PUT",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "method-DELETE-unknown",
+    "method": "DELETE",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "method-PATCH-unknown",
+    "method": "PATCH",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "method-HEAD-unknown",
+    "method": "HEAD",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "method-OPTIONS-unknown",
+    "method": "OPTIONS",
+    "path": "/nothing-here"
+  },
+  {
+    "id": "handler-throws",
+    "method": "POST",
+    "path": "/throws",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "handler-throws-coded",
+    "method": "POST",
+    "path": "/throws-coded",
+    "body": "{}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "ctype-application/json",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json"
+  },
+  {
+    "id": "ctype-application/json; charset=utf-8",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/json; charset=utf-8"
+  },
+  {
+    "id": "ctype-text/plain",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "text/plain"
+  },
+  {
+    "id": "ctype-application/x-www-form-urlencoded",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/x-www-form-urlencoded"
+  },
+  {
+    "id": "ctype-application/octet-stream",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/octet-stream"
+  },
+  {
+    "id": "ctype-none",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}"
+  },
+  {
+    "id": "ctype-application/JSON",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "application/JSON"
+  },
+  {
+    "id": "ctype-text/json",
+    "method": "POST",
+    "path": "/echo",
+    "body": "{\"a\":1}",
+    "contentType": "text/json"
+  },
+  {
+    "id": "urlencoded-body",
+    "method": "POST",
+    "path": "/echo",
+    "body": "a=1&b=2",
+    "contentType": "application/x-www-form-urlencoded"
+  },
+  {
+    "id": "healthcheck",
+    "method": "GET",
+    "path": "/healthcheck"
+  },
+  {
+    "id": "healthcheck-post",
+    "method": "POST",
+    "path": "/healthcheck",
+    "body": "{}",
+    "contentType": "application/json"
+  }
+]
