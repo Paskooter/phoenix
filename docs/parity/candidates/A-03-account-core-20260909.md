@@ -99,8 +99,23 @@ node --test packages/account/test/*.test.js packages/classic/test/*.test.js pack
 
 Result: 309 pass / 0 fail.
 
-`npm test` from the worktree root is recorded after the candidate commit in
-`.parity/reviews/a03-account-core-20260909/npm-test.stdout`.
+`npm test` from the worktree root at candidate `3729f0b56f2d36020acb260dd4c2b6e8b1508923`:
+
+```
+# tests 923
+# pass 916
+# fail 0
+# skipped 7
+# todo 0
+```
+
+`parity:check` reported a valid tracker. `parity:gate` reported
+`{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}`.
+Full transcript: `.parity/reviews/a03-account-core-20260909/npm-test.stdout`.
+Baseline at `5912ea4` was 908 tests / 900 pass / 0 fail / 8 skip. This run adds
+the 15 identity tests (923 total). Zero failures. One previously skipped case
+is no longer in the skip count (7 vs 8); that is a runner-count observation,
+not a claimed product change.
 
 Per-operation HTTP controls live in
 `packages/account/test/accountIdentity.test.js` and cover Account and Classic,
