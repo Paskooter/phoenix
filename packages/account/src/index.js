@@ -29,7 +29,7 @@ import { createSmtpAccountMailProviders, smtpConfigFromEnv } from './smtpMail.js
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
-export { createHubToken, createAuthenticatedHubToken, secretMatches } from './model.js';
+export { createHubToken, createAuthenticatedHubToken, createAuthenticatedWebToken, verifyWebToken, secretMatches } from './model.js';
 export {
   ACCOUNT_ANONYMOUS_TARGETS,
   ACCOUNT_ERRORS,
