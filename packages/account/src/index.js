@@ -43,9 +43,12 @@ export {
   createHttpSmsProvider,
   handleAccountIdentity,
   hashAccountPassword,
+  isAccountPhotoUpload,
   normalizeIdentityProviders,
   parseInternalCredentials,
   randomPhoneVerificationCode,
+  removePhoto,
+  updatePhoto,
 } from './accountIdentity.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
