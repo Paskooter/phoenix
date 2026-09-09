@@ -197,7 +197,7 @@ test('Account.Get empty ids returns the caller as data[0].id for LoopManager fal
 
   const unauth = await post('Account_20151111.Get', {});
   assert.equal(unauth.status, 401);
-  assert.equal(unauth.body.__type, 'CREDENTIALS_REQUIRED');
+  assert.equal(unauth.body.__type, 'MISSING_AUTH_HEADER');
 });
 
 test('populateLoop does not invent members that are not on the stored loop', () => {

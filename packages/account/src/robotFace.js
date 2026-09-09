@@ -22,7 +22,7 @@
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
   createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
-  populateLoop, ensureLoopMemberIds, isAcceptedMemberStatus, accountToPublicWire,
+  populateLoop, ensureLoopMemberIds,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
@@ -31,6 +31,7 @@ import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
+import { handleAccountIdentity } from './accountIdentity.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
@@ -162,10 +163,13 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       finally { if (req.photoCleanup) await req.photoCleanup(); }
     }
 
-    // Account_20151111.Get is the LoopManager fallback when the local KB root
-    // has no robot id yet: Account.get({}) returns the caller's account.
-    if (/^account/i.test(prefix) && op.toLowerCase() === 'get') {
-      return void accountGet({ req, res, body: body || {}, log });
+    // Account identity core (Create/Login/Get/Update/CheckEmail/ChangePassword).
+    // CreateHubToken stays on the bounded A-02 SigV4 path below. Unimplemented
+    // Account operations keep the existing unknown-target response so Classic
+    // still proxies them without a local handler.
+    if (/^account/i.test(prefix)) {
+      const identity = handleAccountIdentity({ store, req, res, body, log });
+      if (identity !== false) return identity;
     }
 
     const handler = ops[op.toLowerCase()];
@@ -192,6 +196,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   dispatch.bodyDefault = (req) => {
     const target = parseTarget(req);
     if (target.op.toLowerCase() === 'createhubtoken') return null;
+    if (/^account/i.test(target.prefix)) return null;
     if (/^settings/i.test(target.prefix)) return null;
     return {};
   };
@@ -388,47 +393,6 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (persisted) store.flush();
     log.info('Loop.List', { accessKeyId: accessKeyId || '(none)', accountFound: !!account, returned: loops.length });
     return void sendAmz(res, 200, wired);
-  }
-
-  /**
-   * AccountHandler.Get: empty ids means the caller. LoopManager uses this when
-   * the local /jibo/loop root has no robot id yet.
-   */
-  function accountGet({ req, res, body, log }) {
-    const caller = accountForClassicRequest(req);
-    if (!caller) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
-    if (body.ids !== undefined && !Array.isArray(body.ids)) {
-      return void sendValidationError(res, 'child "ids" fails because ["ids" must be an array]');
-    }
-    const ids = body.ids && body.ids.length ? body.ids.map(String) : [caller._id];
-    if (!caller.isAdmin && !idsBelongToCallerLoops(caller._id, ids)) {
-      log.info('Account.Get', { ownerId: caller._id, requested: ids.length, authorized: false });
-      return void sendAmzError(res, Errors.MEMBER_CAN_REQUEST);
-    }
-    const accounts = ids
-      .map((id) => store.accounts.get(id))
-      .filter((account) => account && account.isDeleted !== true)
-      .map(accountToPublicWire);
-    log.info('Account.Get', { ownerId: caller._id, requested: ids.length, returned: accounts.length });
-    return void sendAmz(res, 200, accounts);
-  }
-
-  function idsBelongToCallerLoops(ownerId, ids) {
-    const allowed = new Set([ownerId]);
-    for (const loop of store.loops.values()) {
-      if (loop.isDeleted === true) continue;
-      const visible = loop.owner === ownerId
-        || (Array.isArray(loop.members)
-          && loop.members.some((member) => member.accountId === ownerId
-            && isAcceptedMemberStatus(member.status)));
-      if (!visible) continue;
-      for (const member of loop.members || []) {
-        if (member.accountId && isAcceptedMemberStatus(member.status)) {
-          allowed.add(member.accountId);
-        }
-      }
-    }
-    return ids.every((id) => allowed.has(id));
   }
 
   /**

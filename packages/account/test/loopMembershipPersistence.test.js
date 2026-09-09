@@ -132,11 +132,11 @@ function rejectingOutbox() {
   };
 }
 
-function assertRejectedWithoutMutation(run, store, file, loop) {
+async function assertRejectedWithoutMutation(run, store, file, loop) {
   const before = snapshot(store);
   const diskBefore = readFileSync(file);
   const loopReference = loop;
-  assert.throws(run, /injected loop persistence failure/);
+  await assert.rejects(Promise.resolve().then(run), /injected loop persistence failure/);
   assert.deepEqual(snapshot(store), before);
   assert.strictEqual(store.loops.get(loop._id), loopReference, 'failed save keeps the shared document');
   assert.deepEqual(readFileSync(file), diskBefore, 'failed save does not change committed bytes');
@@ -188,7 +188,7 @@ test('Create relocation preserves its prior Account save when the Loop save fail
   } finally { rmSync(state.dir, { recursive: true, force: true }); }
 });
 
-test('Invite/Accept/Decline/Remove drafts do not leak failed loop mutations', () => {
+test('Invite/Accept/Decline/Remove drafts do not leak failed loop mutations', async () => {
   const cases = [
     {
       name: 'Invite new member',
@@ -239,7 +239,7 @@ test('Invite/Accept/Decline/Remove drafts do not leak failed loop mutations', ()
     const state = tempFixture();
     try {
       const outbox = rejectingOutbox();
-      assertRejectedWithoutMutation(
+      await assertRejectedWithoutMutation(
         () => item.run(state, outbox),
         state.store,
         state.file,
@@ -320,7 +320,7 @@ test('Create preserves earlier successful per-loop saves when a later relocation
   }
 });
 
-test('ListMembers is read-only and a real outbox flush failure restores state, outbox, and reload bytes', () => {
+test('ListMembers is read-only and a real outbox flush failure restores state, outbox, and reload bytes', async () => {
   const state = tempFixture();
   try {
     const before = snapshot(state.store);
@@ -335,7 +335,7 @@ test('ListMembers is read-only and a real outbox flush failure restores state, o
     const flush = state.store.flush.bind(state.store);
     state.store.flush = () => { throw new Error('injected flush failure'); };
     try {
-      assert.throws(() => removeMember(state.store, {
+      await assert.rejects(removeMember(state.store, {
         ownerId: state.owner._id,
         loopId: state.loop._id,
         id: 'a04-guest-member',
