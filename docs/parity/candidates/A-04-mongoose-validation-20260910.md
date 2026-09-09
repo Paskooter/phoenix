@@ -8,6 +8,7 @@ named in the rejection of `c3b7789` are present.
 Task id: `a04-mongoose-validation-20260910`  
 Worktree branch: `grok/candidate-a04-mongoose-validation-20260910`  
 Base revision: `ee05d7e0ff5ef405414237d0d5dbb3385bfbd80b`  
+Candidate revision: `4cd267a9b59014c1d5636be2004e4ab81af90148`  
 Landed writer: `packages/account/src/loopMembership.js` from `560a944`
 
 ## Verdicts
@@ -134,6 +135,23 @@ npm test
 
 Focused membership files after the repair: 16/16 pass (8 prior race tests, 6
 `UpdateLoopMember` tests, plus the two defect controls).
+
+Full `npm test` from this worktree at `4cd267a`:
+
+```
+# tests 943
+# pass 936
+# fail 0
+# cancelled 0
+# skipped 7
+```
+
+`parity:check` accepted the tracker. `parity:gate` matched 43/43 strict smoke
+cases with zero differences. Baseline at `ee05d7e` from the main checkout was
+941 tests / 933 pass / 0 fail / 8 skip. This candidate adds two defect
+controls (+2 tests, +2 pass). The skip count moved 8→7 because this worktree
+links the main `node_modules`, so one previously skipped coverage file ran
+and passed. That is an environment difference, not a product change.
 
 Receipt: `.parity/reviews/a04-mongoose-validation-20260910/review.json`.
 
