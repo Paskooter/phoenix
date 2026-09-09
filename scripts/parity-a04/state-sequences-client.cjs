@@ -252,9 +252,11 @@ function storeLoops(face) {
   return JSON.parse(fs.readFileSync(path, 'utf8')).loops || [];
 }
 
-function survivingLoopId(listedLoops) {
-  var rows = listedLoops.ownerRobot || [];
-  return rows.length ? rows[0].id : null;
+function survivingLoopId(face) {
+  var live = storeLoops(face).filter(function (loop) {
+    return loop.isDeleted !== true && loop.robot;
+  });
+  return live.length ? live[0]._id : null;
 }
 
 function deletedLoopIds(face) {
@@ -278,7 +280,7 @@ async function runPostFace(face, port, fixture, pre) {
   var getAfterRemove = await invoke(owner, 'getRobot', { loopId: removeLoopId });
   record(face, 'post-04-get-after-remove-loop', 'getRobot', 'owner', { loopId: removeLoopId }, getAfterRemove);
 
-  var inviteLoopId = survivingLoopId(listedLoops);
+  var inviteLoopId = survivingLoopId(face);
   var nextEmail = face + '-post-restart@synthetic.invalid';
   var nextInvite = await invoke(owner, 'inviteMember', {
     loopId: inviteLoopId, email: nextEmail, firstName: 'Post', lastName: 'Restart',

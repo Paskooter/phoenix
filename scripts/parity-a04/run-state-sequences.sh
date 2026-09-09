@@ -22,7 +22,10 @@ chmod 700 "$EVIDENCE"
 rm -f "$EVIDENCE/server-ready.json" "$EVIDENCE/restart-ready.json" \
   "$EVIDENCE/sdk-results.json" "$EVIDENCE/sdk-post-restart.json" \
   "$EVIDENCE/pre-restart.json" "$EVIDENCE/post-restart.json" \
-  "$EVIDENCE/server-captures.json"
+  "$EVIDENCE/server-captures.json" \
+  "$EVIDENCE/account-store.json" "$EVIDENCE/classic-store.json" \
+  "$EVIDENCE/classic-notifications.json" \
+  "$EVIDENCE/account-invitation-events.json" "$EVIDENCE/classic-invitation-events.json"
 
 echo "== source controller sequences (Node 8) =="
 timeout 120s docker run --rm --name "a04-state-seq-source-$$" \
