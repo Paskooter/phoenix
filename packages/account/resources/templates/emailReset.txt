@@ -1,0 +1,5 @@
+We recently received a request to change your Jibo account's email address. To finish changing your email, please click the button below.
+Previous email: {originalEmail}
+New email: {email}
+{url}
+If you have questions, contact Jibo Customer Care at support@jibo.com

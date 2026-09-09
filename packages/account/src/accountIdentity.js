@@ -1,20 +1,24 @@
-// Account identity core — Create, Login, Get, Update, CheckEmail, ChangePassword.
+// Account identity core — Create, Login, Get, Update, CheckEmail, ChangePassword
+// plus the email/phone/terms slice: ChangeEmail, ResetEmail, ConfirmEmailReset,
+// SendPhoneVerificationCode, VerifyPhoneByCode, AcceptTerms.
 //
 // Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
 //   handlers/account.handler.ts, controllers/account.ctrl.ts, schemes/account.ts,
-//   utils/password.ts, errors/account.ts.
+//   schemes/email.reset.ts, schemes/phoneVerification.ts, utils/password.ts,
+//   errors/account.ts, errors/token.ts.
 // Framework: jiborobot/srv-server parseCredentials.ts / validate.ts / server.ts
 //   lowerMethodName = split('.')[1], first character lowercased.
 // Gateway: jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c
-//   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail.
+//   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail/ConfirmEmailReset.
 //
 // Public Classic/Account identity is the signed access key (A-04 Loop pattern).
 // parseCredentials still reads only x-amz-credentials and is tested as the
 // original internal boundary; it is not a public caller switch.
 
 import { pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import querystring from 'node:querystring';
 import { SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
-import { sendAmz, sendAmzError, sendValidationError } from './loopHttp.js';
+import { sendAmz, sendAmzEmpty, sendAmzError, sendValidationError } from './loopHttp.js';
 import { fillAccessKeys, isAcceptedStatus, newId, verifyPassword } from './model.js';
 
 export const ACCOUNT_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d-_!$%@#£€*?&\(\)\^]{8,}$/;
@@ -22,13 +26,27 @@ const ACCOUNT_MINIMAL_AGE = 13;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
 const ROLES = Object.freeze(['user', 'developer']);
 const EXCLUDED_UPDATE_PROPS = Object.freeze(['email', 'password', 'accessKeyId', 'secretAccessKey']);
-const EMAIL_RESET_NEW = 'new';
+export const EMAIL_RESET_STATUS = Object.freeze({
+  NEW: 'new',
+  USED: 'used',
+  CANCELED: 'canceled',
+});
+const EMAIL_RESET_NEW = EMAIL_RESET_STATUS.NEW;
+const EMAIL_RESET_TTL_MS = 86400000;
+const PHONE_VERIFICATION_CODE_LIFETIME_MS = 1000 * 60 * 10;
+const PHONE_VERIFICATION_CODE_SIZE = 6;
+const AUTHORIZED_UNDER_ADMIN = {
+  code: 'AUTHORIZED_UNDER_ADMIN',
+  message: 'Must be authorized under admin account',
+  statusCode: 401,
+};
 
 // Gateway unauthorizedMethods — exact x-amz-target strings, not case-folded.
 export const ACCOUNT_ANONYMOUS_TARGETS = Object.freeze([
   'Account_20151111.CheckEmail',
   'Account_20151111.Create',
   'Account_20151111.Login',
+  'Account_20151111.ConfirmEmailReset',
 ]);
 
 export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
@@ -38,6 +56,12 @@ export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
   'update',
   'checkEmail',
   'changePassword',
+  'changeEmail',
+  'resetEmail',
+  'confirmEmailReset',
+  'sendPhoneVerificationCode',
+  'verifyPhoneByCode',
+  'acceptTerms',
 ]);
 
 export const ACCOUNT_ERRORS = Object.freeze({
@@ -84,6 +108,40 @@ export const ACCOUNT_ERRORS = Object.freeze({
     code: 'CHILD_NOT_ALLOWED_TO_CREATE',
     message: 'Child is not allowed to create his own account.',
     statusCode: 403,
+  },
+  EMAIL_WAS_NOT_CHANGED: {
+    code: 'EMAIL_WAS_NOT_CHANGED',
+    message: 'Email was not changed',
+    statusCode: 409,
+  },
+  PHONE_VERIFICATION_SERVICE_FAILED: {
+    code: 'PHONE_VERIFICATION_SERVICE_FAILED',
+    message: 'Verification message is not sent',
+    statusCode: 503,
+  },
+  AUTHORIZED_UNDER_ADMIN,
+});
+
+export const TOKEN_ERRORS = Object.freeze({
+  EMAIL_RESET_TOKEN_NOT_FOUND: {
+    code: 'EMAIL_RESET_TOKEN_NOT_FOUND',
+    message: 'Email reset token not found',
+    statusCode: 404,
+  },
+  EMAIL_RESET_TOKEN_EXPIRED: {
+    code: 'EMAIL_RESET_TOKEN_EXPIRED',
+    message: 'Email reset token expired',
+    statusCode: 409,
+  },
+  PHONE_TOKEN_NOT_FOUND: {
+    code: 'TOKEN_NOT_FOUND',
+    message: 'Token not found',
+    statusCode: 404,
+  },
+  PHONE_TOKEN_EXPIRED: {
+    code: 'PHONE_TOKEN_EXPIRED',
+    message: 'Phone token expired',
+    statusCode: 409,
   },
 });
 
@@ -158,6 +216,72 @@ function asTime(value) {
 
 function dashlessUuid() {
   return randomUUID().replace(/-/g, '');
+}
+
+/** schemes/phoneVerification.ts getRandomCode: 6 digits from randomBytes(n) % 10. */
+export function randomPhoneVerificationCode() {
+  return Array.from(randomBytes(PHONE_VERIFICATION_CODE_SIZE), (byte) => byte % 10).join('');
+}
+
+export function normalizeIdentityProviders(input = undefined) {
+  const options = input && typeof input === 'object' ? input : {};
+  return {
+    portalUrl: options.portalUrl === undefined ? '' : String(options.portalUrl),
+    campaign: options.campaign && typeof options.campaign === 'object' ? options.campaign : {},
+    emailReset: options.emailReset || null,
+    emailResetComplete: options.emailResetComplete || null,
+    sms: options.sms || options.smsProvider || null,
+    onError: options.onError,
+  };
+}
+
+export function createHttpSmsProvider({ url, timeoutMs = 5000, headers = {} } = {}) {
+  if (!url) throw new Error('sms url is required');
+  return {
+    async send({ to, body }) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', ...headers },
+          body: JSON.stringify({ to, body }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`sms provider HTTP ${response.status}`);
+        return response;
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+  };
+}
+
+function sendMethod(provider, args) {
+  if (typeof provider === 'function') return provider(...args);
+  if (provider && typeof provider.send === 'function') return provider.send(...args);
+  return Promise.resolve(undefined);
+}
+
+function reportProviderFailure(providers, error, kind) {
+  if (typeof providers?.onError !== 'function') return;
+  try {
+    providers.onError(error, kind);
+  } catch {
+    // Preserve the source fire-and-forget boundary.
+  }
+}
+
+function observeMailRejection(result, providers, kind) {
+  Promise.resolve(result).catch((error) => reportProviderFailure(providers, error, kind));
+}
+
+async function sendSms(provider, phoneNumber, message) {
+  if (!provider) return;
+  if (typeof provider.send === 'function') return provider.send({ to: phoneNumber, body: message });
+  if (provider.messages && typeof provider.messages.create === 'function') {
+    return provider.messages.create({ to: phoneNumber, body: message });
+  }
 }
 
 function persistAccount(store, account, previous) {
@@ -415,6 +539,52 @@ function validateChangePassword(body) {
   return joiString(body.oldPassword, 'oldPassword', { required: true });
 }
 
+function validateChangeEmail(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  if (body.campaign !== undefined) {
+    const campaign = joiString(body.campaign, 'campaign');
+    if (campaign) return campaign;
+  }
+  const email = joiEmailString(body.email, 'email', { required: true });
+  if (email) return email;
+  return joiString(body.password, 'password', { required: true });
+}
+
+function validateResetEmail(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  if (body.campaign !== undefined) {
+    const campaign = joiString(body.campaign, 'campaign');
+    if (campaign) return campaign;
+  }
+  const email = joiEmailString(body.email, 'email', { required: true });
+  if (email) return email;
+  return joiString(body.id, 'id', { required: true });
+}
+
+function validateConfirmEmailReset(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.code, 'code', { required: true });
+}
+
+function validateSendPhoneVerificationCode(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.phoneNumber, 'phoneNumber', { required: true });
+}
+
+function validateVerifyPhoneByCode(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.code, 'code', { required: true });
+}
+
+function validateAcceptTerms() {
+  return null;
+}
+
 function loopIsVisibleTo(loop, ownerId) {
   if (!loop || loop.isDeleted === true) return false;
   if (idsEqual(loop.owner, ownerId)) return true;
@@ -589,6 +759,178 @@ function changePassword(store, { id, oldPassword, newPassword }) {
   return next;
 }
 
+function emailResetUrl(providers, { campaign, email, originalEmail, code }) {
+  const campaignUrl = campaign && providers.campaign && providers.campaign[campaign]
+    ? providers.campaign[campaign].emailReset
+    : null;
+  const baseUrl = campaignUrl || `${providers.portalUrl || ''}/confirmemailreset`;
+  return `${baseUrl}?${querystring.stringify({ email, originalEmail, code })}`;
+}
+
+function sendResetEmail(providers, { email, originalEmail, code, campaign }) {
+  const url = emailResetUrl(providers, { campaign, email, originalEmail, code });
+  observeMailRejection(
+    sendMethod(providers.emailReset, [email, { url, email, originalEmail }]),
+    providers,
+    'email-reset',
+  );
+  observeMailRejection(
+    sendMethod(providers.emailResetComplete, [originalEmail, { newEmailAddress: email, originalEmail }]),
+    providers,
+    'email-reset-complete',
+  );
+}
+
+function resetAccessKeys(store, accountId) {
+  const account = findById(store, accountId);
+  const previous = snapshotAccount(account);
+  const next = { ...account, ...fillAccessKeys(), updated: Date.now() };
+  persistAccount(store, next, previous);
+  return next;
+}
+
+function persistEmailReset(store, row, previous) {
+  store.emailResets.set(row._id, row);
+  try {
+    store.flush();
+  } catch (error) {
+    if (previous) store.emailResets.set(previous._id, previous);
+    else store.emailResets.delete(row._id);
+    throw error;
+  }
+  return row;
+}
+
+function resetEmail(store, accountId, email, campaign, providers) {
+  const account = findById(store, accountId);
+  if (account.email === email) fail(ACCOUNT_ERRORS.EMAIL_WAS_NOT_CHANGED);
+  const existingAccount = [...store.accounts.values()].find((row) => row.email === email);
+  const previousExisting = existingAccount ? snapshotAccount(existingAccount) : null;
+  if (existingAccount) {
+    if (!existingAccount.isDeleted) fail(ACCOUNT_ERRORS.EMAIL_ALREADY_EXISTS);
+    existingAccount.email = `${email}-reused-by-${account._id}`;
+    existingAccount.updated = Date.now();
+    store.accounts.set(existingAccount._id, existingAccount);
+  }
+  const emailReset = {
+    _id: newId(),
+    accountId,
+    code: randomUUID(),
+    created: Date.now(),
+    email: String(email).toLowerCase(),
+    originalEmail: account.email,
+    status: EMAIL_RESET_NEW,
+  };
+  try {
+    persistEmailReset(store, emailReset, null);
+  } catch (error) {
+    if (previousExisting) store.accounts.set(previousExisting._id, previousExisting);
+    throw error;
+  }
+  sendResetEmail(providers, {
+    campaign,
+    code: emailReset.code,
+    email: emailReset.email,
+    originalEmail: emailReset.originalEmail,
+  });
+  return { id: emailReset._id };
+}
+
+function changeEmail(store, { id, password, email, campaign }, providers) {
+  const account = findById(store, id);
+  if (!compareAccountPassword(password, account.password)) fail(ACCOUNT_ERRORS.WRONG_PASSWORD);
+  return resetEmail(store, id, email, campaign, providers);
+}
+
+function confirmEmailReset(store, code) {
+  const emailReset = [...store.emailResets.values()].find((row) => row.code === code);
+  if (!emailReset) fail(TOKEN_ERRORS.EMAIL_RESET_TOKEN_NOT_FOUND);
+  if (emailReset.status !== EMAIL_RESET_NEW) fail(TOKEN_ERRORS.EMAIL_RESET_TOKEN_EXPIRED);
+  const tokenAge = Date.now() - asTime(emailReset.created);
+  if (tokenAge > EMAIL_RESET_TTL_MS) fail(TOKEN_ERRORS.EMAIL_RESET_TOKEN_EXPIRED);
+  const account = findById(store, emailReset.accountId);
+  const previousAccount = snapshotAccount(account);
+  const previousResets = [...store.emailResets.values()].map((row) => snapshotAccount(row));
+  const next = { ...account, email: emailReset.email, updated: Date.now() };
+  persistAccount(store, next, previousAccount);
+  resetAccessKeys(store, next._id);
+  for (const request of store.emailResets.values()) {
+    if (!idsEqual(request.accountId, emailReset.accountId)) continue;
+    request.status = idsEqual(request._id, emailReset._id)
+      ? EMAIL_RESET_STATUS.USED
+      : EMAIL_RESET_STATUS.CANCELED;
+    store.emailResets.set(request._id, request);
+  }
+  try {
+    store.flush();
+  } catch (error) {
+    store.accounts.set(previousAccount._id, previousAccount);
+    store.emailResets.clear();
+    for (const row of previousResets) store.emailResets.set(row._id, row);
+    throw error;
+  }
+}
+
+async function sendPhoneVerificationCode(store, accountId, phoneNumber, providers) {
+  const phoneVerification = {
+    _id: newId(),
+    accountId,
+    code: randomPhoneVerificationCode(),
+    created: Date.now(),
+    phoneNumber,
+  };
+  store.phoneVerifications.set(phoneVerification._id, phoneVerification);
+  try {
+    store.flush();
+  } catch (error) {
+    store.phoneVerifications.delete(phoneVerification._id);
+    throw error;
+  }
+  try {
+    await sendSms(providers.sms, phoneNumber, `Jibo verification code: ${phoneVerification.code}`);
+  } catch (error) {
+    reportProviderFailure(providers, error, 'phone-verification-sms');
+    fail(ACCOUNT_ERRORS.PHONE_VERIFICATION_SERVICE_FAILED);
+  }
+  return { id: phoneVerification._id };
+}
+
+function phoneVerificationsFor(store, accountId) {
+  return [...store.phoneVerifications.values()].filter((row) => idsEqual(row.accountId, accountId));
+}
+
+function verifyPhoneByCode(store, accountId, code) {
+  const account = findById(store, accountId);
+  const matches = phoneVerificationsFor(store, accountId).filter((row) => row.code === code);
+  const phoneVerification = matches[0];
+  if (!phoneVerification) fail(TOKEN_ERRORS.PHONE_TOKEN_NOT_FOUND);
+  const latest = phoneVerificationsFor(store, accountId)
+    .slice()
+    .sort((left, right) => asTime(right.created) - asTime(left.created))[0];
+  if (!idsEqual(phoneVerification._id, latest._id)) fail(TOKEN_ERRORS.PHONE_TOKEN_EXPIRED);
+  const codeLifetime = Date.now() - asTime(phoneVerification.created);
+  if (codeLifetime > PHONE_VERIFICATION_CODE_LIFETIME_MS) fail(TOKEN_ERRORS.PHONE_TOKEN_EXPIRED);
+  const previousAccount = snapshotAccount(account);
+  const previousVerifications = phoneVerificationsFor(store, accountId).map((row) => snapshotAccount(row));
+  const next = { ...account, phoneNumber: phoneVerification.phoneNumber, updated: Date.now() };
+  for (const row of previousVerifications) store.phoneVerifications.delete(row._id);
+  try {
+    persistAccount(store, next, previousAccount);
+  } catch (error) {
+    for (const row of previousVerifications) store.phoneVerifications.set(row._id, row);
+    throw error;
+  }
+  return next;
+}
+
+function acceptTerms(store, accountId) {
+  const account = findById(store, accountId);
+  const previous = snapshotAccount(account);
+  const next = { ...account, termsAccepted: Date.now(), updated: Date.now() };
+  persistAccount(store, next, previous);
+  return next;
+}
+
 function authenticatePublicAccount({ store, req, body, target, auth }) {
   const authorization = req.headers && req.headers.authorization;
   if (auth === 'none' && !authorization && ACCOUNT_ANONYMOUS_TARGETS.includes(target)) {
@@ -679,9 +1021,68 @@ const OPS = {
       };
     },
   },
+  changeEmail: {
+    auth: 'parseCredentials',
+    validate: validateChangeEmail,
+    run({ store, body, credentials, providers }) {
+      return {
+        value: changeEmail(store, {
+          campaign: body.campaign,
+          email: String(body.email).toLowerCase(),
+          id: credentials._id,
+          password: body.password,
+        }, providers),
+      };
+    },
+  },
+  resetEmail: {
+    auth: 'parseCredentials',
+    adminOnly: true,
+    validate: validateResetEmail,
+    run({ store, body, providers }) {
+      return {
+        value: resetEmail(store, body.id, body.email, body.campaign, providers),
+      };
+    },
+  },
+  confirmEmailReset: {
+    auth: 'none',
+    validate: validateConfirmEmailReset,
+    run({ store, body }) {
+      confirmEmailReset(store, body.code);
+      return { empty: true };
+    },
+  },
+  sendPhoneVerificationCode: {
+    auth: 'parseCredentials',
+    validate: validateSendPhoneVerificationCode,
+    async run({ store, body, credentials, providers }) {
+      return {
+        value: await sendPhoneVerificationCode(store, credentials._id, body.phoneNumber, providers),
+      };
+    },
+  },
+  verifyPhoneByCode: {
+    auth: 'parseCredentials',
+    validate: validateVerifyPhoneByCode,
+    run({ store, body, credentials }) {
+      return {
+        value: accountToSourceJson(verifyPhoneByCode(store, credentials._id, body.code), { unsafe: false }),
+      };
+    },
+  },
+  acceptTerms: {
+    auth: 'parseCredentials',
+    validate: validateAcceptTerms,
+    run({ store, credentials }) {
+      return {
+        value: accountToSourceJson(acceptTerms(store, credentials._id), { unsafe: false }),
+      };
+    },
+  },
 };
 
-export function handleAccountIdentity({ store, req, res, body, log }) {
+export async function handleAccountIdentity({ store, req, res, body, log, identityProviders }) {
   const target = String(req.headers && req.headers['x-amz-target'] || '');
   const methodName = accountMethodName(target);
   const spec = OPS[methodName];
@@ -689,10 +1090,20 @@ export function handleAccountIdentity({ store, req, res, body, log }) {
   try {
     const auth = authenticatePublicAccount({ store, req, body, target, auth: spec.auth });
     if (auth.error) return void sendAmzError(res, auth.error);
+    if (spec.adminOnly && !(auth.credentials && auth.credentials.isAdmin)) {
+      return void sendAmzError(res, AUTHORIZED_UNDER_ADMIN);
+    }
     const validation = spec.validate(body);
     if (validation) return void sendValidationError(res, validation);
-    const result = spec.run({ store, body, credentials: auth.credentials, req });
+    const result = await spec.run({
+      store,
+      body,
+      credentials: auth.credentials,
+      req,
+      providers: normalizeIdentityProviders(identityProviders),
+    });
     log.info('account identity', { op: methodName });
+    if (result && result.empty) return void sendAmzEmpty(res);
     return void sendAmz(res, 200, result.value);
   } catch (error) {
     if (error && error.code && error.statusCode) return void sendAmzError(res, error);
