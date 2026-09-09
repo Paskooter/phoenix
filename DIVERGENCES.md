@@ -77,3 +77,19 @@ change API requests, signing, response interpretation, BE behavior, or native
 Notification transport. Explicit caller-supplied HTTP agents/options retain
 upstream precedence. The installer records original and patched file hashes and
 supports guarded restoration.
+
+## Loop event and projection behavior
+
+Both rows below are **pre-existing Phoenix behavior** (they predate the
+2026-09-09 candidate waves). They were surfaced as measured observations by the
+A-04 gate 1 state-sequence work and are recorded here by root so they are
+deliberate decisions rather than undocumented drift. Under the standing policy
+— only substantive client-visible behavior counts — neither changes what a
+reference client observes, but both are real differences from source and are
+qualified as such.
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| L1 | A Loop save whose `robot` relation is absent produces **no** `LoopUpdated` outbox row. Source `Loop` post-save emits the event regardless; `notification-ws` `LoopUpdatedHandler` then skips it because `accountId = evt.payload.robot` has no target. | Phoenix's durable outbox is the routing step and the delivery step at once (`loopUpdatedOutbox.record` returns `null` for an unroutable loop). Persisting a row that can never be addressed would leave a permanently undrainable entry. | **Robot-visible behavior is identical**: no notification is delivered either way. The difference is bus-visible — a *different* consumer of `LoopUpdated` would see the event from source and not from Phoenix. The prior root's A-04 pending review already noted "Other services may consume those events." Revisit if any non-notification consumer is implemented. |
+| L2 | Phoenix Loop mutation JSON omits `isDeleted`; source `toJSON` includes `isDeleted: true` on a soft-deleted loop. | Phoenix serializes the wire model rather than the Mongoose document. | The generated `loop-2016-03-24` API model has **no** `isDeleted` member, so a generated reference client drops the field during response parsing and cannot observe it. Following `ListLoops` / `GetRobot` reads agree with source schema `pre("find")` middleware (deleted loops absent, `404 LOOP_NOT_FOUND`). **Qualification:** that a generated client drops unmodeled fields is inferred from the API model, not executed against a client that received an `isDeleted` body. |
+
