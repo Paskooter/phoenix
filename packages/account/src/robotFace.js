@@ -165,6 +165,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         mailProviders: invitationProviders,
         loopConfig,
         identityProviders,
+        loopUpdatedOutbox,
       });
       if (identity !== false) return identity;
     }

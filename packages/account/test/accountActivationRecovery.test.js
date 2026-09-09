@@ -639,11 +639,11 @@ test('exact-target anonymous list; extra-dot ActivateByCode still requires a sig
   assert.equal(extra.body.__type, 'MISSING_AUTH_HEADER');
 });
 
-// ChangeEmail is implemented by the email/phone/terms slice, so this
-// proxy-fallback assertion now targets an operation that is genuinely
-// unimplemented (Account.Remove).
+// Search/Remove are implemented; CreateAccessToken is still genuinely
+// unimplemented (owned by a different A-03 agent) and remains the
+// proxy-fallback control.
 test('unimplemented Account operations keep the unknown-target response', async () => {
-  const response = await post(accountBase, 'Account_20151111.Remove', {}, owner);
+  const response = await post(accountBase, 'Account_20151111.CreateAccessToken', {}, owner);
   assert.equal(response.status, 400);
   assert.equal(response.body.__type, 'UnknownOperationException');
 });

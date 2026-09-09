@@ -1,15 +1,18 @@
 // Account identity core — Create, Login, Get, Update, CheckEmail, ChangePassword
 // plus the email/phone/terms slice: ChangeEmail, ResetEmail, ConfirmEmailReset,
-// SendPhoneVerificationCode, VerifyPhoneByCode, AcceptTerms.
+// SendPhoneVerificationCode, VerifyPhoneByCode, AcceptTerms,
+// plus Search and Remove.
 //
 // Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
 //   handlers/account.handler.ts, controllers/account.ctrl.ts, schemes/account.ts,
 //   schemes/email.reset.ts, schemes/phoneVerification.ts, utils/password.ts,
-//   errors/account.ts, errors/token.ts.
+//   errors/account.ts, errors/token.ts, controllers/loop.ctrl.ts (clearAssociated).
 // Framework: jiborobot/srv-server parseCredentials.ts / validate.ts / server.ts
 //   lowerMethodName = split('.')[1], first character lowercased.
 // Gateway: jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c
 //   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail/ConfirmEmailReset.
+//   Search is NOT on that list (handler has no parseCredentials; gateway still
+//   requires a signature). unactiveMethods is only Account_20151111.Remove.
 //
 // Public Classic/Account identity is the signed access key (A-04 Loop pattern).
 // parseCredentials still reads only x-amz-credentials and is tested as the
@@ -19,7 +22,8 @@ import { pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from 'node:crypt
 import querystring from 'node:querystring';
 import { SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import { sendAmz, sendAmzEmpty, sendAmzError, sendValidationError } from './loopHttp.js';
-import { fillAccessKeys, isAcceptedStatus, newId, verifyPassword } from './model.js';
+import { fillAccessKeys, isAcceptedStatus, MEMBER_STATUS, MEMBER_TYPE, newId, verifyPassword } from './model.js';
+import { listMembers, LOOP_MEMBERSHIP_ERRORS, removeLoop } from './loopMembership.js';
 
 export const ACCOUNT_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d-_!$%@#£€*?&\(\)\^]{8,}$/;
 const ACCOUNT_MINIMAL_AGE = 13;
@@ -53,6 +57,11 @@ export const ACCOUNT_ANONYMOUS_TARGETS = Object.freeze([
   'Account_20151111.PasswordResetByCode',
 ]);
 
+// Gateway unactiveMethods — inactive accounts may call only this target.
+export const ACCOUNT_UNACTIVE_TARGETS = Object.freeze([
+  'Account_20151111.Remove',
+]);
+
 export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
   'create',
   'login',
@@ -71,6 +80,8 @@ export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
   'passwordResetByCode',
   'resendActivationCode',
   'sendPasswordReset',
+  'search',
+  'remove',
 ]);
 
 export const ACCOUNT_ERRORS = Object.freeze({
@@ -147,6 +158,21 @@ export const ACCOUNT_ERRORS = Object.freeze({
     code: 'PASSWORD_CODE_WRONG',
     message: 'Password reset code is wrong',
     statusCode: 404,
+  },
+  OWNER_CAN_REMOVE: {
+    code: 'OWNER_CAN_REMOVE',
+    message: 'Owner can only remove accounts with no associated e-mail',
+    statusCode: 401,
+  },
+  OWNER_CAN_MANIPULATE: {
+    code: 'OWNER_CAN_MANIPULATE',
+    message: 'Only owner can manipulate loop or members',
+    statusCode: 401,
+  },
+  LOOPS_MUST_BE_SUSPENDED: {
+    code: 'LOOPS_MUST_BE_SUSPENDED',
+    message: 'All account loops must be suspended',
+    statusCode: 409,
   },
 });
 
@@ -338,6 +364,19 @@ function persistAccount(store, account, previous) {
     throw error;
   }
   return account;
+}
+
+/**
+ * escape-regexp@0.0.1 — a regex escape, not HTML escaping.
+ * Source: `import escape = require("escape-regexp")`.
+ */
+export function escapeRegexp(str) {
+  return String(str).replace(/([.*+?=^!:${}()|[\]\/\\])/g, '\\$1');
+}
+
+function fieldMatches(value, regex) {
+  if (value == null) return false;
+  return regex.test(String(value));
 }
 
 function snapshotAccount(account) {
@@ -990,7 +1029,13 @@ function authenticatePublicAccount({ store, req, body, target, auth }) {
         : req.rawBody,
       resolveCredentials: (accessKeyId) => {
         const account = store.accountByAccessKeyId(accessKeyId);
-        return account && account.isDeleted !== true ? account : null;
+        if (!account || account.isDeleted === true) return null;
+        // verifySigV4 always rejects !isActive. Gateway unactiveMethods lets
+        // Remove through; present a live flag only for that verifier check.
+        if (!account.isActive && ACCOUNT_UNACTIVE_TARGETS.includes(target)) {
+          return { ...account, isActive: true };
+        }
+        return account;
       },
     });
     req._phoenixVerifiedCredentials = verification.credentials;
@@ -1174,6 +1219,31 @@ const OPS = {
       };
     },
   },
+  // Handler Search has no @parseCredentials, but it is NOT in gateway
+  // unauthorizedMethods. Unsigned requests 401; a verified signature is
+  // unused by the controller. Results use the safe toJSON projection
+  // (handler does not call toJSON({ unsafe: true })).
+  search: {
+    auth: 'none',
+    validate: validateSearch,
+    run({ store, body }) {
+      return {
+        value: searchAccounts(store, body.query).map((account) => accountToSourceJson(account, { unsafe: false })),
+      };
+    },
+  },
+  remove: {
+    auth: 'parseCredentials',
+    validate: validateRemove,
+    run({ store, body, credentials, loopUpdatedOutbox }) {
+      return {
+        value: accountToSourceJson(
+          removeById(store, credentials._id, body.id, loopUpdatedOutbox),
+          { unsafe: false },
+        ),
+      };
+    },
+  },
 };
 
 function resolveMailContext(mailProviders, loopConfig) {
@@ -1191,7 +1261,7 @@ function resolveMailContext(mailProviders, loopConfig) {
   };
 }
 
-export async function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig, identityProviders }) {
+export async function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig, identityProviders, loopUpdatedOutbox }) {
   const target = String(req.headers && req.headers['x-amz-target'] || '');
   const methodName = accountMethodName(target);
   const spec = OPS[methodName];
@@ -1216,6 +1286,7 @@ export async function handleAccountIdentity({ store, req, res, body, log, mailPr
       req,
       mail,
       providers: normalizeIdentityProviders(identityProviders),
+      loopUpdatedOutbox,
     });
     log.info('account identity', { op: methodName });
     if (result && result.empty) return void sendAmzEmpty(res);
@@ -1326,6 +1397,132 @@ function validateSendPasswordReset(body) {
   if (email) return email;
   if (body.campaign !== undefined) return joiString(body.campaign, 'campaign');
   return null;
+}
+
+function validateSearch(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.query, 'query', { required: true });
+}
+
+function validateRemove(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  if (body.id === undefined) return null;
+  return joiString(body.id, 'id');
+}
+
+function searchAccounts(store, query) {
+  const pattern = new RegExp(escapeRegexp(query), 'i');
+  const result = [];
+  for (const account of store.accounts.values()) {
+    if (account.isDeleted === true) continue;
+    if (fieldMatches(account.lastName, pattern)
+      || fieldMatches(account.firstName, pattern)
+      || fieldMatches(account.email, pattern)) {
+      result.push(account);
+    }
+  }
+  return result;
+}
+
+function getAuthorizedMembership(store, ownerId, accountId) {
+  const members = listMembers(store, {
+    ownerId,
+    statusList: [MEMBER_STATUS.ACCEPTED],
+    typeList: [MEMBER_TYPE.OUTGOING],
+  });
+  const member = members.find((mem) => idsEqual(mem.accountId, accountId));
+  if (member) return member;
+  const owner = findById(store, ownerId);
+  if (idsEqual(owner._id, accountId) || owner.isAdmin) {
+    return { account: null };
+  }
+  fail(ACCOUNT_ERRORS.OWNER_CAN_MANIPULATE);
+}
+
+function listOwnerLoops(store, ownerId) {
+  return [...store.loops.values()].filter((loop) => idsEqual(loop.owner, ownerId) && loop.isDeleted !== true);
+}
+
+function memberIdsOf(loop) {
+  return (loop && loop.members || []).map((member) => String(member && (member._id || member.id)));
+}
+
+function persistClearedLoop(store, loop, before, loopUpdatedOutbox) {
+  loop.updated = Date.now();
+  const previousIds = memberIdsOf(before);
+  const nextIds = memberIdsOf(loop);
+  if (previousIds.length !== nextIds.length || previousIds.some((id, index) => id !== nextIds[index])) {
+    const version = Number(before && before.__v);
+    loop.__v = (Number.isInteger(version) && version >= 0 ? version : 0) + 1;
+  }
+  const prior = store.loops.get(loop._id);
+  store.loops.set(loop._id, loop);
+  try {
+    if (loopUpdatedOutbox && typeof loopUpdatedOutbox.record === 'function') {
+      loopUpdatedOutbox.record(loop);
+    } else {
+      store.flush();
+    }
+  } catch (error) {
+    if (prior) store.loops.set(loop._id, prior);
+    else store.loops.delete(loop._id);
+    throw error;
+  }
+  return loop;
+}
+
+/** LoopController.clearMember: hard-filter members by accountId, then save. */
+function clearMember(store, { loopId, accountId }, loopUpdatedOutbox) {
+  const stored = store.loops.get(loopId);
+  if (!stored || stored.isDeleted === true) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_NOT_FOUND);
+  const before = snapshotAccount(stored);
+  const loop = snapshotAccount(stored);
+  const membersCount = (loop.members || []).length;
+  loop.members = (loop.members || []).filter((member) => !member.accountId || !idsEqual(member.accountId, accountId));
+  if (loop.members.length === membersCount) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+  return persistClearedLoop(store, loop, before, loopUpdatedOutbox);
+}
+
+/**
+ * LoopController.clearAssociated. Owned loops must all be suspended; each is
+ * then `_remove`'d (Phoenix `removeLoop`). Remaining loops that still list the
+ * account as a member go through `clearMember`. Source saves each loop before
+ * the account row; a throw after a loop save leaves those loop writes in place.
+ */
+function clearAssociated(store, accountId, loopUpdatedOutbox) {
+  const loops = listOwnerLoops(store, accountId);
+  if (loops.some((loop) => !loop.isSuspended)) fail(ACCOUNT_ERRORS.LOOPS_MUST_BE_SUSPENDED);
+  for (const loop of loops) {
+    removeLoop(store, { ownerId: accountId, loopId: loop._id }, loopUpdatedOutbox);
+  }
+  const loopsHavingAccount = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
+    && (loop.members || []).some((member) => member.accountId && idsEqual(member.accountId, accountId)));
+  for (const loop of loopsHavingAccount) {
+    clearMember(store, { loopId: loop._id, accountId }, loopUpdatedOutbox);
+  }
+}
+
+/**
+ * AccountController.removeById. With `id`, membership is checked first, then
+ * an account that has an email is OWNER_CAN_REMOVE, then ownerId is reassigned
+ * to the target. Order: isDeleted = true on the in-memory row, then
+ * clearAssociated, then save. passwordResetCode is not cleared (DIVERGENCES A1).
+ */
+function removeById(store, ownerId, accountId, loopUpdatedOutbox) {
+  if (accountId) {
+    getAuthorizedMembership(store, ownerId, accountId);
+    const account = findById(store, accountId);
+    if (account.email) fail(ACCOUNT_ERRORS.OWNER_CAN_REMOVE);
+    ownerId = accountId;
+  }
+  const accountToRemove = findById(store, ownerId);
+  const previous = snapshotAccount(accountToRemove);
+  const next = { ...accountToRemove, isDeleted: true, updated: Date.now() };
+  clearAssociated(store, ownerId, loopUpdatedOutbox);
+  persistAccount(store, next, previous);
+  return next;
 }
 
 function sendActivation(store, account, campaign, mail) {
