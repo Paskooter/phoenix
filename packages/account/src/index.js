@@ -76,6 +76,7 @@ export {
 } from './invitationEventOutbox.js';
 export {
   INVITATION_SUBJECT,
+  MAIL_SUBJECTS,
   SmtpMailProvider,
   createSmtpMailProviders,
   normalizeSmtpConfig,
