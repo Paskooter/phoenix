@@ -6,7 +6,8 @@ covers only gate 2 from
 
 Task id: `a04-membership-races-20260909`  
 Worktree branch: `grok/candidate-a04-membership-races-20260909`  
-Base revision: `5912ea4`
+Base revision: `5912ea4`  
+Candidate revision: `560a9444f3da7c8e451c8ac4eb6d2296540c1952` (implementation commit; this write-up may land as a follow-up commit on the same branch)
 
 ## What changed
 
@@ -114,8 +115,27 @@ npm test
 ```
 
 Focused membership/invitation/persistence/event files passed 26/26 before the
-full suite. The full `npm test` result is recorded in
-`.parity/reviews/a04-membership-races-20260909/review.json` after that run.
+full suite. Full `npm test` from this worktree at `560a944`:
+
+```
+# tests 916
+# pass 909
+# fail 0
+# cancelled 0
+# skipped 7
+```
+
+`parity:check` accepted the tracker. `parity:gate` matched 43/43 strict smoke
+cases with zero differences. Baseline at `5912ea4` was 908 tests / 900 pass /
+0 fail / 8 skip. This candidate adds eight race tests (+8 tests, +8 pass). The
+skip count moved 8→7 because this worktree initially had no local
+`node_modules`; after linking the main install so `scripts/parity-coverage`
+could load TypeScript 2.5.3, one previously skipped coverage file ran and
+passed. That is an environment repair, not a product change.
+
+Raw suite log: `.parity/reviews/a04-membership-races-20260909/npm-test.log`.
+Race snapshots: `.parity/reviews/a04-membership-races-20260909/races.json`.
+Receipt: `.parity/reviews/a04-membership-races-20260909/review.json`.
 
 ## What this does not claim
 
