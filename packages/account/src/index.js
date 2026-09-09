@@ -21,6 +21,11 @@ import { pipeline } from 'node:stream/promises';
 import { join, dirname } from 'node:path';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { createConfiguredInvitationProviders } from './invitationDeployment.js';
+import {
+  createHttpSmsProvider,
+  normalizeIdentityProviders,
+} from './accountIdentity.js';
+import { createSmtpAccountMailProviders, smtpConfigFromEnv } from './smtpMail.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -30,12 +35,17 @@ export {
   ACCOUNT_ERRORS,
   ACCOUNT_IDENTITY_METHODS,
   ACCOUNT_PASSWORD_REGEX,
+  EMAIL_RESET_STATUS,
+  TOKEN_ERRORS,
   accountMethodName,
   accountToSourceJson,
   compareAccountPassword,
+  createHttpSmsProvider,
   handleAccountIdentity,
   hashAccountPassword,
+  normalizeIdentityProviders,
   parseInternalCredentials,
+  randomPhoneVerificationCode,
 } from './accountIdentity.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
@@ -76,7 +86,9 @@ export {
 } from './invitationEventOutbox.js';
 export {
   INVITATION_SUBJECT,
+  MAIL_SUBJECTS,
   SmtpMailProvider,
+  createSmtpAccountMailProviders,
   createSmtpMailProviders,
   normalizeSmtpConfig,
   smtpConfigFromEnv,
@@ -110,6 +122,10 @@ function firstNonEmpty(...values) {
   return values.find((value) => typeof value === 'string' && value.trim() !== '') || null;
 }
 
+function firstDefined(...values) {
+  return values.find((value) => value !== undefined);
+}
+
 function photoPublicBaseUrl(...values) {
   const configured = firstNonEmpty(...values);
   if (!configured) return null;
@@ -125,6 +141,56 @@ function photoPublicBaseUrl(...values) {
   // reverse proxy can mount the photo endpoint below its own prefix.
   const path = parsed.pathname === '/' ? '/member-photos' : parsed.pathname;
   return `${parsed.origin}${path}`;
+}
+
+function own(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function createConfiguredIdentityProviders({
+  identityProviders,
+  invitationProviders,
+  smtp,
+  fromAddress,
+  templateDir,
+  portalUrl,
+  smsUrl,
+  smsTimeoutMs,
+  smsHeaders,
+} = {}) {
+  const options = identityProviders && typeof identityProviders === 'object' ? identityProviders : {};
+  const normalized = normalizeIdentityProviders({
+    ...options,
+    portalUrl: firstDefined(
+      options.portalUrl,
+      invitationProviders && invitationProviders.portalUrl,
+      portalUrl,
+      process.env.ETCO_account_portalUrl,
+      '',
+    ),
+  });
+  const smtpOption = firstDefined(options.smtp, smtp);
+  const smtpConfig = smtpOption === undefined ? smtpConfigFromEnv() : smtpOption;
+  if (smtpConfig) {
+    const mail = createSmtpAccountMailProviders({
+      smtp: smtpConfig,
+      fromAddress: firstDefined(options.fromAddress, fromAddress, process.env.ETCO_account_mailFrom, 'no-reply@jibo.com'),
+      templateDir: firstDefined(options.templateDir, templateDir),
+    });
+    if (!own(options, 'emailReset')) normalized.emailReset = mail.emailReset;
+    if (!own(options, 'emailResetComplete')) normalized.emailResetComplete = mail.emailResetComplete;
+  }
+  if (!own(options, 'sms') && !own(options, 'smsProvider')) {
+    const url = firstDefined(options.smsUrl, smsUrl, process.env.ETCO_account_smsUrl);
+    if (url) {
+      normalized.sms = createHttpSmsProvider({
+        url,
+        timeoutMs: firstDefined(options.smsTimeoutMs, smsTimeoutMs, process.env.ETCO_account_smsTimeoutMs, 5000),
+        headers: firstDefined(options.smsHeaders, smsHeaders, {}),
+      });
+    }
+  }
+  return normalized;
 }
 
 function photoConfiguration(loopConfig, store) {
@@ -151,6 +217,7 @@ export function createAccountService({
   agreementProvider,
   memberPhotoProvider,
   invitationProviders,
+  identityProviders,
   robotReadClient = new RobotReadClient(),
   invitationSmtp,
   invitationEventFile,
@@ -160,6 +227,13 @@ export function createAccountService({
   invitationEventHeaders,
   invitationMailFrom,
   invitationTemplateDir,
+  identitySmtp,
+  identityMailFrom,
+  identityTemplateDir,
+  identityPortalUrl,
+  smsUrl,
+  smsTimeoutMs,
+  smsHeaders,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -184,6 +258,17 @@ export function createAccountService({
   });
   const effectiveSettingsProviders = settingsProviders === undefined
     ? createSettingsProviders({ store }) : settingsProviders;
+  const effectiveIdentityProviders = createConfiguredIdentityProviders({
+    identityProviders,
+    invitationProviders: effectiveInvitationProviders,
+    smtp: identitySmtp,
+    fromAddress: identityMailFrom,
+    templateDir: identityTemplateDir,
+    portalUrl: identityPortalUrl,
+    smsUrl,
+    smsTimeoutMs,
+    smsHeaders,
+  });
   const photo = memberPhotoProvider ? null : photoConfiguration(loopConfig, store);
   const photoProvider = memberPhotoProvider || (photo.publicBaseUrl
     ? new MemberPhotoStorage({ directory: photo.directory, publicBaseUrl: photo.publicBaseUrl }) : null);
@@ -218,6 +303,7 @@ export function createAccountService({
         loopConfig,
         agreementProvider,
         invitationProviders: effectiveInvitationProviders,
+        identityProviders: effectiveIdentityProviders,
         robotReadClient,
         memberPhotoProvider: photoProvider,
       }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
@@ -227,6 +313,7 @@ export function createAccountService({
   // recover rows left by a prior process after construction.
   service.loopUpdatedOutbox = loopUpdatedOutbox;
   service.invitationProviders = effectiveInvitationProviders;
+  service.identityProviders = effectiveIdentityProviders;
   void loopUpdatedOutbox.recover();
   const invitationEvents = effectiveInvitationProviders.eventSender;
   if (invitationEvents && typeof invitationEvents.recover === 'function') {

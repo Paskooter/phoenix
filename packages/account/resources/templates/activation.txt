@@ -1,0 +1,3 @@
+Please click below to verify your account using the email {email}:
+
+{url}

@@ -94,6 +94,10 @@ export function createConfiguredInvitationProviders({
     if (!own(options, 'invitationExistingUser') && !own(options, 'mailInvitationExisting')) {
       normalized.invitationExistingUser = mail.invitationExistingUser;
     }
+    if (!own(options, 'activation') && !own(options, 'mailActivation')) normalized.activation = mail.activation;
+    if (!own(options, 'passwordReset') && !own(options, 'mailPasswordReset')) {
+      normalized.passwordReset = mail.passwordReset;
+    }
   }
 
   const explicitEventSender = own(options, 'eventSender') ? options.eventSender : undefined;

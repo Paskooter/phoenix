@@ -161,6 +161,9 @@ test('source target mapping lowercases only the first character of split(.)[1]',
   assert.equal(accountMethodName('Account_20151111.Create'), 'create');
   assert.equal(accountMethodName('Account_20151111.ChangePassword'), 'changePassword');
   assert.equal(accountMethodName('Account_20151111.CheckEmail'), 'checkEmail');
+  assert.equal(accountMethodName('Account_20151111.ActivateByCode'), 'activateByCode');
+  assert.equal(accountMethodName('Account_20151111.ResendActivationCode'), 'resendActivationCode');
+  assert.equal(accountMethodName('Account_20151111.PasswordResetByCode'), 'passwordResetByCode');
   assert.equal(accountMethodName('Account_20151111.Create.extra'), 'create');
   assert.equal(accountMethodName('Account_20151111.GET'), 'gET');
   assert.equal(accountMethodName('Create'), '');
@@ -514,8 +517,10 @@ test('Create/Login/Get/Update/CheckEmail/ChangePassword share the Classic proxy 
   assert.equal(relogin.status, 200);
 });
 
+// ChangeEmail is implemented by the email/phone/terms slice; Account.Remove
+// remains unimplemented and is the proxy-fallback control.
 test('unimplemented Account operations keep the unknown-target response', async () => {
-  const response = await post(accountBase, 'Account_20151111.ActivateByCode', { code: 'nope' });
+  const response = await post(accountBase, 'Account_20151111.Remove', {}, owner);
   assert.equal(response.status, 400);
   assert.equal(response.body.__type, 'UnknownOperationException');
 });

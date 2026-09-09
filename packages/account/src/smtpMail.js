@@ -12,7 +12,17 @@ import { createHmac, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
-export const INVITATION_SUBJECT = 'Invitation';
+export const MAIL_SUBJECTS = Object.freeze({
+  activation: 'Account Activation',
+  emailReset: 'Your new email',
+  emailResetComplete: 'Your email has changed',
+  invitation: 'Invitation',
+  invitationExistingUser: 'Invitation',
+  passwordReset: 'Password Reset',
+  robotNotFound: 'Your robot is not found',
+});
+
+export const INVITATION_SUBJECT = MAIL_SUBJECTS.invitation;
 
 const DEFAULT_FROM = 'no-reply@jibo.com';
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -599,7 +609,7 @@ export class SmtpMailProvider {
 
   async send(to, options = {}) {
     if (!this.template) throw new Error('Template not set');
-    if (this.template !== 'invitation' && this.template !== 'invitationExistingUser') {
+    if (!MAIL_SUBJECTS[this.template]) {
       throw new Error('Subject not specified for the template');
     }
     const recipient = envelopeAddress(to, 'to');
@@ -607,7 +617,7 @@ export class SmtpMailProvider {
     const data = multipartMessage({
       from: this.fromAddress,
       to: recipient,
-      subject: INVITATION_SUBJECT,
+      subject: MAIL_SUBJECTS[this.template],
       text: this.templateTextContent,
       html,
     });
@@ -624,5 +634,16 @@ export function createSmtpMailProviders({ smtp, fromAddress, templateDir } = {})
   return {
     invitation: new SmtpMailProvider({ template: 'invitation', smtp: config, fromAddress, templateDir }),
     invitationExistingUser: new SmtpMailProvider({ template: 'invitationExistingUser', smtp: config, fromAddress, templateDir }),
+    activation: new SmtpMailProvider({ template: 'activation', smtp: config, fromAddress, templateDir }),
+    passwordReset: new SmtpMailProvider({ template: 'passwordReset', smtp: config, fromAddress, templateDir }),
+  };
+}
+
+export function createSmtpAccountMailProviders({ smtp, fromAddress, templateDir } = {}) {
+  const config = normalizeSmtpConfig(smtp);
+  return {
+    ...createSmtpMailProviders({ smtp: config, fromAddress, templateDir }),
+    emailReset: new SmtpMailProvider({ template: 'emailReset', smtp: config, fromAddress, templateDir }),
+    emailResetComplete: new SmtpMailProvider({ template: 'emailResetComplete', smtp: config, fromAddress, templateDir }),
   };
 }

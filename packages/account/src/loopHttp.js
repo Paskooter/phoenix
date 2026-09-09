@@ -9,6 +9,11 @@ export function sendAmz(res, status, obj) {
   res.end(body);
 }
 
+export function sendAmzEmpty(res, status = 200) {
+  res.writeHead(status, { 'content-length': 0 });
+  res.end();
+}
+
 export function sendAmzError(res, err, message) {
   const body = JSON.stringify({ __type: err.code, message: message || err.message });
   res.writeHead(err.statusCode, {
