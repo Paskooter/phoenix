@@ -20,6 +20,7 @@ const {
   acceptInvitation,
   declineInvitation,
   removeMember,
+  updateMember,
 } = await import('../src/loopMembership.js');
 
 function makeProviders() {
@@ -515,6 +516,100 @@ test('direct Accept vs Decline overlapping writes match source last-path-wins pe
     assert.ok([MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.DECLINED].includes(String(member.status).toLowerCase()));
     assert.equal(saved.__v, 1, 'positional status writes do not increment the append version');
     assert.deepEqual(new Store(state.store.file).loops.get(state.loop._id), saved);
+  } finally {
+    rmSync(state.directory, { recursive: true, force: true });
+  }
+});
+
+test('unchanged declined status does not version-conflict with an overlapping append', async () => {
+  const state = makeState('a04-race-unchanged-decline');
+  const side = makeProviders();
+  try {
+    const outbox = new LoopUpdatedOutbox(state.store);
+    state.loop.members.push({
+      _id: '111111111111111111111111',
+      accountId: state.guest._id,
+      status: MEMBER_STATUS.DECLINED,
+      invitedAsLegalGuardian: false,
+      memberProperties: { email: state.guest.email, isChild: false },
+      enrolled: { face: false, voice: false },
+    });
+    state.store.flush();
+    const results = await Promise.allSettled([
+      inviteMember(state.store, {
+        ownerId: state.owner._id,
+        loopId: state.loop._id,
+        email: 'new@synthetic.invalid',
+      }, outbox, { invitationProviders: side.invitationProviders }),
+      declineInvitation(state.store, {
+        loopId: state.loop._id,
+        accountId: state.guest._id,
+      }, outbox, { invitationProviders: side.invitationProviders }),
+    ]);
+    assert.equal(results[0].status, 'fulfilled');
+    assert.equal(results[1].status, 'fulfilled', 'source unchanged status is a timestamp touch with no version predicate');
+    const saved = state.store.loops.get(state.loop._id);
+    assert.equal(saved.members.length, 4);
+    assert.equal(saved.members.find((member) => member._id === '111111111111111111111111').status, MEMBER_STATUS.DECLINED);
+    assert.equal(
+      saved.members.filter((member) => member.memberProperties?.email === 'new@synthetic.invalid').length,
+      1,
+    );
+  } finally {
+    rmSync(state.directory, { recursive: true, force: true });
+  }
+});
+
+test('array-removing UpdateLoopMember increments version so a queued accept cannot shift onto another member', async () => {
+  const state = makeState('a04-race-array-shrink');
+  const side = makeProviders();
+  try {
+    const outbox = new LoopUpdatedOutbox(state.store);
+    state.loop.members.push(
+      {
+        _id: '111111111111111111111111',
+        accountId: null,
+        status: MEMBER_STATUS.DECLINED,
+        invitedAsLegalGuardian: false,
+        memberProperties: { email: 'reused@synthetic.invalid', isChild: false },
+        enrolled: { face: false, voice: false },
+      },
+      {
+        _id: '222222222222222222222222',
+        accountId: state.guest._id,
+        status: MEMBER_STATUS.INVITED,
+        invitedAsLegalGuardian: false,
+        memberProperties: { isChild: false },
+        enrolled: { face: false, voice: false },
+      },
+      {
+        _id: '333333333333333333333333',
+        accountId: null,
+        status: MEMBER_STATUS.INVITED,
+        invitedAsLegalGuardian: false,
+        memberProperties: { email: 'other@synthetic.invalid', isChild: false },
+        enrolled: { face: false, voice: false },
+      },
+    );
+    state.store.flush();
+    const pending = acceptInvitation(state.store, {
+      loopId: state.loop._id,
+      accountId: state.guest._id,
+    }, outbox, { invitationProviders: side.invitationProviders });
+    updateMember(state.store, {
+      ownerId: state.owner._id,
+      loopId: state.loop._id,
+      id: '222222222222222222222222',
+      email: 'reused@synthetic.invalid',
+    }, outbox, { invitationProviders: side.invitationProviders });
+    const results = await Promise.allSettled([pending]);
+    assert.equal(results[0].status, 'rejected');
+    assert.equal(results[0].reason.code, 'LOOP_VERSION_CONFLICT');
+    const saved = state.store.loops.get(state.loop._id);
+    assert.equal(saved.__v, 1, 'source array replacement $set.members increments __v');
+    assert.equal(saved.members.find((member) => member._id === '333333333333333333333333').status, MEMBER_STATUS.INVITED);
+    assert.equal(saved.members.find((member) => member._id === '222222222222222222222222').status, MEMBER_STATUS.INVITED);
+    assert.equal(saved.members.some((member) => member._id === '111111111111111111111111'), false);
   } finally {
     rmSync(state.directory, { recursive: true, force: true });
   }
