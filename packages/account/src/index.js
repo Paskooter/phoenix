@@ -25,6 +25,18 @@ import { createConfiguredInvitationProviders } from './invitationDeployment.js';
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
 export { createHubToken, createAuthenticatedHubToken, secretMatches } from './model.js';
+export {
+  ACCOUNT_ANONYMOUS_TARGETS,
+  ACCOUNT_ERRORS,
+  ACCOUNT_IDENTITY_METHODS,
+  ACCOUNT_PASSWORD_REGEX,
+  accountMethodName,
+  accountToSourceJson,
+  compareAccountPassword,
+  handleAccountIdentity,
+  hashAccountPassword,
+  parseInternalCredentials,
+} from './accountIdentity.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
 export { robotFaceRoutes } from './robotFace.js';
@@ -86,6 +98,12 @@ function isLoopTarget(req) {
     && new URL(req.originalUrl || req.url, 'http://localhost').pathname === '/'
     && /^loop[^.]*\./i
       .test(String(req.headers?.['x-amz-target'] || ''));
+}
+
+function isAccountTarget(req) {
+  return req.method === 'POST'
+    && new URL(req.originalUrl || req.url, 'http://localhost').pathname === '/'
+    && /^account/i.test(String(req.headers?.['x-amz-target'] || ''));
 }
 
 function firstNonEmpty(...values) {
@@ -176,7 +194,7 @@ export function createAccountService({
     // Hapi also parses Settings and Loop payloads as JSON values before Joi rejects
     // top-level primitives with the source "value must be an object" error.
     // Keep the common strict parser for every other route.
-    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req),
+    jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
       'GET /member-photos/:key': async ({ req, res }) => {
         if (!photoProvider?.open) { res.writeHead(404); res.end(); return; }
