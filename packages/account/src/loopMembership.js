@@ -177,6 +177,18 @@ function snapshotLoop(loop) {
   return loop === undefined ? undefined : JSON.parse(JSON.stringify(loop));
 }
 
+function memberIds(loop) {
+  return (loop && loop.members || []).map((member) => String(member && member._id));
+}
+
+function membersArrayReplaced(before, loop) {
+  if (!before) return false;
+  const previous = memberIds(before);
+  const next = memberIds(loop);
+  if (previous.length !== next.length) return true;
+  return previous.some((id, index) => id !== next[index]);
+}
+
 function loopVersion(loop) {
   const value = Number(loop && loop.__v);
   return Number.isInteger(value) && value >= 0 ? value : 0;
@@ -345,6 +357,13 @@ function saveLoop(store, loop, loopUpdatedOutbox, before = undefined) {
     ? (priorStoredLoop ? snapshotLoop(priorStoredLoop) : null)
     : before;
   loop.updated = Date.now();
+  // Mongoose 4.9.8 emits `$set.members` plus `$inc.__v` with an `__v`
+  // predicate when the embedded array is reassigned. Keep that version bump
+  // on the remaining whole-document writer so a queued positional write
+  // cannot land on a shifted index.
+  if (membersArrayReplaced(previous, loop)) {
+    loop.__v = loopVersion(previous) + 1;
+  }
   store.loops.set(loop._id, loop);
   try {
     loopUpdatedOutbox.record(loop);
