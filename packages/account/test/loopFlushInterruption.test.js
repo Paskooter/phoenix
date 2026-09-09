@@ -16,7 +16,7 @@ import { LoopUpdatedOutbox } from '../src/loopUpdatedOutbox.js';
 import { InvitationEventOutbox } from '../src/invitationEventOutbox.js';
 import { createLoopFromApi, updateLoop } from '../src/loopMembership.js';
 
-const CHILD = join(dirname(fileURLToPath(import.meta.url)), 'fixtures/interruptFlushChild.mjs');
+const CHILD = join(dirname(fileURLToPath(import.meta.url)), '../../../scripts/parity-a04/interruptFlushChild.mjs');
 
 function sha256(buffer) {
   return createHash('sha256').update(buffer).digest('hex');

@@ -2,11 +2,12 @@
 // Child used by loopFlushInterruption.test.js. It loads a prepared Account
 // store, injects a flush or LoopCreated-publisher interrupt, and SIGKILLs
 // itself so the parent can inspect durable bytes without in-process rollback.
+// Lives outside packages/*/test so `node --test` does not execute it.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { Store } from '../../src/store.js';
-import { LoopUpdatedOutbox } from '../../src/loopUpdatedOutbox.js';
-import { InvitationEventOutbox } from '../../src/invitationEventOutbox.js';
-import { createLoopFromApi, removeMember, updateLoop } from '../../src/loopMembership.js';
+import { Store } from '../../packages/account/src/store.js';
+import { LoopUpdatedOutbox } from '../../packages/account/src/loopUpdatedOutbox.js';
+import { InvitationEventOutbox } from '../../packages/account/src/invitationEventOutbox.js';
+import { createLoopFromApi, removeMember, updateLoop } from '../../packages/account/src/loopMembership.js';
 
 const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox'];
 
