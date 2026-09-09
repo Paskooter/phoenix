@@ -2,9 +2,11 @@
 set -u
 CANDIDATE_ROOT="${CANDIDATE_ROOT:-/home/shell/work/phoenix/.parity/worktrees/a04-state-sequences-20260910}"
 EVIDENCE="${EVIDENCE_ROOT:-$CANDIDATE_ROOT/.parity/reviews/a04-state-sequences-20260910}"
-COMPILED="${COMPILED_ROOT:-/home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/exact-source-harness/compiled}"
+HARNESS="${SOURCE_HARNESS:-/home/shell/work/phoenix/.parity/reviews/a04-loop-record-validation-node8-20260908/exact-source-harness}"
+COMPILED="${COMPILED_ROOT:-$HARNESS/compiled}"
 CLIENT="${CLIENT_ROOT:-/home/shell/work/phoenix/.parity/yarn-cache/v1/npm-@jibo/jibo-server-client-3.0.110-dc0962bd91de9392ecf2ef6f96c6d9f7642d23e8}"
 DEPS="${NODE8_DEPS:-/home/shell/work/phoenix/.parity/reviews/a06-original-runtime/node_modules}"
+BINARY_DEPS="${NODE8_BINARY_DEPS:-/home/shell/work/phoenix/.parity/reviews/a04-source-methods-20260907/node_modules}"
 PINFILE="${PINFILE:-$CANDIDATE_ROOT/docs/parity/evidence/2026-09-05/compatibility-pins.json}"
 IMAGE=$(python3 - "$PINFILE" <<'PY'
 import json, sys
@@ -20,11 +22,12 @@ chmod 700 "$EVIDENCE"
 
 echo "== source controller sequences (Node 8) =="
 timeout 120s docker run --rm --name "a04-state-seq-source-$$" \
-  -v "$COMPILED:/source/compiled:ro" \
+  -v "$HARNESS:/source:ro" \
   -v "$CANDIDATE_ROOT/scripts/parity-a04/state-sequences-source.cjs:/review/state-sequences-source.cjs:ro" \
   -v "$EVIDENCE:/out:rw" \
   -v "$DEPS:/deps:ro" \
-  -e NODE_PATH=/deps \
+  -v "$BINARY_DEPS:/binary:ro" \
+  -e NODE_PATH=/deps:/binary \
   -e COMPILED_ROOT=/source/compiled \
   -e SEQUENCE_OUTPUT=/out/source-sequences.json \
   "$IMAGE" node /review/state-sequences-source.cjs \
@@ -65,9 +68,9 @@ timeout 180s docker run --rm --name "a04-state-seq-client-$$" --network host \
   -v "$EVIDENCE:/review:rw" \
   -v "$CLIENT:/client:ro" \
   -v "$DEPS:/deps:ro" \
-  -v "$CANDIDATE_ROOT/scripts/parity-a04/state-sequences-client.cjs:/review/state-sequences-client.cjs:ro" \
+  -v "$CANDIDATE_ROOT/scripts/parity-a04/state-sequences-client.cjs:/client-run/state-sequences-client.cjs:ro" \
   -e NODE_PATH=/deps \
-  "$IMAGE" node /review/state-sequences-client.cjs \
+  "$IMAGE" node /client-run/state-sequences-client.cjs \
   >"$EVIDENCE/client.stdout" 2>"$EVIDENCE/client.stderr"
 client_status=$?
 printf '%s\n' "$client_status" >"$EVIDENCE/client.exit"
