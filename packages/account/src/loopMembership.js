@@ -123,6 +123,17 @@ export class LoopError extends Error {
   }
 }
 
+class LoopMutationVersionError extends LoopError {
+  constructor(loopId, expected, actual) {
+    super({
+      code: 'LOOP_VERSION_CONFLICT',
+      message: `Loop version conflict for ${loopId}: expected ${expected}, found ${actual}`,
+      statusCode: 500,
+    });
+    this.name = 'VersionError';
+  }
+}
+
 function fail(err) {
   throw new LoopError(err);
 }
@@ -163,7 +174,160 @@ function findById(store, loopId) {
 }
 
 function snapshotLoop(loop) {
-  return JSON.parse(JSON.stringify(loop));
+  return loop === undefined ? undefined : JSON.parse(JSON.stringify(loop));
+}
+
+function loopVersion(loop) {
+  const value = Number(loop && loop.__v);
+  return Number.isInteger(value) && value >= 0 ? value : 0;
+}
+
+function sameValue(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function getMemberPath(member, path) {
+  return String(path).split('.').reduce((value, part) => (
+    value === undefined || value === null ? undefined : value[part]
+  ), member);
+}
+
+function setMemberPath(member, path, value) {
+  const parts = String(path).split('.');
+  const leaf = parts.pop();
+  let target = member;
+  for (const part of parts) {
+    if (!target[part] || typeof target[part] !== 'object' || Array.isArray(target[part])) target[part] = {};
+    target = target[part];
+  }
+  target[leaf] = value;
+}
+
+function restoreOutbox(store, previous) {
+  if (!store.notificationOutbox || !previous) return;
+  store.notificationOutbox.clear();
+  for (const [key, value] of previous) store.notificationOutbox.set(key, value);
+}
+
+// Source Loop.save() is per-request. Mongoose 4.9.8 emits $pushAll for a new
+// subdocument and a positional $set for a dirty member path. A batch is the
+// writes already accepted by request-local drafts, not a lock or retry loop.
+const pendingLoopMutations = new WeakMap();
+
+function scheduleLoopBatch(store, loops, loopId, state) {
+  state.scheduled = true;
+  setImmediate(() => {
+    state.scheduled = false;
+    const entries = state.entries.splice(0);
+    for (const entry of entries) {
+      try {
+        entry.resolve(applyLoopMutation(store, entry.mutation));
+      } catch (error) {
+        // A rejected source save does not cancel another request that has
+        // already reached its own save call. Process each delta separately.
+        entry.reject(error);
+      }
+    }
+    if (state.entries.length > 0) scheduleLoopBatch(store, loops, loopId, state);
+    else loops.delete(loopId);
+  });
+}
+
+function enqueueLoopMutation(store, mutation) {
+  let loops = pendingLoopMutations.get(store);
+  if (!loops) {
+    loops = new Map();
+    pendingLoopMutations.set(store, loops);
+  }
+  let state = loops.get(mutation.loopId);
+  if (!state) {
+    state = { entries: [], scheduled: false };
+    loops.set(mutation.loopId, state);
+  }
+  const result = new Promise((resolve, reject) => {
+    state.entries.push({ mutation, resolve, reject });
+  });
+  if (!state.scheduled) scheduleLoopBatch(store, loops, mutation.loopId, state);
+  return result;
+}
+
+function applyLoopMutation(store, mutation) {
+  const current = store.loops.get(mutation.loopId);
+  if (!current || current.isDeleted === true) {
+    fail(LOOP_MEMBERSHIP_ERRORS.LOOP_NOT_FOUND);
+  }
+  const previousReference = current;
+  const previousOutbox = store.notificationOutbox
+    ? new Map([...store.notificationOutbox].map(([key, value]) => [key, snapshotLoop(value)]))
+    : null;
+  const next = snapshotLoop(current);
+  const currentVersion = loopVersion(current);
+
+  if (mutation.kind === 'append') {
+    // Observed Mongoose 4.9.8 operators for a new member: `$pushAll.members`
+    // and `$inc.__v` with no version predicate, so two independently loaded
+    // invite drafts both survive.
+    next.members = (next.members || []).concat(mutation.members.map(snapshotLoop));
+    next.__v = currentVersion + 1;
+  } else if (mutation.kind === 'touch') {
+    // Assigning a member path its current value does not mark it dirty. The
+    // pre-save `updated` timestamp still persists, without an __v predicate.
+    next.__v = currentVersion;
+  } else {
+    // Dirty member paths emit positional `$set` guarded by the loaded __v,
+    // without incrementing it. Two overlapping status writes therefore both
+    // resolve; a stale write after an append fails at this boundary.
+    if (currentVersion !== mutation.expectedVersion) {
+      throw new LoopMutationVersionError(mutation.loopId, mutation.expectedVersion, currentVersion);
+    }
+    const member = next.members && next.members[mutation.memberIndex];
+    if (!member) throw new LoopMutationVersionError(mutation.loopId, mutation.expectedVersion, currentVersion);
+    for (const [field, value] of Object.entries(mutation.fields)) {
+      setMemberPath(member, field, snapshotLoop(value));
+    }
+    next.__v = currentVersion;
+  }
+  next.updated = mutation.draft.updated;
+  store.loops.set(mutation.loopId, next);
+  mutation.draft.__v = next.__v;
+  try {
+    // Source post-save receives this request's document, not the merged store.
+    mutation.loopUpdatedOutbox.record(mutation.draft);
+  } catch (error) {
+    store.loops.set(mutation.loopId, previousReference);
+    restoreOutbox(store, previousOutbox);
+    throw error;
+  }
+  return mutation.draft;
+}
+
+function saveLoopMutation(store, loop, loopUpdatedOutbox, before, mutation) {
+  loop.updated = Date.now();
+  const common = {
+    loopId: loop._id,
+    draft: loop,
+    loopUpdatedOutbox,
+    expectedVersion: loopVersion(before),
+  };
+  if (mutation.kind === 'append') {
+    const oldMembers = before.members || [];
+    const appended = (loop.members || []).slice(oldMembers.length);
+    if (appended.length === 0) throw new Error('source append mutation has no appended member');
+    return enqueueLoopMutation(store, { ...common, kind: 'append', members: appended.map(snapshotLoop) });
+  }
+  if (mutation.kind === 'touch') {
+    return enqueueLoopMutation(store, { ...common, kind: 'touch' });
+  }
+  const fields = Object.fromEntries(Object.entries(mutation.fields || {})
+    .map(([key, value]) => [key, snapshotLoop(value)])
+    .filter(([key, value]) => !sameValue(getMemberPath(before.members?.[mutation.memberIndex], key), value)));
+  if (Object.keys(fields).length === 0) return enqueueLoopMutation(store, { ...common, kind: 'touch' });
+  return enqueueLoopMutation(store, {
+    ...common,
+    kind: mutation.kind,
+    memberIndex: mutation.memberIndex,
+    fields,
+  });
 }
 
 /**
@@ -428,10 +592,12 @@ export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdated
   return populated;
 }
 
-function addMember(store, {
+async function addMember(store, {
   ownerId, loopId, accountId, code, memberProperties, invitedAsLegalGuardian,
 }, loopUpdatedOutbox, { coppaEnabled = true, invitationProviders } = {}) {
-  const storedLoop = findById(store, loopId);
+  // Loop.findById returns a request-local hydrated document. Store maps need
+  // the same isolation before the first asynchronous save boundary.
+  const storedLoop = snapshotLoop(findById(store, loopId));
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
   const email = memberProperties && memberProperties.email;
@@ -440,7 +606,12 @@ function addMember(store, {
     if (isAcceptedStatus(existingMember.status)) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_EXISTS);
     existingMember.status = MEMBER_STATUS.INVITED;
     existingMember.invitationCode = code;
-    saveLoop(store, loop, loopUpdatedOutbox, before);
+    const memberIndex = loop.members.indexOf(existingMember);
+    await saveLoopMutation(store, loop, loopUpdatedOutbox, before, {
+      kind: 'member-fields',
+      memberIndex,
+      fields: { status: existingMember.status, invitationCode: existingMember.invitationCode },
+    });
   }
   // Source compares the filtered array with MAX_SIZE, not `.length`. Preserve that.
   const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
@@ -458,7 +629,7 @@ function addMember(store, {
       invitationCode: code,
       invitedAsLegalGuardian,
     }));
-    saveLoop(store, loop, loopUpdatedOutbox, before);
+    await saveLoopMutation(store, loop, loopUpdatedOutbox, before, { kind: 'append' });
   }
   if (email) {
     dispatchInvitationSideEffects(store, {
@@ -474,11 +645,11 @@ function addMember(store, {
   return loop;
 }
 
-export function inviteMember(store, payload, loopUpdatedOutbox, {
+export async function inviteMember(store, payload, loopUpdatedOutbox, {
   coppaEnabled = true,
   invitationProviders,
 } = {}) {
-  const loop = findById(store, payload.loopId);
+  const loop = snapshotLoop(findById(store, payload.loopId));
   if (!idsEqual(loop.owner, payload.ownerId)) fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER);
   let targetAccount = null;
   if (payload.email) {
@@ -486,7 +657,7 @@ export function inviteMember(store, payload, loopUpdatedOutbox, {
     if (targetAccount && targetAccount.isDeleted === true) targetAccount = null;
   }
   const code = invitationCode();
-  addMember(store, {
+  await addMember(store, {
     accountId: targetAccount && targetAccount._id,
     code,
     invitedAsLegalGuardian: payload.asLegalGuardian === true,
@@ -505,30 +676,40 @@ export function inviteMember(store, payload, loopUpdatedOutbox, {
   return populateLoop(store, findById(store, payload.loopId));
 }
 
-export function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox, { invitationProviders } = {}) {
-  const storedLoop = findById(store, loopId);
+export async function acceptInvitation(store, { loopId, accountId }, loopUpdatedOutbox, { invitationProviders } = {}) {
+  const storedLoop = snapshotLoop(findById(store, loopId));
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
-  const membership = (loop.members || []).find((member) => member.accountId
+  const memberIndex = (loop.members || []).findIndex((member) => member.accountId
     && idsEqual(member.accountId, accountId)
     && isMemberStatus(member.status, MEMBER_STATUS.INVITED));
-  if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
+  if (memberIndex < 0) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
+  const membership = loop.members[memberIndex];
   membership.status = MEMBER_STATUS.ACCEPTED;
-  saveLoop(store, loop, loopUpdatedOutbox, before);
+  await saveLoopMutation(store, loop, loopUpdatedOutbox, before, {
+    kind: 'member-fields',
+    memberIndex,
+    fields: { status: membership.status },
+  });
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const firstMembership = loop.members.find((member) => member.accountId && idsEqual(member.accountId, accountId));
   dispatchMembershipEvent('InvitationToLoopAccepted', loop, { accountId, invitedAsLegalGuardian: firstMembership.invitedAsLegalGuardian }, invitationProviders);
   return loopToUnpopulated(loop);
 }
 
-export function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbox, { invitationProviders } = {}) {
-  const storedLoop = findById(store, loopId);
+export async function declineInvitation(store, { loopId, accountId }, loopUpdatedOutbox, { invitationProviders } = {}) {
+  const storedLoop = snapshotLoop(findById(store, loopId));
   if (storedLoop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   const { before, loop } = mutationDraft(storedLoop);
-  const membership = (loop.members || []).find((member) => member.accountId && idsEqual(member.accountId, accountId));
-  if (!membership) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
+  const memberIndex = (loop.members || []).findIndex((member) => member.accountId && idsEqual(member.accountId, accountId));
+  if (memberIndex < 0) fail(LOOP_MEMBERSHIP_ERRORS.INVITE_NOT_FOUND);
+  const membership = loop.members[memberIndex];
   membership.status = MEMBER_STATUS.DECLINED;
-  saveLoop(store, loop, loopUpdatedOutbox, before);
+  await saveLoopMutation(store, loop, loopUpdatedOutbox, before, {
+    kind: 'member-fields',
+    memberIndex,
+    fields: { status: membership.status },
+  });
   const populated = populateLoop(store, loop);
   dispatchMembershipEvent('InvitationToLoopDeclined', loop, { accountId }, invitationProviders);
   return populated;
@@ -549,17 +730,22 @@ export function listMembers(store, { ownerId, friendlyId = null, statusList = nu
   return members.filter((member) => types.includes(member.type));
 }
 
-export function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox, { invitationProviders } = {}) {
-  const storedLoop = findById(store, loopId);
+export async function removeMember(store, { ownerId, loopId, id }, loopUpdatedOutbox, { invitationProviders } = {}) {
+  const storedLoop = snapshotLoop(findById(store, loopId));
   const { before, loop } = mutationDraft(storedLoop);
-  const targetMember = (loop.members || []).find((member) => idsEqual(member._id, id));
-  if (!targetMember) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+  const memberIndex = (loop.members || []).findIndex((member) => idsEqual(member._id, id));
+  if (memberIndex < 0) fail(LOOP_MEMBERSHIP_ERRORS.MEMBER_NOT_FOUND);
+  const targetMember = loop.members[memberIndex];
   if (!idsEqual(loop.owner, ownerId) && !(targetMember.accountId && idsEqual(targetMember.accountId, ownerId))) {
     fail(LOOP_MEMBERSHIP_ERRORS.CAN_BE_ACCESSED_BY_OWNER_OR_SELF);
   }
   if (loop.isSuspended) fail(LOOP_MEMBERSHIP_ERRORS.LOOP_SUSPENDED);
   targetMember.status = MEMBER_STATUS.REMOVED;
-  saveLoop(store, loop, loopUpdatedOutbox, before);
+  await saveLoopMutation(store, loop, loopUpdatedOutbox, before, {
+    kind: 'member-fields',
+    memberIndex,
+    fields: { status: targetMember.status },
+  });
   const populated = populateLoop(store, loop);
   dispatchMembershipEvent('MemberRemovedFromLoop', loop, { targetMember }, invitationProviders);
   return populated;
@@ -858,13 +1044,25 @@ function sendValidationError(res, message) {
 }
 
 function respond(res, fn) {
+  let result;
   try {
-    const result = fn();
-    return void sendAmz(res, 200, result);
+    result = fn();
   } catch (error) {
     if (error instanceof LoopError) return void sendAmzError(res, error);
     throw error;
   }
+  if (result && typeof result.then === 'function') {
+    return Promise.resolve(result).then((value) => {
+      if (!res.writableEnded) sendAmz(res, 200, value);
+    }, (error) => {
+      if (error instanceof LoopError) {
+        if (!res.writableEnded) sendAmzError(res, error);
+        return;
+      }
+      throw error;
+    });
+  }
+  return void sendAmz(res, 200, result);
 }
 
 async function createLoopHttp({ store, req, res, body, loopUpdatedOutbox, invitationProviders, robotReadClient }) {

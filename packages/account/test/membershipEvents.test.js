@@ -66,7 +66,7 @@ test('membership events follow saved state through Account and Classic and conta
   }
 });
 
-test('duplicate memberships preserve first-match guardian and removed recipient duplication; failed saves emit nothing', () => {
+test('duplicate memberships preserve first-match guardian and removed recipient duplication; failed saves emit nothing', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'phoenix-membership-duplicates-'));
   const store = new Store(join(directory, 'account.json'));
   try {
@@ -77,13 +77,13 @@ test('duplicate memberships preserve first-match guardian and removed recipient 
     store.flush();
     const outbox = new LoopUpdatedOutbox(store);
     const events = []; const options = { invitationProviders: { eventSender: { send(event) { events.push(event.payload); return Promise.resolve(); } } } };
-    acceptInvitation(store, { loopId: loop._id, accountId: 'synthetic-member' }, outbox, options);
+    await acceptInvitation(store, { loopId: loop._id, accountId: 'synthetic-member' }, outbox, options);
     assert.equal(events[0].invitedAsLegalGuardian, false);
     store.loops.get(loop._id).members.find(m => m.accountId === 'synthetic-member').status = 'accepted';
-    removeMember(store, { loopId: loop._id, ownerId: owner._id, id: target }, outbox, options);
+    await removeMember(store, { loopId: loop._id, ownerId: owner._id, id: target }, outbox, options);
     assert.equal(events[1].memberIds.filter(x => x === 'synthetic-member').length, 2);
     const flush = store.flush; store.flush = () => { throw new Error('synthetic save failure'); };
-    assert.throws(() => removeMember(store, { loopId: loop._id, ownerId: owner._id, id: target }, outbox, options), /synthetic save failure/);
+    await assert.rejects(removeMember(store, { loopId: loop._id, ownerId: owner._id, id: target }, outbox, options), /synthetic save failure/);
     assert.equal(events.length, 2); store.flush = flush;
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
