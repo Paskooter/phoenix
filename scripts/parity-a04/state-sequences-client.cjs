@@ -2,14 +2,21 @@
 'use strict';
 
 // Original generated Loop client 3.0.110 under Node 8. This wrapper only
-// sequences actors and records callback results.
+// sequences actors and records callback results. SEQUENCE_PHASE=post replays
+// the next valid reads after Account/Classic restart and the callback-auth
+// boundary; the pre phase is the gate 1 sequence.
 var fs = require('fs');
+var http = require('http');
 var crypto = require('crypto');
 var Loop = require('/client/clients/loop');
 
-var ready = JSON.parse(fs.readFileSync('/review/server-ready.json', 'utf8'));
+var readyFile = process.env.SEQUENCE_READY_FILE || '/review/server-ready.json';
+var phase = process.env.SEQUENCE_PHASE || 'pre';
+var ready = JSON.parse(fs.readFileSync(readyFile, 'utf8'));
 var results = [];
-var outputPath = '/review/sdk-results.json';
+var outputPath = process.env.SEQUENCE_OUTPUT || (phase === 'post'
+  ? '/review/sdk-post-restart.json'
+  : '/review/sdk-results.json');
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -84,6 +91,7 @@ function record(face, id, method, actor, params, response) {
       });
     }
     ownerRobot = {
+      id: data.id || null,
       owner: data.owner || null,
       robot: data.robot || null,
       isDeleted: data.isDeleted === true,
@@ -183,7 +191,236 @@ async function runFace(face, port, fixture) {
   record(face, 's3-08-get-after-remove-loop', 'getRobot', 'owner', { loopId: removeLoopId }, getAfterRemove);
 }
 
+function loadPreResults() {
+  return JSON.parse(fs.readFileSync('/review/sdk-results.json', 'utf8'));
+}
+
+function preRow(pre, face, id) {
+  var rows = pre.results || [];
+  for (var i = 0; i < rows.length; i += 1) {
+    if (rows[i].face === face && rows[i].id === id) return rows[i];
+  }
+  return null;
+}
+
+function rawPost(port, headers, body) {
+  return new Promise(function (resolve) {
+    var payload = body === undefined ? '' : JSON.stringify(body);
+    var requestHeaders = {
+      host: '127.0.0.1:' + port,
+      'content-type': 'application/x-amz-json-1.1',
+      'content-length': Buffer.byteLength(payload),
+      connection: 'close',
+    };
+    Object.keys(headers || {}).forEach(function (key) {
+      requestHeaders[key] = headers[key];
+    });
+    var req = http.request({
+      host: '127.0.0.1',
+      port: port,
+      path: '/',
+      method: 'POST',
+      headers: requestHeaders,
+    }, function (res) {
+      var chunks = [];
+      res.on('data', function (chunk) { chunks.push(chunk); });
+      res.on('end', function () {
+        var raw = Buffer.concat(chunks).toString('utf8');
+        var parsed = null;
+        try { parsed = raw ? JSON.parse(raw) : null; } catch (error) { parsed = raw; }
+        resolve({ status: res.statusCode, body: parsed, raw: raw });
+      });
+    });
+    req.on('error', function (error) {
+      resolve({ status: 0, error: { message: error.message }, body: null });
+    });
+    req.end(payload);
+  });
+}
+
+function sleep(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
+
+function memberIdByAccount(data, accountId) {
+  var member = memberByAccount(data, accountId);
+  return member && (member.id || member._id) || null;
+}
+
+function storeLoops(face) {
+  var path = '/review/' + face + '-store.json';
+  return JSON.parse(fs.readFileSync(path, 'utf8')).loops || [];
+}
+
+function survivingLoopId(face) {
+  var live = storeLoops(face).filter(function (loop) {
+    return loop.isDeleted !== true && loop.robot;
+  });
+  return live.length ? live[0]._id : null;
+}
+
+function deletedLoopIds(face) {
+  return storeLoops(face).filter(function (loop) { return loop.isDeleted === true; }).map(function (loop) { return loop._id; });
+}
+
+async function runPostFace(face, port, fixture, pre) {
+  var owner = makeClient(port, fixture.owner);
+  var listed = await invoke(owner, 'listMembers', {});
+  record(face, 'post-01-list-members', 'listMembers', 'owner', {}, listed);
+
+  var listedLoops = await invoke(owner, 'list', {});
+  record(face, 'post-02-list-loops', 'list', 'owner', {}, listedLoops);
+
+  var deleted = deletedLoopIds(face);
+  var clearLoopId = deleted[0];
+  var getAfterClear = await invoke(owner, 'getRobot', { loopId: clearLoopId });
+  record(face, 'post-03-get-after-clear', 'getRobot', 'owner', { loopId: clearLoopId }, getAfterClear);
+
+  var removeLoopId = deleted[1] || deleted[0];
+  var getAfterRemove = await invoke(owner, 'getRobot', { loopId: removeLoopId });
+  record(face, 'post-04-get-after-remove-loop', 'getRobot', 'owner', { loopId: removeLoopId }, getAfterRemove);
+
+  var inviteLoopId = survivingLoopId(face);
+  var nextEmail = face + '-post-restart@synthetic.invalid';
+  var nextInvite = await invoke(owner, 'inviteMember', {
+    loopId: inviteLoopId, email: nextEmail, firstName: 'Post', lastName: 'Restart',
+  });
+  record(face, 'post-05-next-invite', 'inviteMember', 'owner', { loopId: inviteLoopId, email: nextEmail }, nextInvite);
+  await sleep(1500);
+  var listedAfterInvite = await invoke(owner, 'listMembers', {});
+  record(face, 'post-06-list-after-next-invite', 'listMembers', 'owner', {}, listedAfterInvite);
+
+  var childInvite = await invoke(owner, 'inviteMember', {
+    loopId: inviteLoopId, firstName: 'Child', lastName: 'Fixture', isChild: true,
+  });
+  record(face, 'post-07-invite-child', 'inviteMember', 'owner', { loopId: inviteLoopId, isChild: true }, childInvite);
+  var parentId = memberIdByAccount(childInvite.data, fixture.owner.id);
+  var childMember = null;
+  var members = childInvite.data && childInvite.data.members || [];
+  for (var i = 0; i < members.length; i += 1) {
+    var account = members[i].account || {};
+    if (account.isChild === true || account.firstName === 'Child') childMember = members[i];
+  }
+  var childId = childMember && (childMember.id || childMember._id);
+  var guardian = await invoke(owner, 'setLegalGuardian', {
+    loopId: inviteLoopId, childId: childId, parentId: parentId,
+  });
+  record(face, 'post-08-set-legal-guardian', 'setLegalGuardian', 'owner', {
+    loopId: inviteLoopId, childId: childId, parentId: parentId,
+  }, guardian);
+
+  var listedAfterGuardian = await invoke(owner, 'listMembers', {});
+  record(face, 'post-09-list-after-guardian', 'listMembers', 'owner', {}, listedAfterGuardian);
+  var agreementId = null;
+  var persisted = storeLoops(face);
+  for (var li = 0; li < persisted.length; li += 1) {
+    var persistedMembers = persisted[li].members || [];
+    for (var mi = 0; mi < persistedMembers.length; mi += 1) {
+      if (persistedMembers[mi].agreementId) agreementId = persistedMembers[mi].agreementId;
+    }
+  }
+
+  var unsignedAgreementForged = await rawPost(port, {
+    'x-amz-target': 'Loop_20160324.UpdateAgreementStatus',
+    'x-amz-credentials': JSON.stringify({ id: fixture.owner.id, isAdmin: true }),
+  }, { agreementId: agreementId });
+  results.push({
+    face: face,
+    id: 'post-10-unsigned-update-agreement-forged-header',
+    sdkMethod: 'rawUpdateAgreementStatus',
+    actor: 'anonymous-forged-header',
+    params: { agreementId: agreementId },
+    error: unsignedAgreementForged.status === 200 ? null : { statusCode: unsignedAgreementForged.status, body: unsignedAgreementForged.body },
+    statusCode: unsignedAgreementForged.status,
+    body: unsignedAgreementForged.body,
+    threw: false,
+  });
+
+  var unsignedAgreement = await rawPost(port, {
+    'x-amz-target': 'Loop_20160324.UpdateAgreementStatus',
+  }, { agreementId: agreementId });
+  results.push({
+    face: face,
+    id: 'post-11-unsigned-update-agreement-repeat',
+    sdkMethod: 'rawUpdateAgreementStatus',
+    actor: 'anonymous',
+    params: { agreementId: agreementId },
+    error: unsignedAgreement.status === 200 ? null : { statusCode: unsignedAgreement.status, body: unsignedAgreement.body },
+    statusCode: unsignedAgreement.status,
+    memberStatus: null,
+    ownerRobot: null,
+    body: unsignedAgreement.body,
+    threw: false,
+  });
+
+  var ordinary = [
+    ['post-12-unsigned-list-loops', 'Loop_20160324.ListLoops', {}],
+    ['post-13-unsigned-invite', 'Loop_20160324.InviteLoopMember', { loopId: inviteLoopId, email: 'forged@synthetic.invalid' }],
+    ['post-14-unsigned-set-legal-guardian', 'Loop_20160324.SetLegalGuardian', {
+      loopId: inviteLoopId, childId: childId, parentId: parentId,
+    }],
+  ];
+  for (var k = 0; k < ordinary.length; k += 1) {
+    var unsignedOrdinary = await rawPost(port, { 'x-amz-target': ordinary[k][1] }, ordinary[k][2]);
+    results.push({
+      face: face,
+      id: ordinary[k][0],
+      sdkMethod: 'rawUnsigned',
+      actor: 'anonymous',
+      params: ordinary[k][2],
+      error: { statusCode: unsignedOrdinary.status, body: unsignedOrdinary.body },
+      statusCode: unsignedOrdinary.status,
+      body: unsignedOrdinary.body,
+      threw: false,
+    });
+  }
+
+  var forged = await rawPost(port, {
+    'x-amz-target': 'Loop_20160324.ListLoops',
+    'x-amz-credentials': JSON.stringify({ id: fixture.owner.id, isAdmin: true }),
+  }, {});
+  results.push({
+    face: face,
+    id: 'post-15-forged-x-amz-credentials-list',
+    sdkMethod: 'rawForgedCredentials',
+    actor: 'forged-internal-metadata',
+    params: {},
+    error: { statusCode: forged.status, body: forged.body },
+    statusCode: forged.status,
+    body: forged.body,
+    threw: false,
+  });
+
+  var listedFinal = await invoke(owner, 'listMembers', {});
+  record(face, 'post-16-list-after-callback', 'listMembers', 'owner', {}, listedFinal);
+}
+
 (async function () {
+  if (phase === 'post') {
+    var pre = loadPreResults();
+    await runPostFace('account', ready.accountPort, ready.account, pre);
+    await runPostFace('classic', ready.classicPort, ready.classic, pre);
+    var postReport = {
+      kind: 'a04-gate6-original-sdk-post-restart',
+      node: process.version,
+      clientVersion: require('/client/package.json').version,
+      clientPackageSha256: sha256(fs.readFileSync('/client/package.json')),
+      candidateRevision: ready.candidateRevision,
+      restartCount: ready.restartCount || 0,
+      transports: ready.transports || null,
+      callCount: results.length,
+      results: results,
+    };
+    fs.writeFileSync(outputPath, JSON.stringify(postReport, null, 2) + '\n');
+    console.log(JSON.stringify({
+      phase: 'post',
+      node: postReport.node,
+      clientVersion: postReport.clientVersion,
+      calls: postReport.callCount,
+      outputPath: outputPath,
+    }));
+    return;
+  }
   await runFace('account', ready.accountPort, ready.account);
   await runFace('classic', ready.classicPort, ready.classic);
   var report = {
