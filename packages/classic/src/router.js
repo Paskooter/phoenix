@@ -40,7 +40,8 @@ export function createClassicRouter(registrations) {
     const { prefix, op } = parseTarget(req);
     const reg = regs.find((entry) => entry.re.test(prefix));
     if (reg && Object.prototype.hasOwnProperty.call(reg, 'bodyDefault')) return reg.bodyDefault;
-    return op.toLowerCase() === 'createhubtoken' ? null : {};
+    if (/^account/i.test(prefix) || op.toLowerCase() === 'createhubtoken') return null;
+    return {};
   };
 
   return {
