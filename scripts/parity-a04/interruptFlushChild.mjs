@@ -68,20 +68,23 @@ try {
   const outbox = new LoopUpdatedOutbox(store, { publisher: null });
   const providers = { eventSender };
 
+  // The membership writers defer their store mutation to a setImmediate batch
+  // (source Loop.save() is per-request), so these calls are async. Await them
+  // or the child returns before the injected flush interrupt can fire.
   if (config.op === 'UpdateLoop') {
-    updateLoop(store, {
+    await updateLoop(store, {
       ownerId: config.ownerId,
       loopId: config.loopId,
       name: config.name,
     }, outbox);
   } else if (config.op === 'CreateLoop') {
-    createLoopFromApi(store, {
+    await createLoopFromApi(store, {
       ownerId: config.ownerId,
       name: config.name,
       robotId: config.robotId,
     }, outbox, { invitationProviders: providers });
   } else if (config.op === 'RemoveLoopMember') {
-    removeMember(store, {
+    await removeMember(store, {
       ownerId: config.ownerId,
       loopId: config.loopId,
       id: config.memberId,
