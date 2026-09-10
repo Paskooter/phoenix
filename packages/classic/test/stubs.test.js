@@ -32,7 +32,7 @@ test('no tier-3 stub services remain', () => {
   assert.deepEqual(stubRegistrations(), []);
 });
 
-test('graduated person/collision prefixes reach their real handlers', async () => {
+test('graduated person/collision/jot prefixes reach their real handlers', async () => {
   // person: the stub used to answer `[]` for any category; the real handler validates it.
   const person = await amz('Person_20160801.List', { category: 'not-a-category' });
   assert.equal(person.status, 404);
@@ -41,6 +41,12 @@ test('graduated person/collision prefixes reach their real handlers', async () =
   const collision = await amz('Collision_20161126.Match', {});
   assert.equal(collision.status, 400);
   assert.equal(collision.errType, 'ValidationException');
+  // jot: there was never a Jot registration, so the prefix fell through to UnknownOperationException;
+  // the real handler owns it now and validates the pinned Joi payload (loopId required).
+  const jot = await amz('Jot_20160512.CreateMessage', {});
+  assert.equal(jot.status, 400);
+  assert.equal(jot.errType, 'ValidationException');
+  assert.match(jot.body.message, /loopId/);
 });
 
 test('unknown op on a graduated service -> ValidationException', async () => {

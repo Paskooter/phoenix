@@ -21,6 +21,7 @@ import { IftttStore, makeIftttHandler } from './ifttt.js';
 import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
 import { PersonStore, PersonController, PropertyController, makePersonHandler, PERSON_ERRORS } from './person.js';
 import { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS } from './collision.js';
+import { JotStore, makeJotHandler, mediaStoreClient, jotHttpRoutes, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS } from './jot.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -43,6 +44,11 @@ export { IftttStore, makeIftttHandler, IFTTT_ERRORS, localPhoneticKey, singleHou
 export { makeNlpHandler, cleanInput, unavailableNlpProvider, createHttpNlpProvider, nlpProviderFromEnv, WH_WORDS } from './nlp.js';
 export { PersonStore, PersonController, PropertyController, makePersonHandler, accountIdFromRequest, PERSON_ERRORS, PERSON_OPERATIONS, MISSING_AUTH_HEADER } from './person.js';
 export { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS, COLLISION_OPERATIONS } from './collision.js';
+export {
+  JotStore, JotMessageController, JotMessageCreated, makeJotHandler, jotHttpRoutes,
+  mediaStoreClient, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS, JOT_TARGET_PREFIXES,
+  JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE, JOT_EVENTS, JOT_VALIDATORS, JOT_MESSAGE_CREATED_SCHEMA,
+} from './jot.js';
 export { PERSON_QUESTIONS, HOLIDAYS } from './personCatalog.js';
 
 const netUrl = (name, defPort) => {
@@ -68,9 +74,10 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, jot } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const personStore = person?.store || new PersonStore();
+  const jotStore = jot?.store || new JotStore();
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
   const router = createClassicRouter([
@@ -104,6 +111,15 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       holidays: person?.holidays, now: person?.now,
     }) },
     { match: /^collision/i, handler: makeCollisionHandler(collision || {}) },
+    // Jot (the loop-scoped family messaging surface) owns a real handler now — the five loop-era
+    // operations of server/jot-ws@9a725d3, dispatched by operation name under any Jot* prefix. The
+    // media seam defaults to the in-process Media store so a message's parts carry real urls.
+    { match: /^jot/i, handler: makeJotHandler({
+      store: jotStore,
+      account: jot?.account,
+      media: jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops }),
+      onEvent: jot?.onEvent,
+    }) },
     ...stubRegistrations(), // build-to-spec tier-3 stubs (none remain: person/collision graduated)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -119,7 +135,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -137,6 +153,8 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const mediaStore = media?.store || new MediaStore();
   const iftttStore = ifttt?.store || new IftttStore();
   const personStore = person?.store || new PersonStore();
+  const jotStore = jot?.store || new JotStore();
+  const jotMedia = jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops });
   const service = createService({
     name: 'classic',
     tls,
@@ -160,7 +178,10 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         nlp: nlp || { provider: nlpProviderFromEnv() },
         person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
         collision: collision || {},
+        jot: { ...jot, store: jotStore, media: jotMedia },
       }),
+      // Jot's direct, non-X-Amz-Target bulk unread-count route (srv-jot-ws-archived src/routes/route.js).
+      ...jotHttpRoutes({ store: jotStore, account: jot?.account, media: jotMedia, onEvent: jot?.onEvent }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
       'GET /member-photos/:key': ({ req, res, log }) => proxyMemberPhoto({
@@ -192,7 +213,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore, personStore };
+  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore, personStore, jotStore };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
