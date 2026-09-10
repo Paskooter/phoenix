@@ -1,14 +1,15 @@
 // Proactive transaction — port of hub/proactive/ProactiveTransactionHandler.ts.
 // One WS == one proactive transaction: TRIGGER + CONTEXT -> collect manifest `proactives` ->
-// filter (contextRules, IHRules, settingsRules[permissive]) -> random pick -> PROACTIVE match
+// filter (contextRules, IHRules, settingsRules) -> random pick -> PROACTIVE match
 // (final for on-robot) or PROACTIVE_LAUNCH to a cloud skill -> forward its SKILL_ACTION.
 
 import { newMsgId, now, RequestType, ResponseType, HubErrorCode, Timeouts } from '@phoenix/contracts';
 import { readTrace } from '@phoenix/common';
 import { preprocessContext, validateContextMessage } from '../preprocessor.js';
 import { HubError } from '../listenTransaction.js';
-import { checkContextRules, extractContextData, getPersonIDs } from './contextRules.js';
+import { checkContextRules, extractContextData, getAccountId, getPersonIDs } from './contextRules.js';
 import { checkIHRules } from './ihRules.js';
+import { checkSettingsRegistrations, getSkillSettingsMap } from './settingsRules.js';
 
 const CONTEXT_TIMEOUT = 30_000;
 
@@ -82,12 +83,33 @@ export class ProactiveTransaction {
     const configs = (this.components.skills || []).filter((c) => c.proactives && c.proactives.length);
     const robotID = context.data.general && context.data.general.robotID;
     const focusedPerson = extractContextData('FOCUSED_PERSON', context, reqData);
+    const runtime = context.data.runtime || {};
+    // ProactiveTransactionHandler.getTransactionData: the speaker's account is the loop
+    // member whose id is the focused person; an unknown person (or one not in the loop)
+    // has no account and therefore no settings to fetch.
+    const focusedPersonAccountID = focusedPerson && getAccountId(runtime, focusedPerson);
+    // To save calls to the settings service, consolidate them all into one request before
+    // processing each skill config (source getEligibleActions step 3). A focus person with
+    // no account, a missing loop id, or a settings-service error leaves the map empty, so
+    // every settingsRules-bearing PR fails closed — the reference's documented outcome
+    // ("Continuing with selection, but settingsRules will fail").
+    let skillSettingsMap = new Map();
+    if (focusedPersonAccountID) {
+      try {
+        skillSettingsMap = await getSkillSettingsMap(
+          configs, focusedPersonAccountID, runtime.loop && runtime.loop.loopId,
+          this.trace.transId, this.components.settingsClient, this.log,
+        );
+      } catch (e) {
+        this.log?.error?.('Error fetching settings. Continuing with selection, but settingsRules will fail.', { error: e.message });
+      }
+    }
     const results = [];
     for (const c of configs) {
       let prs = c.proactives.map((pr) => ({ ...pr, skillID: c.id }));
       prs = prs.filter((pr) => { try { return checkContextRules(pr, context, reqData); } catch { return false; } });
       prs = await checkIHRules(prs, c.IHQueries || {}, { robotID, focusedPerson }, this.components.historyClient);
-      // settingsRules: the settings service is dead -> permissive (accept all).
+      prs = checkSettingsRegistrations(prs, skillSettingsMap);
       results.push(...prs);
     }
     return results;

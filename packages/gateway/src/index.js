@@ -19,6 +19,7 @@ import { SkillConfigManager, SkillClient } from './skillClient.js';
 import { ResponseWrapper } from './responseWrapper.js';
 import { ListenTransaction } from './listenTransaction.js';
 import { HistoryClient } from './historyClient.js';
+import { SettingsClient } from './settingsClient.js';
 import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
@@ -34,6 +35,7 @@ export function buildComponents(config) {
     skillConfigManager,
     skillClient: new SkillClient(skillConfigManager),
     historyClient: new HistoryClient(config.historyURL),
+    settingsClient: new SettingsClient(config.settingsURL),
     asr: null, // M8: Parakeet provider
   };
 }

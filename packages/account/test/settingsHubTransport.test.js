@@ -175,9 +175,14 @@ test('local Hub keeps the Account friendly-id prerequisite and local view shape'
     assert.equal(configs.length, 1);
     assert.equal(configs[0].id, 'report-skill');
     assert.equal(configs[0].settings.view.type, 'group');
-    assert.deepEqual(configs[0].settings.view.childViews, [{
-      type: 'switch', valueDefinition: { target: 'person', key: 'weatherEnabled' },
-    }]);
+    // The synthesized local view also carries the report-skill manifest's declared
+    // `offerProactively` person setting (default true); the settings service applies a view
+    // node's `default` when the stored property is absent, which is what keeps an unset
+    // proactive opt-in routing as the reference does.
+    assert.deepEqual(configs[0].settings.view.childViews, [
+      { type: 'switch', valueDefinition: { target: 'person', key: 'weatherEnabled' } },
+      { type: 'switch', valueDefinition: { target: 'person', key: 'offerProactively', default: true } },
+    ]);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

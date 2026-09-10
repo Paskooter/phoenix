@@ -958,8 +958,24 @@ function localAccount(store) {
   };
 }
 
+// The report-skill manifest declares `offerProactively` as a person setting with
+// `default: true` (report_skill_manifest.json valueDefinition
+// {target:'person', key:'offerProactively', default:true}; the SDK doc's GetSettings data
+// example shows its wire value as {value:true}). The source settings service applies a
+// view node's `default` when the stored property is absent; localView synthesizes nodes
+// from the stored data, so a stored record that predates the key — or any partial
+// UpdateSettings — would drop it and silently fail the proactive settings rule. Keep the
+// manifest's declared default in the synthesized view so an unset preference routes
+// exactly as the reference does.
+const LOCAL_PERSON_DEFAULTS = Object.freeze({ offerProactively: true });
+
 function localView(data) {
-  const childViews = Object.entries(data || {}).map(([key, value]) => {
+  const source = data || {};
+  const entries = Object.entries(source);
+  for (const [key, value] of Object.entries(LOCAL_PERSON_DEFAULTS)) {
+    if (!Object.prototype.hasOwnProperty.call(source, key)) entries.push([key, { value }]);
+  }
+  const childViews = entries.map(([key, value]) => {
     if (value && Object.prototype.hasOwnProperty.call(value, 'credentialExists')) {
       const parts = key.split(':');
       return {
@@ -972,7 +988,11 @@ function localView(data) {
         },
       };
     }
-    return { type: 'switch', valueDefinition: { target: 'person', key } };
+    const valueDefinition = { target: 'person', key };
+    if (Object.prototype.hasOwnProperty.call(LOCAL_PERSON_DEFAULTS, key)) {
+      valueDefinition.default = LOCAL_PERSON_DEFAULTS[key];
+    }
+    return { type: 'switch', valueDefinition };
   });
   return { type: 'group', childViews };
 }
