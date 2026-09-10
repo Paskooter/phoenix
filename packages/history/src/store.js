@@ -1,16 +1,36 @@
 // In-memory history store — Phoenix port of the skill-launch + speech collections
-// (history/skilllaunch/db/SkillLaunchCollection.ts, speech/db/*). The reference uses a sharded
-// Mongo; the datastore is an implementation detail behind the same black-box HTTP contract, so
-// an in-memory store is a faithful default (swap for a real DB without changing the wire).
+// (history/skilllaunch/db/SkillLaunchCollection.ts, speech/db/SpeechHistoryRecordsCollection.ts).
+// The reference uses a sharded Mongo; the datastore is an implementation detail behind the same
+// black-box HTTP contract, so an in-memory store is a faithful default (swap for a real DB
+// without changing the wire).
 //
-// Contracts preserved: payloadSize = key count on write; getLatest sorts by timestamp desc then
-// insertion order desc; no match returns null (not 404); 14-day retention on skill launches;
-// partial speech updates do not erase existing fields.
+// Pegasus contracts preserved here:
+// - POST /skill/launch returns the full saved record with NO computed payloadSize (payloadSize is
+//   only attached by PUT /skill/launch/payload, which sets it to the key count).
+// - personIDs are sorted in place before save (Preformatter.preformatSkillLaunchData) so EXACT
+//   array comparisons are order-independent.
+// - getLatest sorts by timestamp desc then insertion order desc; no match returns null, never 404.
+// - PUT /skill/launch/payload attaches payload/payloadSize to the most recent record matching
+//   {sessionID, robotID, skillID} and returns the updated record, or null when none matched.
+// - Speech updates apply ONLY the eight updatable fields (audioFileURL, asr, personIDs, nlu,
+//   match, redirect, skill, error); null/undefined values are dropped and existing fields are
+//   never erased. Updating an unknown id throws (the reference null-derefs `record._id`), which
+//   surfaces as the standard 500 error envelope.
+// - 14-day retention on skill launches.
 
 import { newMsgId, now } from '@phoenix/contracts';
 import { buildPredicate } from './query.js';
 
 const RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
+
+// Fields a saved launch record may expose on the wire, mirroring the reference mongoose schema
+// (type/_id/__v are dropped server-side). Unknown request fields are dropped the way mongoose
+// strict mode drops them.
+const RECORD_FIELDS = ['id', 'timestamp', 'sessionID', 'robotID', 'skillID', 'intent', 'personIDs', 'payload', 'payloadSize'];
+
+// The reference SpeechHistoryRecordsCollection.updateRecord whitelists exactly these fields and
+// removes null/undefined values before $set.
+const SPEECH_UPDATE_FIELDS = ['audioFileURL', 'asr', 'personIDs', 'nlu', 'match', 'redirect', 'skill', 'error'];
 
 export class HistoryStore {
   constructor() {
@@ -23,12 +43,12 @@ export class HistoryStore {
 
   addSkillLaunch(data) {
     this._pruneExpired();
+    // Reference: Preformatter.preformatSkillLaunchData sorts personIDs before persisting.
+    if (Array.isArray(data.personIDs)) data.personIDs.sort();
     const rec = {
       ...data,
       id: newMsgId(),
-      timestamp: data.timestamp ?? now(),
-      payload: data.payload,
-      payloadSize: data.payload ? Object.keys(data.payload).length : 0,
+      timestamp: data.timestamp || now(),
       type: 'SKILL_LAUNCH',
       _seq: this._seq++,
     };
@@ -37,13 +57,15 @@ export class HistoryStore {
   }
 
   saveSkillPayload(data) {
-    // findOneAndUpdate({sessionID, robotID, skillID}) — most recent wins.
+    // findOneAndUpdate({sessionID, robotID, skillID}, {$set: {payload, payloadSize}}); most recent wins.
     const rec = [...this.skillLaunches]
       .reverse()
       .find((r) => r.sessionID === data.sessionID && r.robotID === data.robotID && r.skillID === data.skillID);
     if (!rec) return null;
     rec.payload = data.payload;
-    rec.payloadSize = Object.keys(data.payload || {}).length;
+    // The reference computes Object.keys(data.payload).length unconditionally, so a payload-less
+    // update throws here exactly as it dereferences there (500).
+    rec.payloadSize = Object.keys(data.payload).length;
     return this._toJSON(rec);
   }
 
@@ -52,7 +74,7 @@ export class HistoryStore {
     const pred = buildPredicate(query);
     const matches = this.skillLaunches.filter(pred);
     if (!matches.length) return null;
-    // sort: timestamp desc, then insertion order desc (tie-break)
+    // sort: timestamp desc, then insertion order desc (tie-break; reference sorts {timestamp:-1,_id:-1})
     matches.sort((a, b) => b.timestamp - a.timestamp || b._seq - a._seq);
     return this._toJSON(matches[0]);
   }
@@ -65,15 +87,20 @@ export class HistoryStore {
   // --- speech (write-only; non-erasing partial updates) ---------------------
 
   addSpeech(data) {
-    const rec = { ...data, id: newMsgId(), timestamp: data.timestamp ?? now() };
+    const rec = { ...data, id: newMsgId(), timestamp: data.timestamp || now() };
     this.speech.set(rec.id, rec);
     return rec.id;
   }
 
   updateSpeech(id, patch) {
     const rec = this.speech.get(id);
-    if (!rec) return null;
-    Object.assign(rec, patch); // partial update; existing fields preserved
+    if (!rec) throw new Error("Cannot read properties of null (reading '_id')");
+    const update = {};
+    for (const key of SPEECH_UPDATE_FIELDS) {
+      const value = patch[key];
+      if (value !== null && value !== undefined) update[key] = value;
+    }
+    Object.assign(rec, update); // partial update; unlisted/existing fields preserved
     return id;
   }
 
@@ -88,7 +115,10 @@ export class HistoryStore {
 
   _toJSON(rec) {
     if (!rec) return null;
-    const { _seq, type, ...rest } = rec; // not necessary for client (documentToJSON)
-    return JSON.parse(JSON.stringify(rest));
+    const out = {};
+    for (const key of RECORD_FIELDS) {
+      if (rec[key] !== undefined) out[key] = rec[key];
+    }
+    return JSON.parse(JSON.stringify(out)); // same deep-copy/undefined-drop as documentToJSON
   }
 }
