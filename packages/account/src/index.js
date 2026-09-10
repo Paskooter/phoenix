@@ -14,6 +14,7 @@ import { getStore } from './store.js';
 import { portalRoutes } from './portalApi.js';
 import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
+import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
 import { MemberPhotoStorage } from './memberPhotoStorage.js';
@@ -303,6 +304,7 @@ export function createAccountService({
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
       ...portalRoutes(store),     // REST /api/* (sessions)
       ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
+      ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
       ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
       ...robotFaceRoutes(store, {
         settingsProviders: effectiveSettingsProviders,
