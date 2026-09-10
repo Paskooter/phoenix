@@ -18,6 +18,30 @@ import { createOwnerAccount, verifyPassword, createLoop, mintSetupToken, findTok
 import { createSession, destroySession, getSession, sessionCookie, clearCookie, checkAdminPassword } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 
+// The region written into an adopted robot's credentials.json. A robot's native
+// client builds its service hostnames from this value — `<region>.jibo.com` for
+// REST and `<region>-socket.jibo.com` for the notification socket — and verifies
+// each against the serving certificate. scripts/ensure-tls-certs.mjs issues that
+// certificate for the region(s) in PHOENIX_TLS_REGIONS (default 'api'), and both
+// scripts/parity-robot/repoint-robot.sh and scripts/point-robot-at-phoenix.sh fall
+// back to 'api' when a robot has no region of its own. Keep this default in step
+// with them: writing a region the certificate does not carry makes the robot reject
+// the server, no matter what it trusts.
+//
+// 'api' is the region the physical Jibo reports (read from its
+// /var/jibo/credentials.json). 'phx' is NOT a Jibo region — it was a historical
+// placeholder in this repo and must not be used as a fallback.
+export const DEFAULT_ACCOUNT_REGION = 'api';
+
+/**
+ * The region for an adopted robot. An explicit ETCO_account_region (env or .env)
+ * always wins; otherwise the region the certificate is built for by default.
+ * @param {Record<string, string | undefined>} [env]
+ */
+export function accountRegion(env = process.env) {
+  return env.ETCO_account_region || DEFAULT_ACCOUNT_REGION;
+}
+
 const publicAccount = (a) => ({
   id: a._id, email: a.email, firstName: a.firstName, lastName: a.lastName, created: a.created,
 });
@@ -187,7 +211,7 @@ export function portalRoutes(store) {
         owner = createOwnerAccount(store, { email: 'adopted@phoenix.local', password: cryptoRandomPassword(), firstName: 'Adopted' });
       }
       const { loop, robot } = createLoop(store, { owner, robotId: friendlyId });
-      const region = process.env.ETCO_account_region || 'phx';
+      const region = accountRegion();
       return {
         robot: robotView({ robot, loop, owner }),
         secretAccessKey: robot.secretAccessKey, // shown once at adoption; needed for the robot file
