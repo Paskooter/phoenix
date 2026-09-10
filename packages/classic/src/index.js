@@ -26,7 +26,7 @@ export { NotificationHub, createVerifiedNotificationAccountResolver } from './no
 export { NotificationStore } from './notification.js';
 export { KeyStore } from './key.js';
 export { DeviceRegistry } from './push.js';
-export { BackupStore } from './backup.js';
+export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -74,7 +74,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -95,7 +95,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     // intact to reject them before token mutation. Other routes stay strict.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
-      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }], {
+      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: backupOwnership }) }], {
         notificationAccountResolver,
         logStore,
         baseFor,
