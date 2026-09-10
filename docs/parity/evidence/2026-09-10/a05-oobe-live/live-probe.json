@@ -36,5 +36,16 @@
       "statusCode": 422,
       "message": "child \"name\" fails because [\"name\" is required]"
     }
+  },
+  "restartPersistence": {
+    "method": "systemctl --user restart phoenix-robot@moth.service, then re-probed. A real unit restart, not an in-process recycle.",
+    "afterRestart": {
+      "GetServiceToken": "AUTHORIZED_UNDER_ADMIN",
+      "ReconnectRobot": "CREDENTIALS_REQUIRED",
+      "SetupRobot": "ValidationException (token and id are required)"
+    },
+    "credentialsPreserved": true,
+    "evidence": "The durable account store retained the robot account Moth-Radius-Breazeal-Felt with both accessKeyId and secretAccessKey, and its loop still references it. A SigV4 request signed with those PRESERVED credentials succeeded after the restart: Loop_20160324.ListLoops returned the real loop with members, and OOBE_20161026.GetStatus returned {complete:true}. Persistence is demonstrated end-to-end rather than inferred from the file.",
+    "note": "This exercises an orderly systemd restart of the server. A robot-side power cycle and firmware-level re-attach are still not covered here."
   }
 }
