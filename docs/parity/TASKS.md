@@ -10,8 +10,8 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 4 | 46 | 0 | 0 |
-| classic | 10 | 20 | 0 | 0 |
+| pegasus | 5 | 46 | 0 | 0 |
+| classic | 11 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -305,7 +305,7 @@ Evidence: pending.
 
 ### H-02 — Verify listen transaction ordering, cancellation and failure behavior
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-02.
 
@@ -321,7 +321,7 @@ Source: [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](h
 
 Phoenix: [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/src/responseWrapper.js](../../packages/gateway/src/responseWrapper.js); [packages/gateway/test/listen.e2e.test.js](../../packages/gateway/test/listen.e2e.test.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md](../../docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md) (2026-09-10; Ordering, cancellation and failure proven over a real WebSocket with before/after captures. Cancellation was genuinely broken: CLIENT_ASR left the ASR session running and the terminal frame carried a STALE server transcript instead of the client's; parser failures had lost the PARSER error code that the captured original carries. Three falsifications, each on a complete code line, with sha256 restoration checks. Also verified: no frames written after the terminal frame, and the hub no longer closes the socket ~2s after the final frame (matching pinned BaseWebsocketHandler).).
 
 ### H-03 — Match the original intent decision tree
 
@@ -1460,7 +1460,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a07-robot-records/review.md](../../do
 
 ### A-08 — Complete Update selection, reporting and package delivery
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02.
 
@@ -1476,7 +1476,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/update-2016-03-01.normal.json](ht
 
 Phoenix: [packages/ota/src](../../packages/ota/src); [packages/ota/test/ota.test.js](../../packages/ota/test/ota.test.js); [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a08-update-delivery/review.md](../../docs/parity/evidence/2026-09-10/a08-update-delivery/review.md) (2026-09-10; All 8 Update_20160301 operations served at runtime on a real child-process entrypoint, including package delivery whose bytes hash-match the published shaHash. Two genuine defects fixed: listUpdatesFrom now sorts toVersion DESCENDING per the pinned controller (previously returned insertion order), and the wire Update always emits the filter member (DEFAULT_FILTER '' when unfiltered) - both are on-the-wire observable since UpdateList is a JSON array and filter is a declared output member. Root independently falsified the ordering fix by flipping cmpVersion(b,a) to cmpVersion(a,b), which failed exactly the two ordering tests, then restored to green. Error catalogue verbatim from srv-update-ws errors/update.ts; gateway allow-list checked as the second auth layer.).
 
 ### A-09 — Make backups durable and match ownership/restore semantics
 

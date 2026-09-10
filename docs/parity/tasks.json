@@ -596,7 +596,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -619,7 +619,18 @@
         "Verify exactly one terminal outcome, SOS/EOS ordering, close timing, all timeout/error codes, disconnect cleanup and no late writes.",
         "Exercise local/global turns, speaker/context updates and empty/garbage audio using the original client framing."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Ordering, cancellation and failure proven over a real WebSocket with before/after captures. Cancellation was genuinely broken: CLIENT_ASR left the ASR session running and the terminal frame carried a STALE server transcript instead of the client's; parser failures had lost the PARSER error code that the captured original carries. Three falsifications, each on a complete code line, with sha256 restoration checks. Also verified: no frames written after the terminal frame, and the hub no longer closes the socket ~2s after the final frame (matching pinned BaseWebsocketHandler).",
+          "artifact": "docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d464df556e6da9de51ab90a2a92d92a8ca333933",
+          "command": "node --test packages/gateway/test/listenTransaction.cancelFailure.test.js packages/gateway/test/listen.e2e.failure.test.js && npm test",
+          "notes": "UNKNOWN and not claimed: real ASR provider behaviour (Parakeet unreachable), the 40s ASR timeout on the wire, the 3-minute max-duration close, and genuine robot concurrency/timing. _beginGlobalTurn remains a deliberate Phoenix extension for the simulator."
+        }
+      ]
     },
     {
       "id": "H-03",
@@ -3229,7 +3240,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3250,7 +3261,18 @@
         "Check package format, integrity, streaming, retry and restart behavior against the original client with temporary fixture packages.",
         "Require a controlled hardware update/rollback test before claiming end-to-end firmware parity."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "All 8 Update_20160301 operations served at runtime on a real child-process entrypoint, including package delivery whose bytes hash-match the published shaHash. Two genuine defects fixed: listUpdatesFrom now sorts toVersion DESCENDING per the pinned controller (previously returned insertion order), and the wire Update always emits the filter member (DEFAULT_FILTER '' when unfiltered) - both are on-the-wire observable since UpdateList is a JSON array and filter is a declared output member. Root independently falsified the ordering fix by flipping cmpVersion(b,a) to cmpVersion(a,b), which failed exactly the two ordering tests, then restored to green. Error catalogue verbatim from srv-update-ws errors/update.ts; gateway allow-list checked as the second auth layer.",
+          "artifact": "docs/parity/evidence/2026-09-10/a08-update-delivery/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d464df556e6da9de51ab90a2a92d92a8ca333933",
+          "command": "node --test packages/ota/test/ota.test.js packages/ota/test/updateAdmin.test.js && npm test",
+          "notes": "NOT claimed: no controlled hardware update/rollback was performed, so end-to-end firmware parity is explicitly not asserted. Installing OTA on the physical robot was forbidden. The fromVersion '*' wildcard is a Phoenix-only extension not present in the pinned model."
+        }
+      ]
     },
     {
       "id": "A-09",
