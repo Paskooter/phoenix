@@ -26,6 +26,10 @@ async function amz(target, body, { headers = {}, method = 'POST' } = {}) {
   return { status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) };
 }
 
+// Exactly what the pinned client's lib/protocol/json.js:extractError resolves err.code to:
+// the x-amzn-errortype header, overridden by body.__type || body.code || body.error.
+const clientCode = (r) => r.body?.__type || r.body?.code || r.body?.error || r.errType || 'UnknownError';
+
 before(async () => {
   logDir = mkdtempSync(join(tmpdir(), 'phx-log-test-'));
   process.env.ETCO_classic_logDir = logDir;
@@ -89,10 +93,11 @@ test('PutEvents: account/robot identity from x-amz-credentials (gateway), info d
   assert.equal(empty.status, 200, 'empty array passes Joi array().required() like the source');
 });
 
-test('PutEvents validation: 422 ValidationException for missing/bad members (Boom.badData)', async () => {
+test('PutEvents validation: 422 Boom.badData for missing/bad members', async () => {
   const missing = await api('Log_20150309.PutEvents', {});
   assert.equal(missing.status, 422);
-  assert.equal(missing.errType, 'ValidationException');
+  assert.equal(missing.errType, null, 'a Boom-shaped error carries no x-amzn-errortype header');
+  assert.equal(clientCode(missing), 'Unprocessable Entity', 'client falls back to body.error (source had no code)');
   const nonArray = await api('Log_20150309.PutEvents', { events: { nope: 1 } });
   assert.equal(nonArray.status, 422);
   const badDevice = await api('Log_20150309.PutEvents', { events: [], deviceId: 7 });
@@ -125,7 +130,7 @@ test('PutEventsAsync: async ack shape + usable gzip upload destination, credenti
 test('PutEventsAsync validation: kind/HEALTH+LOG enum and required serial -> 422', async () => {
   const badKind = await api('Log_20150309.PutEventsAsync', { kind: 'k', serial: 's' });
   assert.equal(badKind.status, 422);
-  assert.equal(badKind.errType, 'ValidationException');
+  assert.equal(clientCode(badKind), 'Unprocessable Entity');
   const noSerial = await api('Log_20150309.PutEventsAsync', { kind: 'LOG' });
   assert.equal(noSerial.status, 422);
   const numSerial = await api('Log_20150309.PutEventsAsync', { kind: 'HEALTH', serial: 12 });
@@ -271,7 +276,9 @@ test('SetLevel validation mirrors its Joi schema -> 422', async () => {
 test('unknown Log operation -> 404 NotFoundException (source Boom.notFound)', async () => {
   const r = await api('Log_20150309.PutFaceBinary', {});
   assert.equal(r.status, 404);
-  assert.equal(r.errType, 'NotFoundException');
+  assert.equal(r.errType, null, 'a Boom-shaped error carries no x-amzn-errortype header');
+  assert.equal(r.body.error, 'Not Found');
+  assert.equal(clientCode(r), 'Not Found', 'the pinned client sees the HTTP reason phrase as err.code');
   assert.match(r.body.message, /Method .*? not found\./);
 });
 
@@ -286,6 +293,107 @@ test('retention: objects are never evicted; the sink keeps every event and every
   assert.equal(got.status, 200);
   assert.deepEqual(Buffer.from(await got.arrayBuffer()), b, 'no server-side eviction (source had none; S3 lifecycle owned it)');
   assert.ok(readEvents().length > before, 'event log keeps accumulating, never truncated');
+});
+
+// ---- A-12 defect regressions (verifier findings A12e / A12f / blob restart) ----
+
+// A12e: the source's 422/404 failures were raw Boom payloads { statusCode, error, message }
+// with NO error code, so the pinned client surfaced the HTTP reason phrase as err.code.
+test('A12e 422: client-visible error code is the Boom reason phrase, not ValidationException', async () => {
+  const r = await api('Log_20150309.PutEvents', {});
+  assert.equal(r.status, 422);
+  assert.equal(r.errType, null, 'no x-amzn-errortype header, like the source');
+  assert.equal(r.body.__type, undefined, 'no __type member, like the source');
+  assert.equal(r.body.code, undefined, 'no code member, like the source');
+  assert.equal(r.body.statusCode, 422);
+  assert.equal(r.body.error, 'Unprocessable Entity');
+  assert.equal(clientCode(r), 'Unprocessable Entity', 'what the pinned client reads as err.code');
+});
+
+test('A12e 404: client-visible error code is the Boom reason phrase, not NotFoundException', async () => {
+  const r = await api('Log_20150309.PutFaceBinary', {});
+  assert.equal(r.status, 404);
+  assert.equal(r.errType, null);
+  assert.equal(r.body.__type, undefined);
+  assert.equal(r.body.code, undefined);
+  assert.equal(r.body.statusCode, 404);
+  assert.equal(r.body.error, 'Not Found');
+  assert.equal(clientCode(r), 'Not Found');
+});
+
+test('A12e: codified Log errors keep the AWS code envelope (429/403/401 unchanged)', async () => {
+  const denied = await api('Log_20150309.NewKinesisCredentials');
+  assert.equal(denied.status, 403);
+  assert.equal(denied.errType, 'ROBOT_ONLY');
+  assert.equal(clientCode(denied), 'ROBOT_ONLY');
+  const noAdmin = await api('Log_20150309.SetLevel', { friendlyIds: [], namespaces: [] });
+  assert.equal(noAdmin.status, 401);
+  assert.equal(noAdmin.errType, 'AUTHORIZED_UNDER_ADMIN');
+  assert.equal(clientCode(noAdmin), 'AUTHORIZED_UNDER_ADMIN');
+});
+
+// A12f: Joi's VerbosityLevel shape has NO required members, so `{}`, `{namespace}` and
+// `{level}` are all valid upstream -> 200; present members are still type/enum checked.
+test('A12f: SetLevel namespaces items have no required members (Joi VerbosityLevel)', async () => {
+  const admin = { 'x-amz-credentials': JSON.stringify({ id: 'a', friendlyId: 'f', isAdmin: true }) };
+  const call = (namespaces) => api('Log_20150309.SetLevel', { friendlyIds: [], namespaces }, { headers: admin });
+  assert.equal((await call([{}])).status, 200, '[{}] is valid upstream');
+  assert.equal((await call([{ namespace: 'x' }])).status, 200, '[{namespace}] is valid upstream');
+  assert.equal((await call([{ level: 'info' }])).status, 200, '[{level}] is valid upstream');
+  assert.equal((await call([{}, { namespace: 'x' }, { level: 'silly' }])).status, 200, 'mixed items valid');
+  // present members are still validated
+  assert.equal((await call([{ namespace: 7 }])).status, 422, 'namespace must be a string');
+  assert.equal((await call([{ level: 'loud' }])).status, 422, 'level must be in the npm enum');
+  assert.equal((await call(['nope'])).status, 422, 'items must be objects');
+  assert.equal((await call([null])).status, 422, 'items must be objects');
+});
+
+// A12f: the source's FriendlyId is Joi.string(), which rejects the empty string.
+test('A12f: SetLevel friendlyIds rejects the empty string like Joi.string()', async () => {
+  const admin = { 'x-amz-credentials': JSON.stringify({ id: 'a', friendlyId: 'f', isAdmin: true }) };
+  const r = await api('Log_20150309.SetLevel', { friendlyIds: [''], namespaces: [] }, { headers: admin });
+  assert.equal(r.status, 422, 'Joi.string() rejects ""');
+  assert.equal(clientCode(r), 'Unprocessable Entity');
+  const ok = await api('Log_20150309.SetLevel', { friendlyIds: ['r1'], namespaces: [] }, { headers: admin });
+  assert.equal(ok.status, 200, 'a non-empty friendlyId still passes');
+});
+
+// Defect 3: the store indexes in memory, so a fresh process 404s on a key whose object file
+// is still on disk. The file is the source of truth; the index must be rebuilt from it.
+test('defect 3: GET /log/blob survives a process restart (index rebuilt from the object file)', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-log-restart-'));
+  const prev = process.env.ETCO_classic_logDir;
+  process.env.ETCO_classic_logDir = dir;
+  const key = 'log-binary/acct-1/trk-restart/blob-1';
+  const bytes = Buffer.from('survives-a-restart-\x00\x01\xff', 'binary');
+  let first; let firstSvc;
+  try {
+    firstSvc = createClassicEntrypoint();
+    first = await firstSvc.listen(0);
+    const p = first.address().port;
+    const put = await fetch(`http://localhost:${p}/log/upload?key=${encodeURIComponent(key)}`, { method: 'PUT', body: bytes });
+    assert.equal(put.status, 200);
+    const before = await fetch(`http://localhost:${p}/log/blob?key=${encodeURIComponent(key)}`);
+    assert.equal(before.status, 200, 'retrievable in the process that accepted the PUT');
+    assert.deepEqual(Buffer.from(await before.arrayBuffer()), bytes);
+  } finally {
+    first?.close();
+  }
+  let second; let secondSvc;
+  try {
+    // A restart: brand-new process, brand-new LogStore, same on-disk directory.
+    secondSvc = createClassicEntrypoint();
+    second = await secondSvc.listen(0);
+    assert.equal(secondSvc.logStore.index.size, 0, 'a restarted process starts with an empty in-memory index');
+    const p = second.address().port;
+    const after = await fetch(`http://localhost:${p}/log/blob?key=${encodeURIComponent(key)}`);
+    assert.equal(after.status, 200, 'the object file is still on disk, so the index is rebuilt from it');
+    assert.deepEqual(Buffer.from(await after.arrayBuffer()), bytes, 'bytes survive the restart');
+  } finally {
+    second?.close();
+    if (prev === undefined) delete process.env.ETCO_classic_logDir;
+    else process.env.ETCO_classic_logDir = prev;
+  }
 });
 
 // ---- aliases to keep the file compact --------------------------------------

@@ -14,12 +14,13 @@
 //   PutAsrBinary                    -> { bucketName, key, metadata, uploadUrl }    async ack
 //   SetLevel (admin)                -> { result: "Command accepted" }              sync ack
 //
-// Validation mirrors the source's Joi rules exactly (unknown members allowed, required
-// fields, enum checks); failures are the source's Boom.badData -> HTTP 422, and the
-// source's REQUEST_THROTTLED (429) / ROBOT_ONLY (403) / AUTHORIZED_UNDER_ADMIN (401)
-// errors keep their codes/status. The original sat behind the AWS-JSON envelope and the
-// client SDK read `x-amz-errortype`; Phoenix keeps its __type+header convention so the
-// robot's client sees a normal AWS error.
+// Validation mirrors the source's Joi rules (unknown members allowed, required fields,
+// enum checks); failures are the source's Boom.badData -> HTTP 422 and unknown ops are
+// Boom.notFound -> HTTP 404. Both are emitted as the source's raw Boom payload
+// `{statusCode, error, message}` — with no error `code` — because that is what the pinned
+// client read (`extractError` -> body.error = the HTTP reason phrase). The source's codified
+// REQUEST_THROTTLED (429) / ROBOT_ONLY (403) / AUTHORIZED_UNDER_ADMIN (401) errors keep their
+// codes/status through the shared AWS envelope. See `sendLogError`.
 //
 // The original returned S3 presigned URLs and wrote blobs to an S3 bucket. Phoenix has
 // no S3: uploadUrl/url point back at THIS entrypoint (a local PUT/GET sink, same pattern
@@ -29,14 +30,15 @@
 // had no server-side retention (S3 lifecycle owned it); Phoenix likewise never deletes.
 // (DIVERGENCES: self-hosted upload sink, no SNS fan-out on SetLevel, dead Kinesis.)
 
-import { createReadStream, createWriteStream, appendFileSync, mkdirSync } from 'node:fs';
+import { createReadStream, createWriteStream, appendFileSync, mkdirSync, closeSync, openSync, readSync, statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { STATUS_CODES } from 'node:http';
 import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { sendAmz, sendAmzError } from './awsJson.js';
+import { sendAmz, sendAmzError, AMZ_JSON } from './awsJson.js';
 
 const NPM_LEVELS = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
 const KINDS = ['HEALTH', 'LOG'];
@@ -52,8 +54,28 @@ const ROBOT_ONLY = { code: 'ROBOT_ONLY', message: 'Request forbidden. Only robot
 const AUTHORIZED_UNDER_ADMIN = { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 };
 const INTERNAL = { code: 'INTERNAL', message: 'Internal server error', statusCode: 500 };
 
-const boomBadData = (message) => ({ code: 'ValidationException', message, statusCode: 422 });
-const boomNotFound = (op) => ({ code: 'NotFoundException', message: `Method ${op} not found.`, statusCode: 404 });
+const boomBadData = (message) => ({ boom: true, statusCode: 422, message });
+const boomNotFound = (op) => ({ boom: true, statusCode: 404, message: `Method ${op} not found.` });
+
+/**
+ * The source surfaced validation + unknown-method failures as raw Boom payloads —
+ * `{ statusCode, error, message }` with `error` = the HTTP reason phrase and NO error `code`.
+ * The pinned client's `lib/protocol/json.js:extractError` resolves the code as
+ * `body.__type || body.code || body.error` (falling back to `x-amzn-errortype`), so on the
+ * source the client-visible `err.code` was `Unprocessable Entity` (422) / `Not Found` (404).
+ *
+ * The shared `sendAmzError()` in awsJson.js stamps `__type` + `x-amzn-errortype` and is used
+ * by every classic service (router/stubs/robot/push/key/backup/notification), so rewriting it
+ * would change their wire contract. This Boom shape is therefore reproduced HERE, scoped to
+ * the Log surface only; every codified Log error (429/403/401/500) still uses the shared
+ * AWS-code envelope because those codes match the source.
+ */
+function sendLogError(res, err) {
+  if (!err || !err.boom) return sendAmzError(res, err);
+  const body = JSON.stringify({ statusCode: err.statusCode, error: STATUS_CODES[err.statusCode], message: err.message });
+  res.writeHead(err.statusCode, { 'content-type': AMZ_JSON, 'content-length': Buffer.byteLength(body) });
+  res.end(body);
+}
 
 const validString = (v) => v === undefined || typeof v === 'string';
 const plainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -70,10 +92,11 @@ function credentialsFrom(req) {
 // ---- durable local sink ----------------------------------------------------
 
 /**
- * Process-lifetime local sink standing in for the source's S3 bucket. Keys are the
- * source's S3 keys verbatim (log-binary/…, asr-binary/…, log-async/…); each object is a
- * file under `dir`. Nothing is evicted here (the source had no server-side retention —
- * S3 lifecycle owned it), so objects stay retrievable for the life of the server run.
+ * Local sink standing in for the source's S3 bucket. Keys are the source's S3 keys verbatim
+ * (log-binary/…, asr-binary/…, log-async/…); each object is a file under `dir`. Nothing is
+ * evicted here (the source had no server-side retention — S3 lifecycle owned it), so objects
+ * stay retrievable. The in-memory index is only a cache: a miss falls back to the object file
+ * on disk, so objects survive a process restart (the source's S3 objects did too).
  */
 export class LogStore {
   constructor(dir = process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs')) {
@@ -99,7 +122,28 @@ export class LogStore {
 
   find(key) {
     const safe = safeKey(key);
-    return this.index.get(safe) || null;
+    const cached = this.index.get(safe);
+    if (cached) return cached;
+    // The index is in memory only, so a freshly started process (or any process that did not
+    // accept the PUT) has an empty index even though the object file survived on disk. The
+    // file IS the durable source of truth: rebuild the entry from it so `GET /log/blob` keeps
+    // working across restarts. On-disk layout is unchanged — we add no sidecar/companion files.
+    return this.rebuild(safe);
+  }
+
+  /** Reconstruct (and cache) an index entry from an object file left by an earlier process. */
+  rebuild(safe) {
+    const file = join(this.dir, safe);
+    let stat;
+    try {
+      stat = statSync(file);
+    } catch {
+      return null; // never stored, or not on this dir — a genuine miss
+    }
+    if (!stat.isFile()) return null;
+    const entry = { key: safe, size: stat.size, etag: `"${md5FileSync(file)}"`, file, modified: stat.mtimeMs };
+    this.index.set(safe, entry);
+    return entry;
   }
 
   /** Append one ingested event as a JSONL line (the source logged an event per record). */
@@ -111,6 +155,20 @@ export class LogStore {
       /* a log sink write must never take the POST/upload down */
     }
   }
+}
+
+/** Chunked md5 so rebuilding an index entry never buffers a whole blob in memory. */
+function md5FileSync(file) {
+  const hash = createHash('md5');
+  const fd = openSync(file, 'r');
+  const buf = Buffer.allocUnsafe(64 * 1024);
+  try {
+    let n;
+    while ((n = readSync(fd, buf, 0, buf.length, null)) > 0) hash.update(buf.subarray(0, n));
+  } finally {
+    closeSync(fd);
+  }
+  return hash.digest('hex');
 }
 
 function safeKey(key) {
@@ -146,10 +204,10 @@ export function makeLogHandler(store, baseFn) {
     switch (op.toLowerCase()) {
       case 'putevents': {
         if (!Array.isArray(b.events)) {
-          return void sendAmzError(res, boomBadData('child "events" fails because ["events" is required]'));
+          return void sendLogError(res, boomBadData('child "events" fails because ["events" is required]'));
         }
-        if (!validString(b.deviceId)) return void sendAmzError(res, boomBadData('child "deviceId" fails because ["deviceId" must be a string]'));
-        if (!validString(b.trackingId)) return void sendAmzError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
+        if (!validString(b.deviceId)) return void sendLogError(res, boomBadData('child "deviceId" fails because ["deviceId" must be a string]'));
+        if (!validString(b.trackingId)) return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
         const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
         for (const event of b.events) {
           if (b.deviceId) event.deviceId = b.deviceId;
@@ -167,10 +225,10 @@ export function makeLogHandler(store, baseFn) {
 
       case 'puteventsasync': {
         if (typeof b.kind !== 'string' || !KINDS.includes(b.kind)) {
-          return void sendAmzError(res, boomBadData('child "kind" fails because ["kind" must be one of [HEALTH, LOG]]'));
+          return void sendLogError(res, boomBadData('child "kind" fails because ["kind" must be one of [HEALTH, LOG]]'));
         }
         if (typeof b.serial !== 'string') {
-          return void sendAmzError(res, boomBadData('child "serial" fails because ["serial" is required]'));
+          return void sendLogError(res, boomBadData('child "serial" fails because ["serial" is required]'));
         }
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
@@ -214,7 +272,7 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'putbinaryasync': {
-        if (!validString(b.trackingId)) return void sendAmzError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
+        if (!validString(b.trackingId)) return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId } = credentialsFrom(req);
         const trackingIdPart = b.trackingId ? `${b.trackingId}/` : '';
@@ -224,13 +282,13 @@ export function makeLogHandler(store, baseFn) {
 
       case 'putasrbinary': {
         if (b.trackingId !== undefined && typeof b.trackingId !== 'string') {
-          return void sendAmzError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
+          return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
         }
         if (typeof b.trackingId === 'undefined' || b.trackingId === '') {
-          return void sendAmzError(res, boomBadData('child "trackingId" fails because ["trackingId" is required]'));
+          return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" is required]'));
         }
         if (b.metadata !== undefined && !plainObject(b.metadata)) {
-          return void sendAmzError(res, boomBadData('child "metadata" fails because ["metadata" must be an object]'));
+          return void sendLogError(res, boomBadData('child "metadata" fails because ["metadata" must be an object]'));
         }
         if (!selectForAsr(b.trackingId)) return void sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId } = credentialsFrom(req);
@@ -248,14 +306,21 @@ export function makeLogHandler(store, baseFn) {
       case 'setlevel': {
         const { isAdmin } = credentialsFrom(req);
         if (!isAdmin) return void sendAmzError(res, AUTHORIZED_UNDER_ADMIN);
-        if (!Array.isArray(b.friendlyIds)) return void sendAmzError(res, boomBadData('child "friendlyIds" fails because ["friendlyIds" is required]'));
-        if (!Array.isArray(b.namespaces)) return void sendAmzError(res, boomBadData('child "namespaces" fails because ["namespaces" is required]'));
+        if (!Array.isArray(b.friendlyIds)) return void sendLogError(res, boomBadData('child "friendlyIds" fails because ["friendlyIds" is required]'));
+        if (!Array.isArray(b.namespaces)) return void sendLogError(res, boomBadData('child "namespaces" fails because ["namespaces" is required]'));
         for (const id of b.friendlyIds) {
-          if (typeof id !== 'string') return void sendAmzError(res, boomBadData('child "friendlyIds" fails because ["friendlyIds" must only contain strings]'));
+          // FriendlyId is Joi.string(): non-strings and the empty string are rejected.
+          if (typeof id !== 'string' || id === '') {
+            return void sendLogError(res, boomBadData('child "friendlyIds" fails because ["friendlyIds" must only contain non-empty strings]'));
+          }
         }
+        // Joi's VerbosityLevel has NO required members, so `{}`, `{namespace}` and `{level}`
+        // are all valid upstream (200); a member that IS present is still type/enum checked.
         for (const ns of b.namespaces) {
-          if (!plainObject(ns) || typeof ns.namespace !== 'string' || !NPM_LEVELS.includes(ns.level)) {
-            return void sendAmzError(res, boomBadData('child "namespaces" fails because ["namespaces" must contain {namespace, level}]'));
+          if (!plainObject(ns)
+            || (ns.namespace !== undefined && (typeof ns.namespace !== 'string' || ns.namespace === ''))
+            || (ns.level !== undefined && !NPM_LEVELS.includes(ns.level))) {
+            return void sendLogError(res, boomBadData('child "namespaces" fails because ["namespaces" items must be {namespace?, level?}]'));
           }
         }
         log?.info?.('SetLevel', { namespaces: b.namespaces, friendlyIds: b.friendlyIds });
@@ -264,7 +329,7 @@ export function makeLogHandler(store, baseFn) {
       }
 
       default:
-        return void sendAmzError(res, boomNotFound(op));
+        return void sendLogError(res, boomNotFound(op));
     }
   };
 }
