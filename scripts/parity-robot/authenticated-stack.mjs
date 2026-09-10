@@ -173,6 +173,13 @@ export async function startAuthenticatedRobotStack({
       tls: tlsOptions,
       notificationFile: resolve(directory, 'notifications.json'),
       notificationAccountResolver,
+      // The app authenticates with SigV4 only (no gateway `x-amz-credentials` header), so the key
+      // service must resolve the access key to an account id exactly as Media does — otherwise
+      // every Key_20160201 call is refused 403 KEY_NOT_PART_OF_LOOP.
+      key: {
+        accountResolver: accessKeyAccountResolver((accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId)),
+        mintOnRequest: process.env.ETCO_classic_keyMintOnRequest === '1',
+      },
       media: {
         store: new MediaStore({
           directory: resolve(directory, 'media'),

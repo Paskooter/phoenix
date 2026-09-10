@@ -59,7 +59,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
@@ -68,7 +68,10 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
     { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore() }) },
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
-    { match: /^key/i, handler: makeKeyHandler(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir }) },
+    { match: /^key/i, handler: makeKeyHandler(keys, {
+      membership: keyMembership, baseFor, binaryDir: keyBinaryDir,
+      accountResolver: key?.accountResolver, mintOnRequest: key?.mintOnRequest,
+    }) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     // Media_20160725 owns a real store: the app's Gallery reads it and the robot writes photos to
     // it. Registered before the tier-3 stubs so the media stub never answers for it.
@@ -94,7 +97,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -123,6 +126,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         logStore,
         baseFor,
         media: { ...media, store: mediaStore },
+        key,
         keyStore: keys,
         keyMembership,
         keyBinaryDir,
