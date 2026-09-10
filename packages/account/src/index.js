@@ -32,6 +32,7 @@ export * as model from './model.js';
 export { createHubToken, createAuthenticatedHubToken, createAuthenticatedWebToken, verifyWebToken, secretMatches } from './model.js';
 export {
   ACCOUNT_ANONYMOUS_TARGETS,
+  ACCOUNT_UNACTIVE_TARGETS,
   ACCOUNT_ERRORS,
   ACCOUNT_IDENTITY_METHODS,
   ACCOUNT_PASSWORD_REGEX,
@@ -41,6 +42,7 @@ export {
   accountToSourceJson,
   compareAccountPassword,
   createHttpSmsProvider,
+  escapeRegexp,
   handleAccountIdentity,
   hashAccountPassword,
   isAccountPhotoUpload,

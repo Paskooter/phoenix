@@ -639,11 +639,12 @@ test('exact-target anonymous list; extra-dot ActivateByCode still requires a sig
   assert.equal(extra.body.__type, 'MISSING_AUTH_HEADER');
 });
 
-// ChangeEmail is implemented by the email/phone/terms slice, so this
-// proxy-fallback assertion now targets an operation that is genuinely
-// unimplemented (Account.Remove).
+// Search, Remove, CreateAccessToken, GetAccountByAccessToken, ResetKeys,
+// UpdatePhoto and RemovePhoto are all implemented now, so this control uses a
+// target the Account face genuinely does not serve. Facebook_20151111 ops were
+// dropped with the dead provider and are the remaining proxy-fallback case.
 test('unimplemented Account operations keep the unknown-target response', async () => {
-  const response = await post(accountBase, 'Account_20151111.Remove', {}, owner);
+  const response = await post(accountBase, 'Account_20151111.FacebookConnect', {}, owner);
   assert.equal(response.status, 400);
   assert.equal(response.body.__type, 'UnknownOperationException');
 });
