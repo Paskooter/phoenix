@@ -34,17 +34,22 @@ const loops = {
   ownedLoops: () => [],
 };
 
-function jsonAmz(target, body, accessKeyId = ACCOUNT) {
+function jsonAmz(target, body, accessKeyId = ACCOUNT, extra = {}) {
   return fetch(`http://localhost:${port}/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1',
       'x-amz-target': target,
       authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260910/us-east-1/x/aws4_request, SignedHeaders=host, Signature=ff`,
+      ...extra,
     },
     body: JSON.stringify(body || {}),
   });
 }
+
+/** The gateway-forwarded account credential header (srv-security-gw buildCredentials). */
+const ADMIN = JSON.stringify({ _id: ACCOUNT, id: ACCOUNT, email: 'care@jibo.com', isAdmin: true });
+const NON_ADMIN = JSON.stringify({ _id: ACCOUNT, id: ACCOUNT, email: 'parent@example.com', isAdmin: false });
 
 async function list(body, accessKeyId = ACCOUNT) {
   const res = await jsonAmz('Media_20160725.List', body, accessKeyId);
@@ -261,13 +266,90 @@ test('unknown media op -> ValidationException', async () => {
   assert.equal(res.headers.get('x-amzn-errortype'), 'ValidationException');
 });
 
-test('RemoveAllMediaFromLoop drops the loop and answers what it removed', async () => {
+// RemoveAllMediaFromLoop is the ONLY MediaAdmin_20160725 operation
+// (apis/mediaadmin-2016-07-25.normal.json, targetPrefix "Media_20160725" — the SAME service).
+// It carries `@parseCredentials({ adminOnly: true })`, the OUTERMOST decorator, so a non-admin is
+// rejected before the payload is even validated. srv-server parseCredentials.ts:21-24 throws
+// AUTHORIZED_UNDER_ADMIN (errors.ts -> 401) unless the gateway-forwarded x-amz-credentials.isAdmin.
+test('RemoveAllMediaFromLoop is denied without an admin credential (AUTHORIZED_UNDER_ADMIN 401)', async () => {
   await upload('other-1', Buffer.from('o'), { loopId: OTHER_LOOP });
-  const res = await jsonAmz('Media_20160725.RemoveAllMediaFromLoop', { loopId: OTHER_LOOP });
+  const denied = await jsonAmz('Media_20160725.RemoveAllMediaFromLoop', { loopId: OTHER_LOOP }, ACCOUNT,
+    { 'x-amz-credentials': NON_ADMIN });
+  assert.equal(denied.status, 401);
+  assert.equal(denied.headers.get('x-amzn-errortype'), 'AUTHORIZED_UNDER_ADMIN');
+  assert.ok(store.find('other-1'), 'a non-admin wipe attempt must not remove the loop media');
+});
+
+test('RemoveAllMediaFromLoop with no x-amz-credentials header is denied (LAN trust is not admin)', async () => {
+  const denied = await jsonAmz('Media_20160725.RemoveAllMediaFromLoop', { loopId: OTHER_LOOP });
+  assert.equal(denied.status, 401);
+  assert.equal(denied.headers.get('x-amzn-errortype'), 'AUTHORIZED_UNDER_ADMIN');
+});
+
+// Decorator order (parseCredentials is outermost) means the admin gate precedes the Joi loopId check:
+// a non-admin with a bad payload gets 401, not ValidationException.
+test('the admin gate runs before the loopId payload check', async () => {
+  const res = await jsonAmz('Media_20160725.RemoveAllMediaFromLoop', {}, ACCOUNT, { 'x-amz-credentials': NON_ADMIN });
+  assert.equal(res.status, 401);
+  assert.equal(res.headers.get('x-amzn-errortype'), 'AUTHORIZED_UNDER_ADMIN');
+});
+
+test('an admin RemoveAllMediaFromLoop drops the loop, answers what it removed, and deletes the bytes', async () => {
+  await upload('other-2', Buffer.from('o2'), { loopId: OTHER_LOOP });
+  const got = await (await jsonAmz('Media_20160725.Get', { paths: ['other-2'] })).json();
+  assert.equal((await fetch(got[0].url)).status, 200);
+  const res = await jsonAmz('Media_20160725.RemoveAllMediaFromLoop', { loopId: OTHER_LOOP }, ACCOUNT,
+    { 'x-amz-credentials': ADMIN });
   assert.equal(res.status, 200);
   const body = await res.json();
-  assert.deepEqual(body.map((row) => row.path), ['other-1']);
+  assert.deepEqual(body.map((row) => row.path).sort(), ['other-1', 'other-2']);
   assert.deepEqual((await list({ loopIds: [OTHER_LOOP] })).body, []);
+  // The source awaits binaryController.removeMultiple BEFORE Media.remove: objects are gone at once.
+  assert.equal((await fetch(got[0].url)).status, 404);
+});
+
+// Get's ownership guard (srv-media-ws media.ctrl.js): a requested row outside the caller's loops is
+// MEDIA_MUST_BE_MEMBER 403, not a silent filtering (the separate REST POST /getMedia is the only
+// ignoreOwnership: true caller, and Phoenix implements only the AWS-JSON face).
+test('Get of a row outside the caller loops is MEDIA_MUST_BE_MEMBER 403', async () => {
+  await upload('photo-owned', Buffer.from('p'));
+  const outsider = await jsonAmz('Media_20160725.Get', { paths: ['photo-owned'] }, OUTSIDER);
+  assert.equal(outsider.status, 403);
+  assert.equal(outsider.headers.get('x-amzn-errortype'), 'MEDIA_MUST_BE_MEMBER');
+  const member = await jsonAmz('Media_20160725.Get', { paths: ['photo-owned'] });
+  assert.equal(member.status, 200);
+  assert.deepEqual((await member.json()).map((row) => row.path), ['photo-owned']);
+});
+
+test('Get of an unknown path is 200 [] (the guard only fires when a row is filtered out)', async () => {
+  const r = await jsonAmz('Media_20160725.Get', { paths: ['does-not-exist'] });
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), []);
+});
+
+// Remove's query is `path: { $in: paths }` — parent paths only (NOT thumbs.path, unlike Get), and it
+// deletes the objects for the removed (expanded) rows.
+test('Remove matches parent paths only (a thumb path alone removes nothing) and deletes the bytes', async () => {
+  await upload('photo-del', Buffer.from('big'));
+  await upload('thumb-del', Buffer.from('small'), { type: 'thumb', reference: 'photo-del' });
+  const onlyThumb = await jsonAmz('Media_20160725.Remove', { paths: ['thumb-del'] });
+  assert.equal(onlyThumb.status, 200);
+  assert.deepEqual(await onlyThumb.json(), []);
+  assert.ok(store.find('photo-del'), 'a thumb-path Remove must not touch the parent');
+  const parent = await jsonAmz('Media_20160725.Remove', { paths: ['photo-del'] });
+  assert.equal(parent.status, 200);
+  assert.equal((await fetch(`http://localhost:${port}/media/blob/photo-del`)).status, 404);
+  assert.equal((await fetch(`http://localhost:${port}/media/blob/thumb-del`)).status, 404);
+});
+
+test('RemoveAllMediaFromLoop without an admin credential leaves the store untouched', async () => {
+  // regression guard for the A-14 finding: the pre-fix stub let ANY caller wipe a loop.
+  await upload('guard-1', Buffer.from('g'), { loopId: PAGE_LOOP });
+  const denied = await jsonAmz('Media_20160725.RemoveAllMediaFromLoop', { loopId: PAGE_LOOP }, ACCOUNT,
+    { 'x-amz-credentials': NON_ADMIN });
+  assert.equal(denied.status, 401);
+  assert.ok(store.find('guard-1'));
+  assert.ok((await list({ loopIds: [PAGE_LOOP] })).body.some((row) => row.path === 'guard-1'));
 });
 
 // -- durability / semantics of the local store --------------------------------
@@ -317,4 +399,34 @@ test('a recording is stored with the source .mp4 suffix', async () => {
   assert.equal(await res.text(), 'MP4');
   const onDisk = await readFile(join(dir, 'objects', ACCOUNT, 'rec-1.mp4'), 'utf8');
   assert.equal(onDisk, 'MP4');
+});
+
+// Durability proven through a REAL restart: the whole HTTP entrypoint is torn down and a NEW process
+// image (fresh MediaStore reloading the same JSON index + object dir) is brought up, then the photo is
+// re-read over HTTP. The persisted media entry (with its isEncrypted flag + loopId) and the bytes must
+// both come back, and the re-answered url must serve them.
+test('an uploaded photo survives an entrypoint restart and is re-read over HTTP', async () => {
+  const uploaded = await upload('restart-photo', Buffer.from('survives'), { encrypted: true });
+  const createdUrl = uploaded.body.url; // baked at Create time from the request host (source stores binary.url)
+
+  await new Promise((resolve) => server.close(resolve)); // tear the running entrypoint down
+  const restartedStore = new MediaStore({ directory: join(dir, 'objects'), file: join(dir, 'media.json') });
+  server = await createClassicEntrypoint({ media: { store: restartedStore, loops } }).listen(0);
+  port = server.address().port;
+
+  const listed = await list({ loopIds: [LOOP] });
+  assert.equal(listed.status, 200);
+  const row = listed.body.find((entry) => entry.path === 'restart-photo');
+  assert.ok(row, 'the restarted process answers the photo from the persisted index');
+  assert.equal(row.isEncrypted, true);
+  assert.equal(row.loopId, LOOP);
+  // The url was persisted at Create time (source stores binary.url), so it is byte-identical after the
+  // restart -- the entry round-tripped, it was not recomputed.
+  assert.equal(row.url, createdUrl);
+  // ...and the bytes behind it are still served by the restarted process's blob route.
+  const bytes = await fetch(`http://localhost:${port}/media/blob/restart-photo`);
+  assert.equal(bytes.status, 200);
+  assert.equal(await bytes.text(), 'survives');
+  // A fresh store object built from the same files sees the persisted entry too.
+  assert.ok(new MediaStore({ directory: join(dir, 'objects'), file: join(dir, 'media.json') }).find('restart-photo'));
 });
