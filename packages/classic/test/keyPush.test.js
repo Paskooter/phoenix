@@ -2,9 +2,12 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { createClassicEntrypoint } from '../src/index.js';
 
-let server; let port;
+let server; let port; let keyDir; let prevKeyFile;
 async function amz(target, body, accessKeyId) {
   const res = await fetch(`http://localhost:${port}/`, {
     method: 'POST',
@@ -18,8 +21,20 @@ async function amz(target, body, accessKeyId) {
   return { status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) };
 }
 
-before(async () => { server = await createClassicEntrypoint().listen(0); port = server.address().port; });
-after(() => server.close());
+// Key state is durable (ETCO_classic_keyFile); a per-run file keeps counts deterministic.
+before(async () => {
+  keyDir = mkdtempSync(join(tmpdir(), 'phx-key-h4-'));
+  prevKeyFile = process.env.ETCO_classic_keyFile;
+  process.env.ETCO_classic_keyFile = join(keyDir, 'keys.json');
+  server = await createClassicEntrypoint().listen(0);
+  port = server.address().port;
+});
+after(() => {
+  server.close();
+  rmSync(keyDir, { recursive: true, force: true });
+  if (prevKeyFile === undefined) delete process.env.ETCO_classic_keyFile;
+  else process.env.ETCO_classic_keyFile = prevKeyFile;
+});
 
 test('key: ShouldCreate -> CreateRequest -> Share -> GetRequest round-trip', async () => {
   const sc = await amz('Key_20160201.ShouldCreate', { loopId: 'loop-1' });
@@ -30,7 +45,7 @@ test('key: ShouldCreate -> CreateRequest -> Share -> GetRequest round-trip', asy
   assert.match(created.body.id, /^[a-f0-9]{24}$/);
   assert.equal(created.body.loopId, 'loop-1');
   assert.equal(created.body.publicKey, 'PUBKEY-A');
-  assert.equal(created.body.encryptedKey, null, 'unsatisfied until shared');
+  assert.ok(!('encryptedKey' in created.body), 'unsatisfied: the pinned Request shape omits encryptedKey');
 
   // it shows up as an incoming request for the loop
   const incoming = await amz('Key_20160201.ListIncomingRequests', { loopId: 'loop-1' });
@@ -49,20 +64,25 @@ test('key: ShouldCreate -> CreateRequest -> Share -> GetRequest round-trip', asy
   assert.equal(sc2.body.shouldCreate, false);
 });
 
-test('key: Backup -> Restore by loop+passwordHash; missing -> 404', async () => {
+test('key: Backup -> Restore by loop+passwordHash; wrong hash -> 409; unknown loop -> 404', async () => {
   const bk = await amz('Key_20160201.Backup', { loopId: 'loop-2', encryptedKey: 'BLOB', passwordHash: 'pw1' }, 'acct-B');
   assert.equal(bk.body.encryptedKey, 'BLOB');
   const rs = await amz('Key_20160201.Restore', { loopId: 'loop-2', passwordHash: 'pw1' });
   assert.equal(rs.body.encryptedKey, 'BLOB');
+  // srv-key-ws src/controllers/key.ctrl.ts restore(): a supplied hash that differs is
+  // Boom.createWithCode(BACKUP_PASSWORD_WRONG) -> 409 (NOT a 404).
   const wrong = await amz('Key_20160201.Restore', { loopId: 'loop-2', passwordHash: 'WRONG' });
-  assert.equal(wrong.status, 404);
-  assert.equal(wrong.errType, 'KEY_BACKUP_NOT_FOUND');
+  assert.equal(wrong.status, 409);
+  assert.equal(wrong.errType, 'BACKUP_PASSWORD_WRONG');
+  const none = await amz('Key_20160201.Restore', { loopId: 'loop-2b' });
+  assert.equal(none.status, 404);
+  assert.equal(none.errType, 'BACKUP_NOT_FOUND');
 });
 
-test('key: GetRequest unknown id -> 404', async () => {
+test('key: GetRequest unknown id -> 404 KEY_NOT_FOUND', async () => {
   const r = await amz('Key_20160201.GetRequest', { id: 'nope' });
   assert.equal(r.status, 404);
-  assert.equal(r.errType, 'KEY_REQUEST_NOT_FOUND');
+  assert.equal(r.errType, 'KEY_NOT_FOUND');
 });
 
 test('push: CreateDevice / RemoveDevice return the account Devices list; validation is 422', async () => {
