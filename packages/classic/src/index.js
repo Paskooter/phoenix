@@ -9,7 +9,7 @@
 import { createService, sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { createClassicRouter } from './router.js';
-import { logHandler } from './log.js';
+import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 import { makeRobotHandler } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 import { KeyStore, makeKeyHandler } from './key.js';
@@ -20,7 +20,7 @@ import { proxyMemberPhoto } from './photoProxy.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
-export { logHandler } from './log.js';
+export { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 export { makeRobotHandler } from './robot.js';
 export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
@@ -51,10 +51,10 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor } = {}) {
   const router = createClassicRouter([
     ...extra,
-    { match: /^log/i, handler: logHandler },
+    { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
     { match: /^robot/i, handler: makeRobotHandler() },
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
@@ -86,6 +86,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
+  const logStore = new LogStore();
   const service = createService({
     name: 'classic',
     tls,
@@ -96,6 +97,8 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     routes: {
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor) }], {
         notificationAccountResolver,
+        logStore,
+        baseFor,
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
@@ -107,6 +110,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         log,
       }),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
+      ...logHttpRoutes(logStore),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': ({ res, body }) => {
         if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
@@ -125,7 +129,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups };
+  return { ...service, hub, wss, backups, logStore };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
