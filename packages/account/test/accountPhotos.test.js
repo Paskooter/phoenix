@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { Readable } from 'node:stream';
 import { signSigV4 } from '@phoenix/common';
 import { Store } from '../src/store.js';
-import { createOwnerAccount } from '../src/model.js';
+import { createOwnerAccount, populateLoop } from '../src/model.js';
 import { MemberPhotoStorage } from '../src/memberPhotoStorage.js';
 import {
   ACCOUNT_ANONYMOUS_TARGETS,
@@ -103,6 +103,40 @@ test('account JSON emits photoUrl null after remove and omits an unset field', (
   assert.ok(!('photoUrl' in unset));
   const cleared = accountToSourceJson({ _id: 'acct-1', email: 'wire@synthetic.invalid', photoUrl: null });
   assert.equal(cleared.photoUrl, null);
+});
+
+test('Loop member projection carries photoUrl null, matching source loadMembers', () => {
+  // DIVERGENCES.md A3. Source loop.ctrl.ts loadMembers copies photoUrl
+  // unconditionally (`photoUrl: account.photoUrl`), and the pinned
+  // loop-2016-03-24 MemberAccount shape declares photoUrl, so a generated
+  // client can distinguish "no photo" (null) from "field absent". Phoenix
+  // previously guarded the copy with != null and dropped that distinction.
+  // Reachable since Account.RemovePhoto, which sets photoUrl = null on a
+  // live account that may be a loop member.
+  const store = {
+    accounts: new Map([
+      ['acct-cleared', { _id: 'acct-cleared', email: 'cleared@synthetic.invalid', firstName: 'Cleared', photoUrl: null }],
+      ['acct-unset', { _id: 'acct-unset', email: 'unset@synthetic.invalid', firstName: 'Unset' }],
+      ['acct-photo', { _id: 'acct-photo', email: 'haspic@synthetic.invalid', firstName: 'Pic', photoUrl: 'https://photos.invalid/a.jpg' }],
+    ]),
+  };
+  const loop = {
+    _id: 'loop-1',
+    owner: 'acct-cleared',
+    members: [
+      { _id: 'm1', accountId: 'acct-cleared', status: 'accepted' },
+      { _id: 'm2', accountId: 'acct-unset', status: 'accepted' },
+      { _id: 'm3', accountId: 'acct-photo', status: 'accepted' },
+    ],
+  };
+  const wire = populateLoop(store, loop);
+  const byId = Object.fromEntries(wire.members.map((m) => [m.accountId, m.account]));
+
+  assert.ok('photoUrl' in byId['acct-cleared'], 'photoUrl must be present when null');
+  assert.equal(byId['acct-cleared'].photoUrl, null);
+  assert.ok('photoUrl' in byId['acct-unset'], 'source copies the key even when unset');
+  assert.equal(byId['acct-unset'].photoUrl, null);
+  assert.equal(byId['acct-photo'].photoUrl, 'https://photos.invalid/a.jpg');
 });
 
 test('account photo replacement/removal preserves source ordering and failed-save state', async () => {

@@ -239,7 +239,14 @@ function copyAcceptedAccount(account, { includeFacebookToken = false } = {}) {
   if (account.gender != null) copy.gender = account.gender;
   if (account.lastName != null) copy.lastName = account.lastName;
   if (account.phoneNumber != null) copy.phoneNumber = account.phoneNumber;
-  if (account.photoUrl != null) copy.photoUrl = account.photoUrl;
+  // Source loadMembers (loop.ctrl.ts) copies photoUrl unconditionally:
+  //   photoUrl: account.photoUrl
+  // so a member whose photo was removed carries `photoUrl: null` on the wire.
+  // The pinned loop-2016-03-24 MemberAccount shape declares photoUrl, so a
+  // generated client parses it and can tell "no photo" from "field absent".
+  // Guarding this one with != null, as the fields above legitimately are,
+  // dropped that distinction. Reachable since Account.RemovePhoto landed.
+  copy.photoUrl = account.photoUrl === undefined ? null : account.photoUrl;
   return copy;
 }
 
