@@ -29,8 +29,10 @@ const FILES = {
 };
 
 const ENTRIES = [
-  { id: 'os-12.10.0', subsystem: 'os', fromVersion: '*', toVersion: '12.10.0', changes: 'os latest', filter: '', dependencies: {}, file: 'os-12.10.0.tar', created: 1534982400000 },
+  // Deliberately inserted ASCENDING (12.6.0 before 12.10.0) so a test can tell the pinned
+  // descending toVersion sort apart from plain manifest/insertion order.
   { id: 'os-12.6.0', subsystem: 'os', fromVersion: '*', toVersion: '12.6.0', changes: 'os older', filter: '', dependencies: {}, file: 'os-12.6.0.tar' },
+  { id: 'os-12.10.0', subsystem: 'os', fromVersion: '*', toVersion: '12.10.0', changes: 'os latest', filter: '', dependencies: {}, file: 'os-12.10.0.tar', created: 1534982400000 },
   { id: 'services-12.10.0', subsystem: 'services', fromVersion: '*', toVersion: '12.10.0', changes: 'svc', filter: '', dependencies: { os: '12.10.0' }, file: 'services-12.10.0.tar' },
   { id: 'be-10.0.16', subsystem: 'be', fromVersion: '*', toVersion: '10.0.16', changes: 'be', filter: 'green', dependencies: {}, file: 'be-10.0.16.tar' },
   { id: 'diag-6.0.16', subsystem: 'jibo-diagnostics', fromVersion: '3.1.2', toVersion: '6.0.16', changes: 'diag', filter: '', dependencies: {}, file: 'diag-6.0.16.tar' },
@@ -98,6 +100,36 @@ test('getUpdateFrom picks the highest toVersion', () => {
 test('exact fromVersion matches only that version', () => {
   assert.equal(catalog.listUpdatesFrom({ fromVersion: '3.1.2', subsystem: 'jibo-diagnostics' }).length, 1);
   assert.equal(catalog.listUpdatesFrom({ fromVersion: '9.9.9', subsystem: 'jibo-diagnostics' }).length, 0);
+});
+
+// Source update.ctrl.ts:99-104 — listUpdatesFrom does `updates.sort((a, b) =>
+// versionCompare(b.toVersion, a.toVersion))`, i.e. DESCENDING by toVersion. The result is the
+// wire UpdateList array, so its order is observable and must not be manifest/insertion order.
+test('listUpdatesFrom is ordered by toVersion descending, not by insertion order', async () => {
+  const cat = await Catalog.load({
+    entries: [
+      { id: 'ord-old', subsystem: 'os', fromVersion: '*', toVersion: '12.6.0', filter: '', file: 'os-12.6.0.tar' },
+      { id: 'ord-new', subsystem: 'os', fromVersion: '*', toVersion: '12.10.0', filter: '', file: 'os-12.10.0.tar' },
+      { id: 'ord-mid', subsystem: 'os', fromVersion: '*', toVersion: '12.9.9', filter: '', file: 'os-12.6.0.tar' },
+    ],
+    dataDir,
+    log: {},
+  });
+  assert.deepEqual(
+    cat.listUpdatesFrom({ fromVersion: '3.3.4', subsystem: 'os' }).map((e) => e.id),
+    ['ord-new', 'ord-mid', 'ord-old'],
+    'highest toVersion first, numerically (12.10.0 > 12.9.9 > 12.6.0)',
+  );
+});
+
+// Source update.ctrl.ts:71 `record.filter = filter || DEFAULT_FILTER` and the schema's
+// `filter: String` (schemes/update.ts) mean an unfiltered record still serialises `filter: ""`.
+// The Update output shape declares `filter`, so omitting the member is observable to the client.
+test('an unfiltered wire Update still carries the filter member', async () => {
+  const e = catalog.findById('os-12.10.0');
+  const u = catalog.toUpdate(e, { baseUrl: 'http://x' });
+  assert.ok(Object.prototype.hasOwnProperty.call(u, 'filter'), 'filter member must be present');
+  assert.equal(u.filter, '');
 });
 
 // Source update.ctrl.ts:30-41 — the subsystem always defaults to "main"; the filter is a
@@ -190,6 +222,16 @@ test('ListUpdatesFrom returns the wire array with self-pointing urls', async () 
   const latest = list.find((u) => u._id === 'os-12.10.0');
   assert.equal(latest.shaHash, sha1(FILES['os-12.10.0.tar']));
   assert.ok(latest.url.endsWith('/ota/package?id=os-12.10.0'));
+});
+
+test('ListUpdatesFrom serves the pinned descending toVersion order over HTTP', async () => {
+  // The manifest lists os-12.6.0 first (ascending); the source's sort must still put 12.10.0
+  // first, because the JSON array order is what the robot's system manager reads.
+  const r = await amz('ListUpdatesFrom', { fromVersion: '3.3.4', subsystem: 'os' });
+  const list = await r.json();
+  assert.deepEqual(list.map((u) => u.toVersion), ['12.10.0', '12.6.0']);
+  assert.deepEqual(list.map((u) => u._id), ['os-12.10.0', 'os-12.6.0']);
+  assert.equal(list[0].filter, '', 'and each record carries the filter member');
 });
 
 test('ListUpdates with no subsystem queries "main" (nothing stocked) -> 200 []', async () => {

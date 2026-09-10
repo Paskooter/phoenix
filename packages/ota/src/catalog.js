@@ -133,7 +133,8 @@ export class Catalog {
   // filter:    see filterMatches().
   // applicable(fromVersion): entry.fromVersion must equal the requested version, unless the
   //            entry uses "*" (a Phoenix extension that lets one package serve any installed
-  //            version — see DIVERGENCES candidate A8). Never offer an update whose toVersion
+  //            version — the pinned model has no such wildcard; recorded as an A-08 divergence
+  //            candidate in the task evidence). Never offer an update whose toVersion
   //            the robot already runs — that's the loop-guard for "*" entries.
 
   _matchSubsystem(e, subsystem) {
@@ -155,8 +156,17 @@ export class Catalog {
     return this.entries.filter((e) => this._matchSubsystem(e, subsystem) && this._matchFilter(e, filter));
   }
 
+  /**
+   * Source UpdateController.listUpdatesFrom (update.ctrl.ts:99-104) queries
+   * `{fromVersion, subsystem, filter}` and then SORTS the result descending by toVersion —
+   * `updates.sort((a, b) => versionCompare(b.toVersion, a.toVersion))`. The order is part of
+   * the wire response (UpdateList is a JSON array the client keeps in order), so it must be
+   * reproduced: the manifest/insertion order is NOT the answer.
+   */
   listUpdatesFrom({ fromVersion, subsystem, filter } = {}) {
-    return this.listUpdates({ subsystem, filter }).filter((e) => this._applicable(e, fromVersion));
+    return this.listUpdates({ subsystem, filter })
+      .filter((e) => this._applicable(e, fromVersion))
+      .sort((a, b) => cmpVersion(b.toVersion, a.toVersion));
   }
 
   /**
@@ -306,7 +316,11 @@ export class Catalog {
       shaHash: e.sha1,
       length: e.length,
       subsystem: e.subsystem,
-      ...(e.filter ? { filter: e.filter } : {}),
+      // The source's record always carries the field — `record.filter = filter || DEFAULT_FILTER`
+      // (update.ctrl.ts:71) and the mongoose schema declares `filter: String` — so an unfiltered
+      // update serialises as `"filter": ""` rather than omitting the member. The `Update` output
+      // shape declares `filter`, so the client would otherwise see undefined instead of "".
+      filter: e.filter || DEFAULT_FILTER,
       dependencies: e.dependencies,
     };
   }

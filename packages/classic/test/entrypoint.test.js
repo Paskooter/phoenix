@@ -75,6 +75,21 @@ test('OOBE_* and Update_* proxy to their upstream services verbatim', async () =
   assert.deepEqual(upstreamHits, ['OOBE_20161026.SetupRobot', 'Update_20160301.ListUpdatesFrom']);
 });
 
+// The two pinned Update models share targetPrefix `Update_20160301`
+// (apis/update-2016-03-01.normal.json and apis/updateadmin-2016-03-01.normal.json), so the front
+// door's /^update/i matcher must route ALL EIGHT operations — including the three that exist only
+// in the *admin* model — to the ota upstream. CreateUpdate is covered separately (raw entity).
+test('all eight Update_20160301 operations reach the ota upstream, admin model included', async () => {
+  upstreamHits = [];
+  const ops = ['ListUpdates', 'ListUpdatesFrom', 'GetUpdateFrom', 'RemoveUpdate', 'ListUniqueFilters', 'SetTarget', 'ListTargets'];
+  for (const op of ops) {
+    const r = await amz(`Update_20160301.${op}`, {}, base);
+    assert.equal(r.status, 200, `${op} must reach the ota upstream`);
+    assert.equal(r.body.proxied, `Update_20160301.${op}`);
+  }
+  assert.deepEqual(upstreamHits, ops.map((op) => `Update_20160301.${op}`));
+});
+
 test('proxy bounds upstream hangs and surfaces aborted upstream responses', async () => {
   const previousAccount = process.env.NET_account;
   const previousTimeout = process.env.ETCO_classic_upstreamTimeoutMS;

@@ -1,188 +1,210 @@
 {
-  "date": "2026-09-10T19:52:36.571Z",
-  "base": "http://127.0.0.1:39019",
-  "catalogEntries": 2,
-  "healthcheck": {
-    "status": 200,
-    "body": "ok"
-  },
-  "operations": [
+  "task": "A-08",
+  "started": "2026-09-10T20:23:24.464Z",
+  "safety": "no robot contacted; no OTA installed",
+  "steps": [
     {
-      "op": "ListUpdates",
-      "label": "subsystem=os (served)",
-      "status": 200,
-      "errortype": null,
-      "body": [
-        {
-          "_id": "os-12.10.0",
-          "created": 0,
-          "accountId": "phoenix-ota",
-          "fromVersion": "*",
-          "toVersion": "12.10.0",
-          "changes": "os",
-          "url": "http://127.0.0.1:39019/ota/package?id=os-12.10.0",
-          "shaHash": "87207c16d97dd118f0d7c585fb0e433b54cc0f5a",
-          "length": 816,
-          "subsystem": "os",
-          "dependencies": {}
-        }
+      "name": "entrypoint_boot",
+      "ready": true,
+      "port": 36957,
+      "log": [
+        "{\"t\":\"2026-09-10T20:23:24.575Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"ota: package ready\",\"id\":\"os-12.6.0\",\"subsystem\":\"os\",\"toVersion\":\"12.6.0\",\"length\":640,\"sha1\":\"8baa44de841bad406b5140b92ceb701a949035cc\"}",
+        "{\"t\":\"2026-09-10T20:23:24.577Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"ota: package ready\",\"id\":\"os-12.10.0\",\"subsystem\":\"os\",\"toVersion\":\"12.10.0\",\"length\":1088,\"sha1\":\"4f9fc012b8ac12093c95951b0eed217fdebd97f9\"}",
+        "{\"t\":\"2026-09-10T20:23:24.577Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"ota: package ready\",\"id\":\"be-green\",\"subsystem\":\"be\",\"toVersion\":\"10.0.16\",\"length\":510,\"sha1\":\"b19a3d4c50c5f04a607af14d912520dcadc80f55\"}",
+        "{\"t\":\"2026-09-10T20:23:24.577Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"ota: package ready\",\"id\":\"main-pkg\",\"subsystem\":\"main\",\"toVersion\":\"1.0.0\",\"length\":220,\"sha1\":\"64340114530fcabf068e42f0bf1d9c88be4e78f0\"}"
       ]
     },
     {
-      "op": "ListUpdatesFrom",
-      "label": "fromVersion 3.3.4 subsystem=os (served)",
+      "name": "1.ListUpdates(no subsystem -> \"main\")",
       "status": 200,
-      "errortype": null,
-      "body": [
-        {
-          "_id": "os-12.10.0",
-          "created": 0,
-          "accountId": "phoenix-ota",
-          "fromVersion": "3.3.4",
-          "toVersion": "12.10.0",
-          "changes": "os",
-          "url": "http://127.0.0.1:39019/ota/package?id=os-12.10.0",
-          "shaHash": "87207c16d97dd118f0d7c585fb0e433b54cc0f5a",
-          "length": 816,
-          "subsystem": "os",
-          "dependencies": {}
-        }
+      "ids": [
+        "main-pkg"
       ]
     },
     {
-      "op": "GetUpdateFrom",
-      "label": "optimal for os (served)",
+      "name": "1b.ListUpdates(subsystem=main)",
       "status": 200,
-      "errortype": null,
-      "body": {
-        "_id": "os-12.10.0",
+      "ids": [
+        "main-pkg"
+      ],
+      "first": {
+        "_id": "main-pkg",
         "created": 0,
         "accountId": "phoenix-ota",
-        "fromVersion": "3.3.4",
-        "toVersion": "12.10.0",
-        "changes": "os",
-        "url": "http://127.0.0.1:39019/ota/package?id=os-12.10.0",
-        "shaHash": "87207c16d97dd118f0d7c585fb0e433b54cc0f5a",
-        "length": 816,
-        "subsystem": "os",
-        "dependencies": {}
-      }
-    },
-    {
-      "op": "GetUpdateFrom",
-      "label": "no applicable update -> 404",
-      "status": 404,
-      "errortype": "UPDATE_NOT_FOUND",
-      "body": {
-        "__type": "UPDATE_NOT_FOUND",
-        "message": "Update not found"
-      }
-    },
-    {
-      "op": "CreateUpdate",
-      "label": "admin upload (served)",
-      "status": 200,
-      "errortype": null,
-      "body": {
-        "_id": "80a84754303f8c97015fadff",
-        "created": 1789069956548,
-        "accountId": "probe-admin",
-        "fromVersion": "12.10.0",
-        "toVersion": "13.0.0",
-        "changes": "probe",
-        "url": "http://127.0.0.1:39019/ota/package?id=80a84754303f8c97015fadff",
-        "shaHash": "71b6d46939e4f739eebdd1d443814c0cf7764826",
-        "length": 1024,
+        "fromVersion": "*",
+        "toVersion": "1.0.0",
+        "changes": "main",
+        "url": "http://127.0.0.1:36957/ota/package?id=main-pkg",
+        "shaHash": "64340114530fcabf068e42f0bf1d9c88be4e78f0",
+        "length": 220,
         "subsystem": "main",
+        "filter": "",
         "dependencies": {}
       }
     },
     {
-      "op": "CreateUpdate",
-      "label": "non-admin -> 403",
-      "status": 403,
-      "errortype": "UPDATE_ONLY_ADMIN_CAN_CREATE",
-      "body": {
-        "__type": "UPDATE_ONLY_ADMIN_CAN_CREATE",
-        "message": "Only admin account can create platform update"
-      }
+      "name": "2.ListUpdatesFrom(subsystem=os, fromVersion=3.3.4)",
+      "status": 200,
+      "toVersion_order": [
+        "12.10.0",
+        "12.6.0"
+      ],
+      "ids": [
+        "os-12.10.0",
+        "os-12.6.0"
+      ],
+      "manifest_insertion_order": [
+        "os-12.6.0",
+        "os-12.10.0"
+      ]
     },
     {
-      "op": "ListUniqueFilters",
-      "label": "admin (served)",
+      "name": "3.GetUpdateFrom",
       "status": 200,
-      "errortype": null,
-      "body": [
+      "id": "os-12.10.0",
+      "toVersion": "12.10.0",
+      "shaHash": "4f9fc012b8ac12093c95951b0eed217fdebd97f9",
+      "length": 1088,
+      "url": "http://127.0.0.1:36957/ota/package?id=os-12.10.0"
+    },
+    {
+      "name": "3b.GetUpdateFrom(no applicable)",
+      "status": 404,
+      "code": "UPDATE_NOT_FOUND",
+      "message": "Update not found"
+    },
+    {
+      "name": "3c.GetUpdateFrom(missing fromVersion)",
+      "status": 422,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"fromVersion\" fails because [\"fromVersion\" is required]"
+      },
+      "x_amzn_errortype": null
+    },
+    {
+      "name": "4a.CreateUpdate(non-admin)",
+      "status": 403,
+      "code": "UPDATE_ONLY_ADMIN_CAN_CREATE",
+      "message": "Only admin account can create platform update"
+    },
+    {
+      "name": "4b.CreateUpdate(admin)",
+      "status": 200,
+      "id": "0b51dddc140ef0161e0242f0",
+      "length": 1088,
+      "shaHash": "4f9fc012b8ac12093c95951b0eed217fdebd97f9",
+      "filter": "",
+      "keys": [
+        "_id",
+        "accountId",
+        "changes",
+        "created",
+        "dependencies",
+        "filter",
+        "fromVersion",
+        "length",
+        "shaHash",
+        "subsystem",
+        "toVersion",
+        "url"
+      ]
+    },
+    {
+      "name": "4c.CreateUpdate(duplicate)",
+      "status": 409,
+      "code": "UPDATE_ALREADY_EXISTS",
+      "message": "Update with same version specifications already exists"
+    },
+    {
+      "name": "5a.RemoveUpdate(other account)",
+      "status": 403,
+      "code": "UPDATE_BELONGS_OTHER_ACCOUNT"
+    },
+    {
+      "name": "5b.RemoveUpdate(unknown id)",
+      "status": 404,
+      "code": "UPDATE_NOT_FOUND"
+    },
+    {
+      "name": "5c.RemoveUpdate(creator)",
+      "status": 200,
+      "id": "0b51dddc140ef0161e0242f0"
+    },
+    {
+      "name": "6a.ListUniqueFilters(anon)",
+      "status": 401,
+      "code": "AUTHORIZED_UNDER_ADMIN",
+      "message": "Must be authorized under admin account"
+    },
+    {
+      "name": "6b.ListUniqueFilters(admin)",
+      "status": 200,
+      "filters": [
         "",
         "green"
       ]
     },
     {
-      "op": "SetTarget",
-      "label": "admin (served)",
-      "status": 200,
-      "errortype": null,
-      "body": {}
+      "name": "7a.SetTarget(anon)",
+      "status": 401,
+      "code": "AUTHORIZED_UNDER_ADMIN"
     },
     {
-      "op": "ListTargets",
-      "label": "admin (served)",
+      "name": "7b.SetTarget(admin)",
       "status": 200,
-      "errortype": null,
-      "body": [
+      "body": "{}",
+      "bytes": 2
+    },
+    {
+      "name": "8.ListTargets(admin)",
+      "status": 200,
+      "targets": [
         {
-          "serial": "PROBE-1",
+          "serial": "BOJW-1000-5555",
           "target": "green"
         }
       ]
     },
     {
-      "op": "RemoveUpdate",
-      "label": "creator (served)",
+      "name": "8b.GetUpdateFrom(targeted robot)",
       "status": 200,
-      "errortype": null,
-      "body": {
-        "_id": "80a84754303f8c97015fadff",
-        "created": 1789069956548,
-        "accountId": "probe-admin",
-        "fromVersion": "12.10.0",
-        "toVersion": "13.0.0",
-        "changes": "probe",
-        "url": "http://127.0.0.1:39019/ota/package?id=80a84754303f8c97015fadff",
-        "shaHash": "71b6d46939e4f739eebdd1d443814c0cf7764826",
-        "length": 1024,
-        "subsystem": "main",
-        "dependencies": {}
-      }
+      "id": "be-green",
+      "filter": "green"
     },
     {
-      "op": "RemoveUpdate",
-      "label": "unknown id -> 404",
+      "name": "8c.GetUpdateFrom(untargeted robot)",
       "status": 404,
-      "errortype": "UPDATE_NOT_FOUND",
-      "body": {
-        "__type": "UPDATE_NOT_FOUND",
-        "message": "Update not found"
-      }
+      "code": "UPDATE_NOT_FOUND"
+    },
+    {
+      "name": "9.GET /ota/package",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "content_length": "1088",
+      "bytes": 1088,
+      "sha1": "4f9fc012b8ac12093c95951b0eed217fdebd97f9",
+      "expected_sha1": "4f9fc012b8ac12093c95951b0eed217fdebd97f9",
+      "match": true
+    },
+    {
+      "name": "9b.GET /ota/package(unknown)",
+      "status": 404
     }
   ],
-  "delivery": {
-    "status": 200,
-    "contentLength": 816,
-    "contentType": "application/octet-stream",
-    "bytes": 816,
-    "sha1Matches": true,
-    "createdPackageSha": true,
-    "createdPackageLength": true
-  },
-  "served": [
-    "CreateUpdate",
-    "GetUpdateFrom",
-    "ListTargets",
-    "ListUniqueFilters",
-    "ListUpdates",
-    "ListUpdatesFrom",
-    "RemoveUpdate",
-    "SetTarget"
+  "port": 36957,
+  "entrypoint": "packages/ota/src/index.js",
+  "entrypoint_ready": true,
+  "operations_served": 19,
+  "child_log_tail": [
+    "{\"t\":\"2026-09-10T20:23:24.697Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"update query\",\"op\":\"ListUpdates\",\"subsystem\":\"main\",\"returned\":1,\"available\":4}",
+    "{\"t\":\"2026-09-10T20:23:24.699Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"update query\",\"op\":\"ListUpdatesFrom\",\"subsystem\":\"os\",\"fromVersion\":\"3.3.4\",\"returned\":2,\"available\":4}",
+    "{\"t\":\"2026-09-10T20:23:24.700Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"update query\",\"op\":\"GetUpdateFrom\",\"subsystem\":\"os\",\"fromVersion\":\"3.3.4\",\"returned\":1,\"available\":4}",
+    "{\"t\":\"2026-09-10T20:23:24.702Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"update query\",\"op\":\"GetUpdateFrom\",\"subsystem\":\"os\",\"fromVersion\":\"12.10.0\",\"returned\":0,\"available\":4}",
+    "{\"t\":\"2026-09-10T20:23:24.706Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"ota: update created\",\"id\":\"0b51dddc140ef0161e0242f0\",\"subsystem\":\"os\",\"fromVersion\":\"1.0.0\",\"toVersion\":\"2.0.0\",\"filter\":\"\",\"length\":1088,\"accountId\":\"acct-admin\"}",
+    "{\"t\":\"2026-09-10T20:23:24.711Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"ota: update removed\",\"id\":\"0b51dddc140ef0161e0242f0\"}",
+    "{\"t\":\"2026-09-10T20:23:24.717Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"update query\",\"op\":\"GetUpdateFrom\",\"subsystem\":\"be\",\"fromVersion\":\"3.3.4\",\"filter\":\"green\",\"returned\":1,\"available\":4}",
+    "{\"t\":\"2026-09-10T20:23:24.718Z\",\"level\":\"info\",\"ns\":\"ota\",\"msg\":\"update query\",\"op\":\"GetUpdateFrom\",\"subsystem\":\"be\",\"fromVersion\":\"3.3.4\",\"returned\":0,\"available\":4}"
   ]
 }
