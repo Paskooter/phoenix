@@ -5,13 +5,15 @@
 // shape so a robot or app calling it gets a valid answer instead of hanging.
 //
 //   rom        (ROM_20171011)    Commander / Remote-Operation-Mode cert exchange
-//   media      (Media_20160725)  cloud photo/recording store (Snap/Jot) — no S3
 //   person     (Person_20160801) per-loop/per-account properties + holidays (real in-memory props)
 //   ifttt      (IFTTT_20170207)  IFTTT integration
 //   nlp        (NLP_20161031)    cloud NLP (Phoenix has its own parser)
 //   collision  (Collision_20161126) username-collision check
 //
 // NOT built (no client API contract exists in the archive): voicetraining, jot.
+//
+// media (Media_20160725) graduated out of this file — the app's Gallery tab reads it, so it now
+// has a real store: see ./media.js.
 
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 
@@ -32,18 +34,6 @@ function defineStubs() {
         create: () => ({ created: Date.now() }),
         setupclient: () => ({ cert: '', public: '', private: '', p12: '', fingerprint: '', payload: '', created: Date.now() }),
         setupserver: () => ({ cert: '', public: '', private: '', fingerprint: '', created: Date.now() }),
-      },
-    },
-    media: {
-      prefix: /^media/i,
-      ops: {
-        create: (b, { accountId }) => ({
-          path: (b && b.path) || '', type: (b && b.type) || '', reference: '', accountId,
-          loopId: (b && b.loopId) || '', url: '', isEncrypted: false, isDeleted: false, meta: (b && b.meta) || {}, created: Date.now(),
-        }),
-        list: () => [],
-        get: () => [],
-        remove: () => ({}),
       },
     },
     person: {

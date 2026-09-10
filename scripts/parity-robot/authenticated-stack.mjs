@@ -152,14 +152,35 @@ export async function startAuthenticatedRobotStack({
     endpoints.account = account.server.address().port;
     process.env.NET_account = `127.0.0.1:${endpoints.account}`;
 
-    const { createClassicEntrypoint, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
+    const { createClassicEntrypoint, MediaStore, accessKeyAccountResolver, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
     const notificationAccountResolver = createVerifiedNotificationAccountResolver({
       resolveCredentials: (accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId),
     });
+    // Media_20160725 has a real store (the app's Gallery tab reads it). Classic and Account are
+    // colocated here, so the same resolved account identity and the same loop documents used by
+    // the account service back the media membership gate — the check srv-media-ws did over HTTP.
+    const memberAccountIds = (loop) => (loop?.members || [])
+      .map((member) => (member && member.accountId != null ? String(member.accountId) : null))
+      .filter((id) => id !== null);
+    const mediaLoops = {
+      members: (loopId) => memberAccountIds(accountStore.loops.get(String(loopId))),
+      accountLoops: (accountId) => [...accountStore.loops.values()]
+        .filter((loop) => memberAccountIds(loop).includes(String(accountId)))
+        .map((loop) => String(loop._id)),
+      ownedLoops: (accountId) => accountStore.loopsByOwner(String(accountId)).map((loop) => String(loop._id)),
+    };
     classic = createClassicEntrypoint({
       tls: tlsOptions,
       notificationFile: resolve(directory, 'notifications.json'),
       notificationAccountResolver,
+      media: {
+        store: new MediaStore({
+          directory: resolve(directory, 'media'),
+          file: resolve(directory, 'media.json'),
+        }),
+        accountResolver: accessKeyAccountResolver((accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId)),
+        loops: mediaLoops,
+      },
     });
     servers.push(classic.server);
     // Use the same TLS server for HTTP and notification upgrades. Wrapping only

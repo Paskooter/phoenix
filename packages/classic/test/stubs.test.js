@@ -27,14 +27,6 @@ test('rom: SetupClient returns the cert-bundle shape', async () => {
   assert.deepEqual(Object.keys(r.body).sort(), ['cert', 'created', 'fingerprint', 'p12', 'payload', 'private', 'public']);
 });
 
-test('media: Create returns a record; List/Get empty', async () => {
-  const c = await amz('Media_20160725.Create', { type: 'photo', loopId: 'l' });
-  assert.equal(c.body.type, 'photo');
-  assert.equal(c.body.accountId, 'acct-1');
-  assert.equal(c.body.url, '');
-  assert.deepEqual((await amz('Media_20160725.List', {})).body, []);
-});
-
 test('person: account properties round-trip in-memory', async () => {
   await amz('Person_20160801.SetAccountProperty', { key: 'favColor', value: 'blue' }, 'acct-P');
   const got = await amz('Person_20160801.GetAccountProperties', {}, 'acct-P');
