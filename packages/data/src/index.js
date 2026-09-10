@@ -5,7 +5,7 @@
 // envelope + cache; credential CRUD (/v1/credential); calendar (/v1/{google,outlook}_calendar,
 // pluggable provider). Reference: docs/atlas/packages/lasso.md, message-protocol.md §9.
 
-import { createService } from '@phoenix/common';
+import { createService, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { TTLCache } from './cache.js';
 import { createRelay } from './relay.js';
@@ -81,6 +81,16 @@ export * as maps from './maps.js';
 export { CredentialStore } from './credentials.js';
 export * as calendar from './calendar.js';
 
+// Executable boundary: source Lasso scripts/run-service.js resolves the port from
+// argv/ETCO_server_port. Its help branch is a plain `return`, so the starter hands
+// run-service a non-thenable and the source reports "Service didn't return promise".
 if (import.meta.url === `file://${process.argv[1]}`) {
-  start().catch((e) => { console.error(e); process.exit(1); });
+  runService('Lasso', () => {
+    const argv = parseServiceArgs();
+    if (argv.h || argv.help) {
+      console.log(serviceHelp(process.argv[1]));
+      return;
+    }
+    return start(serviceCliPort({ fallback: DefaultPort.data }));
+  });
 }

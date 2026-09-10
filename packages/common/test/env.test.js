@@ -1,6 +1,38 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { net, etco, boolEnv } from '../src/env.js';
+import { readEnvVars, net, etco, boolEnv } from '../src/env.js';
+
+test('readEnvVars reproduces the reference defaults/precedence contract', () => {
+  // packages/utils/src/config/EnvVars.ts:11-19
+  const env = { NET_parser: 'parser:9090', ETCO_hub_recordSpeechHistory: '' };
+  const resolved = readEnvVars({
+    ETCO_hub_disableAuth: 'false',
+    NET_parser: 'docker.for.mac.localhost:9005',
+    ETCO_hub_recordSpeechHistory: 'false',
+  }, env);
+  assert.deepEqual(resolved, {
+    ETCO_hub_disableAuth: 'false',
+    NET_parser: 'parser:9090',
+    // source: process.env[key] || defaults[key] - an empty value takes the default.
+    ETCO_hub_recordSpeechHistory: 'false',
+  });
+  assert.equal(Object.getPrototypeOf(resolved), Object.prototype);
+  // Key order follows the defaults object, exactly as Object.keys(defaults) does.
+  assert.deepEqual(Object.keys(resolved), ['ETCO_hub_disableAuth', 'NET_parser', 'ETCO_hub_recordSpeechHistory']);
+});
+
+test('readEnvVars throws the source required-variable message for a null default', () => {
+  assert.throws(
+    () => readEnvVars({ NET_lasso: null }, {}),
+    { name: 'Error', message: "Required env variable 'NET_lasso' does not exist" },
+  );
+  // Empty is falsy too, so an explicitly empty required value throws as well.
+  assert.throws(() => readEnvVars({ NET_lasso: null }, { NET_lasso: '' }), /Required env variable 'NET_lasso' does not exist/);
+  // A supplied value satisfies the requirement and stays a string.
+  assert.deepEqual(readEnvVars({ NET_lasso: null }, { NET_lasso: 'lasso:8080' }), { NET_lasso: 'lasso:8080' });
+  // A non-null default never throws, even when unset.
+  assert.deepEqual(readEnvVars({ NET_lasso: 'lasso:8080' }, {}), { NET_lasso: 'lasso:8080' });
+});
 
 test('net() prefixes http:// and reads NET_<name>', () => {
   process.env.NET_parser = 'parser:8080';

@@ -3,7 +3,16 @@
 import { loadDotEnv } from './dotenv.js';
 loadDotEnv();
 export { loadDotEnv } from './dotenv.js';
-export { net, etco, boolEnv } from './env.js';
+export { readEnvVars, net, etco, boolEnv } from './env.js';
+export {
+  SOURCE_DEFAULT_PORT,
+  RUN_SERVICE_SHUTDOWN_MS,
+  parseServiceArgs,
+  parseServicePort,
+  serviceCliPort,
+  serviceHelp,
+  runService,
+} from './cli.js';
 export { readTrace, writeTrace } from './headers.js';
 export { logger } from './log.js';
 export { createService, sendText, sendJson, readJson, legacyJsonError } from './service.js';

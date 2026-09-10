@@ -6,9 +6,8 @@
 // selection, the shared host keeps the combined multi-skill service and answer-skill default.
 
 import { DefaultPort } from '@phoenix/contracts';
-import { basename } from 'node:path';
+import { parseServiceArgs, parseServicePort, serviceHelp, runService, RUN_SERVICE_SHUTDOWN_MS } from '@phoenix/common';
 import { createSkillsService, createSkillService } from './skillService.js';
-import minimist from './vendor/minimist.cjs';
 import { GraphManager } from './graph/graphManager.js';
 import { answerSkill } from './answerSkill.js';
 import { getChitchatSkill } from './chitchatSkill.js';
@@ -199,65 +198,11 @@ function defaultPort() {
 }
 
 // The Pegasus run-service entrypoint uses minimist and then evaluates
-// parseInt(argv.p || argv.port || ETCO_server_port || '8080'). Keep the
-// programmatic start() default above as an explicit Phoenix deployment
-// adapter (PORT/shared-host), while making the executable path source-shaped.
-export function parseServiceArgs(args = process.argv.slice(2)) {
-  return minimist(Array.isArray(args) ? args : []);
-}
-
-/** Resolve the source run-service port from generic minimist argv and ETCO_server_port. */
-export function parseServicePort(args = process.argv.slice(2), env = process.env) {
-  const argv = parseServiceArgs(args);
-  const raw = argv.p || argv.port || env.ETCO_server_port || '8080';
-  return parseInt(raw);
-}
-
-export function serviceHelp(program = 'run-service.js') {
-  return `Usage: ${basename(program)} [options]\n  Options:\n  --port, -p: [default: 8080] Port of service`;
-}
-
-export const RUN_SERVICE_SHUTDOWN_MS = 5000;
-
-function serviceErrorMessage(error) {
-  if (typeof error === 'string') return error;
-  if (error && typeof error.message === 'string') return error.message;
-  return String(error);
-}
-
-/**
- * Run the executable service through the source common-runner contract.
- * Programmatic callers use start() directly; this wrapper is only for the
- * process entrypoint, where a missing/rejected service promise must be logged
- * and allowed to flush for the source five-second shutdown interval.
- *
- * Hooks keep the synchronous contract testable without sleeping or exiting the
- * test process. They are not used by the executable path.
- */
-export function runService(serviceName, serviceStarter, {
-  shutdownMs = RUN_SERVICE_SHUTDOWN_MS,
-  reportError = (error) => console.error(`[error] H.${serviceName}.RunService ${serviceErrorMessage(error)}`),
-  scheduleExit = (callback, delay) => setTimeout(callback, delay),
-  exit = (status) => process.exit(status),
-} = {}) {
-  const handleError = (error) => {
-    try {
-      reportError(error);
-    } catch (loggerError) {
-      console.error('Error creating error logger', loggerError);
-      console.error(error);
-    }
-    scheduleExit(() => exit(1), shutdownMs);
-  };
-
-  try {
-    const promise = serviceStarter();
-    if (promise && typeof promise.catch === 'function') promise.catch(handleError);
-    else handleError("Service didn't return promise");
-  } catch (error) {
-    handleError(error);
-  }
-}
+// parseInt(argv.p || argv.port || ETCO_server_port || '8080'). The helpers live
+// in @phoenix/common so every service executable shares one source-shaped port
+// resolution and one common-runner shutdown contract; the programmatic start()
+// default above stays an explicit Phoenix deployment adapter (PORT/shared-host).
+export { parseServiceArgs, parseServicePort, serviceHelp, runService, RUN_SERVICE_SHUTDOWN_MS };
 
 export function start(port = defaultPort(), {
   skillId = process.env.PHOENIX_SKILL_ID,
