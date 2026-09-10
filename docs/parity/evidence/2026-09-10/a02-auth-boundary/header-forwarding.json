@@ -1,0 +1,35 @@
+{
+  "failures": 0,
+  "result": "pass",
+  "results": [
+    {
+      "name": "signed for classic host, proxied to account",
+      "status": 200,
+      "verdict": "pass"
+    },
+    {
+      "name": "unsigned through classic -> auth error",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "verdict": "pass"
+    },
+    {
+      "name": "x-amzn-errortype propagated through proxy",
+      "status": 401,
+      "errorType": "WRONG_PASSWORD",
+      "errHeader": "WRONG_PASSWORD",
+      "verdict": "pass"
+    },
+    {
+      "name": "exact payload preserved across hop",
+      "status": 200,
+      "verdict": "pass"
+    },
+    {
+      "name": "no LAN bypass for unsigned loopback",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "verdict": "pass"
+    }
+  ]
+}
