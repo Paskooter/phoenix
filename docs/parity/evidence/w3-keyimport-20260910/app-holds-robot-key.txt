@@ -1,0 +1,17 @@
+App-side trace proving the fixed KeyRequestingSharingService asked for the key and the app
+decrypted + saved the ROBOT's key (sha1 49d5de8d9311767d11be119eb71189480c055dc8).
+The log line the app prints is REDACTED here; it read exactly the key still on the robot.
+----------------------------------------------------------------------------------------------------
+09-10 21:04:35.379 20006 20072 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:35.470 20006 20077 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:36.501 20006 20072 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:36.503 20006 20067 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:44.312 20006 20066 D JBAWS_AWS4Signer: x-amz-target:Key_20160201.CreateRequest
+09-10 21:04:44.317 20006 20066 D StrictMode: 	at com.jibo.service.KeyRequestingSharingService.requestSymmetricKey(KeyRequestingSharingService.java:215)
+09-10 21:04:44.506 20006 20091 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:44.512 20006 20066 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:44.522 20006 20066 D KeyManager: <REDACTED-KEY-MATERIAL>
+09-10 21:04:44.522 20006 20066 D KeyManager: <REDACTED-KEY-MATERIAL>
+09-10 21:04:45.516 20006 20072 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+09-10 21:04:45.517 20006 20091 D JBAWS_AmazonHttpClient: Received successful response: 200, AWS Request ID: null
+

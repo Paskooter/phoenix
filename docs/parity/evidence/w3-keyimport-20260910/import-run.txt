@@ -1,0 +1,61 @@
+# import-robot-loop-key.mjs --dry-run (no server state touched)
+[1/4] reading the loop key from root@192.168.1.217:/var/jibo/keys/symmetric-5a0b20f5ddee0000197e2881.json (over SSH, nothing installed)
+      key: 32 bytes, sha1 fingerprint 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted)
+[2/4] resolving the target device public key from its Key_20160201.CreateRequest record
+      request id 004a5173b692aed0d45b440f, public key sha1 71a201ba5b7c9a68ec2e5355818b1e9519f5cb6d, source: GetRequest
+[3/4] the request already carries an encryptedKey - nothing to do (idempotent no-op).
+      re-run with --force only to replace a stale or previously-minted ciphertext.
+{
+  "loopId": "5a0b20f5ddee0000197e2881",
+  "accountId": "43ca532ad4090cfb80f2e7a5",
+  "requestId": "004a5173b692aed0d45b440f",
+  "publicKeySha1": "71a201ba5b7c9a68ec2e5355818b1e9519f5cb6d",
+  "keyFingerprintSha1": "49d5de8d9311767d11be119eb71189480c055dc8",
+  "delivered": false,
+  "reason": "already-satisfied",
+  "ciphertextBytes": null,
+  "plaintextWritten": false,
+  "robotInstalled": false
+}
+
+# import-robot-loop-key.mjs --force (idempotent one-time delivery; re-run is a no-op without --force)
+[1/4] reading the loop key from root@192.168.1.217:/var/jibo/keys/symmetric-5a0b20f5ddee0000197e2881.json (over SSH, nothing installed)
+      key: 32 bytes, sha1 fingerprint 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted)
+[2/4] resolving the target device public key from its Key_20160201.CreateRequest record
+      request id 004a5173b692aed0d45b440f, public key sha1 71a201ba5b7c9a68ec2e5355818b1e9519f5cb6d, source: GetRequest
+[3/4] encrypting to the device public key with RSA/NONE/PKCS1Padding (the app's format)
+      ciphertext: 256 bytes (the server sees only this)
+[4/4] delivering via Key_20160201.Share (server relays ciphertext only)
+      Share accepted; request now satisfied (ciphertext only, server holds no plaintext)
+{
+  "loopId": "5a0b20f5ddee0000197e2881",
+  "accountId": "43ca532ad4090cfb80f2e7a5",
+  "requestId": "004a5173b692aed0d45b440f",
+  "publicKeySha1": "71a201ba5b7c9a68ec2e5355818b1e9519f5cb6d",
+  "keyFingerprintSha1": "49d5de8d9311767d11be119eb71189480c055dc8",
+  "delivered": true,
+  "reason": "shared",
+  "ciphertextBytes": 256,
+  "plaintextWritten": false,
+  "robotInstalled": false
+}
+
+# idempotent re-run WITHOUT --force
+[1/4] reading the loop key from root@192.168.1.217:/var/jibo/keys/symmetric-5a0b20f5ddee0000197e2881.json (over SSH, nothing installed)
+      key: 32 bytes, sha1 fingerprint 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted)
+[2/4] resolving the target device public key from its Key_20160201.CreateRequest record
+      request id 004a5173b692aed0d45b440f, public key sha1 71a201ba5b7c9a68ec2e5355818b1e9519f5cb6d, source: GetRequest
+[3/4] the request already carries an encryptedKey - nothing to do (idempotent no-op).
+      re-run with --force only to replace a stale or previously-minted ciphertext.
+{
+  "loopId": "5a0b20f5ddee0000197e2881",
+  "accountId": "43ca532ad4090cfb80f2e7a5",
+  "requestId": "004a5173b692aed0d45b440f",
+  "publicKeySha1": "71a201ba5b7c9a68ec2e5355818b1e9519f5cb6d",
+  "keyFingerprintSha1": "49d5de8d9311767d11be119eb71189480c055dc8",
+  "delivered": false,
+  "reason": "already-satisfied",
+  "ciphertextBytes": null,
+  "plaintextWritten": false,
+  "robotInstalled": false
+}

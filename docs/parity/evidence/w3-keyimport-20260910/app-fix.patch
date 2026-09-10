@@ -1,0 +1,32 @@
+diff --git a/app/src/main/java/com/jibo/service/KeyRequestingSharingService.java b/app/src/main/java/com/jibo/service/KeyRequestingSharingService.java
+index b4501e7..8253a1e 100644
+--- a/app/src/main/java/com/jibo/service/KeyRequestingSharingService.java
++++ b/app/src/main/java/com/jibo/service/KeyRequestingSharingService.java
+@@ -193,13 +193,22 @@ public class KeyRequestingSharingService extends IntentService {
+             SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.app_name), Context
+                     .MODE_PRIVATE);
+ 
++            // The loop-key exchange does not depend on a push token. The server dedupes a
++            // CreateRequest per (account, loop, publicKey) and hands back the stored request --
++            // loop key included -- whenever one already exists, so a device whose FCM
++            // registration never completed can still request its key by polling. Poll briefly
++            // for the token (the original code waited on FCM), then proceed regardless instead
++            // of giving up permanently.
+             String token = sharedPreferences.getString(Commons.PREF_PUSH_SERVICE_TOKEN, null);
+-            if (TextUtils.isEmpty(token)) {
+-                Thread.sleep(2000);
++            for (int attempt = 0; attempt < 5 && TextUtils.isEmpty(token); attempt++) {
++                try {
++                    Thread.sleep(2000);
++                } catch (InterruptedException interrupted) {
++                    Thread.currentThread().interrupt();
++                    break;
++                }
++                token = sharedPreferences.getString(Commons.PREF_PUSH_SERVICE_TOKEN, null);
+             }
+-            //there is no sense in requesting key without FCM_TOKEN
+-            token = sharedPreferences.getString(Commons.PREF_PUSH_SERVICE_TOKEN, null);
+-            if (TextUtils.isEmpty(token)) return;
+ 
+             //ok sending public key and loopId
+             KeyManager keyManager = KeyManager.getInstance(getApplicationContext(), this.mAccount.getId());
