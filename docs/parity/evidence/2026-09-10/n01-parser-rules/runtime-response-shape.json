@@ -1,0 +1,49 @@
+{
+ "profile": "compiled-fst-approved",
+ "out": [
+  {
+   "id": "n08:000:cancel-timer",
+   "request": {
+    "text": "cancel the timer",
+    "rules": [
+     "launch",
+     "globals/global_commands_launch"
+    ]
+   },
+   "status": 200,
+   "expectedRawNormalized": "{\"type\":\"NLU\",\"msgID\":\"<generated>\",\"ts\":<generated>,\"data\":{\"entities\":{\"domain\":\"timer\",\"hours\":\"null\",\"minutes\":\"null\",\"seconds\":\"null\",\"skill\":\"@be/clock\",\"union_original_fst_name\":\"handle:clock/launch\"},\"intent\":\"stop\",\"rules\":[\"launch\"]}}",
+   "gotRawNormalized": "{\"type\":\"NLU\",\"msgID\":\"<generated>\",\"ts\":<generated>,\"data\":{\"entities\":{\"domain\":\"timer\",\"hours\":\"null\",\"minutes\":\"null\",\"seconds\":\"null\",\"skill\":\"@be/clock\",\"union_original_fst_name\":\"handle:clock/launch\"},\"intent\":\"stop\",\"rules\":[\"launch\"]}}",
+   "byteShapeMatch": true
+  },
+  {
+   "id": "n08:011:gui-overlap",
+   "request": {
+    "text": "go back",
+    "rules": [
+     "launch",
+     "globals/global_commands_launch"
+    ]
+   },
+   "status": 200,
+   "expectedRawNormalized": "{\"type\":\"NLU\",\"msgID\":\"<generated>\",\"ts\":<generated>,\"data\":{\"intent\":null,\"entities\":null,\"rules\":[]}}",
+   "gotRawNormalized": "{\"type\":\"NLU\",\"msgID\":\"<generated>\",\"ts\":<generated>,\"data\":{\"intent\":null,\"entities\":null,\"rules\":[]}}",
+   "byteShapeMatch": true
+  },
+  {
+   "id": "n08:020:timer-thanks",
+   "request": {
+    "text": "thanks",
+    "rules": [
+     "clock/timer_set_value",
+     "globals/gui_nav",
+     "globals/mim_repeat",
+     "globals/global_commands_launch"
+    ]
+   },
+   "status": 200,
+   "expectedRawNormalized": "{\"type\":\"NLU\",\"msgID\":\"<generated>\",\"ts\":<generated>,\"data\":{\"intent\":null,\"entities\":null,\"rules\":[]}}",
+   "gotRawNormalized": "{\"type\":\"NLU\",\"msgID\":\"<generated>\",\"ts\":<generated>,\"data\":{\"intent\":null,\"entities\":null,\"rules\":[]}}",
+   "byteShapeMatch": true
+  }
+ ]
+}

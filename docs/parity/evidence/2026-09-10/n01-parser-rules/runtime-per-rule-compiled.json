@@ -1,0 +1,1257 @@
+{
+ "schema": "phoenix.nlu.n01-per-rule-probe",
+ "method": "POST /v1/parse per named rule through the real HTTP listener; text is the same probe utterance for every rule, so a non-matching rule is expected to return the empty NLU result while still loading and executing its graph.",
+ "profile": "compiled-fst (approved-binary, hash-verified installed home)",
+ "probeText": "five minutes",
+ "namedRules": 98,
+ "getExecutorOk": 98,
+ "http200": 98,
+ "matchedRules": [
+  [
+   "clock/alarm_set_value",
+   "alarmValue",
+   [
+    "clock/alarm_set_value"
+   ]
+  ],
+  [
+   "clock/alarm_timer_ampm",
+   "set",
+   [
+    "clock/alarm_timer_ampm"
+   ]
+  ],
+  [
+   "clock/timer_set_value",
+   "timerValue",
+   [
+    "clock/timer_set_value"
+   ]
+  ],
+  [
+   "greetings/bedtime_reminder",
+   "wildcard",
+   [
+    "greetings/bedtime_reminder"
+   ]
+  ],
+  [
+   "greetings/proactive_general_statement",
+   "wildcard",
+   [
+    "greetings/proactive_general_statement"
+   ]
+  ],
+  [
+   "greetings/proactive_morning_statement",
+   "wildcard",
+   [
+    "greetings/proactive_morning_statement"
+   ]
+  ],
+  [
+   "greetings/proactive_playful_statement",
+   "wildcard",
+   [
+    "greetings/proactive_playful_statement"
+   ]
+  ],
+  [
+   "hue-control/post_control",
+   "noMatch",
+   [
+    "hue-control/post_control"
+   ]
+  ],
+  [
+   "introductions/intro_looper",
+   "loopmember",
+   [
+    "introductions/intro_looper"
+   ]
+  ],
+  [
+   "settings/volume_control",
+   "volumeToValue",
+   [
+    "settings/volume_control"
+   ]
+  ],
+  [
+   "shared/wildcard",
+   "wildcard",
+   [
+    "shared/wildcard"
+   ]
+  ],
+  [
+   "shared/wrong_id",
+   "loopmember",
+   [
+    "shared/wrong_id"
+   ]
+  ],
+  [
+   "who-am-i/collect_looper",
+   "loopmember",
+   [
+    "who-am-i/collect_looper"
+   ]
+  ],
+  [
+   "word-of-the-day/puzzle",
+   "guess",
+   [
+    "word-of-the-day/puzzle"
+   ]
+  ]
+ ],
+ "emptyResults": 84,
+ "loadFailures": [],
+ "httpFailures": [],
+ "observations": [
+  {
+   "name": "circuit-saver/play_again",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_set_value",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "time": "5:00",
+     "ampm": "null",
+     "domain": "alarm"
+    },
+    "intent": "alarmValue",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   }
+  },
+  {
+   "name": "clock/alarm_timer_ampm",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "domain": "alarm",
+     "ampm": "null"
+    },
+    "intent": "set",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   }
+  },
+  {
+   "name": "clock/alarm_timer_change",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_timer_info",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_timer_none_set",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_timer_okay",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_timer_other_set",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_timer_query_menu",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/alarm_timer_too_long",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/clock_menu",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/stop_timer",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "clock/timer_set_value",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "hours": "null",
+     "minutes": "5",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   }
+  },
+  {
+   "name": "create/execute_create_menu",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "create/is_it_a_keeper",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "create/take_another_photo",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "exercise/pause_hold",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "exercise/ready_now",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "exercise/ready_to_start",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "exercise/routine_selector",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "exercise/run_control",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "exercise/want_to",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "friendly-tips/want_more_tdd",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "gallery/confirm_delete_item",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "gallery/gallery_preview",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "gallery/item_pause",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "gallery/item_view",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "globals/global_commands_launch",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "globals/gui_nav",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "globals/mim_repeat",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "globals/mim_thanks",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/bedtime_reminder",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "wildcard",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   }
+  },
+  {
+   "name": "greetings/day_quality",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/greetings_hello",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/proactive_general_question",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/proactive_general_statement",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "wildcard",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   }
+  },
+  {
+   "name": "greetings/proactive_morning_question",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/proactive_morning_statement",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "wildcard",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   }
+  },
+  {
+   "name": "greetings/proactive_playful_question",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/proactive_playful_statement",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "wildcard",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   }
+  },
+  {
+   "name": "greetings/sleep_quality",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "greetings/you_too",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/are_lights",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/delete_data_confirmation",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/did_flash",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/first_time",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/get_close",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/have_app",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/near_lights",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/need_some_more_time",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/post_control",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {},
+    "intent": "noMatch",
+    "rules": [
+     "hue-control/post_control"
+    ]
+   }
+  },
+  {
+   "name": "hue-control/press_screen",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/ready",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/want_to_set_up",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "hue-control/you_still_here",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "idle/turn_back_question",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "introductions/any_more_intros",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "introductions/face_capture_ready",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "introductions/intro_looper",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "GivenName": ""
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   }
+  },
+  {
+   "name": "introductions/is_name_right",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "introductions/recognition_any_more",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "introductions/recognition_type_menu",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "launch",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "main-menu/execute_fun_stuff",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "main-menu/execute_main_menu",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "main-menu/execute_personal_report",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "radio/radio_get_genre",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "radio/radio_get_genre_ca",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "radio/run_control",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "settings/download_now_later",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "settings/execute_settings_menu",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "settings/okay_thanks_to_clear",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "settings/shut_down_confirmation",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "settings/volume_control",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "volumeLevel": "05",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   }
+  },
+  {
+   "name": "shared/no_id",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "shared/verify_id",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "shared/wildcard",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "content": "five minutes"
+    },
+    "intent": "wildcard",
+    "rules": [
+     "shared/wildcard"
+    ]
+   }
+  },
+  {
+   "name": "shared/wrong_id",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "GivenName": ""
+    },
+    "intent": "loopmember",
+    "rules": [
+     "shared/wrong_id"
+    ]
+   }
+  },
+  {
+   "name": "shared/yes_no",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "surprises-date/offer_date_fact",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "surprises-ota/offer_ota_release_notes",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "surprises-ota/want_to_download_now",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "surprises-user-research/future_feature_frequency",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "surprises-user-research/future_feature_yes_no_maybe",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "tutorial/dance",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "tutorial/keep_photo",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "tutorial/take_photo",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "tutorial/where_are_you",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "tutorial/yes_no",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "who-am-i/collect_looper",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "GivenName": ""
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   }
+  },
+  {
+   "name": "who-am-i/confirm",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "who-am-i/name_is_right",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "who-am-i/want_to_enroll",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "word-of-the-day/fun_fact",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "word-of-the-day/offer",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "word-of-the-day/puzzle",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "entities": {
+     "guess": "five minutes"
+    },
+    "intent": "guess",
+    "rules": [
+     "word-of-the-day/puzzle"
+    ]
+   }
+  },
+  {
+   "name": "word-of-the-day/right_word",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  },
+  {
+   "name": "word-of-the-day/surprise",
+   "loadOk": true,
+   "loadError": null,
+   "http": 200,
+   "data": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   }
+  }
+ ]
+}

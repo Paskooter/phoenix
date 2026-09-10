@@ -576,6 +576,11 @@ function createPortableRuntime(selected, key) {
     }
     return selectedExecutor;
   };
+  // Same source contract as the approved-binary profile: every named rule is
+  // loaded before the runtime is handed out, so a graph that fails to decode or
+  // load rejects startup rather than being dropped from a later request.
+  const ruleNames = Object.freeze([...profile.graphs.keys()].sort());
+  const loadedRuleCount = preloadRuleExecutors(ruleNames, getExecutor);
   loaded = Object.freeze({
     key,
     acquisition: 'snapshot',
@@ -586,6 +591,8 @@ function createPortableRuntime(selected, key) {
     rulesDir: null,
     fstSha256: launchEntry.sourceSha256,
     ruleCount: profile.graphs.size,
+    ruleNames,
+    loadedRuleCount,
     ruleManifestSha256: profile.ruleManifestSha256,
     inventoryRevision: profile.inventoryRevision,
     inventorySha256: profile.inventorySha256,
@@ -596,6 +603,38 @@ function createPortableRuntime(selected, key) {
     runtime: ENABLED,
   });
   return loaded;
+}
+
+/**
+ * Load every named rule into a live executor, the way the source does.
+ *
+ * RobustParserClient.init() calls RulesRegistry.findRules() and then
+ * loadAllFSTs(), which sends one COMPILE per discovered rule through
+ * Parallel.invoke. Any rejected COMPILE rejects init(), so the client never
+ * reaches RUNNING and handleNLU is never served from a partially loaded
+ * registry. A rule that cannot be loaded must therefore abort startup instead
+ * of being silently dropped from arbitration on the request that names it.
+ *
+ * @param {readonly string[]} ruleNames names discovered by the registry
+ * @param {(name: string) => unknown} getExecutor rule name -> executor
+ * @returns {number} the number of named rules loaded
+ */
+export function preloadRuleExecutors(ruleNames, getExecutor) {
+  const failures = [];
+  for (const name of ruleNames) {
+    try {
+      const executor = getExecutor(name);
+      if (!executor) throw new Error('no executor was constructed');
+    } catch (error) {
+      failures.push(`${name}: ${error.message}`);
+    }
+  }
+  if (failures.length) {
+    throw new Error(
+      `Compiled NLU named-rule load failed for ${failures.length} of ${ruleNames.length} rules: ${failures.join('; ')}`,
+    );
+  }
+  return ruleNames.length;
 }
 
 function createDirectoryRuntime(selected, key) {
@@ -621,6 +660,10 @@ function createDirectoryRuntime(selected, key) {
     fstSha256: launchBytes ? sha256(launchBytes) : null,
     ruleCount: compiled.byName.size,
     ruleNames: Object.freeze([...compiled.byName.keys()].sort()),
+    // compileDiscoveredGraphs() already runs COMPILE (loadFSTs: true) for every
+    // discovered graph, so the whole registry is loaded before this runtime is
+    // handed out, exactly as RobustParserClient.loadAllFSTs() requires.
+    loadedRuleCount: compiled.store.handles.size,
     getExecutor,
     hasRule: name => compiled.byName.has(name),
     ruleHandle,
@@ -682,6 +725,12 @@ export function getCompiledFstRuntime() {
     }
     return selectedExecutor;
   };
+  // RobustParserClient.loadAllFSTs() compiles every registered rule before the
+  // client reaches RUNNING. Materialize one executor per named rule here so a
+  // graph that verifies by hash but cannot be loaded aborts startup instead of
+  // being dropped from arbitration on the request that names it.
+  const ruleNames = Object.freeze([...rules.files.keys()].sort());
+  const loadedRuleCount = preloadRuleExecutors(ruleNames, getExecutor);
   loaded = Object.freeze({
     key,
     acquisition: 'approved-binary',
@@ -692,6 +741,8 @@ export function getCompiledFstRuntime() {
     compiledHome: selected.compiledHome || null,
     fstSha256,
     ruleCount: rules.ruleCount,
+    ruleNames,
+    loadedRuleCount,
     ruleManifestSha256: rules.manifestSha256,
     inventoryRevision: rules.inventoryRevision,
     inventorySha256: rules.inventorySha256,
@@ -788,6 +839,8 @@ export function compiledFstRuntimeConfig() {
     runtime: runtime.runtime,
     fstSha256: runtime.fstSha256,
     ruleCount: runtime.ruleCount,
+    loadedRuleCount: runtime.loadedRuleCount,
+    allNamedRulesLoaded: runtime.loadedRuleCount === runtime.ruleCount,
     ruleManifestSha256: runtime.ruleManifestSha256,
     inventoryRevision: runtime.inventoryRevision,
     inventorySha256: runtime.inventorySha256,

@@ -1,0 +1,1049 @@
+{
+ "schema": "phoenix.nlu.n01-named-rule-inventory",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "sourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+ "pinnedTree": {
+  "rulesFstDir": "packages/parser/robust-parser/rules_fst",
+  "fstFileCount": 98,
+  "rulesSrcFileCount": 117,
+  "factoryFileCount": 16,
+  "launchFst": {
+   "path": "rules_fst/launch.fst",
+   "bytes": 42460381,
+   "sha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a"
+  }
+ },
+ "phoenixInventory": {
+  "path": "packages/nlu/resources/rule-inventory.json",
+  "sha256": "7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4",
+  "ruleCountDeclared": 117,
+  "sourceRuleCount": 117,
+  "publicRuleCountDeclared": 98,
+  "publicRuleCount": 98,
+  "factoryCountDeclared": 2,
+  "factoryCount": 2
+ },
+ "namedRuleSetMatches": true,
+ "sourceRuleSetMatches": true,
+ "missingFromInventory": [],
+ "extraInInventory": [],
+ "namedRules": [
+  {
+   "name": "circuit-saver/play_again",
+   "compiledPath": "rules_fst/circuit-saver/play_again.fst",
+   "sha256": "dce2a0ad91d850550b53c542f7da4c52a55ac6dde89d0b72c6f641bf56bf5ae9",
+   "sources": [
+    "circuit-saver/play_again"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_set_value",
+   "compiledPath": "rules_fst/clock/alarm_set_value.fst",
+   "sha256": "aadf32b0361fb41fb364dfe7b8f5bdfa4773f0f4dfaa67e66c71d8cbb32b8d32",
+   "sources": [
+    "clock/alarm_set_value"
+   ],
+   "unsupportedFactories": [
+    "time"
+   ]
+  },
+  {
+   "name": "clock/alarm_timer_ampm",
+   "compiledPath": "rules_fst/clock/alarm_timer_ampm.fst",
+   "sha256": "da7e8cc7c7b3b941d639fefba60ddb939bafa123b1d15e8f306f6f47b532498b",
+   "sources": [
+    "clock/alarm_timer_ampm"
+   ],
+   "unsupportedFactories": [
+    "time"
+   ]
+  },
+  {
+   "name": "clock/alarm_timer_change",
+   "compiledPath": "rules_fst/clock/alarm_timer_change.fst",
+   "sha256": "5d0863977e849f3b1971649e8ee6d9c2f7496ddef650be46530beba14b06915d",
+   "sources": [
+    "clock/alarm_timer_change"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_timer_info",
+   "compiledPath": "rules_fst/clock/alarm_timer_info.fst",
+   "sha256": "8a9a7da75a6fedd6337a69ab00264935164bc506a2eb3ea1af8c1fb129bcd342",
+   "sources": [
+    "clock/alarm_timer_info"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_timer_none_set",
+   "compiledPath": "rules_fst/clock/alarm_timer_none_set.fst",
+   "sha256": "b8075fa43fc75b4c8dd47ba0ce3fac6a70eefe1a590b2537da731ec72457c310",
+   "sources": [
+    "clock/alarm_timer_none_set"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_timer_okay",
+   "compiledPath": "rules_fst/clock/alarm_timer_okay.fst",
+   "sha256": "baefc143b82e8fb0e43a4612266c01a84773bc3c43d24887146346581e0d8841",
+   "sources": [
+    "clock/alarm_timer_okay"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_timer_other_set",
+   "compiledPath": "rules_fst/clock/alarm_timer_other_set.fst",
+   "sha256": "1af667547dff89b5616666ae30901a03a09db9b676f9e42a05d2d1a3b3d088c3",
+   "sources": [
+    "clock/alarm_timer_other_set"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_timer_query_menu",
+   "compiledPath": "rules_fst/clock/alarm_timer_query_menu.fst",
+   "sha256": "4c57af4c52232e28ac339df2051c63928bb178c87b2be735d55a42fd814b7845",
+   "sources": [
+    "clock/alarm_timer_query_menu"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/alarm_timer_too_long",
+   "compiledPath": "rules_fst/clock/alarm_timer_too_long.fst",
+   "sha256": "d97becf696026d7d7d90310bca340fe946980048f4fcf21a52044b81e6f473b3",
+   "sources": [
+    "clock/alarm_timer_too_long"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/clock_menu",
+   "compiledPath": "rules_fst/clock/clock_menu.fst",
+   "sha256": "82af3ed16e53cd225f1b5d417d63c5d8127fab030b4fca086834655401182608",
+   "sources": [
+    "clock/clock_menu"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/stop_timer",
+   "compiledPath": "rules_fst/clock/stop_timer.fst",
+   "sha256": "db89efb3e152215411b23cb86546dddc8e6dd15e9923d525653eb2411c246650",
+   "sources": [
+    "clock/stop_timer"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "clock/timer_set_value",
+   "compiledPath": "rules_fst/clock/timer_set_value.fst",
+   "sha256": "eac301ce95bab3a2b278ca0af6caf4cd97c2391f3e82002a7f1c58c911322d14",
+   "sources": [
+    "clock/timer_set_value"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "create/execute_create_menu",
+   "compiledPath": "rules_fst/create/execute_create_menu.fst",
+   "sha256": "7f5cb36721a1de1b870471b34066c09dafcba1b88ee665b97bb259b35765061d",
+   "sources": [
+    "create/execute_create_menu"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "create/is_it_a_keeper",
+   "compiledPath": "rules_fst/create/is_it_a_keeper.fst",
+   "sha256": "31182613713c643a7ecaf31baf899d13f1cf284436092bdd36a40524e79c74b3",
+   "sources": [
+    "create/is_it_a_keeper"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "create/take_another_photo",
+   "compiledPath": "rules_fst/create/take_another_photo.fst",
+   "sha256": "84344c674f1119317b3b015a42f556f53ff79829b99106247ab2821d74d90194",
+   "sources": [
+    "create/take_another_photo"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "exercise/pause_hold",
+   "compiledPath": "rules_fst/exercise/pause_hold.fst",
+   "sha256": "df4e2919d457f118befe60d423041913b581af9ef829a42d7720f5e8d100af81",
+   "sources": [
+    "exercise/pause_hold"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "exercise/ready_now",
+   "compiledPath": "rules_fst/exercise/ready_now.fst",
+   "sha256": "0e9e4e75e3282e461cb1dd6048b178ba6f9bc99d242cfe61b681c4fc67dad8d4",
+   "sources": [
+    "exercise/ready_now"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "exercise/ready_to_start",
+   "compiledPath": "rules_fst/exercise/ready_to_start.fst",
+   "sha256": "585fe61abdd972e1ce377dd6c3091b7766fde336fa7126bd2a6a904c9da9bb0c",
+   "sources": [
+    "exercise/ready_to_start"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "exercise/routine_selector",
+   "compiledPath": "rules_fst/exercise/routine_selector.fst",
+   "sha256": "5349d790dd13815adc8483ff121a82f53a30cc66a1a08982682e6faa5ea30e72",
+   "sources": [
+    "exercise/routine_selector"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "exercise/run_control",
+   "compiledPath": "rules_fst/exercise/run_control.fst",
+   "sha256": "89a1d19b47468644f76b0a3f546531be064ee603deec6983cb59eac18b7a6f77",
+   "sources": [
+    "exercise/run_control"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "exercise/want_to",
+   "compiledPath": "rules_fst/exercise/want_to.fst",
+   "sha256": "aa130c6c4aab073f247b75a3c71bee4a06371a5a03c345809fea292d5cfc8e08",
+   "sources": [
+    "exercise/want_to"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "friendly-tips/want_more_tdd",
+   "compiledPath": "rules_fst/friendly-tips/want_more_tdd.fst",
+   "sha256": "e058d05ca4ddb8d1406efc5c054c149f4d86de54ab10d1a015b1573d13f8305d",
+   "sources": [
+    "friendly-tips/want_more_tdd"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "gallery/confirm_delete_item",
+   "compiledPath": "rules_fst/gallery/confirm_delete_item.fst",
+   "sha256": "84a7ef4af8ce8a2b6e69fe4b210208bb59213951c37747b39ec05967ba32ad9e",
+   "sources": [
+    "gallery/confirm_delete_item"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "gallery/gallery_preview",
+   "compiledPath": "rules_fst/gallery/gallery_preview.fst",
+   "sha256": "0c6a46e10b30c3a1eeb77311b151dde21f8a5778ac2faf42e3f95382425fabfd",
+   "sources": [
+    "gallery/gallery_preview"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "gallery/item_pause",
+   "compiledPath": "rules_fst/gallery/item_pause.fst",
+   "sha256": "c0b194e69086f4601a15fcc32ca6f442e4cf92e40ea7b7485419775fb74f572f",
+   "sources": [
+    "gallery/item_pause"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "gallery/item_view",
+   "compiledPath": "rules_fst/gallery/item_view.fst",
+   "sha256": "4f5a4e48ba5d43542f3b7ed03dd8d818b98d6809a6968c7d95e3d56b2dfd354e",
+   "sources": [
+    "gallery/item_view"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "globals/global_commands_launch",
+   "compiledPath": "rules_fst/globals/global_commands_launch.fst",
+   "sha256": "fc9b3828de70a9c58b46bcf12f0475315334bb7cfa2fc9a92df7c4e0d6a40293",
+   "sources": [
+    "globals/global_commands_launch"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "globals/gui_nav",
+   "compiledPath": "rules_fst/globals/gui_nav.fst",
+   "sha256": "25f377b617976df489f1030e49eaca6da4925b7fa166dd5b44935ebe157f9e35",
+   "sources": [
+    "globals/gui_nav"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "globals/mim_repeat",
+   "compiledPath": "rules_fst/globals/mim_repeat.fst",
+   "sha256": "e0d3cb9d2b32d9fb7b3ee9189952b5eee11a519470abb23bf4b9340ec8787bf3",
+   "sources": [
+    "globals/mim_repeat"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "globals/mim_thanks",
+   "compiledPath": "rules_fst/globals/mim_thanks.fst",
+   "sha256": "28560fee8605de5116054f24ee0dade0fe3cbd99b32db87489c205606e242ac9",
+   "sources": [
+    "globals/mim_thanks"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/bedtime_reminder",
+   "compiledPath": "rules_fst/greetings/bedtime_reminder.fst",
+   "sha256": "fd81ab5d1d97082303a99f9da90c51c0d225caa2176185ed0851ccd498e9e242",
+   "sources": [
+    "greetings/bedtime_reminder"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/day_quality",
+   "compiledPath": "rules_fst/greetings/day_quality.fst",
+   "sha256": "e6111fb609be86e0920433b4dfcf24e7e4351c6d7d6b5a2df1d37b7e36c75f74",
+   "sources": [
+    "greetings/day_quality"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/greetings_hello",
+   "compiledPath": "rules_fst/greetings/greetings_hello.fst",
+   "sha256": "573b60a2dd7d2125256ba7e1bb5cdeabcf21e217030a5e6c685a9538092ebede",
+   "sources": [
+    "greetings/greetings_hello"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/proactive_general_question",
+   "compiledPath": "rules_fst/greetings/proactive_general_question.fst",
+   "sha256": "e782ac3143a9a7115a996355981ac7cf6595304f77e951931b48616abc82e85e",
+   "sources": [
+    "greetings/proactive_general_question"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/proactive_general_statement",
+   "compiledPath": "rules_fst/greetings/proactive_general_statement.fst",
+   "sha256": "2d4571be1f15fb31f7e986df14e2e97931a3b37ed5f90b6b63a1ed5670b3f52b",
+   "sources": [
+    "greetings/proactive_general_statement"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/proactive_morning_question",
+   "compiledPath": "rules_fst/greetings/proactive_morning_question.fst",
+   "sha256": "1158d9abd78aac789a9772a3b988c3259aab112433933c46a6befa32769da289",
+   "sources": [
+    "greetings/proactive_morning_question"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/proactive_morning_statement",
+   "compiledPath": "rules_fst/greetings/proactive_morning_statement.fst",
+   "sha256": "51eeec671f14a9bda377c6b21559d20aced8f4950a637fb2125d36d47fe11e69",
+   "sources": [
+    "greetings/proactive_morning_statement"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/proactive_playful_question",
+   "compiledPath": "rules_fst/greetings/proactive_playful_question.fst",
+   "sha256": "aaa3974ebdae0853df408db8bad41a9ada63a763a1a445bf97a71b9fe87bc02c",
+   "sources": [
+    "greetings/proactive_playful_question"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/proactive_playful_statement",
+   "compiledPath": "rules_fst/greetings/proactive_playful_statement.fst",
+   "sha256": "27a56bc37946fe1b25d60d22cd3537ae2d35be1989405e4a8d58499c60b5cd26",
+   "sources": [
+    "greetings/proactive_playful_statement"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/sleep_quality",
+   "compiledPath": "rules_fst/greetings/sleep_quality.fst",
+   "sha256": "8933b046ae4f7e9e9f1c11be88074cd7234d23d4606f6a56e50ee3e9613d0ddd",
+   "sources": [
+    "greetings/sleep_quality"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "greetings/you_too",
+   "compiledPath": "rules_fst/greetings/you_too.fst",
+   "sha256": "99615bec9df31b2fe9019784cd0afd1b953012472fa5a5932825681eaedd7c1a",
+   "sources": [
+    "greetings/you_too"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/are_lights",
+   "compiledPath": "rules_fst/hue-control/are_lights.fst",
+   "sha256": "f7f0362ef9143b009f21dc1bfe6b98390dcdcae9372cb0ab5619543823c9a330",
+   "sources": [
+    "hue-control/are_lights"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/delete_data_confirmation",
+   "compiledPath": "rules_fst/hue-control/delete_data_confirmation.fst",
+   "sha256": "12df886c1ca2e881269d87a4364f10f177bdb357f2ffc8978d8ba3878c289bc2",
+   "sources": [
+    "hue-control/delete_data_confirmation"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/did_flash",
+   "compiledPath": "rules_fst/hue-control/did_flash.fst",
+   "sha256": "2130268aea6d0c3f9f9ac55922d397237b31629742d4db42007c06cf04037461",
+   "sources": [
+    "hue-control/did_flash"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/first_time",
+   "compiledPath": "rules_fst/hue-control/first_time.fst",
+   "sha256": "ee29010c3a945c1fb8e31a4797a327c96c4cee22b3c42c3691a2e1e6d66c2081",
+   "sources": [
+    "hue-control/first_time"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/get_close",
+   "compiledPath": "rules_fst/hue-control/get_close.fst",
+   "sha256": "d23c21d0fca21bd670791e80e436a31e5b5b063c8df4f74e22a7188d40dd3173",
+   "sources": [
+    "hue-control/get_close"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/have_app",
+   "compiledPath": "rules_fst/hue-control/have_app.fst",
+   "sha256": "8e5eafcb5475b7ac48b03ceb38655916be5ec00a0ec0b64c94bc27f0e4c23603",
+   "sources": [
+    "hue-control/have_app"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/near_lights",
+   "compiledPath": "rules_fst/hue-control/near_lights.fst",
+   "sha256": "39bd156a1803d4a2d326c178fb49ffe468374db5d7fc47a8577acea8ad81d95d",
+   "sources": [
+    "hue-control/near_lights"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/need_some_more_time",
+   "compiledPath": "rules_fst/hue-control/need_some_more_time.fst",
+   "sha256": "87c80fe24ea1c26acc5c9ca1b02b51c42e69f9e777197fdea07c8e3680562fdd",
+   "sources": [
+    "hue-control/need_some_more_time"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/post_control",
+   "compiledPath": "rules_fst/hue-control/post_control.fst",
+   "sha256": "8f27f1957f7d6a4fcf95695ef8d35e9508f57a79b2ddae928a3b1924b5e5f38c",
+   "sources": [
+    "hue-control/post_control"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/press_screen",
+   "compiledPath": "rules_fst/hue-control/press_screen.fst",
+   "sha256": "e1d4d117521fe8119c232458fa64161ad6333aa4fef5e1fe990ca77b6722be8f",
+   "sources": [
+    "hue-control/press_screen"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/ready",
+   "compiledPath": "rules_fst/hue-control/ready.fst",
+   "sha256": "df5f7fcb130c876624193083b2157aacf64a54246f61bdd8ba6deaeeb4f05df2",
+   "sources": [
+    "hue-control/ready"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/want_to_set_up",
+   "compiledPath": "rules_fst/hue-control/want_to_set_up.fst",
+   "sha256": "4c3823818574909c80aaeecdb1a0119b11a7eb88b0b2554c4ef4a51cfb4a48f6",
+   "sources": [
+    "hue-control/want_to_set_up"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "hue-control/you_still_here",
+   "compiledPath": "rules_fst/hue-control/you_still_here.fst",
+   "sha256": "c0c1e0779fe694daa6b90c7a079561cfed0aeeea60952e218cd408d3cd01e261",
+   "sources": [
+    "hue-control/you_still_here"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "idle/turn_back_question",
+   "compiledPath": "rules_fst/idle/turn_back_question.fst",
+   "sha256": "b8c2441433a5d6134857f4643f250ce780edcfc435ddf19e4b857b0b38058e1c",
+   "sources": [
+    "idle/turn_back_question"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "introductions/any_more_intros",
+   "compiledPath": "rules_fst/introductions/any_more_intros.fst",
+   "sha256": "6c5ca3fb53aab3443bc11f72452ff763540ebc8030a5052a8218acd7216e8762",
+   "sources": [
+    "introductions/any_more_intros"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "introductions/face_capture_ready",
+   "compiledPath": "rules_fst/introductions/face_capture_ready.fst",
+   "sha256": "2e349f1c8d8ff1d6dec4ff3988ff617be7042eb9cccc88a825e70b0ad68c30c0",
+   "sources": [
+    "introductions/face_capture_ready"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "introductions/intro_looper",
+   "compiledPath": "rules_fst/introductions/intro_looper.fst",
+   "sha256": "f3c7a83acc78e5224f37a6177e64f759773e4242b00874fa48454781cd1e3771",
+   "sources": [
+    "introductions/intro_looper"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "introductions/is_name_right",
+   "compiledPath": "rules_fst/introductions/is_name_right.fst",
+   "sha256": "a05081e76359d46c0e336fc0a4628a8d7264f7541e96ebcb91650cd737a3ab95",
+   "sources": [
+    "introductions/is_name_right"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "introductions/recognition_any_more",
+   "compiledPath": "rules_fst/introductions/recognition_any_more.fst",
+   "sha256": "41d89913b859d518209c40b3a71f75aec7d2e7f91cb36fd0d6e04d4d637753a3",
+   "sources": [
+    "introductions/recognition_any_more"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "introductions/recognition_type_menu",
+   "compiledPath": "rules_fst/introductions/recognition_type_menu.fst",
+   "sha256": "b0a785ce3f093eae6cd5f45ddb5ac7c8a0dfe55b01389afe9d5bc243135caaa0",
+   "sources": [
+    "introductions/recognition_type_menu"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "launch",
+   "compiledPath": "rules_fst/launch.fst",
+   "sha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
+   "sources": [
+    "chitchat/launch",
+    "circuit-saver/launch",
+    "clock/launch",
+    "create/launch",
+    "exercise/launch",
+    "friendly-tips/launch",
+    "gallery/launch",
+    "greetings/launch",
+    "hue-control/launch",
+    "ifttt/launch",
+    "introductions/launch",
+    "main-menu/launch",
+    "radio/launch",
+    "report/launch",
+    "settings/launch",
+    "surprises-ota/launch",
+    "template-skill/launch",
+    "tutorial/launch",
+    "who-am-i/launch",
+    "word-of-the-day/launch"
+   ],
+   "unsupportedFactories": [
+    "canada_city_province",
+    "city_state",
+    "digits",
+    "time",
+    "world_city_country",
+    "year"
+   ]
+  },
+  {
+   "name": "main-menu/execute_fun_stuff",
+   "compiledPath": "rules_fst/main-menu/execute_fun_stuff.fst",
+   "sha256": "4d041f1c2a0f8fc39882b83aadef26581ff2db6e25b7ebac7154a204e70b8ea3",
+   "sources": [
+    "main-menu/execute_fun_stuff"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "main-menu/execute_main_menu",
+   "compiledPath": "rules_fst/main-menu/execute_main_menu.fst",
+   "sha256": "84f3db23cd2ef9ced742bacfeb1c6c8432da1b1d2b78e836ea4f47e0305ee4c7",
+   "sources": [
+    "main-menu/execute_main_menu"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "main-menu/execute_personal_report",
+   "compiledPath": "rules_fst/main-menu/execute_personal_report.fst",
+   "sha256": "3eeb3e4d3dfb64129d782f9001070853f24f8b4acfd5f8caad63a313e8c6cfe9",
+   "sources": [
+    "main-menu/execute_personal_report"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "radio/radio_get_genre",
+   "compiledPath": "rules_fst/radio/radio_get_genre.fst",
+   "sha256": "9d38def60c28990c94ad8f76cca905f49c9325aee383ab75cd61654e9b983a70",
+   "sources": [
+    "radio/radio_get_genre"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "radio/radio_get_genre_ca",
+   "compiledPath": "rules_fst/radio/radio_get_genre_ca.fst",
+   "sha256": "85f11dfc12a5740d317cc8f33f1e94963f6e5d321f50c3a50a9dce419005dc5e",
+   "sources": [
+    "radio/radio_get_genre_ca"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "radio/run_control",
+   "compiledPath": "rules_fst/radio/run_control.fst",
+   "sha256": "e9c661d3db057c4b676bd956861081b32f16a2f65554a102c77ea3167b8fc991",
+   "sources": [
+    "radio/run_control"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "settings/download_now_later",
+   "compiledPath": "rules_fst/settings/download_now_later.fst",
+   "sha256": "063de3f26a2f6e888371b9a8d6df04c490351a55e56a2a947927f369add28cd3",
+   "sources": [
+    "settings/download_now_later"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "settings/execute_settings_menu",
+   "compiledPath": "rules_fst/settings/execute_settings_menu.fst",
+   "sha256": "b329da5f40abd9c295ae333c39c5e9927d8311d6babf83d119bc8ef56ed88585",
+   "sources": [
+    "settings/execute_settings_menu"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "settings/okay_thanks_to_clear",
+   "compiledPath": "rules_fst/settings/okay_thanks_to_clear.fst",
+   "sha256": "be8fb7a6288b4d2f03a5825dec3418528e7553f0e1088538b0c487425422c028",
+   "sources": [
+    "settings/okay_thanks_to_clear"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "settings/shut_down_confirmation",
+   "compiledPath": "rules_fst/settings/shut_down_confirmation.fst",
+   "sha256": "1bf12a512eadc7a458f916e834636f6c14e29bd154b767ba00307926b72b9e15",
+   "sources": [
+    "settings/shut_down_confirmation"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "settings/volume_control",
+   "compiledPath": "rules_fst/settings/volume_control.fst",
+   "sha256": "1c8a7f91f8fafdf01e0f127ccf25ad5cbd3f41525ff94d35200b8a8d49e0a789",
+   "sources": [
+    "settings/volume_control"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "shared/no_id",
+   "compiledPath": "rules_fst/shared/no_id.fst",
+   "sha256": "6383b76443030d01726d2c31aa7b85313a222b6da9d86b37dc454363e382a887",
+   "sources": [
+    "shared/no_id"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "shared/verify_id",
+   "compiledPath": "rules_fst/shared/verify_id.fst",
+   "sha256": "8c484db531b6a0ad19cfe75f84abdbad1745d7ee62cf3ff2b73e4544673faa62",
+   "sources": [
+    "shared/verify_id"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "shared/wildcard",
+   "compiledPath": "rules_fst/shared/wildcard.fst",
+   "sha256": "6e34bcf8a16fef7f79ef4f927e74ffb08e4274dfb383cb7075d54cc4876cf942",
+   "sources": [
+    "shared/wildcard"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "shared/wrong_id",
+   "compiledPath": "rules_fst/shared/wrong_id.fst",
+   "sha256": "adf1c8ac2454d9c792e02b6fd72eaa83e28b000b62c9b7eec4bdb84f36d4d3d9",
+   "sources": [
+    "shared/wrong_id"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "shared/yes_no",
+   "compiledPath": "rules_fst/shared/yes_no.fst",
+   "sha256": "45663f9fc51f2880972e106881ea96bb75cfdc68a630236a75f0ba8e4cbf46b1",
+   "sources": [
+    "shared/yes_no"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "surprises-date/offer_date_fact",
+   "compiledPath": "rules_fst/surprises-date/offer_date_fact.fst",
+   "sha256": "ad779d8663d277e51b61db1e40442df89f859699adbaa9608d445a4b0ac862ad",
+   "sources": [
+    "surprises-date/offer_date_fact"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "surprises-ota/offer_ota_release_notes",
+   "compiledPath": "rules_fst/surprises-ota/offer_ota_release_notes.fst",
+   "sha256": "b279050ed20bd16128edf98a23d5fe4f8ee4f56700497cb7eaf8578a620dd823",
+   "sources": [
+    "surprises-ota/offer_ota_release_notes"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "surprises-ota/want_to_download_now",
+   "compiledPath": "rules_fst/surprises-ota/want_to_download_now.fst",
+   "sha256": "063de3f26a2f6e888371b9a8d6df04c490351a55e56a2a947927f369add28cd3",
+   "sources": [
+    "surprises-ota/want_to_download_now"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "surprises-user-research/future_feature_frequency",
+   "compiledPath": "rules_fst/surprises-user-research/future_feature_frequency.fst",
+   "sha256": "571ec1df6d50b058c874486c5e061c2cfe2f6d97712c6966dd87f56810759518",
+   "sources": [
+    "surprises-user-research/future_feature_frequency"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "surprises-user-research/future_feature_yes_no_maybe",
+   "compiledPath": "rules_fst/surprises-user-research/future_feature_yes_no_maybe.fst",
+   "sha256": "40013cc0c7e12434ff63b6cc1c2a646081780ce27110269aa1571d849bf125e8",
+   "sources": [
+    "surprises-user-research/future_feature_yes_no_maybe"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "tutorial/dance",
+   "compiledPath": "rules_fst/tutorial/dance.fst",
+   "sha256": "2568277f7506a3bedd6fe0442044f3895406a266cb636e0d2ed216adc7321c9f",
+   "sources": [
+    "tutorial/dance"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "tutorial/keep_photo",
+   "compiledPath": "rules_fst/tutorial/keep_photo.fst",
+   "sha256": "f00242034476e386f271a90c8408e299ccf869cb934f7292b92ab815997e8268",
+   "sources": [
+    "tutorial/keep_photo"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "tutorial/take_photo",
+   "compiledPath": "rules_fst/tutorial/take_photo.fst",
+   "sha256": "7cc1035d5be26050625276193d15c9d73b79f76d9b670f5b98186a67073814af",
+   "sources": [
+    "tutorial/take_photo"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "tutorial/where_are_you",
+   "compiledPath": "rules_fst/tutorial/where_are_you.fst",
+   "sha256": "49e6c5520e44a7e939202e346d9c25eb5060e949978adccc6c2a902b9dd9ca82",
+   "sources": [
+    "tutorial/where_are_you"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "tutorial/yes_no",
+   "compiledPath": "rules_fst/tutorial/yes_no.fst",
+   "sha256": "c7633aedf9d3638ca18320d2a8906851230d0f54fdb738338abec584d57ee8a8",
+   "sources": [
+    "tutorial/yes_no"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "who-am-i/collect_looper",
+   "compiledPath": "rules_fst/who-am-i/collect_looper.fst",
+   "sha256": "3ac548a20efe6fb82cd4b90db3e5f259739354bb2703d1c5411f0f08c007f4db",
+   "sources": [
+    "who-am-i/collect_looper"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "who-am-i/confirm",
+   "compiledPath": "rules_fst/who-am-i/confirm.fst",
+   "sha256": "bdbd7aa1b826f61de637a95a60eaeb5be576b1bb368efab0cee4c84ca3bfeb38",
+   "sources": [
+    "who-am-i/confirm"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "who-am-i/name_is_right",
+   "compiledPath": "rules_fst/who-am-i/name_is_right.fst",
+   "sha256": "86f8969d1e1b96a5a9be095ca188ce0fb036a2b3787d02a0feef36f2e74486e0",
+   "sources": [
+    "who-am-i/name_is_right"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "who-am-i/want_to_enroll",
+   "compiledPath": "rules_fst/who-am-i/want_to_enroll.fst",
+   "sha256": "55dfb44632321f8baf157995860bf3b53601cf7691f50e7bc089bbe02193c63c",
+   "sources": [
+    "who-am-i/want_to_enroll"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "word-of-the-day/fun_fact",
+   "compiledPath": "rules_fst/word-of-the-day/fun_fact.fst",
+   "sha256": "188aa4a9298fdb8e8bb25ea21e6f05cbee4c42ef1f982122f6f61ed001f5a9e6",
+   "sources": [
+    "word-of-the-day/fun_fact"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "word-of-the-day/offer",
+   "compiledPath": "rules_fst/word-of-the-day/offer.fst",
+   "sha256": "29ba8ae35068efccfba38ae6fd54b81d677ced4432d82fb3200484f90ac0832f",
+   "sources": [
+    "word-of-the-day/offer"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "word-of-the-day/puzzle",
+   "compiledPath": "rules_fst/word-of-the-day/puzzle.fst",
+   "sha256": "d40fce55753c5e1784dd157b4e6c9c854af877b9372bf4760f4876295eea5765",
+   "sources": [
+    "word-of-the-day/puzzle"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "word-of-the-day/right_word",
+   "compiledPath": "rules_fst/word-of-the-day/right_word.fst",
+   "sha256": "914bbfb00dc5ff116e3c4bec9e98f8f2459d1ab8d9c33ecb5c8a172cddf6d1fd",
+   "sources": [
+    "word-of-the-day/right_word"
+   ],
+   "unsupportedFactories": []
+  },
+  {
+   "name": "word-of-the-day/surprise",
+   "compiledPath": "rules_fst/word-of-the-day/surprise.fst",
+   "sha256": "05c8af84e31271dd22111a2b5de5effe93dcaaa7db2cff39637b61d0724f8e01",
+   "sources": [
+    "word-of-the-day/surprise"
+   ],
+   "unsupportedFactories": []
+  }
+ ],
+ "factoryFiles": [
+  "canada_city_province.fst",
+  "canada_province.fst",
+  "city_state.fst",
+  "country.fst",
+  "date.fst",
+  "digits.fst",
+  "factory_list.txt",
+  "first_name.fst",
+  "last_name.fst",
+  "music_genre.fst",
+  "state.fst",
+  "time.fst",
+  "timer.fst",
+  "world_city_country.fst",
+  "year.fst",
+  "yes_no.fst"
+ ],
+ "factoryDependencies": {
+  "canada_city_province": {
+   "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+   "referencePath": "build/data/en-us/factory_rules/canada_city_province.fst",
+   "referenceSha256": "3f51276ae65825ab22aa0ebba97766e5fdea055e6db7d89ce9e77e9195cf5076",
+   "status": "unsupported"
+  },
+  "canada_province": {
+   "implementation": "factory-words/canada_province.txt",
+   "note": "Finite extracted word list; full factory semantics are not claimed.",
+   "referencePath": "build/data/en-us/factory_rules/canada_province.fst",
+   "referenceSha256": "d671f80c98845fdd9a29dc6cf381689a9d42119a82d376c4f05d278f7e07eaea",
+   "status": "word-list"
+  },
+  "city_state": {
+   "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+   "referencePath": "build/data/en-us/factory_rules/city_state.fst",
+   "referenceSha256": "e42af10ecb18f487b639290f60d83677f9c9b0294201add41983d3ba6f587d7e",
+   "status": "unsupported"
+  },
+  "country": {
+   "implementation": "factory-words/country.txt",
+   "note": "Finite extracted word list; full factory semantics are not claimed.",
+   "referencePath": "build/data/en-us/factory_rules/country.fst",
+   "referenceSha256": "0ee7a77ac8d64bedde7416954929ff9ae33bab9946e897f13841dcffda68791c",
+   "status": "word-list"
+  },
+  "digits": {
+   "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+   "referencePath": "build/data/en-us/factory_rules/digits.fst",
+   "referenceSha256": "e32543cebaef266f65e03ff8458f8b5278c37573f245d0efbf427457a59c5831",
+   "status": "unsupported"
+  },
+  "first_name": {
+   "implementation": "factory-words/first_name.txt",
+   "note": "Finite extracted word list; full factory semantics are not claimed.",
+   "referencePath": "build/data/en-us/factory_rules/first_name.fst",
+   "referenceSha256": "3fb01bdf8c39aa4bbf1d7eaa2e74da880faeb30b714db506fd62b4eb624b2056",
+   "status": "word-list"
+  },
+  "last_name": {
+   "implementation": "factory-words/last_name.txt",
+   "note": "Finite extracted word list; full factory semantics are not claimed.",
+   "referencePath": "build/data/en-us/factory_rules/last_name.fst",
+   "referenceSha256": "19862ddaa95bca44582eb811b7235370c5d291efcc21ce7c5f43027ca44ac66c",
+   "status": "word-list"
+  },
+  "state": {
+   "implementation": "factory-words/state.txt",
+   "note": "Finite extracted word list; full factory semantics are not claimed.",
+   "referencePath": "build/data/en-us/factory_rules/state.fst",
+   "referenceSha256": "b9ed3ebb1cd8c13117642743cca71616e1774801ec9b85ebdeea79aced6fb862",
+   "status": "word-list"
+  },
+  "time": {
+   "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+   "referencePath": "build/data/en-us/factory_rules/time.fst",
+   "referenceSha256": "ccc50d3c0fb06e43e75433fa828d370c787429a443bfa407c6e91be73cd9d86b",
+   "status": "unsupported"
+  },
+  "timer": {
+   "implementation": "factory/timer.grm",
+   "note": "Hand-authored source grammar; behavior is bounded and not the original FST.",
+   "referencePath": "build/data/en-us/factory_rules/timer.fst",
+   "referenceSha256": "b499a09296f1d5ca2429c191d81f80b0e2f73044da1801d09fd89010b6aefa3e",
+   "status": "bounded-compatibility"
+  },
+  "world_city_country": {
+   "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+   "referencePath": "build/data/en-us/factory_rules/world_city_country.fst",
+   "referenceSha256": "08738ae15c69785f593c0f2024d25e10292831c6e0fbe8961efadb2e3a2ea0f3",
+   "status": "unsupported"
+  },
+  "year": {
+   "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+   "referencePath": "build/data/en-us/factory_rules/year.fst",
+   "referenceSha256": "a7306d576b909940f506d4151a800d900b95f943da2d5901bc0db987a61d3cbc",
+   "status": "unsupported"
+  },
+  "yes_no": {
+   "implementation": "factory/yes_no.grm",
+   "note": "Hand-authored source grammar; behavior is bounded and not the original FST.",
+   "referencePath": "build/data/en-us/factory_rules/yes_no.fst",
+   "referenceSha256": "8e86171f2758430610f487640fdbc4c23b2e2f04c2b5cc5446e875972de67fa4",
+   "status": "bounded-compatibility"
+  }
+ }
+}

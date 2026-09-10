@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { start } from '../src/index.js';
 import { compiledFstRuntimeConfig, getCompiledFstRuntime, matchCompiledLaunch } from '../src/compiledFstRuntime.js';
 import { parseRequest } from '../src/requestParser.js';
+
+const inventory = JSON.parse(readFileSync(new URL('../resources/rule-inventory.json', import.meta.url)));
+const namedRules = Object.keys(inventory.publicRules).sort();
 
 const configured = process.env.PHOENIX_NLU_RUNTIME === 'compiled-fst'
   && Boolean(process.env.PHOENIX_NLU_COMPILED_FST)
@@ -61,6 +65,8 @@ test('explicit compiled-FST profile connects the real /v1/parse path', { skip: !
     rulesDir: process.env.PHOENIX_NLU_COMPILED_RULES_DIR,
     fstSha256: process.env.PHOENIX_NLU_COMPILED_FST_SHA256,
     ruleCount: 98,
+    loadedRuleCount: 98,
+    allNamedRulesLoaded: true,
     ruleManifestSha256: '7648a6449f62d7664c7f9a602ec50e9195daeb92e30aaefbf0ebd2d50a0a3142',
     inventoryRevision: '5c0a7390539663ba749d360de348a428c088505c',
     inventorySha256: '7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4',
@@ -70,6 +76,16 @@ test('explicit compiled-FST profile connects the real /v1/parse path', { skip: !
     nativeParserSha256: '373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b',
     factoryManifestSha256: '4ea19a27acbfaecdb60de0688cb5f3f75ef31c93c2865d2d6710989f98ffe97e',
   });
+  // RobustParserClient.loadAllFSTs() compiles every registered rule before the
+  // client reports RUNNING, so the whole named-rule registry must be live, not
+  // just the graph this test happens to request. These assertions observe the
+  // loaded registry rather than counting files on disk.
+  {
+    const runtime = getCompiledFstRuntime();
+    assert.equal(runtime.loadedRuleCount, runtime.ruleCount);
+    assert.deepEqual([...runtime.ruleNames], namedRules);
+    for (const name of namedRules) assert.ok(runtime.getExecutor(name), `no executor for ${name}`);
+  }
   assert.deepEqual(parseRequest({ text: 'who is jane jetson', rules: ['launch'] }), {
     rules: ['launch'],
     intent: 'whoIsPerson',

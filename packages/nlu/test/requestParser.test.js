@@ -30,6 +30,7 @@ test('loads the complete source inventory and the timer named rule', () => {
     boundedFactoryCount: 2,
     unsupportedFactoryCount: 6,
     unsupportedRuleCount: 4,
+    factoryWordCount: 6,
   });
   assert.deepEqual(parseRequest({
     text: 'five minutes',

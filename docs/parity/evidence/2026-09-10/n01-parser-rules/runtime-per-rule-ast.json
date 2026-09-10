@@ -1,0 +1,779 @@
+{
+ "schema": "phoenix.nlu.n01-per-rule-probe",
+ "method": "parseRequest({text, rules:[name]}) for every named rule in the pinned 98-name registry, default AST profile.",
+ "profile": "ast (Phoenix default when PHOENIX_NLU_RUNTIME is unset)",
+ "probeText": "five minutes",
+ "namedRules": 98,
+ "honored": 96,
+ "raised": 2,
+ "raisedRules": [
+  [
+   "clock/alarm_set_value",
+   "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"
+  ],
+  [
+   "clock/alarm_timer_ampm",
+   "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"
+  ]
+ ],
+ "matchedRules": [
+  [
+   "clock/timer_set_value",
+   "timerValue"
+  ],
+  [
+   "greetings/bedtime_reminder",
+   "wildcard"
+  ],
+  [
+   "greetings/proactive_general_statement",
+   "wildcard"
+  ],
+  [
+   "greetings/proactive_morning_statement",
+   "wildcard"
+  ],
+  [
+   "greetings/proactive_playful_statement",
+   "wildcard"
+  ],
+  [
+   "hue-control/post_control",
+   "noMatch"
+  ],
+  [
+   "introductions/intro_looper",
+   "loopmember"
+  ],
+  [
+   "settings/volume_control",
+   "volumeToValue"
+  ],
+  [
+   "shared/wildcard",
+   "wildcard"
+  ],
+  [
+   "shared/wrong_id",
+   "loopmember"
+  ],
+  [
+   "who-am-i/collect_looper",
+   "loopmember"
+  ],
+  [
+   "word-of-the-day/puzzle",
+   "guess"
+  ]
+ ],
+ "observations": [
+  {
+   "name": "circuit-saver/play_again",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_set_value",
+   "sources": 1,
+   "ok": false,
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"
+  },
+  {
+   "name": "clock/alarm_timer_ampm",
+   "sources": 1,
+   "ok": false,
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"
+  },
+  {
+   "name": "clock/alarm_timer_change",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_timer_info",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_timer_none_set",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_timer_okay",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_timer_other_set",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_timer_query_menu",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/alarm_timer_too_long",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/clock_menu",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/stop_timer",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "clock/timer_set_value",
+   "sources": 1,
+   "ok": true,
+   "intent": "timerValue",
+   "rules": [
+    "clock/timer_set_value"
+   ]
+  },
+  {
+   "name": "create/execute_create_menu",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "create/is_it_a_keeper",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "create/take_another_photo",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "exercise/pause_hold",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "exercise/ready_now",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "exercise/ready_to_start",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "exercise/routine_selector",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "exercise/run_control",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "exercise/want_to",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "friendly-tips/want_more_tdd",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "gallery/confirm_delete_item",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "gallery/gallery_preview",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "gallery/item_pause",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "gallery/item_view",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "globals/global_commands_launch",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "globals/gui_nav",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "globals/mim_repeat",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "globals/mim_thanks",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/bedtime_reminder",
+   "sources": 1,
+   "ok": true,
+   "intent": "wildcard",
+   "rules": [
+    "greetings/bedtime_reminder"
+   ]
+  },
+  {
+   "name": "greetings/day_quality",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/greetings_hello",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/proactive_general_question",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/proactive_general_statement",
+   "sources": 1,
+   "ok": true,
+   "intent": "wildcard",
+   "rules": [
+    "greetings/proactive_general_statement"
+   ]
+  },
+  {
+   "name": "greetings/proactive_morning_question",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/proactive_morning_statement",
+   "sources": 1,
+   "ok": true,
+   "intent": "wildcard",
+   "rules": [
+    "greetings/proactive_morning_statement"
+   ]
+  },
+  {
+   "name": "greetings/proactive_playful_question",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/proactive_playful_statement",
+   "sources": 1,
+   "ok": true,
+   "intent": "wildcard",
+   "rules": [
+    "greetings/proactive_playful_statement"
+   ]
+  },
+  {
+   "name": "greetings/sleep_quality",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "greetings/you_too",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/are_lights",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/delete_data_confirmation",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/did_flash",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/first_time",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/get_close",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/have_app",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/near_lights",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/need_some_more_time",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/post_control",
+   "sources": 1,
+   "ok": true,
+   "intent": "noMatch",
+   "rules": [
+    "hue-control/post_control"
+   ]
+  },
+  {
+   "name": "hue-control/press_screen",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/ready",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/want_to_set_up",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "hue-control/you_still_here",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "idle/turn_back_question",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "introductions/any_more_intros",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "introductions/face_capture_ready",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "introductions/intro_looper",
+   "sources": 1,
+   "ok": true,
+   "intent": "loopmember",
+   "rules": [
+    "introductions/intro_looper"
+   ]
+  },
+  {
+   "name": "introductions/is_name_right",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "introductions/recognition_any_more",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "introductions/recognition_type_menu",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "launch",
+   "sources": 20,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "main-menu/execute_fun_stuff",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "main-menu/execute_main_menu",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "main-menu/execute_personal_report",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "radio/radio_get_genre",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "radio/radio_get_genre_ca",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "radio/run_control",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "settings/download_now_later",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "settings/execute_settings_menu",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "settings/okay_thanks_to_clear",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "settings/shut_down_confirmation",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "settings/volume_control",
+   "sources": 1,
+   "ok": true,
+   "intent": "volumeToValue",
+   "rules": [
+    "settings/volume_control"
+   ]
+  },
+  {
+   "name": "shared/no_id",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "shared/verify_id",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "shared/wildcard",
+   "sources": 1,
+   "ok": true,
+   "intent": "wildcard",
+   "rules": [
+    "shared/wildcard"
+   ]
+  },
+  {
+   "name": "shared/wrong_id",
+   "sources": 1,
+   "ok": true,
+   "intent": "loopmember",
+   "rules": [
+    "shared/wrong_id"
+   ]
+  },
+  {
+   "name": "shared/yes_no",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "surprises-date/offer_date_fact",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "surprises-ota/offer_ota_release_notes",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "surprises-ota/want_to_download_now",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "surprises-user-research/future_feature_frequency",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "surprises-user-research/future_feature_yes_no_maybe",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "tutorial/dance",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "tutorial/keep_photo",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "tutorial/take_photo",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "tutorial/where_are_you",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "tutorial/yes_no",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "who-am-i/collect_looper",
+   "sources": 1,
+   "ok": true,
+   "intent": "loopmember",
+   "rules": [
+    "who-am-i/collect_looper"
+   ]
+  },
+  {
+   "name": "who-am-i/confirm",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "who-am-i/name_is_right",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "who-am-i/want_to_enroll",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "word-of-the-day/fun_fact",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "word-of-the-day/offer",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "word-of-the-day/puzzle",
+   "sources": 1,
+   "ok": true,
+   "intent": "guess",
+   "rules": [
+    "word-of-the-day/puzzle"
+   ]
+  },
+  {
+   "name": "word-of-the-day/right_word",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  },
+  {
+   "name": "word-of-the-day/surprise",
+   "sources": 1,
+   "ok": true,
+   "intent": null,
+   "rules": []
+  }
+ ]
+}
