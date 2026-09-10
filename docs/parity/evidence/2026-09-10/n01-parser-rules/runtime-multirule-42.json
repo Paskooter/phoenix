@@ -1,0 +1,2872 @@
+{
+ "schema": "phoenix.nlu.n01-multirule-http-replay",
+ "suite": "n08-original-multirule-http-v1",
+ "suiteSha256": "2c958166863314ef96e1b4d2f8a6b3eceb8728f1a6939af10c7418d0b6d60ac8",
+ "referenceCapture": {
+  "suite": "n08-original-multirule-http-v1",
+  "implementation": "original",
+  "runtime": "v8.9.4",
+  "profile": "original-nlu-2.8.3-node8-native-http-multirule-sanitized",
+  "caseCount": 42
+ },
+ "scope": "HTTP status and the complete decoded response data field for all 42 original multi-rule parser requests.",
+ "profiles": [
+  {
+   "profile": "ast",
+   "cases": 42,
+   "statusMatches": 42,
+   "dataMatches": 34,
+   "differences": [
+    "n08:000:cancel-timer",
+    "n08:001:stop-timer",
+    "n08:002:stop-timer-short",
+    "n08:003:cancel-timer-short",
+    "n08:029:pair-forward",
+    "n08:030:pair-reverse",
+    "n08:031:pair-duplicate-launch",
+    "n08:032:pair-duplicate-global"
+   ],
+   "rows": [
+    {
+     "id": "n08:000:cancel-timer",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:001:stop-timer",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "stop the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:002:stop-timer-short",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "stop timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:003:cancel-timer-short",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "cancel timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:004:cancel-alone",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:005:stop-it",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "stop it",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:006:clock-time",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "what time is it",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "clock",
+       "country": "null",
+       "state": "null",
+       "city": "null",
+       "day_of_week": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "askForTime",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "clock",
+       "country": "null",
+       "state": "null",
+       "city": "null",
+       "day_of_week": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "askForTime",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:007:chitchat-joke",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "tell me a joke",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "JiboContent": "Joke",
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestTellJiboContent",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "JiboContent": "Joke",
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestTellJiboContent",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:008:weather",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "check the weather",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:009:weather-today",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "how is the weather today",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:010:weather-street",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "check the weather for our street",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:011:gui-overlap",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "go back",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "got": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "match": true
+    },
+    {
+     "id": "n08:012:repeat-overlap",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "repeat that",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestRepeat",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestRepeat",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:013:thanks-overlap",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "thanks",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "thankJiboForAction",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "thankJiboForAction",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:014:timer-value",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "five minutes",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:015:timer-set",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "set a timer for five minutes",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:016:timer-hour",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "set timer for one hour",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "1",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "1",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:017:timer-cancel",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:018:timer-gui",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "go back",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:019:timer-repeat",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "repeat that",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:020:timer-thanks",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "thanks",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "got": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "match": true
+    },
+    {
+     "id": "n08:021:alarm-no",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "no",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:022:alarm-wait",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "wait",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:023:alarm-stop",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "stop",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:024:alarm-cancel",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:025:alarm-not-right",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "not right",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:026:alarm-dont",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "don't do it",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:027:alarm-repeat",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "repeat that",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:028:alarm-thanks",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "thanks",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "thanks",
+      "rules": [
+       "globals/mim_thanks"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "thanks",
+      "rules": [
+       "globals/mim_thanks"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:029:pair-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:030:pair-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "globals/global_commands_launch",
+       "launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:031:pair-duplicate-launch",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch",
+       "launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:032:pair-duplicate-global",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "globals/global_commands_launch",
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": false
+    },
+    {
+     "id": "n08:033:timer-alarm-global-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "clock/timer_set_value",
+       "clock/alarm_timer_okay",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:034:timer-alarm-global-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "globals/global_commands_launch",
+       "clock/alarm_timer_okay",
+       "clock/timer_set_value"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:035:timer-alarm-global-rotated",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "clock/timer_set_value",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:036:stop-timer-alarm-global",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "stop",
+      "rules": [
+       "clock/stop_timer",
+       "clock/alarm_timer_okay",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "stop",
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "stop",
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:037:alarm-global-timer",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "stop",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/global_commands_launch",
+       "clock/timer_set_value"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:038:timer-four-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "five minutes",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:039:timer-four-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "five minutes",
+      "rules": [
+       "globals/global_commands_launch",
+       "globals/mim_repeat",
+       "globals/gui_nav",
+       "clock/timer_set_value"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:040:alarm-five-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "no",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:041:alarm-five-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "no",
+      "rules": [
+       "globals/global_commands_launch",
+       "globals/mim_thanks",
+       "globals/mim_repeat",
+       "globals/gui_nav",
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    }
+   ]
+  },
+  {
+   "profile": "compiled-fst-approved",
+   "cases": 42,
+   "statusMatches": 42,
+   "dataMatches": 42,
+   "differences": [],
+   "rows": [
+    {
+     "id": "n08:000:cancel-timer",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:001:stop-timer",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "stop the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:002:stop-timer-short",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "stop timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:003:cancel-timer-short",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "cancel timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:004:cancel-alone",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:005:stop-it",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "stop it",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "global_commands"
+      },
+      "intent": "stop",
+      "rules": [
+       "globals/global_commands_launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:006:clock-time",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "what time is it",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "clock",
+       "country": "null",
+       "state": "null",
+       "city": "null",
+       "day_of_week": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "askForTime",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "clock",
+       "country": "null",
+       "state": "null",
+       "city": "null",
+       "day_of_week": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "askForTime",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:007:chitchat-joke",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "tell me a joke",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "JiboContent": "Joke",
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestTellJiboContent",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "JiboContent": "Joke",
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestTellJiboContent",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:008:weather",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "check the weather",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:009:weather-today",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "how is the weather today",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:010:weather-street",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "check the weather for our street",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:personal-report/launch"
+      },
+      "intent": "requestWeatherPR",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:011:gui-overlap",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "go back",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "got": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "match": true
+    },
+    {
+     "id": "n08:012:repeat-overlap",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "repeat that",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestRepeat",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "requestRepeat",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:013:thanks-overlap",
+     "group": "launch-global-pair",
+     "request": {
+      "text": "thanks",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "thankJiboForAction",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "union_original_fst_name": "handle:chitchat/launch"
+      },
+      "intent": "thankJiboForAction",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:014:timer-value",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "five minutes",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:015:timer-set",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "set a timer for five minutes",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:016:timer-hour",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "set timer for one hour",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "1",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "1",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:017:timer-cancel",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:018:timer-gui",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "go back",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:019:timer-repeat",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "repeat that",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:020:timer-thanks",
+     "group": "local-timer-four-way",
+     "request": {
+      "text": "thanks",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "got": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "match": true
+    },
+    {
+     "id": "n08:021:alarm-no",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "no",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:022:alarm-wait",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "wait",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:023:alarm-stop",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "stop",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:024:alarm-cancel",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:025:alarm-not-right",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "not right",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:026:alarm-dont",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "don't do it",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:027:alarm-repeat",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "repeat that",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "repeat",
+      "rules": [
+       "globals/mim_repeat"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:028:alarm-thanks",
+     "group": "alarm-five-way",
+     "request": {
+      "text": "thanks",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "thanks",
+      "rules": [
+       "globals/mim_thanks"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "mim_global"
+      },
+      "intent": "thanks",
+      "rules": [
+       "globals/mim_thanks"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:029:pair-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:030:pair-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "globals/global_commands_launch",
+       "launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:031:pair-duplicate-launch",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "launch",
+       "globals/global_commands_launch",
+       "launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:032:pair-duplicate-global",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel the timer",
+      "rules": [
+       "globals/global_commands_launch",
+       "launch",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "got": {
+      "entities": {
+       "domain": "timer",
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "skill": "@be/clock",
+       "union_original_fst_name": "handle:clock/launch"
+      },
+      "intent": "stop",
+      "rules": [
+       "launch"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:033:timer-alarm-global-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "clock/timer_set_value",
+       "clock/alarm_timer_okay",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "cancel",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:034:timer-alarm-global-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "globals/global_commands_launch",
+       "clock/alarm_timer_okay",
+       "clock/timer_set_value"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:035:timer-alarm-global-rotated",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "cancel",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "clock/timer_set_value",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:036:stop-timer-alarm-global",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "stop",
+      "rules": [
+       "clock/stop_timer",
+       "clock/alarm_timer_okay",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "stop",
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "stop",
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:037:alarm-global-timer",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "stop",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/global_commands_launch",
+       "clock/timer_set_value"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:038:timer-four-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "five minutes",
+      "rules": [
+       "clock/timer_set_value",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:039:timer-four-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "five minutes",
+      "rules": [
+       "globals/global_commands_launch",
+       "globals/mim_repeat",
+       "globals/gui_nav",
+       "clock/timer_set_value"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "got": {
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "intent": "timerValue",
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:040:alarm-five-forward",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "no",
+      "rules": [
+       "clock/alarm_timer_okay",
+       "globals/gui_nav",
+       "globals/mim_repeat",
+       "globals/mim_thanks",
+       "globals/global_commands_launch"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    },
+    {
+     "id": "n08:041:alarm-five-reverse",
+     "group": "order-and-tie-controls",
+     "request": {
+      "text": "no",
+      "rules": [
+       "globals/global_commands_launch",
+       "globals/mim_thanks",
+       "globals/mim_repeat",
+       "globals/gui_nav",
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "status": 200,
+     "expected": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "got": {
+      "entities": {},
+      "intent": "wrong",
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "match": true
+    }
+   ]
+  }
+ ]
+}

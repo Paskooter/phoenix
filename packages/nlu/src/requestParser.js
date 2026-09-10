@@ -6,13 +6,13 @@
 // the requested rule files are evaluated.
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseRules } from './grammar/parser.js';
 import { matchRule, parseScore, tokenize } from './grammar/matcher.js';
 import { loadEqWords } from './grammar/eqWords.js';
-import { loadFactoryWords } from './grammar/factoryWords.js';
+import { buildFactoryWords, undeclaredFactoryWordFile } from './grammar/factoryWords.js';
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
 import { selectBestNative } from './arbitration.js';
 
@@ -56,8 +56,9 @@ function readChecked(path, expected, label) {
 function load() {
   if (loaded) return loaded;
   const inventory = JSON.parse(readFileSync(INVENTORY_PATH, 'utf8'));
+  const supportingText = new Map();
   for (const [name, entry] of Object.entries(inventory.supporting || {})) {
-    readChecked(join(RESOURCE_ROOT, entry.path), entry.sha256, `supporting resource '${name}'`);
+    supportingText.set(name, readChecked(join(RESOURCE_ROOT, entry.path), entry.sha256, `supporting resource '${name}'`));
   }
   const rules = new Map();
   const factories = new Map();
@@ -101,7 +102,25 @@ function load() {
       throw new Error(`NLU dependency support inventory mismatch for rule '${name}'`);
     }
   }
-  const factoryWords = loadFactoryWords();
+  // Every bundled factory word list must be declared — and therefore hash
+  // verified — by the inventory before it can feed the matcher. An undeclared
+  // file is a dependency with no anchor, so refuse it instead of importing it.
+  const wordListNames = [...supportingText.keys()]
+    .filter(name => name.startsWith('factory-words/'))
+    .map(name => name.slice('factory-words/'.length))
+    .sort();
+  const wordListDir = join(RESOURCE_ROOT, 'factory-words');
+  const undeclaredWordList = undeclaredFactoryWordFile(wordListNames, existsSync(wordListDir) ? readdirSync(wordListDir) : []);
+  if (undeclaredWordList) {
+    throw new Error(`NLU factory word list '${undeclaredWordList}' has no rule-inventory entry`);
+  }
+  const factoryWords = buildFactoryWords(wordListNames.map(name => ({
+    name,
+    text: supportingText.get(`factory-words/${name}`),
+  })));
+  if (factoryWords.size !== wordListNames.length) {
+    throw new Error('NLU factory word-list inventory is incomplete');
+  }
   for (const [name, dependency] of Object.entries(inventory.factoryDependencies || {})) {
     if (dependency.status === 'bounded-compatibility') {
       const active = inventory.factories?.[name];
@@ -131,6 +150,7 @@ function load() {
     factoryRules,
     eq: loadEqWords(),
     factoryWords,
+    factoryWordNames: Object.freeze(wordListNames),
   };
   return loaded;
 }
@@ -372,5 +392,6 @@ export function ruleInventory() {
     boundedFactoryCount: Object.values(state.inventory.factoryDependencies || {}).filter(entry => entry.status === 'bounded-compatibility').length,
     unsupportedFactoryCount: Object.values(state.inventory.factoryDependencies || {}).filter(entry => entry.status === 'unsupported').length,
     unsupportedRuleCount: dependencyEntries.filter(entry => entry.status === 'unsupported-dependencies').length,
+    factoryWordCount: state.factoryWordNames.length,
   };
 }

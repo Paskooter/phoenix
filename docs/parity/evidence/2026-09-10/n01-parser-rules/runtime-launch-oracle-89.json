@@ -1,0 +1,26 @@
+{
+ "schema": "phoenix.nlu.n01-launch-oracle-replay",
+ "oracle": "packages/nlu/resources/legacy-oracle/golden.jsonl (99 native launch results; 10 entries are empty [] and carry no Input, so they cannot be attributed to an utterance)",
+ "scope": "intent, entities (including the native union_original_fst_name) and the returned rule name for rules:[launch].",
+ "profiles": [
+  {
+   "profile": "ast",
+   "cases": 89,
+   "unattributedEmptyNativeEntries": 10,
+   "intentMatches": 89,
+   "entityMatches": 89,
+   "ruleMatches": 89,
+   "failures": []
+  },
+  {
+   "profile": "compiled-fst-approved",
+   "cases": 89,
+   "unattributedEmptyNativeEntries": 10,
+   "intentMatches": 89,
+   "entityMatches": 89,
+   "ruleMatches": 89,
+   "failures": []
+  }
+ ],
+ "failures": []
+}
