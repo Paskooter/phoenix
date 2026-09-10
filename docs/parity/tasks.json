@@ -1125,7 +1125,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1148,7 +1148,18 @@
         "Inventory and import every required named rule and dependency with hashes; do not silently skip parse/load failures.",
         "Cover empty/unknown/multiple rules and local turns that must never activate launch rules."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "The two discrepancies that previously blocked certification are closed. Multi-rule selection now ranks by the native heuristic score only, not grammar priority; root ran the replay tool itself and got 42/42 cases matching with 'differences: none' (previously 8 of 42 picked a different winner). Root also reproduced the falsification: changing includePriority at requestParser.js:252 failed exactly three named tests including the 42-case selector, restoring returned 163/0.",
+          "artifact": "docs/parity/evidence/2026-09-10/n01-parser-rules/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "83178a62e0b96ab0b93b5feb5c3a3a4a1b14758a",
+          "command": "node packages/nlu/tools/replayMultiruleHttp.mjs && node --test packages/nlu/test/*.test.js",
+          "notes": "Unblocks N-02, which depends on N-01."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
@@ -1170,7 +1181,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1198,7 +1209,18 @@
         "Recover all factory entity semantics, including names, places, dates, times, durations and numeric entities, from version-matched source/artifacts.",
         "Use the production parser in the oracle harness and preserve exact entity values/types; report mismatches per feature."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Grammar execution and factory entity semantics recovered from version-matched sources. Root reproduced the falsification: kind:'parsed' -> kind:'literal' at parser.js:299 failed exactly one named test, restoring returned green. Production oracle replays 89/89 intents with 0 entity value/type mismatches. 13 of 15 factory grammars vendored with hash-verified byte lengths.",
+          "artifact": "docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "83178a62e0b96ab0b93b5feb5c3a3a4a1b14758a",
+          "command": "node --test packages/nlu/test/*.test.js && npm test",
+          "notes": "Known remaining divergences recorded in DIVERGENCES.md (N02a/b/c): repeated-rule tag composition makes digits.grm/year.grm wrong ('one two three' -> 33 not 123); ':' lexing blocks time.grm/timer.grm; city_state.grm and last_name.grm are byte-truncated by the archive portal so their semantics are not claimed."
+        }
+      ],
       "nextImplementation": {
         "state": "changes_requested",
         "assignee": "Luna Max / audio_encoding_repair; root acceptance",

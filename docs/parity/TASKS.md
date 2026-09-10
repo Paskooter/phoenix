@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 9 | 46 | 0 | 0 |
+| pegasus | 11 | 46 | 0 | 0 |
 | classic | 14 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -447,7 +447,7 @@ Lead review: Codex root; [docs/parity/reviews/h10-root/review.json](../../docs/p
 
 ### N-01 — Honor complete parser requests and load every named rule
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-02, V-03.
 
@@ -463,7 +463,7 @@ Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/nlu/resources](../../packages/nlu/resources).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/n01-parser-rules/review.md](../../docs/parity/evidence/2026-09-10/n01-parser-rules/review.md) (2026-09-10; The two discrepancies that previously blocked certification are closed. Multi-rule selection now ranks by the native heuristic score only, not grammar priority; root ran the replay tool itself and got 42/42 cases matching with 'differences: none' (previously 8 of 42 picked a different winner). Root also reproduced the falsification: changing includePriority at requestParser.js:252 failed exactly three named tests including the 42-case selector, restoring returned 163/0.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -581,7 +581,7 @@ Evidence: pending.
 
 ### N-02 — Match grammar execution, factory entities and scoring
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: N-01, V-01.
 
@@ -597,7 +597,7 @@ Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts
 
 Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [scripts/parity-production](../../scripts/parity-production); [docs/parity/NLU-SOURCE.md](../../docs/parity/NLU-SOURCE.md); [docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json](../../docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md](../../docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md) (2026-09-10; Grammar execution and factory entity semantics recovered from version-matched sources. Root reproduced the falsification: kind:'parsed' -> kind:'literal' at parser.js:299 failed exactly one named test, restoring returned green. Production oracle replays 89/89 intents with 0 entity value/type mismatches. 13 of 15 factory grammars vendored with hash-verified byte lengths.).
 
 ### N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
 
