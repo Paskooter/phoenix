@@ -18,6 +18,7 @@ observed HTTP status.
 
 Usage:
     EVIDENCE_ROOT=/path/to/evidence python3 compare-state-sequences-root.py
+    python3 compare-state-sequences-root.py --evidence /path/to/evidence
 """
 import hashlib
 import json
@@ -25,9 +26,31 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(os.environ.get('EVIDENCE_ROOT', '')).expanduser()
-if not ROOT or not ROOT.is_dir():
-    sys.exit('set EVIDENCE_ROOT to the evidence directory')
+# Accept --evidence as well as EVIDENCE_ROOT. Previously only the environment
+# variable was read while argv was ignored entirely, so `--evidence <dir>` was
+# accepted in silence and the script then read the CURRENT directory instead.
+# Combined with Path('') resolving to Path('.') — which is a real directory, so
+# the guard below passed — that turned a wrong invocation into a confusing
+# FileNotFoundError on 'source-sequences.json' rather than a usage error.
+_argv = sys.argv[1:]
+_cli_evidence = None
+while _argv:
+    arg = _argv.pop(0)
+    if arg in ('--evidence', '--evidence-root'):
+        if not _argv:
+            sys.exit(f'{arg} requires a directory argument')
+        _cli_evidence = _argv.pop(0)
+    elif arg.startswith('--evidence='):
+        _cli_evidence = arg.split('=', 1)[1]
+    else:
+        sys.exit(f'unknown argument {arg!r}; use --evidence <dir> or EVIDENCE_ROOT')
+
+_raw = _cli_evidence if _cli_evidence is not None else os.environ.get('EVIDENCE_ROOT', '')
+if not str(_raw).strip():
+    sys.exit('set EVIDENCE_ROOT or pass --evidence to name the evidence directory')
+ROOT = Path(_raw).expanduser()
+if not ROOT.is_dir():
+    sys.exit(f'evidence directory does not exist: {ROOT}')
 
 
 def load(name):

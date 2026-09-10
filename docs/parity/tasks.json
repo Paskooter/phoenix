@@ -2792,7 +2792,7 @@
           "referenceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
           "phoenixRevision": "1e3b71184bb2089f650afa4ce2668f98f6c68768",
           "notes": "Two comparator defects were fixed to reach this result, both in the harness rather than Phoenix: a hardcoded 18-capture count that masked byte-exact forwarding, and an isDeleted comparison between raw-wire and SDK-parsed measurements. The isDeleted difference is unobservable to real clients because the pinned SDK Loop output shape S5 does not declare the field and the aws-sdk strips undeclared members; an initial Phoenix-side fix for it was reverted. Soft deletion stays covered by the list-after/get-after steps. Falsification of the corrected comparator caught 3/3 injected regressions.",
-          "command": "python3 scripts/parity-coverage/a04_loop_coverage.py && node .parity/reviews/a04-loop-probe-20260910/probe.mjs && CANDIDATE_ROOT=$PWD EVIDENCE_ROOT=$PWD/.parity/reviews/a04-gate1 bash scripts/parity-a04/run-state-sequences.sh && (cd .parity/reviews/a04-gate1 && python3 $OLDPWD/scripts/parity-a04/compare-state-sequences-root.py)"
+          "command": "python3 scripts/parity-coverage/a04_loop_coverage.py && node .parity/reviews/a04-loop-probe-20260910/probe.mjs && CANDIDATE_ROOT=$PWD EVIDENCE_ROOT=$PWD/.parity/reviews/a04-gate1 bash scripts/parity-a04/run-state-sequences.sh && python3 scripts/parity-a04/compare-state-sequences-root.py --evidence .parity/reviews/a04-gate1"
         }
       ],
       "implementationReview": {
