@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-09-10T18:43:14.224Z",
+  "generatedAt": "2026-09-10T21:08:34.349Z",
   "node": "v22.22.0",
-  "revision": "5aaf98d361b2826a1b2e9860d6db46a53388ed4d",
+  "revision": "001fc651cade05b6e882fca361c4faa31336cbbd",
   "pinnedClient": {
     "sdkVersion": "3.0.110",
     "clientModelPath": "/home/shell/work/phoenix/.parity/yarn-cache/v1/npm-@jibo/jibo-server-client-3.0.110-dc0962bd91de9392ecf2ef6f96c6d9f7642d23e8/apis/notification-2015-05-05.min.json",
@@ -33,14 +33,14 @@
     ]
   },
   "runtime": {
-    "entrypointPort": 40653
+    "entrypointPort": 46795
   },
   "operations": {
     "newRobotToken": {
       "statusCode": 200,
       "code": null,
       "data": {
-        "token": "fda153a769f3dbd995e6701a41931ec1aa9be9f857b4a0fe304aa72368a7856002b6e3a5225cc4f17afafec185c54df23a7a38259e4e87c87bbdafe17ba31b58"
+        "token": "90cc43648c412193ca5767add9869f8e2f9abd3a261bdb1e50930137f54e23d226aacb520644d91fa9a44873172bff042319294bf60cc4b8ed55aabff3b86d21"
       }
     },
     "getStatus": {
@@ -58,7 +58,7 @@
         "path": "/",
         "target": "Notification_20150505.NewRobotToken",
         "contentType": "application/json",
-        "host": "127.0.0.1:40345",
+        "host": "127.0.0.1:36737",
         "signedHeaders": "host;x-amz-content-sha256;x-amz-date;x-amz-target",
         "hasAmzDate": true,
         "body": "{\"deviceId\":\"wire-device\"}"
@@ -68,7 +68,7 @@
         "path": "/",
         "target": "Notification_20150505.GetStatus",
         "contentType": "application/json",
-        "host": "127.0.0.1:40345",
+        "host": "127.0.0.1:36737",
         "signedHeaders": "host;x-amz-content-sha256;x-amz-date;x-amz-target",
         "hasAmzDate": true,
         "body": "{\"accountId\":\"account-alpha\"}"
@@ -280,8 +280,8 @@
       "errortype": null,
       "body": {
         "type": "ERROR",
-        "msgID": "66464198-66b5-42e4-9347-d9fa3937d140",
-        "ts": 1789065794538,
+        "msgID": "add670cb-a5fc-4c97-9550-c27fa39e183a",
+        "ts": 1789074516777,
         "final": true,
         "data": {
           "message": "Unexpected token o in JSON at position 0"
@@ -342,8 +342,8 @@
       "tokenId"
     ],
     "deliveredFrame": {
-      "_id": "4a651c7d1c9d871da1394702",
-      "created": "2026-09-10T18:43:14.556Z",
+      "_id": "e8a55d7e95f99870f33e8ec8",
+      "created": "2026-09-10T21:08:36.796Z",
       "payload": {
         "name": "LoopUpdated",
         "payload": {
@@ -351,7 +351,7 @@
         }
       },
       "skillId": "-1",
-      "tokenId": "b2d7b3472c7283baff4826b2"
+      "tokenId": "3df629eb4cc8c700d3369d20"
     },
     "isolatedFrameMatchesSubscriber": true,
     "unsubscribedAccountReceivedNothing": true,
@@ -407,8 +407,8 @@
         "message"
       ],
       "connectUrlLines": [
-        "trying to connect: ws://127.0.0.1:40653/<token>",
-        "trying to connect: ws://127.0.0.1:40653/<token>"
+        "trying to connect: ws://127.0.0.1:46795/<token>",
+        "trying to connect: ws://127.0.0.1:46795/<token>"
       ],
       "connectAttempts": 2,
       "consumerReusedTheSameToken": true,
@@ -417,11 +417,11 @@
     }
   },
   "tls": {
-    "cert": "/tmp/phoenix-a10-probe-39BlDr/tls/server.crt",
+    "cert": "/tmp/phoenix-a10-probe-6ItwH5/tls/server.crt",
     "san": "X509v3 Subject Alternative Name: \n    DNS:localhost, DNS:phx.jibo.com, DNS:phx-socket.jibo.com, IP Address:127.0.0.1, IP Address:192.168.1.182, IP Address:100.90.238.114, IP Address:10.99.0.8, IP Address:172.19.0.1",
     "httpDiscovery": {
       "status": 200,
-      "body": "{\"token\":\"cde5244fd715f813601f9cfdc02878e6232364038760040f48c5a9d3c7e520c5063f14378ff1f2106bb367de138421380504cae3fbef98bf1daedb29e103b667\"}"
+      "body": "{\"token\":\"d0de80490e6c1238fd2ce4a128a6b2fa88373af9beaa3dc8846256d59bd4ed720a49aaeced80bd622c59423130de1a4d3be62de80d2672459d13a61541d6eab1\"}"
     },
     "socketDeliveryOverTls": {
       "seq": "tls",

@@ -1,0 +1,60 @@
+{
+  "cases": [
+    {
+      "name": "ack: the send callback no longer removes the delivered row (queue 1 -> 0 / isolation claims)",
+      "file": "packages/classic/src/notification.js",
+      "anchorReplaced": "            this.store.removeNotification(notification._id);",
+      "replacedWith": "            void notification._id;",
+      "why": "without the durable delete the row is replayed, so the queue never reaches 0",
+      "codeLineChanged": true,
+      "restoredByteIdentical": true,
+      "brokenRun": {
+        "passed": 1,
+        "failed": 2,
+        "skipped": 0,
+        "cancelled": 0,
+        "failing": [
+          "the production path: HTTPS /notify is queued offline (1) and consumed+acked by the signed robot socket (0)",
+          "a socket for a different account never receives another account notification frame"
+        ]
+      },
+      "restoredRun": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "failing": []
+      },
+      "result": "CAUGHT"
+    },
+    {
+      "name": "region: the default serving-certificate region is no longer the robot  (region-names claim)",
+      "file": "scripts/ensure-tls-certs.mjs",
+      "anchorReplaced": "  const raw = env.PHOENIX_TLS_REGIONS || 'api';",
+      "replacedWith": "  const raw = env.PHOENIX_TLS_REGIONS || 'phx';",
+      "why": "the default cert stops covering api.jibo.com / api-socket.jibo.com",
+      "codeLineChanged": true,
+      "restoredByteIdentical": true,
+      "brokenRun": {
+        "passed": 0,
+        "failed": 3,
+        "skipped": 0,
+        "cancelled": 0,
+        "failing": [
+          "the default serving certificate carries the robot region names, and a non-robot region is not covered",
+          "the production path: HTTPS /notify is queued offline (1) and consumed+acked by the signed robot socket (0)",
+          "a socket for a different account never receives another account notification frame"
+        ]
+      },
+      "restoredRun": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "failing": []
+      },
+      "result": "CAUGHT"
+    }
+  ],
+  "allCaught": true
+}
