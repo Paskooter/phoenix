@@ -105,7 +105,7 @@ gotchas (see §4).
 | **entrypoint-socket** | — (the `wss://…-socket` door) | `jiborobot/srv-entrypoint-socket-ws` | Exposes the robot's WebSocket; works with `notification` to push events to the robot | ⬜ | **Tier 2 — transport for Commander/notifications.** Pairs with `notification`. |
 | **rom** | `rom-2017-10-11` | `jiborobot/srv-rom-ws` | Commander (Remote Operation Mode) | **◑ stub** | Create/SetupClient/SetupServer cert-bundle shapes; needs the app. |
 | **gqa** | — (consumed by the hub, not the robot directly) | `jiborobot/srv-gqa-ws` (Python) | General Q&A ("who is X") | **🟡** | **Replaced** by `packages/skills` answer-skill (LLM-backed) via the hub. No classic shim needed. |
-| **nlp** | `nlp-2016-10-31` | `jiborobot/srv-nlp-ws` | Cloud NLP (POS/NER) | **◑ stub** | shapes only; Phoenix has its own parser. |
+| **nlp** | `nlp-2016-10-31` | `jiborobot/srv-nlp-ws` | Cloud NLP (POS/NER) | **🟡 `packages/classic/src/nlp.js`** | Full wire contract + source `clean_input`; tag content needs the dead spaCy 1.2.0 backend, served through an explicit provider seam (`ETCO_nlp_upstream`), never faked. |
 | **collision** | `collision-2016-11-26` | `jiborobot/srv-collision-ws` | Username-collision check | **◑ stub** | returns "no collision". |
 | **security** | — | `jiborobot/srv-security-gw` | Auth gateway fronting all the APIs | **➖** | Bypassed: we repoint `region_config` and our services ignore SigV4. |
 
@@ -118,7 +118,7 @@ gotchas (see §4).
 | saml | `srv-saml-ws` | SAML SSO endpoint | ➖ |
 | customer-portal | `srv-customer-portal` | Web: reset password, confirm email | ➖ |
 | collision | `srv-collision-ws` | Resolve username collisions | ➖ (small dep of account flows) |
-| ifttt | `srv-ifttt-ws` | IFTTT integration | **◑ stub `packages/classic`** (Trigger/Action/UserInfo shapes) |
+| ifttt | `srv-ifttt-ws` | IFTTT integration | **🟡 `packages/classic/src/ifttt.js`** (all 7 ops, source controller semantics) | Third-party IFTTT notify is dead; recorded as an explicit UNAVAILABLE outcome, never faked. |
 | salesforce | `srv-salesforce-ws` | SalesForce CRM facade | ➖ |
 | poll | `srv-poll-ws` | AP-News feed → Mongo for GQA | ➖ (obsolete post-Fajita; Phoenix `lasso` shims news) |
 | logparser | `jiborobot/logparser` | Parse ASR/NLU logs (ES/S3) | ➖ (analytics) |
