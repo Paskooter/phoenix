@@ -2704,7 +2704,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2724,7 +2724,18 @@
         "Match original validation, roles, errors, ownership, durable state and downstream effects using SDK fixtures.",
         "Verify the Phoenix portal against the completed backend and preserve existing paired robots during migration."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Both Account and AccountAdmin API files checked for operation coverage, a 15-step lifecycle driven end-to-end against a running service, and criterion 3's portal/migration coverage",
+          "artifact": "docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md",
+          "result": "pass",
+          "referenceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+          "phoenixRevision": "5a76197f0f84e189d78dc35afafefa7f468e6532",
+          "command": "python3 scripts/parity-coverage/a03_account_coverage.py && node .parity/reviews/a03-lifecycle-20260910/lifecycle.mjs",
+          "notes": "Criterion 1: 24/25 live operations implemented and tested. The decisive point is that account-2015-11-11 and accountadmin-2015-11-11 are different API files sharing targetPrefix Account_20151111; ActivateById and ResetEmail exist ONLY in the admin file with IdRequest and ResetEmailRequest inputs, and Phoenix implements those exact shapes. CreateHubToken is dispatched by robotFace rather than the identity table and required a checker correction to see. The 3 Facebook operations are excluded by written determination (D-fb). Lifecycle 15/15 including durable state across a store reopen and key-pair invalidation. Criterion 2: covered by the focused suites plus seven findings classified against pinned source as A4-A10, all source-faithful and retained; A3 found and repaired; A11 records that coded error envelopes are NOT divergent. Criterion 3: portalApi + portalAuth tests, and householdImport tests cover preserving paired robots during migration. Scope: no original Node 8/Mongoose replay; AccountAdmin verified for input contracts only, as there is no separate admin role enforcement to compare."
+        }
+      ],
       "implementationReview": {
         "state": "changes_requested",
         "assignee": "Luna Max / capture_writer_repair",
