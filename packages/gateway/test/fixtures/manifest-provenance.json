@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "task": "S-06",
+  "digest": "sha256 of the concatenated sorted lines `<relpath> <sha256>\\n`",
+  "sources": {
+    "pinnedReference": {
+      "revision": "5c0a7390539663ba749d360de348a428c088505c",
+      "path": "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c",
+      "role": "authoritative pinned original (5c0a739 originalPegasusCandidate)"
+    },
+    "workingCheckout": {
+      "revision": "5c0a7390539663ba749d360de348a428c088505c",
+      "path": "/home/shell/work/pegasus",
+      "role": "d682547a Pegasus working checkout, used as a cross-check"
+    }
+  },
+  "generatedFrom": {
+    "sourceIndexes": "packages/hub/resources/skills/{skills-local,skills-pegasus1,skills-pegasus2}.json",
+    "sourceManifests": "packages/hub/pegasus-skills + packages/hub/be-skills",
+    "pegasusReference": "5c0a7390539663ba749d360de348a428c088505c"
+  },
+  "phoenixFamilies": {
+    "skillsDir": {
+      "phoenix": "packages/gateway/resources/skills",
+      "source": "hub skill indexes + pegasus/be manifests",
+      "count": 33,
+      "aggregateSha256": "96e41575130da9b4cc8270d8b1203e03eb7df544a87cd3277c9699cd400fb8af",
+      "files": {
+        "be-skills/circuit_saver_manifest.json": "72e8da260622d8a8c361a13b8aab134d000a2b2418d7ea6148973a9448b6afa2",
+        "be-skills/clock_manifest.json": "f8a4d18a2ddf2329d8024f44382a983c915a4d2d225ab7ff165878b264728021",
+        "be-skills/create_manifest.json": "b08d9effc78db7449fac1b5b3b8e599cde9f6cd06d3e0f44b86d1c1247dd5435",
+        "be-skills/exercise_manifest.json": "aa03b2d4bddd679ba7bf9d0a84aff300d15fa77329c0d2e6054b168cca34da26",
+        "be-skills/friendly_tips_manifest.json": "5ff4055989b27956d9eb9654033628e5614706b1caa7bb2309403a0c19aed811",
+        "be-skills/gallery_manifest.json": "9a4e194a2183254925feb8b8caaf32289ed456d95ab11f7c3336357625aae55c",
+        "be-skills/greetings_manifest.json": "5b9171e4ee39f77cffc710e0ca9c4be498f1e9b7e053036ce4c6fff6684148a4",
+        "be-skills/hue_control_manifest.json": "28609afa955ebd139ac9fb283accc05e33aa724a1c8e9e8f2d41a3904e231e36",
+        "be-skills/ifttt_manifest.json": "63530dc7a4e767f35a3da381fbb6692dcde1ba49bfe0431b6709aed6d90520b6",
+        "be-skills/introductions_manifest.json": "8568156a41842f87b1a11e0bc29902a1413aa0c4eb90a3ffcf5d237324f964f6",
+        "be-skills/main_menu_manifest.json": "8170b27a26fb54139f3d8d393e248749d010d0b086ba7da8e6a12b1a39c3e9ba",
+        "be-skills/radio_manifest.json": "4a981e5454b4e245e7fae551682b75651c3baf2683938f02a2bb35dfef0e1c44",
+        "be-skills/settings_manifest.json": "ab81907610a26d12a547611058e62bb975928ea48b4afd0e52b5acf770856f1a",
+        "be-skills/surprises_ota_manifest.json": "eec4fa890ebe6c864f35ef235c64176f35519e361d46372abbf8320352d7fc65",
+        "be-skills/tutorial_manifest.json": "67d5c5767605a0eb6603b3cf85377a6819226a20e755b504a0610f9f7ae9a5b2",
+        "be-skills/who_am_i_manifest.json": "0707eb8b193d5a84a91638361b39c1e9512cb1804fca050292ee725782c8fbdf",
+        "be-skills/word_of_the_day_manifest.json": "d76d20aec716dca85847545fffe563e1ff393d158ed2c6d1fd6a0d102db24bdc",
+        "external-skills/answer_manifest.json": "39d392236cdc9dbd48a2aeaaefb1ef1a03a17fffd9921c1321d93205cf549573",
+        "external-skills/news_manifest.json": "e24cca2b6cca2d72f9615449183b5825dbc76cc89c376f35edbaa0ea8afddde9",
+        "pegasus-skills/answer_skill_manifest.json": "1028d610d748329b97f69a073f06e8dfc90bb899b847312c53c1dc16bb06eee9",
+        "pegasus-skills/chitchat_skill_manifest.json": "29022d7336281f76e63a894a2cf6c34c800f667ffa10c9e90622b68b4059c45b",
+        "pegasus-skills/color_skill_manifest.json": "ad23f1864034629b9f6edf10c145e4f9eef3c82625e40ecf3770cc4460bc12a7",
+        "pegasus-skills/example_skill_manifest.json": "d9953481dcdb3876f540ed6c7d5fd1f5bafb8733381b13f5af348a5d01570d8f",
+        "pegasus-skills/report_skill_manifest.json": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
+        "pegasus-skills/template_skill_manifest.json": "de6893133063253cb084a3218045ec8218aa57b95d10fdc45f7d437635c52a29",
+        "skills-gqa-default.json": "fa4e7c9a9f9dc3fee2402ac45dce169dd766ea6b1ae8e357c3b655b650fa6fe0",
+        "skills-gqa-multi-provider.json": "8764d47bcd9f3756ecdf5cde5c2479cd77c847967faeaa9badf24b8187c4dca3",
+        "skills-gqa-wikipedia.json": "d269038139356946742983bc6319a3d1621d007ca1e514116c0feb093f5ff8ca",
+        "skills-local.json": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629",
+        "skills-native.json": "7d37eda4de46535dac1e3ac54c943ef0cc9021d4a9470562c8a0adcfab27263a",
+        "skills-pegasus1.json": "c41ab0d33c181bf76c8b60794e63a795bac23e3cd5f109cbf58ceb08fa012693",
+        "skills-pegasus2.json": "de4b4ef977c904a3737373db482803fb749a6377afca54f45c96271f97504e33",
+        "skills-phoenix.json": "ff818483ea4d30abf73307bcf1a19b4e5218fb0f1ecf487b7ae5c042472516d5"
+      }
+    }
+  },
+  "sourceEquivalence": {
+    "pegasus-skills": {
+      "phoenixCount": 6,
+      "sourceCount": 4,
+      "identical": false,
+      "onlySource": [],
+      "onlyPhoenix": [
+        "answer_skill_manifest.json",
+        "color_skill_manifest.json"
+      ],
+      "differing": []
+    },
+    "be-skills": {
+      "phoenixCount": 17,
+      "sourceCount": 17,
+      "identical": true,
+      "onlySource": [],
+      "onlyPhoenix": [],
+      "differing": []
+    },
+    "external-skills": {
+      "phoenixCount": 2,
+      "sourceCount": 2,
+      "identical": true,
+      "onlySource": [],
+      "onlyPhoenix": [],
+      "differing": []
+    }
+  },
+  "indexFiles": {
+    "skills-local.json": {
+      "identical": true,
+      "phoenixSha256": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629",
+      "sourceSha256": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629",
+      "source": "packages/hub/resources/skills/skills-local.json"
+    },
+    "skills-pegasus1.json": {
+      "identical": true,
+      "phoenixSha256": "c41ab0d33c181bf76c8b60794e63a795bac23e3cd5f109cbf58ceb08fa012693",
+      "sourceSha256": "c41ab0d33c181bf76c8b60794e63a795bac23e3cd5f109cbf58ceb08fa012693",
+      "source": "packages/hub/resources/skills/skills-pegasus1.json"
+    },
+    "skills-pegasus2.json": {
+      "identical": true,
+      "phoenixSha256": "de4b4ef977c904a3737373db482803fb749a6377afca54f45c96271f97504e33",
+      "sourceSha256": "de4b4ef977c904a3737373db482803fb749a6377afca54f45c96271f97504e33",
+      "source": "packages/hub/resources/skills/skills-pegasus2.json"
+    },
+    "answer_skill_manifest.json": {
+      "identical": false,
+      "phoenixSha256": "1028d610d748329b97f69a073f06e8dfc90bb899b847312c53c1dc16bb06eee9",
+      "sourceSha256": "278f7747d9da82f3669616f32e0d18a75d4a6e72fbdd1330a0c19a8d4a82834f",
+      "source": "/home/shell/work/pegasus/packages/hub/pegasus-skills/answer_skill_manifest.json"
+    },
+    "stringNormalizationMap.json": {
+      "identical": true,
+      "phoenixSha256": "3679ae744b1b8e3fefbeaeab79498093789b64abcbb2b99694ee670e1080ae8f",
+      "sourceSha256": "3679ae744b1b8e3fefbeaeab79498093789b64abcbb2b99694ee670e1080ae8f",
+      "source": "packages/hub/resources/stringNormalizationMap.json"
+    }
+  },
+  "externalAnswerManifest": {
+    "path": "packages/hub/external-skills/answer_manifest.json",
+    "id": "answer",
+    "intents": [
+      "doesJiboKnowPersonThing",
+      "generalHowQuestions",
+      "generalQuestions",
+      "generalWhatQuestions",
+      "generalWhenQuestions",
+      "generalWhereQuestions",
+      "generalWhoQuestions",
+      "generalWhyQuestions",
+      "gqa",
+      "howDescriptorIsPerson",
+      "howDescriptorIsUnknown",
+      "isUnknownDescriptor",
+      "requestTellAboutThing",
+      "requestWeather",
+      "whenIsBirthday",
+      "whereIsPerson",
+      "whereIsThing",
+      "whoIsPerson",
+      "whyIsUnknownDescriptor"
+    ]
+  },
+  "sourceFamilies": {
+    "skillsDir": {
+      "count": 3,
+      "files": {
+        "skills-local.json": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629",
+        "skills-pegasus1.json": "c41ab0d33c181bf76c8b60794e63a795bac23e3cd5f109cbf58ceb08fa012693",
+        "skills-pegasus2.json": "de4b4ef977c904a3737373db482803fb749a6377afca54f45c96271f97504e33"
+      },
+      "aggregateSha256": "9c8d32ae4a8268e9cc44d799b7128e3db8f6f2b3285fad99a82ffc5d62270e3b"
+    },
+    "pegasusSkills": {
+      "count": 4,
+      "files": {
+        "chitchat_skill_manifest.json": "29022d7336281f76e63a894a2cf6c34c800f667ffa10c9e90622b68b4059c45b",
+        "example_skill_manifest.json": "d9953481dcdb3876f540ed6c7d5fd1f5bafb8733381b13f5af348a5d01570d8f",
+        "report_skill_manifest.json": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
+        "template_skill_manifest.json": "de6893133063253cb084a3218045ec8218aa57b95d10fdc45f7d437635c52a29"
+      },
+      "aggregateSha256": "419f342d6fd638b74053889b0f8cbf779cb57236ec38e6872b38e7c7738c995e"
+    },
+    "beSkills": {
+      "count": 17,
+      "files": {
+        "circuit_saver_manifest.json": "72e8da260622d8a8c361a13b8aab134d000a2b2418d7ea6148973a9448b6afa2",
+        "clock_manifest.json": "f8a4d18a2ddf2329d8024f44382a983c915a4d2d225ab7ff165878b264728021",
+        "create_manifest.json": "b08d9effc78db7449fac1b5b3b8e599cde9f6cd06d3e0f44b86d1c1247dd5435",
+        "exercise_manifest.json": "aa03b2d4bddd679ba7bf9d0a84aff300d15fa77329c0d2e6054b168cca34da26",
+        "friendly_tips_manifest.json": "5ff4055989b27956d9eb9654033628e5614706b1caa7bb2309403a0c19aed811",
+        "gallery_manifest.json": "9a4e194a2183254925feb8b8caaf32289ed456d95ab11f7c3336357625aae55c",
+        "greetings_manifest.json": "5b9171e4ee39f77cffc710e0ca9c4be498f1e9b7e053036ce4c6fff6684148a4",
+        "hue_control_manifest.json": "28609afa955ebd139ac9fb283accc05e33aa724a1c8e9e8f2d41a3904e231e36",
+        "ifttt_manifest.json": "63530dc7a4e767f35a3da381fbb6692dcde1ba49bfe0431b6709aed6d90520b6",
+        "introductions_manifest.json": "8568156a41842f87b1a11e0bc29902a1413aa0c4eb90a3ffcf5d237324f964f6",
+        "main_menu_manifest.json": "8170b27a26fb54139f3d8d393e248749d010d0b086ba7da8e6a12b1a39c3e9ba",
+        "radio_manifest.json": "4a981e5454b4e245e7fae551682b75651c3baf2683938f02a2bb35dfef0e1c44",
+        "settings_manifest.json": "ab81907610a26d12a547611058e62bb975928ea48b4afd0e52b5acf770856f1a",
+        "surprises_ota_manifest.json": "eec4fa890ebe6c864f35ef235c64176f35519e361d46372abbf8320352d7fc65",
+        "tutorial_manifest.json": "67d5c5767605a0eb6603b3cf85377a6819226a20e755b504a0610f9f7ae9a5b2",
+        "who_am_i_manifest.json": "0707eb8b193d5a84a91638361b39c1e9512cb1804fca050292ee725782c8fbdf",
+        "word_of_the_day_manifest.json": "d76d20aec716dca85847545fffe563e1ff393d158ed2c6d1fd6a0d102db24bdc"
+      },
+      "aggregateSha256": "0756c8656903911c92edada231c511c54a1a2686ac24ad2d8959aebcb0258ce2"
+    }
+  },
+  "answerManifest": {
+    "sourcePath": "packages/hub/pegasus-skills/answer_skill_manifest.json (d682547a checkout only)",
+    "sourceIntents": [
+      "doesJiboKnowPersonThing",
+      "gqa",
+      "generalHowQuestions",
+      "generalQuestions",
+      "generalWhatQuestions",
+      "generalWhenQuestions",
+      "generalWhereQuestions",
+      "generalWhoQuestions",
+      "generalWhyQuestions",
+      "requestTellAboutThing",
+      "answerQuestion",
+      "howDescriptorIsUnknown",
+      "howDescriptorIsPerson"
+    ],
+    "phoenixIntents": [
+      "doesJiboKnowPersonThing",
+      "gqa",
+      "generalHowQuestions",
+      "generalQuestions",
+      "generalWhatQuestions",
+      "generalWhenQuestions",
+      "generalWhereQuestions",
+      "generalWhoQuestions",
+      "generalWhyQuestions",
+      "requestTellAboutThing",
+      "requestWeather",
+      "howDescriptorIsUnknown",
+      "howDescriptorIsPerson",
+      "isUnknownDescriptor",
+      "whyIsUnknownDescriptor",
+      "whenIsBirthday",
+      "whoIsPerson",
+      "whoIsPerson",
+      "whoIsPerson",
+      "whereIsPerson",
+      "whereIsPerson",
+      "whereIsPerson",
+      "whereIsThing",
+      "answerQuestion"
+    ],
+    "addedIntents": [
+      "isUnknownDescriptor",
+      "requestWeather",
+      "whenIsBirthday",
+      "whereIsPerson",
+      "whereIsThing",
+      "whoIsPerson",
+      "whyIsUnknownDescriptor"
+    ],
+    "missingIntents": [],
+    "memoConflicts": [],
+    "id": {
+      "source": "answer-skill",
+      "phoenix": "answer-skill"
+    }
+  },
+  "unchangedSourceFiles": [
+    "packages/hub/resources/skills/skills-pegasus1.json",
+    "packages/hub/pegasus-skills/chitchat_skill_manifest.json",
+    "packages/hub/pegasus-skills/report_skill_manifest.json",
+    "packages/hub/pegasus-skills/example_skill_manifest.json",
+    "packages/hub/pegasus-skills/template_skill_manifest.json",
+    "packages/hub/be-skills/*.json"
+  ]
+}
