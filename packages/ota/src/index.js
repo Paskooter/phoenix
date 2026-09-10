@@ -26,7 +26,7 @@ export async function start(opts = {}) {
   const publicBaseUrl = opts.publicBaseUrl ?? process.env.ETCO_ota_publicUrl ?? null;
 
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  const catalog = await Catalog.load({ entries: manifest.updates || [], dataDir, log });
+  const catalog = await Catalog.load({ entries: manifest.updates || [], dataDir, log, serialOf: opts.serialOf ?? null });
   if (!catalog.entries.length) {
     log.warn('ota: no packages available yet — run scripts/build-ota-packages.sh to populate', { dataDir });
   }
@@ -39,6 +39,7 @@ export async function start(opts = {}) {
 
 export { Catalog } from './catalog.js';
 export { createOtaService } from './service.js';
+export * as errors from './errors.js';
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   start().catch((e) => {

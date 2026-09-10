@@ -87,7 +87,7 @@ async function proxy(baseUrl, req, res, body, log) {
         statusCode: 415,
       });
     }
-    const requestBody = isClassicBinaryPhotoUpload(req) ? req : req.rawBody === undefined
+    const requestBody = isClassicStreamedUpload(req) ? req : req.rawBody === undefined
       ? (body === null || body === undefined ? '' : JSON.stringify(body))
       : req.rawBody;
     // Native http.request is used here because undici/fetch deliberately
@@ -207,13 +207,28 @@ function isClassicBinaryPhotoUpload(req) {
 }
 
 /**
+ * Update_20160301.CreateUpdate ships the OTA package itself as the request entity — the pinned
+ * model declares input.payload = body, a blob stream (update-2016-03-01.normal.json) — and the
+ * source routes it to a stream handler (srv-server src/server.ts binary route). It must
+ * therefore reach the upstream unparsed and be forwarded byte-for-byte, like the uploads above.
+ */
+function isClassicUpdatePackageUpload(req) {
+  return /^Update[^.]*\.CreateUpdate$/i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
+/** Request entities that are NOT JSON: must skip body-parser AND be piped through the proxy. */
+function isClassicStreamedUpload(req) {
+  return isClassicBinaryPhotoUpload(req) || isClassicUpdatePackageUpload(req);
+}
+
+/**
  * Targets whose request entity is NOT JSON and must reach the handler unparsed. Besides the two
  * photo uploads this is Key_20160201.ShareBinary: the pinned model declares
  * ShareBinaryRequest.payload = body (a blob stream) with the request id in the `x-id` header, so
  * the source Hapi handler reads `request.payload` as the raw stream (srv-key-ws key.handler.ts).
  */
 function isClassicRawBodyTarget(req) {
-  if (isClassicBinaryPhotoUpload(req)) return true;
+  if (isClassicStreamedUpload(req)) return true;
   return /^Key[^.]*\.ShareBinary$/i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
 
