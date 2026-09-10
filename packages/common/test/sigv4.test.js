@@ -215,3 +215,33 @@ test('an explicit x-amz-content-sha256 follows the native source signer path onl
   // without the header hash the exact received body (tested above).
   assert.equal(verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' }).accessKeyId, ACCESS_KEY);
 });
+
+test('accepts the shipped Android client\'s empty service segment', () => {
+  // The real Jibo Android app signs with the credential scope
+  // `<date>/api-dev//aws4_request` — region "api-dev", service "" — and derives
+  // its signing key with that empty string. Phoenix used to reject the scope
+  // outright, so every signed call from the app failed with SIGNATURE_MISMATCH
+  // immediately after a successful Login. Captured from a real device session.
+  const headers = signed({ region: 'api-dev', service: '' }).headers;
+  assert.match(
+    headers.Authorization,
+    /Credential=AKIDEXAMPLE\/\d{8}\/api-dev\/\/aws4_request/,
+    'the signer must emit the empty service segment verbatim',
+  );
+  const result = verify(headers);
+  assert.equal(result.accessKeyId, ACCESS_KEY);
+  assert.equal(result.region, 'api-dev');
+  assert.equal(result.service, '');
+});
+
+test('still rejects a scope whose region is empty', () => {
+  // Only the service segment is optional; an empty region must remain fatal so
+  // the previous fix cannot be mistaken for "any malformed scope is fine".
+  // signSigV4 refuses to build this, so the header is assembled by hand.
+  const good = signed({ region: 'api-dev', service: '' }).headers;
+  const broken = {
+    ...good,
+    Authorization: good.Authorization.replace('/api-dev//aws4_request', '///aws4_request'),
+  };
+  assert.equal(errorCode(() => verify(broken)), 'SIGNATURE_MISMATCH');
+});

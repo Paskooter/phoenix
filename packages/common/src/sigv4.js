@@ -268,7 +268,12 @@ export function signSigV4({
   service = 'jibo',
   date = new Date(),
 } = {}) {
-  if (!validAccessKey(accessKeyId) || !secretAccessKey || !region || !service) {
+  // `service` may legitimately be an empty string: the shipped Jibo Android
+  // client signs with the scope `<date>/api-dev//aws4_request`. Guard against
+  // a missing (undefined/null) service instead of a falsy one, so the signer
+  // can reproduce that client's requests and stay symmetric with the verifier.
+  if (!validAccessKey(accessKeyId) || !secretAccessKey || !region
+    || service === undefined || service === null) {
     throw new TypeError('accessKeyId, secretAccessKey, region, and service are required');
   }
   const datetime = amzDate(date);
@@ -317,7 +322,15 @@ function parseAuthorization(value) {
   const signature = attributes.Signature;
   if (!credential || !signedHeaders || !signature) fail('SIGNATURE_MISMATCH');
   const scope = credential.split('/');
-  if (scope.length !== 5 || scope[4] !== 'aws4_request' || !validAccessKey(scope[0]) || !scope[1] || !scope[2] || !scope[3]) {
+  // The service segment is NOT required to be non-empty. The shipped Jibo
+  // Android client signs with the scope `<date>/api-dev//aws4_request` — an
+  // empty service — and computes its signature with that empty string as the
+  // service key material. Rejecting it here made every signed request from the
+  // real client fail with SIGNATURE_MISMATCH before a signature was even
+  // computed, which presented as the app silently bouncing back to the welcome
+  // screen right after a successful Login. Region and date must still be
+  // present, because an absent date breaks scope derivation outright.
+  if (scope.length !== 5 || scope[4] !== 'aws4_request' || !validAccessKey(scope[0]) || !scope[1] || !scope[2]) {
     fail('SIGNATURE_MISMATCH');
   }
   return {
