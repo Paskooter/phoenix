@@ -3565,7 +3565,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "unassessed",
       "owner": "Codex",
       "dependsOn": [
@@ -3587,7 +3587,18 @@
         "Resolve newly discovered non-API-file services into explicit child tasks; do not assume absence of one SDK definition means a feature never existed.",
         "Finish an operation-by-operation coverage review with no unassigned required surface."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Independent verification by a second agent, re-derived from pinned source rather than from the candidate report. All five operations (OauthClients_20171108 Create/ListClients/Update/Remove, Lps_20171201.NewCredentials) confirmed SERVED at runtime, not merely present in source. The two-layer auth model was checked in both repos: all five are absent from the gateway's unauthorizedMethods (20 entries) and unsignedMethods is empty, so every one requires verified AWS4 SigV4; x-amz-credentials is gateway-injected from the verified account in gw.route.ts buildCredentials(), not caller-controlled. Source-derived claims confirmed: CLIENT_ALREADY_EXISTS 409, CLIENT_NOT_FOUND 404, aco scheme defaults (keepAliveTimeout 500 / recoveryTimeout 300 / version 1.0, refresh true), ROBOT_ONLY 403 on LPS, and the LPS bucketPath template including the 0-based getMonth() quirk root had already confirmed at sts.ctrl.ts:26.",
+          "artifact": "docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md",
+          "result": "pass",
+          "referenceRevision": "3e546cb78eb160dcd3eaf25173420a35c56f68b5",
+          "phoenixRevision": "b46d3338d29de1de1c4dc2d48d1adae26b117e23",
+          "command": "node --test packages/account/test/oauthClientsLps.test.js && npm test",
+          "notes": "Falsification performed on the highest-risk assertion: the admin-only gate in packages/account/src/oauthClients.js was replaced with `if (false)`, and test 6 (non-admin rejected) failed with expected 401 / actual 200; restored byte-identical and green at 12/12. The agent independently agreed that app-toolkit-manager and logparser existed and belong in child tasks rather than being dismissed for lacking an SDK api file."
+        }
+      ]
     },
     {
       "id": "R-01",

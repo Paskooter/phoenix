@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="520" height="86" viewBox="0 0 520 86" role="img" aria-labelledby="title desc">
-  <title id="title">19.0% checklist completion — 15 of 79 tasks verified</title>
+  <title id="title">20.3% checklist completion — 16 of 79 tasks verified</title>
   <desc id="desc">Verified checklist tasks, including planning and test infrastructure. Candidate work is excluded.</desc>
   <rect width="520" height="86" rx="12" fill="#111827"/>
   <text x="24" y="29" fill="#f9fafb" font-family="Arial, sans-serif" font-size="15">Checklist completion</text>
-  <text x="480" y="29" text-anchor="end" fill="#93c5fd" font-family="Arial, sans-serif" font-size="15">19.0% · 15/79 verified</text>
+  <text x="480" y="29" text-anchor="end" fill="#93c5fd" font-family="Arial, sans-serif" font-size="15">20.3% · 16/79 verified</text>
   <rect x="24" y="45" width="456" height="14" rx="7" fill="#374151"/>
-  <rect x="24" y="45" width="86.58" height="14" rx="7" fill="#60a5fa"/>
+  <rect x="24" y="45" width="92.35" height="14" rx="7" fill="#60a5fa"/>
 </svg>

@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 3 | 46 | 0 | 0 |
-| classic | 5 | 20 | 0 | 0 |
+| classic | 6 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1670,7 +1670,7 @@ Evidence: pending.
 
 ### A-18 — Close remaining admin, OAuth-client and LPS contracts
 
-- [ ] **todo** · P1 · classic · implementation: unassessed
+- [x] **verified** · P1 · classic · implementation: unassessed
 
 Owner: Codex. Dependencies: A-01, A-02, A-03.
 
@@ -1686,7 +1686,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/oauthclientsadmin-2017-11-08.norm
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/account/src](../../packages/account/src).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md](../../docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md) (2026-09-10; Independent verification by a second agent, re-derived from pinned source rather than from the candidate report. All five operations (OauthClients_20171108 Create/ListClients/Update/Remove, Lps_20171201.NewCredentials) confirmed SERVED at runtime, not merely present in source. The two-layer auth model was checked in both repos: all five are absent from the gateway's unauthorizedMethods (20 entries) and unsignedMethods is empty, so every one requires verified AWS4 SigV4; x-amz-credentials is gateway-injected from the verified account in gw.route.ts buildCredentials(), not caller-controlled. Source-derived claims confirmed: CLIENT_ALREADY_EXISTS 409, CLIENT_NOT_FOUND 404, aco scheme defaults (keepAliveTimeout 500 / recoveryTimeout 300 / version 1.0, refresh true), ROBOT_ONLY 403 on LPS, and the LPS bucketPath template including the 0-based getMonth() quirk root had already confirmed at sts.ctrl.ts:26.).
 
 ## 5. Verify integration, deployment and hardware
 
