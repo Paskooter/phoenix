@@ -1,0 +1,50 @@
+{
+  "rule": "srv-server lowerMethodName: target.split(\".\")[1]",
+  "results": [
+    {
+      "target": "Account_20151111.Get",
+      "note": "canonical",
+      "status": 200
+    },
+    {
+      "target": "Account_20151111.Get.Extra",
+      "note": "extra dot: source split(\".\")[1] still yields Get",
+      "status": 200
+    },
+    {
+      "target": "account_20151111.get",
+      "note": "lowercase prefix and op",
+      "status": 200
+    },
+    {
+      "target": "ACCOUNT_20151111.GET",
+      "note": "uppercase op: source lowercases only the FIRST char -> gET",
+      "status": 400,
+      "errorType": "UnknownOperationException"
+    },
+    {
+      "target": "WrongPrefix.Get",
+      "note": "framework does not validate the prefix",
+      "status": 400,
+      "errorType": "UnknownOperationException"
+    },
+    {
+      "target": "Account_20151111.",
+      "note": "empty method segment: source throws -> 500",
+      "status": 400,
+      "errorType": "UnknownOperationException"
+    },
+    {
+      "target": "NoDot",
+      "note": "no dot: source throws -> 500",
+      "status": 400,
+      "errorType": "UnknownOperationException"
+    },
+    {
+      "target": "",
+      "note": "empty target",
+      "status": 400,
+      "errorType": "UnknownOperationException"
+    }
+  ]
+}
