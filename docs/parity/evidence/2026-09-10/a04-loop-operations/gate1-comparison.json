@@ -1,8 +1,8 @@
 {
   "kind": "a04-gate1-source-vs-phoenix-sequence-comparison-root",
   "comparator": "compare-state-sequences-root.py",
-  "evidenceRoot": "/home/shell/work/phoenix/.parity/reviews/a04-gate1-rerun-20260910",
-  "candidateRevision": "06fb875335d8e7a8250f42110530cec88597bd99",
+  "evidenceRoot": ".",
+  "candidateRevision": "064b465410c17c926866002b1623cf2097a7eb34",
   "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
   "client": {
     "node": "v8.9.4",
@@ -49,15 +49,13 @@
       "dimension": "account.owner-robot",
       "source": {
         "robotPresent": false,
-        "isDeleted": true,
         "isSuspended": false
       },
       "phoenix": {
         "robotPresent": false,
-        "isDeleted": false,
         "isSuspended": false
       },
-      "match": false,
+      "match": true,
       "notes": ""
     },
     {
@@ -73,15 +71,13 @@
       "dimension": "account.owner-robot",
       "source": {
         "robotPresent": false,
-        "isDeleted": true,
         "isSuspended": false
       },
       "phoenix": {
         "robotPresent": false,
-        "isDeleted": false,
         "isSuspended": false
       },
-      "match": false,
+      "match": true,
       "notes": ""
     },
     {
@@ -129,15 +125,13 @@
       "dimension": "classic.owner-robot",
       "source": {
         "robotPresent": false,
-        "isDeleted": true,
         "isSuspended": false
       },
       "phoenix": {
         "robotPresent": false,
-        "isDeleted": false,
         "isSuspended": false
       },
-      "match": false,
+      "match": true,
       "notes": ""
     },
     {
@@ -153,15 +147,13 @@
       "dimension": "classic.owner-robot",
       "source": {
         "robotPresent": false,
-        "isDeleted": true,
         "isSuspended": false
       },
       "phoenix": {
         "robotPresent": false,
-        "isDeleted": false,
         "isSuspended": false
       },
-      "match": false,
+      "match": true,
       "notes": ""
     },
     {
@@ -174,73 +166,8 @@
     }
   ],
   "total": 12,
-  "matched": 8,
-  "mismatches": [
-    {
-      "sequence": "create-clear-read",
-      "dimension": "account.owner-robot",
-      "source": {
-        "robotPresent": false,
-        "isDeleted": true,
-        "isSuspended": false
-      },
-      "phoenix": {
-        "robotPresent": false,
-        "isDeleted": false,
-        "isSuspended": false
-      },
-      "match": false,
-      "notes": ""
-    },
-    {
-      "sequence": "create-remove-loop-read",
-      "dimension": "account.owner-robot",
-      "source": {
-        "robotPresent": false,
-        "isDeleted": true,
-        "isSuspended": false
-      },
-      "phoenix": {
-        "robotPresent": false,
-        "isDeleted": false,
-        "isSuspended": false
-      },
-      "match": false,
-      "notes": ""
-    },
-    {
-      "sequence": "create-clear-read",
-      "dimension": "classic.owner-robot",
-      "source": {
-        "robotPresent": false,
-        "isDeleted": true,
-        "isSuspended": false
-      },
-      "phoenix": {
-        "robotPresent": false,
-        "isDeleted": false,
-        "isSuspended": false
-      },
-      "match": false,
-      "notes": ""
-    },
-    {
-      "sequence": "create-remove-loop-read",
-      "dimension": "classic.owner-robot",
-      "source": {
-        "robotPresent": false,
-        "isDeleted": true,
-        "isSuspended": false
-      },
-      "phoenix": {
-        "robotPresent": false,
-        "isDeleted": false,
-        "isSuspended": false
-      },
-      "match": false,
-      "notes": ""
-    }
-  ],
+  "matched": 12,
+  "mismatches": [],
   "missingSteps": [],
-  "allMatch": false
+  "allMatch": true
 }

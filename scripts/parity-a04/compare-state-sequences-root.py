@@ -101,14 +101,36 @@ def add(seq, dimension, src, phx, notes=''):
 
 
 def robot_shape(owner_robot):
-    """Presence/deletion shape; raw ids differ between runs by construction."""
+    """Presence/suspension shape; raw ids differ between runs by construction.
+
+    `isDeleted` is deliberately NOT compared here.
+
+    The Loop output shape in the pinned SDK (apis/loop-2016-03-24 shape S5,
+    returned by Create, Remove and ClearRobot) declares exactly:
+        id, name, owner, robot, robotFriendlyId, members, isSuspended,
+        created, updated
+    `isDeleted` is absent, and the aws-sdk drops undeclared members while
+    parsing. So NO original client can observe the field on these operations,
+    whatever the server writes.
+
+    The two harnesses measure different things: the source harness records the
+    raw JSON body (where the source server does emit isDeleted, because its
+    Mongoose toJSON transform does not delete it), while the Phoenix harness
+    records the SDK-PARSED result, where the field has already been stripped.
+    Comparing them reported four permanent mismatches on create-clear-read and
+    create-remove-loop-read that no client could ever see.
+
+    Soft deletion is still verified, and more meaningfully, by the
+    `*-list-after-*` and `*-get-after-*` steps: a soft-deleted loop must vanish
+    from list output and change the getRobot status code. Those are compared as
+    the 'status' and 'code' dimensions and would catch a real regression.
+    """
     if owner_robot is None:
         return None
     if isinstance(owner_robot, list):
         return [robot_shape(item) for item in owner_robot]
     return {
         'robotPresent': owner_robot.get('robot') is not None,
-        'isDeleted': bool(owner_robot.get('isDeleted')),
         'isSuspended': bool(owner_robot.get('isSuspended')),
     }
 
