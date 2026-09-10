@@ -1,0 +1,291 @@
+{
+  "Create.admin": {
+    "status": 200,
+    "errortype": null,
+    "body": {
+      "aco": {
+        "keepAliveTimeout": 500,
+        "recoveryTimeout": 300,
+        "version": "1.0"
+      },
+      "clientId": "probe.app",
+      "created": 1789062041335,
+      "updated": 1789062041335,
+      "redirectUri": "https://x.invalid/cb",
+      "updatedBy": "364c333be17c100478f51e40",
+      "refresh": true,
+      "id": "7670216f3c0fb159c92ff7e7"
+    },
+    "raw": "{\"aco\":{\"keepAliveTimeout\":500,\"recoveryTimeout\":300,\"version\":\"1.0\"},\"clientId\":\"probe.app\",\"created\":1789062041335,\"updated\":1789062041335,\"redirectUri\":\"https://x.invalid/cb\",\"updatedBy\":\"364c333be17c100478f51e40\",\"refresh\":true,\"id\":\"7670216f3c0fb159c92ff7e7\"}"
+  },
+  "Create.duplicate": {
+    "status": 409,
+    "errortype": "CLIENT_ALREADY_EXISTS",
+    "body": {
+      "__type": "CLIENT_ALREADY_EXISTS",
+      "message": "Specified client is already exists"
+    },
+    "raw": "{\"__type\":\"CLIENT_ALREADY_EXISTS\",\"message\":\"Specified client is already exists\"}"
+  },
+  "Create.acoFallback": {
+    "status": 200,
+    "errortype": null,
+    "body": {
+      "aco": {
+        "keepAliveTimeout": 500,
+        "recoveryTimeout": 300,
+        "version": "1.0",
+        "commandSet": [
+          "c"
+        ],
+        "sourceId": "probe.aco"
+      },
+      "clientId": "probe.aco",
+      "created": 1789062041355,
+      "updated": 1789062041355,
+      "redirectUri": "https://x.invalid/cb3",
+      "updatedBy": "364c333be17c100478f51e40",
+      "refresh": true,
+      "id": "3bf61e59b35ea781bdd255fc"
+    },
+    "raw": "{\"aco\":{\"keepAliveTimeout\":500,\"recoveryTimeout\":300,\"version\":\"1.0\",\"commandSet\":[\"c\"],\"sourceId\":\"probe.aco\"},\"clientId\":\"probe.aco\",\"created\":1789062041355,\"updated\":1789062041355,\"redirectUri\":\"https://x.invalid/cb3\",\"updatedBy\":\"364c333be17c100478f51e40\",\"refresh\":true,\"id\":\"3bf61e59b35ea781bdd255fc\"}"
+  },
+  "ListClients.admin": {
+    "status": 200,
+    "errortype": null,
+    "body": [
+      {
+        "aco": {
+          "keepAliveTimeout": 500,
+          "recoveryTimeout": 300,
+          "version": "1.0"
+        },
+        "clientId": "probe.app",
+        "created": 1789062041335,
+        "updated": 1789062041335,
+        "redirectUri": "https://x.invalid/cb",
+        "updatedBy": "364c333be17c100478f51e40",
+        "refresh": true,
+        "id": "7670216f3c0fb159c92ff7e7"
+      },
+      {
+        "aco": {
+          "keepAliveTimeout": 500,
+          "recoveryTimeout": 300,
+          "version": "1.0",
+          "commandSet": [
+            "c"
+          ],
+          "sourceId": "probe.aco"
+        },
+        "clientId": "probe.aco",
+        "created": 1789062041355,
+        "updated": 1789062041355,
+        "redirectUri": "https://x.invalid/cb3",
+        "updatedBy": "364c333be17c100478f51e40",
+        "refresh": true,
+        "id": "3bf61e59b35ea781bdd255fc"
+      }
+    ],
+    "raw": "[{\"aco\":{\"keepAliveTimeout\":500,\"recoveryTimeout\":300,\"version\":\"1.0\"},\"clientId\":\"probe.app\",\"created\":1789062041335,\"updated\":1789062041335,\"redirectUri\":\"https://x.invalid/cb\",\"updatedBy\":\"364c333be17c100478f51e40\",\"refresh\":true,\"id\":\"7670216f3c0fb159c92ff7e7\"},{\"aco\":{\"keepAliveTimeout\":500,\"recoveryTimeout\":300,\"version\":\"1.0\",\"commandSet\":[\"c\"],\"sourceId\":\"probe.aco\"},\"clientId\":\"probe.aco\",\"created\":1789062041355,\"updated\":1789062041355,\"redirectUri\":\"https://x.invalid/cb3\",\"updatedBy\":\"364c333be17c100478f51e40\",\"refresh\":true,\"id\":\"3bf61e59b35ea781bdd255fc\"}]"
+  },
+  "Update.admin": {
+    "status": 200,
+    "errortype": null,
+    "body": {
+      "aco": {
+        "keepAliveTimeout": 500,
+        "recoveryTimeout": 300,
+        "version": "1.0",
+        "sourceId": "probe.app"
+      },
+      "clientId": "probe.app",
+      "created": 1789062041335,
+      "updated": 1789062041366,
+      "redirectUri": "https://x.invalid/upd",
+      "updatedBy": "364c333be17c100478f51e40",
+      "refresh": true,
+      "pkce": true,
+      "id": "7670216f3c0fb159c92ff7e7"
+    },
+    "raw": "{\"aco\":{\"keepAliveTimeout\":500,\"recoveryTimeout\":300,\"version\":\"1.0\",\"sourceId\":\"probe.app\"},\"clientId\":\"probe.app\",\"created\":1789062041335,\"updated\":1789062041366,\"redirectUri\":\"https://x.invalid/upd\",\"updatedBy\":\"364c333be17c100478f51e40\",\"refresh\":true,\"pkce\":true,\"id\":\"7670216f3c0fb159c92ff7e7\"}"
+  },
+  "Update.missing": {
+    "status": 404,
+    "errortype": "CLIENT_NOT_FOUND",
+    "body": {
+      "__type": "CLIENT_NOT_FOUND",
+      "message": "Specified client is not found"
+    },
+    "raw": "{\"__type\":\"CLIENT_NOT_FOUND\",\"message\":\"Specified client is not found\"}"
+  },
+  "Remove.admin": {
+    "status": 200,
+    "errortype": null,
+    "body": {
+      "aco": {
+        "keepAliveTimeout": 500,
+        "recoveryTimeout": 300,
+        "version": "1.0",
+        "sourceId": "probe.app"
+      },
+      "clientId": "probe.app",
+      "created": 1789062041335,
+      "updated": 1789062041366,
+      "redirectUri": "https://x.invalid/upd",
+      "updatedBy": "364c333be17c100478f51e40",
+      "refresh": true,
+      "pkce": true,
+      "id": "7670216f3c0fb159c92ff7e7"
+    },
+    "raw": "{\"aco\":{\"keepAliveTimeout\":500,\"recoveryTimeout\":300,\"version\":\"1.0\",\"sourceId\":\"probe.app\"},\"clientId\":\"probe.app\",\"created\":1789062041335,\"updated\":1789062041366,\"redirectUri\":\"https://x.invalid/upd\",\"updatedBy\":\"364c333be17c100478f51e40\",\"refresh\":true,\"pkce\":true,\"id\":\"7670216f3c0fb159c92ff7e7\"}"
+  },
+  "Remove.missing": {
+    "status": 200,
+    "errortype": null,
+    "body": null,
+    "raw": ""
+  },
+  "Lps.robot": {
+    "status": 200,
+    "errortype": null,
+    "body": {
+      "bucketName": "jibo-lps-probe",
+      "bucketPath": "lps/robot=probe-robot-friendly/account=862d610329743a243f97ad83/year=2026/month=8/day=10/session=1/",
+      "credentials": {
+        "AccessKeyId": "AKIAPROBE",
+        "Expiration": "2026-11-10T00:00:00.000Z",
+        "SecretAccessKey": "probe-secret",
+        "SessionToken": "probe-token"
+      },
+      "region": "us-east-1"
+    },
+    "raw": "{\"bucketName\":\"jibo-lps-probe\",\"bucketPath\":\"lps/robot=probe-robot-friendly/account=862d610329743a243f97ad83/year=2026/month=8/day=10/session=1/\",\"credentials\":{\"AccessKeyId\":\"AKIAPROBE\",\"Expiration\":\"2026-11-10T00:00:00.000Z\",\"SecretAccessKey\":\"probe-secret\",\"SessionToken\":\"probe-token\"},\"region\":\"us-east-1\"}"
+  },
+  "Create.unsigned": {
+    "status": 401,
+    "errortype": "MISSING_AUTH_HEADER",
+    "body": {
+      "__type": "MISSING_AUTH_HEADER",
+      "message": "Request is not signed properly, missing authorization header"
+    },
+    "raw": "{\"__type\":\"MISSING_AUTH_HEADER\",\"message\":\"Request is not signed properly, missing authorization header\"}"
+  },
+  "ListClients.unsigned": {
+    "status": 401,
+    "errortype": "MISSING_AUTH_HEADER",
+    "body": {
+      "__type": "MISSING_AUTH_HEADER",
+      "message": "Request is not signed properly, missing authorization header"
+    },
+    "raw": "{\"__type\":\"MISSING_AUTH_HEADER\",\"message\":\"Request is not signed properly, missing authorization header\"}"
+  },
+  "Update.unsigned": {
+    "status": 401,
+    "errortype": "MISSING_AUTH_HEADER",
+    "body": {
+      "__type": "MISSING_AUTH_HEADER",
+      "message": "Request is not signed properly, missing authorization header"
+    },
+    "raw": "{\"__type\":\"MISSING_AUTH_HEADER\",\"message\":\"Request is not signed properly, missing authorization header\"}"
+  },
+  "Remove.unsigned": {
+    "status": 401,
+    "errortype": "MISSING_AUTH_HEADER",
+    "body": {
+      "__type": "MISSING_AUTH_HEADER",
+      "message": "Request is not signed properly, missing authorization header"
+    },
+    "raw": "{\"__type\":\"MISSING_AUTH_HEADER\",\"message\":\"Request is not signed properly, missing authorization header\"}"
+  },
+  "Lps.unsigned": {
+    "status": 401,
+    "errortype": "MISSING_AUTH_HEADER",
+    "body": {
+      "__type": "MISSING_AUTH_HEADER",
+      "message": "Request is not signed properly, missing authorization header"
+    },
+    "raw": "{\"__type\":\"MISSING_AUTH_HEADER\",\"message\":\"Request is not signed properly, missing authorization header\"}"
+  },
+  "Create.nonAdmin": {
+    "status": 401,
+    "errortype": "AUTHORIZED_UNDER_ADMIN",
+    "body": {
+      "__type": "AUTHORIZED_UNDER_ADMIN",
+      "message": "Must be authorized under admin account"
+    },
+    "raw": "{\"__type\":\"AUTHORIZED_UNDER_ADMIN\",\"message\":\"Must be authorized under admin account\"}"
+  },
+  "ListClients.nonAdmin": {
+    "status": 401,
+    "errortype": "AUTHORIZED_UNDER_ADMIN",
+    "body": {
+      "__type": "AUTHORIZED_UNDER_ADMIN",
+      "message": "Must be authorized under admin account"
+    },
+    "raw": "{\"__type\":\"AUTHORIZED_UNDER_ADMIN\",\"message\":\"Must be authorized under admin account\"}"
+  },
+  "Update.nonAdmin": {
+    "status": 401,
+    "errortype": "AUTHORIZED_UNDER_ADMIN",
+    "body": {
+      "__type": "AUTHORIZED_UNDER_ADMIN",
+      "message": "Must be authorized under admin account"
+    },
+    "raw": "{\"__type\":\"AUTHORIZED_UNDER_ADMIN\",\"message\":\"Must be authorized under admin account\"}"
+  },
+  "Remove.nonAdmin": {
+    "status": 401,
+    "errortype": "AUTHORIZED_UNDER_ADMIN",
+    "body": {
+      "__type": "AUTHORIZED_UNDER_ADMIN",
+      "message": "Must be authorized under admin account"
+    },
+    "raw": "{\"__type\":\"AUTHORIZED_UNDER_ADMIN\",\"message\":\"Must be authorized under admin account\"}"
+  },
+  "Lps.human": {
+    "status": 403,
+    "errortype": "ROBOT_ONLY",
+    "body": {
+      "__type": "ROBOT_ONLY",
+      "message": "Request forbidden. Only robotd are allowed."
+    },
+    "raw": "{\"__type\":\"ROBOT_ONLY\",\"message\":\"Request forbidden. Only robotd are allowed.\"}"
+  },
+  "humanCreatedAny": false,
+  "Create.missingUpdatedBy": {
+    "status": 422,
+    "errortype": null,
+    "body": {
+      "statusCode": 422,
+      "error": "Unprocessable Entity",
+      "message": "child \"updatedBy\" fails because [\"updatedBy\" is required]"
+    },
+    "raw": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"updatedBy\\\" fails because [\\\"updatedBy\\\" is required]\"}"
+  },
+  "Create.emptyClientId": {
+    "status": 422,
+    "errortype": null,
+    "body": {
+      "statusCode": 422,
+      "error": "Unprocessable Entity",
+      "message": "child \"clientId\" is not allowed to be empty"
+    },
+    "raw": "{\"statusCode\":422,\"error\":\"Unprocessable Entity\",\"message\":\"child \\\"clientId\\\" is not allowed to be empty\"}"
+  },
+  "_storeRows": [
+    {
+      "clientId": "probe.aco",
+      "aco": {
+        "keepAliveTimeout": 500,
+        "recoveryTimeout": 300,
+        "version": "1.0",
+        "commandSet": [
+          "c"
+        ],
+        "sourceId": "probe.aco"
+      },
+      "refresh": true
+    }
+  ]
+}

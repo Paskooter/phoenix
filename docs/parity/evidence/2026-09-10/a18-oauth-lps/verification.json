@@ -1,0 +1,88 @@
+{
+ "task": "A-18",
+ "date": "2026-09-10",
+ "verifier": "independent verification worker (subagent)",
+ "gateway_pin": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+ "service_pins": {
+  "oauth_clients": "jiborobot/srv-oauth-clients-ws@3e546cb78eb160dcd3eaf25173420a35c56f68b5",
+  "lps": "jiborobot/srv-lps-ws@e36e378a58cb66cfc577a554863de86360a82bb2",
+  "framework": "jiborobot/srv-server@master (joi ^10.5.2)",
+  "sdk": "jiborobot/srv-jibo-server-client@155d20a8102960b2aeb89c197bdf04dc1f1fc344"
+ },
+ "gateway_allowlists": {
+  "unauthorizedMethods_count": 20,
+  "contains_any_of_five": false,
+  "unsignedMethods": [],
+  "unactiveMethods": [
+   "Account_20151111.Remove"
+  ],
+  "logic": "getCredentials(): absent from unauthorizedMethods + no authorization -> MISSING_AUTH_HEADER; unsignedMethods empty -> bare-access-key path dead; all five therefore require verified AWS4 SigV4",
+  "x_amz_credentials_source": "gw.route.ts buildCredentials(request.auth.credentials) - gateway-injected from the VERIFIED account {_id,id,email,accessKeyId,secretAccessKey,isAdmin,friendlyId}; not caller-controlled"
+ },
+ "operations_served_runtime": {
+  "OauthClients_20171108.Create": "200 (admin)",
+  "OauthClients_20171108.ListClients": "200 (admin)",
+  "OauthClients_20171108.Update": "200 (admin); 404 CLIENT_NOT_FOUND missing id",
+  "OauthClients_20171108.Remove": "200 (admin); 200 empty body when id missing",
+  "Lps_20171201.NewCredentials": "200 (robot); 403 ROBOT_ONLY non-robot",
+  "all_five_unsigned": "401 MISSING_AUTH_HEADER",
+  "all_four_oauth_non_admin": "401 AUTHORIZED_UNDER_ADMIN"
+ },
+ "source_derived_claims": {
+  "CLIENT_ALREADY_EXISTS_409": "confirmed",
+  "CLIENT_NOT_FOUND_404": "confirmed",
+  "AUTHORIZED_UNDER_ADMIN_401": "confirmed",
+  "ROBOT_ONLY_403_exact_message_robotd_typo": "confirmed",
+  "aco_defaults_keepAliveTimeout_500_recoveryTimeout_300_version_1_0": "confirmed",
+  "refresh_default_true": "confirmed",
+  "toJSON_id_from__id_aco_default_drop__id": "confirmed",
+  "aco_sourceId_fallback_create_and_update": "confirmed",
+  "remove_findByIdAndRemove_null_no_throw": "confirmed",
+  "bucketPath_template": "confirmed (lps/robot={friendlyId}/account={accountId}/year={y}/month={m}/day={d}/session={ts}/)",
+  "bucketPath_zero_based_month_getMonth_no_plus1": "confirmed (fixed clock Mar 2025 -> month=2)",
+  "assumeRole_ExternalId_and_RoleSessionName_friendlyId_accountId": "confirmed",
+  "post_save_sets_updated": "confirmed"
+ },
+ "npm_test": {
+  "tests": 1139,
+  "pass": 1132,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 7,
+  "todo": 0
+ },
+ "parity_check": "valid; checklist 15/79 verified (19.0%); classic 5/20",
+ "parity_gate": {
+  "result": "match",
+  "cases": 43,
+  "differences": 0,
+  "invariants": 0,
+  "coverageGaps": 0
+ },
+ "falsification": {
+  "target": "admin-only gate (highest risk: regression lets any signed user administer OAuth clients)",
+  "broke": "packages/account/src/oauthClients.js: replaced `if (!(caller && caller.isAdmin))` with `if (false)`",
+  "failed": "packages/account/test/oauthClientsLps.test.js test 6 'OauthClients_20171108 auth: non-admin rejected...' -> AssertionError expected 401 actual 200",
+  "restored": true,
+  "green_after_restore": "12/12 pass"
+ },
+ "criterion_1_verified": true,
+ "criterion_2_verified": true,
+ "criterion_3_verified": true,
+ "recommend_verified": true,
+ "candidate_divergences": [
+  "oauthClients.js empty-string 422 message omits the Joi `fails because [...]` wrapper: Phoenix emits `child \"clientId\" is not allowed to be empty`; pinned joi@10.5.2 emits `child \"clientId\" fails because [\"clientId\" is not allowed to be empty]`. Affects empty clientId/redirectUri/secret on Create and empty id/redirectUri/secret on Update. All non-empty-field messages match.",
+  "A-01 operation map LPS row authenticationMode note reads 'absent from unauthorizedMethods (unsigned call allowed)', which contradicts the pinned gateway (absence => unsigned REJECTED). The row's operative conclusion ('AWS4 signature is required') is correct; the parenthetical gloss is wrong."
+ ],
+ "child_tasks_proposed": [
+  "A-21: srv-app-toolkit-manager (Koa web admin that consumes all four OauthClients_20171108 operations at NET_oauthclients with x-amz-credentials isAdmin:true; no client api file; internal/admin)",
+  "A-22: jiborobot/logparser (Scala S3->Mongo ASR/NLU log analytics pipeline; no client api file; not robot-facing)"
+ ],
+ "unassigned_surface": [],
+ "unknown": [
+  "Remove-with-missing-id wire body: source returns null via findByIdAndRemove; Phoenix sends empty 200. Original Hapi response serialization not executed.",
+  "Real AWS STS assumeRole (no live AWS): the seam is implemented and exercised with a fake provider.",
+  "EventSender no-event side effect (source constructs an EventSender but create() sends nothing); read-only, never fired against SNS.",
+  "Deployed gateway revision/route alias and exact Hapi/Boom envelope were not replayed; verification is against the pinned source revisions."
+ ]
+}

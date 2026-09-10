@@ -1,0 +1,17 @@
+not ok 6 - OauthClients_20171108 auth: non-admin rejected, unsigned rejected, validation errors Joi-faithful
+  ---
+  duration_ms: 37.096146
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/verify-a18/packages/account/test/oauthClientsLps.test.js:192:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    200 !== 401
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 401
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
