@@ -1,0 +1,1005 @@
+{
+  "generatedAt": "2026-09-10T17:43:25.032Z",
+  "pinnedModels": {
+    "log": {
+      "endpointPrefix": "log",
+      "targetPrefix": "Log_20150309",
+      "operations": {
+        "PutEvents": {
+          "wireName": "Log_20150309.PutEvents",
+          "input": "PutEventsRequest",
+          "output": "Response",
+          "outputRequired": null
+        },
+        "PutEventsAsync": {
+          "wireName": "Log_20150309.PutEventsAsync",
+          "input": "PutEventsAsyncRequest",
+          "output": "PutEventsAsyncResponse",
+          "outputRequired": [
+            "contentEncoding",
+            "uploadUrl"
+          ]
+        },
+        "NewKinesisCredentials": {
+          "wireName": "Log_20150309.NewKinesisCredentials",
+          "input": "NewKinesisCredentialsRequest",
+          "output": "NewKinesisCredentialsResponse",
+          "outputRequired": [
+            "credentials",
+            "region",
+            "streamName"
+          ]
+        },
+        "PutBinary": {
+          "wireName": "Log_20150309.PutBinary",
+          "input": "PutBinaryRequest",
+          "output": "PutBinaryResponse",
+          "outputRequired": [
+            "url"
+          ]
+        },
+        "PutBinaryAsync": {
+          "wireName": "Log_20150309.PutBinaryAsync",
+          "input": "PutBinaryAsyncRequest",
+          "output": "PutBinaryAsyncResponse",
+          "outputRequired": [
+            "url",
+            "uploadUrl"
+          ]
+        },
+        "PutAsrBinary": {
+          "wireName": "Log_20150309.PutAsrBinary",
+          "input": "PutAsrBinaryRequest",
+          "output": "PutAsrBinaryResponse",
+          "outputRequired": [
+            "bucketName",
+            "key",
+            "uploadUrl"
+          ]
+        }
+      }
+    },
+    "logadmin": {
+      "endpointPrefix": "logadmin",
+      "targetPrefix": "Log_20150309",
+      "operations": {
+        "SetLevel": {
+          "wireName": "Log_20150309.SetLevel",
+          "input": "SetLevelRequest",
+          "output": "CommandResponse",
+          "outputRequired": [
+            "result"
+          ]
+        }
+      }
+    }
+  },
+  "sdk": {
+    "dir": "/home/shell/work/phoenix-jibo-server-client",
+    "version": "3.0.105",
+    "loaded": true,
+    "error": null
+  },
+  "wireCapture": [
+    {
+      "target": "Log_20150309.PutEvents",
+      "method": "POST",
+      "path": "/",
+      "contentType": "application/json",
+      "contentLength": "57",
+      "transferEncoding": null,
+      "bodyBytes": 57,
+      "bodyHead": "{\"events\":[{\"message\":\"m"
+    },
+    {
+      "target": "Log_20150309.PutEventsAsync",
+      "method": "POST",
+      "path": "/",
+      "contentType": "application/json",
+      "contentLength": "28",
+      "transferEncoding": null,
+      "bodyBytes": 28,
+      "bodyHead": "{\"kind\":\"LOG\",\"serial\":\""
+    },
+    {
+      "target": "Log_20150309.NewKinesisCredentials",
+      "method": "POST",
+      "path": "/",
+      "contentType": "application/json",
+      "contentLength": "2",
+      "transferEncoding": null,
+      "bodyBytes": 2,
+      "bodyHead": "{}"
+    },
+    {
+      "target": "Log_20150309.PutBinary",
+      "method": "POST",
+      "path": "/",
+      "contentType": null,
+      "contentLength": "6",
+      "transferEncoding": null,
+      "bodyBytes": 6,
+      "bodyHead": "BINARY"
+    },
+    {
+      "target": "Log_20150309.PutBinaryAsync",
+      "method": "POST",
+      "path": "/",
+      "contentType": "application/json",
+      "contentLength": "18",
+      "transferEncoding": null,
+      "bodyBytes": 18,
+      "bodyHead": "{\"trackingId\":\"t\"}"
+    },
+    {
+      "target": "Log_20150309.PutAsrBinary",
+      "method": "POST",
+      "path": "/",
+      "contentType": "application/json",
+      "contentLength": "39",
+      "transferEncoding": null,
+      "bodyBytes": 39,
+      "bodyHead": "{\"trackingId\":\"t\",\"metad"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "method": "POST",
+      "path": "/",
+      "contentType": "application/json",
+      "contentLength": "70",
+      "transferEncoding": null,
+      "bodyBytes": 70,
+      "bodyHead": "{\"friendlyIds\":[\"f\"],\"na"
+    }
+  ],
+  "liveProbe": [
+    {
+      "op": "PutEvents",
+      "ok": true,
+      "data": {
+        "result": "Successfully added events"
+      }
+    },
+    {
+      "op": "PutEventsAsync",
+      "ok": true,
+      "data": {
+        "contentEncoding": "gzip",
+        "uploadUrl": "http://127.0.0.1:43541/log/upload?key=log-async%2Frobot%3Dfid%2Fserial%3DSER-1%2Faccount%3Dacct%2Fyear%3D2026%2Fmonth%3D8%2Fday%3D10%2Fkind%3DLOG%2F1789062205092.gz"
+      }
+    },
+    {
+      "op": "NewKinesisCredentials(no identity)",
+      "ok": false,
+      "code": "ROBOT_ONLY",
+      "statusCode": 403,
+      "message": "Request forbidden. Only robotd are allowed."
+    },
+    {
+      "op": "NewKinesisCredentials(robot)",
+      "ok": true,
+      "data": {
+        "credentials": {
+          "AccessKeyId": "",
+          "Expiration": "1970-01-01T00:00:00.000Z",
+          "SecretAccessKey": "",
+          "SessionToken": ""
+        },
+        "region": "",
+        "streamName": ""
+      }
+    },
+    {
+      "op": "PutBinaryAsync",
+      "ok": true,
+      "data": {
+        "path": "/log/log-binary/acct/trk/0c2aa28d-d742-439a-806f-c42275d3bb2d",
+        "url": "http://127.0.0.1:43541/log/blob?key=log-binary%2Facct%2Ftrk%2F0c2aa28d-d742-439a-806f-c42275d3bb2d",
+        "uploadUrl": "http://127.0.0.1:43541/log/upload?key=log-binary%2Facct%2Ftrk%2F0c2aa28d-d742-439a-806f-c42275d3bb2d"
+      }
+    },
+    {
+      "op": "PutAsrBinary",
+      "ok": true,
+      "data": {
+        "bucketName": "log",
+        "key": "asr-binary/year=2026/month=8/day=10/accountId=acct/trackingId=asr1/1789062205103.bin",
+        "metadata": {
+          "k": "v"
+        },
+        "uploadUrl": "http://127.0.0.1:43541/log/upload?key=asr-binary%2Fyear%3D2026%2Fmonth%3D8%2Fday%3D10%2FaccountId%3Dacct%2FtrackingId%3Dasr1%2F1789062205103.bin"
+      }
+    },
+    {
+      "op": "SetLevel(no admin)",
+      "ok": false,
+      "code": "AUTHORIZED_UNDER_ADMIN",
+      "statusCode": 401,
+      "message": "Must be authorized under admin account"
+    },
+    {
+      "op": "SetLevel(admin)",
+      "ok": true,
+      "data": {
+        "result": "Command accepted"
+      }
+    },
+    {
+      "op": "PutBinary",
+      "ok": true,
+      "data": {
+        "path": "/log/log-binary/acct/cam/214c1d33-c04f-47fe-8ebe-49db7bc8a783",
+        "url": "http://127.0.0.1:43541/log/blob?key=log-binary%2Facct%2Fcam%2F214c1d33-c04f-47fe-8ebe-49db7bc8a783"
+      }
+    }
+  ],
+  "uploadRoundTrips": [
+    {
+      "label": "PutEventsAsync",
+      "uploadUrl": "http://127.0.0.1:43541/log/upload?key=log-async%2Frobot%3Dfid%2Fserial%3DSER-1%2Faccount%3Dacct%2Fyear%3D2026%2Fmonth%3D8%2Fday%3D10%2Fkind%3DLOG%2F1789062205092.gz",
+      "key": "log-async/robot=fid/serial=SER-1/account=acct/year=2026/month=8/day=10/kind=LOG/1789062205092.gz",
+      "putStatus": 200,
+      "putEtag": "\"6b307bbd2ce5bbfe341a646fdff4945e\"",
+      "getStatus": 200,
+      "bytesMatch": true,
+      "size": 9,
+      "getContentType": "application/octet-stream",
+      "getContentLength": "9"
+    },
+    {
+      "label": "PutBinaryAsync",
+      "uploadUrl": "http://127.0.0.1:43541/log/upload?key=log-binary%2Facct%2Ftrk%2F7090f1c3-91e0-41b1-a2c9-6ed081568c96",
+      "key": "log-binary/acct/trk/7090f1c3-91e0-41b1-a2c9-6ed081568c96",
+      "putStatus": 200,
+      "putEtag": "\"0c8ffd1140d61082a2cb5fb527e61084\"",
+      "getStatus": 200,
+      "bytesMatch": true,
+      "size": 5,
+      "getContentType": "application/octet-stream",
+      "getContentLength": "5"
+    },
+    {
+      "label": "PutAsrBinary",
+      "uploadUrl": "http://127.0.0.1:43541/log/upload?key=asr-binary%2Fyear%3D2026%2Fmonth%3D8%2Fday%3D10%2FaccountId%3Dacct%2FtrackingId%3Dasr1%2F1789062205159.bin",
+      "key": "asr-binary/year=2026/month=8/day=10/accountId=acct/trackingId=asr1/1789062205159.bin",
+      "putStatus": 200,
+      "putEtag": "\"8d3bb356362dc19547b91442dd03201b\"",
+      "getStatus": 200,
+      "bytesMatch": true,
+      "size": 5,
+      "getContentType": "application/octet-stream",
+      "getContentLength": "5"
+    },
+    {
+      "label": "PutBinary(sync)",
+      "url": "http://127.0.0.1:43541/log/blob?key=log-binary%2Facct%2Fcam%2F5101e9a2-cf9e-4d66-9f97-cfdd1d41846d",
+      "path": "/log/log-binary/acct/cam/5101e9a2-cf9e-4d66-9f97-cfdd1d41846d",
+      "getStatus": 200,
+      "bytesMatch": true
+    }
+  ],
+  "validationMatrix": [
+    {
+      "target": "Log_20150309.PutEvents",
+      "body": {},
+      "headers": [],
+      "note": "events missing",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"events\" fails because [\"events\" is required]"
+    },
+    {
+      "target": "Log_20150309.PutEvents",
+      "body": {
+        "events": {
+          "a": 1
+        }
+      },
+      "headers": [],
+      "note": "events not an array",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"events\" fails because [\"events\" is required]"
+    },
+    {
+      "target": "Log_20150309.PutEvents",
+      "body": {
+        "events": [],
+        "deviceId": 7
+      },
+      "headers": [],
+      "note": "deviceId not a string",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+    },
+    {
+      "target": "Log_20150309.PutEvents",
+      "body": {
+        "events": [],
+        "trackingId": [
+          "x"
+        ]
+      },
+      "headers": [],
+      "note": "trackingId not a string",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"trackingId\" fails because [\"trackingId\" must be a string]"
+    },
+    {
+      "target": "Log_20150309.PutEvents",
+      "body": {
+        "events": []
+      },
+      "headers": [],
+      "note": "empty array (Joi array().required() allows)",
+      "status": 200,
+      "errType": null
+    },
+    {
+      "target": "Log_20150309.PutEvents",
+      "body": {
+        "events": [],
+        "deviceId": ""
+      },
+      "headers": [],
+      "note": "empty-string deviceId (Joi string() rejects)",
+      "status": 200,
+      "errType": null
+    },
+    {
+      "target": "Log_20150309.PutEventsAsync",
+      "body": {
+        "kind": "k",
+        "serial": "s"
+      },
+      "headers": [],
+      "note": "kind outside enum",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"kind\" fails because [\"kind\" must be one of [HEALTH, LOG]]"
+    },
+    {
+      "target": "Log_20150309.PutEventsAsync",
+      "body": {
+        "kind": "LOG"
+      },
+      "headers": [],
+      "note": "serial missing",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"serial\" fails because [\"serial\" is required]"
+    },
+    {
+      "target": "Log_20150309.PutEventsAsync",
+      "body": {
+        "kind": "LOG",
+        "serial": 12
+      },
+      "headers": [],
+      "note": "serial not a string",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"serial\" fails because [\"serial\" is required]"
+    },
+    {
+      "target": "Log_20150309.PutEventsAsync",
+      "body": {
+        "kind": "LOG",
+        "serial": ""
+      },
+      "headers": [],
+      "note": "empty-string serial (Joi string() rejects)",
+      "status": 200,
+      "errType": null
+    },
+    {
+      "target": "Log_20150309.PutEventsAsync",
+      "body": {
+        "kind": "HEALTH",
+        "serial": "s"
+      },
+      "headers": [],
+      "note": "HEALTH valid",
+      "status": 200,
+      "errType": null
+    },
+    {
+      "target": "Log_20150309.PutAsrBinary",
+      "body": {},
+      "headers": [],
+      "note": "trackingId missing",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"trackingId\" fails because [\"trackingId\" is required]"
+    },
+    {
+      "target": "Log_20150309.PutAsrBinary",
+      "body": {
+        "trackingId": 9
+      },
+      "headers": [],
+      "note": "trackingId not a string",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"trackingId\" fails because [\"trackingId\" must be a string]"
+    },
+    {
+      "target": "Log_20150309.PutAsrBinary",
+      "body": {
+        "trackingId": "t",
+        "metadata": "no"
+      },
+      "headers": [],
+      "note": "metadata not an object",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"metadata\" fails because [\"metadata\" must be an object]"
+    },
+    {
+      "target": "Log_20150309.PutAsrBinary",
+      "body": {
+        "trackingId": "t",
+        "metadata": [
+          "a"
+        ]
+      },
+      "headers": [],
+      "note": "metadata array (Joi.object rejects)",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"metadata\" fails because [\"metadata\" must be an object]"
+    },
+    {
+      "target": "Log_20150309.PutAsrBinary",
+      "body": {
+        "trackingId": "t",
+        "metadata": {
+          "k": "v"
+        }
+      },
+      "headers": [],
+      "note": "valid",
+      "status": 200,
+      "errType": null
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [
+          "r"
+        ],
+        "namespaces": [
+          {
+            "namespace": "l",
+            "level": "debug"
+          }
+        ]
+      },
+      "headers": [],
+      "note": "no admin -> 401",
+      "status": 401,
+      "errType": "AUTHORIZED_UNDER_ADMIN",
+      "code": "AUTHORIZED_UNDER_ADMIN",
+      "message": "Must be authorized under admin account"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {},
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "missing friendlyIds/namespaces",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"friendlyIds\" fails because [\"friendlyIds\" is required]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": "x",
+        "namespaces": []
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "friendlyIds not array",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"friendlyIds\" fails because [\"friendlyIds\" is required]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [
+          1
+        ],
+        "namespaces": []
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "friendlyId not string",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"friendlyIds\" fails because [\"friendlyIds\" must only contain strings]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [],
+        "namespaces": [
+          {
+            "namespace": "x",
+            "level": "loud"
+          }
+        ]
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "level outside enum",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"namespaces\" fails because [\"namespaces\" must contain {namespace, level}]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [],
+        "namespaces": [
+          {}
+        ]
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "empty namespace object (Joi inner keys optional)",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"namespaces\" fails because [\"namespaces\" must contain {namespace, level}]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [],
+        "namespaces": [
+          {
+            "namespace": "x"
+          }
+        ]
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "namespace without level (Joi allows)",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"namespaces\" fails because [\"namespaces\" must contain {namespace, level}]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [],
+        "namespaces": [
+          {
+            "level": "info"
+          }
+        ]
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "level without namespace (Joi allows)",
+      "status": 422,
+      "errType": "ValidationException",
+      "code": "ValidationException",
+      "message": "child \"namespaces\" fails because [\"namespaces\" must contain {namespace, level}]"
+    },
+    {
+      "target": "Log_20150309.SetLevel",
+      "body": {
+        "friendlyIds": [
+          ""
+        ],
+        "namespaces": [
+          {
+            "namespace": "x",
+            "level": "info"
+          }
+        ]
+      },
+      "headers": [
+        "x-amz-credentials"
+      ],
+      "note": "empty-string friendlyId (Joi string() rejects)",
+      "status": 200,
+      "errType": null
+    },
+    {
+      "target": "Log_20150309.NewKinesisCredentials",
+      "body": {},
+      "headers": [],
+      "note": "no robot identity -> 403",
+      "status": 403,
+      "errType": "ROBOT_ONLY",
+      "code": "ROBOT_ONLY",
+      "message": "Request forbidden. Only robotd are allowed."
+    },
+    {
+      "target": "Log_20150309.PutFaceBinary",
+      "body": {},
+      "headers": [],
+      "note": "unknown operation",
+      "status": 404,
+      "errType": "NotFoundException",
+      "code": "NotFoundException",
+      "message": "Method PutFaceBinary not found."
+    },
+    {
+      "target": "Log_20150309.putevents",
+      "body": {
+        "events": []
+      },
+      "headers": [],
+      "note": "lowercase op, valid body (source lowerMethodName -> 404)",
+      "status": 200,
+      "errType": null
+    }
+  ],
+  "errorEnvelopeCodes": {},
+  "summary": {
+    "declaredOperations": 7,
+    "servedNotUnknown": 7,
+    "servedTotal": 7,
+    "uploadRoundTripsOk": 3
+  },
+  "sourceEnvelopeEmulation": [
+    {
+      "label": "source 422 validation (Boom.badData)",
+      "clientCode": "Unprocessable Entity",
+      "clientStatus": 422,
+      "clientMessage": "child \"events\" fails because [\"events\" is required]"
+    },
+    {
+      "label": "source 404 unknown op (Boom.notFound)",
+      "clientCode": "ROBOT_ONLY",
+      "clientStatus": 403,
+      "clientMessage": "Request forbidden. Only robotd are allowed."
+    },
+    {
+      "label": "source 429 throttle (createWithCode)",
+      "clientCode": "REQUEST_THROTTLED",
+      "clientStatus": 429,
+      "clientMessage": "Request throttled due to server rules."
+    },
+    {
+      "label": "source 404 unknown op (Boom.notFound)",
+      "clientCode": "Not Found",
+      "clientStatus": 404,
+      "clientMessage": "Method putfacebinary not found."
+    },
+    {
+      "label": "source 403 robot only (createWithCode)",
+      "clientCode": "ROBOT_ONLY",
+      "clientStatus": 403,
+      "clientMessage": "Request forbidden. Only robotd are allowed."
+    },
+    {
+      "label": "source 401 admin (createWithCode)",
+      "clientCode": "AUTHORIZED_UNDER_ADMIN",
+      "clientStatus": 401,
+      "clientMessage": "Must be authorized under admin account"
+    }
+  ],
+  "modelScreening": [
+    {
+      "label": "PutEvents events:[] (model InputEvents min 1)",
+      "clientSide": true,
+      "code": "MinRangeError",
+      "message": "Expected list member count >= 1, but found 0 for params.events"
+    },
+    {
+      "label": "PutEvents events:[{}] (model InputEvent requires created)",
+      "clientSide": true,
+      "code": "MissingRequiredParameter",
+      "message": "Missing required key 'created' in params.events[0]"
+    },
+    {
+      "label": "PutEvents deviceId:\"\" (model DeviceId min 1)",
+      "clientSide": true,
+      "code": "MinRangeError",
+      "message": "Expected string length >= 1, but found 0 for params.deviceId"
+    },
+    {
+      "label": "PutEventsAsync serial:\"\" (model Serial min 1)",
+      "clientSide": true,
+      "code": "MinRangeError",
+      "message": "Expected string length >= 1, but found 0 for params.serial"
+    },
+    {
+      "label": "PutEventsAsync kind:\"k\" (model enum)",
+      "clientSide": true,
+      "code": "NetworkingError",
+      "message": "connect ECONNREFUSED 127.0.0.1:1"
+    },
+    {
+      "label": "PutAsrBinary trackingId:\"\" (model TrackingId min 1)",
+      "clientSide": true,
+      "code": "MinRangeError",
+      "message": "Expected string length >= 1, but found 0 for params.trackingId"
+    },
+    {
+      "label": "SetLevel friendlyIds:[\"\"] (FriendlyId: plain string)",
+      "clientSide": true,
+      "code": "NetworkingError",
+      "message": "connect ECONNREFUSED 127.0.0.1:1"
+    },
+    {
+      "label": "SetLevel namespaces:[{}] (model has no required members)",
+      "clientSide": true,
+      "code": "NetworkingError",
+      "message": "connect ECONNREFUSED 127.0.0.1:1"
+    },
+    {
+      "label": "SetLevel namespaces:[{namespace:\"x\"}] (model: level optional)",
+      "clientSide": true,
+      "code": "NetworkingError",
+      "message": "connect ECONNREFUSED 127.0.0.1:1"
+    }
+  ],
+  "servedOperations": [
+    {
+      "service": "log",
+      "op": "PutEvents",
+      "target": "Log_20150309.PutEvents",
+      "requestBody": {
+        "events": [
+          {
+            "message": "probe"
+          }
+        ]
+      },
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "result": "Successfully added events"
+        }
+      }
+    },
+    {
+      "service": "log",
+      "op": "PutEventsAsync",
+      "target": "Log_20150309.PutEventsAsync",
+      "requestBody": {
+        "kind": "LOG",
+        "serial": "S1"
+      },
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "contentEncoding": "gzip",
+          "uploadUrl": "http://127.0.0.1:43541/log/upload?key=log-async%2Frobot%3D%2Fserial%3DS1%2Faccount%3D%2Fyear%3D2026%2Fmonth%3D8%2Fday%3D10%2Fkind%3DLOG%2F1789062205130.gz"
+        }
+      }
+    },
+    {
+      "service": "log",
+      "op": "NewKinesisCredentials",
+      "target": "Log_20150309.NewKinesisCredentials",
+      "requestBody": {},
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "credentials": {
+            "AccessKeyId": "",
+            "Expiration": "1970-01-01T00:00:00.000Z",
+            "SecretAccessKey": "",
+            "SessionToken": ""
+          },
+          "region": "",
+          "streamName": ""
+        }
+      }
+    },
+    {
+      "service": "log",
+      "op": "PutBinary",
+      "target": "Log_20150309.PutBinary",
+      "requestBody": null,
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "path": "/log/log-binary/a2721aae-b283-4419-ba16-228236278d67",
+          "url": "http://127.0.0.1:43541/log/blob?key=log-binary%2Fa2721aae-b283-4419-ba16-228236278d67"
+        }
+      }
+    },
+    {
+      "service": "log",
+      "op": "PutBinaryAsync",
+      "target": "Log_20150309.PutBinaryAsync",
+      "requestBody": {
+        "trackingId": "trk"
+      },
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "path": "/log/log-binary//trk/24e13b4b-2aa0-48a4-a11c-642d1869ee37",
+          "url": "http://127.0.0.1:43541/log/blob?key=log-binary%2F%2Ftrk%2F24e13b4b-2aa0-48a4-a11c-642d1869ee37",
+          "uploadUrl": "http://127.0.0.1:43541/log/upload?key=log-binary%2F%2Ftrk%2F24e13b4b-2aa0-48a4-a11c-642d1869ee37"
+        }
+      }
+    },
+    {
+      "service": "log",
+      "op": "PutAsrBinary",
+      "target": "Log_20150309.PutAsrBinary",
+      "requestBody": {
+        "trackingId": "trk"
+      },
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "bucketName": "log",
+          "key": "asr-binary/year=2026/month=8/day=10/accountId=/trackingId=trk/1789062205140.bin",
+          "metadata": {},
+          "uploadUrl": "http://127.0.0.1:43541/log/upload?key=asr-binary%2Fyear%3D2026%2Fmonth%3D8%2Fday%3D10%2FaccountId%3D%2FtrackingId%3Dtrk%2F1789062205140.bin"
+        }
+      }
+    },
+    {
+      "service": "logadmin",
+      "op": "SetLevel",
+      "target": "Log_20150309.SetLevel",
+      "requestBody": {
+        "friendlyIds": [
+          "f"
+        ],
+        "namespaces": [
+          {
+            "namespace": "n",
+            "level": "info"
+          }
+        ]
+      },
+      "observed": {
+        "status": 200,
+        "errType": null,
+        "body": {
+          "result": "Command accepted"
+        }
+      }
+    }
+  ],
+  "retrySameUrl": {
+    "put1": 200,
+    "put2": 200,
+    "readBack": "second",
+    "readBackStatus": 200
+  },
+  "retryNewHandshakeDistinctKey": {
+    "first": "/log/log-binary/acct/trk/7090f1c3-91e0-41b1-a2c9-6ed081568c96",
+    "second": "/log/log-binary/acct/trk/a822dabf-f2df-4862-83b7-2da6c183c3c5",
+    "distinct": true
+  },
+  "phoenixClientCodes": [
+    {
+      "label": "Phoenix 422 validation (model-valid, server-rejected)",
+      "clientCode": "ValidationException",
+      "clientStatus": 422,
+      "clientMessage": "child \"namespaces\" fails because [\"namespaces\" must contain {namespace, level}]"
+    },
+    {
+      "label": "Phoenix 404 unknown op",
+      "clientCode": "NotFoundException",
+      "clientStatus": 404,
+      "clientMessage": "Method PutFaceBinary not found."
+    },
+    {
+      "label": "Phoenix 403 robot only",
+      "clientCode": "ROBOT_ONLY",
+      "clientStatus": 403,
+      "clientMessage": "Request forbidden. Only robotd are allowed."
+    },
+    {
+      "label": "Phoenix 401 admin",
+      "clientCode": "AUTHORIZED_UNDER_ADMIN",
+      "clientStatus": 401,
+      "clientMessage": "Must be authorized under admin account"
+    }
+  ],
+  "throttle": {
+    "putEventsAsync": {
+      "status": 429,
+      "errType": "REQUEST_THROTTLED",
+      "body": {
+        "__type": "REQUEST_THROTTLED",
+        "message": "Request throttled due to server rules."
+      }
+    },
+    "putBinaryAsync": {
+      "status": 429,
+      "errType": "REQUEST_THROTTLED",
+      "body": {
+        "__type": "REQUEST_THROTTLED",
+        "message": "Request throttled due to server rules."
+      }
+    },
+    "putBinary": {
+      "status": 429,
+      "errType": "REQUEST_THROTTLED",
+      "body": {
+        "__type": "REQUEST_THROTTLED",
+        "message": "Request throttled due to server rules."
+      }
+    },
+    "newKinesisCredentials": {
+      "status": 200,
+      "errType": null,
+      "body": {
+        "credentials": {
+          "AccessKeyId": "",
+          "Expiration": "1970-01-01T00:00:00.000Z",
+          "SecretAccessKey": "",
+          "SessionToken": ""
+        },
+        "region": "",
+        "streamName": ""
+      }
+    }
+  },
+  "asrSampling": {
+    "asr-t1": 200,
+    "asr-t2": 200,
+    "asr-t3": 200,
+    "alpha": 429,
+    "beta": 200
+  },
+  "sinkDir": "/tmp/a12-probe-54NwtT",
+  "sinkDirIndexKeys": null,
+  "eventSink": {
+    "lines": 2,
+    "sample": [
+      {
+        "ts": 1789062205086,
+        "level": "info",
+        "message": "via-sdk",
+        "created": 1789062205078,
+        "deviceId": "dev",
+        "robotId": "fid",
+        "trackingId": "trk",
+        "accountId": "acct"
+      },
+      {
+        "ts": 1789062205123,
+        "level": "info",
+        "message": "probe"
+      }
+    ]
+  }
+}

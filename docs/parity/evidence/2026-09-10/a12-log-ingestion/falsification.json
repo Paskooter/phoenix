@@ -1,0 +1,40 @@
+{
+  "task": "A-12",
+  "date": "2026-09-10",
+  "implementationUnderTest": "packages/classic/src/log.js",
+  "fileSha256Before": "cd7dc87ef75dc0c489fdfbcf8ddcfc31ac8ffc833116cc979fc6d59dab6d2bcb",
+  "fileSha256AfterEachRestore": "cd7dc87ef75dc0c489fdfbcf8ddcfc31ac8ffc833116cc979fc6d59dab6d2bcb",
+  "restoredByteIdentical": true,
+  "method": "node --test packages/classic/test/logClassic.test.js (15 tests) after each single-line corruption; the independent probe (docs/parity/evidence/2026-09-10/a12-log-ingestion/probe.mjs) was also rerun on the second corruption.",
+  "baseline": { "tests": 15, "pass": 15, "fail": 0 },
+  "falsifications": [
+    {
+      "id": "F1",
+      "claim": "PutEvents returns the source controller's exact synchronous ack body { result: 'Successfully added events' } (packages/classic/src/log.js:165).",
+      "corruption": "changed the success string literal to 'Successfully added events!!' (single-line edit, line 165; anchored on the full code line so a comment quoting the source string could not match instead)",
+      "evidenceOfCorruption": "grep -n 'Successfully added events!!' packages/classic/src/log.js -> 165",
+      "result": { "tests": 15, "pass": 14, "fail": 1, "failingTest": "not ok 1 - PutEvents: synchronous ack, level derivation, trace stamping, durable events file" },
+      "caught": true,
+      "restoredAndGreenAgain": { "tests": 15, "pass": 15, "fail": 0 }
+    },
+    {
+      "id": "F2",
+      "claim": "Every async acknowledgment advertises a usable upload destination: the PUT route the returned uploadUrl points at actually stores the object and it is retrievable via the returned url/GET.",
+      "corruption": "changed the route key 'PUT /log/upload' to 'PUT /log/uploads' in logHttpRoutes (line 306) so the advertised uploadUrl no longer resolves.",
+      "evidenceOfCorruption": "grep -n 'PUT /log/uploads' packages/classic/src/log.js -> 306",
+      "result": {
+        "tests": 15, "pass": 11, "fail": 4,
+        "failingTests": [
+          "not ok 4 - PutEventsAsync: async ack shape + usable gzip upload destination, credentials-independent",
+          "not ok 7 - PutBinaryAsync: async binary handshake {path,url,uploadUrl}; retried handshakes make independent objects",
+          "not ok 9 - PutAsrBinary: bucket/key/metadata/uploadUrl handshake with ASR key layout; retrievable",
+          "not ok 15 - retention: objects are never evicted; the sink keeps every event and every blob"
+        ],
+        "independentProbeRerun": { "uploadRoundTripsOkBefore": 3, "uploadRoundTripsOkBroken": 0, "serverLog": "handler threw: URL not found: /log/upload" }
+      },
+      "caught": true,
+      "restoredAndGreenAgain": { "tests": 15, "pass": 15, "fail": 0, "probeUploadRoundTripsOk": 3 }
+    }
+  ],
+  "note": "Both corruptions were single-line edits in packages/classic/src/log.js. After restore the file hash equals the pre-falsification hash exactly, so no corruption survived."
+}
