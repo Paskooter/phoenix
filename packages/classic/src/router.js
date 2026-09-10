@@ -61,7 +61,7 @@ export function createClassicRouter(registrations) {
   };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
-  dispatch.rawBody = isClassicBinaryPhotoUpload;
+  dispatch.rawBody = isClassicRawBodyTarget;
   dispatch.bodyDefault = (req) => {
     const { prefix, op } = parseTarget(req);
     const reg = regs.find((entry) => entry.re.test(prefix));
@@ -200,6 +200,17 @@ function isClassicBinaryPhotoUpload(req) {
   const target = String(req?.headers?.['x-amz-target'] || '');
   return /^Loop[^.]*\.UpdateMemberPhoto$/i.test(target)
     || /^Account[^.]*\.UpdatePhoto$/i.test(target);
+}
+
+/**
+ * Targets whose request entity is NOT JSON and must reach the handler unparsed. Besides the two
+ * photo uploads this is Key_20160201.ShareBinary: the pinned model declares
+ * ShareBinaryRequest.payload = body (a blob stream) with the request id in the `x-id` header, so
+ * the source Hapi handler reads `request.payload` as the raw stream (srv-key-ws key.handler.ts).
+ */
+function isClassicRawBodyTarget(req) {
+  if (isClassicBinaryPhotoUpload(req)) return true;
+  return /^Key[^.]*\.ShareBinary$/i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
 
 function unsupportedContentEncoding(headers = {}) {

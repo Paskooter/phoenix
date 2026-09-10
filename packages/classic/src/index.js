@@ -12,7 +12,7 @@ import { createClassicRouter } from './router.js';
 import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 import { makeRobotHandler } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
-import { KeyStore, makeKeyHandler } from './key.js';
+import { KeyStore, makeKeyHandler, keyRoutes } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { stubRegistrations } from './stubs.js';
@@ -24,7 +24,7 @@ export { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 export { makeRobotHandler } from './robot.js';
 export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
-export { KeyStore } from './key.js';
+export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
 
@@ -51,13 +51,14 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, keyStore, keyMembership, keyBinaryDir } = {}) {
+  const keys = keyStore || new KeyStore();
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
     { match: /^robot/i, handler: makeRobotHandler() },
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
-    { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
+    { match: /^key/i, handler: makeKeyHandler(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir }) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/ifttt/nlp/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -74,7 +75,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, keyStore, keyMembership, keyBinaryDir } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -83,6 +84,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     pollIntervalMs: notificationPollIntervalMs,
   });
   const backups = new BackupStore();
+  const keys = keyStore || new KeyStore();
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
@@ -99,6 +101,9 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         notificationAccountResolver,
         logStore,
         baseFor,
+        keyStore: keys,
+        keyMembership,
+        keyBinaryDir,
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
@@ -110,6 +115,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         log,
       }),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
+      ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
       ...logHttpRoutes(logStore),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': ({ res, body }) => {
@@ -129,7 +135,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore };
+  return { ...service, hub, wss, backups, logStore, keys };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
