@@ -62,25 +62,35 @@ test('GetServiceToken mints a service-mode owner account and a loopId-null setup
   admin.isAdmin = true;
   store.flush();
 
-  const before = store.accounts.size;
+  const beforeAccounts = new Set(store.accounts.keys());
   const res = await amz('OOBE_20161026.GetServiceToken', {},
     signed(store, 'OOBE_20161026.GetServiceToken', {}, admin.accessKeyId));
 
   assert.equal(res.status, 200);
-  assert.ok(res.body && res.body._id, 'returns the token document');
-  // tokenCtrl.create({ accountId, loopId: null })
-  assert.equal(res.body.loopId, null, 'loopId is null, not omitted');
+  // Output shape is TokenContainer { token, expires } (oobeadmin-2016-10-26:
+  // GetServiceToken -> TokenContainer; token.ctrl.ts create() returns
+  // `{ token: token._id, expires: currentTimestamp + ACCESS_TOKEN_LIFETIME }`).
+  // A raw token document would leave `token` undefined for the generated client.
+  assert.equal(typeof res.body.token, 'string', 'TokenContainer.token is the access token');
+  assert.ok(res.body.expires > Date.now(), 'TokenContainer.expires is created + 15 minutes');
+  assert.equal(res.body._id, undefined, 'not the raw token document');
 
-  // A new account was created, and it is the token's account.
-  assert.equal(store.accounts.size, before + 1, 'exactly one new account');
-  const account = store.accounts.get(res.body.accountId);
-  assert.ok(account, 'token.accountId resolves to a real account');
+  // A new account was created; the token is bound to it with loopId null.
+  const minted = [...store.accounts.keys()].filter((id) => !beforeAccounts.has(id));
+  assert.equal(minted.length, 1, 'exactly one new account');
+  const account = store.accounts.get(minted[0]);
+  assert.ok(account, 'the new service-mode account exists');
+  const token = store.tokens.get(res.body.token);
+  assert.ok(token, 'the returned token resolves in the store');
+  assert.equal(token.accountId, account._id, 'token is bound to the minted account');
+  assert.equal(token.loopId, null, 'loopId is null, not omitted');
 
   // `${SERVICE_MODE_EMAIL_PREFIX}${uuid}@jibo.com` with the FULL prefix.
   assert.ok(account.email.startsWith('service-mode-owner-'),
     `email should carry the full source prefix, got ${account.email}`);
   assert.ok(account.email.endsWith('@jibo.com'), 'email domain is jibo.com');
   assert.equal(account.isActive, true, 'created with isActive: true');
+  assert.equal(res.body.expires, token.created + 15 * 60 * 1000, 'expires tracks the token TTL');
 });
 
 test('GetServiceToken rejects a non-admin caller and creates nothing', async () => {
@@ -124,8 +134,9 @@ test('each GetServiceToken call yields a distinct account and token', async () =
   assert.equal(b.status, 200);
   // mintSetupToken reuses a live token for the same (account, loop) pair, but
   // getServiceToken creates a NEW account each call, so tokens never collide.
-  assert.notEqual(a.body.accountId, b.body.accountId, 'distinct accounts');
-  assert.notEqual(a.body._id, b.body._id, 'distinct tokens');
+  assert.notEqual(store.tokens.get(a.body.token).accountId, store.tokens.get(b.body.token).accountId,
+    'distinct accounts');
+  assert.notEqual(a.body.token, b.body.token, 'distinct tokens');
 });
 
 test('the handler carries no validatePayload, so a junk body is ignored', async () => {
@@ -141,7 +152,7 @@ test('the handler carries no validatePayload, so a junk body is ignored', async 
     signed(store, 'OOBE_20161026.GetServiceToken', junk, admin.accessKeyId));
 
   assert.equal(res.status, 200);
-  assert.equal(res.body.loopId, null, 'a body loopId does not bind the token');
+  assert.equal(store.tokens.get(res.body.token).loopId, null, 'a body loopId does not bind the token');
 });
 
 // REGRESSION: SERVICE_MODE_EMAIL_PREFIX must be the FULL 'service-mode-owner-'.
@@ -180,8 +191,8 @@ test('a GetServiceToken-minted owner does get serviceMode on setupRobot', async 
     signed(store, 'OOBE_20161026.GetServiceToken', {}, admin.accessKeyId));
   assert.equal(gst.status, 200);
 
-  const owner = store.accounts.get(gst.body.accountId);
-  const body = { id: 'service-maple-pixel-comet', token: gst.body._id };
+  const owner = store.accounts.get(store.tokens.get(gst.body.token).accountId);
+  const body = { id: 'service-maple-pixel-comet', token: gst.body.token };
   const res = await amz('OOBE_20161026.SetupRobot', body,
     signedLoopHeaders(store, base, 'OOBE_20161026.SetupRobot', body, owner.accessKeyId));
 

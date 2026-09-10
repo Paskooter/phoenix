@@ -351,7 +351,7 @@ function saveLoopMutation(store, loop, loopUpdatedOutbox, before, mutation) {
  * callers must pass a pre-mutation snapshot and mutate a cloned draft.  Taking
  * the snapshot here would be too late for an already-mutated map object.
  */
-function saveLoop(store, loop, loopUpdatedOutbox, before = undefined) {
+export function saveLoop(store, loop, loopUpdatedOutbox, before = undefined) {
   const priorStoredLoop = store.loops.get(loop._id);
   const previous = before === undefined
     ? (priorStoredLoop ? snapshotLoop(priorStoredLoop) : null)
@@ -572,7 +572,10 @@ function listLoopsForAccount(store, { ownerId, friendlyId = null, loopId = null 
   return { isRobotRequesting, items: result };
 }
 
-function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
+// OOBE.SetupRobot reuses this controller helper when it replaces the robot on a
+// suspended loop (oobe.ctrl.ts loopCtrl.removeRobotFromLoops), so keep the
+// export narrow: source-shaped detached mutation plus LoopUpdated persistence.
+export function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
   // Source query is `$or: [{ robot, members.accountId }]` — a one-element $or, so AND.
   const loops = [...store.loops.values()].filter((loop) => loop.isDeleted !== true
     && idsEqual(loop.robot, robotAccountId)
