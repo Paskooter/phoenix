@@ -1,0 +1,30 @@
+FALSIFICATION - deliver a WRONG-LENGTH key through the same path and confirm the app rejects it
+
+Probe: /tmp/w3ki/falsify.mjs encrypted a 31-byte buffer (NOT the robot's 32-byte key) to each of the
+account's two Key_20160201.CreateRequest public keys with RSA/NONE/PKCS1Padding and delivered it
+through Key_20160201.Share. The server accepts it verbatim - it never validates key length, and the
+documented design says it must not (the crypto is the client's):
+
+  doc 02fcdcc0facd9f46ba83d6a3: injected 31-byte fake key -> Share 200  ciphertext 256B
+  doc 004a5173b692aed0d45b440f: injected 31-byte fake key -> Share 200  ciphertext 256B
+
+The app's stored key was deleted and the app relaunched through the onboarding path (which triggers
+KeyRequestingSharingService), with logcat cleared first:
+
+  did the app ASK?          adb logcat -d | grep -c "x-amz-target:Key_20160201.CreateRequest"  -> 1
+  did it DECRYPT+SAVE one?  adb logcat -d | grep -c "D KeyManager: "                             -> 0
+  key file                  adb shell ls /data/data/com.jibo/files/ | grep -c loop                -> 0
+  Gallery                   'Waiting for Jibo': True, viewNoKey: True, photo cells: 0
+                            -> evidence/gallery-falsify-wrong-length-key.xml
+  PREF_ENCRYPTION_ENABLED   true throughout (no manual toggle)
+
+So the app asked, received the malformed ciphertext, and stored nothing: KeyManager.saveSymmetricKey
+only accepts a plaintext whose tail it can take as a 32-byte AES key.
+
+RESTORE - the same script with the real 32-byte key (--force, no other change):
+  Share accepted; request now satisfied (ciphertext only, server holds no plaintext)   (both docs)
+  did it DECRYPT+SAVE one?  adb logcat -d | grep -c "D KeyManager: "  -> 2
+  key file  -rw-rw---- 256 loop_43ca532ad4090cfb80f2e7a5_5a0b20f5ddee0000197e2881  (21:08)
+  Gallery   'Waiting for Jibo': False, viewNoKey: False, photo cells: 2
+            -> evidence/gallery-restored.xml
+  PREF_ENCRYPTION_ENABLED still true.

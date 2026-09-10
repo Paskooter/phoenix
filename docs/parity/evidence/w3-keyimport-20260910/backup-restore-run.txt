@@ -1,0 +1,27 @@
+# --bootstrap-backup as the loop NON-OWNER (must be refused)
+robot key sha1 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted)
+computing encryptedKey = BASE64(AES-256-CBC(SHA-256(passphrase), <app iv>, BASE64(rawKey)))
+passwordHash (sha1) 9b4ca74ce29ee5d3710ccfe9de612522c359bcc2
+import-robot-loop-key: Backup failed: 403 ONLY_OWNER_CAN_BACKUP_RESTORE
+
+# --verify-backup as the loop NON-OWNER (must be refused: owner or robot only)
+robot key sha1 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted); password hash 9b4ca74ce29ee5d3710ccfe9de612522c359bcc2
+Restore failed: 403 ONLY_OWNER_OR_ROBOT_CAN_RESTORE (no backup / wrong passphrase)
+
+# --verify-backup with a WRONG passphrase (must be 409)
+robot key sha1 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted); password hash 9b4393f873e23601899c3a72a75cdbba77242c61
+Restore failed: 409 BACKUP_PASSWORD_WRONG (no backup / wrong passphrase)
+
+# --verify-backup as the loop OWNER (must MATCH the key still on the robot)
+robot key sha1 49d5de8d9311767d11be119eb71189480c055dc8 (plaintext redacted); password hash 9b4ca74ce29ee5d3710ccfe9de612522c359bcc2
+backup ciphertext 48 bytes; recovered key 32 bytes
+RESULT: MATCH - the backup holds the robot's key
+{
+  "loopId": "5a0b20f5ddee0000197e2881",
+  "backupFound": true,
+  "ciphertextBytes": 48,
+  "recoveredKeyBytes": 32,
+  "passwordHashAlgorithm": "sha1",
+  "plaintextRedacted": true,
+  "match": true
+}
