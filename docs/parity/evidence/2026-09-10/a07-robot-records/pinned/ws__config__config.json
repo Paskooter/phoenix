@@ -1,0 +1,15 @@
+# jiborobot/srv-robots-ws:config/config.json@4c8b1b75f3e0ccb90fab160019637704ba62d36a
+
+{
+  "server": {
+    "port": 8080,
+    "mongoHost": "mongo",
+    "mongoDb": "jibo",
+    "mongoReplicaName": "",
+    "sns":{
+      "topicArn":"arn:aws:sns:us-east-1:368558344414:jibo-events-legacy"
+    }
+  },
+  "restrictedToOwner": ["remoteEnabled"],
+  "restrictedToManufacturing": ["suspended"]
+}

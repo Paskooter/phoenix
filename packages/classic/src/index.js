@@ -10,7 +10,7 @@ import { createService, sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { createClassicRouter } from './router.js';
 import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
-import { makeRobotHandler } from './robot.js';
+import { makeRobotHandler, RobotStore } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 import { KeyStore, makeKeyHandler, keyRoutes } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
@@ -23,7 +23,7 @@ import { proxyMemberPhoto } from './photoProxy.js';
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
 export { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
-export { makeRobotHandler } from './robot.js';
+export { makeRobotHandler, RobotStore } from './robot.js';
 export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
 export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
@@ -59,13 +59,14 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const keys = keyStore || new KeyStore();
+  const robots = robotStore || new RobotStore();
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
-    { match: /^robot/i, handler: makeRobotHandler() },
+    { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore() }) },
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir }) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
@@ -93,7 +94,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir, rom } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -103,6 +104,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   });
   const backups = new BackupStore();
   const keys = keyStore || new KeyStore();
+  const robots = robotStore || new RobotStore();
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
@@ -125,6 +127,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         keyMembership,
         keyBinaryDir,
         rom,
+        robotStore: robots,
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
