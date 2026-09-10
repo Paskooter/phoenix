@@ -1,0 +1,59 @@
+TAP version 13
+# {"t":"2026-09-10T19:15:07.988Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-10T19:15:07.993Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Authorization is required"}
+# {"t":"2026-09-10T19:15:07.998Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# {"t":"2026-09-10T19:15:08.000Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# {"t":"2026-09-10T19:15:08.001Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"SyntaxError: Unexpected token b in JSON at position 1"}
+# {"t":"2026-09-10T19:15:08.002Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"TypeError: Cannot read property 'nbf' of null"}
+# {"t":"2026-09-10T19:15:08.003Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# Subtest: auth differential: 1965 pinned-source outcomes replay exactly
+not ok 1 - auth differential: 1965 pinned-source outcomes replay exactly
+  ---
+  duration_ms: 93.545232
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.differential.test.js:203:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    auth/basic
+    + actual - expected
+    
+      {
+        ok: true,
+        value: {
+    +     error: 'JsonWebTokenError: jwt malformed'
+    -     error: 'Only bearer scheme is supported'
+        }
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    ok: true
+    value:
+      error: 'Only bearer scheme is supported'
+  actual:
+    ok: true
+    value:
+      error: 'JsonWebTokenError: jwt malformed'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.differential.test.js:213:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: identity differential: 187 pinned-source CONTEXT outcomes replay exactly
+ok 2 - identity differential: 187 pinned-source CONTEXT outcomes replay exactly
+  ---
+  duration_ms: 4.528379
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 411.193286
