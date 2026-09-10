@@ -1,0 +1,40 @@
+{
+  "kind": "a05-live-oobe-deployment-probe",
+  "date": "2026-09-10",
+  "phoenixRevision": "b22d86b6486edc8053f80d0afcf720fa4bf1990a",
+  "previousDeployedRevision": "a72e24d3714c (deploy-a72e24d-20260909)",
+  "host": "shell-host user unit phoenix-robot@moth.service, HTTPS :443",
+  "note": "Before this deployment the live server answered UnknownOperationException for GetServiceToken and ReconnectRobot. Both now dispatch to real handlers. No pre-existing OOBE operation changed behaviour.",
+  "results": {
+    "OOBE_20161026.GetServiceToken": {
+      "__type": "AUTHORIZED_UNDER_ADMIN",
+      "statusCode": null,
+      "message": "Must be authorized under admin account"
+    },
+    "OOBE_20161026.ReconnectRobot": {
+      "__type": "CREDENTIALS_REQUIRED",
+      "statusCode": null,
+      "message": "Credentials required"
+    },
+    "OOBE_20161026.SetupRobot": {
+      "__type": "ValidationException",
+      "statusCode": null,
+      "message": "token and id are required"
+    },
+    "OOBE_20161026.PrepareRobot": {
+      "__type": "CREDENTIALS_REQUIRED",
+      "statusCode": null,
+      "message": "Credentials required"
+    },
+    "OOBE_20161026.GetStatus": {
+      "__type": "ValidationException",
+      "statusCode": null,
+      "message": "token is required"
+    },
+    "Push_20160729.CreateDevice": {
+      "__type": null,
+      "statusCode": 422,
+      "message": "child \"name\" fails because [\"name\" is required]"
+    }
+  }
+}
