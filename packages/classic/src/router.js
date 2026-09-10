@@ -35,7 +35,7 @@ export function createClassicRouter(registrations) {
   };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
-  dispatch.rawBody = (req) => /^Loop[^.]*\.UpdateMemberPhoto$/i.test(String(req.headers['x-amz-target'] || ''));
+  dispatch.rawBody = isClassicBinaryPhotoUpload;
   dispatch.bodyDefault = (req) => {
     const { prefix, op } = parseTarget(req);
     const reg = regs.find((entry) => entry.re.test(prefix));
@@ -61,7 +61,7 @@ async function proxy(baseUrl, req, res, body, log) {
         statusCode: 415,
       });
     }
-    const requestBody = /^Loop[^.]*\.UpdateMemberPhoto$/i.test(String(req.headers['x-amz-target'] || '')) ? req : req.rawBody === undefined
+    const requestBody = isClassicBinaryPhotoUpload(req) ? req : req.rawBody === undefined
       ? (body === null || body === undefined ? '' : JSON.stringify(body))
       : req.rawBody;
     // Native http.request is used here because undici/fetch deliberately
@@ -168,6 +168,12 @@ function upstreamTimeoutMS() {
   const configured = Number(process.env.ETCO_classic_upstreamTimeoutMS);
   if (!Number.isFinite(configured) || configured <= 0) return 10_000;
   return Math.min(Math.floor(configured), 60_000);
+}
+
+function isClassicBinaryPhotoUpload(req) {
+  const target = String(req?.headers?.['x-amz-target'] || '');
+  return /^Loop[^.]*\.UpdateMemberPhoto$/i.test(target)
+    || /^Account[^.]*\.UpdatePhoto$/i.test(target);
 }
 
 function unsupportedContentEncoding(headers = {}) {

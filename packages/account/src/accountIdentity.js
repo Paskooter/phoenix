@@ -1,15 +1,21 @@
 // Account identity core — Create, Login, Get, Update, CheckEmail, ChangePassword
 // plus the email/phone/terms slice: ChangeEmail, ResetEmail, ConfirmEmailReset,
-// SendPhoneVerificationCode, VerifyPhoneByCode, AcceptTerms.
+// SendPhoneVerificationCode, VerifyPhoneByCode, AcceptTerms, the access-token /
+// key-rotation slice: CreateAccessToken, GetAccountByAccessToken, ResetKeys,
+// and the account photo slice: UpdatePhoto, RemovePhoto.
 //
 // Source: jiborobot/srv-account-ws@6cea43470825657d6a5722162f28c8f233153ee2
 //   handlers/account.handler.ts, controllers/account.ctrl.ts, schemes/account.ts,
 //   schemes/email.reset.ts, schemes/phoneVerification.ts, utils/password.ts,
-//   errors/account.ts, errors/token.ts.
+//   errors/account.ts, errors/token.ts, controllers/token.ctrl.ts.
 // Framework: jiborobot/srv-server parseCredentials.ts / validate.ts / server.ts
 //   lowerMethodName = split('.')[1], first character lowercased.
+//   UpdatePhoto mapping options.binary redirects to POST /binary
+//   (payload maxBytes 1000000000, output stream).
 // Gateway: jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c
-//   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail/ConfirmEmailReset.
+//   auth.ctrl.ts unauthorizedMethods for Create/Login/CheckEmail/ConfirmEmailReset
+//   plus GetAccountByAccessToken. CreateAccessToken, ResetKeys, UpdatePhoto and
+//   RemovePhoto are not on that list and stay signed.
 //
 // Public Classic/Account identity is the signed access key (A-04 Loop pattern).
 // parseCredentials still reads only x-amz-credentials and is tested as the
@@ -17,9 +23,17 @@
 
 import { pbkdf2Sync, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import querystring from 'node:querystring';
-import { SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
+import { SIGV4_ERRORS, SigV4Error, jwt, verifySigV4 } from '@phoenix/common';
 import { sendAmz, sendAmzEmpty, sendAmzError, sendValidationError } from './loopHttp.js';
-import { fillAccessKeys, isAcceptedStatus, newId, verifyPassword } from './model.js';
+import {
+  createAuthenticatedWebToken,
+  fillAccessKeys,
+  isAcceptedStatus,
+  newId,
+  verifyPassword,
+  verifyWebToken,
+} from './model.js';
+import { stagePhotoDigest } from './loopMemberPhotos.js';
 
 export const ACCOUNT_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d-_!$%@#£€*?&\(\)\^]{8,}$/;
 const ACCOUNT_MINIMAL_AGE = 13;
@@ -51,6 +65,7 @@ export const ACCOUNT_ANONYMOUS_TARGETS = Object.freeze([
   'Account_20151111.ActivateByCode',
   'Account_20151111.SendPasswordReset',
   'Account_20151111.PasswordResetByCode',
+  'Account_20151111.GetAccountByAccessToken',
 ]);
 
 export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
@@ -71,6 +86,11 @@ export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
   'passwordResetByCode',
   'resendActivationCode',
   'sendPasswordReset',
+  'createAccessToken',
+  'getAccountByAccessToken',
+  'resetKeys',
+  'updatePhoto',
+  'removePhoto',
 ]);
 
 export const ACCOUNT_ERRORS = Object.freeze({
@@ -629,6 +649,60 @@ function validateAcceptTerms() {
   return null;
 }
 
+/** CreateAccessToken shares CreateHubToken's Joi.string() optional payload. */
+function validateCreateAccessToken(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  if (!Object.prototype.hasOwnProperty.call(body, 'payload')) return null;
+  return joiString(body.payload, 'payload');
+}
+
+function validateGetAccountByAccessToken(body) {
+  const top = payloadObjectMessage(body);
+  if (top) return top;
+  return joiString(body.token, 'token', { required: true });
+}
+
+function validateResetKeys() {
+  return null;
+}
+
+function configuredWebTokenSecret() {
+  return process.env.ETCO_server_webTokenSecret || process.env.WEB_TOKEN_SECRET;
+}
+
+function optionalTokenPayload(body) {
+  return Object.prototype.hasOwnProperty.call(body, 'payload') ? body.payload : null;
+}
+
+function createAccessToken(store, accountId, payload) {
+  const account = findById(store, accountId);
+  const secret = configuredWebTokenSecret();
+  return createAuthenticatedWebToken(account, secret, payload);
+}
+
+function getAccountByAccessToken(store, token) {
+  const secret = configuredWebTokenSecret();
+  let tokenObj;
+  try {
+    tokenObj = verifyWebToken(token, secret);
+  } catch (error) {
+    // token.ctrl.ts getWebToken rethrows jsonwebtoken errors. server.ts maps
+    // non-Boom failures to Boom.badImplementation. Do not remap to TOKEN_EXPIRED
+    // (that code is the 15-minute Token scheme, not web JWTs).
+    if (error instanceof jwt.JsonWebTokenError) {
+      fail({
+        code: 'InternalFailure',
+        message: 'Internal server error',
+        statusCode: 500,
+      });
+    }
+    throw error;
+  }
+  findById(store, tokenObj.id);
+  return tokenObj;
+}
+
 function loopIsVisibleTo(loop, ownerId) {
   if (!loop || loop.isDeleted === true) return false;
   if (idsEqual(loop.owner, ownerId)) return true;
@@ -975,6 +1049,51 @@ function acceptTerms(store, accountId) {
   return next;
 }
 
+/** srv-server binary mapping: x-amz-target remainder UpdatePhoto, case-insensitive. */
+export function isAccountPhotoUpload(req) {
+  return /^Account[^.]*\.UpdatePhoto$/i.test(String(req.headers?.['x-amz-target'] || ''));
+}
+
+function drainPhotoRequest(req) {
+  if (!req || req.photoInputStream) return;
+  if (typeof req.resume === 'function') req.resume();
+}
+
+function photoObjectKey(photoUrl) {
+  return String(photoUrl).split('/').pop();
+}
+
+/**
+ * AccountController.updatePhoto. Upload the new public object first, then
+ * delete the previous basename, then persist photoUrl. A failed remove/save
+ * does not roll back the already completed binary write.
+ */
+export async function updatePhoto(store, { ownerId, dataStream, photoProvider, clock = Date.now }) {
+  const account = findById(store, ownerId);
+  const savedPhoto = await photoProvider.createPublic({
+    dataStream,
+    path: account._id.valueOf() + clock(),
+  });
+  if (account.photoUrl) await photoProvider.remove(photoObjectKey(account.photoUrl));
+  const previous = snapshotAccount(account);
+  const next = { ...account, photoUrl: savedPhoto.url, updated: Date.now() };
+  persistAccount(store, next, previous);
+  return next;
+}
+
+/**
+ * AccountController.removePhoto. Delete the basename when photoUrl is set,
+ * then persist photoUrl = null even when no object existed.
+ */
+export async function removePhoto(store, { ownerId, photoProvider }) {
+  const account = findById(store, ownerId);
+  if (account.photoUrl) await photoProvider.remove(photoObjectKey(account.photoUrl));
+  const previous = snapshotAccount(account);
+  const next = { ...account, photoUrl: null, updated: Date.now() };
+  persistAccount(store, next, previous);
+  return next;
+}
+
 function authenticatePublicAccount({ store, req, body, target, auth }) {
   const authorization = req.headers && req.headers.authorization;
   if (auth === 'none' && !authorization && ACCOUNT_ANONYMOUS_TARGETS.includes(target)) {
@@ -985,6 +1104,7 @@ function authenticatePublicAccount({ store, req, body, target, auth }) {
       method: req.method,
       path: req.originalUrl || req.url || '/',
       headers: req.headers,
+      bodyDigest: req.photoBodyDigest,
       body: req.rawBody === undefined
         ? (body === null || body === undefined ? '' : JSON.stringify(body))
         : req.rawBody,
@@ -1174,6 +1294,59 @@ const OPS = {
       };
     },
   },
+  createAccessToken: {
+    auth: 'parseCredentials',
+    validate: validateCreateAccessToken,
+    run({ store, body, credentials }) {
+      return {
+        value: createAccessToken(store, credentials._id, optionalTokenPayload(body)),
+      };
+    },
+  },
+  getAccountByAccessToken: {
+    auth: 'none',
+    validate: validateGetAccountByAccessToken,
+    run({ store, body }) {
+      return { value: getAccountByAccessToken(store, body.token) };
+    },
+  },
+  resetKeys: {
+    auth: 'parseCredentials',
+    validate: validateResetKeys,
+    run({ store, credentials }) {
+      return {
+        value: accountToSourceJson(resetAccessKeys(store, credentials._id), { unsafe: true }),
+      };
+    },
+  },
+  // Handler: @parseCredentials({}) and no @validatePayload. Mapping
+  // `{ binary: true }` makes request.payload the raw body stream.
+  updatePhoto: {
+    auth: 'parseCredentials',
+    validate: () => null,
+    async run({ store, credentials, req, photoProvider }) {
+      return {
+        value: accountToSourceJson(await updatePhoto(store, {
+          ownerId: credentials._id,
+          dataStream: req.photoInputStream || req,
+          photoProvider,
+        }), { unsafe: false }),
+      };
+    },
+  },
+  // Handler: @parseCredentials({}) and no @validatePayload. Payload is unused.
+  removePhoto: {
+    auth: 'parseCredentials',
+    validate: () => null,
+    async run({ store, credentials, photoProvider }) {
+      return {
+        value: accountToSourceJson(await removePhoto(store, {
+          ownerId: credentials._id,
+          photoProvider,
+        }), { unsafe: false }),
+      };
+    },
+  },
 };
 
 function resolveMailContext(mailProviders, loopConfig) {
@@ -1191,19 +1364,30 @@ function resolveMailContext(mailProviders, loopConfig) {
   };
 }
 
-export async function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig, identityProviders }) {
+export async function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig, identityProviders, memberPhotoProvider }) {
   const target = String(req.headers && req.headers['x-amz-target'] || '');
   const methodName = accountMethodName(target);
   const spec = OPS[methodName];
   if (!spec) return false;
+  const upload = methodName === 'updatePhoto';
   try {
+    if (upload && req.headers.authorization && !req.headers['x-amz-content-sha256'] && !req.photoBodyDigest) {
+      await stagePhotoDigest(req);
+    }
     const auth = authenticatePublicAccount({ store, req, body, target, auth: spec.auth });
-    if (auth.error) return void sendAmzError(res, auth.error);
+    if (auth.error) {
+      if (upload) drainPhotoRequest(req);
+      return void sendAmzError(res, auth.error);
+    }
     if (spec.adminOnly && !(auth.credentials && auth.credentials.isAdmin)) {
+      if (upload) drainPhotoRequest(req);
       return void sendAmzError(res, AUTHORIZED_UNDER_ADMIN);
     }
     const validation = spec.validate(body);
-    if (validation) return void sendValidationError(res, validation);
+    if (validation) {
+      if (upload) drainPhotoRequest(req);
+      return void sendValidationError(res, validation);
+    }
     // Two provider shapes reach this handler and both must be threaded:
     // `mail` (activation / password-reset SMTP) and `providers` (email-reset
     // and SMS). The base branch supplied only one; omitting `mail` silently
@@ -1216,11 +1400,13 @@ export async function handleAccountIdentity({ store, req, res, body, log, mailPr
       req,
       mail,
       providers: normalizeIdentityProviders(identityProviders),
+      photoProvider: memberPhotoProvider,
     });
     log.info('account identity', { op: methodName });
     if (result && result.empty) return void sendAmzEmpty(res);
     return void sendAmz(res, 200, result.value);
   } catch (error) {
+    if (upload) drainPhotoRequest(req);
     if (error && error.code && error.statusCode) return void sendAmzError(res, error);
     throw error;
   }

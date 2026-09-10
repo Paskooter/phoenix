@@ -120,6 +120,20 @@ export function createAuthenticatedHubToken(account, secret, payload = null) {
   return { token: jwt.sign(tokenPayload, secret), expires: issuedMS + HUB_TOKEN_LIFETIME_S * 1000 };
 }
 
+/**
+ * Account_20151111.CreateAccessToken / token.ctrl.ts createWebToken.
+ * The signed claim object and 3h lifetime are the same as CreateHubToken;
+ * only the secret differs (config.server.webTokenSecret).
+ */
+export function createAuthenticatedWebToken(account, secret, payload = null) {
+  return createAuthenticatedHubToken(account, secret, payload);
+}
+
+/** token.ctrl.ts getWebToken — webToken.verify with no old-secret fallback. */
+export function verifyWebToken(token, secret) {
+  return jwt.verify(token, secret);
+}
+
 // -- accounts -----------------------------------------------------------------
 
 /** A human owner account. */
