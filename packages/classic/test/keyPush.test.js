@@ -65,12 +65,14 @@ test('key: GetRequest unknown id -> 404', async () => {
   assert.equal(r.errType, 'KEY_REQUEST_NOT_FOUND');
 });
 
-test('push: CreateDevice / RemoveDevice return success (no-op delivery)', async () => {
+test('push: CreateDevice / RemoveDevice return the account Devices list; validation is 422', async () => {
   const reg = await amz('Push_20160729.CreateDevice', { name: 'phone-1', pushToken: 'apns-tok', type: 'ios' }, 'acct-C');
   assert.equal(reg.status, 200);
-  assert.deepEqual(reg.body, {});
-  const rm = await amz('Push_20160729.RemoveDevice', { name: 'phone-1' });
+  assert.deepEqual(reg.body, [{ name: 'phone-1', pushToken: 'apns-tok', type: 'ios' }]);
+  // ownership: an account removes its own device (the enlarged stub scopes by account)
+  const rm = await amz('Push_20160729.RemoveDevice', { name: 'phone-1' }, 'acct-C');
   assert.equal(rm.status, 200);
+  assert.deepEqual(rm.body, []);
   const bad = await amz('Push_20160729.CreateDevice', {});
-  assert.equal(bad.status, 400, 'name required');
+  assert.equal(bad.status, 422, 'name required (source Boom.badData)');
 });
