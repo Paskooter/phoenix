@@ -1157,7 +1157,7 @@
           "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
           "phoenixRevision": "83178a62e0b96ab0b93b5feb5c3a3a4a1b14758a",
           "command": "node packages/nlu/tools/replayMultiruleHttp.mjs && node --test packages/nlu/test/*.test.js",
-          "notes": "Unblocks N-02, which depends on N-01."
+          "notes": "IMPORTANT CAVEAT: 96 of 98 named public rules execute in the DEFAULT (AST) profile. clock/alarm_set_value and clock/alarm_timer_ampm refuse with a LOUD error ('Unsupported NLU factory dependencies ...: time') because factory-sources/time.grm uses the native literal-colon form '?:' that the word-token AST matcher cannot consume. The loader still imports and hash-verifies all 98; the 2 fail loudly rather than silently, which satisfies acceptance criterion 2's 'do not silently skip'. The accepted compiled profile covers all 98 (INFERRED from prior artifacts; not re-observed this session). A strict reading of 'load every named rule' as '98/98 executable in the default profile' would withhold verification - root accepted it on the loud-refusal reading, and the gap is N-02's factory track. VERIFIED by root: 42/42 multi-rule cases, differences none. Unblocks N-02, which depends on N-01."
         }
       ],
       "implementationReview": {
