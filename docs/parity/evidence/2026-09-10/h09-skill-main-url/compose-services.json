@@ -1,0 +1,75 @@
+{
+  "source": "docker compose config --format json",
+  "skillServices": {
+    "answer-skill": {
+      "command": [
+        "node",
+        "packages/skills/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": "answer-skill",
+      "ports": [
+        "9009"
+      ]
+    },
+    "chitchat-skill": {
+      "command": [
+        "node",
+        "packages/skills/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": "chitchat-skill",
+      "ports": [
+        "9004"
+      ]
+    },
+    "color-skill": {
+      "command": [
+        "node",
+        "packages/skills/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": "color-skill",
+      "ports": [
+        "9008"
+      ]
+    },
+    "example-skill": {
+      "command": [
+        "node",
+        "packages/skills/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": "example-skill",
+      "ports": [
+        "9013"
+      ]
+    },
+    "hub": {
+      "command": [
+        "node",
+        "packages/gateway/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": null,
+      "ports": [
+        "9000"
+      ]
+    },
+    "report-skill": {
+      "command": [
+        "node",
+        "packages/skills/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": "report-skill",
+      "ports": [
+        "9003"
+      ]
+    },
+    "template-skill": {
+      "command": [
+        "node",
+        "packages/skills/src/index.js"
+      ],
+      "PHOENIX_SKILL_ID": "template-skill",
+      "ports": [
+        "9014"
+      ]
+    }
+  }
+}

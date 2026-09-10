@@ -1,0 +1,226 @@
+{
+  "probes": {
+    "postMain": {
+      "status": 200,
+      "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"echo\",\"ts\":1,\"data\":{\"skill\":{\"id\":\"report-skill\"},\"requestType\":\"LISTEN_LAUNCH\",\"transID\":\"tid:source\",\"robotID\":\"robot-1\",\"loggingConfig\":\"{}\",\"echoed\":{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"source-1\",\"ts\":1,\"data\":{\"general\":{\"accountID\":\"a\",\"robotID\":\"r\"},\"skill\":{\"id\":\"report-skill\"}}}},\"timings\":{\"total\":0}}",
+      "json": {
+        "type": "SKILL_ACTION",
+        "msgID": "echo",
+        "ts": 1,
+        "data": {
+          "skill": {
+            "id": "report-skill"
+          },
+          "requestType": "LISTEN_LAUNCH",
+          "transID": "tid:source",
+          "robotID": "robot-1",
+          "loggingConfig": "{}",
+          "echoed": {
+            "type": "LISTEN_LAUNCH",
+            "msgID": "source-1",
+            "ts": 1,
+            "data": {
+              "general": {
+                "accountID": "a",
+                "robotID": "r"
+              },
+              "skill": {
+                "id": "report-skill"
+              }
+            }
+          }
+        },
+        "timings": {
+          "total": 0
+        }
+      }
+    },
+    "postNamespacedAlias": {
+      "status": 200,
+      "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"echo\",\"ts\":1,\"data\":{\"skill\":{\"id\":\"report-skill\"},\"requestType\":\"LISTEN_LAUNCH\",\"transID\":\"unknown\",\"robotID\":\"unknown\",\"loggingConfig\":\"{}\",\"echoed\":{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"source-1\",\"ts\":1,\"data\":{\"general\":{\"accountID\":\"a\",\"robotID\":\"r\"},\"skill\":{\"id\":\"report-skill\"}}}},\"timings\":{\"total\":0}}",
+      "json": {
+        "type": "SKILL_ACTION",
+        "msgID": "echo",
+        "ts": 1,
+        "data": {
+          "skill": {
+            "id": "report-skill"
+          },
+          "requestType": "LISTEN_LAUNCH",
+          "transID": "unknown",
+          "robotID": "unknown",
+          "loggingConfig": "{}",
+          "echoed": {
+            "type": "LISTEN_LAUNCH",
+            "msgID": "source-1",
+            "ts": 1,
+            "data": {
+              "general": {
+                "accountID": "a",
+                "robotID": "r"
+              },
+              "skill": {
+                "id": "report-skill"
+              }
+            }
+          }
+        },
+        "timings": {
+          "total": 0
+        }
+      }
+    },
+    "getMain": {
+      "status": 404,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"176e4507-8d4e-42ba-8cee-edc1fc5ade71\",\"ts\":1789078847031,\"final\":true,\"data\":{\"message\":\"URL not found: /v1/main\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "176e4507-8d4e-42ba-8cee-edc1fc5ade71",
+        "ts": 1789078847031,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/main"
+        }
+      }
+    },
+    "healthcheck": {
+      "status": 200,
+      "raw": "ok",
+      "json": null
+    },
+    "postUnknown": {
+      "status": 404,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"6c9ecce8-8f6a-452d-8b00-39dcb706a9db\",\"ts\":1789078847035,\"final\":true,\"data\":{\"message\":\"URL not found: /v1/unknown\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "6c9ecce8-8f6a-452d-8b00-39dcb706a9db",
+        "ts": 1789078847035,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/unknown"
+        }
+      }
+    },
+    "postThrow": {
+      "status": 200,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"bf9d46a7-bd55-4196-89f0-b7e6db24794c\",\"ts\":1789078847038,\"data\":{\"message\":\"boom\",\"skill\":{\"id\":\"report-skill\"}}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "bf9d46a7-bd55-4196-89f0-b7e6db24794c",
+        "ts": 1789078847038,
+        "data": {
+          "message": "boom",
+          "skill": {
+            "id": "report-skill"
+          }
+        }
+      }
+    },
+    "postTextPlain": {
+      "status": 200,
+      "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"echo\",\"ts\":1,\"data\":{\"skill\":{\"id\":\"report-skill\"},\"transID\":\"unknown\",\"robotID\":\"unknown\",\"loggingConfig\":\"{}\",\"echoed\":{}},\"timings\":{\"total\":0}}",
+      "json": {
+        "type": "SKILL_ACTION",
+        "msgID": "echo",
+        "ts": 1,
+        "data": {
+          "skill": {
+            "id": "report-skill"
+          },
+          "transID": "unknown",
+          "robotID": "unknown",
+          "loggingConfig": "{}",
+          "echoed": {}
+        },
+        "timings": {
+          "total": 0
+        }
+      }
+    },
+    "postMalformed": {
+      "status": 400,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"7b3c4b65-3a3a-4085-b8cf-8a0837fa8eb8\",\"ts\":1789078847067,\"final\":true,\"data\":{\"message\":\"Unexpected token n in JSON at position 1\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "7b3c4b65-3a3a-4085-b8cf-8a0837fa8eb8",
+        "ts": 1789078847067,
+        "final": true,
+        "data": {
+          "message": "Unexpected token n in JSON at position 1"
+        }
+      }
+    }
+  },
+  "runtime": {
+    "answer-skill": {
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "answer-skill",
+        "mim": null
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "answer-skill",
+        "mim": null
+      }
+    },
+    "report-skill": {
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "report-skill",
+        "mim": null
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "report-skill",
+        "mim": null
+      }
+    },
+    "chitchat-skill": {
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "chitchat-skill",
+        "mim": null
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "chitchat-skill",
+        "mim": null
+      }
+    },
+    "example-skill": {
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "example-skill",
+        "mim": null
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "example-skill",
+        "mim": null
+      }
+    },
+    "template-skill": {
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "template-skill",
+        "mim": null
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "template-skill",
+        "mim": null
+      }
+    }
+  }
+}
