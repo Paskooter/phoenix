@@ -1,0 +1,53 @@
+{
+  "kind": "a13-real-generated-client-probe",
+  "date": "2026-09-10",
+  "phoenixRevision": "3aee4e74eb002b3c98ee0717910d80b0a4f70ccf",
+  "client": "The ORIGINAL generated client: aws-sdk Service built from the pinned @jibo/jibo-server-client apis/push-2016-07-29.min.json. The SDK ships no lib/services/push.js wrapper, which is why the worker recorded this leg as unknown; the generic AWS.Service loader drives the same api model and IS the original client machinery.",
+  "target": "live Phoenix classic face, HTTPS :443, SigV4 with a real robot access key",
+  "results": [
+    {
+      "step": "CreateDevice",
+      "request": {
+        "name": "root-probe-phone",
+        "pushToken": "tok-root-1",
+        "type": "ios"
+      },
+      "sdkParsed": [
+        {
+          "name": "root-probe-phone",
+          "pushToken": "tok-root-1",
+          "type": "ios"
+        }
+      ],
+      "note": "Returns the Devices LIST (shape S4), not {} - the stub contract was wrong."
+    },
+    {
+      "step": "CreateDevice (second device)",
+      "sdkParsed": "both devices, accumulated in order"
+    },
+    {
+      "step": "RemoveDevice",
+      "sdkParsed": "remaining device only"
+    },
+    {
+      "step": "RemoveDevice unknown name",
+      "error": {
+        "code": "DEVICE_NOT_FOUND",
+        "statusCode": 404
+      },
+      "note": "Error envelope parsed by the real SDK into a typed code, not a raw body."
+    },
+    {
+      "step": "CreateDevice missing required fields",
+      "error": {
+        "code": "MultipleValidationErrors",
+        "note": "client-side, rejected before the wire"
+      }
+    }
+  ],
+  "cleanup": "All probe devices removed; the live account store contains 0 probe leftovers.",
+  "criterion2": "Both legs now satisfied: the fixture-provider path is covered by packages/classic/test/push.test.js, and this is the \"available real client\" leg that was previously recorded as unknown.",
+  "stillUnknown": [
+    "Real APNs/FCM delivery to a device - those providers and credentials are dead, and no mobile app exists. Not simulated."
+  ]
+}

@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 3 | 46 | 0 | 0 |
-| classic | 4 | 20 | 0 | 0 |
+| classic | 5 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1567,7 +1567,7 @@ Evidence: pending.
 
 ### A-13 — Implement push delivery behind a replaceable provider
 
-- [ ] **todo** · P1 · classic · implementation: partial
+- [x] **verified** · P1 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02, A-03.
 
@@ -1582,7 +1582,15 @@ Source: [jiborobot/srv-jibo-server-client/apis/push-2016-07-29.normal.json](http
 
 Phoenix: [packages/classic/src/push.js](../../packages/classic/src/push.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a13-push-real-client/review.md](../../docs/parity/evidence/2026-09-10/a13-push-real-client/review.md) (2026-09-10; 13 focused tests cover device CRUD, ownership, durability and the fixture-provider delivery/failure/token-invalidation paths. The "available real client" leg was then verified directly: an aws-sdk Service built from the pinned apis/push-2016-07-29.min.json drove CreateDevice/RemoveDevice against the live Phoenix face over SigV4, and the SDK parsed both the S4 Devices list and the typed 404 DEVICE_NOT_FOUND error envelope.).
+
+- [x] Candidate implementation — **accepted**; DeepSeek worker via Hermes delegate_task (second attempt).
+
+Candidate scope: Device CRUD, durable registration, ownership and errors, plus delivery, provider failure and token invalidation through a fixture provider. Root verified the S4 list-output contract against the pinned SDK model before accepting the worker rewriting two pre-existing keyPush assertions, then closed criterion 2 by driving the REAL generated client against the live server.
+
+Candidate report: [docs/parity/evidence/2026-09-10/a13-push-real-client/review.md](../../docs/parity/evidence/2026-09-10/a13-push-real-client/review.md).
+
+Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a13-push-real-client/live-probe.json](../../docs/parity/evidence/2026-09-10/a13-push-real-client/live-probe.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-14 — Implement functional Media and MediaAdmin storage
 

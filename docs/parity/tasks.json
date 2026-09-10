@@ -3412,7 +3412,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3430,7 +3430,27 @@
         "Match device creation/removal, durable registration, ownership and errors.",
         "Exercise notification delivery, provider failure/token invalidation and downstream effects through a fixture provider and then an available real client."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "13 focused tests cover device CRUD, ownership, durability and the fixture-provider delivery/failure/token-invalidation paths. The \"available real client\" leg was then verified directly: an aws-sdk Service built from the pinned apis/push-2016-07-29.min.json drove CreateDevice/RemoveDevice against the live Phoenix face over SigV4, and the SDK parsed both the S4 Devices list and the typed 404 DEVICE_NOT_FOUND error envelope.",
+          "artifact": "docs/parity/evidence/2026-09-10/a13-push-real-client/review.md",
+          "result": "pass",
+          "referenceRevision": "155d20a8102960b2aeb89c197bdf04dc1f1fc344",
+          "phoenixRevision": "3aee4e74eb002b3c98ee0717910d80b0a4f70ccf",
+          "command": "node --test packages/classic/test/push.test.js packages/classic/test/keyPush.test.js && npm test",
+          "notes": "Real APNs/FCM delivery to a physical handset remains UNVERIFIED and is not simulated: those providers and credentials are dead and no mobile client exists. The provider seam is exercised with a fixture, which is what criterion 2 asks for."
+        }
+      ],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "DeepSeek worker via Hermes delegate_task (second attempt)",
+        "reviewedBy": "Hermes root (pasketti)",
+        "candidateRevision": "3aee4e74eb002b3c98ee0717910d80b0a4f70ccf",
+        "scope": "Device CRUD, durable registration, ownership and errors, plus delivery, provider failure and token invalidation through a fixture provider. Root verified the S4 list-output contract against the pinned SDK model before accepting the worker rewriting two pre-existing keyPush assertions, then closed criterion 2 by driving the REAL generated client against the live server.",
+        "artifact": "docs/parity/evidence/2026-09-10/a13-push-real-client/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-10/a13-push-real-client/live-probe.json"
+      }
     },
     {
       "id": "A-14",
