@@ -1,0 +1,7 @@
+  falsify [caught] Phoenix widens unactiveMethods (inactive bypass)
+  falsify [caught] Phoenix drops the inactive Remove carve-out
+  falsify [caught] Phoenix marks a credentialed target anonymous (bypass)
+  falsify [caught] Phoenix drops a gateway-anonymous target
+  falsify [caught] Loop face drops an invitation target
+  falsify [caught] OOBE path gains a signature gate (no longer anonymous)
+falsification: all 6 drifts detected

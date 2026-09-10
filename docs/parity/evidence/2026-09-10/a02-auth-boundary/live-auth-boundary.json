@@ -1,0 +1,216 @@
+{
+  "gatewayPin": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+  "anonymousChecked": 14,
+  "credentialedChecked": 10,
+  "inactiveChecked": 3,
+  "failures": 0,
+  "invalid": 0,
+  "result": "pass",
+  "results": [
+    {
+      "target": "Account_20151111.ActivateByCode",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.CheckEmail",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.ConfirmEmailReset",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Create",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.GetAccountByAccessToken",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Login",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.PasswordResetByCode",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.ResendActivationCode",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.SendPasswordReset",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.AcceptInvitationByCode",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 400,
+      "errorType": "UnknownOperationException",
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.DeclineInvitationByCode",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 400,
+      "errorType": "UnknownOperationException",
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.UpdateAgreementStatus",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 422,
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "OOBE_20161026.GetStatus",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 400,
+      "errorType": "ValidationException",
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "OOBE_20161026.SetupRobot",
+      "gatewayRule": "unauthorizedMethods (anonymous allowed)",
+      "status": 400,
+      "errorType": "ValidationException",
+      "rejectedForMissingAuth": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Get",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Update",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.CreateAccessToken",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.ResetKeys",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Search",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Remove",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.ListLoops",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.CreateLoop",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.InviteLoopMember",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Loop_20160324.RemoveLoopMember",
+      "gatewayRule": "credentials required",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "rejectedForMissingAuth": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Remove",
+      "gatewayRule": "unactiveMethods (inactive caller allowed)",
+      "status": 200,
+      "blockedForInactive": false,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Get",
+      "gatewayRule": "active account required",
+      "status": 403,
+      "errorType": "ACCOUNT_NOT_ACTIVE",
+      "blockedForInactive": true,
+      "verdict": "pass"
+    },
+    {
+      "target": "Account_20151111.Update",
+      "gatewayRule": "active account required",
+      "status": 403,
+      "errorType": "ACCOUNT_NOT_ACTIVE",
+      "blockedForInactive": true,
+      "verdict": "pass"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "gatewayUnauthorized": 20,
+  "gatewayInScope": [
+    "Account_20151111.ActivateByCode",
+    "Account_20151111.CheckEmail",
+    "Account_20151111.ConfirmEmailReset",
+    "Account_20151111.Create",
+    "Account_20151111.GetAccountByAccessToken",
+    "Account_20151111.Login",
+    "Account_20151111.PasswordResetByCode",
+    "Account_20151111.ResendActivationCode",
+    "Account_20151111.SendPasswordReset",
+    "Loop_20160324.AcceptInvitationByCode",
+    "Loop_20160324.DeclineInvitationByCode",
+    "Loop_20160324.UpdateAgreementStatus",
+    "OOBE_20161026.GetStatus",
+    "OOBE_20161026.SetupRobot"
+  ],
+  "gatewayOutOfScope": [
+    "Backup_20150617.CreateBackupAnon",
+    "Backup_20150617.GetBackupAnon",
+    "Backup_20150617.ListBackupsAnon",
+    "Backup_20150617.RemoveBackupAnon",
+    "Crew_20160324.AcceptInvitationByCode",
+    "Crew_20160324.DeclineInvitationByCode"
+  ],
+  "phoenixAnonymous": [
+    "Account_20151111.ActivateByCode",
+    "Account_20151111.CheckEmail",
+    "Account_20151111.ConfirmEmailReset",
+    "Account_20151111.Create",
+    "Account_20151111.GetAccountByAccessToken",
+    "Account_20151111.Login",
+    "Account_20151111.PasswordResetByCode",
+    "Account_20151111.ResendActivationCode",
+    "Account_20151111.SendPasswordReset",
+    "Loop_20160324.AcceptInvitationByCode",
+    "Loop_20160324.DeclineInvitationByCode",
+    "Loop_20160324.UpdateAgreementStatus",
+    "OOBE_20161026.GetStatus",
+    "OOBE_20161026.SetupRobot"
+  ],
+  "authenticationBypass": [],
+  "missingAnonymous": [],
+  "result": "pass",
+  "unactive": {
+    "gatewayUnactive": [
+      "Account_20151111.Remove"
+    ],
+    "phoenixUnactive": [
+      "Account_20151111.Remove"
+    ],
+    "extra": [],
+    "missing": [],
+    "result": "pass"
+  },
+  "gatewayPin": {
+    "repository": "jiborobot/srv-security-gw",
+    "revision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
+    "path": "src/controllers/auth.ctrl.ts"
+  }
+}

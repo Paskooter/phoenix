@@ -83,6 +83,34 @@ def phoenix_oobe_unauthenticated(text=None, target=None):
     return not re.search(r"/\^oobe/i\.test\(prefix\)[^\n]*\n[^\n]*verifySigV4", text)
 
 
+def phoenix_unactive(text=None):
+    """Targets Phoenix lets an INACTIVE account call.
+
+    verifySigV4 rejects every !isActive credential, so the Account face carves
+    out the gateway's unactiveMethods by presenting a live flag to the verifier
+    for exactly those targets.
+    """
+    text = text if text is not None else ACCOUNT_SRC.read_text()
+    i = text.find("ACCOUNT_UNACTIVE_TARGETS = Object.freeze")
+    if i < 0:
+        return []
+    j = text.find("])", i)
+    return re.findall(r"'([^']+)'", text[i:j])
+
+
+def compare_unactive(gateway, account_text=None):
+    """Diff Phoenix's inactive-callable targets against the gateway."""
+    gw = set(gateway["unactiveMethods"])
+    phx = set(phoenix_unactive(account_text))
+    return {
+        "gatewayUnactive": sorted(gw),
+        "phoenixUnactive": sorted(phx),
+        "extra": sorted(phx - gw),
+        "missing": sorted(gw - phx),
+        "result": "pass" if phx == gw else "fail",
+    }
+
+
 def compare(gateway, account_text=None, robotface_text=None):
     """Diff Phoenix's anonymous targets against the gateway allow-list."""
     unauth = set(gateway["unauthorizedMethods"])
@@ -144,6 +172,23 @@ def main():
                      "if (/^account/i.test(prefix)) {",
                      "if (/^oobe/i.test(prefix)) {\n      const v = verifySigV4({});\n    }\n    if (/^account/i.test(prefix)) {", 1)),
         }
+        unactive_cases = {
+            "Phoenix widens unactiveMethods (inactive bypass)":
+                account_text.replace(
+                    "ACCOUNT_UNACTIVE_TARGETS = Object.freeze([",
+                    "ACCOUNT_UNACTIVE_TARGETS = Object.freeze([\n  'Account_20151111.Get',", 1),
+            "Phoenix drops the inactive Remove carve-out":
+                account_text.replace("ACCOUNT_UNACTIVE_TARGETS = Object.freeze([\n  'Account_20151111.Remove',",
+                                     "ACCOUNT_UNACTIVE_TARGETS = Object.freeze([", 1),
+        }
+        for label, at in unactive_cases.items():
+            u = compare_unactive(gateway, at)
+            caught = u["result"] == "fail"
+            print(f"  falsify [{'caught' if caught else 'MISSED'}] {label}")
+            if not caught:
+                print(f"    diff failed to detect: {label}", file=sys.stderr)
+                return 2
+
         for label, (at, rt) in cases.items():
             r = compare(gateway, at, rt)
             caught = r["result"] == "fail"
@@ -151,10 +196,14 @@ def main():
             if not caught:
                 print(f"    diff failed to detect: {label}", file=sys.stderr)
                 return 2
-        print(f"falsification: all {len(cases)} drifts detected")
+        print(f"falsification: all {len(cases) + len(unactive_cases)} drifts detected")
         return 0
 
     r = compare(gateway)
+    ua = compare_unactive(gateway)
+    r["unactive"] = ua
+    if ua["result"] == "fail":
+        r["result"] = "fail"
     r["gatewayPin"] = GATEWAY_PIN
 
     if args.json:
@@ -171,6 +220,16 @@ def main():
         if r["missingAnonymous"]:
             print("  MISSING - gateway allows unsigned, Phoenix does not:")
             for t in r["missingAnonymous"]:
+                print("    -", t)
+        print(f"  inactive-callable (unactiveMethods): gateway {ua['gatewayUnactive']} "
+              f"phoenix {ua['phoenixUnactive']}")
+        if ua["extra"]:
+            print("  INACTIVE BYPASS - Phoenix lets an inactive account call:")
+            for t in ua["extra"]:
+                print("    -", t)
+        if ua["missing"]:
+            print("  MISSING - gateway allows an inactive caller, Phoenix does not:")
+            for t in ua["missing"]:
                 print("    -", t)
         if r["result"] == "pass":
             print("  exact match on every target Phoenix serves")
