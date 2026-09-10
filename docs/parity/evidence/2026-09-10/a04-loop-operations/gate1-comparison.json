@@ -1,0 +1,246 @@
+{
+  "kind": "a04-gate1-source-vs-phoenix-sequence-comparison-root",
+  "comparator": "compare-state-sequences-root.py",
+  "evidenceRoot": "/home/shell/work/phoenix/.parity/reviews/a04-gate1-rerun-20260910",
+  "candidateRevision": "06fb875335d8e7a8250f42110530cec88597bd99",
+  "sourceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+  "client": {
+    "node": "v8.9.4",
+    "version": "3.0.110",
+    "calls": 36
+  },
+  "derivedFromEvidence": true,
+  "classicForwardingExact": true,
+  "comparisons": [
+    {
+      "sequence": "invite-accept-list",
+      "dimension": "account.member-status",
+      "source": [
+        "accepted",
+        "accepted",
+        "invited"
+      ],
+      "phoenix": [
+        "accepted",
+        "accepted",
+        "invited"
+      ],
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "invite-accept-list",
+      "dimension": "account.member-status",
+      "source": [
+        "accepted",
+        "accepted",
+        "accepted"
+      ],
+      "phoenix": [
+        "accepted",
+        "accepted",
+        "accepted"
+      ],
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "create-clear-read",
+      "dimension": "account.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-clear-read",
+      "dimension": "account.status-code",
+      "source": 404,
+      "phoenix": 404,
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "create-remove-loop-read",
+      "dimension": "account.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-remove-loop-read",
+      "dimension": "account.status-code",
+      "source": 404,
+      "phoenix": 404,
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "invite-accept-list",
+      "dimension": "classic.member-status",
+      "source": [
+        "accepted",
+        "accepted",
+        "invited"
+      ],
+      "phoenix": [
+        "accepted",
+        "accepted",
+        "invited"
+      ],
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "invite-accept-list",
+      "dimension": "classic.member-status",
+      "source": [
+        "accepted",
+        "accepted",
+        "accepted"
+      ],
+      "phoenix": [
+        "accepted",
+        "accepted",
+        "accepted"
+      ],
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "create-clear-read",
+      "dimension": "classic.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-clear-read",
+      "dimension": "classic.status-code",
+      "source": 404,
+      "phoenix": 404,
+      "match": true,
+      "notes": ""
+    },
+    {
+      "sequence": "create-remove-loop-read",
+      "dimension": "classic.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-remove-loop-read",
+      "dimension": "classic.status-code",
+      "source": 404,
+      "phoenix": 404,
+      "match": true,
+      "notes": ""
+    }
+  ],
+  "total": 12,
+  "matched": 8,
+  "mismatches": [
+    {
+      "sequence": "create-clear-read",
+      "dimension": "account.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-remove-loop-read",
+      "dimension": "account.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-clear-read",
+      "dimension": "classic.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    },
+    {
+      "sequence": "create-remove-loop-read",
+      "dimension": "classic.owner-robot",
+      "source": {
+        "robotPresent": false,
+        "isDeleted": true,
+        "isSuspended": false
+      },
+      "phoenix": {
+        "robotPresent": false,
+        "isDeleted": false,
+        "isSuspended": false
+      },
+      "match": false,
+      "notes": ""
+    }
+  ],
+  "missingSteps": [],
+  "allMatch": false
+}

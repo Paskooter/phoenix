@@ -175,8 +175,14 @@ for face in ('account', 'classic'):
 # Classic must forward byte-identically to the upstream Account hop.
 classic = [r for r in captures['captures'] if r['face'] == 'classic']
 upstream = [r for r in captures['captures'] if r['face'] == 'classic-account']
+# The count was hardcoded to 18. The harness now emits 34 captures per face, so
+# the comparison short-circuited on the count and reported forwarding as inexact
+# even when every pair matched byte-for-byte. Assert the two faces captured the
+# SAME number of requests and that at least one exists; the exact total depends
+# on how many sequences the harness runs and must not be frozen here.
 forward_ok = (
-    len(classic) == len(upstream) == 18
+    bool(classic)
+    and len(classic) == len(upstream)
     and all(
         c['target'] == u['target']
         and c['response']['status'] == u['response']['status']
