@@ -11,13 +11,13 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 2 | 46 | 0 | 0 |
-| classic | 0 | 20 | 1 | 0 |
+| classic | 1 | 20 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: **A-04 — Complete Loop operations and membership lifecycle**.
 
-Next ready task: **A-01 — Map every Classic operation to controllers, consumers and tests**.
+Next ready task: **C-02 — Complete the wire schemas and message builders**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -172,7 +172,7 @@ Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/pari
 
 ### A-01 — Map every Classic operation to controllers, consumers and tests
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: PM-03.
 
@@ -189,7 +189,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 
 Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic); [docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json](../../docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json); [docs/parity/candidates/A-01-operation-map.json](../../docs/parity/candidates/A-01-operation-map.json); [scripts/parity-coverage/a01_operation_map.py](../../scripts/parity-coverage/a01_operation_map.py).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md](../../docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md) (2026-09-10; Per-operation attributes (auth incl. both auth layers, ownership, schema, errors, persistence, side effects) recorded for every wire operation and independently re-derived by root from the merged map).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 

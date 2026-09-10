@@ -1,0 +1,7 @@
+  falsify [caught] drop an attributes block: +1 problem(s)
+  falsify [caught] blank out ownershipRule: +1 problem(s)
+  falsify [caught] remove the gateway layer from auth: +1 problem(s)
+  falsify [caught] claim a scenario was run: +1 problem(s)
+  falsify [caught] shorten a pinned revision: +1 problem(s)
+  falsify [caught] empty an unknowns entry: +1 problem(s)
+falsification: all 6 corruptions detected (6 problems raised)
