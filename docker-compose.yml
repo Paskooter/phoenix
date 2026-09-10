@@ -53,6 +53,11 @@ services:
       - NET_parser=parser:8080
       - NET_history=history:8080
       - NET_data=lasso:8080
+      # The account service hosts the Settings face (Settings_* AWS-JSON on POST /), so it is
+      # the hub's settings peer exactly as parser/history/lasso are its other peers. Without
+      # this the hub falls back to the source name settings.jibo.aws, which does not resolve on
+      # the compose network, and every settingsRules-bearing proactive fails closed.
+      - NET_settings=account:8080
       - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
       - PHOENIX_FFMPEG=/usr/bin/ffmpeg
     ports:

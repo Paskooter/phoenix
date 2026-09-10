@@ -1,0 +1,17 @@
+# npm test (worktree w6-h05, H-05 candidate)
+
+> phoenix@0.0.0 test
+
+# tests 1524
+# suites 7
+# pass 1517
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+# duration_ms 45725.845175
+
+Checklist: Checklist: 32/79 verified (40.5%)
+Gate: {"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+
+EXIT=0

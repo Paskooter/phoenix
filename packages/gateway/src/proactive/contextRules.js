@@ -40,6 +40,18 @@ export function getPersonIDs(runtime, requestData) {
   return new Set([...present.map((p) => p.id), speaker, trigger].filter((id) => id && id !== 'UNKNOWN' && id !== 'NOT_TRAINED'));
 }
 
+/**
+ * TransactionHelper.getAccountId — the loop member's account ID for a person ID.
+ *
+ * The reference reads `runtime.loop.users` directly: a proactive CONTEXT whose loop has
+ * no users list raises the same TypeError there, so no guard is added.
+ */
+export function getAccountId(runtime, personID) {
+  if (!personID) return null;
+  const looper = runtime.loop.users.find((user) => user.id === personID);
+  return looper && looper.accountId;
+}
+
 export function extractContextData(field, context, requestData) {
   const runtime = context.data.runtime || {};
   const perception = runtime.perception || {};
