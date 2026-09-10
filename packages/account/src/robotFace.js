@@ -34,6 +34,8 @@ import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { handleAccountIdentity, isAccountPhotoUpload } from './accountIdentity.js';
+import { oauthClientsDispatch } from './oauthClients.js';
+import { lpsDispatch } from './lps.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzEmpty, sendAmzError, sendValidationError } from './loopHttp.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
@@ -92,7 +94,7 @@ function otaBase() {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
@@ -198,6 +200,26 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         if (req.photoCleanup) await req.photoCleanup();
       }
     }
+
+    // OauthClients_20171108 — admin OAuth-client registry (srv-oauth-clients-ws).
+    // Gateway: none of the four targets is anonymous/signed-exempt; the handler is
+    // @parseCredentials({adminOnly:true}). Verify the request's AWS V4 signature and
+    // present the resolved account as the caller so the adminOnly gate is not a
+    // caller-controlled header.
+    if (/^oauthclients/i.test(prefix)) {
+      const caller = await verifiedClassicCaller(store, req, res, body);
+      if (caller === undefined) return; // signature error already sent
+      return oauthClientsDispatch(store, { req, res, body, op, caller, log });
+    }
+
+    // Lps_20171201 — log-upload credentials (srv-lps-ws). Signed only; the handler
+    // requires a robot identity (credentials.friendlyId) or ROBOT_ONLY 403.
+    if (/^lps/i.test(prefix)) {
+      const caller = await verifiedClassicCaller(store, req, res, body);
+      if (caller === undefined) return; // signature error already sent
+      return lpsDispatch(store, { req, res, body, op, caller, log, stsProvider });
+    }
+
     const handler = ops[op.toLowerCase()];
     if (!handler) {
       log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
@@ -594,6 +616,37 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   function accountForClassicRequest(req) {
     const accessKeyId = accessKeyIdFromAuth(req);
     return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+  }
+
+  /**
+   * Verify the request's AWS V4 signature and resolve the caller account for
+   * the signed-only OAuthClients and LPS faces. Every target in those families
+   * is absent from the gateway anonymous/unsigned lists, so a missing or bad
+   * signature is a hard rejection; returns undefined after sending the error.
+   */
+  async function verifiedClassicCaller(store, req, res, body) {
+    try {
+      const verification = verifySigV4({
+        method: req.method,
+        path: req.originalUrl || req.url || '/',
+        headers: req.headers,
+        body: req.rawBody === undefined
+          ? (body === null || body === undefined ? '' : JSON.stringify(body))
+          : req.rawBody,
+        resolveCredentials: (accessKeyId) => {
+          const account = store.accountByAccessKeyId(accessKeyId);
+          return account && account.isDeleted !== true ? account : null;
+        },
+      });
+      req._phoenixVerifiedCredentials = verification.credentials;
+      return verification.credentials;
+    } catch (error) {
+      if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {
+        sendAmzError(res, SIGV4_ERRORS[error.code]);
+        return undefined;
+      }
+      throw error;
+    }
   }
 
   function activeLoopById(loopId) {

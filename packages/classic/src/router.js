@@ -12,10 +12,36 @@
 import http from 'node:http';
 import https from 'node:https';
 import { sendJson } from '@phoenix/common';
+import { DefaultPort } from '@phoenix/contracts';
 import { parseTarget, sendAmzError, UnknownOperation, AMZ_JSON } from './awsJson.js';
 
+// The OAuth-client admin and LPS services own no in-process store; they proxy to the
+// account service, the process that owns identity and persistent state (A-18). These
+// defaults are appended only when the caller did not already register the prefix, so a
+// caller-supplied registration (e.g. an `extra` passed by classicRoutes) always wins.
+const accountBase = () => {
+  const v = process.env.NET_account;
+  if (!v) return `http://localhost:${DefaultPort.account}`;
+  return /^https?:\/\//.test(v) ? v : `http://${v}`;
+};
+const DEFAULT_ADMIN_PROXIES = [
+  { match: /^oauthclients/i, proxyTo: accountBase },
+  { match: /^lps/i, proxyTo: accountBase },
+];
+
+function alreadyRegistered(registrations, prefix) {
+  // A registration that matches the same prefix the caller provided wins; compare by
+  // whether any caller registration's regex would match the default's prefix.
+  return registrations.some((r) => r && r.match && new RegExp(
+    r.match instanceof RegExp ? r.match.source : `^${String(r.match)}`,
+    'i',
+  ).test(prefix));
+}
+
 export function createClassicRouter(registrations) {
-  const regs = registrations.map((r) => ({
+  const defaults = DEFAULT_ADMIN_PROXIES
+    .filter((d) => !alreadyRegistered(registrations, d.match.source.slice(1, -1)));
+  const regs = [...registrations, ...defaults].map((r) => ({
     ...r,
     re: r.match instanceof RegExp ? r.match : new RegExp(`^${String(r.match)}`, 'i'),
   }));
