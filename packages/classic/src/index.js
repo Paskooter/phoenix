@@ -22,6 +22,11 @@ import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
 import { PersonStore, PersonController, PropertyController, makePersonHandler, PERSON_ERRORS } from './person.js';
 import { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS } from './collision.js';
 import { JotStore, makeJotHandler, mediaStoreClient, jotHttpRoutes, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS } from './jot.js';
+import {
+  VoiceTrainingStore, makeVoiceTrainingHandler, voiceTrainingBackup, voiceTrainingBlobRoutes,
+  VOICE_TRAINING_OPERATIONS, VOICE_TRAINING_UNSUPPORTED_OPERATIONS, VOICE_TRAINING_TARGET_PREFIXES,
+  VOICE_TRAINING_PATH_ROOT, VOICE_TRAINING_MAX_BYTES, VOICE_TRAINING_BLOB_ROUTE,
+} from './voiceTraining.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -50,6 +55,13 @@ export {
   JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE, JOT_EVENTS, JOT_VALIDATORS, JOT_MESSAGE_CREATED_SCHEMA,
 } from './jot.js';
 export { PERSON_QUESTIONS, HOLIDAYS } from './personCatalog.js';
+export {
+  VoiceTrainingStore, voiceTrainingBackup, makeVoiceTrainingHandler, voiceTrainingBlobRoutes,
+  parseCredentials as voiceTrainingParseCredentials, backupCredentials, voiceTrainingAccountId,
+  VOICE_TRAINING_OPERATIONS, VOICE_TRAINING_UNSUPPORTED_OPERATIONS, VOICE_TRAINING_TARGET_PREFIXES,
+  VOICE_TRAINING_PATH_ROOT, VOICE_TRAINING_MAX_BYTES, VOICE_TRAINING_RECORD_FIELDS,
+  VOICE_TRAINING_ACCOUNT_REQUIRED, VOICE_TRAINING_BLOB_ROUTE, VOICE_TRAINING_VALIDATORS,
+} from './voiceTraining.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -74,10 +86,11 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, jot } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
+  const voiceTrainingStore = voiceTraining?.store || new VoiceTrainingStore();
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
   // The membership seam the key handler resolves to. An absent `keyMembership` means the default
@@ -127,7 +140,18 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       media: jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops }),
       onEvent: jot?.onEvent,
     }) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (none remain: person/collision graduated)
+    // VoiceTraining (the robot's voice-sample enrollment store) owns a real handler now — the two
+    // operations of server/voice-ws@a0ec047a, dispatched by operation NAME under any
+    // VoiceTraining* prefix (the source splits the target on the dot). The file operations of the
+    // later SDK models have no recovered handler and answer the source's own 404. The Backup hop is
+    // the injected seam; its default is an in-process read/write of the same durable store.
+    { match: /^voicetraining/i, handler: makeVoiceTrainingHandler({
+      store: voiceTrainingStore,
+      backup: voiceTraining?.backup,
+      baseFor,
+      maxBytes: voiceTraining?.maxBytes,
+    }) },
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (none remain: person/collision/jot/voiceTraining graduated)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -185,7 +209,7 @@ export function makeKeyNeededNotifier(hub, membership) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -205,6 +229,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
   const jotMedia = jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops });
+  const voiceTrainingStore = voiceTraining?.store || new VoiceTrainingStore();
   const service = createService({
     name: 'classic',
     tls,
@@ -229,9 +254,13 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
         collision: collision || {},
         jot: { ...jot, store: jotStore, media: jotMedia },
+        voiceTraining: { ...voiceTraining, store: voiceTrainingStore },
       }),
       // Jot's direct, non-X-Amz-Target bulk unread-count route (srv-jot-ws-archived src/routes/route.js).
       ...jotHttpRoutes({ store: jotStore, account: jot?.account, media: jotMedia, onEvent: jot?.onEvent }),
+      // VoiceTraining's self-hosted blob route: the `url` virtual of the legacy Backup record
+      // (schemes/backup.js) pointed at an S3 presigned GET; Phoenix serves the bytes itself.
+      ...voiceTrainingBlobRoutes(voiceTrainingStore),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
       'GET /member-photos/:key': ({ req, res, log }) => proxyMemberPhoto({
@@ -263,7 +292,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore, personStore, jotStore };
+  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore, personStore, jotStore, voiceTrainingStore };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
