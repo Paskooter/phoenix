@@ -247,6 +247,27 @@ test('PROACTIVE response accepts both the match and the empty {} shapes (emitMat
 
 // --- hub <-> skill ----------------------------------------------------------
 
+test('Skill session trace accepts the reference null-transition launch shape (GraphManager.ts:84)', () => {
+  // The reference GraphManager pushes {nodeID, transition: null} on enterNode and
+  // returns an action before the transition is resolved, so a LAUNCH response
+  // legitimately carries trace [{nodeID, transition: null}]. A schema that requires
+  // a string transition here would reject valid reference output.
+  const launchResp = {
+    type: 'SKILL_ACTION',
+    msgID: 'u',
+    ts: 1,
+    data: {
+      skill: { id: 'color-skill', session: { id: 's1', nodeID: 0, data: {}, trace: [{ nodeID: 0, transition: null }] } },
+      action: { type: ActionType.JCP, config: { version: '2.0', jcp: { type: 'SLIM', id: 'x', config: {} } } },
+      final: false,
+    },
+  };
+  ok(schemas.skillResponse, launchResp, 'launch trace with transition:null');
+  // after the answer, the same trace entry resolves to a string
+  const updated = { ...launchResp, data: { ...launchResp.data, skill: { id: 'color-skill', session: { id: 's1', nodeID: 1, data: {}, trace: [{ nodeID: 0, transition: 'answered' }] } } } };
+  ok(schemas.skillResponse, updated, 'resolved trace transition');
+});
+
 test('Skill request LISTEN_LAUNCH validates with result nlu/asr/memo (SkillRequestHelper.buildListenLaunchRequest)', () => {
   const launch = {
     type: 'LISTEN_LAUNCH',
@@ -437,6 +458,27 @@ test('Real manifests from the reference tree validate (example / report / create
 
   bad(schemas.manifest, { intents: [] }, 'manifest without id');
   bad(schemas.manifest, { id: 'x', proactives: [{ topics: ['ok'], contextRules: [{ field: 'P', matchRule: 'MAYBE_SO', value: 0 }] }] }, 'unknown contextRule matchRule');
+});
+
+test('IHRule value rejects strings exactly like SkillConfigValidator.validateIHRule (runtime, not interface)', () => {
+  // The interfaces type says `value: TimePeriod | number | string | null`, but the hub's
+  // manifest validator (SkillConfigValidator.ts:153-163) only accepts number | boolean |
+  // array | null and rejects strings. Our schema must reproduce the RUNTIME behaviour —
+  // this is the highest-risk strictness assertion in the matrix.
+  const ihValue = (value) => ({
+    id: 'x',
+    proactives: [{ topics: ['t'], contextRules: [], IHRules: [{ query: 'Q', matchRule: 'LESS_THAN', value }] }],
+    IHQueries: { Q: { type: 'Count', queryRules: [], startTimeOffset: [-7, 'hours'], endTimeOffset: [0, 'hours'] } },
+  });
+
+  // accepted by the runtime validator
+  ok(schemas.manifest, ihValue(1), 'IHRule value number');
+  ok(schemas.manifest, ihValue([1, 2]), 'IHRule value array');
+  ok(schemas.manifest, ihValue(true), 'IHRule value boolean');
+  ok(schemas.manifest, ihValue(null), 'IHRule value null');
+  // rejected by the runtime validator
+  bad(schemas.manifest, ihValue('1'), 'IHRule value string rejected (SkillConfigValidator)');
+  bad(schemas.manifest, ihValue({ basic: 'MORNING' }), 'IHRule value non-null object rejected (SkillConfigValidator)');
 });
 
 // --- ListenResult precedence ------------------------------------------------

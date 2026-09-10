@@ -141,6 +141,10 @@ export const matchSchema = {
  * Skill session blob (jibo/data.ts SkillData.session). nodeID is the active graph
  * node; trace entries are {nodeID, transition}. id/nodeID are the fields every
  * writer sets; data/trace stay optional because a fresh session may carry `[]`.
+ * transition is nullable because the reference GraphManager pushes
+ * {nodeID, transition: null} on every enterNode and returns the action/redirect
+ * before the transition is resolved (baseskill/src/graph/GraphManager.ts:84-91),
+ * so a launch response legitimately carries trace [{nodeID, transition: null}].
  */
 export const skillSessionSchema = {
   type: 'object',
@@ -153,7 +157,7 @@ export const skillSessionSchema = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { nodeID: { type: 'number' }, transition: { type: 'string' } },
+        properties: { nodeID: { type: 'number' }, transition: { type: ['string', 'null'] } },
       },
     },
   },
