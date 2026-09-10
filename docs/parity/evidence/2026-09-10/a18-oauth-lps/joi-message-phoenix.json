@@ -1,0 +1,22 @@
+[
+ {
+  "case": "CREATE empty clientId",
+  "status": 422,
+  "message": "child \"clientId\" is not allowed to be empty"
+ },
+ {
+  "case": "CREATE empty optional secret",
+  "status": 422,
+  "message": "child \"secret\" is not allowed to be empty"
+ },
+ {
+  "case": "UPDATE empty optional redirectUri",
+  "status": 422,
+  "message": "child \"redirectUri\" is not allowed to be empty"
+ },
+ {
+  "case": "CREATE pkce non-bool",
+  "status": 422,
+  "message": "child \"pkce\" fails because [\"pkce\" must be a boolean]"
+ }
+]

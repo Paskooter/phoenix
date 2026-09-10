@@ -1,0 +1,46 @@
+[
+ {
+  "label": "CREATE missing updatedBy",
+  "message": "child \"updatedBy\" fails because [\"updatedBy\" is required]"
+ },
+ {
+  "label": "CREATE empty clientId",
+  "message": "child \"clientId\" fails because [\"clientId\" is not allowed to be empty]"
+ },
+ {
+  "label": "CREATE empty optional secret",
+  "message": "child \"secret\" fails because [\"secret\" is not allowed to be empty]"
+ },
+ {
+  "label": "CREATE empty optional pkce? no",
+  "message": null
+ },
+ {
+  "label": "CREATE aco array",
+  "message": "child \"aco\" fails because [\"aco\" must be an object]"
+ },
+ {
+  "label": "CREATE pkce non-bool",
+  "message": "child \"pkce\" fails because [\"pkce\" must be a boolean]"
+ },
+ {
+  "label": "CREATE both clientId missing and updatedBy missing (order)",
+  "message": "child \"clientId\" fails because [\"clientId\" is required]"
+ },
+ {
+  "label": "CREATE empty clientId AND missing updatedBy (aco vs clientId order)",
+  "message": "child \"clientId\" fails because [\"clientId\" is not allowed to be empty]"
+ },
+ {
+  "label": "UPDATE empty id",
+  "message": "child \"id\" fails because [\"id\" is not allowed to be empty]"
+ },
+ {
+  "label": "UPDATE empty optional redirectUri",
+  "message": "child \"redirectUri\" fails because [\"redirectUri\" is not allowed to be empty]"
+ },
+ {
+  "label": "UPDATE missing id",
+  "message": "child \"id\" fails because [\"id\" is required]"
+ }
+]

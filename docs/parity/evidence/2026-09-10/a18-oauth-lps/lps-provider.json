@@ -1,0 +1,42 @@
+{
+  "fixedClockPath": "lps/robot=friendly-1/account=acct-1/year=2025/month=2/day=15/session=1742040000000/",
+  "expectedFromSource": "lps/robot=friendly-1/account=acct-1/year=2025/month=2/day=15/session=1742040000000/",
+  "monthIsZeroBased": true,
+  "assumeRoleShape": {
+    "bucketName": "bucket-x",
+    "bucketPath": "lps/robot=friendly-9/account=acct-9/year=2026/month=8/day=10/session=1789062041480/",
+    "credentials": {
+      "AccessKeyId": "AK",
+      "Expiration": "E",
+      "SecretAccessKey": "SK",
+      "SessionToken": "ST"
+    },
+    "region": "us-east-1"
+  },
+  "assumeRoleArgs": {
+    "ExternalId": "friendly-9_acct-9",
+    "RoleArn": "arn:role",
+    "RoleSessionName": "friendly-9_acct-9"
+  },
+  "assumeRoleArgsExpected": {
+    "ExternalId": "friendly-9_acct-9",
+    "RoleArn": "arn:role",
+    "RoleSessionName": "friendly-9_acct-9"
+  },
+  "directResponse": {
+    "bucketName": "b",
+    "bucketPath": "lps/robot=f/account=a/year=2025/month=2/day=15/session=1742040000000/",
+    "credentials": {
+      "AccessKeyId": "A",
+      "Expiration": "X",
+      "SecretAccessKey": "S",
+      "SessionToken": "T"
+    },
+    "region": "r"
+  },
+  "unconfigured": {
+    "code": "LPS_STS_UNAVAILABLE",
+    "statusCode": 503,
+    "message": "LPS STS provider not configured (missing robotRole, bucketName, region)"
+  }
+}
