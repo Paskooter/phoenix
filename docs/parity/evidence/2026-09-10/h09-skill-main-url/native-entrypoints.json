@@ -1,0 +1,102 @@
+{
+  "portBase": 19000,
+  "command": "node packages/skills/src/index.js",
+  "rows": [
+    {
+      "skillId": "answer-skill",
+      "referencePort": 9009,
+      "probePort": 39313,
+      "healthcheck": true,
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "answer-skill"
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "answer-skill"
+      }
+    },
+    {
+      "skillId": "report-skill",
+      "referencePort": 9003,
+      "probePort": 32895,
+      "healthcheck": true,
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "report-skill"
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "report-skill"
+      }
+    },
+    {
+      "skillId": "chitchat-skill",
+      "referencePort": 9004,
+      "probePort": 39401,
+      "healthcheck": true,
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "chitchat-skill"
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "chitchat-skill"
+      }
+    },
+    {
+      "skillId": "color-skill",
+      "referencePort": 9008,
+      "probePort": 40909,
+      "healthcheck": true,
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "color-skill"
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "color-skill"
+      }
+    },
+    {
+      "skillId": "example-skill",
+      "referencePort": 9013,
+      "probePort": 46405,
+      "healthcheck": true,
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "example-skill"
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "example-skill"
+      }
+    },
+    {
+      "skillId": "template-skill",
+      "referencePort": 9014,
+      "probePort": 36427,
+      "healthcheck": true,
+      "main": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "template-skill"
+      },
+      "alias": {
+        "status": 200,
+        "type": "SKILL_ACTION",
+        "skill": "template-skill"
+      }
+    }
+  ]
+}

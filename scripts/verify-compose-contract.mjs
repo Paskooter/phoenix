@@ -10,7 +10,7 @@
 import WebSocket from 'ws';
 
 const HOST = process.env.HOST || 'localhost';
-const PORTS = { hub: 9000, 'report-skill': 9003, 'chitchat-skill': 9004, parser: 9005, history: 9006, lasso: 9007, 'answer-skill': 9009 };
+const PORTS = { hub: 9000, 'report-skill': 9003, 'chitchat-skill': 9004, parser: 9005, history: 9006, lasso: 9007, 'color-skill': 9008, 'answer-skill': 9009, 'example-skill': 9013, 'template-skill': 9014 };
 
 let failures = 0;
 const check = (name, cond, detail) => {
@@ -123,6 +123,50 @@ try {
   check('chitchat-skill direct POST /v1/main', r.ok && j.type === 'SKILL_ACTION' && j.data?.skill?.id === 'chitchat-skill', { status: r.status, type: j.type, skill: j.data?.skill?.id });
 } catch (e) {
   check('chitchat-skill direct POST', false, e.message);
+}
+
+// 4b. every remaining independently deployed skill (H-09). Each process must select its own
+// skill at the reference /v1/main URL — a report/chitchat process that leaves the shared
+// answer-skill default is the P13 defect this catches.
+const REMAINING = {
+  'color-skill': {
+    data: {
+      general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
+      runtime: { dialog: {}, perception: {}, loop: { users: [] }, location: { iso: new Date().toISOString() } },
+      skill: { id: 'color-skill' },
+      result: { nlu: { intent: 'favoriteColorChat', entities: {}, rules: [] }, asr: { text: 'my favorite color is blue' }, memo: 'Reactive' },
+    },
+  },
+  'example-skill': {
+    data: {
+      general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
+      runtime: { dialog: {}, perception: {}, loop: { users: [] } },
+      skill: { id: 'example-skill' },
+      result: { nlu: { intent: 'doesJiboLikeThing', entities: {}, rules: [] }, asr: { text: '' }, memo: null },
+    },
+  },
+  'template-skill': {
+    data: {
+      general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
+      runtime: { dialog: {}, perception: {}, loop: { users: [] } },
+      skill: { id: 'template-skill' },
+      result: { nlu: { intent: 'x', entities: {}, rules: [] }, asr: { text: '' }, memo: { entry: 'SomeThing' } },
+    },
+  },
+};
+for (const [skillId, body] of Object.entries(REMAINING)) {
+  try {
+    const r = await fetch(`http://${HOST}:${PORTS[skillId]}/v1/main`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ type: 'LISTEN_LAUNCH', msgID: skillId, ts: Date.now(), ...body }),
+    });
+    const j = await r.json();
+    check(`${skillId} direct POST /v1/main`, r.ok && j.type === 'SKILL_ACTION' && j.data && j.data.skill && j.data.skill.id === skillId,
+      { status: r.status, type: j.type, skill: j.data && j.data.skill && j.data.skill.id });
+  } catch (e) {
+    check(`${skillId} direct POST`, false, e.message);
+  }
 }
 
 // 5. EXTENSION (non-fatal): the account service + web portal. Not part of the reference

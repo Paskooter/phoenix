@@ -8,7 +8,10 @@
 #   parser         9005:8080   (nlu)
 #   history        9006:8080
 #   lasso          9007:8080   (data)
+#   color-skill    9008:8080
 #   answer-skill   9009:8080
+#   example-skill  9013:8080   (Phoenix deployment adapter, not index-routed)
+#   template-skill 9014:8080   (Phoenix deployment adapter, not index-routed)
 #
 # All services share the mounted packages on the node:20-slim-based runtime image.
 # Runtime dependencies and ffmpeg come from the rebuilt image. No redis/mongo: Phoenix stores are in-memory by design
@@ -123,6 +126,47 @@ services:
       - NET_data=lasso:8080
     ports:
       - 9004:8080
+
+  # The remaining independently deployed cloud skills. Each container serves exactly one
+  # skill at POST /v1/main (baseskill/SkillService.ts:12-18) and retains its
+  # POST /v1/<id>/main alias. color-skill is declared by both bundled registries
+  # (skills-phoenix.json => http://color-skill:8080, skills-native.json => localhost:9008);
+  # example-skill and template-skill are the skeleton/exerciser replacements the reference
+  # ships as their own packages (packages/example-skill/scripts/run-service.js,
+  # packages/template-skill/scripts/run-service.js) and are not index-routed, so they are
+  # launched here for direct /v1/main reachability only.
+  color-skill:
+    <<: *phoenix-defaults
+    container_name: color-skill
+    working_dir: /phoenix
+    command: node packages/skills/src/index.js
+    environment:
+      - PORT=8080
+      - PHOENIX_SKILL_ID=color-skill
+    ports:
+      - 9008:8080
+
+  example-skill:
+    <<: *phoenix-defaults
+    container_name: example-skill
+    working_dir: /phoenix
+    command: node packages/skills/src/index.js
+    environment:
+      - PORT=8080
+      - PHOENIX_SKILL_ID=example-skill
+    ports:
+      - 9013:8080
+
+  template-skill:
+    <<: *phoenix-defaults
+    container_name: template-skill
+    working_dir: /phoenix
+    command: node packages/skills/src/index.js
+    environment:
+      - PORT=8080
+      - PHOENIX_SKILL_ID=template-skill
+    ports:
+      - 9014:8080
 
   # Phoenix extension — NOT part of the reference Pegasus conversational contract (the
   # verify-compose-contract check ignores it). The OTA update server: a robot points its

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Native (no-docker) equivalent of docker-compose.yml — SAME host-port + env contract:
 #   hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005 · history 9006 ·
-#   lasso 9007 · answer-skill 9009
+#   lasso 9007 · color-skill 9008 · answer-skill 9009 · example-skill 9013 · template-skill 9014
 # The hub resolves cloud skills via skills-native.json (localhost:<port> per skill).
 # Verify the contract with: node scripts/verify-compose-contract.mjs
 set -euo pipefail
@@ -36,6 +36,15 @@ PORT=9003 ETCO_server_port=9003 PHOENIX_SKILL_ID=report-skill NET_lasso="$REPORT
   node packages/skills/src/index.js   > /tmp/phx-compose-report.log  2>&1 &
 PORT=9004 ETCO_server_port=9004 PHOENIX_SKILL_ID=chitchat-skill NET_data=localhost:9007 \
   node packages/skills/src/index.js   > /tmp/phx-compose-chitchat.log 2>&1 &
+PORT=9008 ETCO_server_port=9008 PHOENIX_SKILL_ID=color-skill \
+  node packages/skills/src/index.js   > /tmp/phx-compose-color.log 2>&1 &
+# Phoenix deployment adapters (acceptance H-09): the example/template replacement skills are
+# independently deployable at the reference /v1/main URL but are not index-routed, so they get
+# no registry entry. 9013/9014 are the next free reference-shaped host ports after classic:9012.
+PORT=9013 ETCO_server_port=9013 PHOENIX_SKILL_ID=example-skill \
+  node packages/skills/src/index.js   > /tmp/phx-compose-example.log 2>&1 &
+PORT=9014 ETCO_server_port=9014 PHOENIX_SKILL_ID=template-skill \
+  node packages/skills/src/index.js   > /tmp/phx-compose-template.log 2>&1 &
 
 # Phoenix extension (not in the reference contract): the OTA update server. A robot points
 # its Update endpoint here to pull firmware in place. Serves packages/ota/data (build them
@@ -89,7 +98,7 @@ if [ "${CLASSIC:-1}" != "0" ]; then
   CLASSIC_NOTE=" · classic-entrypoint:9012"
 fi
 
-echo "compose-contract stack: hub:9000 report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 answer:9009"
+echo "compose-contract stack: hub:9000 report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 color:9008 answer:9009 example:9013 template:9014"
 echo "ext: ota:9010 (OTA update server)${ACCOUNT_URL:+ · account+portal:9011}${CLASSIC_NOTE}"
 [ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:9011  (admin at /#/admin — needs ADMIN_PASSWORD)"
 [ -n "$CLASSIC_NOTE" ] && echo "robot front door: http://localhost:9012  (point the robot region here)"

@@ -1,0 +1,133 @@
+{
+  "port": 36105,
+  "probes": {
+    "postMain": {
+      "status": 200,
+      "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"echo\",\"ts\":1,\"data\":{\"skill\":{\"id\":\"report-skill\"},\"requestType\":\"LISTEN_LAUNCH\",\"transID\":\"tid:source\",\"robotID\":\"robot-1\",\"loggingConfig\":\"{}\",\"echoed\":{\"type\":\"LISTEN_LAUNCH\",\"msgID\":\"source-1\",\"ts\":1,\"data\":{\"general\":{\"accountID\":\"a\",\"robotID\":\"r\"},\"skill\":{\"id\":\"report-skill\"}}}},\"timings\":{\"total\":0}}",
+      "json": {
+        "type": "SKILL_ACTION",
+        "msgID": "echo",
+        "ts": 1,
+        "data": {
+          "skill": {
+            "id": "report-skill"
+          },
+          "requestType": "LISTEN_LAUNCH",
+          "transID": "tid:source",
+          "robotID": "robot-1",
+          "loggingConfig": "{}",
+          "echoed": {
+            "type": "LISTEN_LAUNCH",
+            "msgID": "source-1",
+            "ts": 1,
+            "data": {
+              "general": {
+                "accountID": "a",
+                "robotID": "r"
+              },
+              "skill": {
+                "id": "report-skill"
+              }
+            }
+          }
+        },
+        "timings": {
+          "total": 0
+        }
+      }
+    },
+    "postNamespacedAlias": {
+      "status": 404,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"0dde4b74-d142-4b30-9170-3598e16f0eca\",\"ts\":1789078472737,\"final\":true,\"data\":{\"message\":\"URL not found: /v1/report-skill/main\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "0dde4b74-d142-4b30-9170-3598e16f0eca",
+        "ts": 1789078472737,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/report-skill/main"
+        }
+      }
+    },
+    "getMain": {
+      "status": 404,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"555b55f1-2fa3-4ae4-b8c8-f96ac84033cc\",\"ts\":1789078472738,\"final\":true,\"data\":{\"message\":\"URL not found: /v1/main\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "555b55f1-2fa3-4ae4-b8c8-f96ac84033cc",
+        "ts": 1789078472738,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/main"
+        }
+      }
+    },
+    "healthcheck": {
+      "status": 200,
+      "raw": "ok",
+      "json": null
+    },
+    "postUnknown": {
+      "status": 404,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"fd73dfbc-c560-4be1-8944-1ce95bb33239\",\"ts\":1789078472740,\"final\":true,\"data\":{\"message\":\"URL not found: /v1/unknown\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "fd73dfbc-c560-4be1-8944-1ce95bb33239",
+        "ts": 1789078472740,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/unknown"
+        }
+      }
+    },
+    "postThrow": {
+      "status": 200,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"d06a5a27-817e-4443-92dc-8086cb2fa36c\",\"ts\":1789078472741,\"data\":{\"message\":\"boom\",\"skill\":{\"id\":\"report-skill\"}}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "d06a5a27-817e-4443-92dc-8086cb2fa36c",
+        "ts": 1789078472741,
+        "data": {
+          "message": "boom",
+          "skill": {
+            "id": "report-skill"
+          }
+        }
+      }
+    },
+    "postTextPlain": {
+      "status": 200,
+      "raw": "{\"type\":\"SKILL_ACTION\",\"msgID\":\"echo\",\"ts\":1,\"data\":{\"skill\":{\"id\":\"report-skill\"},\"transID\":\"unknown\",\"robotID\":\"unknown\",\"loggingConfig\":\"{}\",\"echoed\":{}},\"timings\":{\"total\":0}}",
+      "json": {
+        "type": "SKILL_ACTION",
+        "msgID": "echo",
+        "ts": 1,
+        "data": {
+          "skill": {
+            "id": "report-skill"
+          },
+          "transID": "unknown",
+          "robotID": "unknown",
+          "loggingConfig": "{}",
+          "echoed": {}
+        },
+        "timings": {
+          "total": 0
+        }
+      }
+    },
+    "postMalformed": {
+      "status": 400,
+      "raw": "{\"type\":\"ERROR\",\"msgID\":\"79ea6d25-e6af-47d6-a620-6a82e3080621\",\"ts\":1789078472744,\"final\":true,\"data\":{\"message\":\"Unexpected token n in JSON at position 1\"}}",
+      "json": {
+        "type": "ERROR",
+        "msgID": "79ea6d25-e6af-47d6-a620-6a82e3080621",
+        "ts": 1789078472744,
+        "final": true,
+        "data": {
+          "message": "Unexpected token n in JSON at position 1"
+        }
+      }
+    }
+  }
+}
