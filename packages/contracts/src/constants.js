@@ -38,6 +38,45 @@ export const SkillResponseType = Object.freeze({
   ERROR: 'ERROR',
 });
 
+// LISTEN message modes (interfaces/src/hub/request.ts:10-14). The hub throws on any
+// other value (ListenTransactionHandler.ts handleListenMessage), so this is an
+// enforced enum, not just a type hint.
+export const ListenMessageMode = Object.freeze({
+  CLIENT_ASR: 'CLIENT_ASR',
+  CLIENT_NLU: 'CLIENT_NLU',
+});
+
+// How a listening turn resolves (interfaces/src/hub/response.ts ListenResult.state).
+// Precedence: a populated NLU result wins (match), then absence of ASR text (noInput),
+// then leftover "heard something but nothing matched" (noMatch). Implemented for real
+// in envelope.js listenResultState().
+export const ListenResultState = Object.freeze({
+  noInput: 'noInput',
+  noMatch: 'noMatch',
+  match: 'match',
+});
+
+// Proactive trigger sources (interfaces/src/proactive/proactive.ts:9-13).
+export const TriggerSource = Object.freeze({
+  NEW_ARRIVAL: 'NEW_ARRIVAL',
+  SURPRISE: 'SURPRISE',
+});
+
+// Skill action types (interfaces/src/skill/action.ts:11-18). JCP is the only
+// cloud-side action the reference supports.
+export const ActionType = Object.freeze({
+  JCP: 'JCP',
+});
+
+// ASR transcription annotations (interfaces/src/asr.ts:1-10). Available on
+// ASRResult.annotation — absent when none applied.
+export const ASRAnnotation = Object.freeze({
+  GARBAGE: 'GARBAGE',
+  FAST_EOS: 'FAST_EOS',
+  SOS_TIMEOUT: 'SOS_TIMEOUT',
+  MAX_SPEECH_TIMEOUT: 'MAX_SPEECH_TIMEOUT',
+});
+
 // Listen state-machine + transport timeouts in ms
 // (ListenTransactionHandler.ts:37-43, BaseWebsocketHandler.ts:10-12).
 export const Timeouts = Object.freeze({
