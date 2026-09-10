@@ -28,9 +28,16 @@
 // trusted hop; an unresolvable lookup leaves the LAN-trust path (same policy as the Backup
 // service — see DIVERGENCES).
 //
-// The KeyNeeded/KeyShared/KeyTimeout/BinaryNeeded/BinaryShared SNS events are not reproduced:
-// Phoenix has no SNS and the robot-side event consumers are the hub/notification path (out of
-// scope for this task; recorded as a divergence candidate).
+// The cloud's SNS machine wake-up IS reproduced on CreateRequest, by the transport the robot
+// already holds open: `KeyNeeded` is enqueued to the loop's robot account through the
+// Notification_20150505 socket hub (packages/classic/src/notification.js). jibo-server-service
+// relays that frame to jibo-sts's `/server/notifications` socket, whose NotificationManager emits
+// `KeyNeeded` -> Exchange.handleKeyNeeded -> processIncomingKeyRequests, so the robot answers
+// the request immediately instead of waiting for its 30-minute INCOMING_POLL_DELAY.
+// The remaining machine events (KeyShared/KeyTimeout/BinaryNeeded/BinaryShared) are still not
+// reproduced: they are response-path notifications, and the requesters poll for their answer.
+// The key material itself never reaches Phoenix: the robot encrypts it to the requester's public
+// key and only the opaque `encryptedKey` is stored (see the BLIND RELAY note below).
 
 import { randomBytes } from 'node:crypto';
 import {
@@ -447,11 +454,13 @@ async function readBody(req) {
  *   binaryDir?: string,
  *   keyShareTimeoutMs?: number,
  *   accountResolver?: (req) => string|null,
+ *   notifyKeyNeeded?: (request: { loopId: string, siblingAccountIds: string[]|undefined,
+ *                                requestedBy: string }) => Promise<void>|void,
  * }} [options]
  */
 export function makeKeyHandler(store = new KeyStore(), {
   membership = accountMembership(), baseFor, binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR,
-  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver,
+  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver, notifyKeyNeeded,
 } = {}) {
   const urlBase = baseFor || ((req) => `http://${(req?.headers && req.headers.host) || 'localhost'}`);
   const binaryDirOf = binaryDir;
@@ -494,13 +503,25 @@ export function makeKeyHandler(store = new KeyStore(), {
       case 'createrequest': {
         const invalid = requiredString(b, 'loopId') || requiredString(b, 'publicKey');
         if (invalid) return void sendBadData(res, invalid);
+        let siblingIds;
         try {
-          await members(b.loopId, caller);
+          const ids = await members(b.loopId, caller);
+          siblingIds = ids ? ids.filter((id) => String(id) !== String(caller)) : undefined;
         } catch (error) {
           return void sendAmzError(res, error);
         }
         const key = store.create({ accountId, loopId: b.loopId, publicKey: b.publicKey });
         // Source sends KeyNeeded to the siblings and arms a KeyTimeout after keyShareTimeout.
+        // Phoenix delivers the machine wake-up over the robot's notification socket instead of
+        // SNS (see the header note); a notification failure must never fail the key request, so
+        // the publish is best-effort and reported only in the log.
+        if (typeof notifyKeyNeeded === 'function') {
+          try {
+            await notifyKeyNeeded({ loopId: key.loopId, siblingAccountIds: siblingIds, requestedBy: accountId });
+          } catch (error) {
+            log?.warn?.('key needed notification failed', { loopId: key.loopId, error: error?.message || String(error) });
+          }
+        }
         log?.info?.('key request created', { id: key.id, loopId: key.loopId });
         scheduleKeyTimeout();
         return void sendAmz(res, 200, requestView(key));
