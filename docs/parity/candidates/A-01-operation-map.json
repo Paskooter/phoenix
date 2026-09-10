@@ -236,8 +236,7 @@
         "SetupRobot"
       ],
       "phoenixAbsentOperations": [
-        "GetServiceToken",
-        "ReconnectRobot"
+        "GetServiceToken"
       ],
       "deploymentUnknowns": [
         "deployed target alias and service revision are not proven",
@@ -42355,10 +42354,10 @@
           }
         },
         "phoenixHandler": {
-          "present": false,
-          "status": "absent-operation-handler",
+          "present": true,
+          "status": "implemented-source-pinned",
           "path": "packages/account/src/robotFace.js",
-          "note": "packages/account/src/robotFace.js ops map has setuprobot/preparerobot/getstatus only; this operation returns UnknownOperationException 400"
+          "note": "Registered in the robotFace ops table as `reconnectrobot`. Implemented 2026-09-10 from pinned jiborobot/srv-account-ws@6cea434 oobe.handler.ts and oobe.ctrl.ts: @parseCredentials({}) with validatePayload({ id: optional, token: required }); controller order token -> robot's loop -> not suspended -> token's account is an ACCEPTED member -> deleteToken (one-time) -> COMMAND_RESULT ({result:'Command accepted'}, already defined in loopMembership.js). Focused tests in packages/account/test/reconnectRobot.test.js (10 cases), with the membership and suspension guards falsification-checked. Not verified against a live robot."
         },
         "source": "pinned API JSON plus original srv-account-ws controllers; not inferred from Phoenix behavior",
         "runtimeStatus": "not-run"

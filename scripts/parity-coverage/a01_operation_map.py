@@ -2238,7 +2238,7 @@ def build() -> dict:
             "Jot_20160126 in the 2016-05-12 model conflicts with Jot_20160512 in the archived integration test; four alternate targets are literal in the archived review artifact, while NumberOfUnreadMessagesInLoops remains model-only inferred. Arithmetic is recorded separately as literal model union 169, prefix substitution 170, directly observed additional client-prefix union 173, or hypothetical five-pair union 174.",
             "VoiceTraining historical SDK names UploadFile/RemoveFile/ListFiles/GetFile do not match the pinned current Hapi handler exports; version-specific source paths and deployed aliases remain open.",
             "Settings_20160801.GetSettings remains independently mapped from Settings_20171219. Archive searches listed on that row did not recover a formal 20160801 API model; the recorded request/response is consumer-observed plus a later same-name handler, not an invented normal.json.",
-            "Account, Loop and OOBE rows now carry per-operation attributes from the pinned API JSON and original srv-account-ws controllers. Phoenix-absent OOBE operations GetServiceToken and ReconnectRobot are explicit. All scenarios remain not-run.",
+            "Account, Loop and OOBE rows now carry per-operation attributes from the pinned API JSON and original srv-account-ws controllers. OOBE_20161026.ReconnectRobot was implemented 2026-09-10 from pinned source and is recorded as present; OOBE_20161026.GetServiceToken remains the one Phoenix-absent OOBE operation (adminOnly, no handler). All scenarios remain not-run.",
         ],
         "validator": {"command": "python3 scripts/parity-coverage/a01_operation_map.py validate", "runtimeScenarios": "not-run"},
     }
@@ -2326,8 +2326,10 @@ def validate(data: dict) -> list[str]:
             errors.append(f"originalControllerRecovery.{family} is not pinned to the source service")
         if set(record.get("mappedOperations", [])) != set(mapping):
             errors.append(f"originalControllerRecovery.{family}.mappedOperations is incomplete")
-    if recovery.get("oobe", {}).get("phoenixAbsentOperations") != ["GetServiceToken", "ReconnectRobot"]:
-        errors.append("originalControllerRecovery.oobe must name Phoenix-absent operations GetServiceToken and ReconnectRobot")
+    # ReconnectRobot was implemented 2026-09-10 from pinned source, so it is no
+    # longer Phoenix-absent. GetServiceToken is the only one left.
+    if recovery.get("oobe", {}).get("phoenixAbsentOperations") != ["GetServiceToken"]:
+        errors.append("originalControllerRecovery.oobe must name GetServiceToken as the only Phoenix-absent OOBE operation")
     settings_model = recovery.get("settings20160801ApiModel", {})
     if settings_model.get("status") != "unrecovered" or not settings_model.get("searches"):
         errors.append("Settings_20160801 API model must remain unrecovered with recorded searches")
@@ -2387,7 +2389,11 @@ def validate(data: dict) -> list[str]:
                 errors.append(f"{row.get('id')}: pinned API JSON for this family declares no error shapes")
             if attributes.get("declaredErrorCodes", {}).get("controller") != original_contract.get("errors", {}).get("observed"):
                 errors.append(f"{row.get('id')}: declared controller error codes must match originalSource")
-        if row.get("wireTarget") in {"OOBE_20161026.GetServiceToken", "OOBE_20161026.ReconnectRobot"}:
+        # ReconnectRobot was implemented 2026-09-10 from pinned source
+        # (srv-account-ws@6cea434 oobe.handler.ts / oobe.ctrl.ts), so it is no
+        # longer exempt here. GetServiceToken remains unimplemented: it is
+        # adminOnly and has no Phoenix handler.
+        if row.get("wireTarget") == "OOBE_20161026.GetServiceToken":
             phoenix_handler = (row.get("attributes") or {}).get("phoenixHandler") or {}
             if phoenix_handler.get("present") is not False or phoenix_handler.get("status") != "absent-operation-handler":
                 errors.append(f"{row.get('id')}: Phoenix-absent OOBE operation must be recorded as absent-operation-handler")
