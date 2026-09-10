@@ -3236,7 +3236,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3256,7 +3256,18 @@
         "Recover index and blobs across process crashes/restarts; verify backup -> restart -> list -> restore with the original client sequence.",
         "Perform destructive wipe/restore only in a separately authorized controlled hardware run after backup validation."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Durability proven by an actual SIGKILL + respawn: a backup written by one process is re-listed by a NEW process on the same directory with an identical etag and byte-identical content. Root independently re-ran the two durability tests in isolation (2/2 pass) after the agent had falsified them by replacing the recover() call with an in-memory-only branch, which made both fail. Ownership (loop.robot === credentials.id) enforced on both ops with 403 ROBOT_SHOULD_BELONG_TO_LOOP, confirmed end-to-end against a real Account service. Both declared operations served at runtime.",
+          "artifact": "docs/parity/evidence/2026-09-10/a09-backups/review.md",
+          "result": "pass",
+          "phoenixRevision": "2197a49a74036fd2f283d5a1e01420eb8f52e14a",
+          "command": "node --test packages/classic/test/backup.test.js && npm test",
+          "notes": "Full suite 1275/1267/0 with gate match before this flip. Backup error envelope moved to the source Boom form (422/404) per D-A09-a; robot.js still emits the older 400 and is out of scope.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c"
+        }
+      ]
     },
     {
       "id": "A-10",
@@ -3512,7 +3523,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "stub",
       "owner": "Codex",
       "dependsOn": [
@@ -3530,7 +3541,18 @@
         "Implement Create/SetupClient/SetupServer with the original validation, ownership and certificate/credential lifecycle.",
         "Verify usable remote-operation sessions with the original client, including expiration, failure and reconnect."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "ROM_20171011 Create/SetupServer/SetupClient all served at runtime and driven end-to-end through the original aws-sdk client. Certificate material is genuine, generated with the same libraries the original used (selfsigned + node-forge) rather than faked, and decoded back in tests (CN/issuer jibo.com, 1-day validity, SHA-1 fingerprints recomputed from DER, client cert verifying against the server key, PKCS#12 with empty passphrase). Error catalogue reproduces source: ROBOT_NOT_OWNED 403, ROBOT_NOT_FOUND 404, REMOTE_MODE_DISABLED 403, ROBOT_MUST_CALL 403, CERTIFICATE_NOT_FOUND/DEPLOYED 404, ValidationException 400.",
+          "artifact": "docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md",
+          "result": "pass",
+          "phoenixRevision": "2197a49a74036fd2f283d5a1e01420eb8f52e14a",
+          "command": "node --test packages/classic/test/rom.test.js && npm test",
+          "notes": "19/19 in its own suite; full suite green. The ROM control session itself (robot-side WebSocket on LAN 8160) and SNS delivery are dead and were recorded as unreproducible rather than simulated - correct posture.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c"
+        }
+      ]
     },
     {
       "id": "A-17",

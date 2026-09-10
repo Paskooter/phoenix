@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 3 | 46 | 0 | 0 |
-| classic | 6 | 20 | 0 | 0 |
+| classic | 8 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1480,7 +1480,7 @@ Evidence: pending.
 
 ### A-09 — Make backups durable and match ownership/restore semantics
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02, A-04.
 
@@ -1496,7 +1496,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/backup-2017-02-22.normal.json](ht
 
 Phoenix: [packages/classic/src/backup.js](../../packages/classic/src/backup.js); [packages/classic/test/backup.test.js](../../packages/classic/test/backup.test.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a09-backups/review.md](../../docs/parity/evidence/2026-09-10/a09-backups/review.md) (2026-09-10; Durability proven by an actual SIGKILL + respawn: a backup written by one process is re-listed by a NEW process on the same directory with an identical etag and byte-identical content. Root independently re-ran the two durability tests in isolation (2/2 pass) after the agent had falsified them by replacing the recover() call with an in-memory-only branch, which made both fail. Ownership (loop.robot === credentials.id) enforced on both ops with 403 ROBOT_SHOULD_BELONG_TO_LOOP, confirmed end-to-end against a real Account service. Both declared operations served at runtime.).
 
 ### A-10 — Verify notification token and socket delivery lifecycle
 
@@ -1632,7 +1632,7 @@ Evidence: pending.
 
 ### A-16 — Implement ROM certificate exchange and remote operation
 
-- [ ] **todo** · P1 · classic · implementation: stub
+- [x] **verified** · P1 · classic · implementation: stub
 
 Owner: Codex. Dependencies: A-02, A-04.
 
@@ -1647,7 +1647,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/rom-2017-10-11.normal.json](https
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md](../../docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md) (2026-09-10; ROM_20171011 Create/SetupServer/SetupClient all served at runtime and driven end-to-end through the original aws-sdk client. Certificate material is genuine, generated with the same libraries the original used (selfsigned + node-forge) rather than faked, and decoded back in tests (CN/issuer jibo.com, 1-day validity, SHA-1 fingerprints recomputed from DER, client cert verifying against the server key, PKCS#12 with empty passphrase). Error catalogue reproduces source: ROBOT_NOT_OWNED 403, ROBOT_NOT_FOUND 404, REMOTE_MODE_DISABLED 403, ROBOT_MUST_CALL 403, CERTIFICATE_NOT_FOUND/DEPLOYED 404, ValidationException 400.).
 
 ### A-17 — Implement IFTTT and Classic NLP behavior
 
