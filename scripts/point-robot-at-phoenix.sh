@@ -8,6 +8,12 @@
 # so the robot's cloud calls AND "Hey Jibo" both reach Phoenix. Every file it changes is backed up
 # (*.phx-bak), and the Jetstream service is restarted so it re-reads its config.
 #
+# NOTE: scripts/robot-repoint-server-client.sh is the robot-side equivalent — run it ON the robot
+# (no SSH) to do the same complete repoint: every region_config `endpoint` AND `wsendpoint`,
+# the Jetstream hub, and the /etc/hosts names the cert is verified against. This PC-side script
+# still leaves each region_config `wsendpoint` alone (the robot-side one does not). Prefer that
+# script when you already have a shell on the robot, and keep the two from drifting.
+#
 # Auth: tries SSH key first, then root:jibo (needs `sshpass`), then prompts for username/password.
 #
 # Usage:
