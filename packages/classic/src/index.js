@@ -31,7 +31,7 @@ export { NotificationStore } from './notification.js';
 export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
-export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES } from './media.js';
+export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, AUTHORIZED_UNDER_ADMIN } from './media.js';
 export {
   RomController, RomError, CertificateStore, ROM_ERRORS,
   makeRomHandler, makeAccountClient, makeRobotClient, generateCertificatePair,
@@ -84,6 +84,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       baseFor,
       accountResolver: media?.accountResolver,
       loops: media?.loops,
+      credentials: media?.credentials,
     }) },
     { match: /^rom/i, handler: makeRomHandler(rom) }, // ROM_20171011 cert exchange (A-16)
     // IFTTT_20170207 and NLP_20161031 are real handlers now (source-faithful contracts with

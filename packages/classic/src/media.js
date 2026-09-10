@@ -54,6 +54,12 @@ export const MEDIA_ERRORS = {
   REFERENCE_NOT_FOUND: { code: 'REFERENCE_NOT_FOUND', statusCode: 404, message: 'Referenced media not found' },
 };
 
+// srv-server src/errors.ts — the shared admin-gate error thrown by parseCredentials({ adminOnly: true }).
+// Media's only admin operation is MediaAdmin_20160725.RemoveAllMediaFromLoop: the security gateway
+// forwards the authenticated account (incl. isAdmin) as x-amz-credentials and the handler decorator
+// rejects the call when isAdmin is falsy.
+export const AUTHORIZED_UNDER_ADMIN = { code: 'AUTHORIZED_UNDER_ADMIN', statusCode: 401, message: 'Must be authorized under admin account' };
+
 function fail(code) { const err = new Error(code); Object.assign(err, MEDIA_ERRORS[code]); throw err; }
 
 const sameId = (a, b) => a != null && b != null && String(a) === String(b);
@@ -172,6 +178,16 @@ export class MediaStore {
       || (record.thumbs || []).some((thumb) => wanted.has(thumb.path)));
   }
 
+  /**
+   * Parent documents whose OWN path is requested. This is the source's Remove query
+   * (`Media.find({ path: { $in: paths }, … })`, srv-media-ws src/controllers/media.ctrl.js) which
+   * matches `path` only — NOT `thumbs.path`. Get uses `get()` (path OR thumbs.path) above.
+   */
+  getParents(paths) {
+    const wanted = new Set(paths.map(String));
+    return [...this.records.values()].filter((record) => wanted.has(record.path));
+  }
+
   /** Stream one object's bytes to private disk. Does NOT register a media document. */
   async writeBlob(record, dataStream) {
     const file = this.fileFor(record);
@@ -205,7 +221,24 @@ export class MediaStore {
     const removed = [...this.records.values()].filter((record) => sameId(record.loopId, loopId));
     for (const record of removed) this.records.delete(record.path);
     this._flush();
+    // The source awaits binaryController.removeMultiple(pathsToRemove) BEFORE Media.remove, so the
+    // objects are gone the moment the loop media is (srv-media-ws media.ctrl.js removeAllMediaFromLoop).
+    this.removeBlobs(removed);
     return removed;
+  }
+
+  /**
+   * The source's object delete for removed media: `binaryController.removeMultiple(pathsToRemove)`
+   * over the EXPANDED rows (parent + each thumb). Best-effort here, matching Remove's fire-and-forget
+   * S3 delete; object removal for a path with no bytes is a no-op (source: "S3 fails on empty list").
+   */
+  removeBlobs(records) {
+    for (const record of records) {
+      const accountId = record.accountId || 'anonymous';
+      for (const object of [record, ...(record.thumbs || []).map((thumb) => ({ ...thumb, accountId }))]) {
+        try { unlinkSync(this.fileFor({ ...object, accountId })); } catch { /* object already gone */ }
+      }
+    }
   }
 }
 
@@ -231,6 +264,21 @@ function objectBaseUrl(baseFor, req) {
 const mediaUrl = (base, path) => `${base}/media/blob/${path}`;
 
 /**
+ * srv-server src/parseCredentials.ts — the security gateway forwards the authenticated account as
+ * the JSON `x-amz-credentials` header (srv-security-gw buildCredentials: {_id,id,email,accessKeyId,
+ * secretAccessKey,isAdmin,friendlyId}). Phoenix runs no gateway, so the same seam log/robot/backup
+ * read is used; a missing/garbage header yields {} (parseCredentials' catch branch), NOT a bypass.
+ */
+function credentialsFromHeader(req) {
+  try {
+    const parsed = JSON.parse(req?.headers?.['x-amz-credentials'] || '');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
  * The account-identity / loop-membership seams.
  *
  * The source resolved both over HTTP to the account service (`accountClient.listMembers`,
@@ -240,8 +288,9 @@ const mediaUrl = (base, path) => `${base}/media/blob/${path}`;
  * the same documented divergence as Backup's dropped loop-ownership check — rather than being
  * silently replaced by a fake pass.
  */
-export function makeMediaHandler({ store, baseFor, accountResolver, loops } = {}) {
+export function makeMediaHandler({ store, baseFor, accountResolver, loops, credentials } = {}) {
   if (!store) throw new TypeError('media handler requires a MediaStore');
+  const credentialsOf = typeof credentials === 'function' ? credentials : credentialsFromHeader;
   const accountIdOf = (req, body) => (typeof accountResolver === 'function'
     ? accountResolver(req, body)
     : accessKeyIdFromAuth(req)) || 'anon';
@@ -363,7 +412,14 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops } = {}
       const loops = await accountLoopIds(accountId);
       if (loops === null) return void sendAmz(res, 200, mediaList);
       const accessible = new Set(loops.map(String));
-      return void sendAmz(res, 200, mediaList.filter((media) => accessible.has(String(media.loopId))));
+      const mediaListFiltered = mediaList.filter((media) => accessible.has(String(media.loopId)));
+      // srv-media-ws src/controllers/media.ctrl.js: `if (mediaList.length !== mediaListFiltered.length
+      // && !ignoreOwnership) throw Boom.createWithCode(Errors.MEDIA_MUST_BE_MEMBER)`. The AWS-JSON
+      // Get op passes no ignoreOwnership, so a requested path in a loop the caller is not in is a
+      // 403 -- NOT a silent drop. (The service's separate REST route POST /getMedia passes
+      // ignoreOwnership: true; Phoenix implements only the AWS-JSON face.)
+      if (mediaList.length !== mediaListFiltered.length) fail('MEDIA_MUST_BE_MEMBER');
+      return void sendAmz(res, 200, mediaListFiltered);
     } catch (error) {
       return void sendAmzError(res, error.statusCode ? error
         : { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
@@ -377,7 +433,8 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops } = {}
     try {
       const owned = await ownerLoopIds(accountId);
       const ownedSet = owned === null ? null : new Set(owned.map(String));
-      const candidates = store.get(paths).filter((record) => sameId(record.accountId, accountId)
+      // Source Remove query: `path: { $in: paths }` (parents only) + $or(accountId, owner loops).
+      const candidates = store.getParents(paths).filter((record) => sameId(record.accountId, accountId)
         || ownedSet === null || ownedSet.has(String(record.loopId)));
       const mediaList = expandMedia(candidates);
       for (const record of candidates) {
@@ -385,6 +442,8 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops } = {}
         store.records.set(record.path, record);
       }
       if (candidates.length) store._flush();
+      // Source deletes the S3 binaries for the removed (expanded) rows, best-effort.
+      store.removeBlobs(candidates);
       return void sendAmz(res, 200, mediaList);
     } catch (error) {
       return void sendAmzError(res, error.statusCode ? error
@@ -392,7 +451,15 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops } = {}
     }
   }
 
-  function removeAllMediaFromLoop({ res, body }) {
+  function removeAllMediaFromLoop({ req, res, body }) {
+    // srv-media-ws src/handlers/media.handler.js — RemoveAllMediaFromLoop carries
+    // `@parseCredentials({ adminOnly: true })`, the OUTERMOST decorator, so the admin gate runs
+    // BEFORE the Joi `loopId` check (legacy decorators wrap top-down). srv-server parseCredentials.ts
+    // throws AUTHORIZED_UNDER_ADMIN (401) when the forwarded credential's `isAdmin` is falsy — this
+    // is the MediaAdmin_20160725 admin/manufacturer semantics ("Requires admin or manufacturer
+    // credentials"). Without an x-amz-credentials header the account is not an admin, so it is denied.
+    const creds = credentialsOf(req);
+    if (!creds || !creds.isAdmin) return void sendAmzError(res, AUTHORIZED_UNDER_ADMIN);
     if (!body || typeof body.loopId !== 'string' || !body.loopId) {
       return void sendAmzError(res, ValidationException, 'Invalid or missing loopId');
     }
