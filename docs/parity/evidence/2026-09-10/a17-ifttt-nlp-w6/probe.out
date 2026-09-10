@@ -1,0 +1,12 @@
+200 IFTTT_20170207.UserInfo -> id,name
+200 IFTTT_20170207.Trigger -> result
+200 IFTTT_20170207.ListTriggers -> list(0)
+200 IFTTT_20170207.ListMedia -> list(0)
+200 IFTTT_20170207.Action -> list(1)
+200 IFTTT_20170207.ListActions -> list(1)
+200 IFTTT_20170207.DeleteIdentity -> result
+200 NLP_20161031.PartOfSpeech -> partsOfSpeech
+200 NLP_20161031.NamedEntityRecognition -> namedEntities
+400 IFTTT_20170207.Frobnicate [ValidationException] -> __type,message
+stubRegistrations(): []
+dead IFTTT notify ledger: [{"identities":["idf-1"],"outcome":{"delivered":false,"reason":"IFTTT realtime notifications endpoint (realtime.ifttt.com/v1/notifications) is dead","endpoint":"https://realtime.ifttt.com/v1/notifications"}}]

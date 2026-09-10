@@ -17,13 +17,23 @@
 //   attempt as UNAVAILABLE (delivered:false, reason) and never reports a fabricated success.
 //
 // The Mongo collections (Identity/Trigger/Action/TriggerMedia) and the Account/loop list and
-// KeyClient are other dead Classic services. They are reproduced by a process-lifetime in-memory
-// store plus injectable fixture adapters (loops / notify / key / email). The default loop
+// KeyClient are other dead Classic services. The four Mongo-backed collections are reproduced by
+// a durable, atomically replaced JSON store (Mongo's own durability, see DEFAULT_FILE/_persist)
+// plus injectable fixture adapters (loops / notify / key / email). The default loop
 // adapter answers the LAN-trust single-household case so a real client still gets shapes and
 // statuses instead of errors; every adapter is replaceable and nothing is invented.
 
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 import { randomUUID } from 'node:crypto';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
+
+// The original IFTTT service kept Identity/Trigger/Action/TriggerMedia in Mongo (see
+// jiborobot/srv-ifttt-ws src/schemes/*.ts), so the state is durable across process restarts.
+// Phoenix has no Mongo dependency; it keeps the same document boundaries in one atomically
+// replaced JSON file, matching the other Classic stores (notificationStore/key/person/jot/media).
+const DEFAULT_FILE = join(tmpdir(), 'phoenix-ifttt.json');
 
 // jiborobot/srv-ifttt-ws src/errors/ifttt.ts — verbatim codes, messages and statuses.
 export const IFTTT_ERRORS = {
@@ -67,16 +77,67 @@ function toEpoch(value) {
 }
 
 export class IftttStore {
-  constructor({ clock = Date.now, newId = randomUUID, phonetic = localPhoneticKey } = {}) {
+  constructor({
+    clock = Date.now,
+    newId = randomUUID,
+    phonetic = localPhoneticKey,
+    file = process.env.ETCO_classic_iftttFile || DEFAULT_FILE,
+  } = {}) {
     this.clock = clock;
     this.newId = newId;
     this.phonetic = phonetic;
+    // `null` disables persistence (an intentionally ephemeral store); the default is the same
+    // durable-file behavior the source gets from Mongo.
+    this.file = file;
     this.identities = new Map(); // _id (the IFTTT identity string) -> { id, filter, loopIds, updated }
     this.triggers = [];          // { _id, identity, text, created }
     this.actions = [];           // { _id, loopId, fields, created }
     this.media = [];             // { _id, identity, encryptedUrl, decryptedUrl, created }
     this.notifications = [];     // observed notify() attempts (dead-provider ledger)
     this.keyCalls = [];          // observed KeyClient calls (dead-provider ledger)
+    this._load();
+  }
+
+  /** Re-read the four Mongo-backed collections from the durable file (a no-op for file=null). */
+  _load() {
+    if (!this.file || !existsSync(this.file)) return;
+    let raw;
+    try {
+      raw = JSON.parse(readFileSync(this.file, 'utf8'));
+    } catch (error) {
+      throw new Error(`ifttt store unreadable (${this.file}): ${error.message}`);
+    }
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new Error(`ifttt store has an invalid root (${this.file})`);
+    }
+    for (const identity of raw.identities || []) {
+      if (identity && identity.id !== undefined) this.identities.set(identity.id, identity);
+    }
+    for (const row of raw.triggers || []) if (row && row._id) this.triggers.push(row);
+    for (const row of raw.actions || []) if (row && row._id) this.actions.push(row);
+    for (const row of raw.media || []) if (row && row._id) this.media.push(row);
+  }
+
+  /** Atomically replace the durable file after a mutation (fsync-of-the-swap pattern). */
+  _persist() {
+    if (!this.file) return;
+    const output = {
+      version: 1,
+      identities: [...this.identities.values()],
+      triggers: this.triggers,
+      actions: this.actions,
+      media: this.media,
+    };
+    mkdirSync(dirname(this.file), { recursive: true, mode: 0o700 });
+    // A per-write unique temporary name so a concurrent writer can never clobber ours mid-write.
+    const temporary = `${this.file}.${randomUUID()}.tmp`;
+    const fd = openSync(temporary, 'wx', 0o600);
+    try {
+      try { writeFileSync(fd, `${JSON.stringify(output, null, 2)}\n`); } finally { closeSync(fd); }
+      renameSync(temporary, this.file);
+    } finally {
+      try { unlinkSync(temporary); } catch { /* renamed or already gone */ }
+    }
   }
 
   now() { return this.clock(); }
@@ -105,6 +166,7 @@ export class IftttStore {
       obj.updated = this.now();
     }
     this.identities.set(identity, obj);
+    this._persist();
     return { identity: obj };
   }
 
@@ -112,6 +174,7 @@ export class IftttStore {
   createTrigger({ identity, text }) {
     const row = { _id: this.newId(), identity, text, created: new Date(this.now()) };
     this.triggers.push(row);
+    this._persist();
     return row;
   }
 
@@ -129,6 +192,7 @@ export class IftttStore {
   createAction({ loopId, fields }) {
     const row = { _id: this.newId(), loopId, fields: clone(fields), created: new Date(this.now()) };
     this.actions.push(row);
+    this._persist();
     return row;
   }
 
@@ -147,12 +211,14 @@ export class IftttStore {
     if (existing) return existing;
     const row = { _id: this.newId(), identity, encryptedUrl, decryptedUrl: undefined, created: new Date(this.now()) };
     this.media.push(row);
+    this._persist();
     return row;
   }
 
   updateMedia({ encryptedUrl, decryptedUrl }) {
     const rows = this.media.filter((row) => row.encryptedUrl === encryptedUrl);
     for (const row of rows) row.decryptedUrl = decryptedUrl;
+    if (rows.length > 0) this._persist();
     return rows;
   }
 
@@ -177,10 +243,14 @@ export class IftttStore {
     this.triggers = this.triggers.filter((row) => row.identity !== identity);
     const removable = this.media.filter((row) => row.identity === identity && row.decryptedUrl !== undefined);
     this.media = this.media.filter((row) => row.identity !== identity);
+    this._persist();
     return removable;
   }
 
-  removeIdentity(identity) { this.identities.delete(identity); }
+  removeIdentity(identity) {
+    this.identities.delete(identity);
+    this._persist();
+  }
 
   // ---- dead-provider ledgers ------------------------------------------------------------------
   recordNotification(identities, outcome) {

@@ -10,11 +10,16 @@
 
 import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { createClassicEntrypoint, IftttStore, localPhoneticKey } from '../src/index.js';
 
 let server; let port; let defaultServer; let defaultEntrypoint; let defaultPort;
-
-const store = new IftttStore();
+// The store is durable now (Mongo -> JSON file), so each test run gets its own temp file and the
+// "default adapters" entrypoint gets a second one — two entrypoints must never share a store file.
+const dir = mkdtempSync(join(tmpdir(), 'ifttt-a17-'));
+const store = new IftttStore({ file: join(dir, 'ifttt.json') });
 const notifyCalls = [];
 const keyCalls = [];
 let loopMode = 'robot';
@@ -66,11 +71,12 @@ async function amzDefault(target, body, accessKeyId = 'acct-1') {
 before(async () => {
   server = await createClassicEntrypoint({ ifttt: { store, loops, notify, key, email: () => emailValue } }).listen(0);
   port = server.address().port;
-  defaultEntrypoint = createClassicEntrypoint();
+  // No store: exercise the real default loops/notify/key adapters, but keep its durable file apart.
+  defaultEntrypoint = createClassicEntrypoint({ ifttt: { file: join(dir, 'default.json') } });
   defaultServer = await defaultEntrypoint.listen(0);
   defaultPort = defaultServer.address().port;
 });
-after(() => { server.close(); defaultServer.close(); });
+after(() => { server.close(); defaultServer.close(); rmSync(dir, { recursive: true, force: true }); });
 beforeEach(() => {
   store.identities.clear();
   store.triggers.length = 0; store.actions.length = 0; store.media.length = 0;
@@ -243,4 +249,34 @@ test('default adapters: Trigger is served and the dead IFTTT notify is recorded,
   assert.equal(internal.notifications.length, 1);
   assert.equal(internal.notifications[0].outcome.delivered, false);
   assert.match(internal.notifications[0].outcome.reason, /IFTTT/);
+});
+
+test('the identity rows are durable: a second IftttStore over the same file reads them back', () => {
+  const file = join(dir, 'reopen.json');
+  const first = new IftttStore({ file });
+  first.findOrCreateIdentity({ identity: 'idf-persist', filter: 'phon', loopIds: ['loop-acct-1'], refresh: true });
+  first.createTrigger({ identity: 'idf-persist', text: 'persisted' });
+  first.createAction({ loopId: 'loop-acct-1', fields: { key: 'value' } });
+  first.createMedia({ identity: 'idf-persist', encryptedUrl: 'enc://p' });
+  first.updateMedia({ encryptedUrl: 'enc://p', decryptedUrl: 'dec://p' });
+  assert.equal(existsSync(file), true);
+
+  const reopened = new IftttStore({ file });
+  assert.equal(reopened.findIdentity('idf-persist').filter, 'phon');
+  assert.deepEqual(reopened.listTriggers({ identity: 'idf-persist', limit: 50 }).map((t) => t.text), ['persisted']);
+  assert.deepEqual(reopened.listActions({ loopId: 'loop-acct-1', limit: 50 }).map((a) => a.fields), [{ key: 'value' }]);
+  assert.deepEqual(reopened.listMedia({ identity: 'idf-persist', limit: 50 }).map((m) => m.decryptedUrl), ['dec://p']);
+
+  // The file keeps the source's four Mongo document boundaries (Identity/Trigger/Action/Media).
+  const raw = JSON.parse(readFileSync(file, 'utf8'));
+  assert.equal(raw.version, 1);
+  assert.deepEqual(Object.keys(raw).sort(), ['actions', 'identities', 'media', 'triggers', 'version']);
+});
+
+test('file:null keeps the store ephemeral for callers that want an in-memory store', () => {
+  const file = join(dir, 'ephemeral.json');
+  const ephemeral = new IftttStore({ file: null });
+  ephemeral.findOrCreateIdentity({ identity: 'idf-eph', filter: 'phon', loopIds: ['loop-acct-1'], refresh: true });
+  ephemeral.createTrigger({ identity: 'idf-eph', text: 'gone' });
+  assert.equal(existsSync(file), false);
 });

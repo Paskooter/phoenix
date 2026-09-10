@@ -121,3 +121,23 @@ test('createHttpNlpProvider POSTs the pinned {Input} body to /POS and /NER', asy
     { url: 'http://nlp.test:8080/NER', body: { Input: 'hi there' } },
   ]);
 });
+
+test("NER strips the possessive suffix from entity text (nlp.py:83-86 endswith(\"'s\") -> [:-2])", async () => {
+  const possessive = {
+    available: true,
+    pos: async () => posRows,
+    ner: async () => [
+      { start: 0, end: 6, text: "Jibo's", label: 'PRODUCT' },
+      { start: 7, end: 12, text: 'light', label: 'OBJECT' },
+    ],
+  };
+  const server2 = await createClassicEntrypoint({ nlp: { provider: possessive } }).listen(0);
+  try {
+    const r = await amz(server2.address().port, 'NLP_20161031.NamedEntityRecognition', { Input: "what is Jibo's light?" });
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.body.namedEntities, [
+      { start: 0, end: 6, text: 'Jibo', label: 'PRODUCT' },
+      { start: 7, end: 12, text: 'light', label: 'OBJECT' },
+    ]);
+  } finally { server2.close(); }
+});
