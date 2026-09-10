@@ -1,0 +1,27 @@
+{"t":"2026-09-10T19:24:45.201Z","level":"info","ns":"classic","msg":"listening","port":0}
+=== ROM_20171011 over the classic entrypoint (one host, one POST /) ===
+{"t":"2026-09-10T19:24:45.235Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.Create","op":"Create","matched":"in-process"}
+ROM_20171011.Create -> HTTP 200  x-amzn-errortype=-
+   body: {"created":1789068285321}
+{"t":"2026-09-10T19:24:45.330Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.SetupServer","op":"SetupServer","matched":"in-process"}
+ROM_20171011.SetupServer -> HTTP 200  x-amzn-errortype=-
+   body: {"cert":"<str len=738>","created":1789068285321,"fingerprint":"<str len=59>","private":"<str len=902>","public":"<str len=278>"}
+{"t":"2026-09-10T19:24:45.332Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.SetupClient","op":"SetupClient","matched":"in-process"}
+ROM_20171011.SetupClient -> HTTP 200  x-amzn-errortype=-
+   body: {"cert":"<str len=650>","created":1789068285321,"fingerprint":"<str len=59>","p12":"<str len=1856>","payload":{"ipAddress":"192.168.1.100","ipAddresses":[{"address":"192.168.1.100","netmask":"255.255.252.0"}]},"private":"<str len=902>","public":"<str len=278>"}
+--- failure / validation cases ---
+{"t":"2026-09-10T19:24:45.335Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.SetupServer","op":"SetupServer","matched":"in-process"}
+ROM_20171011.SetupServer -> HTTP 403  x-amzn-errortype=ROBOT_MUST_CALL
+   body: {"__type":"ROBOT_MUST_CALL","message":"Only robot is allowed to call this method"}
+{"t":"2026-09-10T19:24:45.338Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.SetupClient","op":"SetupClient","matched":"in-process"}
+ROM_20171011.SetupClient -> HTTP 403  x-amzn-errortype=ROBOT_NOT_OWNED
+   body: {"__type":"ROBOT_NOT_OWNED","message":"You must own specified robot to create certificate"}
+{"t":"2026-09-10T19:24:45.340Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.Create","op":"Create","matched":"in-process"}
+ROM_20171011.Create -> HTTP 400  x-amzn-errortype=ValidationException
+   body: {"__type":"ValidationException","message":"child \"friendlyId\" fails because [\"friendlyId\" is required]"}
+{"t":"2026-09-10T19:24:45.342Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.Create","op":"Create","matched":"in-process"}
+ROM_20171011.Create -> HTTP 403  x-amzn-errortype=ROBOT_NOT_OWNED
+   body: {"__type":"ROBOT_NOT_OWNED","message":"You must own specified robot to create certificate"}
+{"t":"2026-09-10T19:24:45.343Z","level":"info","ns":"classic","msg":"classic request","target":"ROM_20171011.Unknown","op":"Unknown","matched":"in-process"}
+ROM_20171011.Unknown -> HTTP 400  x-amzn-errortype=ValidationException
+   body: {"__type":"ValidationException","message":"unknown ROM operation: Unknown"}

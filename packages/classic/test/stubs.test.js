@@ -1,5 +1,6 @@
 // H.5 — build-to-spec tier-3 stubs: each service dispatches its ops and returns a valid shape.
 // (Unverified end-to-end without the dead mobile app/hardware — see DIVERGENCES.)
+// rom (ROM_20171011) left this group in A-16; its behaviour is covered by rom.test.js.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ async function amz(target, body, accessKeyId = 'acct-1') {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target,
-      authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260613/us-east-1/x/aws4_request, SignedHeaders=host, Signature=ff`,
+      authorization: 'AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260613/us-east-1/x/aws4_request, SignedHeaders=host, Signature=ff',
     },
     body: JSON.stringify(body || {}),
   });
@@ -20,12 +21,6 @@ async function amz(target, body, accessKeyId = 'acct-1') {
 
 before(async () => { server = await createClassicEntrypoint().listen(0); port = server.address().port; });
 after(() => server.close());
-
-test('rom: SetupClient returns the cert-bundle shape', async () => {
-  const r = await amz('ROM_20171011.SetupClient', {});
-  assert.equal(r.status, 200);
-  assert.deepEqual(Object.keys(r.body).sort(), ['cert', 'created', 'fingerprint', 'p12', 'payload', 'private', 'public']);
-});
 
 test('person: account properties round-trip in-memory', async () => {
   await amz('Person_20160801.SetAccountProperty', { key: 'favColor', value: 'blue' }, 'acct-P');

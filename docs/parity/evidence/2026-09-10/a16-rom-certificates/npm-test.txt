@@ -1,0 +1,31 @@
+# A-16 — one full `npm test` run (2026-09-10)
+
+Command: `npm test` (root) = `node --test` + `parity:check` + `parity:gate`.
+
+## unit suite
+
+```
+# tests 1213
+# suites 7
+# pass 1206
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+```
+
+ROM suite alone (`node --test packages/classic/test/rom.test.js`): 19 tests, 19 pass, 0 fail.
+
+## parity:check
+
+```
+Checklist: 16/79 verified (20.3%)
+classic: 6/20 verified; 0 in progress; 0 blocked
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+```
+
+## parity:gate
+
+```json
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+```

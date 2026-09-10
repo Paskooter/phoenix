@@ -16,6 +16,7 @@ import { KeyStore, makeKeyHandler, keyRoutes } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
+import { makeRomHandler } from './rom.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -29,6 +30,11 @@ export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
 export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES } from './media.js';
+export {
+  RomController, RomError, CertificateStore, ROM_ERRORS,
+  makeRomHandler, makeAccountClient, makeRobotClient, generateCertificatePair,
+  accountBaseUrl, robotBaseUrl, CERTIFICATE_LIFETIME_DAYS,
+} from './rom.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -53,7 +59,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const keys = keyStore || new KeyStore();
   const router = createClassicRouter([
@@ -71,7 +77,8 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       accountResolver: media?.accountResolver,
       loops: media?.loops,
     }) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/person/ifttt/nlp/collision)
+    { match: /^rom/i, handler: makeRomHandler(rom) }, // ROM_20171011 cert exchange (A-16)
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (person/ifttt/nlp/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -86,7 +93,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir, rom } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -117,6 +124,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         keyStore: keys,
         keyMembership,
         keyBinaryDir,
+        rom,
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
