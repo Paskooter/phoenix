@@ -189,7 +189,12 @@ export function findOrCreateRobotAccount(store, friendlyId) {
 function loopName(store, owner) {
   const name = owner.firstName || owner.email || 'My';
   const base = name.endsWith('s') ? `${name}'` : `${name}'s`;
-  const names = new Set([...store.loops.values()].map((l) => l.name));
+  // oobe.ctrl.ts getLoopName calls loopCtrl.listOwnerLoops(account._id), i.e.
+  // Loop.find({ owner }) behind the schema's not-deleted middleware. Only the
+  // owner's own live loops take part in the suffix search.
+  const names = new Set([...store.loops.values()]
+    .filter((l) => l.isDeleted !== true && String(l.owner) === String(owner._id))
+    .map((l) => l.name));
   if (!names.has(`${base} Jibo`)) return `${base} Jibo`;
   for (let i = 2; ; i += 1) if (!names.has(`${base} ${i} Jibo`)) return `${base} ${i} Jibo`;
 }

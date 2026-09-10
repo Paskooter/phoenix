@@ -12,23 +12,25 @@
 //                                           resolve ownership from this stored access key;
 //                                           CreateHubToken verifies SigV4)
 //
-// Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus;
+// Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus,
+// reconnectRobot, getServiceToken.
 // Account_20151111.CreateHubToken is handled by the bounded A-02 path below.
-// (reconnectRobot and getServiceToken are both implemented; the v1 handoff note
-// that deferred them is historical.)
-// Error envelope: {__type:<code>, message} + x-amzn-errortype, statusCode from src/errors/*.
+// Error envelope: {__type:<code>, message} + x-amzn-errortype, statusCode from src/errors/*,
+// except the @validatePayload (Joi -> Boom.badData) refusals, which keep Hapi's 422 envelope.
 // Account_20151111.CreateHubToken is the bounded A-02 sensitive operation and
 // never uses the public x-amz-credentials header as its identity.
 
 import { randomUUID } from 'node:crypto';
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
-  createAuthenticatedHubToken, createLoop, createOwnerAccount, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
+  ACCESS_TOKEN_LIFETIME_MS, MEMBER_STATUS, createAuthenticatedHubToken, createLoop, createOwnerAccount,
+  findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
   populateLoop, ensureLoopMemberIds, isAcceptedStatus,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
-import { handleLoopMembership } from './loopMembership.js';
+import { handleLoopMembership, removeRobotFromLoops, saveLoop } from './loopMembership.js';
+import { dispatchLoopCreated } from './loopCreation.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
@@ -53,7 +55,11 @@ const Errors = Object.freeze({
   TOKEN_NOT_FOUND: { code: 'TOKEN_NOT_FOUND', message: 'Token not found', statusCode: 404 },
   TOKEN_EXPIRED: { code: 'TOKEN_EXPIRED', message: 'Token expired', statusCode: 401 },
   ACCOUNT_NOT_FOUND: { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found', statusCode: 404 },
-  LOOP_MUST_BE_SUSPENDED: { code: 'LOOP_MUST_BE_SUSPENDED', message: 'Loop must be suspended', statusCode: 409 },
+  // errors/account.ts ACCOUNT_IS_DELETED: accountCtrl.findById throws this for a
+  // soft-deleted account before the OOBE controller can use it.
+  ACCOUNT_IS_DELETED: { code: 'ACCOUNT_IS_DELETED', message: 'Account is removed', statusCode: 404 },
+  // errors/loop.ts LOOP_MUST_BE_SUSPENDED, verbatim.
+  LOOP_MUST_BE_SUSPENDED: { code: 'LOOP_MUST_BE_SUSPENDED', message: 'Loop must be suspended prior to robot change', statusCode: 409 },
   // Source oobe.ctrl.ts setupRobot raises this when the setup token's account
   // does not own the loop it names. Message mirrors AccountErrors.
   OWNER_CAN_MANIPULATE: {
@@ -67,13 +73,14 @@ const Errors = Object.freeze({
   // Source errors/loop.ts LOOP_SUSPENDED: "Loop is suspended and cannot be modified", statusCode 403.
   LOOP_SUSPENDED: { code: 'LOOP_SUSPENDED', message: 'Loop is suspended and cannot be modified', statusCode: 403 },
   ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
+  // errors/loop.ts ROBOT_DISABLED: the robot registry reports the robot suspended.
+  ROBOT_DISABLED: { code: 'ROBOT_DISABLED', message: 'Robot disabled', statusCode: 409 },
   ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND: {
     code: 'ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND',
     message: 'Only admin or robot can suspend loop',
     statusCode: 403,
   },
   LOOP_VALIDATION: { code: 'ValidationException', message: 'Invalid payload', statusCode: 422 },
-  VALIDATION: { code: 'ValidationException', message: 'Invalid payload', statusCode: 400 },
   MEMBER_CAN_REQUEST: {
     code: 'MEMBER_CAN_REQUEST',
     message: 'You can only request members that are in your loops',
@@ -255,38 +262,110 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   // -- operations -------------------------------------------------------------
 
-  /** oobe.ctrl.ts setupRobot — the robot's one OOBE call. v1: new-robot + same-robot-reissue. */
-  function setupRobot({ res, body, log }) {
+  /**
+   * oobe.ctrl.ts setupRobot — the robot's one OOBE call: new-robot setup,
+   * same-robot re-issue, and suspended-loop robot replacement.
+   *
+   * Check order (oobe.handler.ts decorators, then oobe.ctrl.ts):
+   *   @parseCredentials({})            — SetupRobot is in the gateway's
+   *                                      unauthorizedMethods list, so an unsigned
+   *                                      request reaches the handler with `{}`.
+   *   @validatePayload{id, token}      — required non-empty strings -> 422.
+   *   tokenCtrl.findById               — TOKEN_NOT_FOUND / TOKEN_EXPIRED.
+   *   accountCtrl.findById             — ACCOUNT_NOT_FOUND / ACCOUNT_IS_DELETED.
+   *   loopCtrl.findById (token.loopId) — LOOP_NOT_FOUND (soft-deleted excluded).
+   *   !loop.owner.equals(account._id)  — OWNER_CAN_MANIPULATE.
+   *   loop.isSuspended                 — replace the robot and unsuspend; else a
+   *                                      different robot is LOOP_MUST_BE_SUSPENDED.
+   *   getRobot / deleteToken           — ONE-TIME token, RobotCredentials.
+   */
+  async function setupRobot({ res, body, log }) {
+    const validationMessage = oobeTokenValidationMessage(body, { requiredId: true });
+    if (validationMessage) return void sendValidationError(res, validationMessage);
     const { token: tokenId, id } = body;
-    if (!tokenId || !id) return void sendAmzError(res, Errors.VALIDATION, 'token and id are required');
 
     const { token, error } = findToken(store, tokenId);
     if (error) return void sendAmzError(res, Errors[error]);
 
     const account = store.accounts.get(token.accountId);
     if (!account) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
+    if (account.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
 
     let loop;
     if (token.loopId) {
-      // Re-setup of an existing loop. v1 supports the same-robot-reconnect path; a different
-      // robot against a live loop is rejected exactly like the original.
-      loop = store.loops.get(token.loopId);
-      if (!loop) return void sendAmzError(res, { code: 'LOOP_NOT_FOUND', message: 'Loop not found', statusCode: 404 });
-      // Source oobe.ctrl.ts setupRobot raises OWNER_CAN_MANIPULATE when the
-      // token's account does not own the target loop:
+      // BaseLoopController.findById -> Loop.findById, behind the schema's
+      // not-deleted find middleware: a soft-deleted loop is LOOP_NOT_FOUND.
+      loop = activeLoopById(token.loopId);
+      if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+      // Source oobe.ctrl.ts setupRobot:
       //   if (!loop.owner.equals(account._id)) throw OWNER_CAN_MANIPULATE;
-      // Phoenix compares ids as strings rather than ObjectIds. This is the
-      // only missing authorization check in the re-setup path; without it a
-      // token issued for another account's loop could re-setup it.
+      // Phoenix compares ids as strings rather than ObjectIds.
       if (String(loop.owner) !== String(account._id)) {
         return void sendAmzError(res, Errors.OWNER_CAN_MANIPULATE);
       }
-      const currentRobot = store.accounts.get(loop.robot);
-      if (!currentRobot || currentRobot.friendlyId !== id) {
-        return void sendAmzError(res, Errors.LOOP_MUST_BE_SUSPENDED);
+      if (loop.isSuspended) {
+        // ROBOT REPLACEMENT. Source order is exact:
+        //   newRobotAccount = findOrCreateRobotAccount({ robotId: id })
+        //   removeRobotFromLoops(loop.robot)          // old robot -> suspends its loop
+        //   removeRobotFromLoops(newRobotAccount._id) // new robot leaves any other loop
+        //   loop = findById(tokenObj.loopId)          // reread the committed state
+        //   loop.isSuspended = false; loop.robot = newRobotAccount._id
+        //   loop.members.push({ accountId, status: ACCEPTED }); loop.save()
+        const replacement = findOrCreateRobotAccount(store, id);
+        removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
+        removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
+        loop = activeLoopById(token.loopId);
+        if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+        // Mutate a detached draft: saveLoop must be able to leave the stored
+        // object untouched when the LoopUpdated write is rejected.
+        const before = JSON.parse(JSON.stringify(loop));
+        const draft = JSON.parse(JSON.stringify(loop));
+        draft.isSuspended = false;
+        draft.robot = replacement._id;
+        draft.members = Array.isArray(draft.members) ? draft.members : [];
+        // Mongoose applies memberSchema defaults to the pushed
+        // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
+        // memberProperties.isChild. Keep the persisted subdocument shaped the
+        // same way so a reopened Store projects identically.
+        draft.members.push({
+          _id: newId(),
+          accountId: replacement._id,
+          status: MEMBER_STATUS.ACCEPTED,
+          created: Date.now(),
+          invitedAsLegalGuardian: false,
+          enrolled: { face: false, voice: false },
+          memberProperties: { isChild: false },
+        });
+        saveLoop(store, draft, loopUpdatedOutbox, before);
+        loop = draft;
+      } else {
+        // Same robot after a reset reconnects its live loop and receives its
+        // existing credentials. A different robot needs the loop suspended.
+        const currentRobot = store.accounts.get(loop.robot);
+        if (!currentRobot) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
+        if (currentRobot.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
+        if (currentRobot.friendlyId !== id) {
+          return void sendAmzError(res, Errors.LOOP_MUST_BE_SUSPENDED);
+        }
       }
     } else {
+      // Source loop.ctrl.ts create({ ownerId, name, robotId }):
+      //   robot = await robotClient.getRobot(robotId)   // failure is tolerated
+      //   if (robot.payload.suspended) throw ROBOT_DISABLED
+      //   robotAccount = findOrCreateRobotAccount({ robotId })
+      //   removeRobotFromLoops(robotAccount._id)        // leave any previous loop
+      //   new Loop({ members, name, owner, robot }).save()  -> LoopUpdated
+      //   eventSender.send(new LoopCreated({ loopId, ownerId, robotId }))
+      let lookup = null;
+      try { lookup = await robotReadClient.getRobot(id); } catch { /* Source tolerates lookup failure. */ }
+      if (lookup && lookup.payload && lookup.payload.suspended === true) {
+        return void sendAmzError(res, Errors.ROBOT_DISABLED);
+      }
+      const robotAccount = findOrCreateRobotAccount(store, id);
+      removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
       ({ loop } = createLoop(store, { owner: account, robotId: id }));
+      loopUpdatedOutbox.record(loop);
+      dispatchLoopCreated(loop, invitationProviders);
     }
 
     const robot = store.accounts.get(loop.robot) || findOrCreateRobotAccount(store, id);
@@ -306,13 +385,17 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const accessKeyId = accessKeyIdFromAuth(req);
     const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
     if (!account) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    // @parseCredentials({}) runs before @validatePayload({ loopId: Joi.string() }).
+    const validationMessage = oobeLoopIdValidationMessage(body);
+    if (validationMessage) return void sendValidationError(res, validationMessage);
     const token = mintSetupToken(store, account._id, (body && body.loopId) || null);
-    return void sendAmz(res, 200, { token: token._id, expires: token.created + 15 * 60 * 1000 });
+    return void sendAmz(res, 200, { token: token._id, expires: token.created + ACCESS_TOKEN_LIFETIME_MS });
   }
 
   /** oobe.ctrl.ts getStatus: complete = the token no longer exists/is invalid. */
   function getStatus({ res, body }) {
-    if (!body || !body.token) return void sendAmzError(res, Errors.VALIDATION, 'token is required');
+    const validationMessage = oobeTokenValidationMessage(body);
+    if (validationMessage) return void sendValidationError(res, validationMessage);
     const { token } = findToken(store, body.token);
     return void sendAmz(res, 200, { complete: !token });
   }
@@ -353,7 +436,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     });
     const token = mintSetupToken(store, account._id, null);
     log.info('getServiceToken complete', { account: account._id, token: token._id });
-    return void sendAmz(res, 200, token);
+    // tokenCtrl.create returns TokenContainer ({token, expires}), not the token
+    // document: the generated client maps only the declared output shape, so a
+    // raw `{_id, accountId, loopId, created}` body would leave `token` undefined.
+    return void sendAmz(res, 200, { token: token._id, expires: token.created + ACCESS_TOKEN_LIFETIME_MS });
   }
 
   /**
@@ -369,9 +455,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   function reconnectRobot({ req, res, body, log }) {
     const caller = accountForClassicRequest(req);
     if (!caller) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
-    if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.token !== 'string' || body.token.length === 0) {
-      return void sendAmzError(res, Errors.VALIDATION, 'token is required');
-    }
+    // @parseCredentials({}) then @validatePayload({ id: Joi.string(), token: Joi.string().required() }).
+    const validationMessage = oobeTokenValidationMessage(body, { optionalId: true });
+    if (validationMessage) return void sendValidationError(res, validationMessage);
 
     // token.ctrl.ts findById: missing -> TOKEN_NOT_FOUND, past TTL -> TOKEN_EXPIRED (no delete).
     const { token, error } = findToken(store, body.token);
@@ -656,6 +742,40 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   function activeLoopForRobot(robotId) {
     return [...store.loops.values()].find((loop) => loop.isDeleted !== true && loop.robot === robotId) || null;
+  }
+
+  /**
+   * oobe.handler.ts @validatePayload Joi schemas, in Joi 8 message form. The
+   * decorator raises Boom.badData, i.e. Hapi's 422 envelope — not the AWS
+   * 400 ValidationException used elsewhere on this legacy compatibility face.
+   *   SetupRobot    { id: Joi.string().required(), token: Joi.string().required() }
+   *   ReconnectRobot{ id: Joi.string(),            token: Joi.string().required() }
+   *   GetStatus     { token: Joi.string().required() }
+   *   PrepareRobot  { loopId: Joi.string() }
+   */
+  function oobeTokenValidationMessage(body, { optionalId = false, requiredId = false } = {}) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+    if (!Object.prototype.hasOwnProperty.call(body, 'token') || body.token === undefined) {
+      return 'child "token" fails because ["token" is required]';
+    }
+    if (typeof body.token !== 'string') return 'child "token" fails because ["token" must be a string]';
+    if (body.token.length === 0) return 'child "token" fails because ["token" is not allowed to be empty]';
+    const hasId = Object.prototype.hasOwnProperty.call(body, 'id') && body.id !== undefined;
+    if (requiredId && !hasId) return 'child "id" fails because ["id" is required]';
+    if ((optionalId || requiredId) && hasId) {
+      if (typeof body.id !== 'string') return 'child "id" fails because ["id" must be a string]';
+      if (body.id.length === 0) return 'child "id" fails because ["id" is not allowed to be empty]';
+    }
+    return null;
+  }
+
+  /** PrepareRobot's own schema: { loopId: Joi.string() } — optional, non-empty. */
+  function oobeLoopIdValidationMessage(body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+    if (!Object.prototype.hasOwnProperty.call(body, 'loopId') || body.loopId === undefined) return null;
+    if (typeof body.loopId !== 'string') return 'child "loopId" fails because ["loopId" must be a string]';
+    if (body.loopId.length === 0) return 'child "loopId" fails because ["loopId" is not allowed to be empty]';
+    return null;
   }
 
   function requiredStringValidationMessage(body, field) {

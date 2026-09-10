@@ -169,12 +169,16 @@ test('ReconnectRobot: missing credentials is 401 CREDENTIALS_REQUIRED', async ()
   assert.equal(r.body.__type, 'CREDENTIALS_REQUIRED');
 });
 
-test('ReconnectRobot: missing token payload is a 400 validation error', async () => {
+test('ReconnectRobot: missing token payload is a 422 Joi validation error', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-valid@jetson.test', password: 'orbit-city-4ever', firstName: 'Valid' });
   const { robot } = createLoop(store, { owner, robotId: 'nova-opal-panda-quest' });
 
   const r = await amz('OOBE_20161026.ReconnectRobot', {}, { authorization: sig(robot.accessKeyId) });
-  assert.equal(r.status, 400);
-  assert.equal(r.body.__type, 'ValidationException');
+  // oobe.handler.ts @validatePayload({ id: Joi.string(), token: Joi.string().required() })
+  // raises Boom.badData -> Hapi's 422 envelope, not the AWS 400 ValidationException.
+  assert.equal(r.status, 422);
+  assert.equal(r.body.statusCode, 422);
+  assert.equal(r.body.message, 'child "token" fails because ["token" is required]');
+  assert.equal(r.errType, null);
 });
