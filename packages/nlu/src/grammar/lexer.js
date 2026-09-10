@@ -51,12 +51,18 @@ export function lex(source) {
   }
   function isIdStart(ch) { return /[A-Za-z_]/.test(ch); }
   function isIdCont(ch) { return /[A-Za-z_0-9-]/.test(ch); }
+  // The native scanner's word classes are the complement of its
+  // `specialchars` set, so non-ASCII letters and `&` are ordinary word
+  // characters (compiler/compiler.l: nospecialchars). Accept them so the
+  // version-matched factory grammars lex: `?(&)` in factory_rules/timer.grm
+  // and the accented place name `québec` in factory_rules/canada_province.grm.
+  function isNonAscii(ch) { return ch !== undefined && ch.charCodeAt(0) > 0x7f; }
   // Literal-word start: alphas, digits (for "4th", "1980"), backslash
-  // (for escaped `\@`), or an apostrophe (for words starting with quotes
-  // in escape sequences — rare).
-  function isWordStart(ch) { return /[A-Za-z0-9_\\]/.test(ch); }
+  // (for escaped `\@`), `&` (a standalone word in the native lexer), or any
+  // non-ASCII character.
+  function isWordStart(ch) { return /[A-Za-z0-9_\\&]/.test(ch) || isNonAscii(ch); }
   // `&` lets `r&b` tokenize as one literal (e.g. radio-station rules).
-  function isWordChar(ch) { return /[A-Za-z0-9_'\\@/.&-]/.test(ch); }
+  function isWordChar(ch) { return /[A-Za-z0-9_'\\@/.&-]/.test(ch) || isNonAscii(ch); }
 
   while (i < N) {
     const ch = source[i];
@@ -215,6 +221,12 @@ export function lex(source) {
     if (ch === '@' && source[i + 1] === '=') {
       advance(2); push('EQ', '='); continue;
     }
+
+    // Standalone `*` is the native KLEENE *prefix* operator
+    // (compiler.ypp: `'*' rulecontent {lm::add_kleene($2);}`, KLEENE_ELTYPE),
+    // distinct from the `$*` wildcard atom emitted in the `$` branch above.
+    // Emit a distinct kind so the parser can bind it to the following item.
+    if (ch === '*') { advance(); push('KLEENE', '*'); continue; }
 
     // Identifier / bareword literal. Words may contain digits (for "4th",
     // "1980"), quoted contractions like `i\'m`, escaped `@` characters

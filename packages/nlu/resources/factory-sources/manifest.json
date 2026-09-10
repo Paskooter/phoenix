@@ -1,0 +1,191 @@
+{
+  "schema": "phoenix.nlu.factory-source-manifest",
+  "recoveredFrom": {
+    "repo": "ConvTech/jibo-nlu-data",
+    "ref": "master",
+    "path": "en-us/factory_rules",
+    "note": "Version-matched factory grammar sources for the compiled factory FSTs pinned in rule-inventory.json factoryDependencies[*].referenceSha256. The portal prepends a \"# <repo>:<path>\" attribution line and one trailing newline; both were removed, and recoveredBytes is asserted equal to the upstream size reported by gitea_browse. Byte identity with the upstream blob is INFERRED from that size equality (the portal exposes no raw-bytes digest)."
+  },
+  "factories": [
+    {
+      "name": "canada_city_province",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/canada_city_province.grm",
+      "upstreamBytes": 11084,
+      "recoveredBytes": 11084,
+      "complete": true,
+      "sha256": "45ab27dcffcae48eb9af01d991eebbbc1b5bc6815c6f472ec921144cc7609302",
+      "vendored": true,
+      "astStatus": "parses after the prefix-`*` and bracket repairs; not executed"
+    },
+    {
+      "name": "canada_province",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/canada_province.grm",
+      "upstreamBytes": 382,
+      "recoveredBytes": 382,
+      "complete": true,
+      "sha256": "9f6dd02a3ace211b2d988bc555a77441d48bb1796a93b885d05733f3eb92d966",
+      "vendored": true,
+      "astStatus": "applied: word-list projection now publishes the source field `_nl` (spoken province)"
+    },
+    {
+      "name": "city_state",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/city_state.grm",
+      "upstreamBytes": 265630,
+      "recoveredBytes": 98305,
+      "complete": false,
+      "sha256": "514152f1a86d63c30745805684c4367c8a075d56d52d4163d543ae4078a95dc4",
+      "vendored": false,
+      "astStatus": "not vendored: the portal returned a byte-truncated body"
+    },
+    {
+      "name": "country",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/country.grm",
+      "upstreamBytes": 3967,
+      "recoveredBytes": 3967,
+      "complete": true,
+      "sha256": "23c482620212b2cc15c249d30abcd685f39730b6ad16ef782c9c42366b85887d",
+      "vendored": true,
+      "astStatus": "word-list projection already publishes the source field `_country`; recovered source kept for provenance"
+    },
+    {
+      "name": "date",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/date.grm",
+      "upstreamBytes": 16658,
+      "recoveredBytes": 16658,
+      "complete": true,
+      "sha256": "bef63658a57e085e51caa8ed326bc2430f4e84572b9ce9fa56401d93df154fc9",
+      "vendored": true,
+      "astStatus": "parses after the prefix-`*` repair; not executed (nothing in the vendored rules reads its fields)"
+    },
+    {
+      "name": "digits",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/digits.grm",
+      "upstreamBytes": 885,
+      "recoveredBytes": 885,
+      "complete": true,
+      "sha256": "b08c71072bde33e75caa7213b30e2c0c210e595f6e7e861f6cfa0e197792013f",
+      "vendored": true,
+      "astStatus": "parses and runs, but the AST matcher diverges on repeated-rule tag composition (see report)"
+    },
+    {
+      "name": "first_name",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/first_name.grm",
+      "upstreamBytes": 66176,
+      "recoveredBytes": 66176,
+      "complete": true,
+      "sha256": "0996ef733e3a2229bb84af979d3a0b300fab35e0926361c0da302fe339447fe5",
+      "vendored": true,
+      "astStatus": "word-list projection already publishes the source field `_first_name`; recovered source kept for provenance"
+    },
+    {
+      "name": "last_name",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/last_name.grm",
+      "upstreamBytes": 229473,
+      "recoveredBytes": 69103,
+      "complete": false,
+      "sha256": "4a7cc6fe38c4a9d8ef9bfa1c9ab7d3ce0bc60918f4c8af5a5996ef3200ce86cf",
+      "vendored": false,
+      "astStatus": "word-list projection publishes `_last_name`; source not vendored (portal truncated the body)"
+    },
+    {
+      "name": "music_genre",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/music_genre.grm",
+      "upstreamBytes": 3175,
+      "recoveredBytes": 3175,
+      "complete": true,
+      "sha256": "d9afa215ede3b242e382434b903e11e6f481478574513389f37be7de62ec57fd",
+      "vendored": true,
+      "astStatus": "word-list projection publishes `_genre` via the semantics artifact; no vendored rule references it"
+    },
+    {
+      "name": "state",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/state.grm",
+      "upstreamBytes": 2254,
+      "recoveredBytes": 2254,
+      "complete": true,
+      "sha256": "163ba54c2a053e456d89af664dbb17c4a526bc2aae92ae5ba1fba63291181f5f",
+      "vendored": true,
+      "astStatus": "applied: word-list projection now publishes the source field `_nl` and the two-letter code"
+    },
+    {
+      "name": "time",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/time.grm",
+      "upstreamBytes": 14173,
+      "recoveredBytes": 14173,
+      "complete": true,
+      "sha256": "bc64171c7ebc8e1fabddf78822a600dbdee3cc12cf946a48a213a9feaf71f00e",
+      "vendored": true,
+      "astStatus": "does not parse: the AST lexer models `:` as a token; the source uses `?:` literal-colon forms"
+    },
+    {
+      "name": "timer",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/timer.grm",
+      "upstreamBytes": 5946,
+      "recoveredBytes": 5946,
+      "complete": true,
+      "sha256": "2123cca73a1bac15169bf4c44ba6716accc5b6ac6256758c6d36afa0a4333dcb",
+      "vendored": true,
+      "astStatus": "does not parse: same `:` / fraction forms as time.grm"
+    },
+    {
+      "name": "world_city_country",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/world_city_country.grm",
+      "upstreamBytes": 20155,
+      "recoveredBytes": 20155,
+      "complete": true,
+      "sha256": "f9becd052470d8767e82e4746006f47cb59c27a39dbfc28c016f947494b1ddde",
+      "vendored": true,
+      "astStatus": "parses after the prefix-`*` repair; not executed (its consumer rule needs the unimplemented city factory)"
+    },
+    {
+      "name": "year",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/year.grm",
+      "upstreamBytes": 1941,
+      "recoveredBytes": 1941,
+      "complete": true,
+      "sha256": "b258070aed3e3bcadf2edad308b067c53d5585bda61fbf994d289dbcce6ab485",
+      "vendored": true,
+      "astStatus": "parses and runs, but the AST matcher diverges on repeated-rule tag composition (see report)"
+    },
+    {
+      "name": "yes_no",
+      "upstreamRepo": "ConvTech/jibo-nlu-data",
+      "upstreamRef": "master",
+      "upstreamPath": "en-us/factory_rules/yes_no.grm",
+      "upstreamBytes": 1392,
+      "recoveredBytes": 1392,
+      "complete": true,
+      "sha256": "d3020d043f3a9b34af8ce74df5622d4031249569f548f4b871a566ff469ff5e4",
+      "vendored": true,
+      "astStatus": "already executes as resources/factory/yes_no.grm (byte-identical to the recovered source)"
+    }
+  ]
+}

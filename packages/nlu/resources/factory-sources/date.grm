@@ -1,0 +1,592 @@
+TopRule = $top_date {_date_nl=top_date._date_nl}
+                    {_date_dd=top_date._date_dd}
+                    {_date_mm=top_date._date_mm}
+                    {_date_yyyy=top_date._date_yyyy}
+                    {_date_rel=top_date._date_rel}
+                    {_time_nl=top_date._time_nl}
+                    {_time_rel=top_date._time_rel}
+                    {_time_time=top_date._time_time}
+                    {%delete this.top_date%};
+
+top_date = ( $date {_date_nl=date._nl}{_date_dd=date._dd}{_date_mm=date._mm}{_date_yyyy=date._yyyy}{_date_rel=date._rel}
+                {_time_nl='null'}{_time_rel='null'}{_time_time='null'}
+              ?($g ?($at) $time{_time_nl=time._nl}{_time_time=time._time}{_time_rel=time._rel}) ) |
+	  
+	  ( $date_time {_date_nl=date_time._date_nl}{_date_dd=date_time._dd}{_date_mm=date_time._mm}{_date_yyyy=date_time._yyyy}{_date_rel=date_time._date_rel} 
+		       {_time_nl=date_time._time_nl}{_time_rel=date_time._time_nl}{_time_time=date_time._time_time} )
+            ;
+
+date_time = ($this_last_date{_date_nl = this_last_date._nl}{_dd='null'}{_mm='null'}{_yyyy='null'}{_date_rel=this_last_date._nl}
+			$relative_time{_time_nl=relative_time._nl}{_time_time='null'}{_time_rel=relative_time._nl}) 
+	    |
+	    (tonight{_date_nl='0d'}{_dd='null'}{_mm='null'}{_yyyy='null'}{_date_rel='0d'}{_time_nl='night'}{_time_time='null'}{_time_rel='night'});
+
+this_last_date = this {_nl = '0d'} |
+		 last {_nl = '-1d'} |
+		 next {_nl = '1d'};
+
+
+time =  ( 
+            [ $hour_number {_hr=hour_number._nl}{_min='00'}{_am_pm=''}
+              ?(?: $minutes_number{_min=minutes_number._nl}) ] 
+              ?[ $AM_PM {_am_pm=AM_PM._nl} ]
+              ?(o\'clock)
+        ) 
+        {_time=_hr}{_time+=':'}{_time+=_min}{_time+=_am_pm}{_rel='null'}{_nl=_time}
+        |
+        ( 
+            [ $hour_number {_hr=hour_number._nl}{_min='00'}{_am_pm=''}
+            ?(?: $minutes_number{_min=minutes_number._nl}) 
+            ?$AM_PM {_am_pm=AM_PM._nl}]
+            ?(o\'clock)
+        ) 
+        {_time=_hr}{_time+=':'}{_time+=_min}{_time+=_am_pm}{_rel='null'}{_nl=_time}
+        |
+        (
+            ?(in|at|by|around ?the) 
+            [ $hour_number {_hr=hour_number._nl}{_min='00'}{_am_pm=''}
+              ?(?: $minutes_number{_min=minutes_number._nl}) ] 
+              ?(in|at|by|around ?the) 
+              $AM_PM_spoken {_am_pm=AM_PM_spoken._nl}
+              ?(o\'clock)
+        )
+        {_time=_hr}{_time+=':'}{_time+=_min}{_time+=_am_pm}{_rel='null'}{_nl=_time}
+        |
+        (
+            (in|at|by|around ?the) 
+            $hour_spoken {_hr=hour_spoken._nl}{_min='00'}{_am_pm=''}
+            ?(in|at|by|around ?the) 
+            ?($AM_PM_spoken{_am_pm=AM_PM_spoken._nl}| [$AM_PM]{_am_pm=AM_PM._nl})
+            ?(o\'clock)
+        )
+        {_time=_hr}{_time+=':'}{_time+=_min}{_time+=_am_pm}{_rel='null'}{_nl=_time}
+        |
+        (
+            $relative_time
+        )
+        {_time='null'}{_rel=relative_time._nl}{_nl=_rel}
+        ;
+
+relative_time = (
+                 morning{_nl = 'morning'} |
+                 afternoon{_nl = 'afternoon'} |
+                 noon{_nl = 'noon'} |
+                 midnight{_nl = 'midnight'} |
+                 night{_nl = 'night'} |
+                 evening{_nl = 'evening'} |
+                 dawn{_nl = 'dawn'} |
+                 sunrise{_nl = 'sunrise'} |
+                 sunset{_nl = 'sunset'} |
+                 $AM_ALONE {_nl = 'am'} |
+                 $PM_ALONE {_nl = 'pm'}
+                )
+                ;
+
+AM_ALONE = (am) | (a m) | (a. m.) | (a.m.);
+PM_ALONE = (pm) | (p m) | (p. m.) | (p.m.);
+
+hour_spoken = ( one {_nl='1'} |
+                two {_nl='2'} |
+                three {_nl='3'} |
+                four {_nl='4'} |
+                five {_nl='5'} |
+                six {_nl='6'} |
+                seven {_nl='7'} |
+                eight {_nl='8'} |
+                nine {_nl='9'} | 
+                ten {_nl='10'} |
+                eleven {_nl='11'} |
+                twelve {_nl='12'} );
+
+AM_PM [
+        (am{_nl='AM'}) | 
+        (pm{_nl='PM'})
+      ];
+
+AM_PM_spoken = 
+     morning {_nl='AM'} |
+     afternoon {_nl='PM'} |
+     evening {_nl='PM'} |
+     night {_nl='PM'} |
+     noon {_nl='PM'} |
+     midnight {_nl='AM'}
+    ;
+
+hour_number [
+                (0  {_nl='00'} )  |
+                (00 {_nl='00'} )  |
+                (1  {_nl='01'} )  |
+                (01 {_nl='01'} )  |
+                (2  {_nl='02'} )  |
+                (02 {_nl='02'} )  |
+                (3  {_nl='03'} )  |
+                (03 {_nl='03'} )  |
+                (4  {_nl='04'} )  |
+                (04 {_nl='04'} )  |
+                (5  {_nl='05'} )  |
+                (05 {_nl='05'} )  |
+                (6  {_nl='06'} )  |
+                (06 {_nl='06'} )  |
+                (7  {_nl='07'} )  |
+                (07 {_nl='07'} )  |
+                (8  {_nl='08'} )  |
+                (08 {_nl='08'} )  |
+                (9  {_nl='09'} )  |
+                (09 {_nl='09'} )  |
+                (10 {_nl='10'} )  |
+                (11 {_nl='11'} )  |
+                (12 {_nl='12'} )
+            ];
+
+minutes_number [
+                    ($minutes_first_digit {_nl=minutes_first_digit._nl} $minutes_second_digit {_nl+=minutes_second_digit._nl}) 
+               ];
+
+
+minutes_first_digit [
+                        (0 {_nl='0'})  |
+                        (1 {_nl='1'})  |
+                        (2 {_nl='2'})  |
+                        (3 {_nl='3'})  |
+                        (4 {_nl='4'})  |
+                        (5 {_nl='5'})
+                    ];
+
+minutes_second_digit [
+                        (0{_nl='0'}) | 
+                        (1{_nl='1'}) | 
+                        (2{_nl='2'}) | 
+                        (3{_nl='3'}) | 
+                        (4{_nl='4'}) | 
+                        (5{_nl='5'}) | 
+                        (6{_nl='6'}) | 
+                        (7{_nl='7'}) | 
+                        (8{_nl='8'}) | 
+                        (9{_nl='9'})
+                    ];
+
+date = ( 
+             # month, day, year
+             ( ?($day_of_week $g)
+               $month 
+               $g
+               $day
+               $g
+               $year )
+               {_nl=month._nl}{_nl+='/'}{_nl+=day._nl}{_nl+='/'}{_nl+=year._nl}
+               {_mm=month._nl}{_dd=day._nl}{_yyyy=year._nl}{_rel='null'}
+
+             |
+
+             # month, day
+             ( ?($day_of_week $g)
+               $month 
+               $g
+               $day )
+               {_nl=month._nl}{_nl+='/'}{_nl+=day._nl}
+               {_mm=month._nl}{_dd=day._nl}{_yyyy='null'}{_rel='null'}
+
+            |
+
+             # day
+             (  ?($day_of_week $g) $day )
+               {_nl=day._nl}
+               {_mm='null'}{_dd=day._nl}{_yyyy='null'}{_rel='null'}
+
+            |
+
+             # month 
+             (  $month )
+               {_nl=month._m}
+               {_mm=month._nl}{_dd='null'}{_yyyy='null'}{_rel='null'}
+
+            |
+
+             # year 
+             (  $year )
+               {_nl=year._nl}
+               {_mm='null'}{_dd='null'}{_yyyy=year._nl}{_rel='null'}
+
+            |
+
+             # relative day
+             ( $relative_days )
+               {_nl=relative_days._nl}
+               {_mm='null'}{_dd='null'}{_yyyy='null'}{_rel=relative_days._nl}
+
+            |
+
+             # day, month, year
+             ( 
+               ?($day_of_week $g)
+               $day
+               $g
+               $month
+               $g
+               $year )
+               {_nl=month._nl}{_nl+='/'}{_nl+=day._nl}{_nl+='/'}{_nl+=year._nl}
+               {_mm=month._nl}{_dd=day._nl}{_yyyy=year._nl}{_rel='null'}
+
+            |
+
+             # month, year
+             ( $month 
+               $g
+               $year )
+               {_nl=month._nl}{_nl+='/'}{_nl+=year._nl}
+               {_mm=month._nl}{_dd='null'}{_yyyy=year._nl}{_rel='null'}
+
+            |
+
+             # day, month 
+             ( ?($day_of_week $g)
+               $day
+               $g
+               $month )
+               {_nl=day._nl}{_nl+='/'}{_nl+=month._nl}
+               {_mm=month._nl}{_dd=day._nl}{_yyyy='null'}{_rel='null'}
+
+
+          ); 
+
+
+month =
+[J|january?,] {_nl='01'}{_m='january'} |
+[F|february?,]  {_nl='02'}{_m='february'} |
+[M|march?,]  {_nl='03'}{_m='march'} |
+[A|april?,]  {_nl='04'}{_m='april'} |
+[M|may?,]  {_nl='05'}{_m='may'} |
+[J|june?,]  {_nl='06'}{_m='june'} |
+[J|july?,]  {_nl='07'}{_m='july'} |
+[A|august?,]  {_nl='08'}{_m='august'} |
+[S|september?,]  {_nl='09'}{_m='september'} |
+[O|october?,]  {_nl='10'}{_m='october'} |
+[N|november?,]  {_nl='11'}{_m='november'} |
+[D|december?,]  {_nl='12'}{_m='december'} ;
+
+day = [($number)?((st)|(th)|(rd)|(nd))?,] {_nl = '0'}{_nl += number._nl} |
+       [(1{_dec='1'}|2{_dec='2'}|3{_dec='3'} $number)?((st)|(th)|(rd)|(nd))?,] {_nl = _dec} {_nl += number._nl} |
+       $number_in_words {_nl=number_in_words._nl};
+
+number [  
+          0{_nl='0'} | 
+          1{_nl='1'} |
+          2{_nl='2'} |
+          3{_nl='3'} |
+          4{_nl='4'} |
+          5{_nl='5'} |
+          6{_nl='6'} |
+          7{_nl='7'} |
+          8{_nl='8'} |
+          9{_nl='9'}
+       ];
+
+number_in_words = first {_nl='01'} |
+              one {_nl='01'} |
+              second {_nl='02'} |
+              two {_nl='02'} |
+              third {_nl='03'} |
+              three {_nl='03'} |
+              fourth {_nl='04'} |
+              four {_nl='04'} |
+              fifth {_nl='05'} |
+              five {_nl='05'} |
+              sixth {_nl='06'} |
+              six {_nl='06'} |
+              seventh {_nl='07'} |
+              seven {_nl='07'} |
+              eighth {_nl='08'} |
+              eight {_nl='08'} |
+              ninth {_nl='09'} |
+              nine {_nl='09'} |
+              tenth {_nl='10'} |
+              ten {_nl='10'} |
+              eleventh {_nl='11'} |
+              eleven {_nl='11'} |
+              twelfth {_nl='12'} |
+              twelve {_nl='12'} |
+              thirteenth {_nl='13'} |
+              thirteen {_nl='13'} |
+              fourteenth {_nl='14'} |
+              fourteen {_nl='14'} |
+              fifteenth {_nl='15'} |
+              fifteen {_nl='15'} |
+              sixteenth {_nl='16'} |
+              sixteen {_nl='16'} |
+              seventeenth {_nl='17'} |
+              seventeen {_nl='17'} |
+              eighteenth {_nl='18'} |
+              eighteen {_nl='18'} |
+              nineteenth {_nl='19'} |
+              nineteen {_nl='19'} |
+              twentieth {_nl='20'} |
+              twenty {_nl='20'} |
+              (twenty first) {_nl='21'} |
+              (twenty one) {_nl='21'} |
+              (twenty second) {_nl='22'} |
+              (twenty two) {_nl='22'} |
+              (twenty third) {_nl='23'} |
+              (twenty three) {_nl='23'} |
+              (twenty fourth) {_nl='24'} |
+              (twenty four) {_nl='24'} |
+              (twenty fifth) {_nl='25'} |
+              (twenty five) {_nl='25'} |
+              (twenty sixth) {_nl='26'} |
+              (twenty six) {_nl='26'} |
+              (twenty seventh) {_nl='27'} |
+              (twenty seven) {_nl='27'} |
+              (twenty eighth) {_nl='28'} |
+              (twenty eight) {_nl='28'} |
+              (twenty ninth) {_nl='29'} |
+              (twenty nine) {_nl='29'} |
+              (thirtieth) {_nl='30'} |
+              (thirty) {_nl='30'} |
+              (thirty first) {_nl='31'} |
+              (thirty one) {_nl='31'};
+
+year = [
+    ($number {_nl = number._nl}
+    $number {_nl += number._nl}
+    $number {_nl += number._nl}
+    $number {_nl += number._nl}) 
+        ] |
+
+    (
+     [$number {_nl = number._nl}
+      $number {_nl += number._nl}]
+
+     [$number {_nl += number._nl}
+      $number {_nl += number._nl}]
+    ) |
+
+    ($two_digit_number_in_words{_nl = two_digit_number_in_words._nl} 
+     $two_digit_number_in_words{_nl += two_digit_number_in_words._nl}) |
+
+    ($one_to_nine thousand{_nl = one_to_nine._nl}{_nl += '0'} $two_digit_number_in_words{_nl += two_digit_number_in_words._nl}) |
+
+    ($one_to_nine thousand{_nl = one_to_nine._nl}{_nl += '00'} $one_to_nine{_nl += one_to_nine._nl}) |
+
+    ($one_to_nine thousand{_nl = one_to_nine._nl}{_nl += '000'})
+;
+
+two_digit_number_in_words = (
+    (oh {_nl='0'} $one_to_nine {_nl+=one_to_nine._nl}) |
+    ($teens {_nl=teens._nl}) |
+    ($tens {_nl=tens._nl} {_nl+='0'} ) |
+    ($tens {_nl=tens._nl} $one_to_nine{_nl+=one_to_nine._nl} )
+);
+
+teens = eleven{_nl='11'} |
+        twelve{_nl='12'} |
+        thirteen{_nl='13'} |
+        fourteen{_nl='14'} |
+        fifteen{_nl='15'} |
+        sixteen{_nl='16'} |
+        seventeen{_nl='17'} |
+        eighteen{_nl='18'} |
+        nineteen{_nl='19'};
+
+tens = twenty{_nl='2'} |
+       thirty{_nl='3'} |
+       forty{_nl='4'} |
+       fifty{_nl='5'} |
+       sixty{_nl='6'} |
+       seventy{_nl='7'} |
+       eighty{_nl='8'} |
+       ninety{_nl='9'};
+
+one_to_nine = 
+    one {_nl='1'} |
+    two {_nl='2'} |
+    three {_nl='3'} |
+    four {_nl='4'} |
+    five {_nl='5'} |
+    six {_nl='6'} |
+    seven {_nl='7'} |
+    eight {_nl='8'} |
+    nine {_nl='9'}
+    ;
+
+two_digit_natural_num = (
+    $one_to_nine {_nl=one_to_nine._nl} |
+    ($teens {_nl=teens._nl}) |
+    ($tens {_nl=tens._nl} {_nl+='0'} ) |
+    ($tens {_nl=tens._nl} $one_to_nine{_nl+=one_to_nine._nl} )
+);
+
+day_of_week = (
+        [M|monday?,] {_nl='monday'} |
+        [T|tuesday?,] {_nl='tuesday'} |
+        [W|wednesday?,] {_nl='wednesday'} |
+        [T|thursday?,] {_nl='thursday'} |
+        [F|friday?,] {_nl='friday'} |
+        [S|saturday?,] {_nl='saturday'} |
+        [S|sunday?,] {_nl='sunday'} 
+);
+
+relative_days = (
+    yesterday {_nl='-1d'} |
+    today {_nl='0d'} |
+    tomorrow {_nl = '1d'} |
+    (?the day after tomorrow) {_nl='2d'} | 
+    (?the day before yesterday) {_nl='-2d'} | 
+
+    (last $day_of_week) {_nl=day_of_week._nl}{_nl+='_-1w'} |
+
+    (
+        (?(this|on|next) $day_of_week {_nl = day_of_week._nl})
+        ?( 
+            (next week) {_nl+='_1w'} |
+            (last week) {_nl+='_-1w'}
+         )
+    ) |
+
+    ( this $day_month_year {_nl = '0'}{_nl+= day_month_year._nl} ) | # this
+    ( last $day_month_year {_nl = '-1'}{_nl+= day_month_year._nl} ) | # one digits
+    ( [$number] $day_month_year ago {_nl = '-'}{_nl+=number._nl}{_nl+= day_month_year._nl} ) | # one digits
+    ( [$number{_n=number._nl}$number{_n+=number._nl}] $day_month_year ago {_nl = '-'}{_nl+=_n}{_nl+= day_month_year._nl} ) | # two digits
+    ( $two_digit_natural_num $day_month_year ago {_nl = '-'}{_nl+=two_digit_natural_num._nl}{_nl+= day_month_year._nl} )  | # two digit natural numbers
+
+    ( in a $day_month_year {_nl='1'}{_nl+= day_month_year._nl} ) | # one digits
+    ( next $day_month_year {_nl='1'}{_nl+= day_month_year._nl} ) | # one digits
+    ( in [$number] $day_month_year {_nl=number._nl}{_nl+= day_month_year._nl} ) | # one digits
+    ( in [$number{_n=number._nl}$number{_n+=number._nl}] $day_month_year {_nl=_n}{_nl+= day_month_year._nl} ) | # two digits
+    ( in $two_digit_natural_num $day_month_year {_nl=two_digit_natural_num._nl}{_nl+= day_month_year._nl} )  # two digit natural numbers
+);
+
+day_month_year = (
+    [day?s] {_nl='d'} |
+    [month?s] {_nl='m'} |
+    [year?s] {_nl='y'} |
+    [week?s] {_nl='w'} |
+    [weekend?s] {_nl='wd'}
+);
+
+at = ( in | at | around| by | on );
+
+g = <1.0> *(
+    the |
+    to |
+    and |
+    of |
+    a |
+    in |
+    for |
+    that |
+    on |
+    is |
+    was |
+    with |
+    it |
+    as |
+    at |
+    he |
+    by |
+    from |
+    be |
+    his |
+    have |
+    has |
+    are |
+    but |
+    an |
+    not |
+    will |
+    this |
+    they |
+    who |
+    i |
+    had |
+    their |
+    were |
+    been |
+    more |
+    or |
+    which |
+    its |
+    point |
+    year |
+    would |
+    after |
+    about |
+    new |
+    up |
+    when |
+    than |
+    dollars |
+    we |
+    out |
+    also |
+    her |
+    you |
+    all |
+    she |
+    last |
+    people |
+    there |
+    if |
+    over |
+    percent |
+    into |
+    time |
+    other |
+    some |
+    no |
+    can |
+    mr |
+    years |
+    could |
+    so |
+    what |
+    them |
+    only |
+    now |
+    just |
+    most |
+    like |
+    before |
+    year |
+    day |
+    month |
+    days |
+    months |
+    years |
+    weeks |
+    week |
+    believe |
+    think |
+    thought |
+    believed |
+    want |
+    wanted |
+    understand |
+    understood |
+    give |
+    gave |
+    do |
+    did |
+    desire |
+    desired |
+    please |
+    um |
+    uh |
+    maybe |
+    know |
+    knew |
+    around |
+    it\'s |
+    $day_of_week |
+    my |
+    your |
+    his |
+    her |
+    theirs |
+    hers |
+    actually |
+    hello |
+    next |
+    hey |
+    early |
+    late
+    ) <0.0>;
+

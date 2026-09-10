@@ -1,0 +1,263 @@
+TopRule = $country{_country = country._country}{%delete this.country%};
+
+country @= (
+(afghanistan) |
+(albania) |
+(algeria) |
+(american samoa) |
+(andorra) |
+(angola) |
+(anguilla) |
+(antigua and barbuda) |
+(argentina) |
+(armenia) |
+(aruba) |
+(australia) |
+(austria) |
+(azerbaijan) |
+(bahamas) |
+(bahrain) |
+(bangladesh) |
+(barbados) |
+(belarus) |
+(belgium) |
+(belize) |
+(benin) |
+(bermuda) |
+(bhutan) |
+(bolivia) |
+(bonaire) |
+(bosnia herzegovina) |
+(botswana) |
+(bouvet island) |
+(brazil) |
+(brunei) |
+(bulgaria) |
+(burkina faso) |
+(burundi) |
+(cambodia) |
+(cameroon) |
+(canada) |
+(cape verde) |
+(cayman islands) |
+(central african republic) |
+(chad) |
+(chile) |
+(?(?people\'s republic of) china) |
+(christmas island) |
+(cocos islands) |
+(colombia|columbia) |
+(comoros) |
+(democratic republic of the congo) |
+(democratic people\'s republic of korea) |
+(congo) |
+(republic of congo) |
+(cook islands) |
+(costa rica) |
+(croatia) |
+(cuba) |
+(curacao) |
+(cyprus) |
+(czech republic) |
+(denmark) |
+(djibouti) |
+(dominica) |
+(dominican republic) |
+(ecuador) |
+(egypt) |
+(el salvador) |
+(england) |
+(equatorial guinea) |
+(eritrea) |
+(estonia) |
+(ethiopia) |
+(falkland islands) |
+(faroe islands) |
+(fiji) |
+(finland) |
+(france) |
+(french guiana) |
+(gabon) |
+(gambia) |
+(georgia) |
+(germany) |
+(ghana) |
+(gibraltar) |
+(greece) |
+(greenland) |
+(grenada) |
+(guadeloupe) |
+(french guadeloupe) |
+(guam) |
+(guatemala) |
+(guinea) |
+((guinea bissau)|(guinea-bissau)) |
+(guyana) |
+(haiti) |
+(holy see) |
+(honduras) |
+(hong kong) |
+(hungary) |
+(iceland) |
+(india) |
+(independent state of samoa)|
+(indonesia) |
+(iran) |
+(iraq) |
+(ireland) |
+(israel) |
+(italy) |
+((ivory coast)|(côte d\'ivoire)|(cote d\'ivoire)) |
+(jamaica) |
+(japan) |
+(jordan) |
+(kazakhstan) |
+(kenya) |
+(kiribati) |
+(kosovo) |
+(kuwait) |
+(kyrgyzstan) |
+(laos) |
+(latvia) |
+(lebanon) |
+(lesotho) |
+(liberia) |
+(libya) |
+(liechtenstein) |
+(lithuania) |
+(luxembourg) |
+(macau) |
+(macedonia) |
+(madagascar) |
+(malawi) |
+(malaysia) |
+(maldives) |
+(mali) |
+(malta) |
+(marshall islands) |
+(martinique) |
+(french martinique) |
+(mauritania) |
+(mauritius) |
+(mayotte) |
+(mexico) |
+(micronesia) |
+(moldova) |
+(monaco) |
+(mongolia) |
+(montenegro) |
+(montserrat) |
+(morocco) |
+(mozambique) |
+(myanmar) |
+(namibia) |
+(nauru) |
+(nepal) |
+(netherlands) |
+(netherlands antilles) |
+(new caledonia) |
+(french new caledonia) |
+(new zealand) |
+(nicaragua) |
+(niger) |
+(nigeria) |
+(niue) |
+(norfolk island) |
+(north korea) |
+(northern ireland) |
+(northern mariana islands) |
+(norway) |
+(oman) |
+(pakistan) |
+(palau) |
+(panama) |
+(papua new guinea) |
+(paraguay) |
+(peru) |
+(philippines) |
+(pitcairn island) |
+(poland) |
+(polynesia) |
+(french polynesia) |
+(portugal) |
+(puerto rico) |
+(qatar) |
+(reunion) |
+(romania) |
+(russia) |
+(rwanda) |
+(saint|st. helena) |
+(saint|st. kitts and nevis) |
+(saint|st. lucia) |
+(saint|st. pierre and miquelon) |
+(saint|st. vincent and grenadines) |
+(samoa) |
+(san marino) |
+(sao tome and principe) |
+(saudi arabia) |
+(scotland) |
+(senegal) |
+(serbia) |
+(seychelles) |
+(sierra leone) |
+(singapore) |
+(sint maarten) |
+(slovakia) |
+(slovenia) |
+(solomon islands) |
+(somalia) |
+(south africa) |
+(south georgia and south sandwich islands) |
+(south korea) |
+(south sudan) |
+(south sudan) |
+(spain) |
+(sri lanka) |
+(sudan) |
+(suriname) |
+(svalbard and jan mayen islands) |
+(swaziland) |
+(sweden) |
+(switzerland) |
+(syria) |
+(taiwan) |
+(tajikistan) |
+(tanzania) |
+(thailand) |
+(east timor) |
+(timor-leste) |
+(togo) |
+(tokelau) |
+(tonga) |
+(trinidad and tobago) |
+(tunisia) |
+(turkey) |
+(turkmenistan) |
+(turks and caicos islands) |
+(tuvalu) |
+(uganda) |
+(ukraine) |
+(united arab emirates) |
+(arab emirates) |
+(u.k.) |
+(uk) |
+(u k) |
+(united kingdom) |
+(united states) |
+(united states of america) |
+(usa) |
+(u.s.a.) |
+(u.s.) |
+(u s) |
+(uruguay) |
+(uzbekistan) |
+(vanuatu) |
+(venezuela) |
+(vietnam) |
+(virgin islands) |
+(wales) |
+(wallis and futuna islands) |
+(yemen) |
+(zambia) |
+(zimbabwe)
+) {_country = _parsed} ;

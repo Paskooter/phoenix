@@ -1,0 +1,57 @@
+{
+  "schema": "phoenix.nlu.n02-grammar-factory-runtime",
+  "inventory": {
+    "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "sourceRuleCount": 117,
+    "publicRuleCount": 98,
+    "factoryCount": 2,
+    "boundedFactoryCount": 2,
+    "unsupportedFactoryCount": 6,
+    "unsupportedRuleCount": 4,
+    "factoryWordCount": 6
+  },
+  "fixtureProbes": [
+    {
+      "text": "what time is it in california",
+      "intent": "askForTime",
+      "state": "ca",
+      "country": "null",
+      "skill": "@be/clock"
+    },
+    {
+      "text": "what time is it in texas usa",
+      "intent": "askForTime",
+      "state": "tx",
+      "country": "usa",
+      "skill": "@be/clock"
+    },
+    {
+      "text": "what time is it in ontario",
+      "intent": "askForTime",
+      "state": "ontario",
+      "country": "null",
+      "skill": "@be/clock"
+    },
+    {
+      "text": "what time is it in quebec",
+      "intent": "askForTime",
+      "state": "quebec",
+      "country": "null",
+      "skill": "@be/clock"
+    },
+    {
+      "text": "what time is it in france",
+      "intent": "askForTime",
+      "state": "null",
+      "country": "france",
+      "skill": "@be/clock"
+    },
+    {
+      "text": "what time is it",
+      "intent": "askForTime",
+      "state": "null",
+      "country": "null",
+      "skill": "@be/clock"
+    }
+  ]
+}

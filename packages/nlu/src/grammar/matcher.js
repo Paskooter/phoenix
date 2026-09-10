@@ -375,6 +375,42 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       yield* repeat(start, EMPTY, EMPTY, 0, 0, effectiveHeuristic, 0);
       return;
     }
+    case 'kleene': {
+      // Native `*X` is KLEENE: zero-or-more repetitions of the following rule
+      // content (compiler.ypp: `'*' rulecontent {lm::add_kleene($2);}`,
+      // KLEENE_ELTYPE in list_manip.cpp:add_kleene). This is the source idiom
+      // the factory grammars use for digit/number repetition
+      // (`$num_spoken_digits ... *$num_spoken_digits`), and is distinct from
+      // the `$*` wildcard atom (case 'star' above). Yield the zero-repetition
+      // match first, then require progress on each further repetition so a
+      // nullable operand cannot loop forever.
+      function* repeat(pos, ents, subs, specSoFar, costSoFar, currentHeuristic, count) {
+        const tagged = applyTags(node.tags, ents, subs, subs, tokens.slice(start, pos).join(' '));
+        yield {
+          end: pos,
+          entities: tagged.entities,
+          subFields: tagged.subFields,
+          specificity: specSoFar,
+          cost: costSoFar + (node.cost || 0),
+          charHeuristic: effectiveExit ?? currentHeuristic,
+        };
+        if (count > 0 && pos >= tokens.length) return;
+        for (const m of match(node.item, pos, ctx, depth + 1, currentHeuristic)) {
+          if (m.end <= pos) continue;   // KLEENE repetition must make progress
+          yield* repeat(
+            m.end,
+            mergeObj(ents, m.entities),
+            mergeObj(subs, m.subFields),
+            specSoFar + (m.specificity || 0),
+            costSoFar + (m.cost || 0),
+            m.charHeuristic,
+            count + 1,
+          );
+        }
+      }
+      yield* repeat(start, EMPTY, EMPTY, 0, 0, effectiveHeuristic, 0);
+      return;
+    }
     case 'seq': {
       // Match each item in order, backtracking on failure of later items.
       // Apply seq-level tags (hoisted from the trailing `(X Y {tag})` block
@@ -437,7 +473,16 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
           for (let k = 0; k < phrase.length; k += 1) if (tokens[start + k] !== phrase[k]) { okPhrase = false; break; }
           if (!okPhrase) continue;
           const text = tokens.slice(start, start + phrase.length).join(' ');
-          const subs = { [`_${node.name}`]: text };
+          // The word-list projection carries only spellings. The version-matched
+          // factory source declares which private field the factory publishes
+          // and — when its arms hold literal values — the exact value per entry
+          // (the `state` factory publishes the two-letter code, not the spoken
+          // name). Fall back to the historical `_<name>` field for a factory the
+          // semantics artifact does not anchor.
+          const semantics = ctx.factoryFields && ctx.factoryFields.get(node.name);
+          const field = semantics && semantics.field ? semantics.field : `_${node.name}`;
+          const declared = semantics && semantics.values ? semantics.values[phrase.join(' ')] : undefined;
+          const subs = { [field]: declared === undefined ? text : declared };
           const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: subs, ...subs }, text);
           const subsForParent = Object.assign({}, tagged.subFields, { [node.name]: subs });
           yield {

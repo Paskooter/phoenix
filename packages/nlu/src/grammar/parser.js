@@ -19,6 +19,18 @@
 
 import { lex } from './lexer.js';
 
+// `[...]` is the native bracket group (compiler.ypp
+// `brackets_and_charrulecontent`). A body made purely of character-class atoms
+// (`[day?s]`, `[(time)]`, `[georgia]`) keeps the `class` node whose word
+// variants the matcher expands with expandCharClass. A body that also carries
+// rule references, tag blocks or kleene/plus operators — as in the factory
+// grammars (`[$digit{_nl=digit._nl} *$digit{_nl+=digit._nl}]`) — is a general
+// group, so the raw body is re-parsed as an ordinary expression. The predicate
+// was checked against every bundled rule: all 5 183 existing bracket bodies are
+// pure character classes, so this split changes nothing for the
+// already-supported grammars.
+const SIMPLE_CLASS_BODY = /^[^$*+{}]*$/;
+
 export function parse(source) {
   const tokens = lex(source);
   let pos = 0;
@@ -36,6 +48,14 @@ export function parse(source) {
     if (peek().kind === 'DIRECTIVE') { out.directives.push(peek().value); pos += 1; continue; }
     // Rule: Identifier = Expression ;
     const nameTok = eat('ID');
+    // Native also admits the bracket rule form `Name [ charrule ];`
+    // (compiler.ypp `rule: rulename brackets_and_charrulecontent ';'`, used by
+    // the factory grammars: `digit [ 0{_nl='0'} | ... ];`, `number [ ... ];`).
+    if (peek().kind === 'CHARCLASS') {
+      out.rules[nameTok.value] = parseAtom();
+      eat('SEMI');
+      continue;
+    }
     eat('EQ');
     const body = parseExpr();
     eat('SEMI');
@@ -100,7 +120,7 @@ export function parse(source) {
   function canStartItem(t) {
     return t.kind === 'ID' || t.kind === 'STRING' || t.kind === 'LPAREN' ||
            t.kind === 'RULEREF' || t.kind === 'STAR' || t.kind === 'PLUS' || t.kind === 'CHARCLASS' ||
-           t.kind === 'QMARK' || t.kind === 'WEIGHT';
+           t.kind === 'QMARK' || t.kind === 'KLEENE' || t.kind === 'WEIGHT';
   }
 
   function parseItem() {
@@ -121,7 +141,7 @@ export function parse(source) {
     // earlier one-optional/one-plus parser rejected valid forms such as
     // `+?a` and `++a` before the matcher could apply their source semantics.
     const prefixes = [];
-    while (peek().kind === 'QMARK' || peek().kind === 'PLUS') {
+    while (peek().kind === 'QMARK' || peek().kind === 'PLUS' || peek().kind === 'KLEENE') {
       prefixes.push(peek().kind);
       pos += 1;
     }
@@ -147,6 +167,18 @@ export function parse(source) {
         node = { type: 'opt', item: node };
         continue;
       }
+      if (prefixes[index] === 'KLEENE') {
+        // Native `*X` (add_kleene) is a zero-or-more repetition of the
+        // following rule content, distinct from the `$*` wildcard atom.
+        const outerTags = node.tags;
+        const outerCost = node.cost;
+        if (outerTags) delete node.tags;
+        if (outerCost) delete node.cost;
+        node = { type: 'kleene', item: node };
+        if (outerTags) node.tags = outerTags;
+        if (outerCost) node.cost = outerCost;
+        continue;
+      }
       // Move tags/cost from the operand onto each enclosing repetition. This
       // is the source shape for `+$w {tag=...}`; an action after a plus
       // applies after the repeated content has matched. Applying this while
@@ -163,6 +195,13 @@ export function parse(source) {
     }
     if (cost) node.cost = (node.cost || 0) + cost;
     return node;
+  }
+
+  // `[...]` is the native bracket group (compiler.ypp
+  // `brackets_and_charrulecontent`). See SIMPLE_CLASS_BODY above.
+  function bracketAtom(body) {
+    if (SIMPLE_CLASS_BODY.test(body)) return { type: 'class', body };
+    return parse(`TopRule = (${body});`).rules.TopRule;
   }
 
   function parseAtom() {
@@ -182,7 +221,7 @@ export function parse(source) {
     if (t.kind === 'STAR') { pos += 1; return t.max != null ? { type: 'star', max: t.max } : { type: 'star' }; }
     if (t.kind === 'STRING') { pos += 1; return { type: 'lit', word: t.value }; }
     if (t.kind === 'ID') { pos += 1; return { type: 'lit', word: t.value }; }
-    if (t.kind === 'CHARCLASS') { pos += 1; return { type: 'class', body: t.value }; }
+    if (t.kind === 'CHARCLASS') { pos += 1; return bracketAtom(t.value); }
     throw new Error(`parser: unexpected ${t.kind} (${t.value}) at ${t.line}:${t.col}`);
   }
 
@@ -250,6 +289,14 @@ export function parse(source) {
         const dot = raw.indexOf('.');
         if (dot >= 0) {
           tags.push({ key, op, kind: 'subfield', subRule: raw.slice(0, dot), subField: raw.slice(dot + 1) });
+        } else if (raw === '_parsed') {
+          // Native `nl_right` accepts a VARIABLE_OR_RULENAME, and the
+          // interpreter seeds the reserved `_parsed` variable with the current
+          // rule's accumulated matched text (parser/interpreter.cpp:33,
+          // 90-95, 138-147). `{key=_parsed}` therefore assigns that text — the
+          // same value as `{% key = this._parsed %}` — never the literal
+          // string "_parsed".
+          tags.push({ key, op, kind: 'parsed' });
         } else {
           // Bare identifier as a value — treat as a literal string (rare).
           tags.push({ key, op, kind: 'lit', value: raw });

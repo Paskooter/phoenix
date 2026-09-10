@@ -1,0 +1,1399 @@
+TopRule = $city {_city = city._nl}{_country = 'null'}{%delete this.city%}  ?($g $country{_country = country._nl}{%delete this.country%});
+
+city @=
+(
+( tokyo ) |
+( jakarta ) |
+( new york ) |
+( seoul ) |
+( manila ) |
+( mumbai ) |
+( sao paulo ) |
+( mexico city ) |
+( delhi ) |
+( osaka ) |
+( cairo ) |
+( kolkata ) |
+( los angeles ) |
+( shanghai ) |
+( moscow ) |
+( beijing ) |
+( buenos aires ) |
+( guangzhou ) |
+( shenzhen ) |
+( istanbul ) |
+( rio de janeiro ) |
+( paris ) |
+( karachi ) |
+( nagoya ) |
+( chicago ) |
+( lagos ) |
+( london ) |
+( bangkok ) |
+( kinshasa ) |
+( tehran ) |
+( teheran ) |
+( lima ) |
+( dongguan ) |
+( bogota ) |
+( chennai ) |
+( dhaka ) |
+( essen ) |
+( tianjin ) |
+( hong kong ) |
+( taipei ) |
+( lahore ) |
+( ho chi minh city ) |
+( bangalore ) |
+( hyderabad ) |
+( johannesburg ) |
+( baghdad ) |
+( toronto ) |
+( santiago ) |
+( kuala lumpur ) |
+( san francisco ) |
+( philadelphia ) |
+( wuhan ) |
+( miami ) |
+( dallas ) |
+( madrid ) |
+( ahmedabad ) |
+( boston ) |
+( belo horizonte ) |
+( khartoum ) |
+( saint|st. petersburg ) |
+( shenyang ) |
+( houston ) |
+( pune ) |
+( riyadh ) |
+( singapore ) |
+( washington ) |
+( yangon ) |
+( milan ) |
+( atlanta ) |
+( chongqing ) |
+( alexandria ) |
+( nanjing ) |
+( guadalajara ) |
+( barcelona ) |
+( chengdu ) |
+( detroit ) |
+( ankara ) |
+( abidjan ) |
+( athens ) |
+( berlin ) |
+( sydney ) |
+( monterrey ) |
+( phoenix ) |
+( busan ) |
+( recife ) |
+( bandung ) |
+( porto alegre ) |
+( melbourne ) |
+( luanda ) |
+( hangzhou ) |
+( algiers ) |
+( ha noi ) |
+( montreal | montréal) |
+( alberta ) |
+( halifax ) |
+( xi\'an ) |
+( pyongyang ) |
+( qingdao ) |
+( surat ) |
+( fortaleza ) |
+( medellin ) |
+( durban ) |
+( kanpur ) |
+( addis ababa ) |
+( nairobi ) |
+( jeddah ) |
+( naples ) |
+( kabul ) |
+( salvador ) |
+( harbin ) |
+( kano ) |
+( casablanca ) |
+( castries ) |
+( cape town ) |
+( curitiba ) |
+( surabaya ) |
+( san diego ) |
+( seattle ) |
+( rome ) |
+( dar es salaam ) |
+( taichung ) |
+( jaipur ) |
+( jamestown ) |
+( caracas ) |
+( dakar ) |
+( kaohsiung ) |
+( minneapolis ) |
+( lucknow ) |
+( amman ) |
+( tel aviv ) |
+( guayaquil ) |
+( kyiv ) |
+( faisalabad ) |
+( mashhad ) |
+( izmir ) |
+( rawalpindi ) |
+( tashkent ) |
+( katowice ) |
+( changchun ) |
+( campinas ) |
+( daegu ) |
+( changsha ) |
+( nagpur ) |
+( san juan ) |
+( aleppo ) |
+( lisbon ) |
+( frankfurt am main ) |
+( nanchang ) |
+( birmingham ) |
+( tampa ) |
+( medan ) |
+( dalian ) |
+( tunis ) |
+( shijiazhuang ) |
+( manchester ) |
+( port-au-prince ) |
+( damascus ) |
+( ji\'nan ) |
+( fukuoka ) |
+( santo domingo ) |
+( havana ) |
+( cali ) |
+( denver ) |
+( st. louis ) |
+( colombo ) |
+( dubai ) |
+( baltimore ) |
+( sapporo ) |
+( rotterdam ) |
+( vancouver ) |
+( preston ) |
+( patna ) |
+( sana\'a ) |
+( warsaw ) |
+( bonn ) |
+( accra ) |
+( bucharest ) |
+( yokohama ) |
+( kunming ) |
+( guiyang ) |
+( zibo ) |
+( incheon ) |
+( zhengzhou ) |
+( taiyuan ) |
+( chaoyang ) |
+( brasilia ) |
+( zhongshan ) |
+( west midlands ) |
+( giza ) |
+( quezon city ) |
+( nanhai ) |
+( fuzhou ) |
+( lanzhou ) |
+( xiamen ) |
+( chittagong ) |
+( zaozhuang ) |
+( jilin ) |
+( linyi ) |
+( wenzhou ) |
+( stockholm ) |
+( puebla de zaragoza ) |
+( puning ) |
+( baku ) |
+( ibadan ) |
+( brisbane ) |
+( minsk ) |
+( sikasso ) |
+( nanchong ) |
+( nanning ) |
+( urumqi ) |
+( yantai ) |
+( fuyang ) |
+( tangshan ) |
+( maracaibo ) |
+( hamburg ) |
+( budapest ) |
+( shunde ) |
+( manaus ) |
+( xuzhou ) |
+( segou ) |
+( baotou ) |
+( hefei ) |
+( vienna ) |
+( indore ) |
+( asuncion ) |
+( tianmen ) |
+( belgrade ) |
+( suzhou ) |
+( suizhou ) |
+( nanyang ) |
+( nakuru ) |
+( koulikoro ) |
+( ningbo ) |
+( liuan ) |
+( anshan ) |
+( tengzhou ) |
+( qiqihaer ) |
+( pizhou ) |
+( taian ) |
+( datong ) |
+( kobe ) |
+( hama ) |
+( esfahan ) |
+( tripoli ) |
+( west yorkshire ) |
+( vadodara ) |
+( taizhou ) |
+( luoyang ) |
+( quito ) |
+( jinjiang ) |
+( mopti ) |
+( perth ) |
+( daejeon ) |
+( kyoto ) |
+( xiantao ) |
+( tangerang ) |
+( bhopal ) |
+( coimbatore ) |
+( kharkiv ) |
+( gwangju ) |
+( xinghua ) |
+( harare ) |
+( fushun ) |
+( shangqiu ) |
+( belem ) |
+( wuxi ) |
+( hechuan ) |
+( wujin ) |
+( guigang ) |
+( jianyang ) |
+( huhehaote ) |
+( santa cruz ) |
+( semarang ) |
+( ludhiana ) |
+( novosibirsk ) |
+( neijiang ) |
+( maputo ) |
+( nan\'an ) |
+( douala ) |
+( weifang ) |
+( daqing ) |
+( kayes ) |
+( tongzhou ) |
+( tabriz ) |
+( homs ) |
+( rugao ) |
+( guiping ) |
+( huainan ) |
+( kochi ) |
+( suining ) |
+( bozhou ) |
+( zhanjiang ) |
+( changde ) |
+( montevideo ) |
+( suzhou ) |
+( xintai ) |
+( ekaterinoburg ) |
+( juarez ) |
+( handan ) |
+( visakhapatnam ) |
+( kawasaki ) |
+( jiangjin ) |
+( pingdu ) |
+( agra ) |
+( jiangyin ) |
+( tijuana ) |
+( liuyang ) |
+( bursa ) |
+( al-hasakeh ) |
+( makkah ) |
+( yaounde ) |
+( xuanwei ) |
+( dengzhou ) |
+( palembang ) |
+( nizhny novgorod ) |
+( leon ) |
+( guarulhos ) |
+( heze ) |
+( auckland ) |
+( omdurman ) |
+( shantou ) |
+( leizhou ) |
+( yongcheng ) |
+( valencia ) |
+( thane ) |
+( san antonio ) |
+( xinyang ) |
+( luzhou ) |
+( almaty ) |
+( changshu ) |
+( taixing ) |
+( phnom penh ) |
+( laiwu ) |
+( xiaoshan ) |
+( yiyang ) |
+( goiania ) |
+( liuzhou ) |
+( gaozhou ) |
+( fengcheng ) |
+( cixi ) |
+( karaj ) |
+( mogadishu ) |
+( varanasi ) |
+( cordoba ) |
+( cordoba ) |
+( kampala ) |
+( ruian ) |
+( lianjiang ) |
+( huaian ) |
+( shiraz ) |
+( multan ) |
+( madurai ) |
+( munchen ) |
+( munich ) |
+( kalyan ) |
+( quanzhou ) |
+( adana ) |
+( bazhong ) |
+( fes ) |
+( ouagadougou ) |
+( haicheng ) |
+( xishan ) |
+( leiyang ) |
+( caloocan ) |
+( kalookan ) |
+( jingzhou ) |
+( saitama ) |
+( prague ) |
+( fuqing ) |
+( kumasi ) |
+( meerut ) |
+( hyderabad ) |
+( lufeng ) |
+( dongtai ) |
+( yixing ) |
+( mianyang ) |
+( wenling ) |
+( leqing ) |
+( ottawa ) |
+( yushu ) |
+( barranquilla ) |
+( hiroshima ) |
+( chifeng ) |
+( nashik ) |
+( makasar ) |
+( sofia ) |
+( rizhao ) |
+( davao ) |
+( tianshui ) |
+( huzhou ) |
+( samara ) |
+( omsk ) |
+( gujranwala ) |
+( adelaide ) |
+( macheng ) |
+( wuxian ) |
+( bijie ) |
+( yuzhou ) |
+( leshan ) |
+( la matanza ) |
+( rosario ) |
+( jabalpur ) |
+( kazan ) |
+( jimo ) |
+( dingzhou ) |
+( calgary ) |
+( yerevan ) |
+( el-jadida ) |
+( jamshedpur ) |
+( zurich ) |
+( zoucheng ) |
+( pikine-guediawaye ) |
+( anqiu ) |
+( guang\'an ) |
+( chelyabinsk ) |
+( conakry ) |
+( asansol ) |
+( shouguang ) |
+( changzhou ) |
+( ulsan ) |
+( zhuji ) |
+( toluca ) |
+( marrakech ) |
+( dhanbad ) |
+( tbilisi ) |
+( hanchuan ) |
+( lusaka ) |
+( qidong ) |
+( faridabad ) |
+( zaoyang ) |
+( zhucheng ) |
+( rostov-na-donu ) |
+( jiangdu ) |
+( xiangcheng ) |
+( zigong ) |
+( jining ) |
+( edmonton ) |
+( allahabad ) |
+( beiliu ) |
+( dnipropetrovsk ) |
+( gongzhuling ) |
+( qinzhou ) |
+( ufa ) |
+( sendai ) |
+( volgograd ) |
+( ezhou ) |
+( guatemala city ) |
+( zhongxiang ) |
+( amsterdam ) |
+( brussels ) |
+( bamako ) |
+( ziyang ) |
+( antananarivo ) |
+( mudanjiang ) |
+( amritsar ) |
+( vijayawada ) |
+( haora ) |
+( donetsk ) |
+( huazhou ) |
+( fuzhou ) |
+( pimpri chinchwad ) |
+( dublin ) |
+( rajkot ) |
+( sao luis ) |
+( beni-mellal ) |
+( lianyuan ) |
+( liupanshui ) |
+( kaduna ) |
+( kitakyushu ) |
+( qianjiang ) |
+( perm ) |
+( odessa ) |
+( qom ) |
+( yongchuan ) |
+( peshawar ) |
+( linzhou ) |
+( benxi ) |
+( ulaanbaatar ) |
+( zhangqiu ) |
+( yongzhou ) |
+( sao gonzalo ) |
+( srinagar ) |
+( ghaziabad ) |
+( xinyi ) |
+( koln ) |
+( zhangjiagang ) |
+( wafangdian ) |
+( xianyang ) |
+( liaocheng ) |
+( ahwaz ) |
+( taishan ) |
+( linhai ) |
+( feicheng ) |
+( suwon ) |
+( wuwei ) |
+( haimen ) |
+( san luis potosi ) |
+( liling ) |
+( xinhui ) |
+( gaziantep ) |
+( krasnoyarsk ) |
+( chiba ) |
+( voronezh ) |
+( durg-bhilai nagar ) |
+( ruzhou ) |
+( maceio ) |
+( yichun ) |
+( al-madinah ) |
+( yulin ) |
+( seongnam ) |
+( yueyang ) |
+( yiwu ) |
+( san jose ) |
+( jixi ) |
+( managua ) |
+( xinyi ) |
+( safi ) |
+( guangyuan ) |
+( soweto ) |
+( zhangjiakou ) |
+( baoding ) |
+( cartagena ) |
+( huludao ) |
+( pingdingshan ) |
+( torino ) |
+( zengcheng ) |
+( laiyang ) |
+( qingzhou ) |
+( aurangabad ) |
+( lattakia ) |
+( merida ) |
+( laizhou ) |
+( thiruvananthapuram ) |
+( weinan ) |
+( wuchang ) |
+( guangshui ) |
+( gaizhou ) |
+( goteborg ) |
+( xiaogan ) |
+( torreon ) |
+( jiaxing ) |
+( kozhikode ) |
+( sale ) |
+( zhuzhou ) |
+( tyneside ) |
+( hengyang ) |
+( dehui ) |
+( honghu ) |
+( danyang ) |
+( daye ) |
+( solapur ) |
+( xingning ) |
+( xiangfan ) |
+( shubra-el-khema ) |
+( luoding ) |
+( gwalior ) |
+( ranchi ) |
+( huiyang ) |
+( mombasa ) |
+( jinzhou ) |
+( jiangyan ) |
+( chenghai ) |
+( jiamusi ) |
+( songzi ) |
+( tegucigalpa ) |
+( wujiang ) |
+( jodhpur ) |
+( duque de caxias ) |
+( xi\'ning ) |
+( yuyao ) |
+( hezhou ) |
+( jiangyou ) |
+( tiruchchirappalli ) |
+( baoshan ) |
+( saratov ) |
+( nova iguazu ) |
+( ankang ) |
+( gaomi ) |
+( yangchun ) |
+( santiago de los caballeros ) |
+( danzhou ) |
+( la paz ) |
+( zhuanghe ) |
+( zhuhai ) |
+( zhaodong ) |
+( sakai ) |
+( haikou ) |
+( jiaonan ) |
+( el alto ) |
+( xuancheng ) |
+( wuchuan ) |
+( yuhang ) |
+( qinhuangdao ) |
+( bogor ) |
+( kermanshah ) |
+( longhai ) |
+( liverpool ) |
+( yanshi ) |
+( guwahati ) |
+( yichun ) |
+( konya ) |
+( barquisimeto ) |
+( yingde ) |
+( bengbu ) |
+( yibin ) |
+( chandigarh ) |
+( xiangxiang ) |
+( yinchuan ) |
+( valencia ) |
+( guilin ) |
+( hamamatsu ) |
+( sao bernardo do campo ) |
+( deir el-zor ) |
+( bishkek ) |
+( teresina ) |
+( suihua ) |
+( benghazi ) |
+( jiutai ) |
+( meishan ) |
+( zaporizhya ) |
+( gaoyou ) |
+( marseille ) |
+( kaifeng ) |
+( changning ) |
+( tongliao ) |
+( natal ) |
+( bandar lampung ) |
+( dongying ) |
+( gaoan ) |
+( langzhong ) |
+( lichuan ) |
+( hubli-dharwad ) |
+( mysore ) |
+( niigata ) |
+( indianapolis ) |
+( jiaozhou ) |
+( pingxiang ) |
+( haiphong ) |
+( arequipa ) |
+( jacksonville ) |
+( tanger ) |
+( dandong ) |
+( kishinev ) |
+( krasnodar ) |
+( zagreb ) |
+( xinmi ) |
+( chaohu ) |
+( xinyu ) |
+( gongyi ) |
+( huixian ) |
+( xinxiang ) |
+( port elizabeth ) |
+( mendoza ) |
+( nantong ) |
+( pengzhou ) |
+( khulna ) |
+( malang ) |
+( padang ) |
+( anyang ) |
+( renqiu ) |
+( foshan ) |
+( anshun ) |
+( chihuahua ) |
+( campo grande ) |
+( lodz ) |
+( goyang ) |
+( benin city ) |
+( bucheon ) |
+( gaocheng ) |
+( pulandian ) |
+( hejian ) |
+( dafeng ) |
+( krakow ) |
+( enshi ) |
+( dongyang ) |
+( lviv ) |
+( kunshan ) |
+( shuangcheng ) |
+( salem ) |
+( jiaozuo ) |
+( ad-dammam ) |
+( huaibei ) |
+( liyang ) |
+( samut prakan ) |
+( rongcheng ) |
+( cenxi ) |
+( nampho ) |
+( columbus ) |
+( bareilly ) |
+( leping ) |
+( laixi ) |
+( liaoyang ) |
+( zhaotong ) |
+( jerusalem ) |
+( tainan ) |
+( cuernavaca ) |
+( riga ) |
+( linfen ) |
+( quebec ) |
+( lingbao ) |
+( shangyu ) |
+( wuan ) |
+( hailun ) |
+( xingyi ) |
+( wuxue ) |
+( cebu ) |
+( aguascalientes ) |
+( tolyatti ) |
+( hamilton ) |
+( zhoushan ) |
+( langfang ) |
+( osasco ) |
+( nonthaburi ) |
+( dashiqiao ) |
+( tongxiang ) |
+( yichang ) |
+( yangzhou ) |
+( blantyre city ) |
+( hamhung ) |
+( jalandhar ) |
+( al-rakka ) |
+( niamey ) |
+( xiangtan ) |
+( winnipeg ) |
+( oran ) |
+( kota ) |
+( sevilla ) |
+( navi mumbai ) |
+( port harcourt ) |
+( saltillo ) |
+( khartoum north ) |
+( shizuoka ) |
+( yuanjiang ) |
+( raipur ) |
+( kryviy rig ) |
+( yingkou ) |
+( wuhu ) |
+( zhenjiang ) |
+( queretaro ) |
+( nankang ) |
+( wugang ) |
+( hegang ) |
+( linqing ) |
+( pretoria ) |
+( zunyi ) |
+( panzhihua ) |
+( austin ) |
+( changle ) |
+( lianyungang ) |
+( yancheng ) |
+( zunhua ) |
+( changyi ) |
+( meknes ) |
+( qiongshan ) |
+( bulawayo ) |
+( wendeng ) |
+( okayama ) |
+( santo andre ) |
+( rabat ) |
+( pakanbaru ) |
+( nehe ) |
+( memphis ) |
+( joao pessoa ) |
+( kathmandu ) |
+( longkou ) |
+( shengzhou ) |
+( antalya ) |
+( kumamoto ) |
+( lilongwe ) |
+( mexicali ) |
+( kaiping ) |
+( palermo ) |
+( aligarh ) |
+( nottingham ) |
+( haining ) |
+( mosul ) |
+( hermosillo ) |
+( tongcheng ) |
+( shulan ) |
+( miluo ) |
+( bhubaneswar ) |
+( yangquan ) |
+( chenzhou ) |
+( haiyang ) |
+( morelia ) |
+( huangshi ) |
+( xinmin ) |
+( tetouan ) |
+( barnaul ) |
+( qixia ) |
+( jaboatao dos guarapes ) |
+( chongzhou ) |
+( cotonou ) |
+( yingcheng ) |
+( zaragoza ) |
+( changzhi ) |
+( qujing ) |
+( linghai ) |
+( changge ) |
+( trujillo ) |
+( tampico ) |
+( maoming ) |
+( moron ) |
+( la plata ) |
+( ciudad guayana ) |
+( moradabad ) |
+( jieshou ) |
+( sheffield ) |
+( donggang ) |
+( jingjiang ) |
+( acheng ) |
+( acapulco ) |
+( veracruz ) |
+( ulyanovsk ) |
+( wroclaw ) |
+( jieyang ) |
+( shaoxing ) |
+( qian\'an ) |
+( nanchuan ) |
+( qionglai ) |
+( deyang ) |
+( sagamihara ) |
+( fuyang ) |
+( fuxin ) |
+( jiyuan ) |
+( puente alto ) |
+( qufu ) |
+( gaoyao ) |
+( gorakhpur ) |
+( fort worth ) |
+( xinji ) |
+( san miguel de tucuman ) |
+( dujiangyan ) |
+( the hague ) |
+( bhiwandi ) |
+( culiacan rosales ) |
+( lingyuan ) |
+( xingyang ) |
+( maiduguri ) |
+( genova ) |
+( meihekou ) |
+( izhevsk ) |
+( jeonju ) |
+( leling ) |
+( xichang ) |
+( colombo ) |
+( zaria ) |
+( anlu ) |
+( sao jose dos campos ) |
+( charlotte ) |
+( yizheng ) |
+( malmo ) |
+( weihai ) |
+( xinzheng ) |
+( dengfeng ) |
+( vladivostok ) |
+( shaoyang ) |
+( taizhou ) |
+( jammu ) |
+( lanxi ) |
+( yuncheng ) |
+( kagoshima ) |
+( yaroslave ) |
+( contagem ) |
+( shishou ) |
+( panjin ) |
+( zamboanga ) |
+( orumiyeh ) |
+( binzhou ) |
+( kisumu ) |
+( baoji ) |
+( uberlandia ) |
+( el paso ) |
+( yunzhou ) |
+( kenitra ) |
+( diyarbakir ) |
+( jurong ) |
+( cucuta ) |
+( zhaoyuan ) |
+( huizhou ) |
+( tianchang ) |
+( dortmund ) |
+( shihezi ) |
+( shiyan ) |
+( cuttack ) |
+( cochabamba ) |
+( cheongju ) |
+( jingmen ) |
+( shangzhi ) |
+( anqing ) |
+( chongjin ) |
+( stuttgart ) |
+( rushan ) |
+( kingston ) |
+( milwaukee ) |
+( sorocaba ) |
+( glasgow ) |
+( khabarovsk ) |
+( guanghan ) |
+( warangal ) |
+( irkutsk ) |
+( tyumen ) |
+( lomas de zamora ) |
+( beipiao ) |
+( funabashi ) |
+( mingguang ) |
+( dusseldorf ) |
+( shenzhou ) |
+( icel ) |
+( zhangzhou ) |
+( xianning ) |
+( maanshan ) |
+( bandjarmasin ) |
+( callao ) |
+( poznan ) |
+( kayseri ) |
+( chon buri ) |
+( quetta ) |
+( shuozhou ) |
+( samarinda ) |
+( helsinki ) |
+( akesu ) |
+( novokuznetsk ) |
+( malaga ) |
+( fengcheng ) |
+( hachioji ) |
+( ribeirao preto ) |
+( beihai ) |
+( jamnagar ) |
+( nouakchott ) |
+( bazhou ) |
+( yongkang ) |
+( louisville ) |
+( chizhou ) |
+( huaiyin ) |
+( fuan ) |
+( bhilai nagar ) |
+( dezhou ) |
+( makhachkala ) |
+( xingping ) |
+( jiujiang ) |
+( bristol ) |
+( botou ) |
+( fengnan ) |
+( astana ) |
+( yizhou ) |
+( amravati ) |
+( nashville-davidson ) |
+( batam ) |
+( orenburg ) |
+( zhuozhou ) |
+( las vegas ) |
+( cancun ) |
+( longyan ) |
+( oslo ) |
+( cuiaba ) |
+( tiruppur ) |
+( vilnius ) |
+( bremen ) |
+( gold coast-tweed ) |
+( gaobeidian ) |
+( mangalore ) |
+( songyuan ) |
+( yangjiang ) |
+( wanyuan ) |
+( jiangmen ) |
+( xingtai ) |
+( shaoguan ) |
+( feira de santana ) |
+( guixi ) |
+( ruijin ) |
+( zahedan ) |
+( jinzhong ) |
+( portland ) |
+( jintan ) |
+( reynosa ) |
+( ilorin ) |
+( oklahoma city ) |
+( nakhon ratchasima ) |
+( n\'djamena ) |
+( shangzhou ) |
+( panshi ) |
+( kerman ) |
+( kaiyuan ) |
+( islamabad ) |
+( sarajevo ) |
+( bikaner ) |
+( dushanbe ) |
+( vientiane ) |
+( dehradun ) |
+( zhangshu ) |
+( beining ) |
+( abu dhabi ) |
+( shimkent ) |
+( xingcheng ) |
+( imbaba ) |
+( yicheng ) |
+( skoplje ) |
+( kadhimain ) |
+( at-ta\'if ) |
+( dali ) |
+( fuding ) |
+( jinzhou ) |
+( renhuai ) |
+( mira-bhayandar ) |
+( kemerovo ) |
+( duisburg ) |
+( rasht ) |
+( belfast ) |
+( edinburgh ) |
+( cardif ) |
+( apia )
+) {_nl = _parsed};
+
+
+g = <1.0> *(
+    the |
+    to |
+    located |
+    close |
+    and |
+    of |
+    a |
+    in |
+    for |
+    that |
+    on |
+    is |
+    was |
+    with |
+    it |
+    as |
+    at |
+    he |
+    by |
+    from |
+    be |
+    his |
+    have |
+    has |
+    are |
+    but |
+    an |
+    not |
+    will |
+    this |
+    they |
+    who |
+    i |
+    had |
+    their |
+    were |
+    been |
+    more |
+    or |
+    which |
+    its |
+    point |
+    year |
+    would |
+    after |
+    about |
+    new |
+    up |
+    when |
+    than |
+    dollars |
+    we |
+    out |
+    also |
+    her |
+    you |
+    all |
+    she |
+    last |
+    people |
+    there |
+    if |
+    over |
+    percent |
+    into |
+    time |
+    other |
+    some |
+    no |
+    can |
+    mr |
+    years |
+    could |
+    so |
+    what |
+    them |
+    only |
+    now |
+    just |
+    most |
+    like |
+    before |
+    believe |
+    think |
+    thought |
+    believed |
+    want |
+    wanted |
+    understand |
+    understood |
+    give |
+    gave |
+    do |
+    did |
+    desire |
+    desired |
+    please |
+    um |
+    uh |
+    maybe |
+    know |
+    knew |
+    around |
+    it\'s |
+    my |
+    your |
+    his |
+    her |
+    theirs |
+    hers |
+    actually |
+    hello |
+    next |
+    hey |
+    one
+    ) <0.0>;
+
+
+country @= (
+(afghanistan) |
+(albania) |
+(algeria) |
+(american samoa) |
+(andorra) |
+(angola) |
+(anguilla) |
+(antigua and barbuda) |
+(argentina) |
+(armenia) |
+(aruba) |
+(australia) |
+(austria) |
+(azerbaijan) |
+(bahamas) |
+(bahrain) |
+(bangladesh) |
+(barbados) |
+(belarus) |
+(belgium) |
+(belize) |
+(benin) |
+(bermuda) |
+(bhutan) |
+(bolivia) |
+(bonaire) |
+(bosnia herzegovina) |
+(botswana) |
+(bouvet island) |
+(brazil) |
+(brunei) |
+(bulgaria) |
+(burkina faso) |
+(burundi) |
+(cambodia) |
+(cameroon) |
+(canada) |
+(cape verde) |
+(cayman islands) |
+(central african republic) |
+(chad) |
+(chile) |
+(?(?people\'s republic of) china) |
+(christmas island) |
+(cocos islands) |
+(colombia|columbia) |
+(comoros) |
+(democratic republic of the congo) |
+(democratic people\'s republic of korea) |
+(congo) |
+(republic of congo) |
+(cook islands) |
+(costa rica) |
+(croatia) |
+(cuba) |
+(curacao) |
+(cyprus) |
+(czech republic) |
+(denmark) |
+(djibouti) |
+(dominica) |
+(dominican republic) |
+(ecuador) |
+(egypt) |
+(el salvador) |
+(england) |
+(equatorial guinea) |
+(eritrea) |
+(estonia) |
+(ethiopia) |
+(falkland islands) |
+(faroe islands) |
+(fiji) |
+(finland) |
+(france) |
+(french guiana) |
+(gabon) |
+(gambia) |
+(georgia) |
+(germany) |
+(ghana) |
+(gibraltar) |
+(greece) |
+(greenland) |
+(grenada) |
+(guadeloupe) |
+(french guadeloupe) |
+(guam) |
+(guatemala) |
+(guinea) |
+((guinea bissau)|(guinea-bissau)) |
+(guyana) |
+(haiti) |
+(holy see) |
+(honduras) |
+(hong kong) |
+(hungary) |
+(iceland) |
+(india) |
+(independent state of samoa) |
+(indonesia) |
+(iran) |
+(iraq) |
+(ireland) |
+(israel) |
+(italy) |
+((ivory coast)|(côte d\'ivoire)|(cote d\'ivoire)) |
+(jamaica) |
+(japan) |
+(jordan) |
+(kazakhstan) |
+(kenya) |
+(kiribati) |
+(kosovo) |
+(kuwait) |
+(kyrgyzstan) |
+(laos) |
+(latvia) |
+(lebanon) |
+(lesotho) |
+(liberia) |
+(libya) |
+(liechtenstein) |
+(lithuania) |
+(luxembourg) |
+(macau) |
+(macedonia) |
+(madagascar) |
+(malawi) |
+(malaysia) |
+(maldives) |
+(mali) |
+(malta) |
+(marshall islands) |
+(martinique) |
+(french martinique) |
+(mauritania) |
+(mauritius) |
+(mayotte) |
+(mexico) |
+(micronesia) |
+(moldova) |
+(monaco) |
+(mongolia) |
+(montenegro) |
+(montserrat) |
+(morocco) |
+(mozambique) |
+(myanmar) |
+(namibia) |
+(nauru) |
+(nepal) |
+(netherlands) |
+(netherlands antilles) |
+(new caledonia) |
+(french new caledonia) |
+(new zealand) |
+(nicaragua) |
+(niger) |
+(nigeria) |
+(niue) |
+(norfolk island) |
+(north korea) |
+(northern ireland) |
+(northern mariana islands) |
+(norway) |
+(oman) |
+(pakistan) |
+(palau) |
+(panama) |
+(papua new guinea) |
+(paraguay) |
+(peru) |
+(philippines) |
+(pitcairn island) |
+(poland) |
+(polynesia) |
+(french polynesia) |
+(portugal) |
+(puerto rico) |
+(qatar) |
+(reunion) |
+(romania) |
+(russia) |
+(rwanda) |
+(saint|st. helena) |
+(saint|st. kitts and nevis) |
+(saint|st. lucia) |
+(saint|st. pierre and miquelon) |
+(saint|st. vincent and grenadines) |
+(samoa) |
+(san marino) |
+(sao tome and principe) |
+(saudi arabia) |
+(scotland) |
+(senegal) |
+(serbia) |
+(seychelles) |
+(sierra leone) |
+(singapore) |
+(sint maarten) |
+(slovakia) |
+(slovenia) |
+(solomon islands) |
+(somalia) |
+(south africa) |
+(south georgia and south sandwich islands) |
+(south korea) |
+(south sudan) |
+(south sudan) |
+(spain) |
+(sri lanka) |
+(sudan) |
+(suriname) |
+(svalbard and jan mayen islands) |
+(swaziland) |
+(sweden) |
+(switzerland) |
+(syria) |
+(taiwan) |
+(tajikistan) |
+(tanzania) |
+(thailand) |
+(east timor) |
+(timor-leste) |
+(togo) |
+(tokelau) |
+(tonga) |
+(trinidad and tobago) |
+(tunisia) |
+(turkey) |
+(turkmenistan) |
+(turks and caicos islands) |
+(tuvalu) |
+(uganda) |
+(ukraine) |
+(united arab emirates) |
+(arab emirates) |
+(u.k.) |
+(uk) |
+(u k) |
+(united kingdom) |
+(united states) |
+(united states of america) |
+(usa) |
+(u.s.a.) |
+(u.s.) |
+(u s) |
+(uruguay) |
+(uzbekistan) |
+(vanuatu) |
+(venezuela) |
+(vietnam) |
+(virgin islands) |
+(wales) |
+(wallis and futuna islands) |
+(yemen) |
+(zambia) |
+(zimbabwe)
+) {_nl = _parsed} ;
