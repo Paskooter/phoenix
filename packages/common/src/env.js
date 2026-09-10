@@ -4,10 +4,33 @@
 //   NET_<svc>          host:port of a peer service; `http://` is prefixed if absent
 //   ETCO_<scope>_<key> configuration value
 //
-// Critical semantic preserved from the reference: a missing value with NO default is a
-// configuration error and throws at startup ("null-default = required-throws"). This is what
-// makes substitution testing safe — a misconfigured peer fails loudly instead of silently
-// pointing at nothing.
+// The reference helper is `readEnvVars(defaults)` in packages/utils/src/config/EnvVars.ts:11-19:
+// it walks the defaults object, throws when a value whose default is `null` is unset, and
+// otherwise resolves `process.env[key] || defaults[key]` - so an empty string takes the
+// default too, and every result stays a string. `net`/`etco`/`boolEnv` below are Phoenix
+// conveniences with their own reachable semantics; the reference contract is `readEnvVars`.
+
+/**
+ * Reference `readEnvVars` (packages/utils/src/config/EnvVars.ts:11-19).
+ *
+ * Walks `defaults` in key order and resolves each `process.env[key] || defaults[key]`.
+ * A `null` default makes the variable required: if it is unset (or empty) this throws
+ * `Required env variable '<key>' does not exist`, matching the source message exactly.
+ *
+ * @param {Record<string, string|null>} defaults
+ * @param {NodeJS.ProcessEnv} [env] defaults to process.env; an explicit env is a Phoenix
+ *   test/deployment extension and does not change reference behaviour.
+ * @returns {Record<string, string>}
+ */
+export function readEnvVars(defaults, env = process.env) {
+  return Object.keys(defaults).reduce((acc, key) => {
+    if (!env[key] && defaults[key] === null) {
+      throw new Error(`Required env variable '${key}' does not exist`);
+    }
+    acc[key] = env[key] || defaults[key];
+    return acc;
+  }, {});
+}
 
 /**
  * Resolve a peer service base URL from NET_<name>.

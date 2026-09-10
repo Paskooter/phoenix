@@ -1,0 +1,665 @@
+{
+  "original": {
+    "runtime": "v8.9.4",
+    "sha256": "e36cfe66cf5a5209d69b268444eb017f8d7a657f86ee9331d6cf6bc47b2b591b"
+  },
+  "candidate": {
+    "runtime": "v22.22.0",
+    "sha256": "7eb33cd3e6a7d4772101a68036ecd49ac07f9129b5f3f4e78a9f5af4d6d34397"
+  },
+  "scope": "Full registry values/freeze, manager results and errors; real HubService/createGateway TCP status, body text and headers",
+  "normalization": [
+    "Registry fixture directory only",
+    "HTTP Date only",
+    "ERROR msgID/ts only; error ETag independently verified against raw bytes"
+  ],
+  "total": 161,
+  "matches": 161,
+  "differences": [],
+  "rows": [
+    {
+      "id": "validations/row-ids",
+      "equal": true
+    },
+    {
+      "id": "validations/valid-minimal",
+      "equal": true
+    },
+    {
+      "id": "validations/valid-empty-id",
+      "equal": true
+    },
+    {
+      "id": "validations/valid-unknown-metadata",
+      "equal": true
+    },
+    {
+      "id": "validations/missing-id",
+      "equal": true
+    },
+    {
+      "id": "validations/numeric-id",
+      "equal": true
+    },
+    {
+      "id": "validations/missing-url-on-robot",
+      "equal": true
+    },
+    {
+      "id": "validations/empty-url-cloud",
+      "equal": true
+    },
+    {
+      "id": "validations/empty-url-robot",
+      "equal": true
+    },
+    {
+      "id": "validations/truthy-on-robot",
+      "equal": true
+    },
+    {
+      "id": "validations/non-http-url",
+      "equal": true
+    },
+    {
+      "id": "validations/missing-intents",
+      "equal": true
+    },
+    {
+      "id": "validations/null-intents",
+      "equal": true
+    },
+    {
+      "id": "validations/intent-no-name",
+      "equal": true
+    },
+    {
+      "id": "validations/intent-truthy-numeric-name",
+      "equal": true
+    },
+    {
+      "id": "validations/null-intent",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-null",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-false",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-{}",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[null]",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[{\"name\":4,\"value\":\"a\"}]",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[{\"name\":\"x\"}]",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[{\"name\":\"x\",\"value\":\"\"}]",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[{\"name\":\"\",\"value\":false}]",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[{\"name\":\"x\",\"value\":0}]",
+      "equal": true
+    },
+    {
+      "id": "validations/entities-[{\"name\":\"x\",\"value\":{}}]",
+      "equal": true
+    },
+    {
+      "id": "validations/proactives-null",
+      "equal": true
+    },
+    {
+      "id": "validations/proactives-false",
+      "equal": true
+    },
+    {
+      "id": "validations/proactives-{}",
+      "equal": true
+    },
+    {
+      "id": "validations/proactives-[]",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-valid",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-missing-topics",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-bad-topic",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-bad-rules",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-context-extra",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-context-field",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-context-match",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-context-value",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-context-null",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-ih-list",
+      "equal": true
+    },
+    {
+      "id": "validations/proactive-settings-list",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-valid",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-missing-query",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-unknown-query",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-numeric-query",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-extra",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-missing-match",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-bad-match",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-transform",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-time-invalid",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-time-valid",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-check-property",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-missing-value",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-string-value",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-object-value",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-array-value",
+      "equal": true
+    },
+    {
+      "id": "validations/ih-named-query",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"bad\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"extra\":1}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":{}}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"startTimeOffset\":[1,\"day\"]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"startTimeOffset\":[-1,\"day\"]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"endTimeOffset\":\"SinceWaking\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"endTimeOffset\":\"bad\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"endTimeOffset\":[1,\"bad\"]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"startTimeOffset\":0}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":[{}]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":[{\"field\":\"bad\"}]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\"}]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\",\"match\":\"bad\",\"value\":3}]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":[{\"field\":\"skillID\",\"match\":\"EXACT\"}]}",
+      "equal": true
+    },
+    {
+      "id": "validations/query-{\"type\":\"Count\",\"queryRules\":[{\"field\":\"payload\",\"match\":\"ONE_OF\",\"value\":null,\"key\":\"enabled\"}]}",
+      "equal": true
+    },
+    {
+      "id": "validations/queries-\"bad\"",
+      "equal": true
+    },
+    {
+      "id": "validations/queries-[]",
+      "equal": true
+    },
+    {
+      "id": "validations/queries-null",
+      "equal": true
+    },
+    {
+      "id": "validations/queries-false",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":3}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":\"x\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":\"x\",\"key\":3}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":\"x\",\"key\":\"a\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":\"x\",\"key\":\"a\",\"matchRule\":\"bad\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":\"x\",\"key\":\"a\",\"matchRule\":\"NOT\"}",
+      "equal": true
+    },
+    {
+      "id": "validations/settings-rule-{\"skill\":\"x\",\"key\":\"a\",\"matchRule\":\"EXACT\",\"value\":true,\"extra\":1}",
+      "equal": true
+    },
+    {
+      "id": "validations/view-valid",
+      "equal": true
+    },
+    {
+      "id": "validations/view-no-view",
+      "equal": true
+    },
+    {
+      "id": "validations/view-null-view",
+      "equal": true
+    },
+    {
+      "id": "validations/view-type",
+      "equal": true
+    },
+    {
+      "id": "validations/view-index",
+      "equal": true
+    },
+    {
+      "id": "validations/view-nan-index",
+      "equal": true
+    },
+    {
+      "id": "validations/view-children",
+      "equal": true
+    },
+    {
+      "id": "validations/view-reverse-child-order",
+      "equal": true
+    },
+    {
+      "id": "validations/view-empty-definition",
+      "equal": true
+    },
+    {
+      "id": "validations/view-bad-target",
+      "equal": true
+    },
+    {
+      "id": "validations/view-empty-key",
+      "equal": true
+    },
+    {
+      "id": "validations/view-numeric-zero-target",
+      "equal": true
+    },
+    {
+      "id": "validations/view-string-zero-target",
+      "equal": true
+    },
+    {
+      "id": "validations/view-numeric-one-target",
+      "equal": true
+    },
+    {
+      "id": "validations/view-prototype-target",
+      "equal": true
+    },
+    {
+      "id": "validations/duplicate-case-insensitive",
+      "equal": true
+    },
+    {
+      "id": "validations/null-config",
+      "equal": true
+    },
+    {
+      "id": "validations/undefined-config",
+      "equal": true
+    },
+    {
+      "id": "registries/row-ids",
+      "equal": true
+    },
+    {
+      "id": "registries/url-\"http://skill/\"",
+      "equal": true
+    },
+    {
+      "id": "registries/url-\"/http://skill/\"",
+      "equal": true
+    },
+    {
+      "id": "registries/url-\"http://skill///\"",
+      "equal": true
+    },
+    {
+      "id": "registries/url-\"https://skill\"",
+      "equal": true
+    },
+    {
+      "id": "registries/url-\"\"",
+      "equal": true
+    },
+    {
+      "id": "registries/url-null",
+      "equal": true
+    },
+    {
+      "id": "registries/url-\"ftp://skill\"",
+      "equal": true
+    },
+    {
+      "id": "registries/url-4",
+      "equal": true
+    },
+    {
+      "id": "registries/base-path-\"\"",
+      "equal": true
+    },
+    {
+      "id": "registries/base-path-\"/\"",
+      "equal": true
+    },
+    {
+      "id": "registries/base-path-\"//custom//\"",
+      "equal": true
+    },
+    {
+      "id": "registries/base-path-null",
+      "equal": true
+    },
+    {
+      "id": "registries/base-path-3",
+      "equal": true
+    },
+    {
+      "id": "registries/on-robot",
+      "equal": true
+    },
+    {
+      "id": "registries/no-inferred-on-robot",
+      "equal": true
+    },
+    {
+      "id": "registries/null-manifest",
+      "equal": true
+    },
+    {
+      "id": "registries/primitive-manifest",
+      "equal": true
+    },
+    {
+      "id": "registries/missing-manifest",
+      "equal": true
+    },
+    {
+      "id": "registries/broken-manifest-json",
+      "equal": true
+    },
+    {
+      "id": "registries/mixed-missing-manifest",
+      "equal": true
+    },
+    {
+      "id": "registries/index-{\"skills\":[]}",
+      "equal": true
+    },
+    {
+      "id": "registries/index-{}",
+      "equal": true
+    },
+    {
+      "id": "registries/index-null",
+      "equal": true
+    },
+    {
+      "id": "registries/index-{\"skills\":{}}",
+      "equal": true
+    },
+    {
+      "id": "registries/index-{\"skills\":[null]}",
+      "equal": true
+    },
+    {
+      "id": "registries/index-{\"skills\":[{}]}",
+      "equal": true
+    },
+    {
+      "id": "registries/index-{\"skills\":[{\"configPath\":1}]}",
+      "equal": true
+    },
+    {
+      "id": "registries/broken-index-json",
+      "equal": true
+    },
+    {
+      "id": "config/row-ids",
+      "equal": true
+    },
+    {
+      "id": "config/defaults",
+      "equal": true
+    },
+    {
+      "id": "config/true-flags",
+      "equal": true
+    },
+    {
+      "id": "config/case-sensitive-flags",
+      "equal": true
+    },
+    {
+      "id": "config/false-launch-history",
+      "equal": true
+    },
+    {
+      "id": "config/empty-defaults",
+      "equal": true
+    },
+    {
+      "id": "config/net-authorities",
+      "equal": true
+    },
+    {
+      "id": "config/source-prefixes-even-schemes",
+      "equal": true
+    },
+    {
+      "id": "original-registry",
+      "equal": true
+    },
+    {
+      "id": "http/row-ids",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/robot",
+      "equal": true
+    },
+    {
+      "id": "http/GET /v1/skills/robot",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/settings/robot",
+      "equal": true
+    },
+    {
+      "id": "http/GET /v1/skills/settings/robot",
+      "equal": true
+    },
+    {
+      "id": "http/GET /V1/Skills/Robot/?ignored=1",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/other",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/settings",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/settings/",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/settings/robot/extra",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/%E2%98%83",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/robot?settings=true",
+      "equal": true
+    },
+    {
+      "id": "http/GET /v1/skills/settings/%2F",
+      "equal": true
+    },
+    {
+      "id": "http/GET /skills/%ZZ",
+      "equal": true
+    },
+    {
+      "id": "http/HEAD list",
+      "equal": true
+    },
+    {
+      "id": "http/OPTIONS list",
+      "equal": true
+    },
+    {
+      "id": "http/POST list",
+      "equal": true
+    },
+    {
+      "id": "http/invalid-authorization-ignored",
+      "equal": true
+    },
+    {
+      "id": "http/malformed-json-before-route",
+      "equal": true
+    },
+    {
+      "id": "http/conditional-etag",
+      "equal": true
+    }
+  ]
+}

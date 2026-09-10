@@ -14,7 +14,7 @@
 // as the reference — values inside array rules arrive as strings, identical to Pegasus). The bare
 // (non-/v1) aliases are kept for older phoenix-internal callers (documented Phase A extension).
 
-import { createService } from '@phoenix/common';
+import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { HistoryStore } from './store.js';
 
@@ -46,6 +46,21 @@ export function start(port = Number(process.env.PORT) || DefaultPort.history) {
 export { HistoryStore } from './store.js';
 export { buildPredicate, resolveMatch, MatchMethod, RuleField } from './query.js';
 
+// Executable boundary: source History scripts/run-service.js resolves the port from
+// argv/ETCO_server_port, logs its success line and closes the service on SIGINT/SIGTERM.
+// Its help branch is a plain `return`, so the source reports "Service didn't return promise".
 if (import.meta.url === `file://${process.argv[1]}`) {
-  start().catch((e) => { console.error(e); process.exit(1); });
+  runService('History', () => {
+    const argv = parseServiceArgs();
+    if (argv.h || argv.help) {
+      console.log(serviceHelp(process.argv[1]));
+      return;
+    }
+    const port = serviceCliPort({ fallback: DefaultPort.history });
+    return start(port).then((server) => {
+      logger('history').info(`History service is successfully started on port ${port}`);
+      process.on('SIGINT', () => server.close());
+      process.on('SIGTERM', () => server.close());
+    });
+  });
 }

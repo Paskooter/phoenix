@@ -1,0 +1,86 @@
+{
+  "task": "C-03",
+  "date": "2026-09-10",
+  "worktree": "/home/shell/work/phoenix/.parity/worktrees/w2-c03",
+  "branch": "w2/c03",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "commands": {
+    "unit": "npm run test:unit",
+    "full": "npm test",
+    "differential": "node scripts/parity-reference/gateway-registry-candidate.mjs <reference-root> /tmp/c03dif/candidate.json && node scripts/parity-reference/gateway-registry-compare.mjs <original.json> /tmp/c03dif/candidate.json /tmp/c03dif/compare.json",
+    "negativeControls": "node scripts/parity-reference/gateway-registry-negative-controls.mjs /tmp/c03dif/original.json /tmp/c03dif/candidate.json /tmp/c03dif/negative",
+    "parityCheck": "npm run parity:check",
+    "parityGate": "npm run parity:gate"
+  },
+  "unitResult": {
+    "tests": 1151,
+    "suites": 7,
+    "pass": 1144,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 7,
+    "todo": 0
+  },
+  "fullTestResult": {
+    "exit": 0,
+    "tests": 1151,
+    "pass": 1144,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 7
+  },
+  "parityCheck": "Tracker structure, dependencies, evidence links and generated checklist are valid.",
+  "parityGate": {
+    "result": "match",
+    "cases": 43,
+    "differences": 0,
+    "invariants": 0,
+    "coverageGaps": 0
+  },
+  "differential": {
+    "total": 161,
+    "matches": 161,
+    "differences": 0,
+    "validations": 102,
+    "registries": 28,
+    "http": 19,
+    "originalSkills": 21
+  },
+  "negativeControls": {
+    "total": 11,
+    "rejected": 11
+  },
+  "originalCapture": {
+    "path": "packages/gateway/test/fixtures/registry-original.json.gz",
+    "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "sourceRuntime": "v8.9.4",
+    "sha256Gunzipped": "e36cfe66cf5a5209d69b268444eb017f8d7a657f86ee9331d6cf6bc47b2b591b"
+  },
+  "candidateCaptureSha256": "7eb33cd3e6a7d4772101a68036ecd49ac07f9129b5f3f4e78a9f5af4d6d34397",
+  "note": "candidate.json (1.7 MB) is not committed; regenerate it with the command above against the pinned reference tree and compare to the retained original capture.",
+  "falsification": [
+    {
+      "id": "cli-port-drops-ETCO_server_port",
+      "file": "packages/common/src/cli.js",
+      "line": "  const raw = argv.p || argv.port || env.ETCO_server_port || fallback;",
+      "mutation": "removed the `env.ETCO_server_port ||` term",
+      "caughtBy": [
+        "packages/common/test/cli.test.js: parseServicePort reproduces the source argv/ETCO_server_port precedence and parseInt",
+        "packages/common/test/cli.test.js: serviceCliPort keeps source inputs first and the Phoenix default last",
+        "packages/gateway/test/referenceEnv.test.js: gateway runs under the reference environment: source CLI port, registry and setup log"
+      ],
+      "restored": true
+    },
+    {
+      "id": "setup-log-keeps-settings",
+      "file": "packages/gateway/src/config.js",
+      "line": "    delete skillCopy.settings;",
+      "mutation": "deleted the whole redaction line from hubSetupConfig",
+      "caughtBy": [
+        "packages/gateway/test/referenceEnv.test.js: startup setup log redacts each skill exactly like the source cli",
+        "packages/gateway/test/referenceEnv.test.js: gateway runs under the reference environment: source CLI port, registry and setup log"
+      ],
+      "restored": true
+    }
+  ]
+}

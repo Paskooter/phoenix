@@ -8,7 +8,7 @@
 //   2. LLM fallback (phoenix: LM Studio + Gemma tool-calling) when grammar misses AND
 //      ETCO_parser_llmUrl is configured. Off by default -> a miss returns the no-match NLUResult.
 
-import { createService } from '@phoenix/common';
+import { createService, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { grammarParse } from './grammar.js';
 import { launchParse } from './launchRules.js';
@@ -142,6 +142,15 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
   return svc.listen(port);
 }
 
+// Executable boundary: source Parser cli/start.ts resolves the port from
+// argv/ETCO_server_port and prints help, then returns from the async starter.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  start().catch((e) => { console.error(e); process.exit(1); });
+  runService('Parser', async () => {
+    const argv = parseServiceArgs();
+    if (argv.h || argv.help) {
+      console.log(serviceHelp(process.argv[1]));
+      return 0;
+    }
+    return start(serviceCliPort({ fallback: DefaultPort.nlu }));
+  });
 }

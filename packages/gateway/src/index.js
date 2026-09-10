@@ -10,9 +10,9 @@
 // Server-side ASR (audio streaming) is M8; CLIENT_ASR/CLIENT_NLU robots are fully supported.
 
 import { WebSocketServer } from 'ws';
-import { createService, logger, jwt } from '@phoenix/common';
+import { createService, logger, jwt, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { newMsgId, now, ResponseType, DefaultPort } from '@phoenix/contracts';
-import { loadConfig, accountVerifyTimeout } from './config.js';
+import { loadConfig, accountVerifyTimeout, hubSetupConfig } from './config.js';
 import { ParserClient } from './parserClient.js';
 import { IntentRouter } from './intentRouter.js';
 import { SkillConfigManager, SkillClient } from './skillClient.js';
@@ -165,6 +165,20 @@ export async function start(port = Number(process.env.PORT) || DefaultPort.gatew
   return gw;
 }
 
+// Executable boundary. The reference hub resolves its port from argv/ETCO_server_port
+// and logs the setup config before constructing the service
+// (packages/hub/src/cli/start.ts:17-43), with the hub-specific usage text that omits
+// the `[options]` suffix other services print.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  start().catch((e) => { console.error(e); process.exit(1); });
+  const argv = parseServiceArgs();
+  if (argv.h || argv.help) {
+    console.log(serviceHelp(process.argv[1], { options: false }));
+    process.exit(0);
+  }
+  const port = serviceCliPort({ fallback: DefaultPort.gateway });
+  runService('Hub', async () => {
+    const config = await loadConfig();
+    logger('gateway').info('Starting hub with config: ', hubSetupConfig(config));
+    return start(port, config);
+  });
 }
