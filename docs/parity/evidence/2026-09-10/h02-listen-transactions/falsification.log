@@ -1,0 +1,62 @@
+====================================================================================================
+CASE F1 parser failure keeps HubErrorCode.PARSER
+  file          packages/gateway/src/listenTransaction.js
+  exact anchor  '      throw new HubError(HubErrorCode.PARSER, errMsg(err));'
+  matches       1 (a complete line / block, not a substring)
+  after edit    throw err; // CORRUPTED: parser code lost
+  line number   383
+  test run      exit=1
+                # tests 12
+                # pass 10
+                # fail 2
+  failures:
+                not ok 8 - a parser failure keeps the reference PARSER code
+                not ok 9 - a parser timeout also reaches the robot as PARSER (reference re-wrap)
+  caught        True
+  restored run  exit=0
+                # tests 12
+                # pass 12
+                # fail 0
+  restored ok   True
+====================================================================================================
+CASE F2 CLIENT_ASR cancels the running ASR session
+  file          packages/gateway/src/listenTransaction.js
+  exact anchor  '  _cancelASR() {\n    this.asrCancelled = true;\n    this._stopASR();\n  }'
+  matches       1 (a complete line / block, not a substring)
+  after edit    // CORRUPTED: cancellation becomes a no-op
+  line number   355
+  test run      exit=1
+                # tests 8
+                # pass 6
+                # fail 2
+  failures:
+                not ok 2 - CLIENT_ASR cancels the in-flight server ASR phase and keeps the client transcript
+                not ok 3 - CLIENT_NLU cancels the in-flight server ASR phase
+  caught        True
+  restored run  exit=0
+                # tests 8
+                # pass 8
+                # fail 0
+  restored ok   True
+====================================================================================================
+falsification complete: both corruptions were caught and both files restored
+====================================================================================================
+CASE F3 close timing: the hub must not close the socket 2s after the terminal frame
+  file          packages/gateway/src/responseWrapper.js
+  exact anchor  '    this.closed = true;'  (responseWrapper.js:31, pinned BaseWebsocketHandler.ts:26 declares 'private closed = true')
+  corruption    restore the pre-fix initialiser 'this.closed = false;' via git stash of packages/gateway/src + packages/contracts/src
+  test run (pre-fix source)
+    not ok 1 - the hub leaves the socket open after the terminal frame (no close-after-final)
+        the hub must not close the socket 2 s after the terminal frame
+        + actual - expected
+      name: 'AssertionError'
+      expected: ~
+      actual: 1789070523396
+    # tests 1
+    # pass 0
+    # fail 1
+  restored run
+    ok 1 - the hub leaves the socket open after the terminal frame (no close-after-final)
+    # tests 1
+    # pass 1
+    # fail 0

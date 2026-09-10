@@ -78,6 +78,12 @@ export class ListenTransaction {
     this.nluData = null;
     this.audioChunks = [];
     this.redirectCount = 0;
+    // ASR phase bookkeeping. asrCancelled mirrors the reference's stopASR()
+    // effect: once a client-supplied turn (or any state exit) supersedes the
+    // ASR phase, that phase may no longer emit SOS/EOS or contribute a result.
+    this.asrCancelled = false;
+    this.sosTimer = null;
+    this.maxSpeechTimer = null;
 
     this._handle = defer();
     // The reference TransactionHandler wraps its internal ExtPromise with a
@@ -144,6 +150,11 @@ export class ListenTransaction {
   }
 
   async _handleClientASR(message) {
+    // Reference: "If we're already doing ASR then we cancel that"
+    // (ListenTransactionHandler.ts:253-256). Without it the stale server ASR
+    // session keeps running and its late result overwrites the transcript the
+    // client just supplied.
+    if (this.state === State.ASR) this._cancelASR();
     if (!this.listenMessage) this._beginGlobalTurn(State.WAIT_CLIENT_ASR);
     this.asrData = { text: message.data.text, confidence: 1 };
     this.timings.asr = -1;
@@ -152,6 +163,8 @@ export class ListenTransaction {
   }
 
   async _handleClientNLU(message) {
+    // Same cancellation guard as CLIENT_ASR (ListenTransactionHandler.ts:272-276).
+    if (this.state === State.ASR) this._cancelASR();
     if (!this.listenMessage) this._beginGlobalTurn(State.WAIT_CLIENT_NLU, message.data && message.data.rules);
     this.nluData = message.data;
     this.timings.nlu = -1;
@@ -205,6 +218,9 @@ export class ListenTransaction {
       this.log.info(`bad transition to '${target}' from '${this.state}'`);
       return;
     }
+    // Reference _exitCurrentState(): leaving ASR stops the ASR session
+    // (ListenTransactionHandler.ts:207-226).
+    if (this.state === State.ASR) this._cancelASR();
     this.stateTrace.push(target);
     this.state = target;
     const exec = {
@@ -226,24 +242,35 @@ export class ListenTransaction {
     // GARBAGE short-circuit. Real robots stream raw PCM here; the sim's mic mode
     // follows the same path.
     const t0 = now();
+    this.asrCancelled = false;
     try {
       const out = await withTimeout(this._runASRSession(), Timeouts.asr).finally(() => {
         // Reference stopASR(): always stop the session when the ASR phase settles.
-        if (this.asrSession) { try { this.asrSession.stop(); } catch { /* already done */ } this.asrSession = null; }
+        this._stopASR();
       });
-      if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_ASR ?? HubErrorCode.INTERNAL, `Timeout of ${Timeouts.asr} while waiting for ASR`);
-      const asrData = out || { text: '', confidence: 0 };
-      this.asrData = asrData;
-      this.timings.asr = now() - t0;
-      this.asrData.text = normalizeString(this.asrData.text);
-      if (asrData.annotation === 'GARBAGE') {
-        this.nluData = { intent: null, rules: [], entities: {} };
-        this._emitListenResult(null, true);
-        return this._gotoState(State.DONE);
+      if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_ASR, `Timeout of ${Timeouts.asr} while waiting for ASR`);
+      // A cancelled phase contributes nothing: the reference stops the session so
+      // it cannot answer, and its performASR guards the assignment with
+      // `if (asrData)`. Both matter here because a Phoenix provider session keeps
+      // running until it is told to stop.
+      if (this.asrCancelled || this.state !== State.ASR) return;
+      // `if (asrData)` in the reference: an ASR phase that produced no result
+      // must not overwrite data the client already supplied.
+      if (out) {
+        this.asrData = out;
+        this.timings.asr = now() - t0;
+        this.asrData.text = normalizeString(this.asrData.text);
+        if (out.annotation === 'GARBAGE') {
+          this.nluData = { intent: null, rules: [], entities: {} };
+          this._emitListenResult(null, true);
+          return this._gotoState(State.DONE);
+        }
       }
     } catch (err) {
-      if (err instanceof HubError) throw err;
-      throw new HubError(HubErrorCode.ASR ?? HubErrorCode.INTERNAL, err.message);
+      // The reference's outer catch re-wraps EVERY ASR failure — including its
+      // own TIMEOUT_ASR throw — as HubErrorCode.ASR, so TIMEOUT_ASR never
+      // reaches the robot (ListenTransactionHandler.ts:452-484).
+      throw new HubError(HubErrorCode.ASR, errMsg(err));
     }
     this._gotoState(State.NLU);
   }
@@ -261,37 +288,72 @@ export class ListenTransaction {
       const session = (this.components.asrProvider || startASRSession)(config, this.log);
       this.asrSession = session;
 
-      let sosTimer = null; let maxSpeechTimer = null;
-      const clearTimers = () => { clearTimeout(sosTimer); clearTimeout(maxSpeechTimer); };
+      // Only the phase that started this closure may emit or resolve; after a
+      // cancel the reference's session is stopped and its timers cleared, so a
+      // superseded phase must go quiet rather than answer.
+      const live = () => !this.asrCancelled;
 
       if (config.sosTimeout > 0) {
-        sosTimer = setTimeout(() => resolve({ text: '', confidence: 0, annotation: 'SOS_TIMEOUT' }), config.sosTimeout);
-        sosTimer.unref?.();
+        this.sosTimer = setTimeout(() => {
+          if (live()) resolve({ text: '', confidence: 0, annotation: 'SOS_TIMEOUT' });
+        }, config.sosTimeout);
+        this.sosTimer.unref?.();
       }
       session.onStartOfSpeech(() => {
-        clearTimeout(sosTimer);
+        if (!live()) return;
+        clearTimeout(this.sosTimer);
+        this.sosTimer = null;
         this._emitSOS();
         if (config.maxSpeechTimeout > 0) {
-          maxSpeechTimer = setTimeout(() => {
+          this.maxSpeechTimer = setTimeout(() => {
+            if (!live()) return;
             const last = session.getLastIncremental();
             resolve({ text: (last && last.text) || '', confidence: (last && last.confidence) || 0, annotation: 'MAX_SPEECH_TIMEOUT' });
           }, config.maxSpeechTimeout);
-          maxSpeechTimer.unref?.();
+          this.maxSpeechTimer.unref?.();
         }
       });
       session.onEndOfSpeech(() => {
-        clearTimeout(maxSpeechTimer);
+        if (!live()) return;
+        clearTimeout(this.maxSpeechTimer);
+        this.maxSpeechTimer = null;
         this._emitEOS();
       });
 
       session.start()
-        .then((data) => { clearTimers(); resolve(data); })
-        .catch((err) => { clearTimers(); reject(err); });
+        .then((data) => { this._clearASRTimers(); resolve(data); })
+        .catch((err) => { this._clearASRTimers(); reject(err); });
 
       // Flush audio that arrived before the session existed, then handleMessage
       // streams subsequent frames directly (push-style, like audioStream.on('data')).
       for (const chunk of this.audioChunks.splice(0)) session.provideAudio(chunk);
     });
+  }
+
+  /**
+   * Reference stopASR() (ListenTransactionHandler.ts:439-450): stop the session,
+   * drop the audio path and clear the SOS / max-speech timers.
+   */
+  _stopASR() {
+    if (this.asrSession) {
+      try { this.asrSession.stop(); } catch { /* already done */ }
+      this.asrSession = null;
+    }
+    this._clearASRTimers();
+    // After stopASR the reference's audioStream is null, so further audio is
+    // dropped instead of buffered for a session that will never consume it.
+    if (this.asrCancelled) this.audioChunks.length = 0;
+  }
+
+  _clearASRTimers() {
+    if (this.sosTimer) { clearTimeout(this.sosTimer); this.sosTimer = null; }
+    if (this.maxSpeechTimer) { clearTimeout(this.maxSpeechTimer); this.maxSpeechTimer = null; }
+  }
+
+  /** Cancel the in-flight ASR phase: stop it and make it invisible from then on. */
+  _cancelASR() {
+    this.asrCancelled = true;
+    this._stopASR();
   }
 
   async _performNLU() {
@@ -306,10 +368,20 @@ export class ListenTransaction {
       },
       this.trace,
     );
-    const result = await withTimeout(parserPr, Timeouts.parser);
-    if (result === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${Timeouts.parser} while waiting for parser`);
-    this.nluData = result;
-    this.timings.nlu = now() - t0;
+    try {
+      const result = await withTimeout(parserPr, Timeouts.parser);
+      if (result === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${Timeouts.parser} while waiting for parser`);
+      this.nluData = result;
+      this.timings.nlu = now() - t0;
+    } catch (err) {
+      // The reference wraps the whole parser block in a catch that re-throws
+      // HubErrorCode.PARSER — including its own TIMEOUT_PARSER throw, so even a
+      // parser timeout reaches the robot as 'PARSER'
+      // (ListenTransactionHandler.ts:304-321; captured in the original
+      // hub-listen-provider-failure transaction as
+      // {"code":"PARSER","message":"Request failed with status code 503"}).
+      throw new HubError(HubErrorCode.PARSER, errMsg(err));
+    }
     this._gotoState(State.ROUTE);
   }
 

@@ -1,0 +1,637 @@
+{
+  "capturedAt": "2026-09-10T20:05:01.992Z",
+  "revision": "w3-h02 + focused fixes (working tree)",
+  "orderingAndClose": {
+    "name": "CLIENT_ASR turn, socket kept under observation 3s past the terminal frame",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "dc107ae0-05d2-46de-ba49-850ebb2946f6",
+      "ts": 1789070702062,
+      "data": {
+        "asr": {
+          "text": "blurf gnax",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 51,
+        "asr": -1,
+        "nlu": 17
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"07c34a28-584d-4552-8cd8-96d77689945f\",\"ts\":1789070702013,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"c046b29a-9006-4143-9b18-301a40bf6956\",\"ts\":1789070702044,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"dc107ae0-05d2-46de-ba49-850ebb2946f6\",\"ts\":1789070702062,\"data\":{\"asr\":{\"text\":\"blurf gnax\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":51,\"asr\":-1,\"nlu\":17}}"
+    ],
+    "elapsedMs": 52,
+    "error": null,
+    "socketOpenAfterTerminal": true,
+    "observedOpenAfterFinalMs": 3000,
+    "serverClosedSocket": false,
+    "clientCloseObserved": true
+  },
+  "aliasListen": {
+    "name": "plain /listen alias",
+    "path": "/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "aed1275c-c595-47a1-9fda-eb36777cc2da",
+      "ts": 1789070705139,
+      "data": {
+        "asr": {
+          "text": "blurf gnax",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 36,
+        "asr": -1,
+        "nlu": 3
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"527016c6-864e-46e6-a57f-ed4317b7a4b9\",\"ts\":1789070705104,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"a3092f81-218b-4342-b3e4-a23f73867f91\",\"ts\":1789070705135,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"aed1275c-c595-47a1-9fda-eb36777cc2da\",\"ts\":1789070705139,\"data\":{\"asr\":{\"text\":\"blurf gnax\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":36,\"asr\":-1,\"nlu\":3}}"
+    ],
+    "elapsedMs": 35,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "duplicateClientAsrTight": {
+    "name": "duplicate CLIENT_ASR, same tick",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CLIENT_ASR",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "01a3b750-18d4-405e-9029-7a3394541b15",
+      "ts": 1789070705220,
+      "data": {
+        "asr": {
+          "text": "second words",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 35,
+        "asr": -1,
+        "nlu": 3
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"eb9c2472-8f69-4e9c-9b40-296e253bdc44\",\"ts\":1789070705185,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"a81f36a8-537d-4a13-b215-fb043af3d721\",\"ts\":1789070705217,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"7730f61d-1088-4e75-9ca0-a254b8a65db0\",\"ts\":1789070705217,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"01a3b750-18d4-405e-9029-7a3394541b15\",\"ts\":1789070705220,\"data\":{\"asr\":{\"text\":\"second words\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":35,\"asr\":-1,\"nlu\":3}}"
+    ],
+    "elapsedMs": 35,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "duplicateClientAsr": {
+    "name": "duplicate CLIENT_ASR",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CLIENT_ASR",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "f7f3672c-ac05-4bf8-95d3-7a59be00e14c",
+      "ts": 1789070705289,
+      "data": {
+        "asr": {
+          "text": "first words",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 35,
+        "asr": -1,
+        "nlu": 3
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"aca80efd-707d-43f9-9a0f-ce626f039869\",\"ts\":1789070705255,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"816ef41b-af66-4a22-8983-837cf1cfde61\",\"ts\":1789070705286,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"f7f3672c-ac05-4bf8-95d3-7a59be00e14c\",\"ts\":1789070705289,\"data\":{\"asr\":{\"text\":\"first words\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":35,\"asr\":-1,\"nlu\":3}}"
+    ],
+    "elapsedMs": 34,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "duplicateContext": {
+    "name": "duplicate CONTEXT",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CONTEXT",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "9951ae9e-3da6-4320-9945-4a439a1bd684",
+      "ts": 1789070705400,
+      "data": {
+        "asr": {
+          "text": "duplicate context",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 50,
+        "asr": -1,
+        "nlu": 3
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"f68f535b-7e17-403e-87a2-ac7c6352e7c9\",\"ts\":1789070705351,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"6a1eea3f-17ac-4f2f-a5d9-42be6d4ad06d\",\"ts\":1789070705397,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"9951ae9e-3da6-4320-9945-4a439a1bd684\",\"ts\":1789070705400,\"data\":{\"asr\":{\"text\":\"duplicate context\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":50,\"asr\":-1,\"nlu\":3}}"
+    ],
+    "elapsedMs": 49,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "reorderedContext": {
+    "name": "CONTEXT arriving after CLIENT_ASR",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CLIENT_ASR",
+      "CONTEXT"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "6ac511b6-548f-424e-b201-bc16547867b5",
+      "ts": 1789070705478,
+      "data": {
+        "asr": {
+          "text": "context came late",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 33,
+        "asr": -1,
+        "nlu": 3
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"406dd886-2b0c-469e-a598-896d299833e8\",\"ts\":1789070705445,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"bb7a8aa5-11e6-4d5d-9db1-a5959c4fed0c\",\"ts\":1789070705460,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"6ac511b6-548f-424e-b201-bc16547867b5\",\"ts\":1789070705478,\"data\":{\"asr\":{\"text\":\"context came late\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":33,\"asr\":-1,\"nlu\":3}}"
+    ],
+    "elapsedMs": 33,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "globalTurn": {
+    "name": "bare CLIENT_ASR with no LISTEN (simulator framing)",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "EOS",
+      "LISTEN"
+    ],
+    "finalFlags": [
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "LISTEN",
+      "msgID": "fd5dbcba-5f3f-417d-9bdb-e4f762f7d782",
+      "ts": 1789070705526,
+      "data": {
+        "asr": {
+          "text": "global words",
+          "confidence": 1
+        },
+        "nlu": {
+          "intent": null,
+          "rules": [
+            "launch"
+          ],
+          "entities": {}
+        },
+        "match": null
+      },
+      "final": true,
+      "timings": {
+        "total": 2,
+        "asr": -1,
+        "nlu": 2
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"e15bd5cc-ddfa-46fe-afd4-239127e4c530\",\"ts\":1789070705524,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"LISTEN\",\"msgID\":\"fd5dbcba-5f3f-417d-9bdb-e4f762f7d782\",\"ts\":1789070705526,\"data\":{\"asr\":{\"text\":\"global words\",\"confidence\":1},\"nlu\":{\"intent\":null,\"rules\":[\"launch\"],\"entities\":{}},\"match\":null},\"final\":true,\"timings\":{\"total\":2,\"asr\":-1,\"nlu\":2}}"
+    ],
+    "elapsedMs": 3,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "malformedJson": {
+    "name": "malformed JSON",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "<raw>THIS IS NOT A JSON"
+    ],
+    "observedTypes": [
+      "ERROR"
+    ],
+    "finalFlags": [
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "07af92e6-741d-4e21-8330-b12788833814",
+      "ts": 1789070705572,
+      "final": true,
+      "data": {
+        "message": "Invalid JSON arrived into socket: THIS IS NOT A JSON"
+      },
+      "timings": {
+        "total": 1
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"ERROR\",\"msgID\":\"07af92e6-741d-4e21-8330-b12788833814\",\"ts\":1789070705572,\"final\":true,\"data\":{\"message\":\"Invalid JSON arrived into socket: THIS IS NOT A JSON\"},\"timings\":{\"total\":1}}"
+    ],
+    "elapsedMs": 1,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "unknownType": {
+    "name": "unknown message type",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN_ME"
+    ],
+    "observedTypes": [
+      "ERROR"
+    ],
+    "finalFlags": [
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "65696a4f-a1f9-4469-bea6-0e354c4847ef",
+      "ts": 1789070705620,
+      "final": true,
+      "data": {
+        "message": "Unknown message type: LISTEN_ME"
+      },
+      "timings": {
+        "total": 1
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"ERROR\",\"msgID\":\"65696a4f-a1f9-4469-bea6-0e354c4847ef\",\"ts\":1789070705620,\"final\":true,\"data\":{\"message\":\"Unknown message type: LISTEN_ME\"},\"timings\":{\"total\":1}}"
+    ],
+    "elapsedMs": 0,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "badMode": {
+    "name": "invalid LISTEN mode",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN"
+    ],
+    "observedTypes": [
+      "ERROR"
+    ],
+    "finalFlags": [
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "4a031838-22a5-4e3e-bd74-991744b81cc6",
+      "ts": 1789070705669,
+      "final": true,
+      "data": {
+        "message": "Invalid value for mode 'WHATEVER'"
+      },
+      "timings": {
+        "total": 1
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"ERROR\",\"msgID\":\"4a031838-22a5-4e3e-bd74-991744b81cc6\",\"ts\":1789070705669,\"final\":true,\"data\":{\"message\":\"Invalid value for mode 'WHATEVER'\"},\"timings\":{\"total\":1}}"
+    ],
+    "elapsedMs": 1,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "parserFailure": {
+    "name": "parser 503",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "ERROR"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "5189891f-adae-4fd1-8dd4-32268233550c",
+      "ts": 1789070705750,
+      "final": true,
+      "data": {
+        "code": "PARSER",
+        "message": "parser 503"
+      },
+      "timings": {
+        "total": 33
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"68e09c44-8622-483f-9497-74d45341fe4f\",\"ts\":1789070705717,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"0417e108-0c0b-408b-b1d8-d2d8a9419eeb\",\"ts\":1789070705748,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"ERROR\",\"msgID\":\"5189891f-adae-4fd1-8dd4-32268233550c\",\"ts\":1789070705750,\"final\":true,\"data\":{\"code\":\"PARSER\",\"message\":\"parser 503\"},\"timings\":{\"total\":33}}"
+    ],
+    "elapsedMs": 33,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "parserTimeout": {
+    "name": "parser never answers (10s budget)",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CONTEXT",
+      "CLIENT_ASR"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "ERROR"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "ab4f0fd3-bceb-443a-89d9-9e1394d4413e",
+      "ts": 1789070715828,
+      "final": true,
+      "data": {
+        "code": "PARSER",
+        "message": "Timeout of 10000 while waiting for parser"
+      },
+      "timings": {
+        "total": 10033
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"81b35009-a7fc-4a99-96d0-6765fdfc49f4\",\"ts\":1789070705796,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"205a415a-3404-4d59-806e-0287402c6f88\",\"ts\":1789070705826,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"ERROR\",\"msgID\":\"ab4f0fd3-bceb-443a-89d9-9e1394d4413e\",\"ts\":1789070715828,\"final\":true,\"data\":{\"code\":\"PARSER\",\"message\":\"Timeout of 10000 while waiting for parser\"},\"timings\":{\"total\":10033}}"
+    ],
+    "elapsedMs": 10032,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "contextTimeout": {
+    "name": "CLIENT_NLU with no CONTEXT (5s budget)",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN",
+      "CLIENT_NLU"
+    ],
+    "observedTypes": [
+      "SOS",
+      "EOS",
+      "ERROR"
+    ],
+    "finalFlags": [
+      false,
+      false,
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "7ff0c075-6efd-4c35-b39a-8fdef96f618a",
+      "ts": 1789070720886,
+      "final": true,
+      "data": {
+        "code": "TIMEOUT_CONTEXT",
+        "message": "Timeout of 5000 while waiting for the context message"
+      },
+      "timings": {
+        "total": 5017
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"SOS\",\"data\":null,\"msgID\":\"9b8224da-4817-4068-8050-656131d71489\",\"ts\":1789070715869,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"EOS\",\"data\":null,\"msgID\":\"43bd5ead-a3bd-4a16-9f88-8020da775f8b\",\"ts\":1789070715885,\"timings\":{\"total\":-1}}",
+      "{\"type\":\"ERROR\",\"msgID\":\"7ff0c075-6efd-4c35-b39a-8fdef96f618a\",\"ts\":1789070720886,\"final\":true,\"data\":{\"code\":\"TIMEOUT_CONTEXT\",\"message\":\"Timeout of 5000 while waiting for the context message\"},\"timings\":{\"total\":5017}}"
+    ],
+    "elapsedMs": 5017,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "asrFailure": {
+    "name": "server ASR provider rejects",
+    "path": "/v1/listen",
+    "requestFrames": [
+      "LISTEN"
+    ],
+    "observedTypes": [
+      "ERROR"
+    ],
+    "finalFlags": [
+      true
+    ],
+    "terminalFrame": {
+      "type": "ERROR",
+      "msgID": "2a7bd676-28fa-4f1a-a598-c39f5f8e9eaa",
+      "ts": 1789070720920,
+      "final": true,
+      "data": {
+        "code": "ASR",
+        "message": "asr backend exploded"
+      },
+      "timings": {
+        "total": 1
+      }
+    },
+    "rawFrames": [
+      "{\"type\":\"ERROR\",\"msgID\":\"2a7bd676-28fa-4f1a-a598-c39f5f8e9eaa\",\"ts\":1789070720920,\"final\":true,\"data\":{\"code\":\"ASR\",\"message\":\"asr backend exploded\"},\"timings\":{\"total\":1}}"
+    ],
+    "elapsedMs": 0,
+    "error": null,
+    "clientCloseObserved": true
+  },
+  "asrCancellation": {
+    "stateAtStart": "ASR",
+    "stoppedOnClientASR": true,
+    "cancelledFlag": true,
+    "typesAfterLateCallbacks": [
+      "EOS"
+    ],
+    "observedTypes": [
+      "EOS",
+      "LISTEN"
+    ],
+    "finalAsrText": "client words",
+    "terminalFinal": true,
+    "stateTrace": [
+      "WAIT_LISTEN",
+      "ASR",
+      "NLU",
+      "ROUTE",
+      "DONE"
+    ]
+  }
+}

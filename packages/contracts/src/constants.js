@@ -89,13 +89,25 @@ export const Timeouts = Object.freeze({
   closeAfterFinal: 2_000,
 });
 
-// Error codes surfaced to the robot (interfaces/src/hub/HubErrorCode.ts).
+// Error codes surfaced to the robot (interfaces/src/hub/HubErrorCode.ts:5-24).
+// The pinned enum holds SKILL_NOT_FOUND, TIMEOUT_SKILL, TIMEOUT_PARSER,
+// TIMEOUT_ASR, TIMEOUT_CONTEXT, TIMEOUT_TRANSACTION, ASR, PARSER and GENERAL.
+// PARSER is load-bearing: a parser failure or parser timeout reaches the robot
+// as code 'PARSER' (see listenTransaction.js _performNLU and the captured
+// original hub-listen-provider-failure transaction), so dropping it produced an
+// ERROR frame with no code at all.
 export const HubErrorCode = Object.freeze({
-  TIMEOUT_ASR: 'TIMEOUT_ASR',
-  ASR: 'ASR',
-  TIMEOUT_CONTEXT: 'TIMEOUT_CONTEXT',
-  TIMEOUT_PARSER: 'TIMEOUT_PARSER',
+  SKILL_NOT_FOUND: 'SKILL_NOT_FOUND',
   TIMEOUT_SKILL: 'TIMEOUT_SKILL',
+  TIMEOUT_PARSER: 'TIMEOUT_PARSER',
+  TIMEOUT_ASR: 'TIMEOUT_ASR',
+  TIMEOUT_CONTEXT: 'TIMEOUT_CONTEXT',
+  TIMEOUT_TRANSACTION: 'TIMEOUT_TRANSACTION',
+  ASR: 'ASR',
+  PARSER: 'PARSER',
+  GENERAL: 'GENERAL',
+  // Phoenix-only codes: not in the pinned enum, used by Phoenix subsystems that
+  // have no counterpart in the original hub response path.
   TOO_MANY_REDIRECTS: 'TOO_MANY_REDIRECTS',
   NOT_IMPLEMENTED: 'NOT_IMPLEMENTED',
   NOT_FOUND: 'NOT_FOUND',

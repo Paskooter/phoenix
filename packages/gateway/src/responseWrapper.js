@@ -3,9 +3,16 @@
 // Robot-compatibility-critical behaviors preserved exactly:
 //   - every written message gets `timings.total = Date.now() - startTime` if absent
 //   - writeFinal sets final:true
-//   - after a final write, the socket is closed 2s later (TIMEOUT_CLOSE_AFTER_FINAL)
-//   - the socket is force-closed 3min after open (TIMEOUT_MAX_DURATION)
-//   - once ended, further writes are dropped (warned)
+//   - a final write ends the response: further writes are dropped (warned)
+//   - the socket is NOT closed by this wrapper. The reference initializes
+//     `closed = true` (BaseWebsocketHandler.ts:26) while only `socket.onclose`
+//     ever sets it (line 42), so its guarded `closeBecauseOfTimeout` (line 133)
+//     is dead code: neither TIMEOUT_CLOSE_AFTER_FINAL nor TIMEOUT_MAX_DURATION
+//     can close a socket. The captured original confirms it — hub-listen-launch
+//     records `connectionOpenAfterFinal: true` at 50 ms and the client, not the
+//     hub, closes (`clientCloseAfterFinal: true`). The original client is
+//     responsible for closing: it does so as soon as it sees the final frame
+//     (hub-client/src/session/ClientSession.ts:21-26,49-51).
 //   - error() writes {type:'ERROR', msgID, ts, final:true, data:{message, code, ...extra}}
 
 import { newMsgId, now } from '@phoenix/contracts';
@@ -20,7 +27,9 @@ export class ResponseWrapper {
     this.log = log;
     this.startTime = now();
     this.ended = false;
-    this.closed = false;
+    // Matches the pinned initial value. `closed` only ever becomes true when the
+    // peer closes, so `_closeBecauseOfTimeout` never fires (see header comment).
+    this.closed = true;
 
     this._onEnd = null;
     this.donePromise = new Promise((resolve) => { this._onEnd = resolve; });
