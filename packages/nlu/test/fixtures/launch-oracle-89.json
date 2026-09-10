@@ -1,0 +1,741 @@
+{
+ "schema": "phoenix.nlu.launch-oracle-fixture",
+ "provenance": {
+  "note": "Vendored from the pinned native launch oracle so the arbitration regression test does not depend on the raw jsonl. rules:['launch'] request path; the native Result vector's first (best) entry supplies intent and entities. `priority` is excluded because getNLParseEntities drops intent and priority before the HTTP response (RobustParserClient.ts:253-260).",
+  "source": "packages/nlu/resources/legacy-oracle/golden.jsonl",
+  "sourceSha256": "e0ace19cdad03eff4dd02ff0ffe302cda7ac55241edbe0829643f9db4e267098",
+  "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "attributedUtterances": 89
+ },
+ "cases": [
+  {
+   "text": "what time is it",
+   "intent": "askForTime",
+   "entities": {
+    "domain": "clock",
+    "country": "null",
+    "state": "null",
+    "city": "null",
+    "day_of_week": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "whats the time",
+   "intent": "askForTime",
+   "entities": {
+    "domain": "clock",
+    "country": "null",
+    "state": "null",
+    "city": "null",
+    "day_of_week": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "tell me the time",
+   "intent": "askForTime",
+   "entities": {
+    "domain": "clock",
+    "country": "null",
+    "state": "null",
+    "city": "null",
+    "day_of_week": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "do you have the time",
+   "intent": "askForTime",
+   "entities": {
+    "domain": "clock",
+    "country": "null",
+    "state": "null",
+    "city": "null",
+    "day_of_week": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "what is the current time",
+   "intent": "askForTime",
+   "entities": {
+    "domain": "clock",
+    "country": "null",
+    "state": "null",
+    "city": "null",
+    "day_of_week": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "whats the date",
+   "intent": "askForDate",
+   "entities": {
+    "domain": "clock",
+    "country": "null",
+    "state": "null",
+    "city": "null",
+    "day_of_week": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "what day is it today",
+   "intent": "generalWhatQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what year is it",
+   "intent": "generalWhatQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "hello",
+   "intent": "hello",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "hi jibo",
+   "intent": "heyJibo",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "hey there",
+   "intent": "hello",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "good morning",
+   "intent": "goodMorning",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "good evening",
+   "intent": "goodEvening",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "howdy",
+   "intent": "hello",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "whats up",
+   "intent": "whatsUp",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "whats the weather",
+   "intent": "requestWeatherPR",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "weather",
+   "intent": "requestWeatherPR",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "is it going to rain",
+   "intent": "requestWeather",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "will it rain tomorrow",
+   "intent": "requestWeather",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how hot is it outside",
+   "intent": "generalHowQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "do i need an umbrella",
+   "intent": "requestWeather",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "whats the forecast",
+   "intent": "requestWeatherPR",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "is it cold out",
+   "intent": "thingIsDescriptor",
+   "entities": {
+    "GeneralDescriptor": "Cold",
+    "Location": "Outside",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "tell me the news",
+   "intent": "requestNews",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "whats happening",
+   "intent": "whatsUp",
+   "entities": {
+    "domain": "greetings",
+    "skill": "@be/greetings",
+    "union_original_fst_name": "handle:greetings/launch"
+   }
+  },
+  {
+   "text": "give me the headlines",
+   "intent": "requestJiboGiveThing",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "whats going on in the world",
+   "intent": "requestNews",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "my personal report",
+   "intent": "launchPersonalReport",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "morning report",
+   "intent": "launchPersonalReport",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "how long is my commute",
+   "intent": "requestCommute",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "whats traffic like",
+   "intent": "generalWhatQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how long to get to work",
+   "intent": "requestCommute",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "whats on my calendar",
+   "intent": "requestCalendar",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "what do i have today",
+   "intent": "idle",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "my schedule",
+   "intent": "requestCalendar",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "do i have any meetings",
+   "intent": "requestCalendar",
+   "entities": {
+    "union_original_fst_name": "handle:personal-report/launch"
+   }
+  },
+  {
+   "text": "who is ada lovelace",
+   "intent": "whoIsPerson",
+   "entities": {
+    "GivenName": "ada",
+    "LastName": "lovelace",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "who was albert einstein",
+   "intent": "whoIsPerson",
+   "entities": {
+    "GivenName": "albert",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what is photosynthesis",
+   "intent": "generalWhatQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how tall is mount everest",
+   "intent": "generalHowQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "why is the sky blue",
+   "intent": "whyIsThingDescriptor",
+   "entities": {
+    "GeneralLikes": "Sky",
+    "Color": "Blue",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "when did world war two end",
+   "intent": "generalWhenQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "where is paris",
+   "intent": "whereIsPerson",
+   "entities": {
+    "GivenName": "paris",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how many planets are there",
+   "intent": "generalHowQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what is the capital of france",
+   "intent": "requestTellAboutThing",
+   "entities": {
+    "GivenName": "france",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "tell me about dolphins",
+   "intent": "generalQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how do airplanes fly",
+   "intent": "generalHowQuestions",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what is the meaning of life",
+   "intent": "whatDoesThingMean",
+   "entities": {
+    "Concept": "Life",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "tell me a joke",
+   "intent": "requestTellJiboContent",
+   "entities": {
+    "JiboContent": "Joke",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "sing me a song",
+   "intent": "requestSingSong",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how are you",
+   "intent": "emotionQuery",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "i love you",
+   "intent": "userLovesThing",
+   "entities": {
+    "Person": "Jibo",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "you are funny",
+   "intent": "jiboIsDescriptor",
+   "entities": {
+    "GeneralDescriptor": "Funny",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what is your favorite color",
+   "intent": "doesJiboHaveFavorite",
+   "entities": {
+    "FavoriteCategory": "Color",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "do you like me",
+   "intent": "doesJiboLikeThing",
+   "entities": {
+    "Person": "User",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "are you a robot",
+   "intent": "isJiboDescriptor",
+   "entities": {
+    "GeneralDescriptor": "Robot",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "whats your name",
+   "intent": "idle",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how old are you",
+   "intent": "howDescriptorIsJibo",
+   "entities": {
+    "GeneralDescriptor": "Old",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "can you dance",
+   "intent": "canJiboAction",
+   "entities": {
+    "Action": "Dance",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "do a dance",
+   "intent": "requestDance",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "tell me a story",
+   "intent": "requestStory",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "menu",
+   "intent": "launchMainMenu",
+   "entities": {
+    "skill": "@be/main-menu",
+    "union_original_fst_name": "handle:main-menu/launch"
+   }
+  },
+  {
+   "text": "main menu",
+   "intent": "launchMainMenu",
+   "entities": {
+    "skill": "@be/main-menu",
+    "union_original_fst_name": "handle:main-menu/launch"
+   }
+  },
+  {
+   "text": "show me what you can do",
+   "intent": "whatCanIDo",
+   "entities": {
+    "skill": "@be/friendly-tips",
+    "domain": "friendly-tips",
+    "union_original_fst_name": "handle:friendly-tips/launch"
+   }
+  },
+  {
+   "text": "open settings",
+   "intent": "menu",
+   "entities": {
+    "domain": "settings",
+    "skill": "@be/settings",
+    "union_original_fst_name": "handle:settings/launch"
+   }
+  },
+  {
+   "text": "settings",
+   "intent": "menu",
+   "entities": {
+    "domain": "settings",
+    "skill": "@be/settings",
+    "union_original_fst_name": "handle:settings/launch"
+   }
+  },
+  {
+   "text": "who am i",
+   "intent": "launchWhoAmI",
+   "entities": {
+    "skill": "@be/who-am-i",
+    "union_original_fst_name": "handle:who-am-i/launch"
+   }
+  },
+  {
+   "text": "whats my name",
+   "intent": "launchWhoAmI",
+   "entities": {
+    "skill": "@be/who-am-i",
+    "union_original_fst_name": "handle:who-am-i/launch"
+   }
+  },
+  {
+   "text": "show me the gallery",
+   "intent": "galleryOpen",
+   "entities": {
+    "itemType": "all",
+    "skill": "@be/gallery",
+    "domain": "gallery",
+    "union_original_fst_name": "handle:gallery/launch"
+   }
+  },
+  {
+   "text": "take a photo",
+   "intent": "createOnePhoto",
+   "entities": {
+    "skill": "@be/create",
+    "domain": "create",
+    "union_original_fst_name": "handle:create/launch"
+   }
+  },
+  {
+   "text": "word of the day",
+   "intent": "play",
+   "entities": {
+    "skill": "@be/word-of-the-day",
+    "domain": "word-of-the-day",
+    "union_original_fst_name": "handle:word-of-the-day/launch"
+   }
+  },
+  {
+   "text": "what can i ask you",
+   "intent": "idle",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "i want to exercise",
+   "intent": "exerciseDoYoga",
+   "entities": {
+    "domain": "exercise",
+    "skill": "@be/exercise",
+    "union_original_fst_name": "handle:exercise/launch"
+   }
+  },
+  {
+   "text": "turn on the lights",
+   "intent": "lightsOn",
+   "entities": {
+    "domain": "hue-control",
+    "skill": "@be/hue-control",
+    "union_original_fst_name": "handle:hue-control/launch"
+   }
+  },
+  {
+   "text": "turn off the lights",
+   "intent": "lightsOff",
+   "entities": {
+    "domain": "hue-control",
+    "skill": "@be/hue-control",
+    "union_original_fst_name": "handle:hue-control/launch"
+   }
+  },
+  {
+   "text": "play some music",
+   "intent": "play",
+   "entities": {
+    "domain": "radio",
+    "skill": "@be/radio",
+    "union_original_fst_name": "handle:radio/launch"
+   }
+  },
+  {
+   "text": "set a timer for five minutes",
+   "intent": "start",
+   "entities": {
+    "domain": "timer",
+    "hours": "null",
+    "minutes": "5",
+    "seconds": "null",
+    "skill": "@be/clock",
+    "union_original_fst_name": "handle:clock/launch"
+   }
+  },
+  {
+   "text": "twerk",
+   "intent": "requestTwerk",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "beatbox",
+   "intent": "requestBeatbox",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "introduce yourself",
+   "intent": "requestIntroduceSelf",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "flip a coin",
+   "intent": "requestFlipCoin",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "roll a dice",
+   "intent": "requestRollTwoDice",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what can you do",
+   "intent": "whatCanIDo",
+   "entities": {
+    "skill": "@be/friendly-tips",
+    "domain": "friendly-tips",
+    "union_original_fst_name": "handle:friendly-tips/launch"
+   }
+  },
+  {
+   "text": "are you happy",
+   "intent": "isJiboDescriptor",
+   "entities": {
+    "Emotion": "Happy",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "why are you sad",
+   "intent": "whyIsJiboDescriptor",
+   "entities": {
+    "Emotion": "Sad",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "do you love me",
+   "intent": "doesJiboLikeThing",
+   "entities": {
+    "Person": "User",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "marry me",
+   "intent": "willJiboDoAction",
+   "entities": {
+    "Action": "MarryUser",
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "how is the weather in tokyo",
+   "intent": "requestWeather",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  },
+  {
+   "text": "what is the weather like today",
+   "intent": "requestWeather",
+   "entities": {
+    "union_original_fst_name": "handle:chitchat/launch"
+   }
+  }
+ ]
+}
