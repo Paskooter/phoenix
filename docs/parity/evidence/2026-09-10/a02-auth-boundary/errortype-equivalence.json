@@ -1,0 +1,69 @@
+{
+  "parser": ".parity/reference/5c0a7390539663ba749d360de348a428c088505c/node_modules/aws-sdk/lib/protocol/json.js extractError()",
+  "rule": "error.code = (body.__type || body.code) ?? header x-amzn-errortype; body wins",
+  "falsificationCaught": true,
+  "failures": 0,
+  "result": "pass",
+  "results": [
+    {
+      "name": "WRONG_PASSWORD",
+      "sourceObserved": {
+        "code": "WRONG_PASSWORD",
+        "message": "Wrong password"
+      },
+      "phoenixObserved": {
+        "code": "WRONG_PASSWORD",
+        "message": "Wrong password"
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "ACCOUNT_NOT_FOUND",
+      "sourceObserved": {
+        "code": "ACCOUNT_NOT_FOUND",
+        "message": "Account not found"
+      },
+      "phoenixObserved": {
+        "code": "ACCOUNT_NOT_FOUND",
+        "message": "Account not found"
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "MISSING_AUTH_HEADER",
+      "sourceObserved": {
+        "code": "MISSING_AUTH_HEADER",
+        "message": "Request is not signed properly, missing authorization header"
+      },
+      "phoenixObserved": {
+        "code": "MISSING_AUTH_HEADER",
+        "message": "Request is not signed properly, missing authorization header"
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "CLOCK_SKEW_TOO_LONG",
+      "sourceObserved": {
+        "code": "CLOCK_SKEW_TOO_LONG",
+        "message": "Clock skew is more than 15 minutes"
+      },
+      "phoenixObserved": {
+        "code": "CLOCK_SKEW_TOO_LONG",
+        "message": "Clock skew is more than 15 minutes"
+      },
+      "verdict": "pass"
+    },
+    {
+      "name": "Joi 422 badData (identical on both sides)",
+      "sourceObserved": {
+        "code": "UnknownError",
+        "message": "child \"email\" fails"
+      },
+      "phoenixObserved": {
+        "code": "UnknownError",
+        "message": "child \"email\" fails"
+      },
+      "verdict": "pass"
+    }
+  ]
+}
