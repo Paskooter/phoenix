@@ -1,0 +1,1005 @@
+{
+  "pass1": [
+    {
+      "label": "POST /v1/skill/launch full",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "ba5fad5a-f80c-4972-9c7d-11620b4da35c",
+        "timestamp": 1,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ]
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "ba5fad5a-f80c-4972-9c7d-11620b4da35c",
+        "timestamp": 1,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload no match, payload present",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, no match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "623a3e8f-4239-4349-b72d-0ff85fca731c",
+        "ts": 1789084127800,
+        "final": true,
+        "data": {
+          "message": "Cannot convert undefined or null to object"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot convert undefined or null to object"
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload payload null, no match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch/latest hit",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch/latest miss",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "GET /v1/skill/launch/latest hit",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest?robotID=R-1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "GET /v1/skill/launch/latest miss",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest?robotID=R-absent",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch/count",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "GET /v1/skill/launch/count",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=R-1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "POST /v1/speech create",
+      "method": "POST",
+      "path": "/v1/speech",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "7d8fb6c2-caed-44c3-b2bf-26f7aeaf765a"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id update",
+      "method": "PUT",
+      "path": "/v1/speech/7d8fb6c2-caed-44c3-b2bf-26f7aeaf765a",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "7d8fb6c2-caed-44c3-b2bf-26f7aeaf765a"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id unknown id",
+      "method": "PUT",
+      "path": "/v1/speech/deadbeefdeadbeefdeadbeef",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "0ab92b9f-4ad3-4ee1-bad0-489561990b92",
+        "ts": 1789084127818,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading '_id')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading '_id')"
+      }
+    },
+    {
+      "label": "GET /healthcheck",
+      "method": "GET",
+      "path": "/healthcheck",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "body": "ok"
+    },
+    {
+      "label": "GET /v1/skill/launch/does-not-exist",
+      "method": "GET",
+      "path": "/v1/skill/launch/does-not-exist",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "439f8c15-a360-415f-9fc4-266f533460b7",
+        "ts": 1789084127819,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/does-not-exist"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/does-not-exist"
+      }
+    },
+    {
+      "label": "GET /nope",
+      "method": "GET",
+      "path": "/nope",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "cb8ebaa1-5315-4f3d-9648-1ba490e6b55e",
+        "ts": 1789084127820,
+        "final": true,
+        "data": {
+          "message": "URL not found: /nope"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /nope"
+      }
+    },
+    {
+      "label": "DELETE /v1/skill/launch/latest",
+      "method": "DELETE",
+      "path": "/v1/skill/launch/latest",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "762bf0e0-ae1e-4e18-b06d-927bd7b1d0dd",
+        "ts": 1789084127821,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/latest"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/latest"
+      }
+    },
+    {
+      "label": "PATCH /v1/skill/launch/count",
+      "method": "PATCH",
+      "path": "/v1/skill/launch/count",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "b9ae09b8-3fb2-4e6b-847a-552a04993760",
+        "ts": 1789084127822,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/count"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/count"
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/latest",
+      "method": "PUT",
+      "path": "/v1/skill/launch/latest",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "c9d1781b-27fc-4bbc-b577-7414cbad5dc5",
+        "ts": 1789084127824,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/latest"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/latest"
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/ trailing slash",
+      "method": "POST",
+      "path": "/v1/skill/launch/",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "daa906a5-a088-4fc2-b86b-51de3b8bd528",
+        "timestamp": 2,
+        "sessionID": "s2",
+        "robotID": "R-2",
+        "skillID": "SK-2"
+      }
+    },
+    {
+      "label": "GET /V1/SKILL/LAUNCH/COUNT case-insensitive",
+      "method": "GET",
+      "path": "/V1/SKILL/LAUNCH/COUNT?robotID=R-2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "HEAD /v1/skill/launch/count",
+      "method": "HEAD",
+      "path": "/v1/skill/launch/count?robotID=R-2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch empty body no content-type",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "1e825985-0d08-479b-9a12-9db85863d3eb",
+        "timestamp": 1789084127833
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch text/plain body",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "a86ee524-bfe7-44d2-96d9-b58615e10329",
+        "timestamp": 1789084127835
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch malformed JSON",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "243031e8-4fb8-4e08-b496-7597e2a6626f",
+        "ts": 1789084127837,
+        "final": true,
+        "data": {
+          "message": "Unexpected end of JSON input"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Unexpected end of JSON input"
+      }
+    },
+    {
+      "label": "GET /v1/skill/launch/latest no query",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "1d24bb0d-a608-4f79-856b-489f627c3fb7",
+        "ts": 1789084127838,
+        "final": true,
+        "data": {
+          "message": "Robot ID is required"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Robot ID is required"
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/count empty body",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "0c6dde98-56be-47e6-bc5f-af20b80d2e30",
+        "ts": 1789084127838,
+        "final": true,
+        "data": {
+          "message": "Robot ID is required"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Robot ID is required"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id empty body",
+      "method": "PUT",
+      "path": "/v1/speech/abc",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "fb2392f5-d0cc-4167-bf2d-562b6012d366",
+        "ts": 1789084127839,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading '_id')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading '_id')"
+      }
+    },
+    {
+      "label": "GET /skill/launch/count BARE alias (expect 404 in reference)",
+      "method": "GET",
+      "path": "/skill/launch/count?robotID=R-1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "PUT /speech/abc BARE alias (expect 404 in reference)",
+      "method": "PUT",
+      "path": "/speech/abc",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "a0b7a277-24cc-4d0b-96a4-50ff0da63974",
+        "ts": 1789084127842,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading '_id')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading '_id')"
+      }
+    }
+  ],
+  "pass2": [
+    {
+      "label": "POST /v1/skill/launch full",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "4c060076-fb69-42ed-a584-c7b8b6b481f6",
+        "timestamp": 1,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ]
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "4c060076-fb69-42ed-a584-c7b8b6b481f6",
+        "timestamp": 1,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload no match, payload present",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, no match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "afaea6a3-9280-47d5-bd78-f669bbfd902d",
+        "ts": 1789084128517,
+        "final": true,
+        "data": {
+          "message": "Cannot convert undefined or null to object"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot convert undefined or null to object"
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload payload null, no match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch/latest hit",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch/latest miss",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "GET /v1/skill/launch/latest hit",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest?robotID=R-1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "GET /v1/skill/launch/latest miss",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest?robotID=R-absent",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch/count",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "GET /v1/skill/launch/count",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=R-1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "POST /v1/speech create",
+      "method": "POST",
+      "path": "/v1/speech",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "2d208d35-104f-4d90-a9ee-4a723e181666"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id update",
+      "method": "PUT",
+      "path": "/v1/speech/2d208d35-104f-4d90-a9ee-4a723e181666",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "2d208d35-104f-4d90-a9ee-4a723e181666"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id unknown id",
+      "method": "PUT",
+      "path": "/v1/speech/deadbeefdeadbeefdeadbeef",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "68e54527-d2a6-4dab-8cec-a0dc8f3c9b6f",
+        "ts": 1789084128531,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading '_id')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading '_id')"
+      }
+    },
+    {
+      "label": "GET /healthcheck",
+      "method": "GET",
+      "path": "/healthcheck",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "body": "ok"
+    },
+    {
+      "label": "GET /v1/skill/launch/does-not-exist",
+      "method": "GET",
+      "path": "/v1/skill/launch/does-not-exist",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "d07638a0-bd15-42c7-8224-a3178344e674",
+        "ts": 1789084128532,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/does-not-exist"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/does-not-exist"
+      }
+    },
+    {
+      "label": "GET /nope",
+      "method": "GET",
+      "path": "/nope",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "8f6f4352-032a-48ea-98b8-0900f0b1e33c",
+        "ts": 1789084128533,
+        "final": true,
+        "data": {
+          "message": "URL not found: /nope"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /nope"
+      }
+    },
+    {
+      "label": "DELETE /v1/skill/launch/latest",
+      "method": "DELETE",
+      "path": "/v1/skill/launch/latest",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "ea02b182-6616-48a4-9fe2-5c2542450d58",
+        "ts": 1789084128534,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/latest"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/latest"
+      }
+    },
+    {
+      "label": "PATCH /v1/skill/launch/count",
+      "method": "PATCH",
+      "path": "/v1/skill/launch/count",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "ebfe32ee-ca72-4216-b344-ef8ddab0db28",
+        "ts": 1789084128535,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/count"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/count"
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/latest",
+      "method": "PUT",
+      "path": "/v1/skill/launch/latest",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "ae60d1f2-9108-4aaf-8917-5a077278a660",
+        "ts": 1789084128536,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/latest"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "URL not found: /v1/skill/launch/latest"
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/ trailing slash",
+      "method": "POST",
+      "path": "/v1/skill/launch/",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "610893ad-c1f4-4040-b9e0-4c3144959b5a",
+        "timestamp": 2,
+        "sessionID": "s2",
+        "robotID": "R-2",
+        "skillID": "SK-2"
+      }
+    },
+    {
+      "label": "GET /V1/SKILL/LAUNCH/COUNT case-insensitive",
+      "method": "GET",
+      "path": "/V1/SKILL/LAUNCH/COUNT?robotID=R-2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "HEAD /v1/skill/launch/count",
+      "method": "HEAD",
+      "path": "/v1/skill/launch/count?robotID=R-2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "POST /v1/skill/launch empty body no content-type",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "63d4d37a-401b-4c22-9bd7-4bd08c4524e8",
+        "timestamp": 1789084128540
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch text/plain body",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "9b024ba2-bf41-4ae0-911e-4b683af49741",
+        "timestamp": 1789084128541
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch malformed JSON",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "928c3344-2619-4395-9280-eede61eff1e8",
+        "ts": 1789084128543,
+        "final": true,
+        "data": {
+          "message": "Unexpected end of JSON input"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Unexpected end of JSON input"
+      }
+    },
+    {
+      "label": "GET /v1/skill/launch/latest no query",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "c4a6d8d3-5f87-4832-b367-37485d49e4cc",
+        "ts": 1789084128543,
+        "final": true,
+        "data": {
+          "message": "Robot ID is required"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Robot ID is required"
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/count empty body",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "16d43752-738b-42be-ba1f-6b5a34311522",
+        "ts": 1789084128544,
+        "final": true,
+        "data": {
+          "message": "Robot ID is required"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Robot ID is required"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id empty body",
+      "method": "PUT",
+      "path": "/v1/speech/abc",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "8259fa43-bdf6-4acf-aab9-e5d73726bc26",
+        "ts": 1789084128545,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading '_id')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading '_id')"
+      }
+    },
+    {
+      "label": "GET /skill/launch/count BARE alias (expect 404 in reference)",
+      "method": "GET",
+      "path": "/skill/launch/count?robotID=R-1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "PUT /speech/abc BARE alias (expect 404 in reference)",
+      "method": "PUT",
+      "path": "/speech/abc",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "5c0741d5-9d36-4c1d-972b-586f4f2708ec",
+        "ts": 1789084128547,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading '_id')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading '_id')"
+      }
+    }
+  ],
+  "restarted": true,
+  "pass1RouteStatuses": {
+    "POST /v1/skill/launch full": 200,
+    "PUT /v1/skill/launch/payload match": 200,
+    "PUT /v1/skill/launch/payload no match, payload present": 200,
+    "PUT /v1/skill/launch/payload NO payload key, no match": 200,
+    "PUT /v1/skill/launch/payload NO payload key, match": 500,
+    "PUT /v1/skill/launch/payload payload null, no match": 200,
+    "POST /v1/skill/launch/latest hit": 200,
+    "POST /v1/skill/launch/latest miss": 200,
+    "GET /v1/skill/launch/latest hit": 200,
+    "GET /v1/skill/launch/latest miss": 200,
+    "POST /v1/skill/launch/count": 200,
+    "GET /v1/skill/launch/count": 200,
+    "POST /v1/speech create": 200,
+    "PUT /v1/speech/:id update": 200,
+    "PUT /v1/speech/:id unknown id": 500,
+    "GET /healthcheck": 200,
+    "GET /v1/skill/launch/does-not-exist": 404,
+    "GET /nope": 404,
+    "DELETE /v1/skill/launch/latest": 404,
+    "PATCH /v1/skill/launch/count": 404,
+    "PUT /v1/skill/launch/latest": 404,
+    "POST /v1/skill/launch/ trailing slash": 200,
+    "GET /V1/SKILL/LAUNCH/COUNT case-insensitive": 200,
+    "HEAD /v1/skill/launch/count": 200,
+    "POST /v1/skill/launch empty body no content-type": 200,
+    "POST /v1/skill/launch text/plain body": 200,
+    "POST /v1/skill/launch malformed JSON": 400,
+    "GET /v1/skill/launch/latest no query": 500,
+    "POST /v1/skill/launch/count empty body": 500,
+    "PUT /v1/speech/:id empty body": 500,
+    "GET /skill/launch/count BARE alias (expect 404 in reference)": 200,
+    "PUT /speech/abc BARE alias (expect 404 in reference)": 500
+  },
+  "servedAfterRestart": [
+    {
+      "route": "/v1/skill/launch",
+      "pass1": true,
+      "pass2": true
+    },
+    {
+      "route": "/v1/skill/launch/payload",
+      "pass1": true,
+      "pass2": true
+    },
+    {
+      "route": "/v1/skill/launch/latest",
+      "pass1": true,
+      "pass2": true
+    },
+    {
+      "route": "/v1/skill/launch/count",
+      "pass1": true,
+      "pass2": true
+    },
+    {
+      "route": "/v1/speech",
+      "pass1": true,
+      "pass2": true
+    },
+    {
+      "route": "/v1/speech/:id",
+      "pass1": true,
+      "pass2": true
+    }
+  ],
+  "startedLog1": [
+    "{\"t\":\"2026-09-10T23:48:47.639Z\",\"level\":\"info\",\"ns\":\"history\",\"msg\":\"History service is successfully started on port 19306\"}"
+  ],
+  "startedLog2": [
+    "{\"t\":\"2026-09-10T23:48:48.442Z\",\"level\":\"info\",\"ns\":\"history\",\"msg\":\"History service is successfully started on port 19306\"}"
+  ]
+}

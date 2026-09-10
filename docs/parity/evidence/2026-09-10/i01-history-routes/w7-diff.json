@@ -1,0 +1,635 @@
+{
+  "restart": {
+    "pass1Cases": 34,
+    "pass2Cases": 34,
+    "sameLabels": true,
+    "statusesIdentical": true,
+    "bodiesIdentical": false,
+    "startLogs": [
+      [
+        "{\"t\":\"2026-09-10T23:52:49.209Z\",\"level\":\"info\",\"ns\":\"history\",\"msg\":\"History service is successfully started on port 19306\"}"
+      ],
+      [
+        "{\"t\":\"2026-09-10T23:52:49.958Z\",\"level\":\"info\",\"ns\":\"history\",\"msg\":\"History service is successfully started on port 19306\"}"
+      ]
+    ]
+  },
+  "gapClosed": [
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, no match",
+      "ref": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload payload null, no match",
+      "ref": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    }
+  ],
+  "statusDiffs": [
+    {
+      "label": "POST /v1/skill/launch empty body no content-type",
+      "refStatus": 500,
+      "phxStatus": 200,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      },
+      "phxBody": {
+        "timestamp": 1789084369345
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "POST /v1/skill/launch text/plain body",
+      "refStatus": 500,
+      "phxStatus": 200,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      },
+      "phxBody": {
+        "timestamp": 1789084369348
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "GET /skill/launch/count BARE alias (expect 404)",
+      "refStatus": 404,
+      "phxStatus": 200,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "URL not found: /skill/launch/count"
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "PUT /speech/abc BARE alias (expect 404)",
+      "refStatus": 404,
+      "phxStatus": 500,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "URL not found: /speech/abc"
+      },
+      "phxBody": {
+        "ERROR": "Cannot read properties of null (reading '_id')"
+      },
+      "bodyMatch": false
+    }
+  ],
+  "bodyDiffs": [
+    {
+      "label": "GET /v1/skill/launch/latest no query",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "Robot ID is required"
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "POST /v1/skill/launch/count empty body",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "Robot ID is required"
+      },
+      "bodyMatch": false
+    }
+  ],
+  "allCases": [
+    {
+      "label": "POST /v1/skill/launch full",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ]
+      },
+      "phxBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ]
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload match",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      },
+      "phxBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload no match, payload present",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, no match",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "phxBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload NO payload key, match",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "phxBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload payload null, no match",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "phxBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "POST /v1/skill/launch/latest hit",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      },
+      "phxBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "POST /v1/skill/launch/latest miss",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /v1/skill/launch/latest hit",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      },
+      "phxBody": {
+        "timestamp": 1789084000000,
+        "sessionID": "sess-1",
+        "robotID": "R-1",
+        "skillID": "SK-1",
+        "intent": "intent-1",
+        "personIDs": [
+          "person-1",
+          "person-2"
+        ],
+        "payload": {
+          "a": 1,
+          "b": 2
+        },
+        "payloadSize": 2
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /v1/skill/launch/latest miss",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "POST /v1/skill/launch/count",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /v1/skill/launch/count",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "POST /v1/speech create",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {},
+      "phxBody": {},
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/speech/:id update",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {},
+      "phxBody": {},
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/speech/:id unknown id",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot read properties of null (reading '_id')"
+      },
+      "phxBody": {
+        "ERROR": "Cannot read properties of null (reading '_id')"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /healthcheck",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": "ok",
+      "phxBody": "ok",
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /v1/skill/launch/does-not-exist",
+      "refStatus": 404,
+      "phxStatus": 404,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "URL not found: /v1/skill/launch/does-not-exist"
+      },
+      "phxBody": {
+        "ERROR": "URL not found: /v1/skill/launch/does-not-exist"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /nope",
+      "refStatus": 404,
+      "phxStatus": 404,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "URL not found: /nope"
+      },
+      "phxBody": {
+        "ERROR": "URL not found: /nope"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "DELETE /v1/skill/launch/latest",
+      "refStatus": 404,
+      "phxStatus": 404,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "URL not found: /v1/skill/launch/latest"
+      },
+      "phxBody": {
+        "ERROR": "URL not found: /v1/skill/launch/latest"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "PATCH /v1/skill/launch/count",
+      "refStatus": 404,
+      "phxStatus": 404,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "URL not found: /v1/skill/launch/count"
+      },
+      "phxBody": {
+        "ERROR": "URL not found: /v1/skill/launch/count"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "PUT /v1/skill/launch/latest",
+      "refStatus": 404,
+      "phxStatus": 404,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "URL not found: /v1/skill/launch/latest"
+      },
+      "phxBody": {
+        "ERROR": "URL not found: /v1/skill/launch/latest"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "POST /v1/skill/launch/ trailing slash",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "timestamp": 1789084001000,
+        "sessionID": "s2",
+        "robotID": "R-2",
+        "skillID": "SK-2"
+      },
+      "phxBody": {
+        "timestamp": 1789084001000,
+        "sessionID": "s2",
+        "robotID": "R-2",
+        "skillID": "SK-2"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /V1/SKILL/LAUNCH/COUNT case-insensitive",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "HEAD /v1/skill/launch/count",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "POST /v1/skill/launch empty body no content-type",
+      "refStatus": 500,
+      "phxStatus": 200,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      },
+      "phxBody": {
+        "timestamp": 1789084369345
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "POST /v1/skill/launch text/plain body",
+      "refStatus": 500,
+      "phxStatus": 200,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      },
+      "phxBody": {
+        "timestamp": 1789084369348
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "POST /v1/skill/launch malformed JSON",
+      "refStatus": 400,
+      "phxStatus": 400,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Unexpected end of JSON input"
+      },
+      "phxBody": {
+        "ERROR": "Unexpected end of JSON input"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /v1/skill/launch/latest no query",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "Robot ID is required"
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "POST /v1/skill/launch/count empty body",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "Robot ID is required"
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "PUT /v1/speech/:id empty body",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot read properties of null (reading '_id')"
+      },
+      "phxBody": {
+        "ERROR": "Cannot read properties of null (reading '_id')"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "GET /skill/launch/count BARE alias (expect 404)",
+      "refStatus": 404,
+      "phxStatus": 200,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "URL not found: /skill/launch/count"
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "PUT /speech/abc BARE alias (expect 404)",
+      "refStatus": 404,
+      "phxStatus": 500,
+      "statusMatch": false,
+      "refBody": {
+        "ERROR": "URL not found: /speech/abc"
+      },
+      "phxBody": {
+        "ERROR": "Cannot read properties of null (reading '_id')"
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "RETENTION: POST old timestamp (40 days ago)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "timestamp": 1785628000000,
+        "sessionID": "s-old",
+        "robotID": "R-old",
+        "skillID": "SK-old"
+      },
+      "phxBody": {
+        "timestamp": 1785628000000,
+        "sessionID": "s-old",
+        "robotID": "R-old",
+        "skillID": "SK-old"
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "RETENTION: GET count for the old record",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    }
+  ]
+}

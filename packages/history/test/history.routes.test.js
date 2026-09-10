@@ -142,6 +142,55 @@ test('PUT /v1/skill/launch/payload without a payload is a 500 (reference require
   } finally { svc.server.close(); }
 });
 
+// I-01 gap closed: the reference builds the `$set` document EAGERLY as the second argument to
+// findOneAndUpdate (SkillLaunchCollection.ts:48-53 -> `payloadSize: Object.keys(data.payload).length`),
+// so it throws BEFORE the query is issued and BEFORE any match is evaluated. A missing/null
+// payload therefore always 500s - it can never fall through to the 200 `null` no-match result.
+// Reference observed with the real compiled collection and the model call counted:
+// docs/parity/evidence/2026-09-10/i01-history-routes/w7-ref-routes-oracle.json
+// ("PUT ... NO payload key, no match" 500 / "payload null, no match" 500, findOneAndUpdate = 2 for
+// five payload cases, i.e. the three malformed ones never reached the model).
+test('PUT /v1/skill/launch/payload without payload is 500 even when nothing would match', async () => {
+  const { svc, base } = await start();
+  try {
+    // Empty store: Phoenix previously returned 200 `null` here because it looked up the record first.
+    const r = await request(base, 'PUT', '/v1/skill/launch/payload', {
+      body: { robotID: 'R-none', sessionID: 'none', skillID: 'SK-none' },
+    });
+    assert.equal(r.status, 500, 'reference throws on Object.keys(undefined) before the lookup');
+    assert.equal(r.json.type, 'ERROR');
+    assert.equal(r.json.final, true);
+    assert.equal(r.json.data.message, 'Cannot convert undefined or null to object', 'Node TypeError message');
+  } finally { svc.server.close(); }
+});
+
+test('PUT /v1/skill/launch/payload with payload null is 500 (reference Object.keys(null))', async () => {
+  const { svc, base } = await start();
+  try {
+    const r = await request(base, 'PUT', '/v1/skill/launch/payload', {
+      body: { robotID: 'R-null', sessionID: 'n', skillID: 'SK-n', payload: null },
+    });
+    assert.equal(r.status, 500);
+    assert.equal(r.json.data.message, 'Cannot convert undefined or null to object');
+  } finally { svc.server.close(); }
+});
+
+test('PUT /v1/skill/launch/payload success returns the complete record (payload + payloadSize, stable id)', async () => {
+  const { svc, base } = await start();
+  try {
+    const created = await request(base, 'POST', '/v1/skill/launch', {
+      body: launch({ sessionID: 's-full', robotID: 'R-full', skillID: 'SK-full', intent: 'intent-x' }),
+    });
+    const r = await request(base, 'PUT', '/v1/skill/launch/payload', {
+      body: { robotID: 'R-full', sessionID: 's-full', skillID: 'SK-full', payload: { a: 1, b: 2 } },
+    });
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.json, {
+      ...created.json, payload: { a: 1, b: 2 }, payloadSize: 2, id: created.json.id,
+    });
+  } finally { svc.server.close(); }
+});
+
 test('launch id is a stable string and survives the payload update', async () => {
   const { svc, base } = await start();
   try {
