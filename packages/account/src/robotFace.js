@@ -22,7 +22,7 @@
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
   createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
-  populateLoop, ensureLoopMemberIds,
+  populateLoop, ensureLoopMemberIds, isAcceptedStatus,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
@@ -54,6 +54,8 @@ const Errors = Object.freeze({
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
   AUTHORIZED_UNDER_ADMIN: { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 },
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
+  // Source errors/loop.ts LOOP_SUSPENDED: "Loop is suspended and cannot be modified", statusCode 403.
+  LOOP_SUSPENDED: { code: 'LOOP_SUSPENDED', message: 'Loop is suspended and cannot be modified', statusCode: 403 },
   ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
   ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND: {
     code: 'ONLY_ADMIN_OR_ROBOT_CAN_SUSPEND',
@@ -91,6 +93,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     setuprobot: setupRobot,
     preparerobot: prepareRobot,
     getstatus: getStatus,
+    reconnectrobot: reconnectRobot,
     createhubtoken: issueHubToken,
   };
 
@@ -281,6 +284,43 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (!body || !body.token) return void sendAmzError(res, Errors.VALIDATION, 'token is required');
     const { token } = findToken(store, body.token);
     return void sendAmz(res, 200, { complete: !token });
+  }
+
+  /**
+   * oobe.ctrl.ts reconnectRobot — the factory-reset robot reclaims its loop with
+   * a live portal token. The source handler declares `id` optional and takes the
+   * robot identity from the parsed credentials, so only the token comes in the
+   * payload; the robot is the caller resolved from its access key.
+   *
+   * Source decorator order: @parseCredentials({}) runs before @validatePayload,
+   * then the controller checks token → loop exists → not suspended → the token's
+   * account is an ACCEPTED member → delete token (one-time) → COMMAND_RESULT.
+   */
+  function reconnectRobot({ req, res, body, log }) {
+    const caller = accountForClassicRequest(req);
+    if (!caller) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.token !== 'string' || body.token.length === 0) {
+      return void sendAmzError(res, Errors.VALIDATION, 'token is required');
+    }
+
+    // token.ctrl.ts findById: missing -> TOKEN_NOT_FOUND, past TTL -> TOKEN_EXPIRED (no delete).
+    const { token, error } = findToken(store, body.token);
+    if (error) return void sendAmzError(res, Errors[error]);
+
+    // loop.ctrl.ts findByRobotAccountId (Loop.findOne): the robot's one loop.
+    const robotLoop = activeLoopForRobot(caller._id);
+    if (!robotLoop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+    if (robotLoop.isSuspended) return void sendAmzError(res, Errors.LOOP_SUSPENDED);
+
+    // MemberStatus.ACCEPTED, compared by accountId string, guarding members that
+    // carry no accountId yet (invites still keyed by email).
+    const isMember = (robotLoop.members || []).some((m) =>
+      m.accountId && m.accountId === token.accountId && isAcceptedStatus(m.status));
+    if (!isMember) return void sendAmzError(res, Errors.MEMBER_CAN_REQUEST);
+
+    deleteToken(store, token._id); // ONE-TIME
+    log.info('reconnectRobot complete', { robot: caller._id, loop: robotLoop._id });
+    return void sendAmz(res, 200, { result: 'Command accepted' });
   }
 
   /**
