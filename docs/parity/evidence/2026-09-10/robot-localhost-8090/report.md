@@ -253,13 +253,15 @@ require('dns').lookup('api.jibo.com', ...)     -> '192.168.1.182'   # the repoin
 
 ### 5.2 Error line counts, comparable 60 s windows
 
-| window (UTC) | `getaddrinfo ENOTFOUND localhost` lines / 60 s | `be[3024]` lines / 60 s |
+| window (UTC) | `getaddrinfo ENOTFOUND localhost` lines | `be[3024]` lines |
 |---|---|---|
-| **before** 19:25:25 → 19:26:25 | **117** (283 → 400) | 117 |
-| **after** 19:27:19 → 19:28:19 | **0** | 0 |
+| **before** 19:25:25 → 19:26:25 (60 s) | **117** (283 → 400) | 117 |
+| **after** 19:27:19 → 19:28:19 (60 s) | **0** | 0 |
+| **after, sustained** 19:27:04 → 19:29:59 (~3 min) | **0** | 0 |
 
-The last error line in the log is `2026-09-10T19:27:03.899Z`; the `chmod` ran at `19:27:03Z`. Lines matching
-`ENOTFOUND` after `19:27:04`: **0** (checked at 19:29). Log volume fell from ~68.7 kB/60 s to 464 B/30 s (~76×).
+The last error line in the log is `2026-09-10T19:27:03.899Z`; the `chmod` ran at `19:27:03Z`. At the sustained check the
+hosts file was `-rw-r--r--` and the renderer still held its two ESTABLISHED sockets to 8090. Log volume fell from
+~68.7 kB/60 s to 464 B/30 s (~76×).
 
 ### 5.3 The jetstream sockets are now actually connected
 
