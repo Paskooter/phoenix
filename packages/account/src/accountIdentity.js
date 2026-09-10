@@ -61,7 +61,6 @@ export const ACCOUNT_ANONYMOUS_TARGETS = Object.freeze([
   'Account_20151111.ActivateByCode',
   'Account_20151111.SendPasswordReset',
   'Account_20151111.PasswordResetByCode',
-  'Account_20151111.GetAccountByAccessToken',
 ]);
 
 export const ACCOUNT_IDENTITY_METHODS = Object.freeze([
@@ -1252,7 +1251,14 @@ const OPS = {
     },
   },
   getAccountByAccessToken: {
-    auth: 'none',
+    // Source handler carries @parseCredentials({}) on GetAccountByAccessToken,
+    // exactly as Get and Update do. Every genuinely anonymous operation
+    // (CheckEmail, Create, Login, ConfirmEmailReset, ResendActivationCode,
+    // ActivateByCode, SendPasswordReset, PasswordResetByCode) has no such
+    // decorator. The candidate made this operation public, which let an
+    // unauthenticated caller resolve any valid web token; that is an auth
+    // regression against source, not a source-faithful choice.
+    auth: 'parseCredentials',
     validate: validateGetAccountByAccessToken,
     run({ store, body }) {
       return { value: getAccountByAccessToken(store, body.token) };

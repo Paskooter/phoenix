@@ -164,11 +164,13 @@ after(() => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('constant tables list the three operations and only GetAccountByAccessToken is anonymous', () => {
+test('constant tables list the three operations and none of them is anonymous', () => {
   assert.ok(ACCOUNT_IDENTITY_METHODS.includes('createAccessToken'));
   assert.ok(ACCOUNT_IDENTITY_METHODS.includes('getAccountByAccessToken'));
   assert.ok(ACCOUNT_IDENTITY_METHODS.includes('resetKeys'));
-  assert.ok(ACCOUNT_ANONYMOUS_TARGETS.includes('Account_20151111.GetAccountByAccessToken'));
+  // All three carry @parseCredentials({}) in the pinned source handler, so none
+  // belongs in the anonymous-target list.
+  assert.ok(!ACCOUNT_ANONYMOUS_TARGETS.includes('Account_20151111.GetAccountByAccessToken'));
   assert.ok(!ACCOUNT_ANONYMOUS_TARGETS.includes('Account_20151111.CreateAccessToken'));
   assert.ok(!ACCOUNT_ANONYMOUS_TARGETS.includes('Account_20151111.ResetKeys'));
 });
@@ -251,43 +253,56 @@ test('CreateAccessToken rejects forged, inactive, and stale signatures before va
   }
 });
 
-test('GetAccountByAccessToken is public, returns the verified claim object, and requires a live account', async () => {
+test('GetAccountByAccessToken requires credentials, returns the verified claim object, and requires a live account', async () => {
   const minted = await post(accountBase, 'Account_20151111.CreateAccessToken', {
     payload: 'lookup-payload',
   }, owner);
   assert.equal(minted.status, 200, minted.rawBody);
 
+  // Source carries @parseCredentials({}) on this operation, so an
+  // unauthenticated caller is rejected before the token is ever read. This
+  // matters: the response body contains secretAccessKey, so a public lookup
+  // would disclose account credentials to anyone holding a valid token.
   const unsigned = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
     token: minted.body.token,
   });
-  assert.equal(unsigned.status, 200, unsigned.rawBody);
-  assert.equal(unsigned.body.id, owner._id);
-  assert.equal(unsigned.body.accessKeyId, live(owner).accessKeyId);
-  assert.equal(unsigned.body.secretAccessKey, live(owner).secretAccessKey);
-  assert.equal(unsigned.body.email, live(owner).email);
-  assert.equal(unsigned.body.friendlyId, live(owner).friendlyId);
-  assert.equal(unsigned.body.payload, 'lookup-payload');
-  assert.equal(typeof unsigned.body.iat, 'number');
-  assert.equal(typeof unsigned.body.exp, 'number');
+  assert.equal(unsigned.status, 401);
+  assert.equal(unsigned.body.__type, 'MISSING_AUTH_HEADER');
 
+  const signed = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
+    token: minted.body.token,
+  }, owner);
+  assert.equal(signed.status, 200, signed.rawBody);
+  assert.equal(signed.body.id, owner._id);
+  assert.equal(signed.body.accessKeyId, live(owner).accessKeyId);
+  assert.equal(signed.body.secretAccessKey, live(owner).secretAccessKey);
+  assert.equal(signed.body.email, live(owner).email);
+  assert.equal(signed.body.friendlyId, live(owner).friendlyId);
+  assert.equal(signed.body.payload, 'lookup-payload');
+  assert.equal(typeof signed.body.iat, 'number');
+  assert.equal(typeof signed.body.exp, 'number');
+
+  // Source does not bind the lookup to the caller: any authenticated caller
+  // may resolve another account's token. Retained as source behavior and
+  // reported for root classification rather than silently tightened.
   const asOutsider = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
     token: minted.body.token,
   }, outsider);
   assert.equal(asOutsider.status, 200);
   assert.equal(asOutsider.body.id, owner._id);
 
-  const missing = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {});
+  const missing = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {}, owner);
   assertHapi422(missing, 'child "token" fails because ["token" is required]');
-  const empty = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', { token: '' });
+  const empty = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', { token: '' }, owner);
   assertHapi422(empty, 'child "token" fails because ["token" is not allowed to be empty]');
-  const notString = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', { token: 7 });
+  const notString = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', { token: 7 }, owner);
   assertHapi422(notString, 'child "token" fails because ["token" must be a string]');
 });
 
 test('GetAccountByAccessToken maps jsonwebtoken failures to 500 and findById errors after verify', async () => {
   const malformed = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
     token: 'not-a-jwt',
-  });
+  }, owner);
   assert.equal(malformed.status, 500);
   assert.equal(malformed.body.__type, 'InternalFailure');
   assert.equal(malformed.body.message, 'Internal server error');
@@ -295,7 +310,7 @@ test('GetAccountByAccessToken maps jsonwebtoken failures to 500 and findById err
   const hub = createAuthenticatedHubToken(live(owner), HUB_SECRET, 'hub-not-web');
   const hubLookup = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
     token: hub.token,
-  });
+  }, owner);
   assert.equal(hubLookup.status, 500);
   assert.equal(hubLookup.body.__type, 'InternalFailure');
 
@@ -311,7 +326,7 @@ test('GetAccountByAccessToken maps jsonwebtoken failures to 500 and findById err
   };
   const expired = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
     token: jwt.sign(expiredPayload, WEB_SECRET),
-  });
+  }, owner);
   assert.equal(expired.status, 500);
   assert.equal(expired.body.__type, 'InternalFailure');
 
@@ -325,7 +340,7 @@ test('GetAccountByAccessToken maps jsonwebtoken failures to 500 and findById err
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 3 * 60 * 60,
   }, WEB_SECRET);
-  const missing = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', { token: ghost });
+  const missing = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', { token: ghost }, owner);
   assertAmzError(missing, ACCOUNT_ERRORS.ACCOUNT_NOT_FOUND);
 
   const minted = await post(accountBase, 'Account_20151111.CreateAccessToken', {}, owner);
@@ -333,9 +348,13 @@ test('GetAccountByAccessToken maps jsonwebtoken failures to 500 and findById err
   live(owner).isDeleted = true;
   store.flush();
   try {
+    // The owner row is soft-deleted for this assertion, so the owner can no
+    // longer authenticate: credential parsing would reject with 401 before the
+    // handler ever reads the token. Sign as a different live account so the
+    // request reaches findById and yields the ACCOUNT_IS_DELETED path.
     const deleted = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
       token: minted.body.token,
-    });
+    }, outsider);
     assertAmzError(deleted, ACCOUNT_ERRORS.ACCOUNT_IS_DELETED);
   } finally {
     live(owner).isDeleted = previous;
@@ -391,7 +410,7 @@ test('ResetKeys snapshot in a previously issued web token is not rewritten', asy
   owner = live(owner);
   const lookup = await post(accountBase, 'Account_20151111.GetAccountByAccessToken', {
     token: minted.body.token,
-  });
+  }, owner);
   assert.equal(lookup.status, 200, lookup.rawBody);
   assert.equal(lookup.body.accessKeyId, oldKeys.accessKeyId);
   assert.equal(lookup.body.secretAccessKey, oldKeys.secretAccessKey);
@@ -432,9 +451,11 @@ test('CreateAccessToken, GetAccountByAccessToken, and ResetKeys survive store re
     const persistService2 = await createAccountService({ store: reopened }).listen(0);
     const persistBase2 = `http://127.0.0.1:${persistService2.address().port}`;
     try {
+      // After ResetKeys the owner's signing keys rotated, so the caller must
+      // sign with the saved (current) credentials.
       const lookup = await post(persistBase2, 'Account_20151111.GetAccountByAccessToken', {
         token: minted.body.token,
-      });
+      }, saved);
       assert.equal(lookup.status, 200, lookup.rawBody);
       assert.equal(lookup.body.payload, 'persist-payload');
       assert.equal(lookup.body.accessKeyId, oldKeys.accessKeyId);
@@ -465,7 +486,7 @@ test('the three operations share the Classic proxy boundary', async () => {
 
   const lookup = await post(classicBase, 'Account_20151111.GetAccountByAccessToken', {
     token: minted.body.token,
-  });
+  }, owner);
   assert.equal(lookup.status, 200, lookup.rawBody);
   assert.equal(lookup.body.id, caller._id);
   assert.equal(lookup.body.payload, 'via-classic');
