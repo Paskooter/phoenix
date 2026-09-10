@@ -47,8 +47,11 @@ test('count + personID ($in personIDs) + intent filtering', () => {
 
 test('payload EXACT requires all keys AND exact key count (payloadSize)', () => {
   const s = new HistoryStore();
-  s.saveSkillPayload; // no-op ref
-  launch(s, { sessionID: 'a', payload: { a: 1, b: 2 } });
+  launch(s, { sessionID: 'a' });
+  // Pegasus only attaches payloadSize on the payload-update path (PUT /skill/launch/payload),
+  // not on the launch write — so a launch record carries no payloadSize key.
+  assert.equal('payloadSize' in s.getLatest({ robotID: ROBOT, sessionID: 'a' }), false);
+  s.saveSkillPayload({ robotID: ROBOT, sessionID: 'a', skillID: 'answer-skill', payload: { a: 1, b: 2 } });
   const exactMatch = { robotID: ROBOT, rules: [{ field: RuleField.PAYLOAD, match: MatchMethod.EXACT, value: { a: 1, b: 2 } }] };
   const subset = { robotID: ROBOT, rules: [{ field: RuleField.PAYLOAD, match: MatchMethod.EXACT, value: { a: 1 } }] };
   assert.equal(s.getCount(exactMatch), 1);
