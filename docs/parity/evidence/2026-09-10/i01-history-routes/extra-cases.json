@@ -1,0 +1,54 @@
+[
+  {
+    "label": "POST /v1/skill/launch malformed JSON",
+    "status": 400,
+    "ct": "application/json; charset=utf-8",
+    "body": {
+      "type": "ERROR",
+      "msgID": "c442d8ad-49ce-4412-8a90-1ed5e879e319",
+      "ts": 1789065245783,
+      "final": true,
+      "data": {
+        "message": "Unexpected end of JSON input"
+      }
+    }
+  },
+  {
+    "label": "POST /v1/skill/launch urlencoded body",
+    "status": 200,
+    "ct": "application/json; charset=utf-8",
+    "body": {
+      "id": "ff2ffcc0-c7c3-472e-aef3-bc6d88c683e3",
+      "timestamp": "1",
+      "sessionID": "s",
+      "robotID": "R",
+      "skillID": "SK"
+    }
+  },
+  {
+    "label": "POST /v1/skill/launch/ latest unknown rule field",
+    "status": 500,
+    "ct": "application/json; charset=utf-8",
+    "body": {
+      "type": "ERROR",
+      "msgID": "5cb90be3-f3cd-44ca-b9df-fcd2a6ae64fb",
+      "ts": 1789065245800,
+      "final": true,
+      "data": {
+        "message": "Unknown field: bogus"
+      }
+    }
+  },
+  {
+    "label": "POST /v1/skill/launch/latest bad match method",
+    "status": 200,
+    "ct": "application/json; charset=utf-8",
+    "body": null
+  },
+  {
+    "label": "POST /v1/skill/launch/latest conflicting intent+rule",
+    "status": 200,
+    "ct": "application/json; charset=utf-8",
+    "body": null
+  }
+]
