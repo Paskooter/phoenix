@@ -517,10 +517,12 @@ test('Create/Login/Get/Update/CheckEmail/ChangePassword share the Classic proxy 
   assert.equal(relogin.status, 200);
 });
 
-// ChangeEmail is implemented by the email/phone/terms slice; Account.Remove
-// remains unimplemented and is the proxy-fallback control.
+// Search, Remove, CreateAccessToken, GetAccountByAccessToken, ResetKeys,
+// UpdatePhoto and RemovePhoto are all implemented now, so this control uses a
+// target the Account face genuinely does not serve. Facebook_20151111 ops were
+// dropped with the dead provider and are the remaining proxy-fallback case.
 test('unimplemented Account operations keep the unknown-target response', async () => {
-  const response = await post(accountBase, 'Account_20151111.Remove', {}, owner);
+  const response = await post(accountBase, 'Account_20151111.FacebookConnect', {}, owner);
   assert.equal(response.status, 400);
   assert.equal(response.body.__type, 'UnknownOperationException');
 });

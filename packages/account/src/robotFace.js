@@ -169,6 +169,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           loopConfig,
           identityProviders,
           memberPhotoProvider,
+          // Account_20151111.Remove emits LoopUpdated for every loop the
+          // removed account belonged to, so the outbox has to reach the
+          // identity handler alongside the photo/mail providers.
+          loopUpdatedOutbox,
         });
         if (identity !== false) return identity;
       } finally {
