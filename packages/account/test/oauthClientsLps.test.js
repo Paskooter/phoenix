@@ -217,7 +217,11 @@ test('OauthClients_20171108 auth: non-admin rejected, unsigned rejected, validat
     updatedBy: admin._id,
   }, admin.accessKeyId);
   assert.equal(emptyStr.status, 422);
-  assert.equal(emptyStr.body.message, 'child "clientId" is not allowed to be empty');
+  // joi 13.1.2 wraps the empty-string failure like every other key failure:
+  // `child "x" fails because ["x" is not allowed to be empty]`. Confirmed by
+  // running the pinned joi from .parity/reference. This assertion previously
+  // pinned Phoenix's unwrapped message, i.e. it encoded the defect.
+  assert.equal(emptyStr.body.message, 'child "clientId" fails because ["clientId" is not allowed to be empty]');
 
   const badAco = await post('OauthClients_20171108.Create', {
     clientId: 'com.jibo.badaco',

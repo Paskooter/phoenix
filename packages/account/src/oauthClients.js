@@ -43,17 +43,22 @@ function objectValidationMessage(body) {
   return null;
 }
 
+// joi 13.1.2 wraps EVERY key failure, the empty-string case included:
+//   child "x" fails because ["x" is not allowed to be empty]
+// Verified by running the pinned joi in .parity/reference directly. These two
+// helpers previously omitted the wrapper on the empty branch only, so that one
+// 422 message differed from source while every sibling branch matched.
 function requiredStringMessage(body, field) {
   if (!Object.prototype.hasOwnProperty.call(body, field)) return `child \"${field}\" fails because [\"${field}\" is required]`;
   if (typeof body[field] !== 'string') return `child \"${field}\" fails because [\"${field}\" must be a string]`;
-  if (body[field].length === 0) return `child \"${field}\" is not allowed to be empty`;
+  if (body[field].length === 0) return `child \"${field}\" fails because [\"${field}\" is not allowed to be empty]`;
   return null;
 }
 
 function optionalStringMessage(body, field) {
   if (!Object.prototype.hasOwnProperty.call(body, field) || body[field] === undefined) return null;
   if (typeof body[field] !== 'string') return `child \"${field}\" fails because [\"${field}\" must be a string]`;
-  if (body[field].length === 0) return `child \"${field}\" is not allowed to be empty`;
+  if (body[field].length === 0) return `child \"${field}\" fails because [\"${field}\" is not allowed to be empty]`;
   return null;
 }
 
