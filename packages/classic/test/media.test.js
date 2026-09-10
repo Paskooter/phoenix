@@ -178,6 +178,9 @@ test('List pages 50 rows by default and never past the source hard cap of 200', 
   assert.equal(capped.body.length, 60);
 });
 
+// Get, unlike List, EXCLUDES soft-deleted rows in the source query itself:
+//   jiborobot/srv-media-ws src/controllers/media.ctrl.js:239   `isDeleted: { $ne: true },`
+// List has no such predicate (same file :54) -- that asymmetry is reproduced faithfully below.
 test('Get returns rows by path and refuses to answer soft-deleted ones', async () => {
   const got = await jsonAmz('Media_20160725.Get', { paths: ['photo-1', 'thumb-1'] });
   assert.equal(got.status, 200);
@@ -269,14 +272,27 @@ test('RemoveAllMediaFromLoop drops the loop and answers what it removed', async 
 
 // -- durability / semantics of the local store --------------------------------
 
-test('a soft-deleted row keeps its place in List but loses its url (same as the source toJSON)', async () => {
+// The source's List query is deliberately not filtered by isDeleted -- pinned:
+//   jiborobot/srv-media-ws src/controllers/media.ctrl.js:54
+//     const condition = { loopId: { $in: loopIds } };   // loopId (+created bounds) ONLY
+//   ...:66  Media.find(condition).sort({ created: sortOrder }).limit(currentLimit);
+// and its toJSON strips the url of a soft-deleted row:
+//   jiborobot/srv-media-ws src/schemes/media.js:27-28
+//     if (ret.isDeleted) { delete ret.url; ... }
+// By contrast Get DOES exclude them (src/controllers/media.ctrl.js:239 `isDeleted: { $ne: true },`).
+// The Android Gallery cursor requires url IS NOT NULL, so the row is dropped client-side. Answering
+// the deleted row here (with isDeleted:true and no url) is faithful -- do NOT add an isDeleted
+// filter to list(); that is the regression this test guards.
+test('a soft-deleted row keeps its place in List but loses its url (source list has no isDeleted filter; toJSON strips url)', async () => {
   await upload('photo-soft', Buffer.from('s'));
   await jsonAmz('Media_20160725.Remove', { paths: ['photo-soft'] });
   const { body } = await list({ loopIds: [LOOP] });
   const row = body.find((entry) => entry.path === 'photo-soft');
-  assert.ok(row, 'the source list query does not filter isDeleted');
+  // media.ctrl.js:54 never adds isDeleted to the List condition, so the row is answered.
+  assert.ok(row, 'the source List query (srv-media-ws src/controllers/media.ctrl.js:54) has no isDeleted predicate, so the deleted row is still answered');
   assert.equal(row.isDeleted, true);
-  assert.equal(row.url, undefined);
+  // schemes/media.js:27-28 deletes url (and every thumb url) when isDeleted is set.
+  assert.equal(row.url, undefined, 'the source toJSON (srv-media-ws src/schemes/media.js:27-28) deletes url on a soft-deleted row');
 });
 
 test('the store survives a restart on the same file and the bytes are on disk', async () => {
