@@ -31,7 +31,7 @@ import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
 import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
-import { handleAccountIdentity } from './accountIdentity.js';
+import { handleAccountIdentity, isAccountPhotoUpload } from './accountIdentity.js';
 import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzEmpty, sendAmzError, sendValidationError } from './loopHttp.js';
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
@@ -91,7 +91,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const { prefix, op } = parseTarget(req);
     // Hapi's binary stream route checks the declared length before dispatch.
     // Its stream output does not impose a cumulative limit on chunked bodies.
-    if (isMemberPhotoUpload(req) && Number(req.headers['content-length']) > 1000000000) {
+    // Account UpdatePhoto uses the same POST /binary maxBytes: 1000000000.
+    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req)) && Number(req.headers['content-length']) > 1000000000) {
       const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: 'Payload content length greater than maximum allowed: 1000000000' });
       res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
       res.end(data);
@@ -161,13 +162,18 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Unimplemented Account operations keep the existing unknown-target
     // response so Classic still proxies them without a local handler.
     if (/^account/i.test(prefix)) {
-      const identity = await handleAccountIdentity({
-        store, req, res, body, log,
-        mailProviders: invitationProviders,
-        loopConfig,
-        identityProviders,
-      });
-      if (identity !== false) return identity;
+      try {
+        const identity = await handleAccountIdentity({
+          store, req, res, body, log,
+          mailProviders: invitationProviders,
+          loopConfig,
+          identityProviders,
+          memberPhotoProvider,
+        });
+        if (identity !== false) return identity;
+      } finally {
+        if (req.photoCleanup) await req.photoCleanup();
+      }
     }
     const handler = ops[op.toLowerCase()];
     if (!handler) {
@@ -189,7 +195,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   };
   // Hapi presents an omitted request payload to CreateHubToken as null. Other
   // legacy robot handlers retain the service's historical object default.
-  dispatch.rawBody = isMemberPhotoUpload;
+  dispatch.rawBody = (req) => isMemberPhotoUpload(req) || isAccountPhotoUpload(req);
   dispatch.bodyDefault = (req) => {
     const target = parseTarget(req);
     if (target.op.toLowerCase() === 'createhubtoken') return null;
