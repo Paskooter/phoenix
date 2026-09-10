@@ -34,14 +34,14 @@ before(async () => {
 });
 after(() => { server.close(); upstreams.mock.close(); delete process.env.NET_account; delete process.env.NET_ota; });
 
-test('log PutEvents: 200 no-op, robot never gets a 500', async () => {
-  const r = await amz('Log_20150309.PutEvents', { trackingId: 't', deviceId: 'd', events: [{ a: 1 }] }, base);
+test('log PutEvents: 200 synchronous ack with the source result; robot never gets a 500', async () => {
+  const r = await amz('Log_20150309.PutEvents', { trackingId: 't', deviceId: 'd', events: [{ message: 'hello' }] }, base);
   assert.equal(r.status, 200);
-  assert.deepEqual(r.body, {});
+  assert.deepEqual(r.body, { result: 'Successfully added events' });
 });
 
 test('log PutEventsAsync + PutAsrBinary return the upload-handshake shapes', async () => {
-  const a = await amz('Log_20150309.PutEventsAsync', { kind: 'k', serial: 's' }, base);
+  const a = await amz('Log_20150309.PutEventsAsync', { kind: 'LOG', serial: 's' }, base);
   assert.deepEqual(Object.keys(a.body).sort(), ['contentEncoding', 'uploadUrl']);
   const b = await amz('Log_20150309.PutAsrBinary', { trackingId: 't', metadata: { x: 1 } }, base);
   assert.deepEqual(Object.keys(b.body).sort(), ['bucketName', 'key', 'metadata', 'uploadUrl']);
@@ -129,7 +129,7 @@ test('proxy bounds upstream hangs and surfaces aborted upstream responses', asyn
 });
 
 test('prefix tolerance: case-insensitive; unknown prefix -> UnknownOperationException', async () => {
-  const lower = await amz('log_20150309.putevents', {}, base);
+  const lower = await amz('log_20150309.putevents', { events: [] }, base);
   assert.equal(lower.status, 200);
   const nope = await amz('Frobnicate_20990101.DoThing', {}, base);
   assert.equal(nope.status, 400);
