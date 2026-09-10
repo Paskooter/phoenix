@@ -54,10 +54,33 @@ The questions + all 53 holidays are the pinned `config/config.json`, generated v
 `packages/classic/src/personCatalog.js` (2 questions in category `app`; `Halloween` public etc.).
 
 Persistence is one atomically-replaced JSON file (`PersonStore`, same discipline as `MediaStore`),
-written synchronously on every mutation. **VERIFIED by restart**: `person.test.js` "state survives
-a real restart" closes the first entrypoint, opens a second entrypoint with a brand-new
-`PersonStore` over the same file, and reads back the property, the consumed question and the
-enabled holiday (the enabled `Halloween` row keeps its id).
+written synchronously on every mutation. **VERIFIED by restart at two levels:**
+
+* in-process — `person.test.js` "state survives a real restart (new entrypoint, same store file)"
+  closes the first entrypoint, opens a second with a brand-new `PersonStore` over the same file,
+  and reads back the property, the consumed question and the enabled holiday (the enabled
+  `Halloween` row keeps its id).
+* **process-level** — `restart-process.mjs` spawns the real entrypoint as a child `node` process,
+  writes account property + answer + enabled holiday over the AWS-JSON wire, **SIGKILLs it** (no
+  graceful shutdown), starts a *fresh process* over the same file and re-reads. All 5 values
+  survived: `PASS: 5/5 values survived a real process restart (SIGKILL -> new process)`.
+
+## Falsification (re-run for A-15)
+
+One full source line was inverted in `packages/classic/src/person.js`, the person suite re-run, the
+line restored and the suite re-confirmed green.
+
+* Line broken (`git diff` before/after, restored verbatim):
+  `    if (this.store.findAnswer(accountId, key)) fail('ALREADY_ANSWERED');`
+  was changed to
+  `    if (!this.store.findAnswer(accountId, key)) fail('ALREADY_ANSWERED');`
+* Failing test (exact name, from `node --test packages/classic/test/person.test.js`):
+  **"person answer stores an option, drops it from list, and refuses a second answer"** — plus the
+  two knock-on cases "person answer validates the option (422) and the question (404)" and
+  "person state survives a real restart (new entrypoint, same store file)"; counts that run:
+  `# tests 14 # pass 11 # fail 3`.
+* Restored: `git diff packages/classic/src/person.js` empty; person+collision suites
+  `# tests 28 # pass 28 # fail 0`.
 
 ## Collision contract implemented
 
@@ -79,7 +102,10 @@ tokens. The pinned README example is reproduced exactly:
 - The pinned README collision example, the ≤3-token boundary, the min_distance override.
 - Durable state across a real process/entrypoint restart.
 - Missing-auth 401 for both services; `x-amz-credentials` identity.
-- Gateway allow-lists at `39a692fe` (no Person/Collision target in either allow-list).
+- Gateway allow-lists at `43a692fe` (no Person/Collision target in `unauthorizedMethods`;
+  `unsignedMethods` empty) — re-read `jiborobot/srv-security-gw:src/controllers/auth.ctrl.ts`
+  for A-15: `Person`/`Collision` appear **0 times** in the file, and a missing `authorization`
+  throws `Errors.MISSING_AUTH_HEADER`.
 
 **INFERRED (source reading, not executed):**
 - `Get*Properties` with `keys` omitted (Joi optional) reads every property for the owner; mongoose
@@ -117,5 +143,7 @@ tokens. The pinned README example is reproduced exactly:
 
 ```sh
 node --test packages/classic/test/*.test.js   # 224 tests, 224 pass, 0 fail
-node docs/parity/evidence/2026-09-10/a15-person-collision/probe.mjs
+node docs/parity/evidence/2026-09-10/a15-person-collision/probe.mjs            # SERVED 11 operations; all 2xx = true
+node docs/parity/evidence/2026-09-10/a15-person-collision/restart-process.mjs  # PASS: 5/5 values survived a real process restart
+npm test                                       # 1409 tests, 1402 pass, 0 fail, 0 cancelled, 7 skipped; gate {"result":"match","cases":43,...}
 ```
