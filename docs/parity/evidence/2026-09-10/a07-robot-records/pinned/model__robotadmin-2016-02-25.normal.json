@@ -1,0 +1,83 @@
+
+{
+  "metadata":{
+    "apiVersion":"2016-02-25",
+    "endpointPrefix":"robotadmin",
+    "jsonVersion":"1.1",
+    "serviceFullName":"Jibo Robot",
+    "signatureVersion":"v4",
+    "targetPrefix":"Robot_20160225",
+    "protocol":"json"
+  },
+  "documentation":"<fullname>Jibo Robot API Reference</fullname> <p>This is the <i>Jibo Robot API Reference</i>. Jibo Robot.",
+  "operations":{
+    "CreateRobot":{
+      "name":"CreateRobot",
+      "input":{"shape":"CreateRequest"},
+      "output":{"shape":"CommandResponse"},
+      "documentation":"<p> Creates new robot. </p> <p> <note> Can only be called by manufacturing account </note> </p>"
+    },
+    "CreateRobotBatch":{
+      "name":"CreateRobotBatch",
+      "input":{"shape":"CreateRequests"},
+      "output":{"shape":"CommandResponse"},
+      "documentation":"<p> Creates new robots. </p> <p> <note> Can only be called by manufacturing account </note> </p>"
+    },
+    "CalibrateRobot":{
+      "name":"CalibrateRobot",
+      "input":{"shape":"CalibrateRequest"},
+      "output":{"shape": "CommandResponse"},
+      "documentation":"<p> Calibrates robot. </p> <p> <note> Can only be called by manufacturing account </note> </p>"
+    }
+  },
+  "shapes":{
+    "Id":{"type":"string"},
+    "SerialNumber":{"type":"string"},
+    "Payload":{"type":"object"},
+    "CalibrationPayload":{"type":"object"},
+    "IdRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{"shape":"Id"},
+        "serialNumber":{"shape":"SerialNumber"}
+      }
+    },
+    "CommandResponse":{
+      "type":"structure",
+      "required":[
+        "result"
+      ],
+      "members":{
+        "result":{"type":"string"}
+      }
+    },
+    "CreateRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "payload"
+      ],
+      "members":{
+        "id":{"shape":"Id"},
+        "payload":{"shape":"Payload"}
+      }
+    },
+    "CreateRequests":{
+      "type":"list",
+      "member":{"shape":"CreateRequest"},
+      "documentation":"A list of robots to create."
+    },
+    "CalibrateRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "calibrationPayload"
+      ],
+      "members":{
+        "id":{"shape":"Id"},
+        "calibrationPayload":{"shape":"CalibrationPayload"}
+      }
+    }
+  }
+}

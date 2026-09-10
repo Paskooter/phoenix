@@ -1,0 +1,107 @@
+{
+ "src/handlers/robot.handler.js": [
+  "readws",
+  3481,
+  true
+ ],
+ "src/command.handlers/robot.create.js": [
+  "ws",
+  988,
+  true
+ ],
+ "src/command.handlers/robot.create.batch.js": [
+  "ws",
+  906,
+  true
+ ],
+ "src/command.handlers/robot.update.js": [
+  "ws",
+  1766,
+  true
+ ],
+ "src/command.handlers/robot.delete.js": [
+  "ws",
+  639,
+  true
+ ],
+ "src/command.handlers/robot.calibrate.js": [
+  "ws",
+  676,
+  true
+ ],
+ "src/command.handlers/abstract.cmd.handler.js": [
+  "ws",
+  561,
+  true
+ ],
+ "src/errors/robot.js": [
+  "readws",
+  1020,
+  true
+ ],
+ "src/repositories/robot.repo.js": [
+  "ws",
+  587,
+  true
+ ],
+ "src/repositories/abstract.repository.js": [
+  "ws",
+  879,
+  true
+ ],
+ "src/controllers/event.ctrl.js": [
+  "ws",
+  1157,
+  true
+ ],
+ "src/schemes/event.js": [
+  "ws",
+  400,
+  true
+ ],
+ "config/config.json": [
+  "ws",
+  383,
+  true
+ ],
+ "src/query.handlers/robot.read.js": [
+  "readws",
+  824,
+  true
+ ],
+ "src/query.handlers/robot.calibrate.js": [
+  "readws",
+  585,
+  true
+ ],
+ "src/query.handlers/robot.history.js": [
+  "readws",
+  654,
+  true
+ ],
+ "src/query.handlers/robot.friendly.ids.js": [
+  "readws",
+  1018,
+  true
+ ],
+ "src/query.handlers/abstract.robot.handler.js": [
+  "readws",
+  893,
+  true
+ ],
+ "src/query.handlers/abstract.query.handler.js": [
+  "readws",
+  596,
+  true
+ ],
+ "src/controllers/robot.ctrl.js": [
+  "readws",
+  2377,
+  true
+ ],
+ "src/schemes/robot.js": [
+  "readws",
+  660,
+  true
+ ]
+}

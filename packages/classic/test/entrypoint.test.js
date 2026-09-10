@@ -8,10 +8,10 @@ import { createClassicEntrypoint } from '../src/index.js';
 
 let server; let base; let upstreams = {}; let upstreamHits = [];
 
-async function amz(target, body, port) {
+async function amz(target, body, port, headers = {}) {
   const res = await fetch(`http://localhost:${port}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target },
+    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target, ...headers },
     body: JSON.stringify(body || {}),
   });
   return { status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) };
@@ -48,21 +48,27 @@ test('log PutEventsAsync + PutAsrBinary return the upload-handshake shapes', asy
   assert.deepEqual(b.body.metadata, { x: 1 });
 });
 
-test('robot GetRobot / GetCalibrationData return valid empty records', async () => {
+test('robot GetRobot / GetCalibrationData return a valid empty record on the boot read (no forwarded identity)', async () => {
   const g = await amz('Robot_20160225.GetRobot', { id: 'robot-123' }, base);
   assert.equal(g.status, 200);
-  assert.deepEqual(Object.keys(g.body).sort(), ['calibrationPayload', 'created', 'id', 'payload', 'updated']);
-  assert.equal(g.body.id, 'robot-123');
-  assert.deepEqual(g.body.calibrationPayload, {}, 'cloud calibration empty -> robot uses local /var');
+  // The read projection strips calibrationPayload/events (see A-07 robotRecords.test.js).
+  assert.deepEqual(g.body, { id: 'robot-123', payload: {} });
 
   const c = await amz('Robot_20160225.GetCalibrationData', { id: 'robot-123' }, base);
   assert.deepEqual(c.body, { id: 'robot-123', calibrationPayload: {} });
 });
 
-test('robot GetFriendlyIds returns the requested count of 4-word names', async () => {
-  const r = await amz('Robot_20160225.GetFriendlyIds', { count: 3 }, base);
-  assert.equal(r.body.pairs.length, 3);
-  assert.match(r.body.pairs[0].friendlyId, /^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+test('robot GetFriendlyIds returns the requested count of IdPairs for manufacturing', async () => {
+  const manufacturing = { 'x-amz-credentials': JSON.stringify({ id: 'mfg', email: 'manufacturing@jibo.com' }) };
+  const r = await amz('Robot_20160225.GetFriendlyIds', { count: 3 }, base, manufacturing);
+  assert.equal(r.status, 200);
+  assert.ok(Array.isArray(r.body), 'IdPairs is a list');
+  assert.equal(r.body.length, 3);
+  assert.match(r.body[0].id, /^[A-Z][a-z]+-[A-Z][a-z]+-[A-Z][a-z]+-[A-Z][a-z]+$/);
+
+  const denied = await amz('Robot_20160225.GetFriendlyIds', { count: 1 }, base);
+  assert.equal(denied.status, 403);
+  assert.equal(denied.errType, 'MANUFACTURING_ONLY');
 });
 
 test('OOBE_* and Update_* proxy to their upstream services verbatim', async () => {

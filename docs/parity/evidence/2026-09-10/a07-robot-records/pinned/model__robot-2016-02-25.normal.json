@@ -1,0 +1,159 @@
+
+{
+  "metadata":{
+    "apiVersion":"2016-02-25",
+    "endpointPrefix":"robot",
+    "jsonVersion":"1.1",
+    "serviceFullName":"Jibo Robot",
+    "signatureVersion":"v4",
+    "targetPrefix":"Robot_20160225",
+    "protocol":"json"
+  },
+  "documentation":"<fullname>Jibo Robot API Reference</fullname> <p>This is the <i>Jibo Robot API Reference</i>. Jibo Robot.",
+  "operations":{
+    "GetFriendlyIds":{
+      "name":"GetFriendlyIds",
+      "input":{"shape":"FriendlyIdsRequest"},
+      "output":{"shape":"IdPairs"},
+      "documentation":"<p> Gets friendly deviceIds for later robots creation. </p>"
+    },
+    "RemoveRobot":{
+      "name":"RemoveRobot",
+      "input":{"shape":"IdRequest"},
+      "output":{"shape": "CommandResponse"},
+      "documentation":"<p> Removes robot. </p>"
+    },
+    "UpdateRobot":{
+      "name":"UpdateRobot",
+      "input":{"shape":"UpdateRequest"},
+      "output":{"shape": "CommandResponse"},
+      "documentation":"<p> Updates robot. Can also be called by robot owner. Proposed account-defined properties are: connectedAt, timeZone. </p>"
+    },
+    "GetRobot":{
+      "name":"GetRobot",
+      "input":{"shape":"IdRequest"},
+      "output":{"shape":"Robot"},
+      "documentation":"<p> Gets robot entity. If provided with serial number, it will validate it. </p>"
+    },
+    "GetRobotHistory":{
+      "name":"GetRobotHistory",
+      "input":{"shape":"IdRequest"},
+      "output":{"shape":"Events"},
+      "documentation":"<p> Get list of robot historical events.  If provided with serial number, it will validate it. </p>"
+    },
+    "GetCalibrationData":{
+      "name":"GetCalibrationData",
+      "input":{"shape":"IdRequest"},
+      "output":{"shape":"CalibrationResponse"},
+      "documentation":"<p> Gets calibration data for robot by its id. </p>"
+    }
+  },
+  "shapes":{
+    "Id":{"type":"string"},
+    "SerialNumber":{"type":"string"},
+    "IdPair":{
+      "type":"structure",
+      "required":[
+        "id"
+      ],
+      "members":{
+        "id":{"shape":"Id"}
+      }
+    },
+    "IdPairs":{
+      "type":"list",
+      "member":{"shape":"IdPair"},
+      "documentation":"A list of id pairs."
+    },
+    "Name":{"type":"string"},
+    "Payload":{"type":"object"},
+    "CalibrationPayload":{"type":"object"},
+    "IdRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{"shape":"Id"},
+        "serialNumber":{"shape":"SerialNumber"}
+      }
+    },
+    "Timestamp":{
+      "type":"long",
+      "min":0,
+      "documentation":"A point in time expressed as the number milliseconds since Jan 1, 1970 00:00:00 UTC."
+    },
+    "CommandResponse":{
+      "type":"structure",
+      "required":[
+        "result"
+      ],
+      "members":{
+        "result":{"type":"string"}
+      }
+    },
+    "UpdateRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "payload"
+      ],
+      "members":{
+        "id":{"shape":"Id"},
+        "payload":{"shape":"Payload"}
+      }
+    },
+    "Robot":{
+      "type":"structure",
+      "required":[
+        "id",
+        "payload"
+      ],
+      "members":{
+        "id":{"shape":"Id"},
+        "payload":{"shape":"Payload"},
+        "calibrationPayload": {"shape":"CalibrationPayload"},
+        "updated":{"shape":"Timestamp"},
+        "created":{"shape":"Timestamp"}
+      }
+    },
+    "Event":{
+      "type":"structure",
+      "required":[
+        "id",
+        "name",
+        "payload"
+      ],
+      "members":{
+        "id":{"shape":"Id"},
+        "name":{"shape":"Name"},
+        "payload":{"shape":"Payload"},
+        "created":{"shape":"Timestamp"}
+      }
+    },
+    "Events":{
+      "type":"list",
+      "member":{"shape":"Event"},
+      "documentation":"A list of events."
+    },
+    "Count":{"type":"integer"},
+    "FriendlyIdsRequest":{
+      "type":"structure",
+      "required":[
+        "count"
+      ],
+      "members":{
+        "count":{"shape":"Count"}
+      }
+    },
+    "CalibrationResponse":{
+      "type":"structure",
+      "required":[
+        "id",
+        "calibrationPayload"
+      ],
+      "members":{
+        "id":{"shape":"Id"},
+        "calibrationPayload":{"shape":"CalibrationPayload"}
+      }
+    }
+  }
+}
