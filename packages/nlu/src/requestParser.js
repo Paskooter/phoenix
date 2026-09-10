@@ -208,7 +208,7 @@ function unsupportedDependencies(name, state) {
   return [...new Set(publicRule.sources.flatMap(source => state.inventory.ruleDependencies[source]?.unsupported || []))].sort();
 }
 
-function matchNamedRule(name, text, state, options = {}) {
+function matchNamedRule(name, text, state) {
   const entry = state.rules.get(name);
   if (!entry) throw new Error(`Missing loaded NLU rule: ${name}`);
   // The matcher compiles the source heuristic/reference tree behind a WeakMap
@@ -235,14 +235,21 @@ function matchNamedRule(name, text, state, options = {}) {
   delete entities.priority;
   // Launch is a native UNION of every */launch graph. Native scores that union
   // as input_length - heuristic and copies priority onto NLParse after
-  // selection. Do not mix priorityRank * 1e6 into the launch-member score.
+  // selection. The arbitration score is the native heuristic score only:
+  // getBestResult compares `heuristic_score` (RobustParserClient.ts:262-288) and
+  // the grammar `priority` tag is copied onto the winning NLParse *after*
+  // selection (`bestResult.NLParse.priority = bestResult.NLParse.priority ||
+  // 'LOW'`, RobustParserClient.ts:88-91), so it is never a ranking term. Adding
+  // priorityRank * 1e6 here made every HIGH-tagged `globals/*` graph beat the
+  // launch union even when launch scored higher natively (original multi-rule
+  // capture n08:000-003, n08:029-032: launch wins regardless of request order).
   return {
     rule: name,
     entities,
     intent: match.entities.intent,
     priority,
     score: parseScore(match.entities, match.specificity, match.cost, {
-      includePriority: options.includePriority !== false,
+      includePriority: false,
     }),
   };
 }
@@ -252,9 +259,7 @@ function chooseBest(requested, text, state, compiledRuntime) {
     const candidates = [];
     for (const requestedEntry of requested) {
       for (const name of requestedEntry.names) {
-        const candidate = matchNamedRule(name, text, state, {
-          includePriority: requestedEntry.name !== 'launch',
-        });
+        const candidate = matchNamedRule(name, text, state);
         if (!candidate) continue;
         if (requestedEntry.name !== name) candidate.requestedName = requestedEntry.name;
         candidates.push(candidate);
