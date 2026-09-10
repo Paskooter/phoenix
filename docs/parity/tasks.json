@@ -2636,7 +2636,7 @@
       "track": "classic",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2660,7 +2660,18 @@
         "Forward required signed/request context headers and exact payloads; keep any LAN bypass explicit and separately tested.",
         "Implement the original signed Account_20151111.CreateHubToken operation with its token/expires contract and verify it using source-pinned native and JS client requests."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Gateway allow-lists, target parsing, expiry/replay, ownership with issued test keys, header forwarding, LAN-bypass absence and error-envelope equivalence, each checked against the pinned gateway/framework/client",
+          "artifact": "docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md",
+          "result": "pass",
+          "referenceRevision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
+          "phoenixRevision": "3301786b9b435b75a50e63555794794de709b4e2",
+          "command": "python3 scripts/parity-coverage/a02_auth_boundary.py && node .parity/reviews/a02-gateway-root-20260910/{live-auth-boundary,skew-ordering,header-forwarding,ownership-boundary,target-parsing,errortype-equivalence}.mjs",
+          "notes": "Criterion 1: target parsing matches pinned srv-server lowerMethodName (split('.')[1], lowercase first char) exactly, driven live over 8 targets including extra-dot and wrong-prefix forms. Error envelopes are EQUIVALENT at the client boundary - the pinned aws-sdk extractError() reads body.__type || body.code so it cannot tell Phoenix from source; proven by executing the pinned parser (4 codes, falsification checked). Only the unknown-method status code differs (400 vs 404/500), recorded as A8. Criterion 2: 14/14 unauthorizedMethods exact across Account/Loop/OOBE, unsignedMethods empty, unactiveMethods = Remove only; 27 live checks; 15-minute skew enforced in BOTH directions with correct error precedence; replay is bounded only by that window (A10, source-faithful); 7 ownership cases with issued keys, where a bad secret fails SIGNATURE_MISMATCH distinctly from a valid-but-unauthorized coded refusal. Criterion 3: signature computed for the Classic host verifies after the proxy hop and body-sensitive ops succeed, proving Host and payload survive byte-identically; x-amzn-errortype propagates; NO LAN bypass exists anywhere in the repo - x-forwarded-for/remoteAddress are descriptive context only, identity comes from the decoded JWT. Criterion 4: satisfied by the 2026-09-06 hardware CreateHubToken run over TLS 1.2. Scope: per-service ownership rules (robot/owner/manufacturing/admin) are A-01 per-operation attributes, not re-verified here."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Root review of Luna Max candidate",

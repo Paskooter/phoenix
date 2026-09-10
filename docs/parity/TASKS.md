@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 2 | 46 | 0 | 0 |
-| classic | 1 | 20 | 1 | 0 |
+| classic | 2 | 20 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -881,7 +881,7 @@ Evidence: pending.
 
 ### A-02 — Match Classic dispatch, authentication and error handling
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-01, C-01.
 
@@ -898,7 +898,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic/src/awsJson.js](../../packages/classic/src/awsJson.js); [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md](../../docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md) (2026-09-10; Gateway allow-lists, target parsing, expiry/replay, ownership with issued test keys, header forwarding, LAN-bypass absence and error-envelope equivalence, each checked against the pinned gateway/framework/client).
 
 - [x] Candidate implementation — **accepted**; Root review of Luna Max candidate.
 
