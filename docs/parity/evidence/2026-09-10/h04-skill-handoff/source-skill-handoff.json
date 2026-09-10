@@ -1,0 +1,1524 @@
+{
+  "runtime": "v8.9.4",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "cases": {
+    "launch": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": [
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "source"
+          },
+          "resultKeys": [
+            "asr",
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": null,
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 4,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "timings": {
+            "total": 14,
+            "skill": 9
+          },
+          "data": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-launch",
+                "nodeID": 1
+              }
+            },
+            "action": {
+              "type": "JCP"
+            },
+            "fireAndForget": true,
+            "analytics": {
+              "kept": 1
+            }
+          }
+        }
+      ]
+    },
+    "redirect": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": [
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "source"
+          },
+          "resultKeys": [
+            "asr",
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": null,
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        },
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "destination"
+          },
+          "resultKeys": [
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "redirect-intent",
+            "entities": {
+              "r": 1
+            }
+          },
+          "asr": "<absent>",
+          "memo": {
+            "from": "source"
+          },
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 3,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "match": {
+              "skillID": "destination",
+              "launch": true,
+              "onRobot": false
+            },
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "timings": {
+            "total": 128,
+            "skill": 62
+          },
+          "data": {
+            "skill": {
+              "id": "destination",
+              "session": {
+                "id": "sess-dest",
+                "nodeID": 1
+              }
+            },
+            "action": {
+              "type": "JCP"
+            }
+          }
+        }
+      ]
+    },
+    "update": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": [
+        {
+          "type": "LISTEN_UPDATE",
+          "dataSkill": {
+            "id": "source",
+            "session": {
+              "id": "existing",
+              "opaque": true
+            }
+          },
+          "resultKeys": [
+            "asr",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "followup-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": "<absent>",
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 3,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "followup-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": false,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "timings": {
+            "total": 4,
+            "skill": 1
+          },
+          "data": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-continued",
+                "nodeID": 1
+              }
+            },
+            "action": {
+              "type": "JCP"
+            }
+          }
+        }
+      ]
+    },
+    "tooMany": {
+      "terminal": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "Too many redirects"
+        }
+      },
+      "requests": [
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "source"
+          },
+          "resultKeys": [
+            "asr",
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": null,
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        },
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "destination"
+          },
+          "resultKeys": [
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "redirect-intent",
+            "entities": {
+              "r": 1
+            }
+          },
+          "asr": "<absent>",
+          "memo": {
+            "from": "source"
+          },
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 2,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "match": {
+              "skillID": "destination",
+              "launch": true,
+              "onRobot": false
+            },
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true,
+          "timings": {
+            "total": 4
+          },
+          "data": {
+            "message": "Too many redirects"
+          }
+        }
+      ]
+    },
+    "redirectTimeout": {
+      "terminal": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+          "code": "TIMEOUT_SKILL"
+        }
+      },
+      "requests": [
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "source"
+          },
+          "resultKeys": [
+            "asr",
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": null,
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        },
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "destination"
+          },
+          "resultKeys": [
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "redirect-intent",
+            "entities": {
+              "r": 1
+            }
+          },
+          "asr": "<absent>",
+          "memo": {
+            "from": "source"
+          },
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 2,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "match": {
+              "skillID": "destination",
+              "launch": true,
+              "onRobot": false
+            },
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true,
+          "timings": {
+            "total": 203
+          },
+          "data": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          }
+        }
+      ]
+    },
+    "launchTimeout": {
+      "terminal": {
+        "outcome": "rejected",
+        "error": {
+          "name": "Error",
+          "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+          "code": "TIMEOUT_SKILL"
+        }
+      },
+      "requests": 1,
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 3,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true,
+          "timings": {
+            "total": 203
+          },
+          "data": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          }
+        }
+      ]
+    },
+    "timeoutSamples": {
+      "launch": [
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        }
+      ],
+      "redirect": [
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "message": "Timeout of 10000ms while waiting for \"destination\" response"
+          },
+          "terminal": {
+            "outcome": "resolved"
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        },
+        {
+          "frame": {
+            "code": "TIMEOUT_SKILL",
+            "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'"
+          },
+          "terminal": {
+            "outcome": "rejected",
+            "error": {
+              "name": "Error",
+              "message": "Timeout of 10000 while waiting for the redirect skill response from 'source'",
+              "code": "TIMEOUT_SKILL"
+            }
+          }
+        }
+      ]
+    },
+    "skillFailure": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": 1,
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 2,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "message": "Error from URL 'http://127.0.0.1:40397/v1/main': 500 Request failed with status code 500 :: {\"error\":\"boom\"}"
+          }
+        }
+      ]
+    },
+    "onRobot": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": 0,
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": true,
+          "timings": {
+            "total": 2,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "robot-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {},
+              "external": {}
+            },
+            "match": {
+              "skillID": "robot-skill",
+              "launch": true,
+              "onRobot": true
+            }
+          }
+        }
+      ]
+    },
+    "redirectToOnRobot": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": [
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "source"
+          },
+          "resultKeys": [
+            "asr",
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": null,
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 3,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": true,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "match": {
+              "skillID": "robot-skill",
+              "launch": true,
+              "onRobot": true
+            },
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        }
+      ]
+    },
+    "redirectDestinationFailure": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "requests": [
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "source"
+          },
+          "resultKeys": [
+            "asr",
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "memo": null,
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        },
+        {
+          "type": "LISTEN_LAUNCH",
+          "dataSkill": {
+            "id": "destination"
+          },
+          "resultKeys": [
+            "memo",
+            "nlu"
+          ],
+          "nlu": {
+            "intent": "redirect-intent",
+            "entities": {
+              "r": 1
+            }
+          },
+          "asr": "<absent>",
+          "memo": {
+            "from": "source"
+          },
+          "generalKeys": [
+            "accountID",
+            "lang",
+            "release",
+            "remoteAddress",
+            "robotID"
+          ],
+          "trace": {
+            "transId": "tid:h04-source",
+            "robotId": "unknown",
+            "loggingConfig": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "EOS",
+          "timings": {
+            "total": -1
+          },
+          "data": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "timings": {
+            "total": 3,
+            "asr": -1,
+            "nlu": -1
+          },
+          "data": {
+            "asr": {
+              "text": "",
+              "confidence": 1
+            },
+            "nlu": {
+              "intent": "launch-intent",
+              "rules": [
+                "launch"
+              ],
+              "entities": {
+                "e": "v"
+              },
+              "external": {}
+            },
+            "match": {
+              "skillID": "source",
+              "launch": true,
+              "onRobot": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "match": {
+              "skillID": "destination",
+              "launch": true,
+              "onRobot": false
+            },
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true,
+          "timings": {
+            "total": 0
+          },
+          "data": {
+            "message": "Error from URL 'http://127.0.0.1:46683/v1/main': 500 Request failed with status code 500 :: {\"error\":\"dest-boom\"}"
+          }
+        }
+      ]
+    }
+  }
+}
