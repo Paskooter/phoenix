@@ -32,7 +32,7 @@
 // Phoenix has no SNS and the robot-side event consumers are the hub/notification path (out of
 // scope for this task; recorded as a divergence candidate).
 
-import { constants, createHash, createPublicKey, publicEncrypt, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import {
   chmodSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync,
   createWriteStream, createReadStream, rmSync,
@@ -105,10 +105,6 @@ export class KeyStore {
     this.keys = new Map();     // id -> { id, accountId, loopId, publicKey, keyHash?, encryptedKey?, created }
     this.backups = new Map();  // loopId -> { loopId, accountId, encryptedKey, passwordHash?, created }
     this.binaries = new Map(); // id -> { id, accountId, loopId, encryptedUrl, decryptedUrl?, created }
-    // loopId -> base64 32-byte AES loop key. ONLY populated by the opt-in provisioning path
-    // (mintOnRequest), which is a divergence from the source: the real service never holds loop
-    // key material (see the header comment and DIVERGENCES candidate in the task report).
-    this.loopSecrets = new Map();
     this._load();
     this._committed = this._snapshot();
   }
@@ -127,7 +123,6 @@ export class KeyStore {
     for (const k of raw.keys || []) if (k && k.id) this.keys.set(String(k.id), { ...k });
     for (const b of raw.backups || []) if (b && b.loopId) this.backups.set(String(b.loopId), { ...b });
     for (const b of raw.binaries || []) if (b && b.id) this.binaries.set(String(b.id), { ...b });
-    for (const s of raw.loopSecrets || []) if (s && s.loopId) this.loopSecrets.set(String(s.loopId), String(s.key));
   }
 
   _snapshot() {
@@ -135,7 +130,6 @@ export class KeyStore {
       keys: new Map([...this.keys].map(([k, v]) => [k, clone(v)])),
       backups: new Map([...this.backups].map(([k, v]) => [k, clone(v)])),
       binaries: new Map([...this.binaries].map(([k, v]) => [k, clone(v)])),
-      loopSecrets: new Map([...this.loopSecrets]),
     };
   }
 
@@ -143,7 +137,6 @@ export class KeyStore {
     this.keys = snapshot.keys;
     this.backups = snapshot.backups;
     this.binaries = snapshot.binaries;
-    this.loopSecrets = snapshot.loopSecrets;
   }
 
   _commit(mutator) {
@@ -165,7 +158,6 @@ export class KeyStore {
       keys: [...this.keys.values()].map(clone),
       backups: [...this.backups.values()].map(clone),
       binaries: [...this.binaries.values()].map(clone),
-      loopSecrets: [...this.loopSecrets].map(([loopId, key]) => ({ loopId, key })),
     };
     const parent = dirname(this.file);
     const temporary = `${this.file}.tmp`;
@@ -212,23 +204,6 @@ export class KeyStore {
   }
 
   get(id) { return this.keys.get(String(id)) || null; }
-
-  /**
-   * Opt-in divergence (`mintOnRequest`). The source NEVER held loop key material: a member
-   * device minted the AES-256 key locally (app `KeyManager.generateSymmetricKey`) and shared it
-   * out. When enabled, Phoenix mints — or reuses — one 32-byte AES key per loop so a client that
-   * has no peer to share from (in particular, no running robot) still receives a usable key. The
-   * plaintext key is persisted, which the real service never did.
-   */
-  loopSecret(loopId) {
-    const existing = this.loopSecrets.get(String(loopId));
-    if (existing) return Buffer.from(existing, 'base64');
-    return this._commit(() => {
-      const secret = randomBytes(32);
-      this.loopSecrets.set(String(loopId), secret.toString('base64'));
-      return secret;
-    });
-  }
 
   /** Source KeyController.share: set encryptedKey + keyHash on the request document. */
   share(id, encryptedKey, keyHash) {
@@ -455,22 +430,6 @@ function binaryView(binary) {
 function notFound(res, code) { sendAmzError(res, KEY_ERRORS[code]); }
 function refuse(res, code) { sendAmzError(res, KEY_ERRORS[code]); }
 
-/**
- * The app's `KeyManager.saveSymmetricKey` decrypts with `RSA/NONE/PKCS1Padding` (PKCS#1 v1.5,
- * no OAEP) and takes the LAST 32 bytes of the plaintext as the AES-256 loop key. The app sends
- * `getPublicKeyForSharing()` = base64(X.509 SubjectPublicKeyInfo DER), so a 32-byte secret
- * encrypted with RSA_PKCS1_PADDING is accepted verbatim by the client.
- */
-function rsaPkcs1Encrypt(publicKeyBase64, plaintext) {
-  const der = Buffer.from(String(publicKeyBase64 || ''), 'base64');
-  const publicKey = createPublicKey({ key: der, format: 'der', type: 'spki' });
-  return publicEncrypt({ key: publicKey, padding: constants.RSA_PKCS1_PADDING }, plaintext).toString('base64');
-}
-
-function sha1Hex(buffer) {
-  return createHash('sha1').update(buffer).digest('hex');
-}
-
 async function readBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -488,12 +447,11 @@ async function readBody(req) {
  *   binaryDir?: string,
  *   keyShareTimeoutMs?: number,
  *   accountResolver?: (req) => string|null,
- *   mintOnRequest?: boolean,
  * }} [options]
  */
 export function makeKeyHandler(store = new KeyStore(), {
   membership = accountMembership(), baseFor, binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR,
-  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver, mintOnRequest = false,
+  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver,
 } = {}) {
   const urlBase = baseFor || ((req) => `http://${(req?.headers && req.headers.host) || 'localhost'}`);
   const binaryDirOf = binaryDir;
@@ -545,18 +503,6 @@ export function makeKeyHandler(store = new KeyStore(), {
         // Source sends KeyNeeded to the siblings and arms a KeyTimeout after keyShareTimeout.
         log?.info?.('key request created', { id: key.id, loopId: key.loopId });
         scheduleKeyTimeout();
-        // Opt-in divergence: satisfy the request with a server-held loop key when nothing else can.
-        // A request a peer already satisfied is returned untouched.
-        if (mintOnRequest && !key.encryptedKey) {
-          try {
-            const secret = store.loopSecret(key.loopId);
-            const provisioned = store.share(key.id, rsaPkcs1Encrypt(b.publicKey, secret), sha1Hex(secret));
-            log?.info?.('key request provisioned (mintOnRequest)', { id: key.id, loopId: key.loopId });
-            return void sendAmz(res, 200, requestView(provisioned));
-          } catch (error) {
-            log?.warn?.('key provisioning failed', { id: key.id, error: error.message });
-          }
-        }
         return void sendAmz(res, 200, requestView(key));
       }
       case 'getrequest': {

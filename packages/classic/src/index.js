@@ -74,7 +74,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(keys, {
       membership: keyMembership, baseFor, binaryDir: keyBinaryDir,
-      accountResolver: key?.accountResolver, mintOnRequest: key?.mintOnRequest,
+      accountResolver: key?.accountResolver,
     }) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     // Media_20160725 owns a real store: the app's Gallery reads it and the robot writes photos to
