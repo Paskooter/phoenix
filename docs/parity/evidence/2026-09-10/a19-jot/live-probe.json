@@ -1,0 +1,311 @@
+{
+  "date": "2026-09-10",
+  "phoenixRevision": "w5/a19 worktree on 194b81a",
+  "entrypoint": "createClassicEntrypoint({ jot: { store, account, media, onEvent } })",
+  "servedOperations": [
+    "CreateMessage",
+    "ListMessages",
+    "MarkRead",
+    "MarkLoopRead",
+    "NumberOfUnreadMessagesInLoops"
+  ],
+  "prefixes": [
+    "Jot_20160126",
+    "Jot_20160512"
+  ],
+  "directRoutes": [
+    "POST /numberOfUnreadMessagesBulk"
+  ],
+  "observations": [
+    {
+      "name": "Jot_20160126.CreateMessage 200 + populated part url",
+      "got": [
+        200,
+        "https://media.example/photo"
+      ],
+      "want": [
+        200,
+        "https://media.example/photo"
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160126.ListMessages 200",
+      "got": 200,
+      "want": 200,
+      "ok": true
+    },
+    {
+      "name": "Jot_20160126.MarkRead 200 {result}",
+      "got": [
+        200,
+        {
+          "result": "Marked as read"
+        }
+      ],
+      "want": [
+        200,
+        {
+          "result": "Marked as read"
+        }
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160126.MarkLoopRead 200 {result}",
+      "got": [
+        200,
+        {
+          "result": "Marked all as read"
+        }
+      ],
+      "want": [
+        200,
+        {
+          "result": "Marked all as read"
+        }
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160126.NumberOfUnreadMessagesInLoops 200 {count}",
+      "got": [
+        200,
+        {
+          "count": 0
+        }
+      ],
+      "want": [
+        200,
+        {
+          "count": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160512.CreateMessage 200 + populated part url",
+      "got": [
+        200,
+        "https://media.example/photo"
+      ],
+      "want": [
+        200,
+        "https://media.example/photo"
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160512.ListMessages 200",
+      "got": 200,
+      "want": 200,
+      "ok": true
+    },
+    {
+      "name": "Jot_20160512.MarkRead 200 {result}",
+      "got": [
+        200,
+        {
+          "result": "Marked as read"
+        }
+      ],
+      "want": [
+        200,
+        {
+          "result": "Marked as read"
+        }
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160512.MarkLoopRead 200 {result}",
+      "got": [
+        200,
+        {
+          "result": "Marked all as read"
+        }
+      ],
+      "want": [
+        200,
+        {
+          "result": "Marked all as read"
+        }
+      ],
+      "ok": true
+    },
+    {
+      "name": "Jot_20160512.NumberOfUnreadMessagesInLoops 200 {count}",
+      "got": [
+        200,
+        {
+          "count": 0
+        }
+      ],
+      "want": [
+        200,
+        {
+          "count": 0
+        }
+      ],
+      "ok": true
+    },
+    {
+      "name": "POST /numberOfUnreadMessagesBulk 200 array",
+      "got": [
+        200,
+        [
+          {
+            "count": 0,
+            "accountId": "43ca532ad4090cfb80f2e7a7",
+            "loopIds": [
+              "5a0b20f5ddee0000197e2881"
+            ]
+          },
+          {
+            "count": 0,
+            "accountId": "43ca532ad4090cfb80f2e7a5",
+            "loopIds": [
+              "5a0b20f5ddee0000197e2881"
+            ]
+          }
+        ]
+      ],
+      "want": [
+        200,
+        [
+          {
+            "count": 0,
+            "accountId": "43ca532ad4090cfb80f2e7a7",
+            "loopIds": [
+              "5a0b20f5ddee0000197e2881"
+            ]
+          },
+          {
+            "count": 0,
+            "accountId": "43ca532ad4090cfb80f2e7a5",
+            "loopIds": [
+              "5a0b20f5ddee0000197e2881"
+            ]
+          }
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "name": "non-member with no content -> 403 membership precedes 422",
+      "got": [
+        403,
+        "JOT_MUST_BE_LOOP_MEMBER"
+      ],
+      "want": [
+        403,
+        "JOT_MUST_BE_LOOP_MEMBER"
+      ],
+      "ok": true
+    },
+    {
+      "name": "accepted-only membership -> invited is 403",
+      "got": [
+        403,
+        "JOT_MUST_BE_LOOP_MEMBER"
+      ],
+      "want": [
+        403,
+        "JOT_MUST_BE_LOOP_MEMBER"
+      ],
+      "ok": true
+    },
+    {
+      "name": "member with no content/parts -> 422",
+      "got": [
+        422,
+        "JOT_CONTENT_OR_PARTS_REQUIRED"
+      ],
+      "want": [
+        422,
+        "JOT_CONTENT_OR_PARTS_REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "name": "member may not impersonate -> 403",
+      "got": [
+        403,
+        "JOT_ROBOT_CAN_IMPERSONATE"
+      ],
+      "want": [
+        403,
+        "JOT_ROBOT_CAN_IMPERSONATE"
+      ],
+      "ok": true
+    },
+    {
+      "name": "robot impersonation attributes the sender",
+      "got": [
+        200,
+        "43ca532ad4090cfb80f2e7a7"
+      ],
+      "want": [
+        200,
+        "43ca532ad4090cfb80f2e7a7"
+      ],
+      "ok": true
+    },
+    {
+      "name": "unsigned -> 401",
+      "got": [
+        401,
+        "MISSING_AUTH_HEADER"
+      ],
+      "want": [
+        401,
+        "MISSING_AUTH_HEADER"
+      ],
+      "ok": true
+    },
+    {
+      "name": "unknown op -> ValidationException 400",
+      "got": [
+        400,
+        "ValidationException"
+      ],
+      "want": [
+        400,
+        "ValidationException"
+      ],
+      "ok": true
+    },
+    {
+      "name": "party-era op with no recovered handler -> 400 (not invented)",
+      "got": [
+        400,
+        "ValidationException"
+      ],
+      "want": [
+        400,
+        "ValidationException"
+      ],
+      "ok": true
+    },
+    {
+      "name": "JotMessageCreated payload emitted",
+      "got": {
+        "messageId": "883f67be0a3fc42e81046fb7",
+        "senderId": "43ca532ad4090cfb80f2e7a7",
+        "loopId": "5a0b20f5ddee0000197e2881",
+        "tags": [],
+        "content": "robot",
+        "eventKey": "JotMessageCreated"
+      },
+      "want": {
+        "eventKey": "JotMessageCreated",
+        "messageId": "883f67be0a3fc42e81046fb7",
+        "senderId": "43ca532ad4090cfb80f2e7a7",
+        "loopId": "5a0b20f5ddee0000197e2881",
+        "tags": [],
+        "content": "robot"
+      },
+      "ok": true
+    }
+  ]
+}

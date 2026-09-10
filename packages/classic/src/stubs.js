@@ -13,8 +13,10 @@
 //   person     (Person_20160801)     questions/answers, properties,    -> ./person.js  (A-15)
 //                                    holidays, birthdays
 //   collision  (Collision_20161126)  phonetic username collision       -> ./collision.js (A-15)
+//   jot        (Jibo Jot)            loop-scoped family messaging     -> ./jot.js      (A-19)
 //
-// NOT built (no client API contract exists in the archive): voicetraining, jot.
+// NOT built (no recovered client API file AND no recovered matching-era handler in the archive):
+// voicetraining.
 //
 // The registration list is deliberately still exported so the entrypoint keeps a single seam for
 // "services that are answers-only". It is now empty.
