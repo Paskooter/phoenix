@@ -1,0 +1,17 @@
+TopRule = $province{_nl=province._nl}{%delete this.province%};
+
+province @= (
+    (newfoundland|labrador ) |
+    (québec|quebec ) |
+    (new brunswick) |
+    (nova scotia) |
+    (prince edward island) |
+    (ontario) |
+    (manitoba) |
+    (saskatchewan) |
+    (alberta) |
+    (british columbia|colombia) |
+    (yukon) |
+    (northwest territories) |
+    (nunavut)
+){_nl=_parsed};

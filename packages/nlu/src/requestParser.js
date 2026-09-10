@@ -121,6 +121,19 @@ function load() {
   if (factoryWords.size !== wordListNames.length) {
     throw new Error('NLU factory word-list inventory is incomplete');
   }
+  // Anchored semantics for the word-list factories: the private output field
+  // each one publishes and any literal value per entry, re-derived from the
+  // version-matched factory sources under resources/factory-sources (see
+  // manifest.json for their origin and hashes; extractFactoryWordSemantics.mjs
+  // regenerates this file from those sources). Word-list spellings alone cannot
+  // express `state` = the two-letter code. A missing file leaves the matcher on
+  // the historical `_<name>` field.
+  const factoryFields = new Map();
+  const semanticsPath = join(RESOURCE_ROOT, 'factory-sources', 'word-list-semantics.json');
+  if (existsSync(semanticsPath)) {
+    const semantics = JSON.parse(readFileSync(semanticsPath, 'utf8'));
+    for (const [name, spec] of Object.entries(semantics.factories || {})) factoryFields.set(name, spec);
+  }
   for (const [name, dependency] of Object.entries(inventory.factoryDependencies || {})) {
     if (dependency.status === 'bounded-compatibility') {
       const active = inventory.factories?.[name];
@@ -150,6 +163,7 @@ function load() {
     factoryRules,
     eq: loadEqWords(),
     factoryWords,
+    factoryFields,
     factoryWordNames: Object.freeze(wordListNames),
   };
   return loaded;
@@ -206,6 +220,7 @@ function matchNamedRule(name, text, state, options = {}) {
     rules: entry.matchRules,
     eq: isEquivalentWordsEnabled(entry.ast) ? state.eq : null,
     factoryWords: state.factoryWords,
+    factoryFields: state.factoryFields,
     strictFactories: true,
     factoryHook: factoryName => {
       const factory = state.factories.get(factoryName);

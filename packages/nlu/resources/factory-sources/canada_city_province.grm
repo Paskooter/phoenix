@@ -1,0 +1,759 @@
+TopRule = $city {_city = city._nl}{%delete this.city%}{_province = 'null'}  ?($g $province{_province = province._nl}{%delete this.province%});
+
+city @= (
+(barrie) |
+(belleville) |
+(brampton) |
+(brant) |
+(brantford) |
+(brockville) |
+(burlington) |
+(cambridge) |
+(clarencerockland) |
+(cornwall) |
+(dryden) |
+(elliot lake) |
+(greater sudbury) |
+(guelph) |
+(haldimand county) |
+(hamilton) |
+(kawartha lakes) |
+(kenora) |
+(kingston) |
+(kitchener) |
+(london) |
+(markham) |
+(mississauga) |
+(niagara falls) |
+(norfolk county) |
+(north bay) |
+(orillia) |
+(oshawa) |
+(ottawa) |
+(owen sound) |
+(pembroke) |
+(peterborough) |
+(pickering) |
+(port colborne) |
+(prince edward county) |
+(quinte west) |
+(sarnia) |
+(sault ste. marie) |
+(st. catharines) |
+(st. thomas) |
+(stratford) |
+(temiskaming shores) |
+(thorold) |
+(thunder bay) |
+(timmins) |
+(toronto) |
+(vaughan) |
+(waterloo) |
+(welland) |
+(windsor) |
+(woodstock) |
+(acton vale) |
+(alma) |
+(amos) |
+(amqui) |
+(asbestos) |
+(baiecomeau) |
+(baied\'urfé) |
+(baiesaintpaul) |
+(beaconsfield) |
+(beauceville) |
+(beauharnois) |
+(beaupré) |
+(bécancour) |
+(bedford) |
+(beloeil) |
+(berthierville) |
+(blainville) |
+(boisbriand) |
+(boisdesfilion) |
+(bonaventure) |
+(boucherville) |
+(brome lake) |
+(bromont) |
+(brossard) |
+(brownsburgchatham) |
+(candiac) |
+(capchat) |
+(capsanté) |
+(carignan) |
+(carletonsurmer) |
+(causapscal) |
+(chambly) |
+(chandler) |
+(chapais) |
+(charlemagne) |
+(châteauguay) |
+(châteauricher) |
+(chibougamau) |
+(clermont) |
+(coaticook) |
+(contrecoeur) |
+(cookshireeaton) |
+(côte saintluc) |
+(coteaudulac) |
+(cowansville) |
+(danville) |
+(dégelis) |
+(delson) |
+(desbiens) |
+(deuxmontagnes) |
+(disraeli) |
+(dolbeaumistassini) |
+(dollarddesormeaux) |
+(donnacona) |
+(dorval) |
+(drummondville) |
+(dunham) |
+(east angus) |
+(farnham) |
+(fermont) |
+(forestville) |
+(fossambaultsurlelac) |
+(gaspé) |
+(gatineau) |
+(gracefield) |
+(granby) |
+(granderivière) |
+(hampstead) |
+(hudson) |
+(huntingdon) |
+(joliette) |
+(kingsey falls) |
+(kirkland) |
+(la malbaie) |
+(la pocatière) |
+(la prairie) |
+(la sarre) |
+(la tuque) |
+(lachute) |
+(lacmégantic) |
+(l\'anciennelorette) |
+(l\'assomption) |
+(laval) |
+(lavaltrie) |
+(lebelsurquévillon) |
+(l\'Épiphanie) |
+(léry) |
+(lévis) |
+(l\'Îleperrot) |
+(longueuil) |
+(lorraine) |
+(louiseville) |
+(macamic) |
+(magog) |
+(malartic) |
+(maniwaki) |
+(marieville) |
+(mascouche) |
+(matagami) |
+(matane) |
+(mercier) |
+(métabetchouan–lacàlacroix) |
+(mirabel) |
+(montjoli) |
+(montlaurier) |
+(montmagny) |
+(montreal) |
+(montreal west) |
+(montréalest) |
+(montsainthilaire) |
+(monttremblant) |
+(mount royal) |
+(neuville) |
+(new richmond) |
+(nicolet) |
+(normandin) |
+(notredamedel\'Îleperrot) |
+(notredamedesprairies) |
+(otterburn park) |
+(paspébiac) |
+(percé) |
+(pincourt) |
+(plessisville) |
+(pohénégamook) |
+(pointeclaire) |
+(pontrouge) |
+(portcartier) |
+(portneuf) |
+(prévost) |
+(princeville) |
+(québec|quebec ?city) |
+(repentigny) |
+(richelieu) |
+(richmond) |
+(rimouski) |
+(rivièreduloup) |
+(rivièrerouge) |
+(roberval) |
+(rosemère) |
+(rouynnoranda) |
+(saguenay) |
+(saintaugustindedesmaures) |
+(saintbasile) |
+(saintbasilelegrand) |
+(saintbrunodemontarville) |
+(saintcésaire) |
+(saintcolomban) |
+(saintconstant) |
+(sainteadèle) |
+(sainteagathedesmonts) |
+(sainteannedebeaupré) |
+(sainteannedebellevue) |
+(sainteannedesmonts) |
+(sainteannedesplaines) |
+(saintecatherine) |
+(saintecatherinedelajacquescartier) |
+(saintejulie) |
+(saintemargueritedulacmasson) |
+(saintemarie) |
+(saintemarthesurlelac) |
+(saintethérèse) |
+(sainteustache) |
+(sault ste.|sainte marie) |
+(saintfélicien) |
+(saintgabriel) |
+(saintgeorges) |
+(sainthyacinthe) |
+(saintjeansurrichelieu) |
+(saintjérôme) |
+(saintjosephdebeauce) |
+(saintjosephdesorel) |
+(saintlambert) |
+(saintlazare) |
+(saintlinlaurentides) |
+(saintmarcdescarrières) |
+(saintours) |
+(saintpamphile) |
+(saintpascal) |
+(saintpie) |
+(saintraymond) |
+(saintrémi) |
+(saintsauveur) |
+(sainttite) |
+(salaberrydevalleyfield) |
+(senneterre) |
+(septÎles) |
+(shawinigan) |
+(sherbrooke) |
+(soreltracy) |
+(stanstead) |
+(sutton) |
+(témiscaming) |
+(témiscouatasurlelac) |
+(terrebonne) |
+(thetford mines) |
+(thurso) |
+(troispistoles) |
+(troisrivières) |
+(valcourt) |
+(vald\'or) |
+(varennes) |
+(vaudreuildorion) |
+(victoriaville) |
+(villemarie) |
+(warwick) |
+(waterloo) |
+(waterville) |
+(westmount) |
+(windsor) |
+(amherst) |
+(antigonish) |
+(berwick) |
+(bridgewater) |
+(digby) |
+(kentville) |
+(lockeport) |
+(lunenburg) |
+(mahone bay) |
+(middleton) |
+(new glasgow) |
+(oxford) |
+(parrsboro) |
+(pictou) |
+(port hawkesbury) |
+(shelburne) |
+(stellarton) |
+(stewiacke) |
+(trenton) |
+(truro) |
+(westville) |
+(windsor) |
+(wolfville) |
+(yarmouth) |
+(cape breton) |
+(halifax) |
+(queens) |
+(annapolis) |
+(bathurst) |
+(campbellton) |
+(dieppe) |
+(edmundston) |
+(fredericton) |
+(miramichi) |
+(moncton) |
+(saint|st. john) |
+(beresford) |
+(bouctouche) |
+(caraquet) |
+(dalhousie) |
+(florencevillebristol) |
+(grand baywestfield) |
+(grand falls) |
+(hampton) |
+(lamèque) |
+(nackawic) |
+(oromocto) |
+(quispamsis) |
+(richibucto) |
+(riverview) |
+(rothesay) |
+(sackville) |
+(saint|st. andrews) |
+(saintléonard) |
+(saintquentin) |
+(shediac) |
+(shippagan) |
+(st. george) |
+(st. stephen) |
+(sussex) |
+(woodstock) |
+(winnipeg) |
+(brandon) |
+(steinbach) |
+(portage la prairie) |
+(thompson) |
+(winkler) |
+(selkirk) |
+(dauphin) |
+(morden) |
+(the pas) |
+(flin flon) |
+(stonewall) |
+(altona) |
+(swan river) |
+(neepawa) |
+(niverville) |
+(beausejour) |
+(virden) |
+(carman) |
+(oakbank) |
+(st. theresa point) |
+(garden hill) |
+(minnedosa) |
+(lorette) |
+(killarney) |
+(split lake) |
+(fort alexander) |
+(la salle) |
+(gimli) |
+(souris) |
+(pukatawagan) |
+(morris) |
+(roblin) |
+(stony mountain) |
+(carberry) |
+(russell) |
+(ste. anne) |
+(boissevain) |
+(grunthal) |
+(pinawa) |
+(wasagamack) |
+(god\'s lake 23) |
+(lac du bonnet) |
+(landmark) |
+(gillam) |
+(powerviewpine falls) |
+(tyndallgarson) |
+(iledeschenes) |
+(waywayseecappo first nation) |
+(rivers) |
+(arborg) |
+(st. malo) |
+(sioux valley dakota nation) |
+(moose lake) |
+(mitchell) |
+(blumenort) |
+(teulon) |
+(stpierrejolys) |
+(long plain) |
+(la broquerie) |
+(melita) |
+(st. adolphe) |
+(ste. rose du lac) |
+(winnipeg beach) |
+(abbotsford) |
+(armstrong) |
+(burnaby) |
+(campbell river) |
+(castlegar) |
+(chilliwack) |
+(colwood) |
+(coquitlam) |
+(courtenay) |
+(cranbrook) |
+(dawson creek) |
+(duncan) |
+(enderby) |
+(fernie) |
+(fort st. john) |
+(grand forks) |
+(kamloops) |
+(kelowna) |
+(kimberley) |
+(langford) |
+(langley) |
+(maple ridge) |
+(merritt) |
+(nanaimo) |
+(nelson) |
+(new westminster) |
+(north vancouver) |
+(parksville) |
+(penticton) |
+(pitt meadows) |
+(port alberni) |
+(port coquitlam) |
+(port moody) |
+(powell river) |
+(prince george) |
+(prince rupert) |
+(quesnel) |
+(revelstoke) |
+(richmond) |
+(rossland) |
+(salmon arm) |
+(surrey) |
+(terrace) |
+(trail) |
+(vancouver) |
+(vernon) |
+(victoria) |
+(west kelowna) |
+(white rock) |
+(williams lake) |
+(100 mile house) |
+(barriere) |
+(central saanich) |
+(chetwynd) |
+(clearwater) |
+(coldstream) |
+(delta) |
+(elkford) |
+(esquimalt) |
+(fort st. james) |
+(highlands) |
+(hope) |
+(houston) |
+(invermere) |
+(kent) |
+(kitimat) |
+(lake country) |
+(langley) |
+(lantzville) |
+(lillooet) |
+(logan lake) |
+(mackenzie) |
+(metchosin) |
+(mission) |
+(north cowichan) |
+(north saanich) |
+(north vancouver) |
+(northern rockies[12]) |
+(oak bay) |
+(peachland) |
+(port hardy) |
+(saanich) |
+(sechelt) |
+(sicamous) |
+(sooke) |
+(spallumcheen) |
+(sparwood) |
+(squamish) |
+(summerland) |
+(taylor) |
+(tofino) |
+(tumbler ridge) |
+(ucluelet) |
+(vanderhoof) |
+(west vancouver) |
+(bowen island) |
+(whistler) |
+(comox) |
+(creston) |
+(gibsons) |
+(golden) |
+(ladysmith) |
+(lake cowichan) |
+(oliver) |
+(osoyoos) |
+(port mcneill) |
+(princeton) |
+(qualicum beach) |
+(sidney) |
+(smithers) |
+(view royal) |
+(anmore) |
+(ashcroft) |
+(burns lake) |
+(cache creek) |
+(chase) |
+(cumberland) |
+(fraser lake) |
+(fruitvale) |
+(gold river) |
+(harrison hot springs) |
+(kaslo) |
+(keremeos) |
+(lions bay) |
+(lumby) |
+(nakusp) |
+(pemberton) |
+(salmo) |
+(telkwa) |
+(valemount) |
+(warfield) |
+(charlottetown) |
+(summerside) |
+(stratford) |
+(cornwall) |
+(montague) |
+(kensington) |
+(souris) |
+(alberton) |
+(estevan) |
+(humboldt) |
+(lloydminster ) |
+(martensville) |
+(meadow lake) |
+(melfort) |
+(melville) |
+(moose jaw) |
+(north battleford) |
+(prince albert) |
+(regina) |
+(saskatoon) |
+(swift current) |
+(warman) |
+(weyburn) |
+(yorkton) |
+(assiniboia) |
+(balgonie) |
+(battleford) |
+(biggar) |
+(canora) |
+(carlyle) |
+(carnduff) |
+(dalmeny) |
+(esterhazy) |
+(foam lake) |
+(fort qu\'appelle) |
+(gravelbourg) |
+(hudson bay) |
+(indian head) |
+(kamsack) |
+(kelvington) |
+(kerrobert) |
+(kindersley) |
+(langenburg) |
+(langham) |
+(lanigan) |
+(lumsden) |
+(macklin) |
+(maidstone) |
+(maple creek) |
+(moosomin) |
+(nipawin) |
+(outlook) |
+(oxbow) |
+(pilot butte) |
+(preeceville) |
+(regina beach) |
+(rosetown) |
+(rosthern) |
+(shaunavon) |
+(shellbrook) |
+(tisdale) |
+(unity) |
+(wadena) |
+(waldheim) |
+(watrous) |
+(white city) |
+(wilkie) |
+(wynyard) |
+(airdrie) |
+(brooks) |
+(calgary) |
+(camrose) |
+(chestermere) |
+(cold lake) |
+(edmonton) |
+(fort saskatchewan) |
+(grande prairie) |
+(lacombe) |
+(leduc) |
+(lethbridge) |
+(lloydminster ) |
+(medicine hat) |
+(red deer) |
+(spruce grove) |
+(st. albert) |
+(wetaskiwin) |
+(corner brook) |
+(mount pearl) |
+(st. john\'s) |
+(carmacks) |
+(dawson) |
+(faro) |
+(haines junction) |
+(mayo) |
+(teslin) |
+(watson lake) |
+(whitehorse) |
+(yellowknife|(yellow knife)) |
+(fort smith) |
+(inuvik) |
+(hay river) |
+(iqaluit)
+) {_nl=_parsed};
+
+province @= (
+    (newfoundland|labrador ) |
+    (québec|quebec ) |
+    (new brunswick) |
+    (nova scotia) |
+    (prince edward island) |
+    (ontario) |
+    (manitoba) |
+    (saskatchewan) |
+    (alberta) |
+    (british columbia) |
+    (yukon) |
+    (northwest territories) |
+    (nunavut)
+){_nl=_parsed};
+
+
+g = <1.0> *(
+    the |
+    to |
+    located |
+    close |
+    and |
+    of |
+    a |
+    in |
+    for |
+    that |
+    on |
+    is |
+    was |
+    with |
+    it |
+    as |
+    at |
+    he |
+    by |
+    from |
+    be |
+    his |
+    have |
+    has |
+    are |
+    but |
+    an |
+    not |
+    will |
+    this |
+    they |
+    who |
+    i |
+    had |
+    their |
+    were |
+    been |
+    more |
+    or |
+    which |
+    its |
+    point |
+    would |
+    after |
+    about |
+    new |
+    up |
+    when |
+    than |
+    dollars |
+    we |
+    out |
+    also |
+    her |
+    you |
+    all |
+    she |
+    last |
+    people |
+    there |
+    if |
+    over |
+    percent |
+    into |
+    time |
+    other |
+    some |
+    no |
+    can |
+    mr |
+    could |
+    so |
+    what |
+    them |
+    only |
+    now |
+    just |
+    most |
+    like |
+    before |
+    believe |
+    think |
+    thought |
+    believed |
+    want |
+    wanted |
+    understand |
+    understood |
+    give |
+    gave |
+    do |
+    did |
+    desire |
+    desired |
+    please |
+    um |
+    uh |
+    maybe |
+    know |
+    knew |
+    around |
+    it\'s |
+    my |
+    your |
+    his |
+    her |
+    theirs |
+    hers |
+    actually |
+    hello |
+    next |
+    hey |
+    one |
+    township |
+    village |
+    city |
+    town
+    ) <0.0>;

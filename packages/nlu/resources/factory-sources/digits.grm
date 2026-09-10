@@ -1,0 +1,36 @@
+TopRule = $all {_nl = all._nl}{%delete this.all%};
+
+all = $num_spoken_digits{_nl = num_spoken_digits._nl} *$num_spoken_digits{_nl += num_spoken_digits._nl};
+
+num_spoken_digits = ($digit_spoken{_nl = digit_spoken._nl} ?$num_digits{_nl += num_digits._nl}) |
+                    ($num_digits{_nl = num_digits._nl});
+
+num_digits = [$digit{_nl = digit._nl} *$digit{_nl += digit._nl}];
+
+digit [(
+        0{_nl='0'}|
+        1{_nl='1'}|
+        2{_nl='2'}|
+        3{_nl='3'}|
+        4{_nl='4'}|
+        5{_nl='5'}|
+        6{_nl='6'}|
+        7{_nl='7'}|
+        8{_nl='8'}|
+        9{_nl='9'}
+      )];
+
+digit_spoken = 
+    (
+        (zero|oh){_nl = '0'}|
+        one{_nl = '1'}|
+        two{_nl = '2'}|
+        three{_nl = '3'}|
+        four{_nl = '4'}|
+        five{_nl = '5'}|
+        six{_nl = '6'}|
+        seven{_nl = '7'}|
+        eight{_nl = '8'}|
+        nine{_nl = '9'}
+     );
+

@@ -1,0 +1,150 @@
+TopRule = $top_timer {_hours = top_timer._hours}
+                     {_minutes = top_timer._minutes}
+                     {_seconds = top_timer._seconds}
+                     {%delete this.top_timer%}
+;
+
+top_timer = (    $f_HOURS     {_hours=f_HOURS._hours}{_minutes='null'}{_seconds='null'}
+                     ?($* $f_MINUTES)  {_minutes=f_MINUTES._minutes}
+                     ?($* $f_SECONDS)  {_seconds=f_SECONDS._seconds} ) |
+          (    $f_MINUTES   {_hours='null'}{_minutes=f_MINUTES._minutes}{_seconds='null'}
+                     ?($* $f_SECONDS)  {_seconds=f_SECONDS._seconds} ) |
+          (    $f_SECONDS   {_hours='null'}{_minutes='null'}{_seconds=f_SECONDS._seconds} ) |
+          (    $f_time {_hours=f_time._hours}{_minutes=f_time._minutes}{_seconds=f_time._seconds})
+;
+
+f_HOURS = $f_number {_hours=f_number._nl} [hour?s] ?($f_fraction {_hours += f_fraction._nl});
+f_MINUTES = $f_number {_minutes=f_number._nl} [minute?s] ?($f_fraction {_minutes += f_fraction._nl});
+f_SECONDS = ($f_number {_seconds=f_number._nl} [second?s] ?($f_fraction {_seconds += f_fraction._nl})) |
+            ($seconds_variations  {_seconds=seconds_variations._nl});
+
+#Numeric Format
+f_digit_numeric [ 0{_nl='0'}|
+                  1{_nl='1'}|
+                  2{_nl='2'}|
+                  3{_nl='3'}|
+                  4{_nl='4'}|
+                  5{_nl='5'}|
+                  6{_nl='6'}|
+                  7{_nl='7'}|
+                  8{_nl='8'}|
+                  9{_nl='9'} ];
+
+f_fraction_numeric = (?(and|&) ?a 1/2){_nl='.5'} |
+                    (?(and|&) ?a 1/4){_nl='.25'} |
+                    (?(and|&) ?a 3/4){_nl='.75'};
+
+
+f_number_numeric = [$f_digit_numeric{_nl=f_digit_numeric._nl} *$f_digit_numeric{_nl+=f_digit_numeric._nl}];
+
+#Spoken Format
+f_digit_spoken = (one|a|an) {_nl='1'} |
+                 two {_nl='2'} |
+                 three {_nl='3'} |
+                 four {_nl='4'} |
+                 five {_nl='5'} |
+                 six {_nl='6'} |
+                 seven {_nl='7'} |
+                 eight {_nl='8'} |
+                 nine {_nl='9'};
+
+f_tens_spoken = twenty {_nl = '2'} |
+                thirty {_nl = '3'} |
+                forty {_nl = '4'} |
+                fifty {_nl = '5'} |
+                sixty {_nl = '6'} |
+                seventy {_nl = '7'} |
+                eighty {_nl = '8'} |
+                ninety {_nl = '9'};
+
+f_teens_spoken = ten{_nl = '10'} |
+                 eleven {_nl = '11'} |
+                 twelve {_nl = '12'} |
+                 thirteen {_nl= '13'} |
+                 fourteen {_nl = '14'} |
+                 fifteen {_nl = '15'} |
+                 sixteen {_nl = '16'} |
+                 seventeen {_nl = '17'} |
+                 eighteen { _nl = '18'} |
+                 nineteen { _nl = '19' };
+
+f_1_to_99_spoken = $f_digit_spoken{_nl = f_digit_spoken._nl} |
+                   $f_teens_spoken{_nl = f_teens_spoken._nl} |
+                   $f_tens_spoken{_nl = f_tens_spoken._nl}{_nl += '0'} |
+                   ($f_tens_spoken{_nl = f_tens_spoken._nl} $f_digit_spoken{_nl+=f_digit_spoken._nl});
+
+f_1_to_999_spoken = $f_1_to_99_spoken{_nl = f_1_to_99_spoken._nl} |
+                       ($f_digit_spoken hundred) {_nl = f_digit_spoken._nl}{_nl += '00'} |
+                       ($f_digit_spoken hundred $f_1_to_99_spoken){_nl = f_digit_spoken._nl}{_nl += f_1_to_99_spoken._nl};
+
+f_zero_spoken = zero{_nl='0'};
+
+f_fraction_spoken = (?(and|&) ?(a|one) half){_nl='.5'} |
+                    (?(and|&) ?(a|one) quarter){_nl='.25'} |
+                    (?(and|&) 2|two [quarter?s]){_nl='.5'}|
+                    (?(and|&) three|3 [quarter?s]){_nl='.75'};
+
+f_fraction = $f_fraction_spoken {_nl = f_fraction_spoken._nl} |
+             $f_fraction_numeric {_nl = f_fraction_numeric._nl};
+
+f_number_spoken = ( ($f_fraction_spoken ?of ?(a|an)) {_nl = f_fraction_spoken._nl} |
+                    $f_zero_spoken {_nl = f_zero_spoken._nl} |
+                    $f_1_to_99_spoken {_nl = f_1_to_99_spoken._nl} |
+                    $f_1_to_999_spoken {_nl = f_1_to_999_spoken._nl} );
+
+f_number = ($f_number_spoken {_nl = f_number_spoken._nl} |
+           $f_number_numeric {_nl = f_number_numeric._nl} |
+           ($f_fraction_numeric ?of ?(a|an)) {_nl = f_fraction_numeric._nl})
+                ?($f_fraction {_nl += f_fraction._nl});
+
+#Time Format
+f_time =  (
+            [ $minutes_number {_min=minutes_number._nl}{_sec='00'}
+              ?(?: $seconds_number{_sec=seconds_number._nl}) ]
+        )
+        {_hours='null'}{_minutes=_min}{_seconds=_sec}
+        ;
+
+
+minutes_number  [
+                    (?($first_digit {_nl=first_digit._nl}) $second_digit {_nl+=second_digit._nl})
+               ];
+
+seconds_number [
+                    ($first_digit {_nl=first_digit._nl} $second_digit {_nl+=second_digit._nl})
+               ];
+
+
+first_digit [
+                        (0 {_nl=''})  |
+                        (1 {_nl='1'})  |
+                        (2 {_nl='2'})  |
+                        (3 {_nl='3'})  |
+                        (4 {_nl='4'})  |
+                        (5 {_nl='5'})
+                    ];
+
+second_digit [
+                        (0{_nl='0'}) |
+                        (1{_nl='1'}) |
+                        (2{_nl='2'}) |
+                        (3{_nl='3'}) |
+                        (4{_nl='4'}) |
+                        (5{_nl='5'}) |
+                        (6{_nl='6'}) |
+                        (7{_nl='7'}) |
+                        (8{_nl='8'}) |
+                        (9{_nl='9'})
+                    ];
+
+#Other Variations
+seconds_variations =    1/22 {_nl='20'} |
+                        1/32 {_nl='30'} |
+                        1/42 {_nl='40'} |
+                        1/52 {_nl='50'} |
+                        1/62 {_nl='60'} |
+                        22nd {_nl='20'} |
+                        32nd {_nl='30'} |
+                        42nd {_nl='40'} |
+                        52nd {_nl='50'} |
+                        62nd {_nl='60'};
