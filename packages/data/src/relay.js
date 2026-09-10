@@ -24,7 +24,9 @@
 //   * a cache hit is served by `response.send(<stored string>)`, so it carries
 //     `text/html; charset=utf-8`, unlike the JSON miss;
 //   * `?skipCache=false` is the *string* "false", which is truthy, so it skips
-//     the cache read exactly like `skipCache=1`.
+//     the cache read exactly like `skipCache=1`; a bracketed or repeated
+//     `skipCache` is an Array in Express's qs output and is truthy even when
+//     empty (`?skipCache[]=` skips).
 
 import { sendJson, sendText } from '@phoenix/common';
 
@@ -50,6 +52,29 @@ export function fetchError(name, err) {
     return new ClientError(err.response.status, `Error getting ${name} data: ` + JSON.stringify(err.response.data));
   }
   return new ClientError(502, `Error getting ${name} data: ` + err);
+}
+
+/**
+ * Reference `request.query.skipCache` is Express's qs-parsed value, not a bare
+ * string (pegasus pins express ^4.16.2, whose default parser is qs). A bracket
+ * form (`?skipCache[]=`) or a repeated key makes qs hand back an Array, and an
+ * Array is truthy even when every member is the empty string. `URLSearchParams`
+ * collapses all of those to null/'' and would read the cache exactly where the
+ * original skipped it, so the qs truthiness has to be reconstructed.
+ * @param {URLSearchParams} searchParams
+ * @returns {boolean}
+ */
+function skipCacheRequested(searchParams) {
+  let occurrences = 0;
+  let single = '';
+  for (const [key, value] of searchParams) {
+    if (key === 'skipCache') { occurrences += 1; single = value; }
+    // Any bracketed key makes qs produce an Array (or a plain object), both of
+    // which are truthy regardless of their contents.
+    else if (key.startsWith('skipCache[')) occurrences += 2;
+  }
+  if (occurrences === 0) return false;
+  return occurrences > 1 ? true : !!single;
 }
 
 /** Express `response.send()` with no argument: empty 200, no entity headers. */
@@ -82,7 +107,7 @@ export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExter
     if (isHead) sendEmptyOk(res); // empty 200; keep going to warm the cache (prefetch)
 
     // `request.query.skipCache` is a truthiness test, not a parse: "false" skips.
-    if (!url.searchParams.get('skipCache')) {
+    if (!skipCacheRequested(url.searchParams)) {
       let cached = null;
       // A cache read failure is non-fatal: log and fall through to the live
       // fetch (reference lines 84-86).
