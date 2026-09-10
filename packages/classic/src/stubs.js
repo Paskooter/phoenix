@@ -6,14 +6,14 @@
 //
 //   rom        (ROM_20171011)    Commander / Remote-Operation-Mode cert exchange
 //   person     (Person_20160801) per-loop/per-account properties + holidays (real in-memory props)
-//   ifttt      (IFTTT_20170207)  IFTTT integration
-//   nlp        (NLP_20161031)    cloud NLP (Phoenix has its own parser)
 //   collision  (Collision_20161126) username-collision check
 //
 // NOT built (no client API contract exists in the archive): voicetraining, jot.
 //
 // media (Media_20160725) graduated out of this file — the app's Gallery tab reads it, so it now
 // has a real store: see ./media.js.
+// ifttt (IFTTT_20170207) and nlp (NLP_20161031) graduated out of this file too: each now has its
+// own source-faithful handler with explicit dead-provider seams — see ./ifttt.js and ./nlp.js.
 
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 
@@ -50,22 +50,6 @@ function defineStubs() {
         getaccountproperties: (b, { accountId }) => accountProps.get(accountId) || {},
         listaccountpropertykeys: (b, { accountId }) => ({ keys: Object.keys(accountProps.get(accountId) || {}) }),
       },
-    },
-    ifttt: {
-      prefix: /^ifttt/i,
-      ops: {
-        trigger: () => COMMAND_OK,
-        listtriggers: () => [],
-        listmedia: () => [],
-        deleteidentity: () => COMMAND_OK,
-        action: () => ({}),
-        listactions: () => [],
-        userinfo: (b, { accountId }) => ({ id: accountId, name: '' }),
-      },
-    },
-    nlp: {
-      prefix: /^nlp/i,
-      ops: { partofspeech: () => ({ partsOfSpeech: [] }), namedentityrecognition: () => ({ namedEntities: [] }) },
     },
     collision: {
       prefix: /^collision/i,

@@ -16,6 +16,8 @@ import { KeyStore, makeKeyHandler, keyRoutes } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
+import { IftttStore, makeIftttHandler } from './ifttt.js';
+import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -29,6 +31,8 @@ export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
 export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES } from './media.js';
+export { IftttStore, makeIftttHandler, IFTTT_ERRORS, localPhoneticKey, singleHouseholdLoops, unavailableIftttNotify, unavailableKeyClient } from './ifttt.js';
+export { makeNlpHandler, cleanInput, unavailableNlpProvider, createHttpNlpProvider, nlpProviderFromEnv, WH_WORDS } from './nlp.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -53,7 +57,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, ifttt, nlp } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const keys = keyStore || new KeyStore();
   const router = createClassicRouter([
@@ -71,7 +75,11 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       accountResolver: media?.accountResolver,
       loops: media?.loops,
     }) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/person/ifttt/nlp/collision)
+    // IFTTT_20170207 and NLP_20161031 are real handlers now (source-faithful contracts with
+    // explicit dead-provider seams), registered before the tier-3 stubs so they win.
+    { match: /^ifttt/i, handler: makeIftttHandler(ifttt || {}) },
+    { match: /^nlp/i, handler: makeNlpHandler(nlp || {}) },
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/person/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -86,7 +94,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, keyStore, keyMembership, keyBinaryDir, ifttt, nlp } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -101,6 +109,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
   const logStore = new LogStore();
   const mediaStore = media?.store || new MediaStore();
+  const iftttStore = ifttt?.store || new IftttStore();
   const service = createService({
     name: 'classic',
     tls,
@@ -117,6 +126,8 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         keyStore: keys,
         keyMembership,
         keyBinaryDir,
+        ifttt: { ...ifttt, store: iftttStore },
+        nlp: nlp || { provider: nlpProviderFromEnv() },
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
@@ -149,7 +160,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore, mediaStore, keys };
+  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {

@@ -37,16 +37,14 @@ test('person: account properties round-trip in-memory', async () => {
   assert.equal((await amz('Person_20160801.EnableHolidays', {})).body.result, 'Command accepted');
 });
 
-test('ifttt / nlp / collision return their shapes', async () => {
-  assert.equal((await amz('IFTTT_20170207.Trigger', {})).body.result, 'Command accepted');
-  assert.deepEqual((await amz('NLP_20161031.PartOfSpeech', { text: 'hi' })).body.partsOfSpeech, []);
+test('collision returns its shape', async () => {
   const col = await amz('Collision_20161126.Match', { username: 'jane' });
   assert.equal(col.body.success, true);
   assert.equal(col.body.collision, false);
 });
 
 test('unknown op on a stub service -> ValidationException', async () => {
-  const r = await amz('NLP_20161031.Frobnicate', {});
+  const r = await amz('Collision_20161126.Frobnicate', {});
   assert.equal(r.status, 400);
   assert.equal(r.errType, 'ValidationException');
 });
