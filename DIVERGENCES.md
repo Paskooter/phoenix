@@ -133,6 +133,22 @@ open questions; root read the source and classifies them here.
 | I-01a | Launch-record `timestamp` is numeric ms on the wire; Pegasus sends an ISO-8601 string. | Phoenix hub `TimeSince` computes `Date.now() - timestamp`, which works with ms and NaNs on ISO — the same as the reference hub. | Deliberate tradeoff to keep `timeSince` alive, needing an integration decision. Flagged by the I-01 worker, who owns history but not the gateway. |
 | I-01b | `GET /healthcheck` returns the base-service `ok` text; the reference `HistoryService` overrides it with `{status, skillLaunchDB, speechHistoryDB}` (DB-driven 200/500). | Would need a `createService` change outside the worker's owned files. | Reported only, not changed. |
 
+## Wire contracts and classic services (C-02, A-12, A-13, A-18)
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| C02a | **`HubErrorCode` does not match the pinned interface.** Verified 2026-09-10 by diffing `packages/contracts/src/constants.js` against `interfaces/src/hub/HubErrorCode.ts@5c0a739`. Reference-only, missing from Phoenix: `SKILL_NOT_FOUND`, `TIMEOUT_TRANSACTION`, `PARSER`, `GENERAL`. Phoenix-only, absent from reference: `TOO_MANY_REDIRECTS`, `NOT_IMPLEMENTED`, `NOT_FOUND`, `INTERNAL`, `AUTH`. | Phoenix's set was invented before the interface was pinned. | **Open, not resolved.** These codes travel **on the wire to the robot** on `ERROR` responses, so a robot matching on `SKILL_NOT_FOUND` sees `NOT_FOUND` instead. The gateway already consumes the Phoenix values, so this needs a coordinated change across gateway and contracts rather than an edit to the enum alone. Flagged by C-02; **not** fixed in that task's scope. |
+| C02b | `ResponseType` omits `ASR` and `COMMAND`, both present in the reference `hub/MessageType.ts`. | Same origin as C02a. | Open. Any reference emitter using those types would not round-trip. |
+| C02c | Manifest-rule schemas (`ContextRule`, `IHRule`, `IHQuery`, `queryRules`) do not set `additionalProperties: false`, though the reference `SkillConfigValidator.checkUnexpectedProperties` rejects unknown keys. | Deliberate leniency so valid optional fields are never rejected. | Phoenix is **more permissive** than source here. Accepts everything source accepts, plus some source would reject. |
+| A12a | Log `uploadUrl` / blob URLs point at the Phoenix entrypoint's local sink instead of S3 presigned URLs. | S3 and its credentials are dead; same self-hosted pattern already used by Backup. | Clients follow the returned URL, so the handshake shape is preserved. |
+| A12b | `SetLevel` accepts and logs but performs no SNS `RobotVerbosityChanged` fan-out. | Phoenix has no SNS. | A robot will not learn of a verbosity change out-of-band. |
+| A12c | `NewKinesisCredentials` returns a shape-complete but **expired** `StsCredentials`. | AWS STS is dead. Returning the correct shape keeps clients on their normal parse path rather than an error branch. | No real Kinesis stream exists to write to. |
+| A12d | `log.js` emits Boom `badData` **422** for validation, while `robot.js` and `backup.js` still emit **400**. | Source Hapi services emit 422; log now follows source faithfully. | The older 400 convention in the two neighbouring files is **out of A-12's scope and still divergent** — a real inconsistency to close later, recorded here so it is not lost. |
+| A13a | Push delivery runs through an in-process fixture provider. | The original push provider and its credentials are dead, and no mobile client exists. | The "available real client" half of A-13 criterion 2 is **recorded as unknown, not simulated**. |
+| A18a | OAuthClients admin identity is the **verified access-key account's** `isAdmin` flag rather than a caller-supplied `x-amz-credentials` header. | The header is an internal source-service convention; honouring it on a public face would make admin a caller-controlled switch. | Same deliberate strictness already applied to `CreateHubToken` and `SuspendRobotLoop`. |
+| A18b | LPS `bucketPath` uses a **0-based** month (`getMonth()` with no `+1`). | Verified against pinned `srv-lps-ws@e36e378a` `sts.ctrl.ts:26`, which reads `month=${date.getMonth()}`. | A **faithful source quirk**, deliberately reproduced. January writes `month=0`. |
+| A18c | `Remove` with a missing id returns an empty 200. | Source `findByIdAndRemove` returns null and does not throw, but the wire body was never captured. | Retained as an explicit **unknown**, not claimed as parity. |
+
 ## Dead external dependencies (Account family)
 
 | # | Decision | Why | Impact |
