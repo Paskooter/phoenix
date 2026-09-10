@@ -155,8 +155,9 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       finally { if (req.photoCleanup) await req.photoCleanup(); }
     }
 
-    // Account identity core plus activation/recovery and the email/phone/terms
-    // slice. CreateHubToken stays on the bounded A-02 SigV4 path below.
+    // Account identity core plus activation/recovery, email/phone/terms, and
+    // CreateAccessToken / GetAccountByAccessToken / ResetKeys. CreateHubToken
+    // stays on the bounded A-02 SigV4 path below.
     // Unimplemented Account operations keep the existing unknown-target
     // response so Classic still proxies them without a local handler.
     if (/^account/i.test(prefix)) {
