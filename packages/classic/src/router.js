@@ -199,7 +199,11 @@ function upstreamTimeoutMS() {
 function isClassicBinaryPhotoUpload(req) {
   const target = String(req?.headers?.['x-amz-target'] || '');
   return /^Loop[^.]*\.UpdateMemberPhoto$/i.test(target)
-    || /^Account[^.]*\.UpdatePhoto$/i.test(target);
+    || /^Account[^.]*\.UpdatePhoto$/i.test(target)
+    // Media_20160725.Create is the robot's photo/recording upload: the aws-sdk sends the media
+    // bytes as the raw request entity (see packages/classic/src/media.js). It must bypass the
+    // JSON parser for the same reason the two photo uploads above do.
+    || /^Media[^.]*\.Create$/i.test(target);
 }
 
 function unsupportedContentEncoding(headers = {}) {

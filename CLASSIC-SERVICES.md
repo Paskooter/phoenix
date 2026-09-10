@@ -11,8 +11,9 @@
 > resolves to and that dispatches by `X-Amz-Target` prefix. Built: `update` (OTA, `packages/ota`),
 > `account`+`loop`+`oobe`+`settings`+portal+per-robot-auth (`packages/account`), and `log`,
 > `robot`, `notification`+entrypoint-socket, `key`, `push`, `backup` (the UI wipe's "Backing
-> up…" step, self-hosted blob store) plus build-to-spec stubs for
-> `rom`/`media`/`person`/`ifttt`/`nlp`/`collision` (`packages/classic`). Not built (no
+> up…" step, self-hosted blob store), `media` (the app's Gallery store, self-hosted
+> objects) plus build-to-spec stubs for
+> `rom`/`person`/`ifttt`/`nlp`/`collision` (`packages/classic`). Not built (no
 > client API contract in the archive): `voicetraining`, `jot`. The conversational stack
 > (hub/parser/skills) is Phoenix's main body and is separate from these.
 >
@@ -94,7 +95,7 @@ gotchas (see §4).
 | **key** | `key-2016-02-01` | `jiborobot/srv-key-ws` | UGC encryption-key exchange | **✅ `packages/classic`** | In-memory KeyStore: CreateRequest/Share/GetRequest/ShouldCreate/Backup/Restore. |
 | **notification** | `notification-2015-05-05` | `jiborobot/srv-notification-ws` | Robot notifications transport | **✅ `packages/classic`** | NewRobotToken/GetStatus + the entrypoint-socket (wss `/socket/<token>`, live + pending delivery). |
 | **push** | `push-2016-07-29` | `jiborobot/srv-push-ws` | Mobile push | **◑ stub `packages/classic`** | CreateDevice/RemoveDevice register OK; delivery no-op (no APNs/FCM/app). |
-| **media** | `media-2016-07-25` | `jiborobot/srv-media-ws` | Cloud photo/recording store | **◑ stub** | shapes only; no S3. Unverified without the app. |
+| **media** | `media-2016-07-25` | `jiborobot/srv-media-ws` | Cloud photo/recording store — the **app's Gallery tab** | **✅ `packages/classic/src/media.js`** | Real store: `Create` (streaming binary + `x-loop-id`/`x-path`/`x-type`/`x-reference`/`x-encrypted`/`x-meta*` headers), `List` (loopIds/after/before, membership gate, 50-row page capped at 200, ascending), `Get`, `Remove` (soft delete), `RemoveAllMediaFromLoop`. Thumbs are expanded as their own rows with `reference` = parent path — the row the Gallery grid selects. No S3: object `url` points back at this entrypoint (`GET /media/blob/:path`) and the bytes + index live under the private run dir. **App-side gate:** `MediaFragment` also needs the loop's UGC key (see `key`) — with none it shows its `viewNoKey` screen ("Uh oh, can't reach Jibo right now.") and never renders rows at all, so media data alone is not sufficient. |
 | **log** | `log-2015-03-09` | `jiborobot/srv-log-ws` | Robot log/telemetry upload | **✅ `packages/classic`** | PutEvents/PutEventsAsync/PutAsrBinary no-op (optional JSONL sink ETCO_log_dir); never 500s the robot. |
 | **skill** | `skill-2015-11-03` | (locate — likely `srv-account-ws` or a skill-store repo) | Skill store / install metadata | ⬜ | Tier 3 — 3rd-party skill install. |
 | **person** | `person-2016-08-01` | `jiborobot/srv-person-ws` | Person/loop/account properties | **◑ stub** | real in-memory property round-trip + holidays; unverified without the app. |

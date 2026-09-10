@@ -15,6 +15,7 @@ import { NotificationHub, makeNotificationHandler, attachNotificationSocket } fr
 import { KeyStore, makeKeyHandler } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
+import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -27,6 +28,7 @@ export { NotificationStore } from './notification.js';
 export { KeyStore } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore } from './backup.js';
+export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES } from './media.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -51,7 +53,8 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media } = {}) {
+  const mediaStore = media?.store || new MediaStore();
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
@@ -59,7 +62,15 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/ifttt/nlp/collision)
+    // Media_20160725 owns a real store: the app's Gallery reads it and the robot writes photos to
+    // it. Registered before the tier-3 stubs so the media stub never answers for it.
+    { match: /^media/i, handler: makeMediaHandler({
+      store: mediaStore,
+      baseFor,
+      accountResolver: media?.accountResolver,
+      loops: media?.loops,
+    }) },
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/person/ifttt/nlp/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -74,7 +85,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, media } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -87,6 +98,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
   const logStore = new LogStore();
+  const mediaStore = media?.store || new MediaStore();
   const service = createService({
     name: 'classic',
     tls,
@@ -99,6 +111,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         notificationAccountResolver,
         logStore,
         baseFor,
+        media: { ...media, store: mediaStore },
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
@@ -111,6 +124,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
       }),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
       ...logHttpRoutes(logStore),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
+      ...mediaBlobRoutes(mediaStore), // GET /media/blob/:path — the object bytes behind a Media url
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': ({ res, body }) => {
         if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
@@ -129,7 +143,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore };
+  return { ...service, hub, wss, backups, logStore, mediaStore };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
