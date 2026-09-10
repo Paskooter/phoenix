@@ -1,0 +1,54 @@
+{
+  "task": "A-12",
+  "date": "2026-09-10",
+  "revision": "ed6b6fe",
+  "worktree": ".parity/worktrees/verify-a12",
+  "implementation": "packages/classic/src/log.js",
+  "implementationSha256": "cd7dc87ef75dc0c489fdfbcf8ddcfc31ac8ffc833116cc979fc6d59dab6d2bcb",
+  "pinnedArtifacts": {
+    "apis/log-2015-03-09.normal.json": "e57b564831b0acdb7f112dfb2c8bfa7188b66a342f0619966da59344d8d0dcab",
+    "apis/logadmin-2015-03-09.normal.json": "f173238dc466541923fae39197f8a13033bb72e23a346d724cf7fb80f5719fca",
+    "srv-log-ws": "d72f82d",
+    "srv-server-archive": "0a39764",
+    "originalClient": "@jibo/jibo-server-client 3.0.105 (lib + pinned normal.json models)"
+  },
+  "operationsDeclared": {
+    "log": ["PutEvents", "PutEventsAsync", "NewKinesisCredentials", "PutBinary", "PutBinaryAsync", "PutAsrBinary"],
+    "logadmin": ["SetLevel"],
+    "targetPrefix": "Log_20150309"
+  },
+  "operationsServedRuntime": "7/7 (all answered 200 at runtime; none 404 / no-service)",
+  "criteria": {
+    "criterion_1_operations_validation_acks": "NOT FULLY MET",
+    "criterion_2_upload_destination_durable_sink": "PARTIALLY MET",
+    "criterion_3_retries_trace_retention": "PARTIALLY MET"
+  },
+  "npmTest": { "tests": 1139, "suites": 7, "pass": 1132, "fail": 0, "cancelled": 0, "skipped": 7, "todo": 0, "exit": 0 },
+  "parityGate": { "result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0 },
+  "falsification": {
+    "performed": true,
+    "file": "falsification.json",
+    "caught": ["F1 PutEvents ack string -> not ok 1 of 15", "F2 upload route key -> not ok 4/7/9/15 of 15 and probe round trips 3 -> 0"],
+    "restoredByteIdentical": true
+  },
+  "restartRetrievabilityCheck": {
+    "beforeRestart": "GET /log/blob 200",
+    "afterRestart": "GET /log/blob 404 no such log object",
+    "fileStillOnDisk": true,
+    "note": "LogStore indexes objects in memory only; retrievability is process-lifetime."
+  },
+  "candidateDivergences": [
+    "422 error code: Phoenix 'ValidationException' vs source-client-visible 'Unprocessable Entity'",
+    "404 error code: Phoenix 'NotFoundException' vs source-client-visible 'Not Found'",
+    "SetLevel over-strict: namespaces items require BOTH namespace and level; source Joi makes both optional ([{}], [{namespace}], [{level}] valid upstream, 422 in Phoenix)",
+    "SetLevel friendlyIds:[\"\"] accepted by Phoenix, rejected by source Joi.string()",
+    "Log sink retrievability is process-lifetime only (404 after restart though bytes persist on disk)",
+    "carried: local sink URLs vs S3 presigned; virtual bucketName 'log'; no SNS RobotVerbosityChanged; empty STS creds; PutBinary path leading slash"
+  ],
+  "unknowns": [
+    "producer (robot firmware) retry timing/backoff",
+    "whether the robot client branches on err.code for 422/404",
+    "robot reaction to empty/expired STS credentials",
+    "S3 bucket-level lifecycle retention"
+  ]
+}

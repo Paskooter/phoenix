@@ -1,0 +1,64 @@
+{
+  "metadata":{
+    "apiVersion":"2015-03-09",
+    "endpointPrefix":"logadmin",
+    "jsonVersion":"1.1",
+    "serviceFullName":"Jibo Log",
+    "signatureVersion":"v4",
+    "targetPrefix":"Log_20150309",
+    "protocol":"json"
+  },
+  "documentation":"<fullname>Jibo Logs API Reference</fullname> <p>This is the <i>Jibo Logs API Reference</i>. Jibo Logs.",
+  "operations":{
+    "SetLevel": {
+      "name":"SetLevel",
+      "input":{"shape":"SetLevelRequest"},
+      "output":{"shape":"CommandResponse"},
+      "documentation":"<p> Set verbosity level for robots. </p>"
+    }
+  },
+  "shapes": {
+    "SetLevelRequest": {
+      "type": "structure",
+      "required": [
+        "friendlyIds",
+        "namespaces"
+      ],
+      "members": {
+        "friendlyIds": { "shape": "FriendlyIds" },
+        "namespaces": { "shape": "Namespaces" }
+      }
+    },
+    "Namespaces": {
+      "type": "list",
+      "member": { "shape": "VerbosityLevel" }
+    },
+    "VerbosityLevel":{
+      "type":"structure",
+      "members": {
+        "namespace": { "type": "string" },
+        "level": { "shape": "Level" }
+      }
+    },
+    "FriendlyId": {
+      "type": "string"
+    },
+    "FriendlyIds":{
+      "type":"list",
+      "member": { "shape": "FriendlyId" }
+    },
+    "Level":{
+      "type":"string",
+      "enum":["error","warn","info","verbose","debug","silly"]
+    },
+    "CommandResponse":{
+      "type":"structure",
+      "required":[
+        "result"
+      ],
+      "members":{
+        "result":{"type":"string"}
+      }
+    }
+  }
+}
