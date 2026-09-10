@@ -14,9 +14,9 @@
 //                                    holidays, birthdays
 //   collision  (Collision_20161126)  phonetic username collision       -> ./collision.js (A-15)
 //   jot        (Jibo Jot)            loop-scoped family messaging     -> ./jot.js      (A-19)
+//   voiceTraining (VoiceTraining_*)  robot voice-sample enrollment    -> ./voiceTraining.js (A-20)
 //
-// NOT built (no recovered client API file AND no recovered matching-era handler in the archive):
-// voicetraining.
+// Every classic service family with a recovered source handler has now graduated.
 //
 // The registration list is deliberately still exported so the entrypoint keeps a single seam for
 // "services that are answers-only". It is now empty.
