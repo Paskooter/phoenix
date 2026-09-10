@@ -1,0 +1,1 @@
+A-01 operation map valid: 169 rows; current=134 historical=35 literal-union=169 substitution=170 observed-client-prefix-union=173 hypothetical-five-pair-union=174

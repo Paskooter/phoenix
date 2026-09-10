@@ -1,0 +1,28 @@
+{
+  "unauthorizedMethods": [
+    "Backup_20150617.CreateBackupAnon",
+    "Backup_20150617.RemoveBackupAnon",
+    "Backup_20150617.ListBackupsAnon",
+    "Backup_20150617.GetBackupAnon",
+    "Account_20151111.CheckEmail",
+    "Account_20151111.Create",
+    "Account_20151111.Login",
+    "Account_20151111.ResendActivationCode",
+    "Account_20151111.ActivateByCode",
+    "Account_20151111.ConfirmEmailReset",
+    "Account_20151111.SendPasswordReset",
+    "Account_20151111.PasswordResetByCode",
+    "Account_20151111.GetAccountByAccessToken",
+    "Loop_20160324.AcceptInvitationByCode",
+    "Loop_20160324.DeclineInvitationByCode",
+    "Loop_20160324.UpdateAgreementStatus",
+    "Crew_20160324.AcceptInvitationByCode",
+    "Crew_20160324.DeclineInvitationByCode",
+    "OOBE_20161026.GetStatus",
+    "OOBE_20161026.SetupRobot"
+  ],
+  "unsignedMethods": [],
+  "unactiveMethods": [
+    "Account_20151111.Remove"
+  ]
+}

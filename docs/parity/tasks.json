@@ -2581,7 +2581,7 @@
       "track": "classic",
       "phase": 0,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2607,7 +2607,18 @@
         "Investigate services with no client API file, including voice training, Jot and other archive services, and register any additional required contracts.",
         "Recover legacy contract versions used by the original clients, including Settings_20160801.GetSettings; keep the 20171219 SDK surface independently mapped."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Per-operation attributes (auth incl. both auth layers, ownership, schema, errors, persistence, side effects) recorded for every wire operation and independently re-derived by root from the merged map",
+          "artifact": "docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md",
+          "result": "pass",
+          "referenceRevision": "43a692fe7670660aaed6ab5979c6c83039eb711c",
+          "phoenixRevision": "deae53fcb1217652794e2de4eda5037baf46e682",
+          "command": "python3 scripts/parity-coverage/a01_verify_attributes.py",
+          "notes": "169/169 operations, 0 problems. Closes criterion 2, the only open criterion: 112 rows across 24 prefixes had no attributes block before this wave. Verifier falsification-tested (6/6 corruptions detected). Auth is recorded at BOTH layers - gateway srv-security-gw@43a692fe unauthorizedMethods/unsignedMethods/unactiveMethods and the handler decorator - after the 57 pre-existing rows were backfilled with the gateway layer they omitted; a handler decorator does not override the gateway allow-list. All 169 verification scenarios remain runtimeStatus not-run: criterion 1 requires a scenario be assigned, not executed, and executing them belongs to the per-service tasks. denominator.prefixAmbiguity (Jot_20160126 vs literal Jot_20160512) and the VoiceTraining name mismatch are recorded as unknowns, not resolved."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
