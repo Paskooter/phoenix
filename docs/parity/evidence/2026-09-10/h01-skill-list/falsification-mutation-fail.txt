@@ -1,0 +1,15 @@
+# H-01 falsification: mutation applied to packages/gateway/src/index.js:83
+#   - const settingsSkills = config.skills.filter(skill => !!skill.settings);
+#   + const settingsSkills = config.skills;
+# command: node --test packages/gateway/test/skillList.runtime.test.js
+# date: 2026-09-10T22:15:29+00:00
+
+ok 1 - H-01: /skills/:robotId and /v1/skills/:robotId serve the full reference-shaped configurations
+not ok 2 - H-01: the settings-filtered URLs return exactly the configurations that carry settings
+ok 3 - H-01: an unknown robot ID returns the same configurations as a known one (the id is not a filter)
+ok 4 - H-01: an empty registry returns {"skills":[]} on all four URLs, settings variants included
+not ok 5 - H-01: a registry with no settings-bearing skill yields {"skills":[]} from the settings variants only
+ok 6 - H-01: the generic no-ID alias is the reduced id+intents projection, unlike the robot-specific list
+# tests 6
+# pass 4
+# fail 2
