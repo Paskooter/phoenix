@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 6 | 46 | 0 | 0 |
-| classic | 13 | 20 | 0 | 0 |
+| classic | 14 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1613,7 +1613,7 @@ Evidence: [packages/classic/test/media.test.js](../../packages/classic/test/medi
 
 ### A-15 — Complete Person data and Collision behavior
 
-- [ ] **todo** · P1 · classic · implementation: stub
+- [x] **verified** · P1 · classic · implementation: stub
 
 Owner: Codex. Dependencies: A-02, A-04.
 
@@ -1628,7 +1628,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/person-2016-08-01.normal.json](ht
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a15-person-collision/review.md](../../docs/parity/evidence/2026-09-10/a15-person-collision/review.md) (2026-09-10; All 10 Person_20160801 operations plus Collision_20161126.Match are served at 2xx at runtime; unsigned calls answer 401 MISSING_AUTH_HEADER. The tier-3 person stub is removed and both handlers are registered ahead of stubRegistrations(). Error codes match srv-person-ws src/errors/person.js verbatim. Durability proven twice: in-process AND at process level (SIGKILL the child, start a FRESH process over the same store file, 5/5 values survived). Collision reproduces the pinned phonetic worked example and the source threshold rule. Root independently reproduced the falsification by inverting the ALREADY_ANSWERED guard at person.js:281, which failed exactly three named tests, then restored to green.).
 
 ### A-16 — Implement ROM certificate exchange and remote operation
 

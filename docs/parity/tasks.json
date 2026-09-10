@@ -3584,7 +3584,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "stub",
       "owner": "Codex",
       "dependsOn": [
@@ -3603,7 +3603,18 @@
         "Verify every Person operation, personalized answers, properties and holiday behavior with original fixtures and durable state.",
         "Implement collision/name matching, thresholds and error responses from archived source, including real collisions and boundary examples."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "All 10 Person_20160801 operations plus Collision_20161126.Match are served at 2xx at runtime; unsigned calls answer 401 MISSING_AUTH_HEADER. The tier-3 person stub is removed and both handlers are registered ahead of stubRegistrations(). Error codes match srv-person-ws src/errors/person.js verbatim. Durability proven twice: in-process AND at process level (SIGKILL the child, start a FRESH process over the same store file, 5/5 values survived). Collision reproduces the pinned phonetic worked example and the source threshold rule. Root independently reproduced the falsification by inverting the ALREADY_ANSWERED guard at person.js:281, which failed exactly three named tests, then restored to green.",
+          "artifact": "docs/parity/evidence/2026-09-10/a15-person-collision/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "b35feddacf7b00a89762930b3bb46b35019446e9",
+          "command": "node --test packages/classic/test/person.test.js packages/classic/test/collision.test.js && npm test",
+          "notes": "Caveat: the prior attempt's REPORT was false (no commits, no counts) even though its committed code was real - root verified the work directly rather than trusting either report. UNKNOWN: exact phoneme sequences from the original Phonetisaurus model are not reproducible; collision g2p is a documented grapheme approximation."
+        }
+      ]
     },
     {
       "id": "A-16",
