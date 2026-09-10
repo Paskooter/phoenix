@@ -261,18 +261,18 @@ bare substring, so a comment quoting the code cannot produce a false "caught".
 
 ## 8. Full test run and parity gate
 
-One full `npm test` on base `39c1cd8c…` with the source and test changes in the
-working tree, exit status 0 (**VERIFIED**, log preserved as
-`/tmp/n01-npm-test.log`). No source or test file changed after the run; only
-this evidence directory was added. Two deliberate corruptions were applied and
-reverted before the run.
+One full `npm test` at the committed revision `03c3779` with a clean environment
+(`PHOENIX_NLU_*` unset), exit status 0 (**VERIFIED**, log preserved as
+`/tmp/n01-npm-test-clean.log`). No source or test file changed after the run.
 
 ```
+$ env | grep PHOENIX_NLU      # (no output)
+$ npm test
 [test:unit]  1..1138
              # tests 1200   # suites 7
              # pass 1193     # fail 0
              # cancelled 0   # skipped 7   # todo 0
-             # duration_ms 24599.15
+             # duration_ms ~24.6s
 [parity:check] Checklist: 16/79 verified (20.3%)
                Tracker structure, dependencies, evidence links and generated
                checklist are valid.
@@ -284,6 +284,15 @@ reverted before the run.
 `cancelled 0` confirms no concurrent-run corruption. The 7 skipped tests are the
 artifact-gated compiled profiles; they were run separately with the compiled
 home configured (19/19 pass, including the new 98-rule load assertions).
+
+Environment note (**VERIFIED**): an earlier full run of the same committed tree
+inherited exported `PHOENIX_NLU_*` variables and produced `pass 1195 · fail 1 ·
+skipped 4`, failing `packages/nlu/test/punctuationBoundary.test.js:23`
+(expected `GeneralDescriptor: 'Depressed'`, got `Emotion: 'Sad'`). The same
+failure reproduces identically when the three source files are reverted to the
+base revision `39c1cd8c`, so it is pre-existing environment sensitivity in that
+test (it asserts AST-profile values while the environment selects the compiled
+profile), not a regression from this work. See D5.
 
 ## 9. Divergence candidates (reported, not written to DIVERGENCES.md)
 
@@ -313,6 +322,13 @@ home configured (19/19 pass, including the new 98-rule load assertions).
   null` (`requestParser.js:24-28`, `312-318`) where the original attaches the
   Dialogflow external result. Dialogflow is dead-era; **INFERRED** boundary,
   observed as a 500 in tests.
+* **D5 — profile-dependent test expectations.** `packages/nlu/test/punctuationBoundary.test.js:23`
+  asserts AST-profile values but does not clear `PHOENIX_NLU_RUNTIME`, so a full
+  `npm test` with the compiled profile exported fails (`fail 1 · skipped 4`
+  instead of `fail 0 · skipped 7`). The gated compiled tests in the same suite
+  deliberately delete the variable (`compiledFstRuntime.test.js`) or restore it
+  (`requestParser.test.js:14-22`), so this one test is the outlier.
+  Reproduces at the base revision — **VERIFIED**, pre-existing.
 
 ## 10. Limits and unknowns
 
