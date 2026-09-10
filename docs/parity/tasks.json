@@ -568,7 +568,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -588,7 +588,18 @@
         "GET /skills/:robotId and /v1/skills/:robotId return full reference-shaped skill configurations.",
         "Both settings-filtered URL variants return exactly the configurations with settings, including empty registries and unknown robot IDs."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Robot-specific skill-list endpoints verified against the pinned hub with a differential harness, not by reading code. Root independently reproduced the falsification: replacing the settings filter at packages/gateway/src/index.js:83 with an unfiltered assignment failed exactly two named tests, and restoring returned the suite to green (6/0).",
+          "artifact": "scripts/parity-h01/differential.mjs",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "bc57344217a29ffc1f2f80e6672967985c015d3f",
+          "command": "node --test packages/gateway/test/skillList.runtime.test.js && npm test",
+          "notes": "Root verified the merge and the falsification directly rather than taking the report at face value."
+        }
+      ]
     },
     {
       "id": "H-02",
@@ -910,7 +921,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -932,7 +943,18 @@
         "Give each independently deployed skill the reference /v1/main behavior and retain any namespaced aliases without requiring caller changes.",
         "Start report/chitchat/example/template replacements independently and verify original requests reach the intended skill; run the native and compose entrypoint configurations."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Every skill process serves its own skill at the reference /v1/main URL. Verified by driving the real Phoenix skills service and comparing against the pinned original. Root merged and ran the suite: 27/0 across the gateway and jot suites. Falsified at packages/skills/src/index.js:190 (createSelectedSkill fallback).",
+          "artifact": "docs/parity/evidence/2026-09-10/h09-skill-main-url/",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "bc57344217a29ffc1f2f80e6672967985c015d3f",
+          "command": "node --test packages/skills/test/*.test.js && npm test",
+          "notes": "Skill processes are exercised in-process; a deployed skill host was not separately probed."
+        }
+      ]
     },
     {
       "id": "H-10",
