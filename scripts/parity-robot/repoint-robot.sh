@@ -458,11 +458,19 @@ done
 
 printf '%s' "$SEDSCRIPT" | rsh "cat > /tmp/.phoenix-hosts-sed"
 printf '%s\n' "$HOSTS_BLOCK" | rsh "cat > /tmp/.phoenix-hosts-block"
+# /etc/hosts must stay world-readable. The Be renderer is an Electron process
+# running as uid 2000 (jibo-skill); if it cannot read the hosts file, glibc
+# skips the `files` NSS module and every name goes to DNS, where `localhost`
+# does not exist (the stock Be jetstream client hard-codes ws://localhost:8090,
+# which then retries forever logging "getaddrinfo ENOTFOUND localhost"), and the
+# jibo.com names silently resolve to whatever the LAN resolver answers instead of
+# the Phoenix host written here. Pin the mode rather than inheriting it.
 rsh "set -e
   cp -p '$HOSTS_TARGET' '${HOSTS_TARGET}.phx-bak-${STAMP}'
   sed -i '/${MARK_BEGIN}/,/${MARK_END}/d' '$HOSTS_TARGET'
   sed -i -f /tmp/.phoenix-hosts-sed '$HOSTS_TARGET'
   cat /tmp/.phoenix-hosts-block >> '$HOSTS_TARGET'
+  chmod 644 '$HOSTS_TARGET'
   rm -f /tmp/.phoenix-hosts-sed /tmp/.phoenix-hosts-block"
 ok "hosts updated (backup ${HOSTS_TARGET}.phx-bak-${STAMP})"
 
