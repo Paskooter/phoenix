@@ -1,0 +1,38 @@
+# H-01 full npm test (worktree w5/h01, branch w5/h01)
+# command: npm test
+# date: 2026-09-10T22:17:57+00:00
+# exit: 0
+
+== unit (node --test) ==
+# tests 1434
+# suites 7
+# pass 1427
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+# duration_ms 32905.813357
+
+== parity:check ==
+> phoenix@0.0.0 parity:check
+> node scripts/parity-status.mjs --check
+
+Checklist: 27/79 verified (34.2%)
+management: 3/3 verified; 0 in progress; 0 blocked
+verification: 4/4 verified; 0 in progress; 0 blocked
+pegasus: 6/46 verified; 0 in progress; 0 blocked
+classic: 14/20 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Next: C-03 — Restore configuration, registry and service-discovery compatibility
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+== parity:gate ==
+> phoenix@0.0.0 parity:gate
+> node scripts/parity-production/gate.mjs
+
+Strict production smoke gate (43 cases; full corpus remains separately tracked). Evidence: /home/shell/work/phoenix/.parity/worktrees/w5-h01/.parity/runs/ci-production-86b95c51-1d24-4cb8-88d3-88621748c75b
+image-phoenix
+candidate
+compare
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}

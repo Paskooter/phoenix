@@ -1,0 +1,13 @@
+# H-01 runtime: the gateway process as started by npm run start:gateway
+# ETCO_hub_disableAuth=true ETCO_server_port=8139 node packages/gateway/src/index.js
+# registry: packages/gateway/resources/skills/skills-local.json (21 entries)
+# date: 2026-09-10T22:15:17+00:00
+
+GET /skills/robot-A                    -> HTTP 200 application/json; charset=utf-8 733983 bytes  | skills=21
+GET /v1/skills/robot-A                 -> HTTP 200 application/json; charset=utf-8 733983 bytes  | skills=21
+GET /skills/settings/robot-A           -> HTTP 200 application/json; charset=utf-8 7726 bytes  | skills=1
+GET /v1/skills/settings/robot-A        -> HTTP 200 application/json; charset=utf-8 7726 bytes  | skills=1
+GET /skills/unknown-robot              -> HTTP 200 application/json; charset=utf-8 733983 bytes  | skills=21
+GET /v1/skills/settings/unknown-robot  -> HTTP 200 application/json; charset=utf-8 7726 bytes  | skills=1
+GET /v1/skills                         -> HTTP 200 application/json; charset=utf-8 725583 bytes  | skills=21
+GET /skills                            -> HTTP 200 application/json; charset=utf-8 725583 bytes  | skills=21
