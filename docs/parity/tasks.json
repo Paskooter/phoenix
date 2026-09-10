@@ -476,7 +476,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -500,7 +500,18 @@
         "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults without relying on Phoenix-only aliases.",
         "Document optional alias behavior and prove an individual Phoenix service works under the reference environment."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Reference registries load unmodified and invalid configurations are rejected exactly as the reference does. The three bundled indexes and all 21 manifests are byte-identical to the pinned originals (sha256 compared, the 1.6MB chitchat manifest fetched over the Gitea raw URL since MCP truncates above ~69kB). 102/102 validation rows and 28/28 registry rows match the retained Node 8.9.4 capture with 0 mismatches. Rejection is total and reaches the executable boundary: a bad ETCO_hub_skillsConfig makes the real gateway exit 1 after ~5.1s with no startup record. Root reproduced the falsification independently - deleting validateSkillsIndex at registry.js:34 failed exactly two named tests, restoring returned 9/0.",
+          "artifact": "docs/parity/evidence/2026-09-10/c03-config-rejection/run.json",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "23217c394af6c9a19108fa0594cda95f3aba5ce7",
+          "command": "node --test packages/gateway/test/configRejection.runtime.test.js packages/gateway/test/registry.test.js && npm test",
+          "notes": "Unblocks H-01 and H-09, whose dependency warning was the sole cause of npm test exiting 1. INFERRED: 'the reference rejects X' means 'the pinned Node 8.9.4 capture records X' - the original harness was not re-executed here. Documented deviations remain (per-service default port 7010 vs source 8080; manifests read relative to the index directory)."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidate",

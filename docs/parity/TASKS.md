@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 6 | 46 | 0 | 0 |
+| pegasus | 9 | 46 | 0 | 0 |
 | classic | 14 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **C-03 — Restore configuration, registry and service-discovery compatibility**.
+Next ready task: **H-05 — Enforce proactive user settings**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -258,7 +258,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/c02-wire-s
 
 ### C-03 — Restore configuration, registry and service-discovery compatibility
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: V-02.
 
@@ -274,7 +274,7 @@ Source: [Original Pegasus packages/hub/src/config](https://pvindex.org/gitea/jib
 
 Phoenix: [packages/gateway/src/config.js](../../packages/gateway/src/config.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js); [packages/common/src/env.js](../../packages/common/src/env.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/c03-config-rejection/run.json](../../docs/parity/evidence/2026-09-10/c03-config-rejection/run.json) (2026-09-10; Reference registries load unmodified and invalid configurations are rejected exactly as the reference does. The three bundled indexes and all 21 manifests are byte-identical to the pinned originals (sha256 compared, the 1.6MB chitchat manifest fetched over the Gitea raw URL since MCP truncates above ~69kB). 102/102 validation rows and 28/28 registry rows match the retained Node 8.9.4 capture with 0 mismatches. Rejection is total and reaches the executable boundary: a bad ETCO_hub_skillsConfig makes the real gateway exit 1 after ~5.1s with no startup record. Root reproduced the falsification independently - deleting validateSkillsIndex at registry.js:34 failed exactly two named tests, restoring returned 9/0.).
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
 
@@ -286,7 +286,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/re
 
 ### H-01 — Restore the robot-specific skill-list endpoints
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-01, C-03.
 
@@ -301,7 +301,7 @@ Source: [Original Pegasus packages/hub/src/HubService.ts](https://pvindex.org/gi
 
 Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js).
 
-Evidence: pending.
+Evidence: [scripts/parity-h01/differential.mjs](../../scripts/parity-h01/differential.mjs) (2026-09-10; Robot-specific skill-list endpoints verified against the pinned hub with a differential harness, not by reading code. Root independently reproduced the falsification: replacing the settings filter at packages/gateway/src/index.js:83 with an unfiltered assignment failed exactly two named tests, and restoring returned the suite to green (6/0).).
 
 ### H-02 — Verify listen transaction ordering, cancellation and failure behavior
 
@@ -399,7 +399,7 @@ Evidence: pending.
 
 ### H-09 — Match each skill process at the reference /v1/main URL
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-01, C-03.
 
@@ -414,7 +414,7 @@ Source: [Original Pegasus packages/baseskill/src/SkillService.ts](https://pvinde
 
 Phoenix: [packages/skills/src/index.js](../../packages/skills/src/index.js); [packages/skills/src/skillService.js](../../packages/skills/src/skillService.js); [docker-compose.yml](../../docker-compose.yml).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/h09-skill-main-url/](../../docs/parity/evidence/2026-09-10/h09-skill-main-url/) (2026-09-10; Every skill process serves its own skill at the reference /v1/main URL. Verified by driving the real Phoenix skills service and comparing against the pinned original. Root merged and ran the suite: 27/0 across the gateway and jot suites. Falsified at packages/skills/src/index.js:190 (createSelectedSkill fallback).).
 
 ### H-10 — Match hub authentication and context identity checks
 
