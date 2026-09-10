@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-09-10T18:42:27.959Z",
+  "revision": "5aaf98d361b2826a1b2e9860d6db46a53388ed4d",
+  "cases": [
+    {
+      "name": "declared operation GetStatus is not dispatched (served-at-runtime claim)",
+      "file": "packages/classic/src/notification.js",
+      "anchor": "\n      case 'getstatus':",
+      "occurrences": 1,
+      "expected": "both files: GetStatus no longer answers, so every GetStatus assertion fails",
+      "codeLineChanged": true,
+      "brokenRun": {
+        "status": 1,
+        "passed": 5,
+        "failed": 3,
+        "failing": [
+          "reconnect with the same token redelivers only un-acked rows, exactly once",
+          "rotation makes the old token unreachable for new sockets; new token still works",
+          "both operations the pinned Notification client model declares are served at their wire target"
+        ],
+        "tail": "# {\"t\":\"2026-09-10T18:42:28.566Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# {\"t\":\"2026-09-10T18:42:29.139Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"listening\",\"port\":0}\n# Subtest: the gateway layer refuses an unsigned or invalid Notification call, and refuses it before any token mutation\nok 7 - the gateway layer refuses an unsigned or invalid Notification call, and refuses it before any token mutation\n  ---\n  duration_ms: 116.503992\n  type: 'test'\n  ...\n# {\"t\":\"2026-09-10T18:42:29.156Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# Subtest: the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery\nok 8 - the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery\n  ---\n  duration_ms: 608.802994\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 5\n# fail 3\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1190.808828\n"
+      },
+      "restoredByteIdentical": true,
+      "restoredRun": {
+        "status": 0,
+        "passed": 8,
+        "failed": 0,
+        "failing": [],
+        "tail": "# {\"t\":\"2026-09-10T18:42:29.737Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# {\"t\":\"2026-09-10T18:42:30.087Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"listening\",\"port\":0}\n# Subtest: the gateway layer refuses an unsigned or invalid Notification call, and refuses it before any token mutation\nok 7 - the gateway layer refuses an unsigned or invalid Notification call, and refuses it before any token mutation\n  ---\n  duration_ms: 83.724123\n  type: 'test'\n  ...\n# {\"t\":\"2026-09-10T18:42:30.104Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# Subtest: the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery\nok 8 - the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery\n  ---\n  duration_ms: 391.242715\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 8\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 921.340783\n"
+      },
+      "result": "CAUGHT"
+    },
+    {
+      "name": "acknowledged row is not removed, so a reconnect replays it (ack/exactly-once claim)",
+      "file": "packages/classic/src/notification.js",
+      "anchor": "\n            this.store.removeNotification(notification._id);",
+      "occurrences": 1,
+      "expected": "notificationLifecycle.test.js: acked row is replayed and the pending count is wrong",
+      "codeLineChanged": true,
+      "brokenRun": {
+        "status": 1,
+        "passed": 3,
+        "failed": 2,
+        "failing": [
+          "reconnect with the same token redelivers only un-acked rows, exactly once",
+          "multi-account isolation: concurrent sockets never cross-deliver, even across reconnects"
+        ],
+        "tail": "    + 'gadget'\n    - 'gadget-2'\n             ^\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'gadget-2'\n  actual: 'gadget'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w2-a10/packages/classic/test/notificationLifecycle.test.js:221:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 3\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 27640.507867\n"
+      },
+      "restoredByteIdentical": true,
+      "restoredRun": {
+        "status": 0,
+        "passed": 5,
+        "failed": 0,
+        "failing": [],
+        "tail": "# {\"t\":\"2026-09-10T18:42:58.331Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# Subtest: the consumer URL shape '/{token}' (no /socket prefix) attaches and receives pending delivery\nok 4 - the consumer URL shape '/{token}' (no /socket prefix) attaches and receives pending delivery\n  ---\n  duration_ms: 11.235621\n  type: 'test'\n  ...\n# {\"t\":\"2026-09-10T18:42:58.341Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# {\"t\":\"2026-09-10T18:42:58.344Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# Subtest: multi-account isolation: concurrent sockets never cross-deliver, even across reconnects\nok 5 - multi-account isolation: concurrent sockets never cross-deliver, even across reconnects\n  ---\n  duration_ms: 19.156624\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 481.610045\n"
+      },
+      "result": "CAUGHT"
+    },
+    {
+      "name": "the serving certificate stops covering the socket hostname (TLS/SNI claim)",
+      "file": "scripts/ensure-tls-certs.mjs",
+      "anchor": "    dns.push(`${region}.jibo.com`, `${region}-socket.jibo.com`);",
+      "occurrences": 1,
+      "expected": "notificationSourceContract.test.js: the SAN assertion for <region>-socket.jibo.com fails",
+      "codeLineChanged": true,
+      "brokenRun": {
+        "status": 1,
+        "passed": 2,
+        "failed": 1,
+        "failing": [
+          "the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery"
+        ],
+        "tail": "  actual: |-\n    X509v3 Subject Alternative Name: \n        DNS:localhost, DNS:phx.jibo.com, IP Address:127.0.0.1, IP Address:192.168.1.182, IP Address:100.90.238.114, IP Address:10.99.0.8, IP Address:172.19.0.1\n    \n  operator: 'match'\n  stack: |-\n    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w2-a10/packages/classic/test/notificationSourceContract.test.js:280:14)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 2\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 537.899795\n"
+      },
+      "restoredByteIdentical": true,
+      "restoredRun": {
+        "status": 0,
+        "passed": 3,
+        "failed": 0,
+        "failing": [],
+        "tail": "# {\"t\":\"2026-09-10T18:42:59.219Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# {\"t\":\"2026-09-10T18:42:59.492Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"listening\",\"port\":0}\n# Subtest: the gateway layer refuses an unsigned or invalid Notification call, and refuses it before any token mutation\nok 2 - the gateway layer refuses an unsigned or invalid Notification call, and refuses it before any token mutation\n  ---\n  duration_ms: 36.904342\n  type: 'test'\n  ...\n# {\"t\":\"2026-09-10T18:42:59.504Z\",\"level\":\"info\",\"ns\":\"classic\",\"msg\":\"classic request\",\"target\":\"Notification_20150505.NewRobotToken\",\"op\":\"NewRobotToken\",\"matched\":\"in-process\"}\n# Subtest: the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery\nok 3 - the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery\n  ---\n  duration_ms: 304.317265\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 554.569399\n"
+      },
+      "result": "CAUGHT"
+    }
+  ],
+  "allCaught": true
+}

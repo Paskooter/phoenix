@@ -1,0 +1,73 @@
+# jiborobot/srv-jibo-server-client:apis/notification-2015-05-05.normal.json
+
+{
+  "metadata":{
+    "apiVersion":"2015-05-05",
+    "endpointPrefix":"notification",
+    "jsonVersion":"1.1",
+    "serviceFullName":"Jibo Notification",
+    "signatureVersion":"v4",
+    "targetPrefix":"Notification_20150505",
+    "protocol":"json"
+  },
+  "documentation":"<fullname>Jibo Notifications API Reference</fullname> <p>This is the <i>Jibo Notifications API Reference</i>. Jibo Notifications.",
+  "operations":{
+    "NewRobotToken":{
+      "name":"NewRobotToken",
+      "input":{"shape":"RobotTokenRequest"},
+      "output":{"shape":"Token"},
+      "documentation":"<p> Creates New Robot Token used to establish WebSocket connection</p>"
+    },
+    "GetStatus":{
+      "input":{"shape":"GetStatusRequest"},
+      "output":{"shape":"GetStatusResponse"},
+      "documentation":"<p> Gets connected status for specified account.</p>"
+    }
+  },
+  "shapes":{
+    "Id":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{"type":"string"}
+      }
+    },
+    "DeviceId":{
+      "type":"string",
+      "documentation":"Corresponds to robot identifier in RobotProperties API"
+    },
+    "RobotTokenRequest":{
+      "type":"structure",
+      "members":{
+        "deviceId":{"shape":"DeviceId"}
+      }
+    },
+    "Token":{
+      "type":"structure",
+      "required":[
+        "token"
+      ],
+      "members":{
+        "token":{"type":"string"}
+      }
+    },
+    "GetStatusRequest":{
+      "type":"structure",
+      "required":[
+        "accountId"
+      ],
+      "members":{
+        "accountId":{"type":"string"}
+      }
+    },
+    "GetStatusResponse":{
+      "type":"structure",
+      "required":[
+        "connected"
+      ],
+      "members":{
+        "connected":{"type":"boolean"}
+      }
+    }
+  }
+}

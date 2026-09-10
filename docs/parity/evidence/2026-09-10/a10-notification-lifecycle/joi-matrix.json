@@ -1,0 +1,82 @@
+{
+  "joiVersion": "10.5.2",
+  "allowUnknown": true,
+  "results": [
+    {
+      "case": "NewRobotToken deviceId={}",
+      "expected422Message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+    },
+    {
+      "case": "NewRobotToken deviceId=[]",
+      "expected422Message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+    },
+    {
+      "case": "NewRobotToken deviceId=true",
+      "expected422Message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+    },
+    {
+      "case": "NewRobotToken deviceId=null",
+      "expected422Message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+    },
+    {
+      "case": "NewRobotToken deviceId=\"\"",
+      "expected422Message": "child \"deviceId\" fails because [\"deviceId\" is not allowed to be empty]"
+    },
+    {
+      "case": "NewRobotToken payload=\"\"",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "NewRobotToken payload=null",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "NewRobotToken payload=[]",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "NewRobotToken payload=false",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "NewRobotToken payload=0",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "NewRobotToken payload=\"scalar\"",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "NewRobotToken payload={}",
+      "expected422Message": null
+    },
+    {
+      "case": "NewRobotToken payload={deviceId:\"x\",unknown:1}",
+      "expected422Message": null
+    },
+    {
+      "case": "GetStatus payload={}",
+      "expected422Message": "child \"accountId\" fails because [\"accountId\" is required]"
+    },
+    {
+      "case": "GetStatus accountId=null",
+      "expected422Message": "child \"accountId\" fails because [\"accountId\" must be a string]"
+    },
+    {
+      "case": "GetStatus accountId=7",
+      "expected422Message": "child \"accountId\" fails because [\"accountId\" must be a string]"
+    },
+    {
+      "case": "GetStatus accountId=\"\"",
+      "expected422Message": "child \"accountId\" fails because [\"accountId\" is not allowed to be empty]"
+    },
+    {
+      "case": "GetStatus payload=null",
+      "expected422Message": "\"value\" must be an object"
+    },
+    {
+      "case": "GetStatus payload={accountId:\"a\",extra:1}",
+      "expected422Message": null
+    }
+  ]
+}
