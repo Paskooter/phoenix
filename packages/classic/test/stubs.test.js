@@ -1,10 +1,16 @@
-// H.5 — build-to-spec tier-3 stubs: each service dispatches its ops and returns a valid shape.
+// Tier-3 stubs (H.5) — every service that once lived in stubs.js has graduated to a real,
+// source-faithful handler (media, rom, ifttt, nlp, and — in A-15 — person + collision), so
+// `stubRegistrations()` is now empty. What remains worth asserting at this seam is that the
+// graduated prefixes are routed to their real handlers (a bad operation is a ValidationException,
+// never a silent default shape) and that an unknown prefix is still an UnknownOperationException.
+//
+// person's full contract is covered by person.test.js; collision's by collision.test.js.
 // (Unverified end-to-end without the dead mobile app/hardware — see DIVERGENCES.)
-// rom (ROM_20171011) left this group in A-16; its behaviour is covered by rom.test.js.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createClassicEntrypoint } from '../src/index.js';
+import { stubRegistrations } from '../src/stubs.js';
 
 let server; let port;
 async function amz(target, body, accessKeyId = 'acct-1') {
@@ -12,7 +18,7 @@ async function amz(target, body, accessKeyId = 'acct-1') {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target,
-      authorization: 'AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260613/us-east-1/x/aws4_request, SignedHeaders=host, Signature=ff',
+      authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260613/us-east-1/x/aws4_request, SignedHeaders=host, Signature=ff`,
     },
     body: JSON.stringify(body || {}),
   });
@@ -22,24 +28,29 @@ async function amz(target, body, accessKeyId = 'acct-1') {
 before(async () => { server = await createClassicEntrypoint().listen(0); port = server.address().port; });
 after(() => server.close());
 
-test('person: account properties round-trip in-memory', async () => {
-  await amz('Person_20160801.SetAccountProperty', { key: 'favColor', value: 'blue' }, 'acct-P');
-  const got = await amz('Person_20160801.GetAccountProperties', {}, 'acct-P');
-  assert.equal(got.body.favColor, 'blue');
-  const keys = await amz('Person_20160801.ListAccountPropertyKeys', {}, 'acct-P');
-  assert.deepEqual(keys.body.keys, ['favColor']);
-  // holidays return the command-accepted shape
-  assert.equal((await amz('Person_20160801.EnableHolidays', {})).body.result, 'Command accepted');
+test('no tier-3 stub services remain', () => {
+  assert.deepEqual(stubRegistrations(), []);
 });
 
-test('collision returns its shape', async () => {
-  const col = await amz('Collision_20161126.Match', { username: 'jane' });
-  assert.equal(col.body.success, true);
-  assert.equal(col.body.collision, false);
+test('graduated person/collision prefixes reach their real handlers', async () => {
+  // person: the stub used to answer `[]` for any category; the real handler validates it.
+  const person = await amz('Person_20160801.List', { category: 'not-a-category' });
+  assert.equal(person.status, 404);
+  assert.equal(person.errType, 'CATEGORY_NOT_FOUND');
+  // collision: the stub used to answer success for any body; the real handler requires the input.
+  const collision = await amz('Collision_20161126.Match', {});
+  assert.equal(collision.status, 400);
+  assert.equal(collision.errType, 'ValidationException');
 });
 
-test('unknown op on a stub service -> ValidationException', async () => {
+test('unknown op on a graduated service -> ValidationException', async () => {
   const r = await amz('Collision_20161126.Frobnicate', {});
   assert.equal(r.status, 400);
   assert.equal(r.errType, 'ValidationException');
+});
+
+test('unknown prefix -> UnknownOperationException', async () => {
+  const r = await amz('Nothing_20160101.Do', {});
+  assert.equal(r.status, 400);
+  assert.equal(r.errType, 'UnknownOperationException');
 });

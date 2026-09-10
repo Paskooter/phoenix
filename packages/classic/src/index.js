@@ -19,6 +19,8 @@ import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './
 import { makeRomHandler } from './rom.js';
 import { IftttStore, makeIftttHandler } from './ifttt.js';
 import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
+import { PersonStore, PersonController, PropertyController, makePersonHandler, PERSON_ERRORS } from './person.js';
+import { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS } from './collision.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -39,6 +41,9 @@ export {
 } from './rom.js';
 export { IftttStore, makeIftttHandler, IFTTT_ERRORS, localPhoneticKey, singleHouseholdLoops, unavailableIftttNotify, unavailableKeyClient } from './ifttt.js';
 export { makeNlpHandler, cleanInput, unavailableNlpProvider, createHttpNlpProvider, nlpProviderFromEnv, WH_WORDS } from './nlp.js';
+export { PersonStore, PersonController, PropertyController, makePersonHandler, accountIdFromRequest, PERSON_ERRORS, PERSON_OPERATIONS, MISSING_AUTH_HEADER } from './person.js';
+export { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS, COLLISION_OPERATIONS } from './collision.js';
+export { PERSON_QUESTIONS, HOLIDAYS } from './personCatalog.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -63,8 +68,9 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision } = {}) {
   const mediaStore = media?.store || new MediaStore();
+  const personStore = person?.store || new PersonStore();
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
   const router = createClassicRouter([
@@ -90,7 +96,14 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     // explicit dead-provider seams), registered before the tier-3 stubs so they win.
     { match: /^ifttt/i, handler: makeIftttHandler(ifttt || {}) },
     { match: /^nlp/i, handler: makeNlpHandler(nlp || {}) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (person/collision)
+    // Person_20160801 (questions/answers, properties, holidays) and Collision_20161126 (phonetic
+    // username collision) own real handlers now (A-15), registered ahead of the tier-3 stubs.
+    { match: /^person/i, handler: makePersonHandler({
+      store: personStore, account: person?.account, questions: person?.questions,
+      holidays: person?.holidays, now: person?.now,
+    }) },
+    { match: /^collision/i, handler: makeCollisionHandler(collision || {}) },
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (none remain: person/collision graduated)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -105,7 +118,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -122,6 +135,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const logStore = new LogStore();
   const mediaStore = media?.store || new MediaStore();
   const iftttStore = ifttt?.store || new IftttStore();
+  const personStore = person?.store || new PersonStore();
   const service = createService({
     name: 'classic',
     tls,
@@ -143,6 +157,8 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         robotStore: robots,
         ifttt: { ...ifttt, store: iftttStore },
         nlp: nlp || { provider: nlpProviderFromEnv() },
+        person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
+        collision: collision || {},
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
@@ -175,7 +191,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore };
+  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore, personStore };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
