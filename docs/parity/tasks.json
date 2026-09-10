@@ -2761,7 +2761,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "in_progress",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2783,15 +2783,26 @@
         "Match ownership, membership states, side effects, errors and persistence with real client sequences.",
         "Preserve adoption/revival behavior in an explicit mode if it requires accepting obsolete loop IDs; do not redefine original errors silently."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "All 23 Loop wire operations proven served by a runtime probe (static scanning found 1 of 23 because dispatch uses lowercased comparisons across four modules); gate 1 client-sequence replay against source in the pinned Node 8 runtime at 12/12 with byte-exact Classic forwarding across 34 pairs; adoption confirmed to live on a separate admin endpoint rather than redefining Loop errors",
+          "artifact": "docs/parity/evidence/2026-09-10/a04-loop-operations/review.md",
+          "result": "pass",
+          "referenceRevision": "6cea43470825657d6a5722162f28c8f233153ee2",
+          "phoenixRevision": "1e3b71184bb2089f650afa4ce2668f98f6c68768",
+          "notes": "Two comparator defects were fixed to reach this result, both in the harness rather than Phoenix: a hardcoded 18-capture count that masked byte-exact forwarding, and an isDeleted comparison between raw-wire and SDK-parsed measurements. The isDeleted difference is unobservable to real clients because the pinned SDK Loop output shape S5 does not declare the field and the aws-sdk strips undeclared members; an initial Phoenix-side fix for it was reverted. Soft deletion stays covered by the list-after/get-after steps. Falsification of the corrected comparator caught 3/3 injected regressions.",
+          "command": "python3 scripts/parity-coverage/a04_loop_coverage.py && node .parity/reviews/a04-loop-probe-20260910/probe.mjs && CANDIDATE_ROOT=$PWD EVIDENCE_ROOT=$PWD/.parity/reviews/a04-gate1 bash scripts/parity-a04/run-state-sequences.sh && (cd .parity/reviews/a04-gate1 && python3 $OLDPWD/scripts/parity-a04/compare-state-sequences-root.py)"
+        }
+      ],
       "implementationReview": {
-        "state": "awaiting_review",
+        "state": "accepted",
         "assignee": "Luna Max / audio_encoding_repair; Codex root",
-        "reviewedBy": "Codex root",
-        "candidateRevision": "9f00907a3d3c0034e8f3ba2add67fbbaba774e45",
-        "scope": "Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code leading-zero repair is root accepted on isolated candidatea5d04b5 after924 tests, seven skips andstrict43; combined integration remains pending.",
-        "artifact": "packages/account/src/loopMembership.js",
-        "reviewEvidence": "docs/parity/evidence/2026-09-08/membership-concurrency-followup-root/review.json"
+        "reviewedBy": "Hermes root (pasketti)",
+        "candidateRevision": "1e3b71184bb2089f650afa4ce2668f98f6c68768",
+        "scope": "Full A-04 review by root: all 23 Loop wire operations proven served by a runtime probe, gate-1 client-sequence replay against source in the pinned Node 8 runtime at 12/12 with byte-exact Classic forwarding, and adoption confirmed to live on a separate admin endpoint rather than redefining Loop errors. Two comparator defects were repaired during the review (a hardcoded capture count masking byte-exact forwarding, and an isDeleted comparison between raw-wire and SDK-parsed measurements); an initial Phoenix-side isDeleted fix was reverted as unobservable to real clients. Earlier membership-concurrency and invitation-code repairs are folded in.",
+        "artifact": "docs/parity/evidence/2026-09-10/a04-loop-operations/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-10/a04-loop-operations/gate1-comparison.json"
       },
       "reviewHistory": [
         {
