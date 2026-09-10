@@ -2112,7 +2112,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2134,7 +2134,18 @@
         "Check hashes or documented transformations, parse/load every asset and validate that referenced assets resolve.",
         "Preserve legacy robot asset names/paths; uncovered files become explicit tasks rather than being omitted from progress."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "4,800 asset files hashed against the pinned source (chitchat mims+CSVs 4490, report mims 82, views 6, gateway resources 33, nlu rules-src 117, grammar 29) and proven at RUNTIME rather than by file existence: the skills HTTP host serves chitchat and report MIMs plus the weatherHiLo view config with content matching the on-disk asset; the gateway serves 21 loaded manifests; the NLU service loads all 20 vendored launch grammars and resolves test utterances to the intents defined in those files. All 4,524 .mim files parse with 12,798 prompts carrying string ids. Two falsifications: breaking the MIM load path failed the runtime test; changing one id in weatherHiLo.json failed the digest test.",
+          "artifact": "docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "70715925ec5a20e3dff300ac8ebff097caf0b0eb",
+          "command": "node --test packages/skills/test/assetProvenance.test.js packages/gateway/test/manifestProvenance.test.js packages/nlu/test/grammarProvenance.test.js && npm test",
+          "notes": "Caveats recorded by the agent and accepted: GQA_banned_word.mim has no pinned source file; answer_skill_manifest.json is a deliberate superset with 7 source-backed intents; resources/rules/@be/*/launch.rule are adapted copies. The local /home/shell/work/pegasus checkout is edited and must not be treated as pristine."
+        }
+      ]
     },
     {
       "id": "S-07",
@@ -3180,7 +3191,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3199,7 +3210,18 @@
         "Map all normal/admin targets and implement durable records, updates, friendly IDs and history/calibration responses from source.",
         "Verify manufacturing/owner/robot permissions and correct missing-record/error behavior with fixture data."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "All 9 Robot_20160225 operations served at runtime with a manufacturing identity. Durability proven by a real restart: create+update+calibrate, close, assert on-disk robots.json, start a NEW entrypoint and re-read the record, calibration and 3-event history. The manufacturing/owner permission matrix was proven with fixture identities across every operation. Two falsifications: making the event log never persist failed the restart test; forcing isManufacturing=true failed five permission tests. 4-part id conversion verified in both directions; GetFriendlyIds verified against the vendored pools (218/238/169/71).",
+          "artifact": "docs/parity/evidence/2026-09-10/a07-robot-records/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "70715925ec5a20e3dff300ac8ebff097caf0b0eb",
+          "command": "node --test packages/classic/test/robotRecords.test.js && npm test",
+          "notes": "Anonymous reads of a missing record deliberately return a valid empty record (source returns 404) to preserve the robot's unverified boot read and local /var calibration fallback. Ownership enforcement is proven only with an injected resolver because the account service has no /robots?ownerId= route."
+        }
+      ]
     },
     {
       "id": "A-08",
@@ -3370,7 +3392,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3388,7 +3410,18 @@
         "Verify all nine operations, request state transitions, encrypted key sharing, backup/restore and binary exchange with original SDK fixtures.",
         "Preserve ownership, key material, expiry/errors and restart behavior using test-owned keys; prove consumer encryption/decryption round trips."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "All nine Key_20160201 operations served at runtime, plus the two pinned plain routes and the self-hosted binary fetch. Durability proven by a real SIGKILL restart: requests, backups and binary bytes written before the kill are served byte-identically afterwards. Root independently re-ran the durability test in isolation (pass) after the agent falsified it by replacing the atomic publish line (this.persistence.rename(temporary, this.file)) with an unlink, so nothing ever landed on disk - exactly the D-02 in-memory trap, correctly caught. Real crypto round trip: a 2048-bit RSA public key sent via CreateRequest, a 32-byte AES key RSA-OAEP encrypted and Shared, then fetched and decrypted byte-equal. Error catalogue exact: KEY_NOT_FOUND 404, KEY_NOT_PART_OF_LOOP 403, ONLY_OWNER_CAN_BACKUP_RESTORE 403, BACKUP_PASSWORD_WRONG 409, BINARY_NOT_FOUND 404, KEY_HASH_DOESNT_MATCH 409.",
+          "artifact": "docs/parity/evidence/2026-09-10/a11-key-exchange/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "70715925ec5a20e3dff300ac8ebff097caf0b0eb",
+          "command": "node --test packages/classic/test/keyExchange.test.js packages/classic/test/keyPush.test.js && npm test",
+          "notes": "Key exchange was previously described in the tracker as 'state is ephemeral'; that was re-derived and confirmed true for the pre-change tree, then fixed. SNS key events are not emitted and the S3-backed binary URL is self-hosted - both recorded as divergences."
+        }
+      ]
     },
     {
       "id": "A-12",

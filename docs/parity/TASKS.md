@@ -10,8 +10,8 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 3 | 46 | 0 | 0 |
-| classic | 8 | 20 | 0 | 0 |
+| pegasus | 4 | 46 | 0 | 0 |
+| classic | 10 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1077,7 +1077,7 @@ Lead review: Codex root; [docs/parity/reviews/s05-root/review.json](../../docs/p
 
 ### S-06 — Verify all MIM, manifest and grammar asset provenance
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: V-03.
 
@@ -1093,7 +1093,7 @@ Source: [Original Pegasus packages/chitchat-skill/mims](https://pvindex.org/gite
 
 Phoenix: [packages/skills/resources](../../packages/skills/resources); [packages/gateway/resources](../../packages/gateway/resources); [packages/nlu/resources](../../packages/nlu/resources).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md](../../docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md) (2026-09-10; 4,800 asset files hashed against the pinned source (chitchat mims+CSVs 4490, report mims 82, views 6, gateway resources 33, nlu rules-src 117, grammar 29) and proven at RUNTIME rather than by file existence: the skills HTTP host serves chitchat and report MIMs plus the weatherHiLo view config with content matching the on-disk asset; the gateway serves 21 loaded manifests; the NLU service loads all 20 vendored launch grammars and resolves test utterances to the intents defined in those files. All 4,524 .mim files parse with 12,798 prompts carrying string ids. Two falsifications: breaking the MIM load path failed the runtime test; changing one id in weatherHiLo.json failed the digest test.).
 
 ### S-07 — Verify the complete chitchat behavior
 
@@ -1441,7 +1441,7 @@ Lead verification: pending. This candidate does not certify task parity.
 
 ### A-07 — Complete Robot records, provisioning and calibration/history behavior
 
-- [ ] **todo** · P1 · classic · implementation: partial
+- [x] **verified** · P1 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02, A-04.
 
@@ -1456,7 +1456,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/robot-2016-02-25.normal.json](htt
 
 Phoenix: [packages/classic/src/robot.js](../../packages/classic/src/robot.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a07-robot-records/review.md](../../docs/parity/evidence/2026-09-10/a07-robot-records/review.md) (2026-09-10; All 9 Robot_20160225 operations served at runtime with a manufacturing identity. Durability proven by a real restart: create+update+calibrate, close, assert on-disk robots.json, start a NEW entrypoint and re-read the record, calibration and 3-event history. The manufacturing/owner permission matrix was proven with fixture identities across every operation. Two falsifications: making the event log never persist failed the restart test; forcing isManufacturing=true failed five permission tests. 4-part id conversion verified in both directions; GetFriendlyIds verified against the vendored pools (218/238/169/71).).
 
 ### A-08 — Complete Update selection, reporting and package delivery
 
@@ -1528,7 +1528,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/notification-authentic
 
 ### A-11 — Complete key exchange, backup and binary-key operations
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02, A-04.
 
@@ -1543,7 +1543,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/key-2016-02-01.normal.json](https
 
 Phoenix: [packages/classic/src/key.js](../../packages/classic/src/key.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a11-key-exchange/review.md](../../docs/parity/evidence/2026-09-10/a11-key-exchange/review.md) (2026-09-10; All nine Key_20160201 operations served at runtime, plus the two pinned plain routes and the self-hosted binary fetch. Durability proven by a real SIGKILL restart: requests, backups and binary bytes written before the kill are served byte-identically afterwards. Root independently re-ran the durability test in isolation (pass) after the agent falsified it by replacing the atomic publish line (this.persistence.rename(temporary, this.file)) with an unlink, so nothing ever landed on disk - exactly the D-02 in-memory trap, correctly caught. Real crypto round trip: a 2048-bit RSA public key sent via CreateRequest, a 32-byte AES key RSA-OAEP encrypted and Shared, then fetched and decrypted byte-equal. Error catalogue exact: KEY_NOT_FOUND 404, KEY_NOT_PART_OF_LOOP 403, ONLY_OWNER_CAN_BACKUP_RESTORE 403, BACKUP_PASSWORD_WRONG 409, BINARY_NOT_FOUND 404, KEY_HASH_DOESNT_MATCH 409.).
 
 ### A-12 — Implement log ingestion and binary-upload behavior
 
