@@ -697,7 +697,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -719,7 +719,18 @@
         "Verify redirect limit, rewritten match, fireAndForget/final semantics, failures, continued sessions and launch-history attribution.",
         "Preserve release-dependent launch mediation for older robot versions, including report-to-chitchat/answer/news decisions, without relying on a fabricated robot release."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Verified by executing the PINNED original under Node 8.9.4 against the reference checkout, then driving the real Phoenix gateway with identical inputs, and diffing: 0 differences across ten cases (launch, continued session, redirect, too-many-redirects, redirect timeout, launch timeout, skill 500, on-robot match, redirect-to-on-robot, redirect-destination-failure). Three genuine divergences found and fixed: timings.skill after a redirect must be the redirect leg only, the skill HTTP failure envelope text, and the redirect timeout message naming the original skill. Each falsified separately with the exact failing test quoted.",
+          "artifact": "docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "32f5526fae0309feeab5026a810520c49a5b79ad",
+          "command": "node --test packages/gateway/test/listen.skillHandoff.test.js && npm test",
+          "notes": "UNKNOWN: the skill-request error code is unobservable on every hub output frame (only message is written), so a known code difference cannot be distinguished. The original's redirect timeout is nondeterministic (11/12 samples took one path); Phoenix implements the dominant path."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / http_contract_repair; Codex root",
@@ -3319,7 +3330,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3338,7 +3349,18 @@
         "Verify ordering, replay/ack behavior where present in source, persistence and multiple-device/account isolation.",
         "Exercise the real robot socket endpoint and DNS/TLS configuration separately from HTTP service discovery."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Socket delivery proven end to end, not asserted: POST /notify is queued while the socket is offline (row count 1, connected:false), then consumed and acked when the socket connects (row count 0, connected:true). A socket for a DIFFERENT account receives nothing. Both operations the pinned model declares are served; undeclared ops and prefixes are refused. Two falsifications with byte-identical restore: breaking the ack line and breaking the cert region default. Also fixed a real defect in the prior evidence - the TLS control had been using region 'phx', which the robot never dials; it now asserts api.jibo.com and api-socket.jibo.com on the SAN, matching the live certificate.",
+          "artifact": "docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "32f5526fae0309feeab5026a810520c49a5b79ad",
+          "command": "node --test packages/classic/test/notificationProductionPath.test.js && npm test",
+          "notes": "Robot firmware internals remain UNKNOWN: how the native client reacts to Phoenix's HTTP 401 on upgrade versus the source's 101-then-close-404, its exact request bytes, and its keepalive cadence. Corroborated on hardware by root (ESTABLISHED socket, lastConnected matching the upgrade to 2.3ms, frame delivered and acked)."
+        }
+      ],
       "nextImplementation": {
         "state": "working",
         "assignee": "Luna Max / http_contract_repair; Codex root",
@@ -3524,7 +3546,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "stub",
       "owner": "Codex",
       "dependsOn": [
@@ -3543,7 +3565,18 @@
         "Implement create/upload/list/get/remove and admin semantics with usable URLs, metadata, encryption flags, access checks and persistence.",
         "Verify pagination/filtering if required by source, deletion and original photo/media client round trips."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "A-14 and Media_20160725 are the same service - both pinned client models declare targetPrefix Media_20160725 and the gateway routes on that prefix, so MediaAdmin's RemoveAllMediaFromLoop dispatches to the same registration. The real gap was a SECURITY defect: RemoveAllMediaFromLoop had no admin gate, so any caller - including an uncredentialled LAN-trust call - could hard-delete an entire loop. Now gated AUTHORIZED_UNDER_ADMIN 401 before the payload check. Get throws MEDIA_MUST_BE_MEMBER 403 instead of silently filtering out-of-loop rows. Durability proven by tearing down the entrypoint and re-reading over HTTP from a fresh one. Falsified by disabling the admin gate: 5 tests failed.",
+          "artifact": "docs/parity/evidence/2026-09-10/a14-media-storage/ (see packages/classic/test/media.test.js, 29 tests)",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "32f5526fae0309feeab5026a810520c49a5b79ad",
+          "command": "node --test packages/classic/test/media.test.js && npm test",
+          "notes": "Pre-existing and unchanged: no S3, so blob URLs point back at the entrypoint and bytes live on local disk. Persisted url keeps the Create-time host/port, so a restart on a different port answers a stale url."
+        }
+      ]
     },
     {
       "id": "A-15",
