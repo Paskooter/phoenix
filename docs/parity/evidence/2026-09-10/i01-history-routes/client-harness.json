@@ -1,0 +1,215 @@
+{
+  "client": "@jibo/history-client/lib (pinned 5c0a739)",
+  "results": [
+    {
+      "name": "writeSkillLaunch returns id",
+      "value": {
+        "ok": true,
+        "value": {
+          "id": "42f2a19b-5128-43f0-ace0-1269649b859c",
+          "isString": true
+        }
+      }
+    },
+    {
+      "name": "writeSkillPayload same triple returns same id (pinned SkillPayloadEvent)",
+      "value": {
+        "ok": true,
+        "value": "42f2a19b-5128-43f0-ace0-1269649b859c"
+      }
+    },
+    {
+      "name": "getLatestSkillLaunch by robotID (pinned SkillLaunchEvent)",
+      "value": {
+        "ok": true,
+        "value": {
+          "id": "42f2a19b-5128-43f0-ace0-1269649b859c",
+          "timestamp": 1789065087887,
+          "sessionID": "sess-client",
+          "robotID": "Robot-Jibo-Number-One",
+          "skillID": "SKILL-1",
+          "intent": "intent-1",
+          "personIDs": [
+            "person-1",
+            "person-2"
+          ],
+          "payload": {
+            "key1": "value1",
+            "key2": "value2"
+          },
+          "payloadSize": 2
+        }
+      }
+    },
+    {
+      "name": "getLatestSkillLaunch notSessionID own session -> null",
+      "value": {
+        "ok": true,
+        "value": null
+      }
+    },
+    {
+      "name": "getLatestSkillLaunch notSessionID other -> record",
+      "value": {
+        "ok": true,
+        "value": "42f2a19b-5128-43f0-ace0-1269649b859c"
+      }
+    },
+    {
+      "name": "getSkillLaunchCount -> number",
+      "value": {
+        "ok": true,
+        "value": 1
+      }
+    },
+    {
+      "name": "getLatestSkillLaunch no match -> null (pinned ComplexQueries)",
+      "value": {
+        "ok": true,
+        "value": null
+      }
+    },
+    {
+      "name": "getSkillLaunchCount unknown robot -> 0",
+      "value": {
+        "ok": true,
+        "value": 0
+      }
+    },
+    {
+      "name": "writeSkillPayload no matching record -> null",
+      "value": {
+        "ok": false,
+        "error": "Cannot read properties of null (reading 'id')"
+      }
+    },
+    {
+      "name": "getLatestSkillLaunch missing robotID -> error envelope",
+      "value": {
+        "ok": false,
+        "error": "Request failed with status code 500",
+        "data": {
+          "type": "ERROR",
+          "msgID": "bd6a0438-bfff-4a6f-9dc6-d07bc187b2bc",
+          "ts": 1789065087934,
+          "final": true,
+          "data": {
+            "message": "Robot ID is required"
+          }
+        }
+      }
+    },
+    {
+      "name": "SpeechHistoryClient.createRecord -> id string",
+      "value": {
+        "ok": true,
+        "value": {
+          "createdId": "9f8feb9e-8ed2-4aef-82a1-cd0c18022514",
+          "isString": true
+        }
+      }
+    },
+    {
+      "name": "SpeechHistoryClient.updateRecord -> same id (whitelist/null-strip)",
+      "value": {
+        "ok": true,
+        "value": {
+          "id": "9f8feb9e-8ed2-4aef-82a1-cd0c18022514",
+          "same": true,
+          "stored": {
+            "robotID": "some-robot-id",
+            "accountID": "some-acc-id",
+            "transID": "some-trans-id",
+            "audioFileURL": "http://aws2.test.com",
+            "timestamp": 1789065087887,
+            "id": "9f8feb9e-8ed2-4aef-82a1-cd0c18022514",
+            "asr": {
+              "text": "Some text here",
+              "confidence": 0.7
+            },
+            "nlu": {
+              "intent": "someIntent",
+              "entities": {
+                "entity1": "entityValue1"
+              }
+            },
+            "personIDs": [
+              "person1",
+              "person2"
+            ],
+            "match": {
+              "skillID": "testSkill",
+              "launch": true,
+              "onRobot": false
+            },
+            "error": {
+              "message": "Some Error"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "SpeechHistoryClient.updateRecord null/undefined never erases",
+      "value": {
+        "ok": true,
+        "value": {
+          "robotID": "some-robot-id",
+          "accountID": "some-acc-id",
+          "transID": "some-trans-id",
+          "audioFileURL": "http://aws2.test.com",
+          "timestamp": 1789065087887,
+          "id": "9f8feb9e-8ed2-4aef-82a1-cd0c18022514",
+          "asr": {
+            "text": "Some text here",
+            "confidence": 0.7
+          },
+          "nlu": {
+            "intent": "someIntent",
+            "entities": {
+              "entity1": "entityValue1"
+            }
+          },
+          "personIDs": [
+            "person1",
+            "person2"
+          ],
+          "match": {
+            "skillID": "testSkill",
+            "launch": true,
+            "onRobot": false
+          },
+          "error": {
+            "message": "Some Error"
+          }
+        }
+      }
+    },
+    {
+      "name": "SpeechHistoryClient.updateRecord unknown id -> 500",
+      "value": {
+        "ok": false,
+        "error": "Request failed with status code 500",
+        "data": {
+          "type": "ERROR",
+          "msgID": "067a22b0-7abc-4566-a91a-4c95bf0d0815",
+          "ts": 1789065087939,
+          "final": true,
+          "data": {
+            "message": "Cannot read properties of null (reading '_id')"
+          }
+        }
+      }
+    },
+    {
+      "name": "SpeechHistoryClient.save() create-then-update path",
+      "value": {
+        "ok": true,
+        "value": {
+          "id": "07fd1c69-dcff-4053-856b-755452808334",
+          "hasId": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "express": "4.16.2",
+  "bodyParser": "1.18.2",
+  "cases": [
+    {
+      "label": "POST /v1/skill/launch empty body, no content-type",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "echo": {
+          "timestamp": 1789065042377
+        }
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch empty body, application/json",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "echo": {
+          "timestamp": 1789065042451
+        }
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch text/plain body",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "echo": {
+          "timestamp": 1789065042454
+        }
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch JSON {}",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "echo": {
+          "timestamp": 1789065042458
+        }
+      }
+    },
+    {
+      "label": "PUT /v1/skill/launch/payload empty body",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "echo": {
+          "timestamp": 1789065042461
+        }
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/latest empty body",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/latest JSON {}",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      }
+    },
+    {
+      "label": "GET /v1/skill/launch/latest no query",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      }
+    },
+    {
+      "label": "POST /v1/skill/launch/count empty body",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      }
+    },
+    {
+      "label": "POST /v1/speech empty body",
+      "method": "POST",
+      "path": "/v1/speech",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "id-1"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id empty body no content-type",
+      "method": "PUT",
+      "path": "/v1/speech/abc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "abc"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id empty body text/plain",
+      "method": "PUT",
+      "path": "/v1/speech/abc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "abc"
+      }
+    },
+    {
+      "label": "PUT /v1/speech/:id JSON {}",
+      "method": "PUT",
+      "path": "/v1/speech/abc",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "id": "abc"
+      }
+    },
+    {
+      "label": "GET /healthcheck",
+      "method": "GET",
+      "path": "/healthcheck",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "body": "ok"
+    },
+    {
+      "label": "GET unknown route",
+      "method": "GET",
+      "path": "/v1/skill/launch/does-not-exist",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/does-not-exist"
+        }
+      }
+    },
+    {
+      "label": "DELETE on known path",
+      "method": "DELETE",
+      "path": "/v1/skill/launch/latest",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/skill/launch/latest"
+        }
+      }
+    },
+    {
+      "label": "POST trailing slash",
+      "method": "POST",
+      "path": "/v1/skill/launch/",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "echo": {
+          "timestamp": 1789065042483
+        }
+      }
+    },
+    {
+      "label": "GET case-insensitive",
+      "method": "GET",
+      "path": "/V1/SKILL/LAUNCH/count?robotID=r",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "HEAD /v1/skill/launch/count with robotID",
+      "method": "HEAD",
+      "path": "/v1/skill/launch/count?robotID=r",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "GET /v1/skill/launch/count with robotID",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=r",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "GET /skill/launch/count bare (reference 404?)",
+      "method": "GET",
+      "path": "/skill/launch/count?robotID=r",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "x",
+        "ts": 0,
+        "final": true,
+        "data": {
+          "message": "URL not found: /skill/launch/count"
+        }
+      }
+    }
+  ]
+}
