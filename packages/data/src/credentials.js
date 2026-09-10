@@ -2,16 +2,18 @@
 //
 // Uniqueness: the reference Mongo schema declares a unique compound index
 // (accountId, skillId, serviceName, serviceAccountName, scopes —
-// StoredCredential.ts `credentials_index`). The in-memory Map key uses the same
-// 5-tuple with the scope SET sorted, so two credentials for the same slot with
-// *different* scopes coexist (original fixture: "store google:personalCalendar
-// credential with other scopes") and reordered scopes collapse to one record.
-// NOTE (divergence candidate): Mongo's unique index on an ARRAY field is
-// multikey — it rejects any two same-slot records that share a scope VALUE, so
-// the reference answers {credentialExists:true} where Phoenix stores a second
-// record. No original fixture saves overlapping scope sets. Pinned by the
-// `D2 DIVERGENCE (scope-overlap uniqueness)` test. find() uses Mongo's
-// `scopes: {$all: query.scopes}` semantics.
+// StoredCredential.ts:107-119 `credentials_index`). `scopes` is an array, so
+// Mongo builds that index MULTIKEY (one key per element): two same-slot records
+// that share even ONE scope value collide, the second insert raises E11000, and
+// CredentialRequestsHandler.ts:36-39 answers 200 {credentialExists:true}. The
+// in-memory Map key uses the same 5-tuple with the scope SET sorted, and `save`
+// refuses a new record whose scope list intersects an existing same-slot
+// record's (`_sharesScopeWithSlot`), so Phoenix reproduces the reference's
+// state space: equal scope sets update in place, disjoint sets coexist (the
+// original fixture "store google:personalCalendar credential with other
+// scopes"), overlapping sets are rejected. Two credentials for the same slot
+// with *different* scopes therefore coexist, and a stored scope can never
+// multi-match. find() uses Mongo's `scopes: {$all: query.scopes}` semantics.
 //
 // Persistence: credentials live in a JSON snapshot at
 // packages/data/data/credentials.json (a host mount in compose), mirroring the
@@ -144,6 +146,13 @@ export class CredentialStore {
     }
     // Update the existing credential or create a new one (new key when the
     // 5-tuple differs, e.g. new scopes — the original "other scopes" fixture).
+    // A NEW record whose scopes share a value with another same-slot record is
+    // rejected exactly like the reference's multikey `credentials_index`
+    // (E11000 → handler answers 200 {credentialExists:true}) — see the
+    // uniqueness note at the top of this file.
+    if (!existing && this._sharesScopeWithSlot(data)) {
+      const e = new Error('Credential already exists'); e.code = 'DUPLICATE_KEY'; throw e;
+    }
     const cred = existing || {
       accountId: data.accountId, skillId: data.skillId, serviceName: data.serviceName,
       serviceAccountName: data.serviceAccountName, scopes: data.scopes, isActive: true, createdAt: Date.now(),
@@ -160,6 +169,22 @@ export class CredentialStore {
     this._deleteOther(cred);
     this._flush();
     return cred;
+  }
+
+  /**
+   * Mongo's unique `credentials_index` is MULTIKEY because `scopes` is an array
+   * (StoredCredential.ts:107-119), so an insert collides with any other record
+   * that has the same (accountId, skillId, serviceName, serviceAccountName) and
+   * shares at least one scope VALUE. `save` calls this on the insert path only
+   * (an update of a matched record reuses its _id and cannot collide).
+   */
+  _sharesScopeWithSlot(data) {
+    for (const c of this.m.values()) {
+      if (c.accountId !== data.accountId || c.skillId !== data.skillId) continue;
+      if (c.serviceName !== data.serviceName || c.serviceAccountName !== data.serviceAccountName) continue;
+      if (c.scopes.some((s) => data.scopes.includes(s))) return true;
+    }
+    return false;
   }
 
   _redeem(cred) {
@@ -199,34 +224,71 @@ export class CredentialStore {
 
   delete(query) {
     requireProps(query, ['accountId', 'skillId', 'serviceName', 'serviceAccountName']);
+    // `scopes` is optional for DELETE (Credentials.ts:243-248) and is never
+    // run through validateScopes, so a lone non-array `scopes` query value is
+    // treated as a one-element list here (the reference hands the raw value to
+    // Mongo's `$all`, an unobservable server-side error — see UNKNOWN in the
+    // D-02 report). Indexed/bracketed forms (`scopes[0]=`, `scopes[]=`) already
+    // arrive as arrays from credentialQueryFromParams.
+    const scopes = query.scopes == null ? null : (Array.isArray(query.scopes) ? query.scopes : [query.scopes]);
     let changed = false;
     for (const [k, c] of [...this.m]) {
       if (c.accountId !== query.accountId) continue;
       if (query.skillId !== '*' && c.skillId !== query.skillId) continue;
       if (query.serviceName !== '*' && c.serviceName !== query.serviceName) continue;
       if (query.serviceAccountName !== '*' && c.serviceAccountName !== query.serviceAccountName) continue;
-      if (query.scopes && query.scopes[0] !== '*' && !query.scopes.every((s) => c.scopes.includes(s))) continue;
+      if (scopes && scopes[0] !== '*' && !scopes.every((s) => c.scopes.includes(s))) continue;
       this.m.delete(k); changed = true;
     }
     if (changed) this._flush();
   }
 }
 
+// The reference reads its query with Express 4.16.2's default `'extended'`
+// parser (qs 6.5.1, both pinned in .parity/reference/5c0a739…/node_modules),
+// which maps the client wire forms like this:
+//   scopes[0]=a&scopes[1]=b -> ['a','b']  (srv-settings-ws src/clients/lasso.ts:38-40)
+//   scopes[]=a&scopes[]=b   -> ['a','b']  (pinned axios 0.17.1 array serialization)
+//   scopes=a&scopes=b       -> ['a','b']
+//   scopes=a                -> 'a'    -> validateScopes -> 400 "Scopes should be an array"
+//   scopes=a,b              -> 'a,b'  -> 400
+//   (absent)                -> undefined -> 400 "Missing scopes in request"
+// (this function returns null for the absent case — both are falsy and produce
+// the identical message.)
+// This function returns the same shapes so `validateScopes` produces the
+// reference's exact messages, and so the two bracket forms (which the original
+// fixtures and the Settings service actually send) resolve instead of 400ing.
+const INDEXED_SCOPES = /^scopes\[(\d*)\]$/;
+
+function scopesFromParams(q) {
+  const indexed = [];
+  const bare = [];
+  for (const [key, value] of q) {
+    if (key === 'scopes') { bare.push(value); continue; }
+    const m = INDEXED_SCOPES.exec(key);
+    if (m) indexed.push([m[1] === '' ? Number.MAX_SAFE_INTEGER : Number(m[1]), value]);
+  }
+  if (indexed.length) {
+    indexed.sort((a, b) => a[0] - b[0]);
+    return [...indexed.map(([, value]) => value), ...bare];
+  }
+  if (bare.length === 0) return null;
+  return bare.length === 1 ? bare[0] : bare;
+}
+
 /**
- * Parse a credential query object from URL search params.
- * Repeated `scopes` params form an array (the reference wire form). A single
- * param stays ONE literal value. With no scopes param at all the field is
- * null, so required-field validation reports `Missing scopes in request` — the
- * reference's message when the client omits scopes.
+ * Parse a credential query object from URL search params, reproducing the
+ * qs-parsed shape the reference sees (see INDEXED_SCOPES above). With no scopes
+ * param at all the field is null, so required-field validation reports
+ * `Missing scopes in request` — the reference's message when a client omits
+ * scopes. A single plain `scopes` value stays a STRING, so `validateScopes`
+ * rejects it with `Scopes should be an array` exactly as the reference does.
  */
 export function credentialQueryFromParams(q) {
-  const all = q.getAll('scopes');
-  const single = q.get('scopes');
-  const scopes = all.length ? all : ((single || '').split(',').filter(Boolean));
   return {
     accountId: q.get('accountId'), skillId: q.get('skillId'),
     serviceName: q.get('serviceName'), serviceAccountName: q.get('serviceAccountName'),
-    scopes: (all.length === 0 && single === null) ? null : scopes,
+    scopes: scopesFromParams(q),
   };
 }
 
