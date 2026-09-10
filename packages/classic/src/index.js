@@ -6,13 +6,13 @@
 //   Update_* -> ota service     (NET_ota,     default localhost:7015)
 // New services (settings, notification, key, …) register here as they land in later iterations.
 
-import { createService, sendJson } from '@phoenix/common';
+import { createService, sendJson, logger } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { createClassicRouter } from './router.js';
 import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 import { makeRobotHandler, RobotStore } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
-import { KeyStore, makeKeyHandler, keyRoutes } from './key.js';
+import { KeyStore, makeKeyHandler, keyRoutes, accountMembership } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
@@ -73,14 +73,21 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
   const personStore = person?.store || new PersonStore();
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
+  // The membership seam the key handler resolves to. An absent `keyMembership` means the default
+  // Account peer routes, and the wake-up must resolve the loop the SAME way the membership check
+  // just did — building it from the raw option instead left the notifier with no `loop()` and
+  // silently fanned every KeyNeeded out to all siblings (observed on Moth 2026-09-10).
+  const keyMembershipSeam = keyMembership || accountMembership();
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
     { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore() }) },
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(keys, {
-      membership: keyMembership, baseFor, binaryDir: keyBinaryDir,
+      membership: keyMembershipSeam, baseFor, binaryDir: keyBinaryDir,
       accountResolver: key?.accountResolver,
+      // The robot's immediate wake-up on CreateRequest (source: SNS KeyNeeded to the siblings).
+      notifyKeyNeeded: makeKeyNeededNotifier(hub, keyMembershipSeam),
     }) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
     // Media_20160725 owns a real store: the app's Gallery reads it and the robot writes photos to
@@ -112,6 +119,49 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^update/i, proxyTo: () => netUrl('ota', DefaultPort.ota) },
   ]);
   return router;
+}
+
+/**
+ * The Original Cloud woke the robot with an SNS `KeyNeeded` publish to the loop's sibling
+ * machines (srv-key-ws shares KeyNeeded with getSiblingIds; the robot's NotificationSubsystem
+ * consumed it). Phoenix has no SNS, but the robot already holds the equivalent channel open —
+ * `Notification_20150505.NewRobotToken` then a websocket to `{region}-socket.jibo.com/{token}` —
+ * and jibo-server-service relays every frame it receives to jibo-sts's local
+ * `ws://127.0.0.1:8888/server/notifications`. jibo-sts emits `KeyNeeded` and answers the request
+ * at once, instead of waiting out its 30-minute incoming-request poll.
+ *
+ * Target: the loop's robot account (the member that originates and holds the UGC key). When the
+ * loop document cannot be resolved the fan-out falls back to every sibling account, which is the
+ * source's own sibling semantics. The notification carries no key material — only the loopId.
+ */
+export function makeKeyNeededNotifier(hub, membership) {
+  const log = logger('classic.key');
+  return async function notifyKeyNeeded({ loopId, siblingAccountIds }) {
+    const siblings = Array.isArray(siblingAccountIds) ? siblingAccountIds.map(String) : [];
+    let loop;
+    try {
+      loop = typeof membership?.loop === 'function' ? await membership.loop(loopId) : undefined;
+    } catch { loop = undefined; }
+    const robot = loop && loop.robot != null ? String(loop.robot) : null;
+    const targets = robot ? [robot] : siblings;
+    if (!robot) {
+      // Verifying a loop is one Account peer call; when it cannot be read the request still
+      // must not go unanswered, so fall back to the source's sibling fan-out and say so.
+      log.warn('key needed wake-up: loop unresolved, notifying every sibling', {
+        loopId: String(loopId), accountIds: targets,
+      });
+    } else {
+      log.info('key needed wake-up', { loopId: String(loopId), accountIds: targets });
+    }
+    for (const accountId of targets) {
+      if (accountId === undefined || accountId === null || accountId === '') continue;
+      hub.enqueueNotification({
+        accountId,
+        skillId: '-1',
+        notification: { name: 'KeyNeeded', payload: { loopId: String(loopId) } },
+      });
+    }
+  };
 }
 
 /**
