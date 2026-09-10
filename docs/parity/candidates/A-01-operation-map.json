@@ -235,9 +235,7 @@
         "ReconnectRobot",
         "SetupRobot"
       ],
-      "phoenixAbsentOperations": [
-        "GetServiceToken"
-      ],
+      "phoenixAbsentOperations": [],
       "deploymentUnknowns": [
         "deployed target alias and service revision are not proven",
         "outer gateway authentication and exact Hapi/framework envelope are not runtime-replayed"
@@ -39940,7 +39938,7 @@
           ]
         },
         "sideEffects": {
-          "observed": "creates a service-mode account with email prefix service-mode- and a random password; issues a setup token with no loopId",
+          "observed": "creates a service-mode account with email prefix service-mode-owner- and a random password; issues a setup token with no loopId",
           "unknowns": [
             "external provider/event delivery was not exercised"
           ],
@@ -40046,7 +40044,7 @@
             ]
           },
           "sideEffects": {
-            "observed": "creates a service-mode account with email prefix service-mode- and a random password; issues a setup token with no loopId",
+            "observed": "creates a service-mode account with email prefix service-mode-owner- and a random password; issues a setup token with no loopId",
             "unknowns": [
               "external provider/event delivery was not exercised"
             ],
@@ -40189,7 +40187,7 @@
           ]
         },
         "observableSideEffects": {
-          "observed": "creates a service-mode account with email prefix service-mode- and a random password; issues a setup token with no loopId",
+          "observed": "creates a service-mode account with email prefix service-mode-owner- and a random password; issues a setup token with no loopId",
           "unknowns": [
             "external provider/event delivery was not exercised"
           ],
@@ -40217,10 +40215,11 @@
           }
         },
         "phoenixHandler": {
-          "present": false,
-          "status": "absent-operation-handler",
+          "present": true,
+          "status": "implemented",
           "path": "packages/account/src/robotFace.js",
-          "note": "packages/account/src/robotFace.js ops map has setuprobot/preparerobot/getstatus only; this operation returns UnknownOperationException 400"
+          "dispatchKey": "getservicetoken",
+          "note": "Implemented 2026-09-10 from pinned srv-account-ws@6cea434 oobe.ctrl.ts:127-135 and oobe.handler.ts (@parseCredentials({adminOnly:true}), no @validatePayload). Mints a service-mode owner account with email `${SERVICE_MODE_EMAIL_PREFIX}${uuid}@jibo.com` and returns a setup token with loopId null. Tests: packages/account/test/getServiceToken.test.js (7), 5/5 falsification cases caught."
         },
         "source": "pinned API JSON plus original srv-account-ws controllers; not inferred from Phoenix behavior",
         "runtimeStatus": "not-run"
@@ -40325,7 +40324,7 @@
             {
               "name": "persistence-and-side-effects",
               "expectedPersistence": "creates an Account document and a Token document",
-              "expectedSideEffects": "creates a service-mode account with email prefix service-mode- and a random password; issues a setup token with no loopId",
+              "expectedSideEffects": "creates a service-mode account with email prefix service-mode-owner- and a random password; issues a setup token with no loopId",
               "assertions": [
                 "repeat the state-changing operation with a read/restart fixture",
                 "record provider/event failures separately from the controller result"

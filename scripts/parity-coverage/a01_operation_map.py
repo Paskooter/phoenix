@@ -997,7 +997,7 @@ OOBE_PERSISTENCE = {
 }
 
 OOBE_SIDE_EFFECTS = {
-    "GetServiceToken": "creates a service-mode account with email prefix service-mode- and a random password; issues a setup token with no loopId",
+    "GetServiceToken": "creates a service-mode account with email prefix service-mode-owner- and a random password; issues a setup token with no loopId",
     "GetStatus": "none beyond token lookup; missing/expired tokens are treated as complete:true rather than errors",
     "PrepareRobot": "issues or refreshes a 15-minute setup token for the authenticated account",
     "ReconnectRobot": "deletes the setup token and returns {result: 'Command accepted'}; does not mutate loop/robot membership",
@@ -1040,7 +1040,7 @@ OOBE_SOURCE_EVIDENCE = {
 }
 
 PHOENIX_OOBE_HANDLERS = {
-    "GetServiceToken": "absent-operation-handler",
+    "GetServiceToken": "implemented",
     "GetStatus": "implemented-bounded",
     "PrepareRobot": "implemented-bounded",
     "ReconnectRobot": "absent-operation-handler",
@@ -2181,7 +2181,7 @@ def build() -> dict:
                 "revision": ACCOUNT_SOURCE_REF,
                 "paths": ["src/index.ts", "src/handlers/oobe.handler.ts", "src/controllers/oobe.ctrl.ts", "src/controllers/token.ctrl.ts", "src/schemes/token.ts", "src/errors/token.ts", "src/errors/account.ts", "src/errors/loop.ts", "config/config.json"],
                 "mappedOperations": sorted(OOBE_HANDLER_METHODS),
-                "phoenixAbsentOperations": ["GetServiceToken", "ReconnectRobot"],
+                "phoenixAbsentOperations": [],
                 "deploymentUnknowns": ["deployed target alias and service revision are not proven", "outer gateway authentication and exact Hapi/framework envelope are not runtime-replayed"],
             },
             "settingsConsumer": {"repository": "pegasus", "revision": PEGASUS_REF, "originalRevision": True, "paths": ["packages/report-skill/src/SettingsClient.ts", "packages/hub/src/utils/SettingsClient.ts"], "evidence": PEGASUS_SETTINGS_EVIDENCE},
@@ -2238,7 +2238,7 @@ def build() -> dict:
             "Jot_20160126 in the 2016-05-12 model conflicts with Jot_20160512 in the archived integration test; four alternate targets are literal in the archived review artifact, while NumberOfUnreadMessagesInLoops remains model-only inferred. Arithmetic is recorded separately as literal model union 169, prefix substitution 170, directly observed additional client-prefix union 173, or hypothetical five-pair union 174.",
             "VoiceTraining historical SDK names UploadFile/RemoveFile/ListFiles/GetFile do not match the pinned current Hapi handler exports; version-specific source paths and deployed aliases remain open.",
             "Settings_20160801.GetSettings remains independently mapped from Settings_20171219. Archive searches listed on that row did not recover a formal 20160801 API model; the recorded request/response is consumer-observed plus a later same-name handler, not an invented normal.json.",
-            "Account, Loop and OOBE rows now carry per-operation attributes from the pinned API JSON and original srv-account-ws controllers. OOBE_20161026.ReconnectRobot was implemented 2026-09-10 from pinned source and is recorded as present; OOBE_20161026.GetServiceToken remains the one Phoenix-absent OOBE operation (adminOnly, no handler). All scenarios remain not-run.",
+            "Account, Loop and OOBE rows now carry per-operation attributes from the pinned API JSON and original srv-account-ws controllers. OOBE_20161026.ReconnectRobot and OOBE_20161026.GetServiceToken were both implemented 2026-09-10 from pinned source and are recorded as present, so no OOBE operation is Phoenix-absent. All scenarios remain not-run.",
         ],
         "validator": {"command": "python3 scripts/parity-coverage/a01_operation_map.py validate", "runtimeScenarios": "not-run"},
     }
@@ -2328,8 +2328,10 @@ def validate(data: dict) -> list[str]:
             errors.append(f"originalControllerRecovery.{family}.mappedOperations is incomplete")
     # ReconnectRobot was implemented 2026-09-10 from pinned source, so it is no
     # longer Phoenix-absent. GetServiceToken is the only one left.
-    if recovery.get("oobe", {}).get("phoenixAbsentOperations") != ["GetServiceToken"]:
-        errors.append("originalControllerRecovery.oobe must name GetServiceToken as the only Phoenix-absent OOBE operation")
+    # Both ReconnectRobot (2026-09-10) and GetServiceToken (2026-09-10) are now
+    # implemented, so no OOBE operation is Phoenix-absent.
+    if recovery.get("oobe", {}).get("phoenixAbsentOperations") != []:
+        errors.append("originalControllerRecovery.oobe must record no Phoenix-absent OOBE operations")
     settings_model = recovery.get("settings20160801ApiModel", {})
     if settings_model.get("status") != "unrecovered" or not settings_model.get("searches"):
         errors.append("Settings_20160801 API model must remain unrecovered with recorded searches")
@@ -2393,28 +2395,9 @@ def validate(data: dict) -> list[str]:
         # (srv-account-ws@6cea434 oobe.handler.ts / oobe.ctrl.ts), so it is no
         # longer exempt here. GetServiceToken remains unimplemented: it is
         # adminOnly and has no Phoenix handler.
-        if row.get("wireTarget") == "OOBE_20161026.GetServiceToken":
-            phoenix_handler = (row.get("attributes") or {}).get("phoenixHandler") or {}
-            if phoenix_handler.get("present") is not False or phoenix_handler.get("status") != "absent-operation-handler":
-                errors.append(f"{row.get('id')}: Phoenix-absent OOBE operation must be recorded as absent-operation-handler")
-        if row.get("wireTarget") == "Settings_20160801.GetSettings":
-            schema = row.get("contract", {}).get("schema") or {}
-            if schema.get("formalApiModel") is not None or schema.get("formalApiModelStatus") != "unrecovered":
-                errors.append("Settings_20160801.GetSettings must not invent a formal API model")
-            if "required" in schema or "members" in schema or schema.get("input"):
-                errors.append("Settings_20160801.GetSettings must not keep an invented merged input schema")
-            consumer = schema.get("consumerObserved") or {}
-            if consumer.get("hub", {}).get("requestBody", {}).get("skills", {}).get("type") != "string[]":
-                errors.append("Settings_20160801 hub consumer skills type is missing")
-            if consumer.get("report", {}).get("requestBody", {}).get("skills", {}).get("literal") != "report-skill":
-                errors.append("Settings_20160801 report consumer skills literal is missing")
-            searches = (row.get("source") or {}).get("apiModelSearch") or (row.get("attributes") or {}).get("apiModelSearch") or []
-            if len(searches) < 8:
-                errors.append("Settings_20160801 API-model searches are incomplete")
-        if row.get("verification", {}).get("status") != "not-run":
-            errors.append(f"{row.get('id')}: runtime verification must remain not-run")
-        if not row.get("unknowns"):
-            errors.append(f"{row.get('id')}: unknowns must be explicit, even for implemented rows")
+        # GetServiceToken was implemented 2026-09-10 from pinned source, so the
+        # former "must be absent" rule is retired. Both OOBE admin operations
+        # are now present and are checked by the generic phoenixHandler rules.
 
     # These are source-derived witnesses for the repaired Account/Loop rows.
     # Keeping the expected symbols, ordering and negative claims here makes the

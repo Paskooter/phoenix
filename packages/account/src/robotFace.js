@@ -14,14 +14,16 @@
 //
 // Operations (oobe.handler.ts mapping): setupRobot, prepareRobot, getStatus;
 // Account_20151111.CreateHubToken is handled by the bounded A-02 path below.
-// (reconnectRobot/getServiceToken deferred — v1 is the new-robot path per the handoff).
+// (reconnectRobot and getServiceToken are both implemented; the v1 handoff note
+// that deferred them is historical.)
 // Error envelope: {__type:<code>, message} + x-amzn-errortype, statusCode from src/errors/*.
 // Account_20151111.CreateHubToken is the bounded A-02 sensitive operation and
 // never uses the public x-amz-credentials header as its identity.
 
+import { randomUUID } from 'node:crypto';
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
-  createAuthenticatedHubToken, createLoop, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
+  createAuthenticatedHubToken, createLoop, createOwnerAccount, findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken,
   populateLoop, ensureLoopMemberIds, isAcceptedStatus,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
@@ -36,7 +38,13 @@ import { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzEmpty, sendAmzError, sen
 
 export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
 
-const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-';
+// srv-account-ws@6cea434 src/constants.ts:
+//   export const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-owner-';
+// The trailing "owner-" matters: getServiceToken mints accounts named
+// `${SERVICE_MODE_EMAIL_PREFIX}${uuid}@jibo.com`, and getStatus decides the
+// serviceMode credential flag by prefix test. A shorter prefix here would flag
+// unrelated 'service-mode-*' addresses as service mode.
+const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-owner-';
 
 // errors/{token,account,loop}.ts — exact {code, statusCode} pairs.
 const Errors = Object.freeze({
@@ -94,6 +102,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     preparerobot: prepareRobot,
     getstatus: getStatus,
     reconnectrobot: reconnectRobot,
+    getservicetoken: getServiceToken,
     createhubtoken: issueHubToken,
   };
 
@@ -284,6 +293,45 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (!body || !body.token) return void sendAmzError(res, Errors.VALIDATION, 'token is required');
     const { token } = findToken(store, body.token);
     return void sendAmz(res, 200, { complete: !token });
+  }
+
+  /**
+   * oobe.ctrl.ts getServiceToken — mints a fresh service-mode owner account and
+   * returns a setup token bound to it with loopId null.
+   *
+   *   public async getServiceToken() {
+   *     const postfix = uuid.v4();
+   *     const ownerAccount = await this.accountCtrl.create({
+   *       email: `${SERVICE_MODE_EMAIL_PREFIX}${postfix}@jibo.com`,
+   *       isActive: true,
+   *       password: postfix,
+   *     });
+   *     return await this.tokenCtrl.create({ accountId: ownerAccount._id, loopId: null });
+   *   }
+   *
+   * The handler decorator is `@parseCredentials({ adminOnly: true })` with no
+   * @validatePayload, so the body is ignored and a non-admin caller is rejected
+   * before any account is created. The gateway lists at srv-security-gw@43a692fe
+   * do not contain this target, so an unsigned call never reaches here.
+   *
+   * Each call creates a NEW account, so tokens are never shared between callers
+   * even though mintSetupToken reuses a live token for the same (account, loop)
+   * pair — the account differs every time.
+   */
+  function getServiceToken({ req, res, log }) {
+    const caller = accountForClassicRequest(req);
+    if (!caller || !caller.isAdmin) {
+      return void sendAmzError(res, Errors.AUTHORIZED_UNDER_ADMIN);
+    }
+
+    const postfix = randomUUID();
+    const account = createOwnerAccount(store, {
+      email: `${SERVICE_MODE_EMAIL_PREFIX}${postfix}@jibo.com`,
+      password: postfix,
+    });
+    const token = mintSetupToken(store, account._id, null);
+    log.info('getServiceToken complete', { account: account._id, token: token._id });
+    return void sendAmz(res, 200, token);
   }
 
   /**
