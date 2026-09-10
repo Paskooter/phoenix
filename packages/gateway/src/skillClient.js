@@ -72,7 +72,12 @@ export class SkillClient {
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
-        return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Error from URL '${cfg.URL}': ${res.status} :: ${text}` } };
+        // Faithful to SkillRequestMaker.getSkillResponseFromURL (SkillRequestMaker.ts:119-123),
+        // whose message is `Error from URL '<url>': <status> <axios message> :: <json body>`.
+        // axios's message for a non-2xx is `Request failed with status code <status>` and its
+        // parsed body is re-serialized with JSON.stringify (a non-JSON body survives as a
+        // quoted string); both are reproduced here from the raw response text.
+        return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Error from URL '${cfg.URL}': ${res.status} Request failed with status code ${res.status} :: ${serializeResponseBody(text)}` } };
       }
       return { skillID, response: await res.json() };
     } catch (error) {
@@ -84,6 +89,16 @@ export class SkillClient {
 /** A skill response is a redirect iff type === SKILL_REDIRECT (SkillUtils.isRedirect). */
 export function isRedirect(response) {
   return !!response && response.type === ResponseType.SKILL_REDIRECT;
+}
+
+/**
+ * Reproduce axios's `JSON.stringify(error.response.data)` from a raw body: a
+ * JSON body is parsed and re-serialized compactly, anything else stays a string
+ * and is quoted. (SkillRequestMaker.ts:119-123.)
+ */
+function serializeResponseBody(text) {
+  try { return JSON.stringify(JSON.parse(text)); }
+  catch { return JSON.stringify(text); }
 }
 
 function injectDialogContext(input) {

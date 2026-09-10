@@ -415,6 +415,11 @@ export class ListenTransaction {
       Timeouts.skill,
     );
     if (skillOutput === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the skill response from '${skillID}'`);
+    // The reference times this leg with utils.common.time() (ListenTransactionHandler.ts:395-397)
+    // and, when a redirect follows, OVERWRITES timings.skill with the redirect leg's own
+    // duration (lines 404-410). A redirected SKILL_ACTION therefore reports only the second
+    // call, not the sum of both.
+    this.timings.skill = now() - t0;
 
     // The reference records each successful request as it completes. This is
     // deliberately before redirect handling: the initial skill launch remains
@@ -422,9 +427,10 @@ export class ListenTransaction {
     if (!skillOutput.error) this._record(skillID, context, skillOutput.response);
 
     if (skillOutput.response && isRedirect(skillOutput.response)) {
-      skillOutput = await this._handleRedirect(skillOutput.response, context);
+      const redirectStart = now();
+      skillOutput = await this._handleRedirect(skillOutput.response, context, skillID);
+      this.timings.skill = now() - redirectStart;
     }
-    this.timings.skill = now() - t0;
     this._emitSkillResult(skillOutput, true);
   }
 
@@ -442,7 +448,7 @@ export class ListenTransaction {
     this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace);
   }
 
-  async _handleRedirect(redirect, context) {
+  async _handleRedirect(redirect, context, sourceSkillID) {
     this._emitSkillRedirectNotification(redirect.data);
     const out = await withTimeout(
       // TransactionHelper's redirect launch omits ASR. The redirect NLU and
@@ -450,7 +456,10 @@ export class ListenTransaction {
       this.components.skillClient.launch(redirect.data.skillID, { context: context.data, nlu: redirect.data.nlu, memo: redirect.data.memo }, this.trace),
       Timeouts.skill,
     );
-    if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout while waiting for the redirect skill response`);
+    // The reference's redirect timeout message names the ORIGINAL skill: the
+    // throw is raised in onSkillMatch while `skillOutput` still refers to the
+    // first response (ListenTransactionHandler.ts:406-407).
+    if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the redirect skill response from '${sourceSkillID}'`);
     // A successful redirected launch gets its own history row and session.
     // Errors are emitted to the client but must not look like successful
     // launches in history. The source performs this before checking for a
