@@ -1,0 +1,62 @@
+{
+  "gatewayPin": "jiborobot/srv-security-gw@43a692fe7670660aaed6ab5979c6c83039eb711c",
+  "window": "15 minutes, Math.abs (auth.ctrl.ts L128)",
+  "failures": 0,
+  "result": "pass",
+  "results": [
+    {
+      "name": "fresh signature",
+      "expect": "accepted",
+      "status": 200,
+      "verdict": "pass"
+    },
+    {
+      "name": "14 min old (inside 15 min window)",
+      "expect": "accepted",
+      "status": 200,
+      "verdict": "pass"
+    },
+    {
+      "name": "16 min old (outside window)",
+      "expect": "CLOCK_SKEW_TOO_LONG",
+      "status": 401,
+      "errorType": "CLOCK_SKEW_TOO_LONG",
+      "verdict": "pass"
+    },
+    {
+      "name": "16 min in the future (Math.abs)",
+      "expect": "CLOCK_SKEW_TOO_LONG",
+      "status": 401,
+      "errorType": "CLOCK_SKEW_TOO_LONG",
+      "verdict": "pass"
+    },
+    {
+      "name": "no date header",
+      "expect": "MISSING_DATE_HEADER",
+      "status": 401,
+      "errorType": "MISSING_DATE_HEADER",
+      "verdict": "pass"
+    },
+    {
+      "name": "no authorization header",
+      "expect": "MISSING_AUTH_HEADER",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "verdict": "pass"
+    },
+    {
+      "name": "both missing (ordering: auth wins)",
+      "expect": "MISSING_AUTH_HEADER",
+      "status": 401,
+      "errorType": "MISSING_AUTH_HEADER",
+      "verdict": "pass"
+    },
+    {
+      "name": "replay same signature twice",
+      "expect": "both accepted (no nonce store)",
+      "status": 200,
+      "firstStatus": 200,
+      "verdict": "pass"
+    }
+  ]
+}
