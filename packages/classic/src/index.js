@@ -15,6 +15,7 @@ import { NotificationHub, makeNotificationHandler, attachNotificationSocket } fr
 import { KeyStore, makeKeyHandler } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
+import { makeRomHandler } from './rom.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 
@@ -27,6 +28,11 @@ export { NotificationStore } from './notification.js';
 export { KeyStore } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore } from './backup.js';
+export {
+  RomController, RomError, CertificateStore, ROM_ERRORS,
+  makeRomHandler, makeAccountClient, makeRobotClient, generateCertificatePair,
+  accountBaseUrl, robotBaseUrl, CERTIFICATE_LIFETIME_DAYS,
+} from './rom.js';
 
 const netUrl = (name, defPort) => {
   const v = process.env[`NET_${name}`];
@@ -51,7 +57,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, rom } = {}) {
   const router = createClassicRouter([
     ...extra,
     { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
@@ -59,7 +65,8 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(new KeyStore()) },
     { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
-    ...stubRegistrations(), // build-to-spec tier-3 stubs (rom/media/person/ifttt/nlp/collision)
+    { match: /^rom/i, handler: makeRomHandler(rom) }, // ROM_20171011 remote-operation cert exchange (A-16)
+    ...stubRegistrations(), // build-to-spec tier-3 stubs (media/person/ifttt/nlp/collision)
     { match: /^oobe/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^account/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
@@ -74,7 +81,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, rom } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -99,6 +106,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         notificationAccountResolver,
         logStore,
         baseFor,
+        rom,
       }),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.

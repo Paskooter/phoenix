@@ -1,0 +1,10 @@
+=== original @jibo/jibo-server-client ROM client against Phoenix classic ===
+ROM.create -> OK  {"created":1789068352752}
+ROM.setupServer -> OK  {"cert":"<str len=738>","public":"<str len=278>","private":"<str len=902>","fingerprint":"<str len=59>","created":1789068352752}
+ROM.setupClient -> OK  {"cert":"<str len=650>","public":"<str len=278>","private":"<str len=902>","p12":"<str len=1856>","fingerprint":"<str len=59>","payload":{"ipAddress":"192.168.1.100","ipAddresses":[{"address":"192.168.1.100","netmask":"255.255.252.0"}]},"created":1789068352752}
+   payload: {"ipAddress":"192.168.1.100","ipAddresses":[{"address":"192.168.1.100","netmask":"255.255.252.0"}]}
+   p12 present: true | cert PEM: true | fingerprint len: 59
+--- typed error envelope through the generated model ---
+ROM.setupServer (no robot credentials) -> ERR ROBOT_MUST_CALL status=403 Only robot is allowed to call this method
+ROM.create (unknown robot) -> ERR ROBOT_NOT_OWNED status=403 You must own specified robot to create certificate
+ROM.setupClient (missing friendlyId) -> ERR MissingRequiredParameter status=- Missing required key 'friendlyId' in params
