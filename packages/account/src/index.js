@@ -25,6 +25,7 @@ import {
   createHttpSmsProvider,
   normalizeIdentityProviders,
 } from './accountIdentity.js';
+import { createLpsStsProvider } from './lps.js';
 import { createSmtpAccountMailProviders, smtpConfigFromEnv } from './smtpMail.js';
 
 export { Store, getStore, resetStore } from './store.js';
@@ -239,6 +240,7 @@ export function createAccountService({
   smsUrl,
   smsTimeoutMs,
   smsHeaders,
+  lpsStsProvider,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -311,7 +313,11 @@ export function createAccountService({
         identityProviders: effectiveIdentityProviders,
         robotReadClient,
         memberPhotoProvider: photoProvider,
-      }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA)
+        // LPS issues credentials through the injected STS provider; an
+        // unconfigured default throws a clear unavailable error.
+        stsProvider: lpsStsProvider === undefined
+          ? createLpsStsProvider({ config: loopConfig }) : lpsStsProvider,
+      }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA + OAuthClients/LPS)
     },
   });
   // An injected publisher is the explicit Account -> notification boundary;
