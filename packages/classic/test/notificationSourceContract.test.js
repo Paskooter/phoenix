@@ -272,12 +272,16 @@ test(
     try {
       const paths = ensureTlsCertificates({
         dir: tlsDirectory,
-        env: { ...process.env, PHOENIX_TLS_REGIONS: 'phx', PHOENIX_TLS_EXTRA_NAMES: '' },
+        // No region override: the DEFAULT region is `api`, the region the robot
+        // actually builds its hostnames from (native serverURLSuffix
+        // `-socket.jibo.com`). Pinning `phx` here would exercise a synthetic
+        // name the robot never dials.
+        env: { PHOENIX_TLS_EXTRA_NAMES: '' },
         log: () => {},
       });
       const san = execFileSync('openssl', ['x509', '-in', paths.cert, '-noout', '-ext', 'subjectAltName']).toString();
-      assert.match(san, /DNS:phx\.jibo\.com/, 'the REST hostname is on the serving certificate');
-      assert.match(san, /DNS:phx-socket\.jibo\.com/, 'the notification socket hostname is on the serving certificate');
+      assert.match(san, /DNS:api\.jibo\.com/, 'the REST hostname is on the serving certificate');
+      assert.match(san, /DNS:api-socket\.jibo\.com/, 'the notification socket hostname is on the serving certificate');
 
       entry = await startEntrypoint({
         directory,
@@ -297,11 +301,11 @@ test(
           port: entry.port,
           method: 'POST',
           path: '/',
-          servername: 'phx.jibo.com',
+          servername: 'api.jibo.com',
           ca,
           rejectUnauthorized: true,
           headers: {
-            ...signedHeaders({ host: 'phx.jibo.com', target: 'Notification_20150505.NewRobotToken', body: discoveryBody }),
+            ...signedHeaders({ host: 'api.jibo.com', target: 'Notification_20150505.NewRobotToken', body: discoveryBody }),
             'content-length': Buffer.byteLength(discoveryBody),
           },
         }, (response) => {
@@ -333,7 +337,7 @@ test(
         socket.once('unexpected-response', (_req, response) => reject(new Error(`socket HTTP ${response.statusCode}`)));
       });
 
-      const frame = await deliver('phx-socket.jibo.com', ca);
+      const frame = await deliver('api-socket.jibo.com', ca);
       assert.equal(frame.payload.payload.via, 'tls', 'the socket hostname delivered the pushed frame');
       assert.equal(frame.skillId, '-1');
       await tick();
@@ -341,8 +345,8 @@ test(
 
       // A client that does not trust the Phoenix CA, and one that connects to a
       // name the certificate does not carry, both fail the handshake.
-      await assert.rejects(() => deliver('phx-socket.jibo.com', undefined), /unable to verify|self.signed|ERR_TLS/i);
-      await assert.rejects(() => deliver('other.jibo.com', ca), /altnames|Hostname\/IP/i);
+      await assert.rejects(() => deliver('api-socket.jibo.com', undefined), /unable to verify|self.signed|ERR_TLS/i);
+      await assert.rejects(() => deliver('phx-socket.jibo.com', ca), /altnames|Hostname\/IP/i);
     } finally {
       ws?.close();
       await stopEntrypoint(entry);
