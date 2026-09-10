@@ -82,6 +82,23 @@ test('setupRobot: portal-minted token -> credentials, one-time, robot adopted in
   const thief = await amz('OOBE_20170101.SetupRobot', { token: t3._id, id: 'other-robot-name-here' });
   assert.equal(thief.status, 409);
   assert.equal(thief.body.__type, 'LOOP_MUST_BE_SUSPENDED');
+
+  // A token whose account does NOT own the loop must be refused with
+  // OWNER_CAN_MANIPULATE. Source oobe.ctrl.ts setupRobot:
+  //   if (!loop.owner.equals(account._id)) throw OWNER_CAN_MANIPULATE;
+  // Without this check a token minted for another account's loop could
+  // re-setup it and adopt a robot into a household the caller does not own.
+  const stranger = createOwnerAccount(store, {
+    email: 'stranger@notjetson.test', password: 'orbit-city-4ever', firstName: 'Stranger',
+  });
+  const t4 = mintSetupToken(store, stranger._id, mine.loop._id);
+  const foreign = await amz('OOBE_20170101.SetupRobot', { token: t4._id, id: 'castle-cylinder-fig-quilt' });
+  assert.equal(foreign.status, 401);
+  assert.equal(foreign.body.__type, 'OWNER_CAN_MANIPULATE');
+  assert.equal(foreign.errType, 'OWNER_CAN_MANIPULATE');
+  // The refusal must not consume the token or disturb the real owner's loop.
+  assert.ok(store.loops.get(mine.loop._id), 'loop survives the refused re-setup');
+  assert.equal(store.loops.get(mine.loop._id).owner, owner._id, 'ownership unchanged');
 });
 
 test('setupRobot errors: expired token 401 TOKEN_EXPIRED (not deleted), unknown 404', async () => {

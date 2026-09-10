@@ -1,0 +1,4 @@
+  falsify [caught] a wire operation vanishes from the map
+  falsify [caught] a wire operation is no longer implemented
+  falsify [caught] a wire operation loses its test coverage
+falsification: all 3 gaps detected

@@ -1,0 +1,147 @@
+{
+  "servedCount": 23,
+  "total": 23,
+  "results": [
+    {
+      "target": "AcceptLoopInvitation",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "ClearRobot",
+      "status": 401,
+      "errorType": "AUTHORIZED_UNDER_ADMIN",
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "CreateLoop",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "DeclineLoopInvitation",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "FindOwner",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "GetRobot",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "InviteLoopMember",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "ListLoops",
+      "status": 200,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "ListLoopMembers",
+      "status": 200,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "ListOwnerRobots",
+      "status": 200,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "RemoveLoop",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "RemoveLoopMember",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "RemoveMemberPhoto",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "SetEnrollment",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "SetLegalGuardian",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "SuspendLoop",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "SuspendRobotLoop",
+      "status": 401,
+      "errorType": "AUTHORIZED_UNDER_ADMIN",
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "UpdateLoop",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "UpdateLoopMember",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "UpdateMemberPhoto",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "UpdateNickname",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "UpdatePhoneticName",
+      "status": 422,
+      "served": true,
+      "unknownOp": false
+    },
+    {
+      "target": "UpdateAgreementStatus",
+      "status": 404,
+      "errorType": "AGREEMENT_NOT_FOUND",
+      "served": true,
+      "unknownOp": false
+    }
+  ]
+}

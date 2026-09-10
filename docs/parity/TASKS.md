@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 2 | 46 | 0 | 0 |
-| classic | 2 | 20 | 1 | 0 |
+| classic | 3 | 20 | 1 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1349,7 +1349,7 @@ Evidence: pending.
 
 ### A-03 — Complete Account operations and account lifecycle
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02.
 
@@ -1365,15 +1365,15 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 
 Phoenix: [packages/account/src](../../packages/account/src); [packages/account/portal](../../packages/account/portal).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md](../../docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md) (2026-09-10; Both Account and AccountAdmin API files checked for operation coverage, a 15-step lifecycle driven end-to-end against a running service, and criterion 3's portal/migration coverage).
 
-- [x] Candidate implementation — **changes_requested**; Luna Max / capture_writer_repair.
+- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
 Candidate scope: Repair original internal credentials/target parsing, event validation and raw HTTP framing. Preserve public SigV4 as an explicit deployment adapter. Full Account lifecycle and SNS/bootstrap remain unverified.
 
 Candidate report: [docs/parity/candidates/A-03-review-20260906.md](../../docs/parity/candidates/A-03-review-20260906.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md](../../docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-04 — Complete Loop operations and membership lifecycle
 

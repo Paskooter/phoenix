@@ -1,0 +1,12 @@
+{
+  "task": "A-04",
+  "criterion": 1,
+  "wireOperations": 23,
+  "expected": 23,
+  "mapped": 23,
+  "implemented": 23,
+  "tested": 23,
+  "problems": 0,
+  "result": "pass",
+  "problemList": []
+}

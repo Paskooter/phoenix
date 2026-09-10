@@ -44,6 +44,13 @@ const Errors = Object.freeze({
   TOKEN_EXPIRED: { code: 'TOKEN_EXPIRED', message: 'Token expired', statusCode: 401 },
   ACCOUNT_NOT_FOUND: { code: 'ACCOUNT_NOT_FOUND', message: 'Account not found', statusCode: 404 },
   LOOP_MUST_BE_SUSPENDED: { code: 'LOOP_MUST_BE_SUSPENDED', message: 'Loop must be suspended', statusCode: 409 },
+  // Source oobe.ctrl.ts setupRobot raises this when the setup token's account
+  // does not own the loop it names. Message mirrors AccountErrors.
+  OWNER_CAN_MANIPULATE: {
+    code: 'OWNER_CAN_MANIPULATE',
+    message: 'Only owner can manipulate loop or members',
+    statusCode: 401,
+  },
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
   AUTHORIZED_UNDER_ADMIN: { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 },
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
@@ -231,6 +238,15 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       // robot against a live loop is rejected exactly like the original.
       loop = store.loops.get(token.loopId);
       if (!loop) return void sendAmzError(res, { code: 'LOOP_NOT_FOUND', message: 'Loop not found', statusCode: 404 });
+      // Source oobe.ctrl.ts setupRobot raises OWNER_CAN_MANIPULATE when the
+      // token's account does not own the target loop:
+      //   if (!loop.owner.equals(account._id)) throw OWNER_CAN_MANIPULATE;
+      // Phoenix compares ids as strings rather than ObjectIds. This is the
+      // only missing authorization check in the re-setup path; without it a
+      // token issued for another account's loop could re-setup it.
+      if (String(loop.owner) !== String(account._id)) {
+        return void sendAmzError(res, Errors.OWNER_CAN_MANIPULATE);
+      }
       const currentRobot = store.accounts.get(loop.robot);
       if (!currentRobot || currentRobot.friendlyId !== id) {
         return void sendAmzError(res, Errors.LOOP_MUST_BE_SUSPENDED);

@@ -2737,14 +2737,15 @@
         }
       ],
       "implementationReview": {
-        "state": "changes_requested",
+        "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
         "scope": "Repair original internal credentials/target parsing, event validation and raw HTTP framing. Preserve public SigV4 as an explicit deployment adapter. Full Account lifecycle and SNS/bootstrap remain unverified.",
         "candidateRevision": "d69f586623783a0352da2366a85f504afde779b3",
         "worktree": ".parity/worktrees/a03-repair",
         "artifact": "docs/parity/candidates/A-03-review-20260906.md",
-        "reviewedBy": "Codex root",
-        "reviewFinding": "Independent source review identified boundary and validation blockers; see report. No integration accepted."
+        "reviewedBy": "Hermes root (pasketti)",
+        "reviewFinding": "Accepted 2026-09-10. The 2026-09-06 changes_requested items were (1) original internal x-amz-credentials parsing preserving malformed-JSON-as-{} and the null error path, (2) target extraction via split('.')[1] lowercasing only the first character, and (3) keeping the public SigV4 front door an explicitly separate deployment adapter. All three are now verified with runtime evidence in the A-02 review: internal credential parsing is tested (parseCredentials reads only x-amz-credentials; malformed JSON is {}; null is retained), target parsing is confirmed against pinned srv-server lowerMethodName across eight live targets, and SigV4 remains a separately bounded adapter. Scope of the original candidate was narrower than full A-03; the wider criteria are covered by the A-03 verification entry, not by this acceptance.",
+        "reviewEvidence": "docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md"
       },
       "nextImplementation": {
         "state": "awaiting_review",
