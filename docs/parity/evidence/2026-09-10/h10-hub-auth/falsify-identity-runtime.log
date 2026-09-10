@@ -1,0 +1,208 @@
+TAP version 13
+# {"t":"2026-09-10T19:15:26.120Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-10T19:15:26.150Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Authorization is required"}
+# {"t":"2026-09-10T19:15:26.155Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Only bearer scheme is supported"}
+# {"t":"2026-09-10T19:15:26.156Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# {"t":"2026-09-10T19:15:26.159Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"SyntaxError: Unexpected token b in JSON at position 1"}
+# {"t":"2026-09-10T19:15:26.161Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"TypeError: Cannot read property 'nbf' of null"}
+# {"t":"2026-09-10T19:15:26.166Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt malformed"}
+# Subtest: auth differential: 1965 pinned-source outcomes replay exactly
+ok 1 - auth differential: 1965 pinned-source outcomes replay exactly
+  ---
+  duration_ms: 185.937197
+  type: 'test'
+  ...
+# Subtest: identity differential: 187 pinned-source CONTEXT outcomes replay exactly
+not ok 2 - identity differential: 187 pinned-source CONTEXT outcomes replay exactly
+  ---
+  duration_ms: 5.018125
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.differential.test.js:226:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    case/conflicting-account
+    + actual - expected
+    ... Skipped lines
+    
+      {
+    -   error: {
+    -     constructor: 'Error',
+    -     message: 'data.general.accountID is not equal to socket accountID',
+    -     name: 'Error'
+    -   },
+        message: {
+          data: {
+            general: {
+              accountID: 'acct-other',
+              lang: 'en',
+    ...
+        },
+    +   ok: true
+    -   ok: false
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    ok: false
+    error:
+      name: 'Error'
+      message: 'data.general.accountID is not equal to socket accountID'
+      constructor: 'Error'
+    message:
+      type: 'CONTEXT'
+      data:
+        general:
+          accountID: 'acct-other'
+          robotID: 'robot-1'
+          lang: 'en'
+          release: '1.8.0'
+          remoteAddress: '192.0.2.10'
+        runtime:
+          loop:
+  actual:
+    ok: true
+    message:
+      type: 'CONTEXT'
+      data:
+        general:
+          accountID: 'acct-other'
+          robotID: 'robot-1'
+          lang: 'en'
+          release: '1.8.0'
+          remoteAddress: '192.0.2.10'
+        runtime:
+          loop:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.differential.test.js:231:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"t":"2026-09-10T19:15:25.905Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-10T19:15:27.417Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: listen: a CONTEXT whose accountID differs from the socket JWT is rejected
+not ok 3 - listen: a CONTEXT whose accountID differs from the socket JWT is rejected
+  ---
+  duration_ms: 1517.546617
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:127:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:130:12
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async withGateway (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:40:12)
+    async TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:128:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"t":"2026-09-10T19:15:27.425Z","level":"error","ns":"gateway.listen","msg":"transaction failed","error":"data.general.robotID is not equal to socket robotID"}
+# {"t":"2026-09-10T19:15:27.439Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: listen: a CONTEXT whose robotID differs from the socket JWT is rejected (no cross-robot substitution)
+ok 4 - listen: a CONTEXT whose robotID differs from the socket JWT is rejected (no cross-robot substitution)
+  ---
+  duration_ms: 22.59913
+  type: 'test'
+  ...
+# {"t":"2026-09-10T19:15:27.442Z","level":"error","ns":"gateway.proactive","msg":"transaction failed","error":"data.general.robotID is not equal to socket robotID"}
+# {"t":"2026-09-10T19:15:27.456Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: proactive: a mismatched CONTEXT is rejected with the same envelope
+not ok 5 - proactive: a mismatched CONTEXT is rejected with the same envelope
+  ---
+  duration_ms: 16.24049
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:143:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   message: 'data.general.robotID is not equal to socket robotID'
+    -   message: 'data.general.accountID is not equal to socket accountID'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    message: 'data.general.accountID is not equal to socket accountID'
+  actual:
+    message: 'data.general.robotID is not equal to socket robotID'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertErrorFrame (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:120:10)
+    file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:147:5
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async withGateway (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:40:12)
+    async TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w3-h10/packages/gateway/test/hubAuth.runtime.test.js:144:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"t":"2026-09-10T19:15:27.473Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: listen: a CONTEXT matching the socket JWT is accepted and the turn completes
+ok 6 - listen: a CONTEXT matching the socket JWT is accepted and the turn completes
+  ---
+  duration_ms: 17.196919
+  type: 'test'
+  ...
+# {"t":"2026-09-10T19:15:27.497Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: listen: general defaults are filled from the authenticated socket, not the CONTEXT body
+ok 7 - listen: general defaults are filled from the authenticated socket, not the CONTEXT body
+  ---
+  duration_ms: 24.061178
+  type: 'test'
+  ...
+# {"t":"2026-09-10T19:15:27.498Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"No JWT secret set"}
+# {"t":"2026-09-10T19:15:27.510Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: an empty configured secret rejects even a correctly signed token
+ok 8 - an empty configured secret rejects even a correctly signed token
+  ---
+  duration_ms: 2.919004
+  type: 'test'
+  ...
+# {"t":"2026-09-10T19:15:27.512Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: invalid algorithm"}
+# {"t":"2026-09-10T19:15:27.513Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt signature is required"}
+# {"t":"2026-09-10T19:15:27.515Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: non-HMAC algorithm headers are rejected before a socket opens
+ok 9 - non-HMAC algorithm headers are rejected before a socket opens
+  ---
+  duration_ms: 13.5502
+  type: 'test'
+  ...
+# {"t":"2026-09-10T19:15:27.522Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# Subtest: disableAuth removes the credential requirement but keeps the exact path lookup
+ok 10 - disableAuth removes the credential requirement but keeps the exact path lookup
+  ---
+  duration_ms: 6.369461
+  type: 'test'
+  ...
+# Subtest: skill-list and healthcheck HTTP routes stay reachable without credentials
+ok 11 - skill-list and healthcheck HTTP routes stay reachable without credentials
+  ---
+  duration_ms: 36.918055
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 8
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2064.958155

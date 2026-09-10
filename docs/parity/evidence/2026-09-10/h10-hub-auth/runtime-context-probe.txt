@@ -1,0 +1,8 @@
+{"t":"2026-09-10T19:15:53.443Z","level":"info","ns":"gateway","msg":"listening","port":0}
+{"t":"2026-09-10T19:15:53.455Z","level":"error","ns":"gateway.listen","msg":"transaction failed","error":"data.general.accountID is not equal to socket accountID"}
+REJECT account: [{"type":"ERROR","msgID":"a020f7f9-4804-4de5-8689-ed20de8e6349","ts":1789067753456,"final":true,"data":{"message":"data.general.accountID is not equal to socket accountID"},"timings":{"total":3}}]
+{"t":"2026-09-10T19:15:53.481Z","level":"error","ns":"gateway.listen","msg":"transaction failed","error":"data.general.robotID is not equal to socket robotID"}
+REJECT robot  : [{"type":"ERROR","msgID":"1e9efdc6-64b0-4a91-b00b-ad1ba1a9080d","ts":1789067753481,"final":true,"data":{"message":"data.general.robotID is not equal to socket robotID"},"timings":{"total":1}}]
+ACCEPT turn   : [{"type":"SOS","data":null,"msgID":"207c0328-7567-4814-b2e2-2d616f75f9fd","ts":1789067753504,"timings":{"total":-1}},{"type":"EOS","data":null,"msgID":"bedc7980-054b-4296-bf83-7c40ed9ee218","ts":1789067753505,"timings":{"total":-1}},{"type":"LISTEN","msgID":"88de64ff-765c-4ca9-9e3c-468d7b6f0cc0","ts":1789067753505,"data":{"asr":{"text":"","confidence":1},"nlu":{"intent":"zzz-nope","rules":["launch"],"entities":{}},"match":null},"final":true,"timings":{"total":2,"asr":-1,"nlu":-1}}]
+{"t":"2026-09-10T19:15:53.529Z","level":"error","ns":"gateway.proactive","msg":"transaction failed","error":"data.general.accountID is not equal to socket accountID"}
+PROACTIVE bad : [{"type":"ERROR","msgID":"2ce84299-a85e-4147-b009-69b1a9e5e88d","ts":1789067753529,"final":true,"data":{"message":"data.general.accountID is not equal to socket accountID"},"timings":{"total":1}}]

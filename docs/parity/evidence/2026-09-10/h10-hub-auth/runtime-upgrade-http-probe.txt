@@ -1,0 +1,12 @@
+{"t":"2026-09-10T19:15:55.215Z","level":"info","ns":"gateway","msg":"listening","port":0}
+{"t":"2026-09-10T19:15:55.220Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"No JWT secret set"}
+NO-SECRET upgrade: {"status":401,"reason":"Unauthorized","body":"No JWT secret set"}
+NO-SECRET /skills: {"status":200,"body":"{\"skills\":[]}"}
+{"t":"2026-09-10T19:15:55.241Z","level":"info","ns":"gateway","msg":"listening","port":0}
+{"t":"2026-09-10T19:15:55.244Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: invalid algorithm"}
+RS256 upgrade: {"status":401,"reason":"Unauthorized","body":"JsonWebTokenError: invalid algorithm"}
+{"t":"2026-09-10T19:15:55.245Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: jwt signature is required"}
+NONE-empty-sig upgrade: {"status":401,"reason":"Unauthorized","body":"JsonWebTokenError: jwt signature is required"}
+HEALTHCHECK: {"status":200,"body":"ok"}
+GET /skills/robot-A (no auth): {"status":200,"body":"{\"skills\":[{\"id\":\"sk\",\"URL\":\"http://127.0.0.1:9/v1/main\",\"intents\":[]}]}"}
+GET /v1/skills/settings/robot-A (no auth): {"status":200,"body":"{\"skills\":[]}"}
