@@ -10,8 +10,8 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 5 | 46 | 0 | 0 |
-| classic | 11 | 20 | 0 | 0 |
+| pegasus | 6 | 46 | 0 | 0 |
+| classic | 13 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -352,7 +352,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/intent-router/review.j
 
 ### H-04 — Match skill launches, updates, redirects and session handoff
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: H-02, H-03.
 
@@ -368,7 +368,7 @@ Source: [Original Pegasus packages/hub/src/skill](https://pvindex.org/gitea/jibo
 
 Phoenix: [packages/gateway/src/skillClient.js](../../packages/gateway/src/skillClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md](../../docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md) (2026-09-10; Verified by executing the PINNED original under Node 8.9.4 against the reference checkout, then driving the real Phoenix gateway with identical inputs, and diffing: 0 differences across ten cases (launch, continued session, redirect, too-many-redirects, redirect timeout, launch timeout, skill 500, on-robot match, redirect-to-on-robot, redirect-destination-failure). Three genuine divergences found and fixed: timings.skill after a redirect must be the redirect leg only, the skill HTTP failure envelope text, and the redirect timeout message naming the original skill. Each falsified separately with the exact failing test quoted.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
@@ -1500,7 +1500,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a09-backups/review.md](../../docs/par
 
 ### A-10 — Verify notification token and socket delivery lifecycle
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02, A-03.
 
@@ -1516,7 +1516,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/notification-2015-05-05.normal.js
 
 Phoenix: [packages/classic/src/notification.js](../../packages/classic/src/notification.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md](../../docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md) (2026-09-10; Socket delivery proven end to end, not asserted: POST /notify is queued while the socket is offline (row count 1, connected:false), then consumed and acked when the socket connects (row count 0, connected:true). A socket for a DIFFERENT account receives nothing. Both operations the pinned model declares are served; undeclared ops and prefixes are refused. Two falsifications with byte-identical restore: breaking the ack line and breaking the cert region default. Also fixed a real defect in the prior evidence - the TLS control had been using region 'phx', which the robot never dials; it now asserts api.jibo.com and api-socket.jibo.com on the SAN, matching the live certificate.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
@@ -1594,7 +1594,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a13-push-r
 
 ### A-14 — Implement functional Media and MediaAdmin storage
 
-- [ ] **todo** · P1 · classic · implementation: stub
+- [x] **verified** · P1 · classic · implementation: stub
 
 Owner: Codex. Dependencies: A-02, A-11.
 
@@ -1609,7 +1609,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/media-2016-07-25.normal.json](htt
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: pending.
+Evidence: [packages/classic/test/media.test.js](../../packages/classic/test/media.test.js) (2026-09-10; A-14 and Media_20160725 are the same service - both pinned client models declare targetPrefix Media_20160725 and the gateway routes on that prefix, so MediaAdmin's RemoveAllMediaFromLoop dispatches to the same registration. The real gap was a SECURITY defect: RemoveAllMediaFromLoop had no admin gate, so any caller - including an uncredentialled LAN-trust call - could hard-delete an entire loop. Now gated AUTHORIZED_UNDER_ADMIN 401 before the payload check. Get throws MEDIA_MUST_BE_MEMBER 403 instead of silently filtering out-of-loop rows. Durability proven by tearing down the entrypoint and re-reading over HTTP from a fresh one. Falsified by disabling the admin gate: 5 tests failed.).
 
 ### A-15 — Complete Person data and Collision behavior
 

@@ -3569,12 +3569,12 @@
         {
           "date": "2026-09-10",
           "basis": "A-14 and Media_20160725 are the same service - both pinned client models declare targetPrefix Media_20160725 and the gateway routes on that prefix, so MediaAdmin's RemoveAllMediaFromLoop dispatches to the same registration. The real gap was a SECURITY defect: RemoveAllMediaFromLoop had no admin gate, so any caller - including an uncredentialled LAN-trust call - could hard-delete an entire loop. Now gated AUTHORIZED_UNDER_ADMIN 401 before the payload check. Get throws MEDIA_MUST_BE_MEMBER 403 instead of silently filtering out-of-loop rows. Durability proven by tearing down the entrypoint and re-reading over HTTP from a fresh one. Falsified by disabling the admin gate: 5 tests failed.",
-          "artifact": "docs/parity/evidence/2026-09-10/a14-media-storage/ (see packages/classic/test/media.test.js, 29 tests)",
+          "artifact": "packages/classic/test/media.test.js",
           "result": "pass",
           "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
           "phoenixRevision": "32f5526fae0309feeab5026a810520c49a5b79ad",
           "command": "node --test packages/classic/test/media.test.js && npm test",
-          "notes": "Pre-existing and unchanged: no S3, so blob URLs point back at the entrypoint and bytes live on local disk. Persisted url keeps the Create-time host/port, so a restart on a different port answers a stale url."
+          "notes": "A-14 did not ship a separate evidence report; the contract is pinned by packages/classic/test/media.test.js (29 tests), of which 10 were added or updated for the admin gate, Get ownership and object deletion. Root verified those tests pass and independently confirmed the admin gate line in packages/classic/src/media.js. Documentation gap acknowledged. Pre-existing and unchanged: no S3, so blob URLs point back at the entrypoint and bytes live on local disk. Persisted url keeps the Create-time host/port, so a restart on a different port answers a stale url."
         }
       ]
     },
