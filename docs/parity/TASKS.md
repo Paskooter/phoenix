@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 2 | 46 | 0 | 0 |
+| pegasus | 3 | 46 | 0 | 0 |
 | classic | 4 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **C-02 — Complete the wire schemas and message builders**.
+Next ready task: **C-03 — Restore configuration, registry and service-discovery compatibility**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -230,7 +230,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/comparison/http-review
 
 ### C-02 — Complete the wire schemas and message builders
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-01, V-03.
 
@@ -246,7 +246,15 @@ Source: [Original Pegasus packages/interfaces/src](https://pvindex.org/gitea/jib
 
 Phoenix: [packages/contracts/src/messages.js](../../packages/contracts/src/messages.js); [packages/contracts/src/constants.js](../../packages/contracts/src/constants.js); [packages/contracts/src/validate.js](../../packages/contracts/src/validate.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md](../../docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md) (2026-09-10; ListenResult precedence compared line-for-line with hub/response.ts:89-100 and falsified 3/3; 58 acceptance and 17 rejection assertions over fixtures carrying 13 pinned-source citations; every criterion-3 surface covered, with MIM resolved as skill-internal memo state rather than a wire schema and pinned by a new falsified test).
+
+- [x] Candidate implementation — **accepted**; DeepSeek workers (two passes) via Hermes delegate_task.
+
+Candidate scope: Wire schema matrix, ListenResult precedence, valid/invalid reference behaviour, and the proactive/redirect/JCP/MIM/manifest/analytics surfaces. Root independently falsified the precedence chain (3/3) and MIM memo pass-through (1/1), and corrected its own initial reading that MIM coverage was missing. The HubErrorCode mismatch (C02a) is recorded as an open divergence, not silently accepted as parity.
+
+Candidate report: [docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md](../../docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md).
+
+Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/c02-wire-schemas/falsification.json](../../docs/parity/evidence/2026-09-10/c02-wire-schemas/falsification.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### C-03 — Restore configuration, registry and service-discovery compatibility
 

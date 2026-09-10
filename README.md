@@ -27,9 +27,9 @@ external-service cases that neither side can host. Everything else is tracked op
 
 <!-- parity-progress:start -->
 
-![16.5% checklist completion — 13 of 79 tasks verified](docs/parity/progress.svg)
+![17.7% checklist completion — 14 of 79 tasks verified](docs/parity/progress.svg)
 
-**16.5% checklist completion · 13/79 tasks verified.**
+**17.7% checklist completion · 14/79 tasks verified.**
 
 Counts only tasks whose full acceptance criteria and evidence have been reviewed. Candidate implementations do not count. This includes planning and verification tooling; it is not a percentage of server functionality.
 
@@ -37,7 +37,7 @@ Counts only tasks whose full acceptance criteria and evidence have been reviewed
 |---|---:|---:|
 | Planning | 3 | 3 |
 | Verification tooling | 4 | 4 |
-| Pegasus | 2 | 46 |
+| Pegasus | 3 | 46 |
 | Companion cloud | 4 | 20 |
 | Restoration | 0 | 1 |
 | Release | 0 | 5 |

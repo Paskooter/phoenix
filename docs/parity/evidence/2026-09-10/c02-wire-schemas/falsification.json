@@ -1,0 +1,40 @@
+{
+  "kind": "c02-root-falsification",
+  "date": "2026-09-10",
+  "phoenixRevision": "67e8e337da02fac0bfb9686a0b8190f58027ebb4",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "listenResultPrecedence": {
+    "target": "packages/contracts/src/envelope.js listenResultState",
+    "reference": "interfaces/src/hub/response.ts:89-100 (match -> noInput -> noMatch)",
+    "cases": [
+      {
+        "injected": "check noInput before match",
+        "caught": true
+      },
+      {
+        "injected": "treat only intent as match, ignoring entities",
+        "caught": true
+      },
+      {
+        "injected": "return noMatch instead of noInput on empty asr",
+        "caught": true
+      }
+    ],
+    "caught": 3,
+    "total": 3
+  },
+  "mimMemoPassThrough": {
+    "target": "packages/contracts/src/messages.js skillRedirect memo",
+    "finding": "mimID lives on DialogTurn in jibo/dialog.ts and is imported by NO hub or skill wire message; chitchat reads it from skill memo (ProcessQueryNode.ts:36). MIM is skill-internal memo state, not a wire schema, so criterion 3 requires memo to stay open and pass MIM state through untouched.",
+    "cases": [
+      {
+        "injected": "close memo to additionalProperties:false",
+        "caught": true,
+        "failures": 3
+      }
+    ],
+    "caught": 1,
+    "total": 1
+  },
+  "suite": "1139 tests, 1131 pass, 0 fail, 0 cancelled, 8 skipped; gate 43/43; EXIT=0"
+}

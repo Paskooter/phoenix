@@ -390,6 +390,35 @@ test('JCP action validates (generateJCPAction / createSlimAction) including DISP
   ok(slim, { type: 'JCP', config: { version: '2.0', jcp: { type: 'SEQUENCE', id: 'seq', children: [] } } }, 'JCP with SEQUENCE (supplemental injection)');
 });
 
+// MIM is NOT a distinct wire schema. In the pinned reference `mimID` lives on
+// jibo/dialog.ts DialogTurn, which no hub or skill wire message imports, and the
+// chitchat skill reads it out of skill memo (ProcessQueryNode.ts:36,
+// `let mimID = memo.mim`). So the C-02 requirement to "cover MIMs without
+// rejecting valid optional fields" means memo must stay open and carry MIM
+// state through untouched.
+test('MIM state rides in skill memo and is never rejected', () => {
+  // The hub wraps a redirect as data.match = { skillID, launch, onRobot } with
+  // memo alongside (messages.js:427-442), so the fixtures below use that shape.
+  const match = { skillID: 'chitchat', launch: true, onRobot: false };
+
+  ok(schemas.skillRedirect, {
+    type: 'SKILL_REDIRECT',
+    data: { match, memo: { mim: 'scripted/greeting-01', type: 'SemiSpecificResponse' } },
+  }, 'redirect carrying chitchat MIM memo');
+
+  // resolveSemiSpecificMim swaps the id mid-turn; the new value must also pass.
+  ok(schemas.skillRedirect, {
+    type: 'SKILL_REDIRECT',
+    data: { match, memo: { mim: 'emotion/happy-03' } },
+  }, 'redirect after semi-specific MIM resolution');
+
+  // memo is deliberately unconstrained: unknown MIM-adjacent keys must not fail.
+  ok(schemas.skillRedirect, {
+    type: 'SKILL_REDIRECT',
+    data: { match, memo: { mim: 'x', scriptedResponseMiMSet: ['a'], unknownFutureKey: 1 } },
+  }, 'memo tolerates unknown MIM-adjacent keys');
+});
+
 test('Analytics payload validates (GraphSkill.track Skill Entry + opt-in MIM Skill Offer)', () => {
   const analytics = {
     example: [

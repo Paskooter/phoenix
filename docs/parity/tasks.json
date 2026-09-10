@@ -426,7 +426,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -448,7 +448,27 @@
         "All captured valid reference requests/responses are accepted and the reference's invalid-input behavior is reproduced.",
         "Cover proactive requests/results, skill redirects/actions, JCP/display, MIMs, manifests and analytics without rejecting valid optional fields."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "ListenResult precedence compared line-for-line with hub/response.ts:89-100 and falsified 3/3; 58 acceptance and 17 rejection assertions over fixtures carrying 13 pinned-source citations; every criterion-3 surface covered, with MIM resolved as skill-internal memo state rather than a wire schema and pinned by a new falsified test",
+          "artifact": "docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "67e8e337da02fac0bfb9686a0b8190f58027ebb4",
+          "command": "node --test packages/contracts/test/wire-messages.test.js packages/contracts/test/contracts.test.js && node --test packages/skills/test/graph.test.js && npm test",
+          "notes": "C02a is a known open hole: HubErrorCode does not match the pinned interface and those codes reach the robot on ERROR responses. The gateway consumes the Phoenix values, so it needs a coordinated change and is recorded rather than patched."
+        }
+      ],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "DeepSeek workers (two passes) via Hermes delegate_task",
+        "reviewedBy": "Hermes root (pasketti)",
+        "candidateRevision": "67e8e337da02fac0bfb9686a0b8190f58027ebb4",
+        "scope": "Wire schema matrix, ListenResult precedence, valid/invalid reference behaviour, and the proactive/redirect/JCP/MIM/manifest/analytics surfaces. Root independently falsified the precedence chain (3/3) and MIM memo pass-through (1/1), and corrected its own initial reading that MIM coverage was missing. The HubErrorCode mismatch (C02a) is recorded as an open divergence, not silently accepted as parity.",
+        "artifact": "docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-10/c02-wire-schemas/falsification.json"
+      }
     },
     {
       "id": "C-03",
