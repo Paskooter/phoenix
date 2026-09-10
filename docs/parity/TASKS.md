@@ -11,11 +11,11 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 2 | 46 | 0 | 0 |
-| classic | 3 | 20 | 1 | 0 |
+| classic | 4 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
-Current task: **A-04 — Complete Loop operations and membership lifecycle**.
+Current task: none.
 
 Next ready task: **C-02 — Complete the wire schemas and message builders**.
 
@@ -1377,7 +1377,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a03-accoun
 
 ### A-04 — Complete Loop operations and membership lifecycle
 
-- [ ] **in_progress** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-03.
 
@@ -1393,15 +1393,15 @@ Source: [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](http
 
 Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/model.js](../../packages/account/src/model.js); [packages/account/src/store.js](../../packages/account/src/store.js); [packages/account/src/loopMembership.js](../../packages/account/src/loopMembership.js); [packages/account/src/loopUpdatedOutbox.js](../../packages/account/src/loopUpdatedOutbox.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a04-loop-operations/review.md](../../docs/parity/evidence/2026-09-10/a04-loop-operations/review.md) (2026-09-10; All 23 Loop wire operations proven served by a runtime probe (static scanning found 1 of 23 because dispatch uses lowercased comparisons across four modules); gate 1 client-sequence replay against source in the pinned Node 8 runtime at 12/12 with byte-exact Classic forwarding across 34 pairs; adoption confirmed to live on a separate admin endpoint rather than redefining Loop errors).
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / audio_encoding_repair; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
-Candidate scope: Root reran actual original Model.save controls and two corrected regression scenarios; no-op status false conflict and stale positional array-shift corruption are repaired. Eight focused tests pass. Mixed profile/photo writers, combined review and full A-04 remain open. Separate invitation-code leading-zero repair is root accepted on isolated candidatea5d04b5 after924 tests, seven skips andstrict43; combined integration remains pending.
+Candidate scope: Full A-04 review by root: all 23 Loop wire operations proven served by a runtime probe, gate-1 client-sequence replay against source in the pinned Node 8 runtime at 12/12 with byte-exact Classic forwarding, and adoption confirmed to live on a separate admin endpoint rather than redefining Loop errors. Two comparator defects were repaired during the review (a hardcoded capture count masking byte-exact forwarding, and an isDeleted comparison between raw-wire and SDK-parsed measurements); an initial Phoenix-side isDeleted fix was reverted as unobservable to real clients. Earlier membership-concurrency and invitation-code repairs are folded in.
 
-Candidate report: [packages/account/src/loopMembership.js](../../packages/account/src/loopMembership.js).
+Candidate report: [docs/parity/evidence/2026-09-10/a04-loop-operations/review.md](../../docs/parity/evidence/2026-09-10/a04-loop-operations/review.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a04-loop-operations/gate1-comparison.json](../../docs/parity/evidence/2026-09-10/a04-loop-operations/gate1-comparison.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
 
