@@ -58,14 +58,20 @@ export class HistoryStore {
 
   saveSkillPayload(data) {
     // findOneAndUpdate({sessionID, robotID, skillID}, {$set: {payload, payloadSize}}); most recent wins.
+    //
+    // The reference builds the `$set` document EAGERLY as the second argument to
+    // findOneAndUpdate (SkillLaunchCollection.ts:48-53), so `Object.keys(data.payload)` throws
+    // BEFORE the query is issued - even when no record matches. A missing or null `payload`
+    // therefore always yields the 500 error envelope, never the 200 `null` no-match result.
+    // Verified against the pinned compiled collection with the model call counted
+    // (docs/parity/evidence/2026-09-10/i01-history-routes/w7-ref-routes-oracle.json).
+    const payloadSize = Object.keys(data.payload).length;
     const rec = [...this.skillLaunches]
       .reverse()
       .find((r) => r.sessionID === data.sessionID && r.robotID === data.robotID && r.skillID === data.skillID);
     if (!rec) return null;
     rec.payload = data.payload;
-    // The reference computes Object.keys(data.payload).length unconditionally, so a payload-less
-    // update throws here exactly as it dereferences there (500).
-    rec.payloadSize = Object.keys(data.payload).length;
+    rec.payloadSize = payloadSize;
     return this._toJSON(rec);
   }
 
