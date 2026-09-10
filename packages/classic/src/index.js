@@ -201,7 +201,14 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
   const logStore = new LogStore();
   const mediaStore = media?.store || new MediaStore();
-  const iftttStore = ifttt?.store || new IftttStore();
+  const iftttStore = ifttt?.store || new IftttStore({
+    // The original stored Identity/Trigger/Action/TriggerMedia in Mongo; the durable file keeps
+    // that state across a restart (ETCO_classic_iftttFile, default $TMPDIR/phoenix-ifttt.json).
+    file: ifttt?.file,
+    clock: ifttt?.clock,
+    newId: ifttt?.newId,
+    phonetic: ifttt?.phonetic,
+  });
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
   const jotMedia = jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops });

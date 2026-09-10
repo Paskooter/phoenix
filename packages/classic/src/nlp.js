@@ -84,12 +84,22 @@ function posView(row) {
   return { word: row.word === undefined ? null : String(row.word), pos: row.pos === undefined ? null : String(row.pos) };
 }
 
+/**
+ * srv-nlp-ws nlp.py:83-86 — the NER endpoint strips a possessive suffix from the entity text
+ * (`if ent.text.endswith("'s"): entity_text = ent.text[:-2]`) before emitting `text`. This is an
+ * endpoint transform, not part of spaCy, so Phoenix applies it to whatever the provider returns.
+ */
+function entityText(value) {
+  const text = String(value);
+  return text.endsWith("'s") ? text.slice(0, -2) : text;
+}
+
 function nerView(row) {
   if (row == null || typeof row !== 'object') return null;
   const out = {};
   if (row.start !== undefined) out.start = row.start;
   if (row.end !== undefined) out.end = row.end;
-  if (row.text !== undefined) out.text = String(row.text);
+  if (row.text !== undefined) out.text = entityText(row.text);
   if (row.label !== undefined) out.label = String(row.label);
   return out;
 }
