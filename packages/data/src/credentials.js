@@ -2,16 +2,27 @@
 //
 // Uniqueness: the reference Mongo schema declares a unique compound index
 // (accountId, skillId, serviceName, serviceAccountName, scopes —
-// StoredCredential.ts `credentials_index`). The in-memory Map key reproduces
-// that 5-tuple so two credentials for the same slot with *different scopes*
-// coexist (original fixture: "store google:personalCalendar credential with
-// other scopes"). find() uses Mongo's `scopes: {$all: query.scopes}` semantics.
+// StoredCredential.ts `credentials_index`). The in-memory Map key uses the same
+// 5-tuple with the scope SET sorted, so two credentials for the same slot with
+// *different* scopes coexist (original fixture: "store google:personalCalendar
+// credential with other scopes") and reordered scopes collapse to one record.
+// NOTE (divergence candidate): Mongo's unique index on an ARRAY field is
+// multikey — it rejects any two same-slot records that share a scope VALUE, so
+// the reference answers {credentialExists:true} where Phoenix stores a second
+// record. No original fixture saves overlapping scope sets. Pinned by the
+// `D2 DIVERGENCE (scope-overlap uniqueness)` test. find() uses Mongo's
+// `scopes: {$all: query.scopes}` semantics.
 //
-// Persistence: `new CredentialStore({ file })` (or a path string, or the
-// ETCO_data_credentialsFile env var) snapshots the store after every mutation
-// with an atomic tmp+rename write; a fresh store on the same file recovers the
-// credentials ("survives restarts"). With no file, the store is in-memory only
-// (the default createDataService() keeps tests hermetic).
+// Persistence: credentials live in a JSON snapshot at
+// packages/data/data/credentials.json (a host mount in compose), mirroring the
+// account-service Store. `new CredentialStore({ file })` (or a path string, or
+// the ETCO_data_credentialsFile env var) overrides the path. Each mutation
+// rewrites the snapshot atomically (exclusive tmp + rename, 0600 file / 0700
+// dir); a fresh store on the same file recovers the credentials ("survives
+// restarts"). This is durable by default because the reference backed
+// credentials with Mongo and they survived a service restart; an in-memory
+// default silently dropped every credential on restart (D-02 gap, verified by
+// restarting `node packages/data/src/index.js`).
 //
 // testAuthCode short-circuits the OAuth exchange (integration-test path); real
 // google/outlook token exchange is out of scope here (501) — supply tokens
@@ -19,9 +30,13 @@
 
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const DEFAULT_GOOGLE_CLIENT_ID = '830717411721';
+// Durable-by-default store path, mirroring packages/account/src/store.js
+// (`../data/store.json`). Override with ETCO_data_credentialsFile.
+const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/credentials.json');
 const SPECIAL_AUTH_CODE = 'testAuthCode';
 const REQUIRED_SAVE = ['accountId', 'skillId', 'serviceName', 'serviceAccountName', 'scopes', 'clientId'];
 const REQUIRED_FIND = ['accountId', 'skillId', 'serviceName', 'serviceAccountName', 'scopes'];
@@ -48,7 +63,7 @@ function requireProps(obj, props) {
 export class CredentialStore {
   constructor(fileOrOpts = {}) {
     const opts = typeof fileOrOpts === 'string' ? { file: fileOrOpts } : (fileOrOpts || {});
-    this.file = opts.file ?? process.env.ETCO_data_credentialsFile ?? null;
+    this.file = opts.file ?? process.env.ETCO_data_credentialsFile ?? DEFAULT_FILE;
     this.m = new Map();
     this._load();
   }

@@ -53,12 +53,23 @@ class RedeemStore extends CredentialStore {
 
 const tmpDir = () => mkdtempSync(join(tmpdir(), 'phoenix-data-creds-'));
 
+// The default store is now durable (packages/data/data/credentials.json), so a
+// bare `new CredentialStore()` would share one snapshot across tests. Each test
+// gets its own file; the env/default-resolution tests below opt in explicitly.
+const ROOT = mkdtempSync(join(tmpdir(), 'phoenix-data-creds-root-'));
+let seq = 0;
+const nextFile = () => join(ROOT, `credentials-${++seq}.json`);
+const plainStore = (opts = {}) => new CredentialStore({ file: nextFile(), ...opts });
+const redeemStore = (opts = {}) => new RedeemStore({ file: nextFile(), ...opts });
+/** A store that resolves its file from the env override / built-in default. */
+const defaultStore = () => new CredentialStore();
+
 // ---------------------------------------------------------------------------
 // Credential.test.ts — POST store / replace / duplicate / scope coexistence
 // ---------------------------------------------------------------------------
 
 test('D2 store google:personalCalendar with authCode (Credential.test.ts #1)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const data = googleCred({ accountId: 'account10', skillId: 'skill10', authCode: 'authCode' });
   const c = s.save(data);
   assert.equal(c.oauth2.authCode, 'authCode');
@@ -70,7 +81,7 @@ test('D2 store google:personalCalendar with authCode (Credential.test.ts #1)', (
 });
 
 test('D2 replace credential with a NEW authCode in the same slot (#2)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const accountParams = { accountId: 'account3', skillId: 'skill3' };
   const c1 = googleCred({ ...accountParams, authCode: 'authCode1' });
   const c2 = googleCred({ ...accountParams, authCode: 'authCode2' });
@@ -81,7 +92,7 @@ test('D2 replace credential with a NEW authCode in the same slot (#2)', () => {
 });
 
 test('D2 same slot with OTHER scopes coexist under the 5-tuple unique key (#3)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const accountParams = { accountId: 'account4', skillId: 'skill4', serviceAccountName: 'personalCalendar' };
   const c1 = googleCred({ ...accountParams, scopes: [GOOGLE_READONLY], authCode: 'authCode1' });
   const c2 = googleCred({ ...accountParams, scopes: [GOOGLE_READWRITE], authCode: 'authCode2' });
@@ -97,7 +108,7 @@ test('D2 same slot with OTHER scopes coexist under the 5-tuple unique key (#3)',
 });
 
 test('D2 store with accessToken/refreshToken skips the exchange and keeps slots (#4)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const data = googleCred({
     accountId: 'account11', skillId: 'skill11',
     accessToken: 'testAccessToken', refreshToken: 'testRefreshToken', expiresAt: Date.now() + 3600 * 1000,
@@ -109,7 +120,7 @@ test('D2 store with accessToken/refreshToken skips the exchange and keeps slots 
 });
 
 test('D2 duplicate authCode -> DUPLICATE_KEY (11000), leave slot intact (#5)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const accountParams = { accountId: 'account5', skillId: 'skill5' };
   const data1 = googleCred({ ...accountParams, authCode: 'authCode' });
   const data2 = googleCred({ ...accountParams, authCode: 'authCode' });
@@ -120,7 +131,7 @@ test('D2 duplicate authCode -> DUPLICATE_KEY (11000), leave slot intact (#5)', (
 });
 
 test('D2 testAuthCode stores without a token exchange (#6)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const data = googleCred({ accountId: 'account12', skillId: 'skill12', serviceAccountName: 'workCalendar', authCode: 'testAuthCode' });
   const c = s.save(data);
   assert.equal(c.oauth2.accessToken, 'testAccessToken');
@@ -128,7 +139,7 @@ test('D2 testAuthCode stores without a token exchange (#6)', () => {
 });
 
 test('D2 outlook credential stored under its own clientId (#7/#8)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const data = outlookCred({ accountId: 'account13', skillId: 'skill13', serviceAccountName: 'workCalendar', authCode: 'authCode' });
   const c = s.save(data);
   assert.equal(c.serviceName, 'outlook');
@@ -138,7 +149,7 @@ test('D2 outlook credential stored under its own clientId (#7/#8)', () => {
 });
 
 test('D2 redirectUri is stored for authCode and token arrivals (#9/#10)', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const a = s.save(googleCred({ accountId: 'account5', serviceAccountName: 'workCalendar', authCode: 'authCode6', redirectUri: 'http://test-redirect-uri-1.com' }));
   assert.equal(a.oauth2.redirectUri, 'http://test-redirect-uri-1.com');
   const b = s.save(googleCred({ accountId: 'account6', serviceAccountName: 'workCalendar', accessToken: 'at2', refreshToken: 'rt2', expiresAt: Date.now() + 1000, redirectUri: 'http://test-redirect-uri-2.com' }));
@@ -146,7 +157,7 @@ test('D2 redirectUri is stored for authCode and token arrivals (#9/#10)', () => 
 });
 
 test('D2 required fields: accountId/skillId/serviceName/serviceAccountName/scopes/clientId', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   assert.throws(() => s.save(googleCred({ accountId: null })), /Missing accountId in request/);
   assert.throws(() => s.save(googleCred({ skillId: null })), /Missing skillId in request/);
   assert.throws(() => s.save(googleCred({ serviceName: null })), /Missing serviceName in request/);
@@ -164,7 +175,7 @@ test('D2 required fields: accountId/skillId/serviceName/serviceAccountName/scope
 // ---------------------------------------------------------------------------
 
 test('D2 GET: exists, reordered scopes, fewer scopes, extra/non-matching scopes, wrong ids', () => {
-  const s = new RedeemStore();
+  const s = redeemStore();
   const data = outlookCred({ accountId: 'account8', skillId: 'skill8', authCode: 'testAuthCode' });
   s.save(data);
   assert.deepEqual(s.checkExists(data), { credentialExists: true });
@@ -185,7 +196,7 @@ test('D2 GET: exists, reordered scopes, fewer scopes, extra/non-matching scopes,
 // ---------------------------------------------------------------------------
 
 test('D2 delete a credential; delete with fewer scopes; delete twice; wildcard per account', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const credential = googleCred({ accountId: 'account1', skillId: 'skill1', scopes: ['offline_access', 'Calendars.Read'], authCode: 'testAuthCode' });
   s.save(credential);
   s.delete({ ...credential });
@@ -228,35 +239,35 @@ async function assertDeletedPair(s, c1, c2, shouldBeDeleted) {
 }
 
 test('D2 google:personalCalendar removed when outlook:personalCalendar arrives (report-skill)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123' });
   assertDeletedPair(s, g, o, true);
 });
 
 test('D2 outlook:personalCalendar removed when google:personalCalendar arrives (report-skill)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123' });
   assertDeletedPair(s, o, g, true);
 });
 
 test('D2 workCalendar pair: google removed when outlook arrives (report-skill)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123', serviceAccountName: 'workCalendar' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123', serviceAccountName: 'workCalendar' });
   assertDeletedPair(s, g, o, true);
 });
 
 test('D2 workCalendar pair: outlook removed when google arrives (report-skill)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123', serviceAccountName: 'workCalendar' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123', serviceAccountName: 'workCalendar' });
   assertDeletedPair(s, o, g, true);
 });
 
 test('D2 different calendars are NOT cross-deleted (workCalendar vs personalCalendar)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123', serviceAccountName: 'workCalendar' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123', serviceAccountName: 'personalCalendar' });
   assertDeletedPair(s, g, o, false);
@@ -264,14 +275,14 @@ test('D2 different calendars are NOT cross-deleted (workCalendar vs personalCale
 });
 
 test('D2 non-report-skill credentials are NOT cross-deleted', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123', skillId: 'some-other-skill', serviceAccountName: 'workCalendar' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123', skillId: 'some-other-skill', serviceAccountName: 'workCalendar' });
   assertDeletedPair(s, g, o, false);
 });
 
 test('D2 serviceAccountName outside workCalendar/personalCalendar is NOT cross-deleted', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const g = googleCred({ ...googleTokens(), accountId: 'account-test-123', skillId: 'some-other-skill', serviceAccountName: 'someOtherCalendar' });
   const o = outlookCred({ ...outlookTokens(), accountId: 'account-test-123', skillId: 'some-other-skill', serviceAccountName: 'someOtherCalendar' });
   assertDeletedPair(s, g, o, false);
@@ -288,7 +299,7 @@ test('D2 REGRESSION FIXTURE: a NON-report-skill save does NOT trigger cross-prov
   // provider for the account. Phoenix keeps a comparison, so the exact scenario
   // below preserves the report-skill google credential. Recorded divergence —
   // see docs/parity/candidates/D-02-candidate-20260910.md.
-  const s = new CredentialStore();
+  const s = plainStore();
   const reportGoogle = googleCred({ ...googleTokens(), accountId: 'account-test-123', serviceAccountName: 'workCalendar' });
   const otherOutlook = outlookCred({ ...outlookTokens(), accountId: 'account-test-123', skillId: 'some-other-skill', serviceAccountName: 'workCalendar' });
   s.save(reportGoogle);
@@ -367,35 +378,38 @@ test('D2 atomic flush: 0600 file, 0700 dir, no tmp litter, failed rename keeps c
   }
 });
 
-test('D2 ETCO_data_credentialsFile env var gives default stores a durable file; string path also accepted', () => {
+test('D2 ETCO_data_credentialsFile env var gives default-resolved stores a durable file', () => {
   const dir = tmpDir();
+  const prev = process.env.ETCO_data_credentialsFile;
   try {
     process.env.ETCO_data_credentialsFile = join(dir, 'env.json');
-    const s = new CredentialStore();
+    const s = defaultStore();
+    assert.equal(s.file, join(dir, 'env.json'), 'env override wins over the built-in default');
     s.save(googleCred({ accountId: 'env-acct', authCode: 'testAuthCode' }));
-    const t = new CredentialStore(); // same env -> same file
+    const t = defaultStore(); // same env -> same file
     assert.deepEqual(t.checkExists(googleCred({ accountId: 'env-acct', scopes: [GOOGLE_READONLY], clientId: GOOGLE_CLIENT_ID, accessToken: 'x', refreshToken: 'y', expiresAt: 1 })), { credentialExists: true });
   } finally {
-    delete process.env.ETCO_data_credentialsFile;
+    if (prev === undefined) delete process.env.ETCO_data_credentialsFile; else process.env.ETCO_data_credentialsFile = prev;
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('D2 env unset: a plain store is in-memory only and never touches disk; a path string is honored', () => {
+test('D2 with no env configured the default store is durable at the package data path; a path string is honored', () => {
   const dir = tmpDir();
+  const prev = process.env.ETCO_data_credentialsFile;
   try {
-    const s = new CredentialStore();
-    s.save(googleCred({ accountId: 'mem-acct', authCode: 'testAuthCode' }));
-    assert.deepEqual(readdirSync(dir), [], 'no file written without a configured path');
-    const t = new CredentialStore();
-    assert.deepEqual(t.checkExists(googleCred({ accountId: 'mem-acct', scopes: [GOOGLE_READONLY], clientId: GOOGLE_CLIENT_ID, accessToken: 'x', refreshToken: 'y', expiresAt: 1 })), { credentialExists: false }, 'fresh in-memory store has nothing');
+    delete process.env.ETCO_data_credentialsFile;
+    const s = defaultStore();
+    assert.ok(s.file.endsWith(join('packages', 'data', 'data', 'credentials.json')),
+      `default store points at the durable package data snapshot, got ${s.file}`);
+    assert.ok(s.file.startsWith('/') || /^[A-Za-z]:[\\/]/.test(s.file), 'default store path is absolute');
 
     const s2 = new CredentialStore({ file: join(dir, 'string.json') });
     s2.save(googleCred({ accountId: 'string-acct', authCode: 'testAuthCode' }));
     const s3 = new CredentialStore(join(dir, 'string.json'));
     assert.deepEqual(s3.checkExists(googleCred({ accountId: 'string-acct', scopes: [GOOGLE_READONLY], clientId: GOOGLE_CLIENT_ID, accessToken: 'x', refreshToken: 'y', expiresAt: 1 })), { credentialExists: true });
   } finally {
-    delete process.env.ETCO_data_credentialsFile;
+    if (prev === undefined) delete process.env.ETCO_data_credentialsFile; else process.env.ETCO_data_credentialsFile = prev;
     rmSync(dir, { recursive: true, force: true });
   }
 });
@@ -413,8 +427,32 @@ test('D2 a corrupt snapshot file fails loudly instead of silently losing credent
   }
 });
 
+test('D2 DIVERGENCE (scope-overlap uniqueness): same-slot overlapping scope sets coexist, and a shared-scope GET is a multi-match false negative', () => {
+  // Mongo's unique multikey index on the array field scopes (StoredCredential.ts
+  // :107-119) makes the SECOND save collide whenever two same-slot records SHARE
+  // a scope value: the new doc's index keys overlap the stored doc's, Mongo
+  // throws E11000, and the handler answers 200 {credentialExists:true}
+  // (CredentialRequestsHandler.ts:36-39). Phoenix keys the slot by the SORTED
+  // scope set, so overlapping-but-not-equal sets coexist instead. Consequence:
+  // find() can match more than one record and returns undefined (the reference's
+  // "critical bug" path, Credentials.ts:221-226), so GET reports
+  // credentialExists:false for a scope that IS stored. The original fixtures
+  // never save overlapping scope sets, so neither behaviour is pinned by the
+  // reference; this test pins PHOENIX's and the difference is reported as a
+  // divergence candidate, not labelled parity.
+  const s = redeemStore();
+  const slot = { accountId: 'ov', skillId: 'sk', serviceName: 'google', serviceAccountName: 'personalCalendar' };
+  s.save(googleCred({ ...slot, scopes: ['a'], authCode: 'a1' }));
+  s.save(googleCred({ ...slot, scopes: ['a', 'b'], authCode: 'a2' }));
+  s.save(googleCred({ ...slot, scopes: ['b', 'c'], authCode: 'a3' }));
+  assert.equal(s.m.size, 3, 'Phoenix stores all three overlapping records (reference would reject #2/#3)');
+  assert.equal(s.find({ ...slot, scopes: ['a'] }), undefined, 'a shared scope matches >1 record -> undefined');
+  assert.deepEqual(s.checkExists({ ...slot, scopes: ['a'] }), { credentialExists: false }, 'multi-match surfaces as credentialExists:false');
+  assert.equal(s.find({ ...slot, scopes: ['c'] }).oauth2.authCode, 'a3', 'a scope unique to one record still resolves');
+});
+
 test('D2 inactive credentials are hidden from lookup and reactivated on save (allowInactive)', () => {
-  const s = new CredentialStore();
+  const s = plainStore();
   const data = googleCred({ accountId: 'inactive-acct', authCode: 'testAuthCode' });
   s.save(data);
   const stored = s.find(data);
@@ -443,7 +481,7 @@ before(async () => {
     googleCalendarProvider: async () => [],
   }).listen(PORT);
 });
-after(() => { service1?.close?.(); rmSync(tmp, { recursive: true, force: true }); });
+after(() => { service1?.close?.(); rmSync(tmp, { recursive: true, force: true }); rmSync(ROOT, { recursive: true, force: true }); });
 
 const j = (path, opts) => fetch(`http://localhost:${PORT}${path}`, opts);
 
@@ -463,6 +501,30 @@ test('D2 HTTP: duplicate authCode -> 200 {credentialExists:true}', async () => {
   const body = JSON.stringify(googleCred({ accountId: 'http-acct', authCode: 'testAuthCode' }));
   assert.deepEqual(await (await j('/v1/credential', { method: 'POST', headers: { 'content-type': 'application/json' }, body })).json(), { created: true });
   assert.deepEqual(await (await j('/v1/credential', { method: 'POST', headers: { 'content-type': 'application/json' }, body })).json(), { credentialExists: true });
+});
+
+test('D2 HTTP: exact 400 plain-text envelope for every required GET/DELETE field', async () => {
+  const getBase = { accountId: 'a', skillId: 'b', serviceName: 'google', serviceAccountName: 'c', scopes: 'read' };
+  for (const p of ['accountId', 'skillId', 'serviceName', 'serviceAccountName', 'scopes']) {
+    const qs = new URLSearchParams(getBase); qs.delete(p);
+    const r = await j(`/v1/credential?${qs}`);
+    assert.equal(r.status, 400, `GET missing ${p}`);
+    assert.equal(await r.text(), `Missing ${p} in request`, `GET missing ${p} message`);
+  }
+  const delBase = { accountId: 'a', skillId: 'b', serviceName: 'google', serviceAccountName: 'c' };
+  for (const p of ['accountId', 'skillId', 'serviceName', 'serviceAccountName']) {
+    const qs = new URLSearchParams(delBase); qs.delete(p);
+    const r = await j(`/v1/credential?${qs}`, { method: 'DELETE' });
+    assert.equal(r.status, 400, `DELETE missing ${p}`);
+    assert.equal(await r.text(), `Missing ${p} in request`, `DELETE missing ${p} message`);
+  }
+});
+
+test('D2 HTTP: an unsupported serviceName on the authCode path -> 400 "Service is not supported by Lasso"', async () => {
+  const body = JSON.stringify({ accountId: 'svc-acct', skillId: 'skill', serviceName: 'yahoo', serviceAccountName: 'personalCalendar', scopes: ['read'], clientId: 'c', authCode: 'ac' });
+  const r = await j('/v1/credential', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
+  assert.equal(r.status, 400);
+  assert.equal(await r.text(), 'Service is not supported by Lasso: yahoo');
 });
 
 test('D2 HTTP: a credential persisted by one service instance is found by the next (restart)', async () => {
@@ -491,4 +553,44 @@ test('D2 credentialQueryFromParams: repeated params -> array; single param -> on
   assert.deepEqual(credentialQueryFromParams(p).scopes, ['a', 'b']);
   const p2 = new URL('http://x/v1/credential?scopes=a,b').searchParams;
   assert.deepEqual(credentialQueryFromParams(p2).scopes, ['a,b']);
+});
+
+test('D2 HTTP: report-skill + google with no clientId gets the default clientId; a non-report skill 400s', async () => {
+  const store = plainStore();
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 4);
+  try {
+    const post = (body) => fetch(`http://localhost:${PORT + 4}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const base = { accountId: 'dflt-acct', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: ['read'], authCode: 'testAuthCode' };
+    assert.deepEqual(await (await post({ ...base, skillId: 'report-skill' })).json(), { created: true });
+    const found = store.find({ accountId: 'dflt-acct', skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: ['read'] });
+    assert.equal(found.oauth2.clientId, '830717411721', 'handler injected DEFAULT_GOOGLE_CLIENT_ID');
+    const other = await post({ ...base, accountId: 'dflt-acct2', skillId: 'chitchat-skill' });
+    assert.equal(other.status, 400, 'no injection for a non-report skill');
+    assert.equal(await other.text(), 'Missing clientId in request');
+  } finally {
+    svc.close();
+  }
+});
+
+test('D2 HTTP: the DEFAULT store (createDataService with no store arg) survives a service restart', async () => {
+  const dir = tmpDir();
+  const prev = process.env.ETCO_data_credentialsFile;
+  const qs = 'accountId=dflt-durable&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes=https://www.googleapis.com/auth/calendar.readonly';
+  try {
+    process.env.ETCO_data_credentialsFile = join(dir, 'credentials.json');
+    const svcA = await createDataService({ googleCalendarProvider: async () => [] }).listen(PORT + 5);
+    assert.deepEqual(await (await fetch(`http://localhost:${PORT + 5}/v1/credential`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(googleCred({ accountId: 'dflt-durable', authCode: 'testAuthCode' })),
+    })).json(), { created: true });
+    svcA.close();
+    const svcB = await createDataService({ googleCalendarProvider: async () => [] }).listen(PORT + 6);
+    try {
+      assert.deepEqual(await (await fetch(`http://localhost:${PORT + 6}/v1/credential?${qs}`)).json(),
+        { credentialExists: true }, 'default-resolved store persisted across a restart');
+    } finally { svcB.close(); }
+  } finally {
+    if (prev === undefined) delete process.env.ETCO_data_credentialsFile; else process.env.ETCO_data_credentialsFile = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

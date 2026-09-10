@@ -1,20 +1,32 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { CredentialStore } from '../src/credentials.js';
 import { normalizeEvent } from '../src/calendar.js';
 import { createDataService } from '../src/index.js';
+
+// The default store now resolves to a durable file
+// (packages/data/data/credentials.json). Point it at a temp file so this suite
+// stays hermetic; the D-02 durability suite covers the persisted path directly.
+// Bare stores get their own snapshot so tests don't share credential state.
+const TEST_DIR = mkdtempSync(join(tmpdir(), 'phoenix-data-cred-core-'));
+process.env.ETCO_data_credentialsFile = join(TEST_DIR, 'credentials.json');
+let _seq = 0;
+const store = () => new CredentialStore({ file: join(TEST_DIR, `isolated-${++_seq}.json`) });
 
 const PORT = 7796;
 const base = { accountId: 'acct1', skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: ['read'], clientId: 'c1' };
 
 test('save requires fields + authCode/tokens', () => {
-  const s = new CredentialStore();
+  const s = store();
   assert.throws(() => s.save({ accountId: 'a' }), /Missing skillId/);
   assert.throws(() => s.save({ ...base }), /Missing authCode or tokens/);
 });
 
 test('testAuthCode bypass stores fake tokens; dup authCode -> DUPLICATE_KEY', () => {
-  const s = new CredentialStore();
+  const s = store();
   const c = s.save({ ...base, authCode: 'testAuthCode' });
   assert.equal(c.oauth2.accessToken, 'testAccessToken');
   assert.deepEqual(s.checkExists(base), { credentialExists: true });
@@ -22,13 +34,13 @@ test('testAuthCode bypass stores fake tokens; dup authCode -> DUPLICATE_KEY', ()
 });
 
 test('direct tokens path saves without OAuth exchange', () => {
-  const s = new CredentialStore();
+  const s = store();
   const c = s.save({ ...base, serviceAccountName: 'workCalendar', accessToken: 'at', refreshToken: 'rt', expiresAt: 1 });
   assert.equal(c.oauth2.accessToken, 'at');
 });
 
 test('deleteOther: a new report-skill calendar cred for the other service is removed (B3 fix)', () => {
-  const s = new CredentialStore();
+  const s = store();
   s.save({ ...base, serviceName: 'google', serviceAccountName: 'personalCalendar', authCode: 'testAuthCode' });
   s.save({ ...base, serviceName: 'outlook', serviceAccountName: 'personalCalendar', authCode: 'testAuthCode' });
   // only the outlook one should remain for personalCalendar
@@ -37,7 +49,7 @@ test('deleteOther: a new report-skill calendar cred for the other service is rem
 });
 
 test('delete with wildcards removes matching creds', () => {
-  const s = new CredentialStore();
+  const s = store();
   s.save({ ...base, authCode: 'testAuthCode' });
   s.delete({ accountId: 'acct1', skillId: '*', serviceName: '*', serviceAccountName: '*' });
   assert.deepEqual(s.checkExists(base), { credentialExists: false });
@@ -61,7 +73,7 @@ before(async () => {
   });
   server = await svc.listen(PORT);
 });
-after(() => server?.close?.());
+after(() => { server?.close?.(); rmSync(TEST_DIR, { recursive: true, force: true }); });
 
 const j = (path, opts) => fetch(`http://localhost:${PORT}${path}`, opts);
 
