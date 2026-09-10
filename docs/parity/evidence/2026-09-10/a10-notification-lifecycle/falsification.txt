@@ -1,0 +1,26 @@
+A-10 falsification — revision 5aaf98d361b2826a1b2e9860d6db46a53388ed4d — generated 2026-09-10T18:42:27.959Z
+Each case replaces ONE full code line (leading newline + indentation anchor, uniqueness asserted),
+runs the focused tests, records the failure, restores byte-for-byte, re-runs green.
+allCaught = True
+
+[CAUGHT] declared operation GetStatus is not dispatched (served-at-runtime claim)
+  file:   packages/classic/src/notification.js
+  anchor: "\n      case 'getstatus':"  occurrences=1  codeLineChanged=True
+  broken:   exit=1 pass=5 fail=3
+            failing: reconnect with the same token redelivers only un-acked rows, exactly once; rotation makes the old token unreachable for new sockets; new token still works; both operations the pinned Notification client model declares are served at their wire target
+  restored: exit=0 pass=8 fail=0  byteIdentical=True
+
+[CAUGHT] acknowledged row is not removed, so a reconnect replays it (ack/exactly-once claim)
+  file:   packages/classic/src/notification.js
+  anchor: '\n            this.store.removeNotification(notification._id);'  occurrences=1  codeLineChanged=True
+  broken:   exit=1 pass=3 fail=2
+            failing: reconnect with the same token redelivers only un-acked rows, exactly once; multi-account isolation: concurrent sockets never cross-deliver, even across reconnects
+  restored: exit=0 pass=5 fail=0  byteIdentical=True
+
+[CAUGHT] the serving certificate stops covering the socket hostname (TLS/SNI claim)
+  file:   scripts/ensure-tls-certs.mjs
+  anchor: '    dns.push(`${region}.jibo.com`, `${region}-socket.jibo.com`);'  occurrences=1  codeLineChanged=True
+  broken:   exit=1 pass=2 fail=1
+            failing: the robot socket hostname is served over TLS with SNI and delivers, separately from REST service discovery
+  restored: exit=0 pass=3 fail=0  byteIdentical=True
+

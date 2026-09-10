@@ -1,0 +1,14 @@
+# jiborobot/srv-notification-ws:config/config.json
+
+{
+  "server": {
+    "port": 8080,
+    "wsPort": 8090,
+    "mongoHost": "mongo",
+    "mongoDb": "jibo",
+    "mongoReplicaName": "",
+    "kafka": {
+      "groupId": "notification"
+    }
+  }
+}

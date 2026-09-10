@@ -1,0 +1,14 @@
+# jiborobot/srv-entrypoint-socket-ws:config/config.json
+
+{
+  "server": {
+    "wsPort": 8090,
+    "port": 8080,
+    "notification":{
+      "frequency":15000
+    },
+    "sns":{
+      "topicArn":"arn:aws:sns:us-east-1:368558344414:jibo-events-legacy"
+    }
+  }
+}

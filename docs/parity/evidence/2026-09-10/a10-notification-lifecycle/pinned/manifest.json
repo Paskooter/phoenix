@@ -1,0 +1,91 @@
+{
+  "jiborobot__srv-entrypoint-socket-ws__config_config.json.txt": {
+    "bytes": 260,
+    "lines": 15,
+    "sha256": "1c8ffea8fd18e6bb87d1e1f3a23a88a4ea475005a6eec23da86cb460340999aa"
+  },
+  "jiborobot__srv-entrypoint-socket-ws__src_clients_notification.client.ts.txt": {
+    "bytes": 1228,
+    "lines": 42,
+    "sha256": "03f0daee8b0da1407fd38733d910192ee2ceb386c97b634ef416c96dedfde189"
+  },
+  "jiborobot__srv-entrypoint-socket-ws__src_index.ts.txt": {
+    "bytes": 795,
+    "lines": 25,
+    "sha256": "d1f772b83946c644de6d7021823518cd0c45d9e7dcac924f7a380c3440009a36"
+  },
+  "jiborobot__srv-entrypoint-socket-ws__src_socket-server.ts.txt": {
+    "bytes": 4137,
+    "lines": 131,
+    "sha256": "3efe268c98f8669bb7d5590b0de6401f6ae89b746b7bb3391781bcdd64659ea3"
+  },
+  "jiborobot__srv-jibo-server-client__lib_services_notification.js.txt": {
+    "bytes": 2394,
+    "lines": 82,
+    "sha256": "dde89f5820087e24e3e29f16a7cc24fa5700e70c44de051c07645dc91370a3ea"
+  },
+  "jiborobot__srv-notification-ws__config_config.json.txt": {
+    "bytes": 242,
+    "lines": 15,
+    "sha256": "e4cae9a7ea808cddc74a27f4b0e4ff137ca5e1fd693a068b32f8a60cbf7303d1"
+  },
+  "jiborobot__srv-notification-ws__src_controllers_ctrl.ts.txt": {
+    "bytes": 3667,
+    "lines": 119,
+    "sha256": "fe21d8394481d276ef1b07bd3f9099f314e9209fe030d623cb089d1dedc5b88a"
+  },
+  "jiborobot__srv-notification-ws__src_errors_errors.ts.txt": {
+    "bytes": 166,
+    "lines": 8,
+    "sha256": "05d2188c7cdb3d9d29f8d448fade9d6833d24577f5504b0819184b6ff7847228"
+  },
+  "jiborobot__srv-notification-ws__src_event.handlers_loop.updated.handler.ts.txt": {
+    "bytes": 633,
+    "lines": 22,
+    "sha256": "1c23432fd6d3bb25fdab6b3798683ff1b57f33cee2179a3b95dbe5387875cd1d"
+  },
+  "jiborobot__srv-notification-ws__src_event.handlers_socket.connected.handler.ts.txt": {
+    "bytes": 420,
+    "lines": 14,
+    "sha256": "c99cb52a2256959cd83ae617d70a024411f20f5f99eef3d83e6d34822c0552a1"
+  },
+  "jiborobot__srv-notification-ws__src_event.handlers_socket.disconnected.handler.ts.txt": {
+    "bytes": 444,
+    "lines": 14,
+    "sha256": "9050b690933641356ec3940450573b705dbc4170b25ba3fe66a7c13ee43c77ad"
+  },
+  "jiborobot__srv-notification-ws__src_handlers_handler.ts.txt": {
+    "bytes": 1470,
+    "lines": 48,
+    "sha256": "e73ca47cff5548d4f477c02ee66c0865c8a0223642881a15b527b3b44cead558"
+  },
+  "jiborobot__srv-notification-ws__src_routes_route.ts.txt": {
+    "bytes": 2153,
+    "lines": 80,
+    "sha256": "6fe000ad90f87af3e6a0455536d84677e0baae906e1d1897f3abcd05e83633a8"
+  },
+  "jiborobot__srv-notification-ws__src_schemes_notification.ts.txt": {
+    "bytes": 487,
+    "lines": 15,
+    "sha256": "61402cc230a33e70c22f3cf7d68d140f2bd3db2467e1b55b35a29b57767fa147"
+  },
+  "jiborobot__srv-notification-ws__src_schemes_token.ts.txt": {
+    "bytes": 524,
+    "lines": 19,
+    "sha256": "3e3146287ef57fcf101df53bcbcade3d2e8b68f5b08a8eae7e64be1911f2cfb0"
+  },
+  "jiborobot__srv-security-gw__src_controllers_auth.ctrl.ts.txt": {
+    "bytes": 6539,
+    "lines": 190,
+    "sha256": "36257be7c879cd3c1fba3ee816c17589dc392c0eae863d5c2ab95b7c12dc69cf"
+  },
+  "jiborobot__srv-security-gw__src_errors_account.ts.txt": {
+    "bytes": 1338,
+    "lines": 48,
+    "sha256": "9a82163a77e042827ed106895560c4c404eab35bac9eba55c9058bc71de54997"
+  },
+  "notification-2015-05-05.normal.json (MCP)": {
+    "bytes": 1815,
+    "sha256": "09680e0794eea029a2968c55caa6b658b30db0fd2332f61a98cd3d679c913e26"
+  }
+}

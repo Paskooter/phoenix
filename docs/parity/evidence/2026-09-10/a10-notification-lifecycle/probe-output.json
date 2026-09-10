@@ -1,0 +1,469 @@
+{
+  "generatedAt": "2026-09-10T18:43:14.224Z",
+  "node": "v22.22.0",
+  "revision": "5aaf98d361b2826a1b2e9860d6db46a53388ed4d",
+  "pinnedClient": {
+    "sdkVersion": "3.0.110",
+    "clientModelPath": "/home/shell/work/phoenix/.parity/yarn-cache/v1/npm-@jibo/jibo-server-client-3.0.110-dc0962bd91de9392ecf2ef6f96c6d9f7642d23e8/apis/notification-2015-05-05.min.json",
+    "clientModelSha256": "bd7f14fe98bbab35a02f152741259d99947b1a4c1f4a481c4574efb88302e496",
+    "normalModelSha256": "b935151cec00c31a56ad0e4e34ce878fccdde416afe557f62847a11931406155",
+    "consumerSha256": "93b9677b95a3a153a540b98f79d15c5c0c28fb4819b0f1aed99abae93828bd9b",
+    "consumer3_0_105Identical": true,
+    "targetPrefix": "Notification_20150505",
+    "jsonVersion": "1.1",
+    "declaredOperations": [
+      {
+        "operation": "NewRobotToken",
+        "modelName": "NewRobotToken",
+        "wireName": "Notification_20150505.NewRobotToken",
+        "inputShape": "RobotTokenRequest",
+        "outputShape": "Token"
+      },
+      {
+        "operation": "GetStatus",
+        "modelName": null,
+        "wireName": "Notification_20150505.GetStatus",
+        "inputShape": "GetStatusRequest",
+        "outputShape": "GetStatusResponse"
+      }
+    ],
+    "clientModelOperations": [
+      "NewRobotToken",
+      "GetStatus"
+    ]
+  },
+  "runtime": {
+    "entrypointPort": 40653
+  },
+  "operations": {
+    "newRobotToken": {
+      "statusCode": 200,
+      "code": null,
+      "data": {
+        "token": "fda153a769f3dbd995e6701a41931ec1aa9be9f857b4a0fe304aa72368a7856002b6e3a5225cc4f17afafec185c54df23a7a38259e4e87c87bbdafe17ba31b58"
+      }
+    },
+    "getStatus": {
+      "statusCode": 200,
+      "code": null,
+      "data": {
+        "connected": false
+      }
+    }
+  },
+  "wireCapture": {
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/",
+        "target": "Notification_20150505.NewRobotToken",
+        "contentType": "application/json",
+        "host": "127.0.0.1:40345",
+        "signedHeaders": "host;x-amz-content-sha256;x-amz-date;x-amz-target",
+        "hasAmzDate": true,
+        "body": "{\"deviceId\":\"wire-device\"}"
+      },
+      {
+        "method": "POST",
+        "path": "/",
+        "target": "Notification_20150505.GetStatus",
+        "contentType": "application/json",
+        "host": "127.0.0.1:40345",
+        "signedHeaders": "host;x-amz-content-sha256;x-amz-date;x-amz-target",
+        "hasAmzDate": true,
+        "body": "{\"accountId\":\"account-alpha\"}"
+      }
+    ],
+    "sdkClientResults": {
+      "newRobotToken": {
+        "error": null,
+        "data": {
+          "token": "echo-token"
+        }
+      },
+      "getStatus": {
+        "error": null,
+        "data": {
+          "connected": true
+        }
+      }
+    }
+  },
+  "servedOperations": [
+    {
+      "wireName": "Notification_20150505.NewRobotToken",
+      "viaSdk": true
+    },
+    {
+      "wireName": "Notification_20150505.GetStatus",
+      "viaSdk": true
+    }
+  ],
+  "authMatrix": [
+    {
+      "case": "no authorization header",
+      "status": 401,
+      "errortype": "MISSING_AUTH_HEADER",
+      "body": {
+        "__type": "MISSING_AUTH_HEADER",
+        "message": "Request is not signed properly, missing authorization header"
+      }
+    },
+    {
+      "case": "unknown access key (signed with other secret)",
+      "status": 401,
+      "errortype": "ACCESS_KEY_NOT_FOUND",
+      "body": {
+        "__type": "ACCESS_KEY_NOT_FOUND",
+        "message": "Access key not found"
+      }
+    },
+    {
+      "case": "known key, wrong secret",
+      "status": 401,
+      "errortype": "SIGNATURE_MISMATCH",
+      "body": {
+        "__type": "SIGNATURE_MISMATCH",
+        "message": "Signature does not match"
+      }
+    },
+    {
+      "case": "inactive account",
+      "status": 403,
+      "errortype": "ACCOUNT_NOT_ACTIVE",
+      "body": {
+        "__type": "ACCOUNT_NOT_ACTIVE",
+        "message": "Account not active"
+      }
+    },
+    {
+      "case": "clock skew beyond 15 minutes",
+      "status": 401,
+      "errortype": "CLOCK_SKEW_TOO_LONG",
+      "body": {
+        "__type": "CLOCK_SKEW_TOO_LONG",
+        "message": "Clock skew is more than 15 minutes"
+      }
+    },
+    {
+      "case": "authorization present, date missing",
+      "status": 401,
+      "errortype": "MISSING_DATE_HEADER",
+      "body": {
+        "__type": "MISSING_DATE_HEADER",
+        "message": "Request must contain Date or X-Amz-Date header"
+      }
+    }
+  ],
+  "tokenLifecycle": {
+    "newRobotTokenStatus": 200,
+    "tokenShape": "sha-less 64 random bytes hex (128 chars)",
+    "responseKeys": [
+      "token"
+    ],
+    "tokenDocumentKeys": [
+      "_id",
+      "accountId",
+      "created",
+      "lastConnected",
+      "tokenKey",
+      "updated"
+    ],
+    "rotationKeepsTokenDocument": true,
+    "rotationChangesTokenKey": true,
+    "oldKeyResolvableAfterRotation": false,
+    "accountsAreIsolated": true,
+    "betaTokenIssued": true,
+    "betaDistinctAccountId": "account-beta",
+    "alphaDocumentUnchangedByBeta": true,
+    "reject_{\"deviceId\":{}}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+      }
+    },
+    "reject_{\"deviceId\":[]}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+      }
+    },
+    "reject_{\"deviceId\":true}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+      }
+    },
+    "reject_{\"deviceId\":null}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"deviceId\" fails because [\"deviceId\" must be a string]"
+      }
+    },
+    "reject_{\"deviceId\":\"\"}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"deviceId\" fails because [\"deviceId\" is not allowed to be empty]"
+      }
+    },
+    "rejectBody_\"\"": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      }
+    },
+    "rejectBody_null": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      }
+    },
+    "rejectBody_[]": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      }
+    },
+    "rejectBody_false": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      }
+    },
+    "rejectBody_0": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      }
+    },
+    "rejectBody_\"\\\"scalar\\\"\"": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "\"value\" must be an object"
+      }
+    },
+    "rejectBody_\"not json at all\"": {
+      "status": 400,
+      "errortype": null,
+      "body": {
+        "type": "ERROR",
+        "msgID": "66464198-66b5-42e4-9347-d9fa3937d140",
+        "ts": 1789065794538,
+        "final": true,
+        "data": {
+          "message": "Unexpected token o in JSON at position 0"
+        }
+      }
+    },
+    "validAfterRejects": 200,
+    "getStatus_{}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"accountId\" fails because [\"accountId\" is required]"
+      }
+    },
+    "getStatus_{\"accountId\":null}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"accountId\" fails because [\"accountId\" must be a string]"
+      }
+    },
+    "getStatus_{\"accountId\":7}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"accountId\" fails because [\"accountId\" must be a string]"
+      }
+    },
+    "getStatus_{\"accountId\":\"\"}": {
+      "status": 422,
+      "errortype": null,
+      "body": {
+        "statusCode": 422,
+        "error": "Unprocessable Entity",
+        "message": "child \"accountId\" fails because [\"accountId\" is not allowed to be empty]"
+      }
+    },
+    "getStatus_{\"accountId\":\"account-beta\",\"extra\":1}": {
+      "status": 200,
+      "errortype": null,
+      "body": {
+        "connected": false
+      }
+    }
+  },
+  "socketLifecycle": {
+    "deliveredFrameKeys": [
+      "_id",
+      "created",
+      "payload",
+      "skillId",
+      "tokenId"
+    ],
+    "deliveredFrame": {
+      "_id": "4a651c7d1c9d871da1394702",
+      "created": "2026-09-10T18:43:14.556Z",
+      "payload": {
+        "name": "LoopUpdated",
+        "payload": {
+          "seq": "live"
+        }
+      },
+      "skillId": "-1",
+      "tokenId": "b2d7b3472c7283baff4826b2"
+    },
+    "isolatedFrameMatchesSubscriber": true,
+    "unsubscribedAccountReceivedNothing": true,
+    "pendingAfterAck": 0,
+    "getStatusOtherAccount": {
+      "status": 200,
+      "errortype": null,
+      "body": {
+        "connected": true
+      }
+    },
+    "unknownTokenUpgrade": {
+      "outcome": "rejected",
+      "status": 401
+    },
+    "rotatedTokenUpgrade": {
+      "outcome": "rejected",
+      "status": 401
+    },
+    "rootSegmentUrlUpgrade": {
+      "outcome": "open"
+    },
+    "queryBearingTokenUpgrade": {
+      "outcome": "open"
+    },
+    "trailingSlashUpgrade": {
+      "outcome": "rejected",
+      "status": 401
+    },
+    "bareRootUpgrade": {
+      "outcome": "rejected",
+      "status": 401
+    },
+    "rowRetainedWhileOffline": true,
+    "statusWhileOffline": {
+      "status": 200,
+      "errortype": null,
+      "body": {
+        "connected": false
+      }
+    },
+    "originalConsumer": {
+      "opened": true,
+      "liveFrameSeq": "consumer-live",
+      "gapFrameSeq": "consumer-gap",
+      "gapRowStillStoredAfterRedelivery": 0,
+      "sawCloseOrWebsocketError": true,
+      "eventNames": [
+        "open",
+        "message",
+        "close",
+        "open",
+        "message"
+      ],
+      "connectUrlLines": [
+        "trying to connect: ws://127.0.0.1:40653/<token>",
+        "trying to connect: ws://127.0.0.1:40653/<token>"
+      ],
+      "connectAttempts": 2,
+      "consumerReusedTheSameToken": true,
+      "ackedRowNotReplayed": true,
+      "reconnectIntervalMs": 10000
+    }
+  },
+  "tls": {
+    "cert": "/tmp/phoenix-a10-probe-39BlDr/tls/server.crt",
+    "san": "X509v3 Subject Alternative Name: \n    DNS:localhost, DNS:phx.jibo.com, DNS:phx-socket.jibo.com, IP Address:127.0.0.1, IP Address:192.168.1.182, IP Address:100.90.238.114, IP Address:10.99.0.8, IP Address:172.19.0.1",
+    "httpDiscovery": {
+      "status": 200,
+      "body": "{\"token\":\"cde5244fd715f813601f9cfdc02878e6232364038760040f48c5a9d3c7e520c5063f14378ff1f2106bb367de138421380504cae3fbef98bf1daedb29e103b667\"}"
+    },
+    "socketDeliveryOverTls": {
+      "seq": "tls",
+      "error": null
+    },
+    "withoutPhoenixCaRejected": true,
+    "withoutPhoenixCaError": "unable to verify the first certificate",
+    "wrongSniRejected": true,
+    "wrongSniError": "Hostname/IP does not match certificate's altnames: Host: other.jibo.com. is not in the cert's altnames: DNS:localhost, DNS:phx.jibo.com, DNS:phx-socket.jibo.com, IP Address:127.0.0.1, IP Address:192.168.1.182, IP Address:100.90.238.114, IP Address:10.99.0.8, IP Address:172.19.0.1",
+    "note": "The robot firmware is not available; this exercises the TLS/SNI path with a standard client, not the robot."
+  },
+  "summary": {
+    "declaredOperations": 2,
+    "servedOperations": 2,
+    "authCases": 6,
+    "socketDeliveryObservable": {
+      "subscribedReceived": true,
+      "unsubscribedReceivedNothing": true,
+      "originalConsumerOpened": true,
+      "originalConsumerReconnectedWithin10s": true
+    },
+    "tlsSocketDelivered": true
+  },
+  "undeclaredOperation": {
+    "status": 400,
+    "errortype": "ValidationException",
+    "body": {
+      "__type": "ValidationException",
+      "message": "unknown Notification operation: DeleteAll"
+    }
+  },
+  "undeclaredPrefix": {
+    "status": 400,
+    "errortype": "UnknownOperationException",
+    "body": {
+      "__type": "UnknownOperationException",
+      "message": "no classic service for target Notifier_20150505.NewRobotToken"
+    }
+  },
+  "findings": [
+    "declared=2 served=2",
+    "socket subscribed=true unsubscribedSilent=true consumerReconnect=true",
+    "tls=true"
+  ]
+}

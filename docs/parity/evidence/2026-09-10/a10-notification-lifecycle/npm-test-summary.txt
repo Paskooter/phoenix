@@ -1,0 +1,17 @@
+Full suite, branch w2/a10, revision 5aaf98d, 2026-09-10
+command: npm test   (test:unit -> node --test ; then parity:check ; then parity:gate)
+
+# tests 1142
+# suites 7
+# pass 1135
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+# duration_ms 20775.203798
+
+Checklist: 16/79 verified (20.3%)
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+parity:gate strict production smoke:
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
