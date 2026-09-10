@@ -1,0 +1,103 @@
+{
+  "task": "C-03",
+  "title": "Restore configuration, registry and service-discovery compatibility",
+  "date": "2026-09-10",
+  "worktree": "/home/shell/work/phoenix/.parity/worktrees/w5-c03",
+  "branch": "w5/c03",
+  "baseRevision": "aecb864",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "v8.9.4 (retained original capture)",
+  "acceptanceCovered": [
+    "Load unmodified reference registries including settings metadata, paths, versions and URL composition",
+    "Reject invalid configurations as the reference does",
+    "Exercise reference NET_/ETCO_ names, prefsFromConfig, required variables, precedence, CLI port and defaults",
+    "Document optional alias behavior and prove an individual Phoenix service works under the reference environment"
+  ],
+  "registries": {
+    "indexesByteIdentical": {
+      "skills-local.json": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629",
+      "skills-pegasus1.json": "c41ab0d33c181bf76c8b60794e63a795bac23e3cd5f109cbf58ceb08fa012693",
+      "skills-pegasus2.json": "de4b4ef977c904a3737373db482803fb749a6377afca54f45c96271f97504e33"
+    },
+    "manifestsByteIdentical": 21,
+    "manifestCheck": "every configPath referenced by skills-local.json fetched from https://pvindex.org/gitea/jiboV2/pegasus/raw/commit/<sourceRevision>/packages/hub/<configPath> and compared byte-for-byte with packages/gateway/resources/skills/<configPath>; 21/21 identical (the MCP gitea_read_file portal truncates files above ~69 kB, so the 1.6 MB chitchat manifest was compared over the Gitea raw URL: sha256 29022d7336281f76e63a894a2cf6c34c800f667ffa10c9e90622b68b4059c45b)",
+    "loadedAtRuntime": {
+      "skills-local.json": { "skills": 21, "firstURL": "http://docker.for.mac.localhost:9002/answer_skill/v1/main", "settingsMetadata": ["report-skill"] },
+      "skills-pegasus1.json": { "skills": 20, "firstURL": "http://gqa.jibo.aws/answer_skill/v1/main", "settingsMetadata": [] },
+      "skills-pegasus2.json": { "skills": 21, "firstURL": "http://gqa.jibo.aws/answer_skill/v1/main", "settingsMetadata": ["report-skill"] }
+    }
+  },
+  "rejectionAtRuntime": {
+    "method": "fed the shared invalid-configuration cases (scripts/parity-reference/gateway-registry-cases.cjs) through the real loadRegistry/loadConfig/SkillConfigManager and compared each thrown error to the retained original Node 8.9.4 capture in packages/gateway/test/fixtures/registry-original.json.gz",
+    "registryRows": { "match": 28, "mismatch": 0 },
+    "validationRows": { "match": 102, "mismatch": 0 },
+    "examples": [
+      "{\"skills\":{}} -> Error: Hub service config missing required list parameter 'skills'",
+      "{\"skills\":[{}]} -> Error: Skill service config missing required parameter 'configPath'",
+      "missing manifest -> Error: ENOENT: no such file or directory, open '<root>/missing.json' (code ENOENT)",
+      "{\"a\":} manifest -> Error: Error when parsing '<root>/manifest.json': Unexpected token } in JSON at position 5",
+      "no URL, not onRobot -> Error: Need to either be 'onRobot: true' or have URL: broken"
+    ],
+    "serviceBoundary": {
+      "env": "ETCO_hub_skillsConfig=does-not-exist.json with otherwise reference-only NET_*/ETCO_* names",
+      "listened": false,
+      "exitCode": 1,
+      "elapsedMs": 5142,
+      "setupLogEmitted": false,
+      "stderr": "[error] H.Hub.RunService ENOENT: no such file or directory, open '<worktree>/packages/gateway/resources/skills/does-not-exist.json'",
+      "reading": "matches utils/common/run-service.js:16-30 (log, then exit 1 after the 5000 ms upload window) and cli/start.ts:28-36 (the setup record is logged only after a successful getConfig())"
+    }
+  },
+  "differential": {
+    "artifact": "docs/parity/evidence/2026-09-10/c03-config-cli/registry-differential.json",
+    "rows": 161,
+    "differences": 0,
+    "groups": { "validations": 102, "registries": 28, "http": 20, "config": 8, "original-registry": 1 }
+  },
+  "newTests": {
+    "file": "packages/gateway/test/configRejection.runtime.test.js",
+    "tests": 5,
+    "result": "pass"
+  },
+  "docs": "docs/parity/CONFIG.md (reference names/defaults/precedence, registry paths and URL composition, total-rejection contract, optional Phoenix aliases, known deviations)",
+  "mcpSources": [
+    "jibo_search q=\"HubConfigProvider ETCO_hub_skillsConfig\" -> /confluence/display/SER/Pegasus+Environment+Variables",
+    "jibo_read /confluence/display/SER/Pegasus+Environment+Variables (NET_xxx = hostname[:port]; ETCO_hub_skillsConfig selects packages/hub/resources/skills/<file>)",
+    "jibo_read /confluence/display/ENG/Service+Registry (2016 platform registry, not referenced by Pegasus)",
+    "gitea_read_file jiboV2/pegasus@5c0a739 packages/hub/src/config/{HubConfigProvider,ConfigFileParser,SkillConfigManager,interfaces}.ts",
+    "gitea_read_file jiboV2/pegasus@5c0a739 packages/hub/src/config/validation/{ConfigFileValidator,SkillConfigValidator,ManifestSettingViewValidator}.ts",
+    "gitea_read_file jiboV2/pegasus@5c0a739 packages/hub/src/skill/SkillUtils.ts",
+    "gitea_read_file jiboV2/pegasus@5c0a739 packages/utils/src/config/EnvVars.ts, packages/report-skill/src/EnvVars.ts",
+    "gitea_read_file jiboV2/pegasus@5c0a739 packages/hub/src/cli/start.ts, packages/utils/common/run-service.js, packages/hub/scripts/run-service.js",
+    "gitea_read_file jiboV2/pegasus@5c0a739 packages/hub/resources/skills/{skills-local,skills-pegasus1,skills-pegasus2}.json"
+  ],
+  "falsification": {
+    "file": "packages/gateway/src/registry.js",
+    "lineNumber": 34,
+    "fullLine": "  validateSkillsIndex(index);",
+    "mutation": "deleted the whole line, so the index validator never runs",
+    "failedTests": [
+      "packages/gateway/test/configRejection.runtime.test.js: an invalid or malformed registry index is rejected with the reference error (observed TypeError: index.skills.map is not a function instead of the reference Error: Hub service config missing required list parameter 'skills')",
+      "packages/gateway/test/registry.test.js: registry, config and real HTTP boundary match pinned original Node 8 execution"
+    ],
+    "restored": true,
+    "afterRestore": "9/9 tests pass"
+  },
+  "npmTest": {
+    "todo": {
+      "command": "npm test",
+      "exit": 1,
+      "tests": 1492, "suites": 7, "pass": 1485, "fail": 0, "cancelled": 0, "skipped": 7, "todo": 0,
+      "errors": ["H-01: dependency C-03 is not verified", "H-09: dependency C-03 is not verified"],
+      "note": "test:unit passed; parity:check stopped the chain, so parity:gate did not run in this invocation"
+    },
+    "withC03MarkedVerifiedUncommittedExperiment": {
+      "exit": 0,
+      "tests": 1492, "suites": 7, "pass": 1485, "fail": 0, "cancelled": 0, "skipped": 7, "todo": 0,
+      "parityCheck": "Tracker structure, dependencies, evidence links and generated checklist are valid.",
+      "parityGate": { "result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0 },
+      "how": "TEMPORARY, UNCOMMITTED: C-03 status flipped to verified with a placeholder verification entry, `npm run parity:status -- --write` regenerated TASKS.md, npm test re-run, then `git checkout -- docs/parity/tasks.json docs/parity/TASKS.md README.md docs/parity/progress.svg`. The committed branch contains no change to tasks.json (status back to todo, 0 verification entries).",
+      "conclusion": "the only cause of the non-zero exit is the missing C-03 verification record; the functional suite and both parity steps are green"
+    }
+  }
+}
