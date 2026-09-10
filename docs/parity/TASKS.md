@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 11 | 46 | 0 | 0 |
-| classic | 14 | 20 | 0 | 0 |
+| pegasus | 12 | 46 | 0 | 0 |
+| classic | 17 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **H-05 — Enforce proactive user settings**.
+Next ready task: **H-10 — Match hub authentication and context identity checks**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -380,7 +380,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/listen-disconnect/revi
 
 ### H-05 — Enforce proactive user settings
 
-- [ ] **todo** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: missing
 
 Owner: Codex. Dependencies: H-02, C-03.
 
@@ -395,7 +395,7 @@ Source: [Original Pegasus packages/hub/src/proactive/tools/SettingsRulesChecker.
 
 Phoenix: [packages/gateway/src/proactive/proactiveTransaction.js](../../packages/gateway/src/proactive/proactiveTransaction.js); [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md](../../docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md) (2026-09-10; Proactive settings are now enforced rather than permissive. Verified end-to-end over a real /v1/proactive WebSocket against a live gateway and live Settings service: opting out produces no match frame and no skill launch, opting back in restores it. Fails CLOSED (suppressed, not accepted) when the settings service is unreachable or the person is unknown to the loop. Durability proven by killing and relaunching both real entrypoint processes over the same store file. Root reproduced the falsification: replacing the settings gate with a permissive filter failed exactly four named runtime tests, restoring returned 17/0.).
 
 ### H-09 — Match each skill process at the reference /v1/main URL
 
@@ -918,7 +918,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 ### A-06 — Complete Settings data/view/ownership compatibility
 
-- [ ] **todo** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02, H-01.
 
@@ -934,7 +934,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/settings-2017-12-19.normal.json](
 
 Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js); [packages/account/src/settingsData.js](../../packages/account/src/settingsData.js); [packages/account/src/settingsProviders.js](../../packages/account/src/settingsProviders.js); [docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json](../../docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a06-compat/certification.md](../../docs/parity/evidence/2026-09-10/a06-compat/certification.md) (2026-09-10; Settings data/view/ownership re-derived from pinned srv-settings-ws and driven against running services; all four operations served and observed over 21 live probes. The agent found NO code defect - the gap was certification coverage, which it added. Ownership observed: a non-member gets 403 LOOP_MEMBER_ONLY on both the robot face and the internal listener. Durability proven by real restart. Root merged and confirmed 60/0 across the wave-6 suites.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
@@ -1317,7 +1317,7 @@ Evidence: pending.
 
 ### A-20 — Implement and verify versioned VoiceTraining and file contracts
 
-- [ ] **todo** · P1 · classic · implementation: missing
+- [x] **verified** · P1 · classic · implementation: missing
 
 Owner: Codex. Dependencies: A-01, A-02, A-03, A-09.
 
@@ -1334,7 +1334,7 @@ Source: [server/voice-ws@a0ec047a86d6811176d0f05a6cce5a660a2cadd8:lib/handlers/i
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
 
-Evidence: pending.
+Evidence: [packages/classic/test/voiceTraining.test.js](../../packages/classic/test/voiceTraining.test.js) (2026-09-10; VoiceTraining implemented with correct version resolution: both pinned voice-ws revisions export only UploadVoiceTraining and ListVoiceTrainings, so the 8 declared file-operation pairs answer the source's literal 404 'Method not found in VoiceTraining'. Root reproduced the falsification: disabling the 404 fallback made the file operations wrongly answer 200, failing the named test; restoring returned 15/0. Durability proven twice, including a real SIGKILL process restart.).
 
 ### X-01 — Verify restored-branch answer and NLU extensions separately
 
@@ -1651,7 +1651,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md](../..
 
 ### A-17 — Implement IFTTT and Classic NLP behavior
 
-- [ ] **todo** · P1 · classic · implementation: stub
+- [x] **verified** · P1 · classic · implementation: stub
 
 Owner: Codex. Dependencies: A-02, A-04.
 
@@ -1666,7 +1666,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/ifttt-2017-02-07.normal.json](htt
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md](../../docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md) (2026-09-10; IFTTT and Classic NLP graduated from stub to real handlers: all 7 IFTTT_20170207 operations and both NLP_20161031 operations served at runtime, stubRegistrations() now empty for both prefixes. Durability proven at process level (SIGKILL, fresh process, re-read). Root merged and ran the suites: 60/0 across all four wave-6 task suites.).
 
 ### A-18 — Close remaining admin, OAuth-client and LPS contracts
 

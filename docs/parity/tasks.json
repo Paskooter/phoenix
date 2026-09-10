@@ -797,7 +797,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "missing",
       "owner": "Codex",
       "dependsOn": [
@@ -817,7 +817,18 @@
         "Use the reference settings request, account/loop identity and rule operators to filter candidates.",
         "No-settings, missing-key, disabled preference, unknown person and settings-service failure produce the reference result; opt-in/out affects real proactive routing."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Proactive settings are now enforced rather than permissive. Verified end-to-end over a real /v1/proactive WebSocket against a live gateway and live Settings service: opting out produces no match frame and no skill launch, opting back in restores it. Fails CLOSED (suppressed, not accepted) when the settings service is unreachable or the person is unknown to the loop. Durability proven by killing and relaunching both real entrypoint processes over the same store file. Root reproduced the falsification: replacing the settings gate with a permissive filter failed exactly four named runtime tests, restoring returned 17/0.",
+          "artifact": "docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "f294624bc29f33dc9eb8124b1078c183e7ff4485",
+          "command": "node --test packages/gateway/test/proactiveSettings.test.js && npm test",
+          "notes": "INFERRED: the no-settings/missing-key/failure branches come from the pinned control flow rather than a captured reference proactive frame stream - no differential capture of the hub proactive transaction exists. The hub SettingsClient uses global fetch so it emits undici transport headers the pinned axios client did not; the settings peer does not read them."
+        }
+      ]
     },
     {
       "id": "H-06",
@@ -2628,7 +2639,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "missing",
       "owner": "Codex",
       "dependsOn": [
@@ -2652,7 +2663,18 @@
         "Verify upload/list/remove/get persistence and errors for each required version, including interrupted requests, restart and cross-account isolation.",
         "Complete original-client or real-robot enrollment/training and retrieval journeys with stored artifacts and provider failures retained."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "VoiceTraining implemented with correct version resolution: both pinned voice-ws revisions export only UploadVoiceTraining and ListVoiceTrainings, so the 8 declared file-operation pairs answer the source's literal 404 'Method not found in VoiceTraining'. Root reproduced the falsification: disabling the 404 fallback made the file operations wrongly answer 200, failing the named test; restoring returned 15/0. Durability proven twice, including a real SIGKILL process restart.",
+          "artifact": "packages/classic/test/voiceTraining.test.js",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "f294624bc29f33dc9eb8124b1078c183e7ff4485",
+          "command": "node --test packages/classic/test/voiceTraining.test.js && npm test",
+          "notes": "No real robot or original-app voice-enrollment journey was run. The S3 presigned url is substituted with a self-hosted blob route (same posture as backup.js). The 413 payload-cap envelope text is inferred from server.js maxBytes, not replayed."
+        }
+      ]
     },
     {
       "id": "X-01",
@@ -3157,7 +3179,7 @@
       "track": "classic",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3181,7 +3203,18 @@
         "Integrate report and proactive consumers with the reference header/version variants and persisted settings.",
         "Cover non-report skills and malformed/unknown settings using controller-derived fixtures."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "Settings data/view/ownership re-derived from pinned srv-settings-ws and driven against running services; all four operations served and observed over 21 live probes. The agent found NO code defect - the gap was certification coverage, which it added. Ownership observed: a non-member gets 403 LOOP_MEMBER_ONLY on both the robot face and the internal listener. Durability proven by real restart. Root merged and confirmed 60/0 across the wave-6 suites.",
+          "artifact": "docs/parity/evidence/2026-09-10/a06-compat/certification.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "f294624bc29f33dc9eb8124b1078c183e7ff4485",
+          "command": "node --test packages/account/test/settingsCompatibility.test.js && npm test",
+          "notes": "Known: the robot-face UpdateSettings/DeleteSettings do not perform the membership check the pinned controller does - a deliberate split from a prior review, reachable via the classic front door but no pinned consumer sends those operations."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / http_contract_repair; Codex root",
@@ -3714,7 +3747,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "stub",
       "owner": "Codex",
       "dependsOn": [
@@ -3733,7 +3766,18 @@
         "Match all seven IFTTT operations with identities, triggers/actions/media, delivery side effects and failure behavior through fixture adapters.",
         "Implement part-of-speech and named-entity output contracts using original examples; empty placeholder arrays are not completion."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-10",
+          "basis": "IFTTT and Classic NLP graduated from stub to real handlers: all 7 IFTTT_20170207 operations and both NLP_20161031 operations served at runtime, stubRegistrations() now empty for both prefixes. Durability proven at process level (SIGKILL, fresh process, re-read). Root merged and ran the suites: 60/0 across all four wave-6 task suites.",
+          "artifact": "docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "f294624bc29f33dc9eb8124b1078c183e7ff4485",
+          "command": "node --test packages/classic/test/ifttt.test.js packages/classic/test/nlp.test.js && npm test",
+          "notes": "The phonetic index is a stand-in: the source uses metaphone(stemmer(text)) but those npm deps are absent, so 'light'/'lights' do not share a key as the pinned spec expects. IFTTT delivery to realtime.ifttt.com is impossible (retired) and is recorded as an explicit failure, never a fabricated success. NLP POS/NER needs spacy 1.2.0 under Python 2 and serves the documented empty shape by default."
+        }
+      ]
     },
     {
       "id": "A-18",
