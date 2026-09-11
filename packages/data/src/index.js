@@ -3,7 +3,8 @@
 // Implemented: weather (/v1/dark_sky, Open-Meteo), news (/v1/ap_news, RSS→AP), maps
 // (/v1/google_maps, ORS) — all via the relay framework with the {relayData,lassoDataFromRedis}
 // envelope + cache; credential CRUD (/v1/credential); calendar (/v1/{google,outlook}_calendar,
-// pluggable provider). Reference: docs/atlas/packages/lasso.md, message-protocol.md §9.
+// OAuth token exchange/refresh/invalidation + pluggable events provider). Reference:
+// docs/atlas/packages/lasso.md, message-protocol.md §9.
 
 import { createService, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
@@ -14,17 +15,42 @@ import { validateNews, newsKey, fetchNews, NEWS_CACHE_TTL_SECONDS, installNewsPo
 import { validateMaps, mapsKey, fetchMaps } from './maps.js';
 import { CredentialStore, credentialHandlers } from './credentials.js';
 import { createCalendarHandler } from './calendar.js';
+import { createOAuthProvider } from './oauth.js';
+
+/**
+ * Build the OAuth provider from a secrets directory when one is configured.
+ * Mirrors OAuth2Secrets.init() loading <resources>/{google,outlook}/client_*.json;
+ * returns null when no directory is configured so the default stays provider-less.
+ * ETCO_lasso_{google,outlook}TokenUrl optionally redirects a provider's token
+ * endpoint (ops/test override — e.g. a corporate token proxy or a recorded fixture).
+ */
+function oauthFromEnv(oauthSecretsDir) {
+  const dir = oauthSecretsDir || process.env.ETCO_lasso_oauthSecretsDir || process.env.ETCO_data_oauthSecretsDir;
+  if (!dir) return null;
+  const endpoints = {};
+  if (process.env.ETCO_lasso_googleTokenUrl) endpoints.google = { tokenUrl: process.env.ETCO_lasso_googleTokenUrl };
+  if (process.env.ETCO_lasso_outlookTokenUrl) endpoints.outlook = { tokenUrl: process.env.ETCO_lasso_outlookTokenUrl };
+  return createOAuthProvider({ secretsDir: dir, endpoints });
+}
 
 /**
  * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function,
  *           credentialStore?: CredentialStore, googleCalendarProvider?: Function,
- *           outlookCalendarProvider?: Function,
+ *           outlookCalendarProvider?: Function, oauth?: object, oauthSecretsDir?: string,
  *           newsPolling?: { enabled?: boolean, intervalMS?: number } }} [opts]
  *   *Get/*Provider override the live upstream calls (used by tests).
+ *   oauth is a configurable provider from oauth.js (createOAuthProvider); when it
+ *   is absent the credential POST keeps the certified D-02 behaviour (no live
+ *   exchange, 501) and the calendar routes stay provider-only.
+ *   oauthSecretsDir loads client_*.json from <dir>/{google,outlook} like the
+ *   reference resources/ tree; the ETCO_lasso_oauthSecretsDir env is the default.
  *   newsPolling mirrors the source APNewsConfig (LassoService.ts:28-32); when it is
  *   omitted the ETCO_lasso_apNews* environment wins, and polling stays off by default.
  */
-export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore = new CredentialStore(), googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
+export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
+  const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir) || null;
+  const store = credentialStore || new CredentialStore({ oauth: oauthProvider });
+  if (oauthProvider) store.oauth = oauthProvider;
   const weather = createRelay({
     name: 'DarkSky',
     ttlSeconds: 15 * 60,
@@ -50,9 +76,13 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     fetchExternal: (input) => fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
   });
 
-  const cred = credentialHandlers(credentialStore);
-  const googleCal = createCalendarHandler({ provider: googleCalendarProvider, store: credentialStore });
-  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider, store: credentialStore });
+  const googleCal = createCalendarHandler({ provider: googleCalendarProvider, store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
+  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider, store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
+  // LassoService.ts:86-95 — a new credential notifies the calendar handlers, which
+  // drop the cached payload for that (skillId, accountId, calendar) key.
+  const cred = credentialHandlers(store, {
+    onNewCredential: (credential) => { googleCal.invalidate(credential); outlookCal.invalidate(credential); },
+  });
 
   const service = createService({
     name: 'data',
@@ -90,6 +120,7 @@ export * as news from './news.js';
 export * as maps from './maps.js';
 export { CredentialStore } from './credentials.js';
 export * as calendar from './calendar.js';
+export * as oauth from './oauth.js';
 
 // Executable boundary: source Lasso scripts/run-service.js resolves the port from
 // argv/ETCO_server_port. Its help branch is a plain `return`, so the starter hands

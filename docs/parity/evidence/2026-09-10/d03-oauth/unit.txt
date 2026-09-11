@@ -1,0 +1,104 @@
+TAP version 13
+# {"t":"2026-09-11T02:08:24.570Z","level":"info","ns":"data","msg":"listening","port":7812}
+# Subtest: D-03 exchange: a real authCode is exchanged at the provider token endpoint and stored
+ok 1 - D-03 exchange: a real authCode is exchanged at the provider token endpoint and stored
+  ---
+  duration_ms: 43.349779
+  type: 'test'
+  ...
+# Subtest: D-03 exchange: a replayed authCode answers 200 {credentialExists:true} and never re-requests a token
+ok 2 - D-03 exchange: a replayed authCode answers 200 {credentialExists:true} and never re-requests a token
+  ---
+  duration_ms: 7.937881
+  type: 'test'
+  ...
+# Subtest: D-03 exchange error: Google 400 -> 400 plain-text "Failed to redeem authCode, Google response was ..."
+ok 3 - D-03 exchange error: Google 400 -> 400 plain-text "Failed to redeem authCode, Google response was ..."
+  ---
+  duration_ms: 4.38189
+  type: 'test'
+  ...
+# Subtest: D-03 exchange error: Outlook 400 -> the pinned AADSTS message
+ok 4 - D-03 exchange error: Outlook 400 -> the pinned AADSTS message
+  ---
+  duration_ms: 6.086917
+  type: 'test'
+  ...
+# Subtest: D-03 exchange: unknown clientId -> 400 "Cannot find secret for <service> client <id>"
+ok 5 - D-03 exchange: unknown clientId -> 400 "Cannot find secret for <service> client <id>"
+  ---
+  duration_ms: 3.099616
+  type: 'test'
+  ...
+# Subtest: D-03 exchange: Outlook authCode success stores outlook tokens
+ok 6 - D-03 exchange: Outlook authCode success stores outlook tokens
+  ---
+  duration_ms: 4.225432
+  type: 'test'
+  ...
+# Subtest: D-03 exchange: testAuthCode still bypasses the provider (D-02 regression guard)
+ok 7 - D-03 exchange: testAuthCode still bypasses the provider (D-02 regression guard)
+  ---
+  duration_ms: 4.197129
+  type: 'test'
+  ...
+# Subtest: D-03 refresh: an expired credential is refreshed at the provider and the new token is stored
+ok 8 - D-03 refresh: an expired credential is refreshed at the provider and the new token is stored
+  ---
+  duration_ms: 7.447371
+  type: 'test'
+  ...
+# Subtest: D-03 refresh failure: the credential is marked inactive REFRESH_FAILED and the route answers 502
+ok 9 - D-03 refresh failure: the credential is marked inactive REFRESH_FAILED and the route answers 502
+  ---
+  duration_ms: 4.722226
+  type: 'test'
+  ...
+# {"t":"2026-09-11T02:08:24.652Z","level":"info","ns":"data","msg":"listening","port":7813}
+# {"t":"2026-09-11T02:08:24.658Z","level":"info","ns":"data","msg":"listening","port":7814}
+# Subtest: D-03 revoked access: a Google "expired or revoked" reply marks REVOKED_ACCESS
+ok 10 - D-03 revoked access: a Google "expired or revoked" reply marks REVOKED_ACCESS
+  ---
+  duration_ms: 8.203688
+  type: 'test'
+  ...
+# {"t":"2026-09-11T02:08:24.666Z","level":"info","ns":"data","msg":"listening","port":7815}
+# Subtest: D-03 invalid token: an Outlook InvalidAuthenticationToken reply marks INVALID_TOKEN
+ok 11 - D-03 invalid token: an Outlook InvalidAuthenticationToken reply marks INVALID_TOKEN
+  ---
+  duration_ms: 8.614156
+  type: 'test'
+  ...
+# Subtest: D-03 cache invalidation: a new credential drops the cached calendar payload
+ok 12 - D-03 cache invalidation: a new credential drops the cached calendar payload
+  ---
+  duration_ms: 12.62915
+  type: 'test'
+  ...
+# Subtest: D-03 setTokens: expiry_date wins, expires_in computes, no expiry throws, refresh_token only when arrived
+ok 13 - D-03 setTokens: expiry_date wins, expires_in computes, no expiry throws, refresh_token only when arrived
+  ---
+  duration_ms: 0.974902
+  type: 'test'
+  ...
+# Subtest: D-03 createCalendarHandler exposes the reference cache key and invalidation
+ok 14 - D-03 createCalendarHandler exposes the reference cache key and invalidation
+  ---
+  duration_ms: 0.158701
+  type: 'test'
+  ...
+# Subtest: D-03 secrets registry: short and full clientID resolve
+ok 15 - D-03 secrets registry: short and full clientID resolve
+  ---
+  duration_ms: 0.238864
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.809325
