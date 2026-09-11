@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 14 | 46 | 0 | 0 |
+| pegasus | 15 | 46 | 0 | 0 |
 | classic | 17 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -763,7 +763,7 @@ Evidence: pending.
 
 ### D-02 — Complete credential CRUD, uniqueness and durable state
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-01.
 
@@ -779,7 +779,7 @@ Source: [Original Pegasus packages/lasso/src/credential](https://pvindex.org/git
 
 Phoenix: [packages/data/src/credentials.js](../../packages/data/src/credentials.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md](../../docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md) (2026-09-11; Credential CRUD, uniqueness and durable storage certified. D-02b (scope-overlap uniqueness) and D-02c (single scopes query param) are CLOSED - an overlapping-scope save now answers 200 {credentialExists:true}, and the indexed/bracketed client forms are accepted while a bare scopes param is correctly 400. Durability proven across a real restart. Root reproduced the falsification at packages/data/src/credentials.js:271: narrowing the indexed-scope guard failed exactly five named tests including the restart and the end-to-end Settings/Lasso resolution; restoring returned 49/0.).
 
 ### D-03 — Implement OAuth exchange, refresh and invalidation
 

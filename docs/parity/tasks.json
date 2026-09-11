@@ -1812,7 +1812,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1831,7 +1831,18 @@
         "Persist credentials with unique keys and atomic updates across restarts.",
         "Record the assignment-bug decision with a regression fixture; do not silently label changed deletion behavior as parity."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Credential CRUD, uniqueness and durable storage certified. D-02b (scope-overlap uniqueness) and D-02c (single scopes query param) are CLOSED - an overlapping-scope save now answers 200 {credentialExists:true}, and the indexed/bracketed client forms are accepted while a bare scopes param is correctly 400. Durability proven across a real restart. Root reproduced the falsification at packages/data/src/credentials.js:271: narrowing the indexed-scope guard failed exactly five named tests including the restart and the end-to-end Settings/Lasso resolution; restoring returned 49/0.",
+          "artifact": "docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "1294d33d3f8302e7f0c03889ac388109bfcd8d16",
+          "command": "node --test packages/data/test/credential*.test.js && npm test",
+          "notes": "D-02a is DELIBERATELY PRESERVED as a divergence, not closed. The pinned source has a real bug at Credentials.ts:143 - `if (newCredential.skillId = 'report-skill')` with a single '=' - which is always truthy AND overwrites skillId, so cross-provider deletion fires on every calendar save. Phoenix keeps '===' (correctness over faithfulness) and pins the difference with a regression fixture. The agent also explained why the original test suite passed despite the bug: its 'non-report-skill' cases save both credentials under the same non-report skill, so the reference's delete query matches nothing. Root reviewed and accepts keeping the fix. NOTE: the agent's reported falsification line number (269) was off by two; the real line is 271."
+        }
+      ]
     },
     {
       "id": "D-03",
