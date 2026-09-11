@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 22 | 46 | 0 | 0 |
+| pegasus | 24 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **H-08 — Restore speech and launch-history side effects**.
+Next ready task: **N-03 — Verify clock, alarm, timer and settings/menu follow-up rules**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -562,7 +562,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/hardware/native-audio-
 
 ### H-08 — Restore speech and launch-history side effects
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: H-04, I-01, I-03.
 
@@ -577,7 +577,7 @@ Source: [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](h
 
 Phoenix: [packages/gateway/src/historyClient.js](../../packages/gateway/src/historyClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/src/config.js](../../packages/gateway/src/config.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/h08-speech-history/README.md](../../docs/parity/evidence/2026-09-11/h08-speech-history/README.md) (2026-09-11; Speech-history recording was entirely absent from the hub; the agent implemented createSpeechRecord/updateSpeechRecord/saveSpeechRecord plus all eight update sites and save-on-resolve/reject, and reproduced the reference's failure-path double-save at runtime (reject->save, then done->resolve->save: a failed turn writes two speech rows, CONFIRMED on the pinned original under node 8.9.4, not invented). Differential source-vs-Phoenix harness: DIFFS(0) across 13 cases. Root falsified by deleting line 600 (the second _saveSpeech): the named test 'a rejected turn records the HubError and saves the speech record twice' failed expected-2-actual-1; restore 11/0.).
 
 ### N-02 — Match grammar execution, factory entities and scoring
 
@@ -783,7 +783,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md](
 
 ### D-03 — Implement OAuth exchange, refresh and invalidation
 
-- [ ] **todo** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: missing
 
 Owner: Codex. Dependencies: D-02.
 
@@ -799,7 +799,7 @@ Source: [Original Pegasus packages/lasso/src/oauth2](https://pvindex.org/gitea/j
 
 Phoenix: [packages/data/src/credentials.js](../../packages/data/src/credentials.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/d03-oauth/evidence.md](../../docs/parity/evidence/2026-09-10/d03-oauth/evidence.md) (2026-09-11; New oauth.js ports the pinned OAuth2 contract (client_*.json registry, Google + Outlook grants, setTokens semantics, both provider error envelopes). HTTP saveCredential performs the real exchange (replayed authCode rejected before any provider call), refresh-when-expired, REFRESH_FAILED/REVOKED_ACCESS/INVALID_TOKEN invalidation. Runtime proof over the real data-service binary. Root falsified the replayed-authCode guard (=== -> !==): 6 named tests failed; restore 15/15.).
 
 ### D-04 — Implement Google/Outlook calendar relay compatibility
 

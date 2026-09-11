@@ -238,3 +238,31 @@ any of them. A `$factory:` reference should compile to its own namespace.
 `$factory:time`, even though its `$AM_PM` arm needs no factory. Native FST would still expose that
 path. This is why N-03 remains UNVERIFIED: bare 'am'/'pm' is unreachable even though nothing about
 it requires the missing time factory.
+## H08a — failure-path speech record is saved twice (matches reference, kept)
+A rejected LISTEN turn writes the speech-history row TWICE: `reject()` saves after
+`onTransactionError`, then `stop()->done()->resolve()->onTransactionSuccess` saves the same
+still-id-less record again. The agent confirmed this ordering on the pinned original under
+node 8.9.4 (tooManyRedirects/parserFailure: two speechSave events, both recordId=<undefined>),
+so it is reproduced, not invented. Falsification: deleting listenTransaction.js:600 fails the
+named double-save test 2-vs-1.
+
+## H08b — skillTimeout late skill-error record (open)
+The reference's inner 10 s SkillRequestMaker budget can win on a hung skill and record a late
+`{skill:{error:{code:'TIMEOUT',...}}}` that Phoenix's record never gains (outer budget only).
+H-04 timeout-layering surfacing through H-08. Excluded from the strict differential.
+
+## N06a — inline loop-member escaping removed (intentional behaviour change)
+The previous inline detector escaped text-name regexes and guarded missing names; the pinned
+`LoopMemberDetector.ts:73,84` does neither, so N-06 removed both and updated the one assertion
+that encoded the old behaviour ('who is undefined undefined' now resolves the malformed member).
+N-06 itself stays UNVERIFIED: 'speaker/referent interactions' in the acceptance text has no
+speaker concept in the pinned source, and the extra expectations are code-derived, not
+oracle-matched. The 12 pinned fixtures replay 12/12.
+
+## S01a — cross-shape session reuse is fail-open (open, deployment hazard)
+A session minted on one skill shape and offered to another returns HTTP 200 SKILL_ACTION and is
+silently reinterpreted instead of rejected. Source-faithful (the original never validates a
+session against the host shape), but cutover must drop/re-launch sessions; the cloud cannot
+enforce it. S-01 stays UNVERIFIED for its deployment-half acceptance (fleet behaviour on a
+shape change is not observable from a worktree).
+

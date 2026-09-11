@@ -922,7 +922,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -946,7 +946,18 @@
         "Record and update reference speech fields across ASR, NLU, matches, skill output, redirects and failure paths.",
         "Verify launch versus update behavior, session/person IDs, redirected skill IDs, flags, fire-and-forget failures and optional log-sink contract."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Speech-history recording was entirely absent from the hub; the agent implemented createSpeechRecord/updateSpeechRecord/saveSpeechRecord plus all eight update sites and save-on-resolve/reject, and reproduced the reference's failure-path double-save at runtime (reject->save, then done->resolve->save: a failed turn writes two speech rows, CONFIRMED on the pinned original under node 8.9.4, not invented). Differential source-vs-Phoenix harness: DIFFS(0) across 13 cases. Root falsified by deleting line 600 (the second _saveSpeech): the named test 'a rejected turn records the HubError and saves the speech record twice' failed expected-2-actual-1; restore 11/0.",
+          "artifact": "docs/parity/evidence/2026-09-11/h08-speech-history/README.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "ad6c9d2e7d560fcd567611c61f4c3c17ac7e4b64",
+          "command": "npm test",
+          "notes": "Open: skillTimeout inner-10s-budget late record (H-04 layering); disableAuth+recordSpeechHistory null-deref; log-only wording. skill.error.code TIMEOUT quirk fixed."
+        }
+      ]
     },
     {
       "id": "H-09",
@@ -1894,7 +1905,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "missing",
       "owner": "Codex",
       "dependsOn": [
@@ -1914,7 +1925,18 @@
         "Test success, refresh failure, revoked access, duplicate/replayed codes and credential cache invalidation with recorded provider fixtures.",
         "Verify a supported current provider using test-owned credentials when available; lack of live access remains a separately visible gate."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "New oauth.js ports the pinned OAuth2 contract (client_*.json registry, Google + Outlook grants, setTokens semantics, both provider error envelopes). HTTP saveCredential performs the real exchange (replayed authCode rejected before any provider call), refresh-when-expired, REFRESH_FAILED/REVOKED_ACCESS/INVALID_TOKEN invalidation. Runtime proof over the real data-service binary. Root falsified the replayed-authCode guard (=== -> !==): 6 named tests failed; restore 15/15.",
+          "artifact": "docs/parity/evidence/2026-09-10/d03-oauth/evidence.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "ad6c9d2e7d560fcd567611c61f4c3c17ac7e4b64",
+          "command": "npm test",
+          "notes": "Open: acceptance item 3 needs live Google/Outlook credentials (external gate). Calendar route answers {events} bare instead of the relay envelope - left to D-01 scope."
+        }
+      ]
     },
     {
       "id": "D-04",
