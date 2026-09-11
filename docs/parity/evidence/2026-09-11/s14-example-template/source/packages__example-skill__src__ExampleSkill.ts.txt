@@ -1,0 +1,64 @@
+# jiboV2/pegasus:packages/example-skill/src/ExampleSkill.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { graph, GraphSkill } from '@jibo/baseskill';
+import * as isn from './IntentSplitNode';
+import * as en from './ExampleNode';
+
+
+export enum Transition {
+    Done = 'Done'
+}
+
+export class ExampleSkill extends GraphSkill {
+
+    constructor(name?: string) {
+        super(name || "example-skill");
+    }
+
+    /**
+     * Builds a new instance of a graph with all new instances of nodes
+     * @param {GraphManager} manager
+     * @returns {Graph}
+     * @memberof GraphManager
+     */
+    createGraph(): graph.Graph<Transition> {
+        const g = new graph.Graph<Transition>('ExampleSkill', graph.utils.generateTransitions<Transition>(Transition));
+
+        const intentSplitNode = new isn.IntentSplitNode('Intent Split');
+        const node1 = new en.ExampleNode('Node1', (data: graph.nodes.Data) => en.Transition.A);
+        const node2 = new en.ExampleNode('Node2', () => en.Transition.B);
+        const node3 = new en.ExampleNode('Node3', () => en.Transition.A);
+        const proactiveNode = new en.ExampleNode('ProactiveNode', () => en.Transition.A);
+
+        g.addNode(intentSplitNode, [
+            [isn.Transition.DOES_LIKE, node1],
+            [isn.Transition.DISLIKES, node1],
+            [isn.Transition.LIVE_AND_PROSPER, node1],
+            [isn.Transition.intent2, node2],    // Terminal transition
+            [isn.Transition.PROACTIVE, proactiveNode]
+        ]);
+
+        g.addNode(node1, [
+            [en.Transition.A, node2],
+            [en.Transition.B, node3],
+        ]);
+
+        g.addNode(node2, [
+            [en.Transition.A, Transition.Done],    // Terminal transition
+            [en.Transition.B, node3],
+        ]);
+
+        g.addNode(node3, [
+            [en.Transition.A, Transition.Done],    // Terminal transition
+            [en.Transition.B, Transition.Done],    // Terminal transition
+        ]);
+
+        g.addNode(proactiveNode, [
+            [en.Transition.A, Transition.Done],
+            [en.Transition.B, Transition.Done]
+        ]);
+
+        g.finalize();
+        return g;
+    }
+}

@@ -1,0 +1,653 @@
+{
+  "task": "S-14",
+  "runtime": "v22.22.0",
+  "exampleSkill": {
+    "skillId": "example-skill",
+    "turns": [
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 1,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": null
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": {
+            "type": "JCP",
+            "jcpType": "SLIM",
+            "esml": "SLIM: 'Node1'"
+          },
+          "final": false,
+          "fireAndForget": false
+        },
+        "timings": "number"
+      },
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 2,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": "A"
+                },
+                {
+                  "nodeID": 2,
+                  "transition": null
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": {
+            "type": "JCP",
+            "jcpType": "SLIM",
+            "esml": "SLIM: 'Node2'"
+          },
+          "final": false,
+          "fireAndForget": false
+        },
+        "timings": "number"
+      },
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 3,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": "A"
+                },
+                {
+                  "nodeID": 2,
+                  "transition": "B"
+                },
+                {
+                  "nodeID": 3,
+                  "transition": null
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": {
+            "type": "JCP",
+            "jcpType": "SLIM",
+            "esml": "SLIM: 'Node3'"
+          },
+          "final": false,
+          "fireAndForget": false
+        },
+        "timings": "number"
+      },
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 3,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": "A"
+                },
+                {
+                  "nodeID": 2,
+                  "transition": "B"
+                },
+                {
+                  "nodeID": 3,
+                  "transition": "A"
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": null,
+          "final": true,
+          "fireAndForget": true
+        },
+        "timings": "number"
+      }
+    ],
+    "invalidIntent": {
+      "type": "ERROR",
+      "data": {
+        "message": "Unknown intent: 'bla'",
+        "skill": {
+          "id": "example-skill"
+        }
+      }
+    },
+    "proactiveMemo": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "example-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 4,
+            "trace": [
+              {
+                "nodeID": 0,
+                "transition": "PROACTIVE"
+              },
+              {
+                "nodeID": 4,
+                "transition": null
+              }
+            ],
+            "dataKeys": []
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "SLIM: 'ProactiveNode' MEMO: 'Proactive entry 1'"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    }
+  },
+  "templateSkill": {
+    "skillId": "template-skill",
+    "validMemo": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "template-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 0,
+            "trace": [
+              {
+                "nodeID": 1,
+                "transition": "Reactive"
+              },
+              {
+                "nodeID": 0,
+                "transition": null
+              }
+            ],
+            "dataKeys": [
+              "_mim"
+            ]
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "This is a template skill",
+          "mim_id": "template-mim",
+          "prompt_id": "template-skill_AN_01"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "unknownMemo": {
+      "type": "ERROR",
+      "data": {
+        "message": "Template Skill launched with unknown memo: 'SomeOtherThing'",
+        "skill": {
+          "id": "template-skill"
+        }
+      }
+    },
+    "nullMemo": {
+      "type": "ERROR",
+      "data": {
+        "message": "Template Skill launched with unknown memo: 'null'",
+        "skill": {
+          "id": "template-skill"
+        }
+      }
+    }
+  },
+  "hostProbes": {
+    "unknownRoute": {
+      "status": 404,
+      "body": {
+        "type": "ERROR",
+        "msgID": "53c5701c-3d2a-437c-80ad-9d19e25d59e8",
+        "ts": 1789105333790,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/nope/main"
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "malformedJson": {
+      "status": 400,
+      "body": {
+        "type": "ERROR",
+        "msgID": "6107232e-01c5-4157-bf76-ebde1491482a",
+        "ts": 1789105333793,
+        "final": true,
+        "data": {
+          "message": "Unexpected end of JSON input"
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "primitiveJson": {
+      "status": 400,
+      "body": {
+        "type": "ERROR",
+        "msgID": "acce599b-218b-42e8-8cb8-20c1b7186e58",
+        "ts": 1789105333795,
+        "final": true,
+        "data": {
+          "message": "Unexpected token \" in JSON at position 0"
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "arrayJson": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "873e8f73-0467-4503-89e1-ea6cac892624",
+        "ts": 1789105333796,
+        "data": {
+          "message": "Cannot read property 'general' of undefined",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "emptyString": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "59f7e4ec-77b7-44b9-bd09-fd09992d5fcf",
+        "ts": 1789105333798,
+        "data": {
+          "message": "Cannot read property 'general' of undefined",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "emptyObject": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "0d14070b-9d4f-4a64-89a8-484812850468",
+        "ts": 1789105333800,
+        "data": {
+          "message": "Cannot read property 'general' of undefined",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "missingResult": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "07af43a6-cee5-4915-89e3-39ef6085b863",
+        "ts": 1789105333802,
+        "data": {
+          "message": "Cannot read property 'memo' of undefined",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "nullResult": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "92febde9-deb8-48fe-aee9-7a7959e08832",
+        "ts": 1789105333803,
+        "data": {
+          "message": "Cannot read property 'memo' of null",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "memoUnknownNoNlu": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "26b39b9a-2bbf-48e7-8910-588b2069552c",
+        "ts": 1789105333805,
+        "data": {
+          "message": "Cannot read property 'intent' of undefined",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "unknownRequestType": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "57c5edc3-3213-4e83-88ab-3dd9dd267299",
+        "ts": 1789105333807,
+        "data": {
+          "message": "Unknown request type 'NOT_A_TYPE'",
+          "skill": {
+            "id": "example-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "getRoute": {
+      "status": 404,
+      "body": {
+        "type": "ERROR",
+        "msgID": "5d6443a1-304f-4084-9999-0fc5d0e4cd85",
+        "ts": 1789105333810,
+        "final": true,
+        "data": {
+          "message": "URL not found: /v1/main"
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "healthcheck": {
+      "status": 200,
+      "body": "ok"
+    },
+    "templateMissingResult": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "1745847f-1293-406e-a0b0-1baa1dbee431",
+        "ts": 1789105333815,
+        "data": {
+          "message": "Cannot read property 'memo' of undefined",
+          "skill": {
+            "id": "template-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "templateNullResult": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "27994bb8-c483-434d-b7fa-a4c595142b2d",
+        "ts": 1789105333817,
+        "data": {
+          "message": "Cannot read property 'memo' of null",
+          "skill": {
+            "id": "template-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    },
+    "templateValidMemoNoNlu": {
+      "status": 200,
+      "body": {
+        "type": "ERROR",
+        "msgID": "4cd0aed9-4aaf-4675-b66b-82bb8a28dc6f",
+        "ts": 1789105333819,
+        "data": {
+          "message": "Cannot read property 'intent' of undefined",
+          "skill": {
+            "id": "template-skill"
+          }
+        }
+      },
+      "contentType": "application/json; charset=utf-8"
+    }
+  },
+  "routeForms": {
+    "standalone:example-skill /v1/main": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "example-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 1,
+            "trace": [
+              {
+                "nodeID": 0,
+                "transition": "doesJiboLikeThing"
+              },
+              {
+                "nodeID": 1,
+                "transition": null
+              }
+            ],
+            "dataKeys": []
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "SLIM: 'Node1'"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "standalone:example-skill /v1/example-skill/main": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "example-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 1,
+            "trace": [
+              {
+                "nodeID": 0,
+                "transition": "doesJiboLikeThing"
+              },
+              {
+                "nodeID": 1,
+                "transition": null
+              }
+            ],
+            "dataKeys": []
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "SLIM: 'Node1'"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "standalone:template-skill /v1/main": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "template-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 0,
+            "trace": [
+              {
+                "nodeID": 1,
+                "transition": "Reactive"
+              },
+              {
+                "nodeID": 0,
+                "transition": null
+              }
+            ],
+            "dataKeys": [
+              "_mim"
+            ]
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "This is a template skill",
+          "mim_id": "template-mim",
+          "prompt_id": "template-skill_AN_01"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "standalone:template-skill /v1/template-skill/main": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "template-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 0,
+            "trace": [
+              {
+                "nodeID": 1,
+                "transition": "Reactive"
+              },
+              {
+                "nodeID": 0,
+                "transition": null
+              }
+            ],
+            "dataKeys": [
+              "_mim"
+            ]
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "This is a template skill",
+          "mim_id": "template-mim",
+          "prompt_id": "template-skill_AN_01"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "cohost:example-skill /v1/example-skill/main": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "example-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 1,
+            "trace": [
+              {
+                "nodeID": 0,
+                "transition": "doesJiboLikeThing"
+              },
+              {
+                "nodeID": 1,
+                "transition": null
+              }
+            ],
+            "dataKeys": []
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "SLIM: 'Node1'"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "cohost:template-skill /v1/template-skill/main": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "template-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 0,
+            "trace": [
+              {
+                "nodeID": 1,
+                "transition": "Reactive"
+              },
+              {
+                "nodeID": 0,
+                "transition": null
+              }
+            ],
+            "dataKeys": [
+              "_mim"
+            ]
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "This is a template skill",
+          "mim_id": "template-mim",
+          "prompt_id": "template-skill_AN_01"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    }
+  }
+}

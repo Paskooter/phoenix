@@ -1,0 +1,70 @@
+# jiboV2/pegasus:packages/example-skill/tests/ExampleSkill.test.js@5c0a7390539663ba749d360de348a428c088505c
+
+const expect = require('chai').expect;
+const baseskill = require('@jibo/baseskill');
+const utils = require('@jibo/utils');
+const ExampleSkill = main.ExampleSkill;
+const { skill_test: { SkillConversation } } = require('@jibo/test-utils');
+
+
+describe('ExampleSkill', () => {
+
+    let conversation;
+
+    beforeEach(() => {
+        conversation = new SkillConversation(new baseskill.SkillService(new ExampleSkill()));
+        return conversation.init();
+    });
+
+    afterEach(() => {
+        return conversation.close();
+    });
+
+    it(`A full cloud skill execution`, function() {
+        // Here we exectute four turns of interaction with the example cloud skill
+        return conversation.launch(utils.test.TestIntents.DOES_LIKE, {})
+            .then(({ response }) => {
+                // First response from cloud skill
+                const action = response.data.action;
+                const skill = response.data.skill;
+
+                expect(skill.id).to.equal("example-skill");
+                expect(skill.session.trace).to.deep.equal([
+                    { nodeID: 0, transition: utils.test.TestIntents.DOES_LIKE },
+                    { nodeID: 1, transition: null },
+                ]);
+
+                expect(response.type).to.equal('SKILL_ACTION');
+                expect(action.config.jcp.config.play.esml).to.equal(`SLIM: 'Node1'`);
+                expect(typeof response.timings.total).to.equal('number');
+
+                // Send fake action result to cloud skill
+                return conversation.actionResult(skill);
+            }).then(({ response }) => {
+                // Second response from skill
+                expect(response.data.action.config.jcp.config.play.esml).to.equal(`SLIM: 'Node2'`);
+                return conversation.actionResult(response.data.skill);
+            }).then(({ response }) => {
+                // Third response from skill
+                expect(response.data.action.config.jcp.config.play.esml).to.equal(`SLIM: 'Node3'`);
+                return conversation.actionResult(response.data.skill);
+            }).then(({ response }) => {
+                // Fourth response from skill
+                expect(response.type).to.equal(`SKILL_ACTION`);
+                expect(response.data.skill.session.trace).to.deep.equal([
+                    { nodeID: 0, transition: utils.test.TestIntents.DOES_LIKE },
+                    { nodeID: 1, transition: 'A' },
+                    { nodeID: 2, transition: 'B' },
+                    { nodeID: 3, transition: 'A' },
+                ]);
+            });
+    });
+
+    it(`Invalid intent`, function () {
+        return conversation.launch('bla')
+            .then(({ response }) => {
+                expect(response.type).to.equal(`ERROR`);
+                expect(response.data.message).to.equal(`Unknown intent: 'bla'`);
+            });
+    });
+});

@@ -1,0 +1,79 @@
+=== focused test ===
+not ok 1 - S-14 example-skill: pinned four-turn walk over the live /v1/main host
+ok 2 - S-14 example-skill: invalid intent returns the pinned ERROR envelope
+ok 3 - S-14 example-skill: the proactive memo arm decides before nlu is read
+ok 4 - S-14 template-skill: pinned launch plays the template MIM at the pinned graph offset
+ok 5 - S-14 template-skill: unknown and missing memos return the pinned ERROR messages
+ok 6 - S-14 skill host: routing and JSON parser errors match the frozen envelopes
+ok 7 - S-14 skill host: empty and unknown request bodies keep the source error order
+ok 8 - S-14 skill host: the sources precondition TypeErrors reach the wire verbatim
+ok 9 - S-14 acceptance 2: standalone default and explicit routes serve identical bodies
+ok 10 - S-14 acceptance 2: PHOENIX_SKILL_ID standalone launcher serves the selected skill at /v1/main
+ok 11 - S-14 acceptance 2: a cohosted host serves both skills on their explicit routes
+# tests 11
+# pass 10
+# fail 1
+=== runtime harness diff ===
+compared sections: 3
+DIFFS (18)
+  - exampleSkill.turns[1].data.action.esml
+  - exampleSkill.turns[1].data.skill.session.nodeID
+  - exampleSkill.turns[1].data.skill.session.trace[1].transition
+  - exampleSkill.turns[1].data.skill.session.trace[2].nodeID
+  - exampleSkill.turns[2].data.action
+  - exampleSkill.turns[2].data.final
+  - exampleSkill.turns[2].data.fireAndForget
+  - exampleSkill.turns[2].data.skill.session.trace
+  - exampleSkill.turns[2].data.skill.session.trace[1].transition
+  - exampleSkill.turns[2].data.skill.session.trace[2].nodeID
+  - exampleSkill.turns[2].data.skill.session.trace[2].transition
+  - exampleSkill.turns[3].data.action
+  - exampleSkill.turns[3].data.final
+  - exampleSkill.turns[3].data.fireAndForget
+  - exampleSkill.turns[3].data.message
+  - exampleSkill.turns[3].data.skill.session
+  - exampleSkill.turns[3].timings
+  - exampleSkill.turns[3].type
+=== restore ===
+ packages/skills/src/exampleSkill.js | 37 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 34 insertions(+), 3 deletions(-)
+
+=== failure text ===
+not ok 1 - S-14 example-skill: pinned four-turn walk over the live /v1/main host
+  ---
+  duration_ms: 77.225821
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w16-s14/packages/skills/test/s14ExampleTemplateSkillHost.test.js:104:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + "SLIM: 'Node3'"
+    - "SLIM: 'Node2'"
+                  ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: "SLIM: 'Node2'"
+  actual: "SLIM: 'Node3'"
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w16-s14/packages/skills/test/s14ExampleTemplateSkillHost.test.js:119:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+
+BROKEN LINE: packages/skills/src/exampleSkill.js:  const node1 = new ExampleNode('Node1', () => ExampleTransition.A);  ->  ... => ExampleTransition.B);
+
+=== after restore ===
+# tests 11
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+compared sections: 3
+DIFFS (0)
+ packages/skills/src/exampleSkill.js | 37 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 34 insertions(+), 3 deletions(-)

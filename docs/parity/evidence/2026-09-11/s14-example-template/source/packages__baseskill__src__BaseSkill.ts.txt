@@ -1,0 +1,51 @@
+# jiboV2/pegasus:packages/baseskill/src/BaseSkill.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { skill } from '@jibo/interfaces';
+import { common, service } from '@jibo/utils';
+import SkillRequest = skill.request.SkillRequest;
+import SkillResponse = skill.response.SkillResponse;
+
+
+export abstract class BaseSkill extends service.BaseHttpHandler {
+
+    constructor(public name: string) {
+        super();
+
+        this.addPostHandler('/', async (body: any, req: service.PegasusRequest) => {
+            try {
+                const startTime = Date.now();
+                req.log.info(`Received a ${body.type} request`);
+                const response = await this.handle(req);
+                response.timings = { total: (Date.now() - startTime) };
+                return response;
+            } catch (error) {
+                req.log.error(error);
+                return this.buildErrorResponse(error);
+            }
+        });
+    }
+
+    protected abstract handle(request: service.PegasusRequest<SkillRequest>): Promise<SkillResponse>;
+
+    /**
+     * Skill can override to initialize resources
+     * @returns {Promise} resolved when done initializing
+     */
+    public init(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public buildErrorResponse(err: Error): skill.response.ErrorResponse {
+        return {
+            type: skill.response.ResponseType.ERROR,
+            msgID: common.getUUID(),
+            ts: Date.now(),
+            data: {
+                message: common.getErrorMessage(err),
+                skill: {
+                    id: this.name
+                }
+            },
+        };
+    }
+}

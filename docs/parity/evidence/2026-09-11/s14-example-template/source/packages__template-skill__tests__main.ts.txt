@@ -1,0 +1,5 @@
+# jiboV2/pegasus:packages/template-skill/tests/main.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import * as main from '../src';
+
+export = main;

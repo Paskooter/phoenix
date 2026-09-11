@@ -1,0 +1,53 @@
+# jiboV2/pegasus:packages/example-skill/src/ExampleNode.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { graph } from '@jibo/baseskill';
+import { skill } from '@jibo/interfaces';
+import { ExampleUtils } from './ExampleUtils';
+
+export enum Transition {
+    A = 'A',
+    B = 'B'
+}
+
+export type Transitioner = (data: graph.nodes.Data) => Transition;
+
+export class ExampleNode extends graph.nodes.Node<Transition> {
+
+    constructor(name: string, private transitioner: Transitioner) {
+        super(name, graph.utils.generateTransitions<Transition>(Transition));
+    }
+
+    /**
+     * Called when the node is entered
+     * @param {Data} data
+     * @returns {(Promise<Action>)}
+     * @memberof Node
+     */
+    async enter(data: graph.nodes.Data): Promise<graph.nodes.EnterResponse<skill.action.JCPAction>> {
+        if (data.result && data.result.memo) {
+            // for tests, to ensure that skill got a memo
+            return {
+                action: ExampleUtils.createSlimAction(`SLIM: '${this.name}' MEMO: '${data.result.memo}'`)
+            };
+        }
+        return {
+            action: ExampleUtils.createSlimAction(`SLIM: '${this.name}'`)
+        };
+    }
+
+    /**
+     * A method that performs the work of this node. It can either return:
+     *  - An action to take
+     *  - The next cloud node to transition to (name or instance)
+     *  - nothing if the skill is over
+     *
+     * @param {Data} data
+     * @returns {(Promise<graph.nodes.ExitResponse<Transition>>)}
+     * @memberof Node
+     */
+    async exit(data: graph.nodes.Data): Promise<graph.nodes.ExitResponse<Transition>> {
+        return {
+            transition: this.transitioner(data)
+        };
+    }
+}

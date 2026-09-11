@@ -1,0 +1,31 @@
+npm test (w16/s14, base 3dd1cfa) — EXIT 0
+# tests 1941
+# suites 7
+# pass 1933
+# fail 0
+# cancelled 0
+# skipped 8
+# todo 0
+
+Checklist: 59/79 verified (74.7%)
+management: 3/3 verified; 0 in progress; 0 blocked
+verification: 4/4 verified; 0 in progress; 0 blocked
+pegasus: 34/46 verified; 0 in progress; 0 blocked
+classic: 18/20 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+Strict production smoke gate (43 cases; full corpus remains separately tracked).
+Evidence: /home/shell/work/phoenix/.parity/worktrees/w16-s14/.parity/runs/ci-production-644471c4-c384-4fca-9bec-0a7817cd7a16
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+
+Notes
+- A first full run failed one unrelated test with a filesystem error:
+  packages/account/test/loopProjectionEdges.test.js hookFailed: "EACCES: permission denied,
+  mkdir '<worktree>/.parity/reviews/a04-projection-edges-20260910'". The directory was a
+  stray root-owned `.parity/` a helper docker mount had materialised inside the worktree
+  before its reference-path guard was added; it was removed with
+  `docker run --rm -v <worktree>:/w alpine rm -rf /w/.parity`. The re-run is green.
+- The first run counted 1942 tests because the failed file still emitted its own test node;
+  the green run reports 1941.

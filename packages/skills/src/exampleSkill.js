@@ -17,6 +17,31 @@ const TestIntents = Object.freeze({
 
 const ExampleTransition = Object.freeze({ A: 'A', B: 'B' });
 
+// IntentSplitNode's first source access is `data.result.memo`; the fallback arm then reads
+// `data.result.nlu.intent`. Node 8 reported a null/undefined intermediate receiver as
+// "Cannot read property ... of ..." while current Node reports "Cannot read properties ...",
+// and the original emitted the Node 8 wording on the cloud wire (the BaseSkill error
+// envelope carries the raw message). Localize only these two precondition accesses; errors
+// thrown by skill logic stay native.
+function sourceResultMemo(data) {
+  const result = data.result;
+  if (result === null) throw new TypeError("Cannot read property 'memo' of null");
+  if (result === undefined) throw new TypeError("Cannot read property 'memo' of undefined");
+  return result.memo;
+}
+
+function sourceNluIntent(nlu) {
+  if (nlu === null) throw new TypeError("Cannot read property 'intent' of null");
+  if (nlu === undefined) throw new TypeError("Cannot read property 'intent' of undefined");
+  return nlu.intent;
+}
+
+// The Phoenix service logger has no createChild (source nodes call data.log.createChild).
+// Use the source child logger when the logger offers one, otherwise the logger itself.
+function childLog(log, name) {
+  return log && typeof log.createChild === 'function' ? log.createChild(name) : log;
+}
+
 function createSlimAction(text) {
   return {
     type: 'JCP',
@@ -63,21 +88,27 @@ class IntentSplitNode extends NoOpNode {
   constructor(name) { super(name, Object.values(IntentSplitTransition)); }
 
   async exit(data) {
+    const logger = childLog(data.log, 'IntentSplitNode');
     let transition;
     // Proactive launches carry no NLU; memo decides the entry first.
-    const memo = data.result && data.result.memo;
+    const memo = sourceResultMemo(data);
     if (memo) {
       switch (memo) {
         case 'Proactive entry 1': transition = IntentSplitTransition.PROACTIVE; break;
         case TestIntents.LIVE_AND_PROSPER: transition = IntentSplitTransition.LIVE_AND_PROSPER; break;
         case TestIntents.DOES_LIKE: transition = IntentSplitTransition.DOES_LIKE; break;
-        default: break; // unknown memo: fall back on intent
+        default:
+          // unknown memo: fall back on intent
+          if (logger && typeof logger.warn === 'function') logger.warn('Unknown memo field, falling back on intent');
+          break;
       }
+    } else if (logger && typeof logger.warn === 'function') {
+      logger.warn('No memo field in skill launch, falling back on intent');
     }
 
     if (!transition) {
       const nlu = data.result.nlu;
-      switch (nlu.intent) {
+      switch (sourceNluIntent(nlu)) {
         case TestIntents.DOES_LIKE: transition = IntentSplitTransition.DOES_LIKE; break;
         case TestIntents.DISLIKES: transition = IntentSplitTransition.DISLIKES; break;
         case TestIntents.LIVE_AND_PROSPER: transition = IntentSplitTransition.LIVE_AND_PROSPER; break;

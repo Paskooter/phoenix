@@ -1,0 +1,3 @@
+# jiboV2/pegasus:packages/example-skill/src/index.ts@5c0a7390539663ba749d360de348a428c088505c
+
+export * from './ExampleSkill';

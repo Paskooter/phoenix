@@ -1,0 +1,72 @@
+# jiboV2/pegasus:packages/hub/src/skill/SkillUtils.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import * as path from 'path';
+import { skill, proactive } from '@jibo/interfaces';
+import { common } from '@jibo/utils';
+
+interface Container {
+    config: skill.config.SkillConfig;
+    path: string;
+    skill: skill.config.SkillServiceConfig;
+}
+
+/**
+ * Removes surrounding slashes from path element string
+ */
+function cleanPathElement(pathElement: string = ''): string {
+    if (pathElement.startsWith('/')) {
+        pathElement = pathElement.substr(1, pathElement.length - 1);
+    }
+    if (pathElement.endsWith('/')) {
+        pathElement = pathElement.substr(0, pathElement.length - 1);
+    }
+    return pathElement;
+}
+
+
+export class SkillUtils {
+
+    /**
+     * Builds a complete skill configuration from environment skill configuration
+     */
+    static async buildSkillConfig(envConfig: skill.config.SkillServiceConfig[], rootPath: string): Promise<skill.config.SkillConfig[]> {
+        // Read all the manifests
+        const containers: Container[] = await Promise.all(
+            envConfig.map(skill => SkillUtils.getSkillManifest(skill, rootPath)));
+
+        return common.object.deepFreeze(containers.map(container => container.config));
+    }
+
+    private static async getSkillManifest(skill: skill.config.SkillServiceConfig, rootPath: string): Promise<Container> {
+        const manifestPath = path.join(rootPath, skill.configPath);
+        let container: Container = {
+            skill,
+            path: manifestPath,
+            config: await common.FileUtils.readJSON(manifestPath)
+        };
+        return await SkillUtils.preprocessManifest(container);
+    }
+
+    private static async preprocessManifest(container: Container): Promise<Container> {
+        // Build a skill URL
+        container.config.URL = container.skill.baseURL ?
+            [cleanPathElement(container.skill.baseURL), cleanPathElement(container.config.basePath), 'v1', 'main']
+                .filter(el => !!el)
+                .join('/')
+            : '';
+        return container;
+    }
+
+    /**
+     * Checks if skill response is a skill redirect
+     */
+    static isRedirect(response: skill.response.SkillResponse): boolean {
+        return response && response.type === skill.response.ResponseType.SKILL_REDIRECT;
+    }
+
+    static getEligiblePRs(skillConfig: proactive.ProactiveSkillConfig): proactive.EligibleProactiveRegistration[] {
+        return skillConfig.proactives.map(pr => {
+            return Object.assign({}, pr, { skillID: skillConfig.skillID });
+        });
+    }
+}
