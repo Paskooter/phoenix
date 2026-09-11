@@ -77,11 +77,16 @@ export class SkillClient {
         // axios's message for a non-2xx is `Request failed with status code <status>` and its
         // parsed body is re-serialized with JSON.stringify (a non-JSON body survives as a
         // quoted string); both are reproduced here from the raw response text.
-        return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Error from URL '${cfg.URL}': ${res.status} Request failed with status code ${res.status} :: ${serializeResponseBody(text)}` } };
+        // `code` reproduces SkillRequestMaker.getSkillResponseFromID's catch
+        // (SkillRequestMaker.ts:74-76): `error.code || message.startsWith('timeout') ? TIMEOUT
+        // : SKILL_NOT_FOUND`. The thrown envelope always carries a truthy `code`, so every
+        // request-path failure is TIMEOUT — the value the speech record stores as
+        // `skill.error.code` (source oracle: skillFailure / redirectDestinationFailure).
+        return { skillID, error: { code: SkillRequestError.TIMEOUT, message: `Error from URL '${cfg.URL}': ${res.status} Request failed with status code ${res.status} :: ${serializeResponseBody(text)}` } };
       }
       return { skillID, response: await res.json() };
     } catch (error) {
-      return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Error from URL '${cfg.URL}': ${error.message}` } };
+      return { skillID, error: { code: SkillRequestError.TIMEOUT, message: `Error from URL '${cfg.URL}': ${error.message}` } };
     }
   }
 }

@@ -1,0 +1,1923 @@
+{
+  "runtime": "v22.22.0",
+  "phoenixRevision": "worktree",
+  "cases": {
+    "launch": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-launch",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-launch",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-launch",
+          "skillID": "source",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-launch",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-launch",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true
+        }
+      ]
+    },
+    "launchUpdate": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "followup-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": false,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-continued",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-continued",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-continued",
+          "skillID": "source",
+          "intent": "followup-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "followup-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": false,
+            "onRobot": false
+          },
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-continued",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-continued",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": false,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true
+        }
+      ]
+    },
+    "redirect": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_REDIRECT",
+              "msgID": "peer-redirect",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-source"
+                  }
+                },
+                "skillID": "destination",
+                "nlu": {
+                  "intent": "redirect-intent",
+                  "entities": {
+                    "r": 1
+                  }
+                },
+                "asr": {
+                  "text": "redirect asr"
+                },
+                "memo": {
+                  "from": "source"
+                }
+              }
+            }
+          }
+        },
+        {
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "skill": {
+            "skillID": "destination",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-dest",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "destination",
+                  "session": {
+                    "id": "sess-dest",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-source",
+          "skillID": "source",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-dest",
+          "skillID": "destination",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          },
+          "skill": {
+            "skillID": "destination",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-dest",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "destination",
+                  "session": {
+                    "id": "sess-dest",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "match": {
+            "skillID": "destination",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true
+        }
+      ]
+    },
+    "tooManyRedirects": {
+      "terminal": {
+        "outcome": "error-frame"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_REDIRECT",
+              "msgID": "peer-redirect",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-source"
+                  }
+                },
+                "skillID": "destination",
+                "nlu": {
+                  "intent": "redirect-intent",
+                  "entities": {
+                    "r": 1
+                  }
+                },
+                "asr": {
+                  "text": "redirect asr"
+                },
+                "memo": {
+                  "from": "source"
+                }
+              }
+            }
+          }
+        },
+        {
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "skill": {
+            "skillID": "destination",
+            "response": {
+              "type": "SKILL_REDIRECT",
+              "msgID": "peer-redirect",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "destination",
+                  "session": {
+                    "id": "sess-dest"
+                  }
+                },
+                "skillID": "source",
+                "nlu": {
+                  "intent": "redirect-intent",
+                  "entities": {
+                    "r": 1
+                  }
+                },
+                "asr": {
+                  "text": "redirect asr"
+                },
+                "memo": {
+                  "from": "destination"
+                }
+              }
+            }
+          }
+        },
+        {
+          "error": {}
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-source",
+          "skillID": "source",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-dest",
+          "skillID": "destination",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          },
+          "skill": {
+            "skillID": "destination",
+            "response": {
+              "type": "SKILL_REDIRECT",
+              "msgID": "peer-redirect",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "destination",
+                  "session": {
+                    "id": "sess-dest"
+                  }
+                },
+                "skillID": "source",
+                "nlu": {
+                  "intent": "redirect-intent",
+                  "entities": {
+                    "r": 1
+                  }
+                },
+                "asr": {
+                  "text": "redirect asr"
+                },
+                "memo": {
+                  "from": "destination"
+                }
+              }
+            }
+          },
+          "error": {},
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          },
+          "skill": {
+            "skillID": "destination",
+            "response": {
+              "type": "SKILL_REDIRECT",
+              "msgID": "peer-redirect",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "destination",
+                  "session": {
+                    "id": "sess-dest"
+                  }
+                },
+                "skillID": "source",
+                "nlu": {
+                  "intent": "redirect-intent",
+                  "entities": {
+                    "r": 1
+                  }
+                },
+                "asr": {
+                  "text": "redirect asr"
+                },
+                "memo": {
+                  "from": "destination"
+                }
+              }
+            }
+          },
+          "error": {},
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "match": {
+            "skillID": "destination",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true
+        }
+      ]
+    },
+    "skillFailure": {
+      "terminal": {
+        "outcome": "error-frame"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "error": {
+              "code": "TIMEOUT",
+              "message": "Error from URL 'http://127.0.0.1:40663/v1/main': 500 Request failed with status code 500 :: {\"error\":\"boom\"}"
+            }
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "skill": {
+            "skillID": "source",
+            "error": {
+              "code": "TIMEOUT",
+              "message": "Error from URL 'http://127.0.0.1:40663/v1/main': 500 Request failed with status code 500 :: {\"error\":\"boom\"}"
+            }
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true
+        }
+      ]
+    },
+    "redirectDestinationFailure": {
+      "terminal": {
+        "outcome": "error-frame"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_REDIRECT",
+              "msgID": "peer-redirect",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-source"
+                  }
+                },
+                "skillID": "destination",
+                "nlu": {
+                  "intent": "redirect-intent",
+                  "entities": {
+                    "r": 1
+                  }
+                },
+                "asr": {
+                  "text": "redirect asr"
+                },
+                "memo": {
+                  "from": "source"
+                }
+              }
+            }
+          }
+        },
+        {
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          }
+        },
+        {
+          "skill": {
+            "skillID": "destination",
+            "error": {
+              "code": "TIMEOUT",
+              "message": "Error from URL 'http://127.0.0.1:37543/v1/main': 500 Request failed with status code 500 :: {\"error\":\"dest-boom\"}"
+            }
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-source",
+          "skillID": "source",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "redirect": {
+            "skill": {
+              "id": "source",
+              "session": {
+                "id": "sess-source"
+              }
+            },
+            "skillID": "destination",
+            "nlu": {
+              "intent": "redirect-intent",
+              "entities": {
+                "r": 1
+              }
+            },
+            "asr": {
+              "text": "redirect asr"
+            },
+            "memo": {
+              "from": "source"
+            }
+          },
+          "skill": {
+            "skillID": "destination",
+            "error": {
+              "code": "TIMEOUT",
+              "message": "Error from URL 'http://127.0.0.1:37543/v1/main': 500 Request failed with status code 500 :: {\"error\":\"dest-boom\"}"
+            }
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_REDIRECT",
+          "final": false,
+          "match": {
+            "skillID": "destination",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true
+        }
+      ]
+    },
+    "onRobot": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "robot-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {},
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "robot-skill",
+            "launch": true,
+            "onRobot": true
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "<uuid>",
+          "skillID": "robot-skill",
+          "intent": "robot-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "robot-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {},
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "robot-skill",
+            "launch": true,
+            "onRobot": true
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": true,
+          "match": {
+            "skillID": "robot-skill",
+            "launch": true,
+            "onRobot": true
+          }
+        }
+      ]
+    },
+    "serverAsr": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "  Hello   World ",
+            "confidence": 0.9
+          }
+        },
+        {
+          "nlu": {
+            "intent": "launch-intent",
+            "entities": {
+              "e": "v"
+            },
+            "rules": [
+              "launch"
+            ]
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-asr",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-asr",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-asr",
+          "skillID": "source",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "  Hello   World ",
+            "confidence": 0.9
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "entities": {
+              "e": "v"
+            },
+            "rules": [
+              "launch"
+            ]
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "skill": {
+            "skillID": "source",
+            "response": {
+              "type": "SKILL_ACTION",
+              "msgID": "peer-sess-asr",
+              "ts": 1700000000000,
+              "data": {
+                "skill": {
+                  "id": "source",
+                  "session": {
+                    "id": "sess-asr",
+                    "nodeID": 1
+                  }
+                },
+                "action": {
+                  "type": "JCP"
+                }
+              }
+            }
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true
+        }
+      ]
+    },
+    "serverAsrGarbage": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "blah",
+            "confidence": 0.1,
+            "annotation": "GARBAGE"
+          }
+        },
+        {
+          "match": null
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "blah",
+            "confidence": 0.1,
+            "annotation": "GARBAGE"
+          },
+          "hasNlu": false,
+          "hasMatch": true,
+          "match": null,
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "LISTEN",
+          "final": true,
+          "match": null
+        }
+      ]
+    },
+    "noMatch": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "no-such-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {},
+            "external": {}
+          }
+        },
+        {
+          "match": null
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "no-such-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {},
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": null,
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": true,
+          "match": null
+        }
+      ]
+    },
+    "speechDisabled": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [],
+      "sideEffects": [
+        {
+          "kind": "skillLaunch",
+          "method": "POST",
+          "url": "/v1/skill/launch",
+          "robotID": "robot-h08",
+          "sessionID": "sess-nospeech",
+          "skillID": "source",
+          "intent": "launch-intent",
+          "personIDs": [
+            "person-h08"
+          ],
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true
+        }
+      ]
+    },
+    "flagsDisabled": {
+      "terminal": {
+        "outcome": "resolved"
+      },
+      "updateSequence": [],
+      "sideEffects": [],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true
+        }
+      ]
+    },
+    "parserFailure": {
+      "terminal": {
+        "outcome": "error-frame"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "hello",
+            "confidence": 0.5
+          }
+        },
+        {
+          "error": {
+            "code": "PARSER"
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "hello",
+            "confidence": 0.5
+          },
+          "hasNlu": false,
+          "hasMatch": false,
+          "error": {
+            "code": "PARSER"
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "hello",
+            "confidence": 0.5
+          },
+          "hasNlu": false,
+          "hasMatch": false,
+          "error": {
+            "code": "PARSER"
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "ERROR",
+          "final": true,
+          "code": "PARSER"
+        }
+      ]
+    },
+    "skillTimeout": {
+      "terminal": {
+        "outcome": "error-frame"
+      },
+      "updateSequence": [
+        {
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          }
+        },
+        {
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "error": {
+            "code": "TIMEOUT_SKILL"
+          }
+        }
+      ],
+      "sideEffects": [
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "error": {
+            "code": "TIMEOUT_SKILL"
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        },
+        {
+          "kind": "speechSave",
+          "method": "POST",
+          "url": "/v1/speech",
+          "robotID": "robot-h08",
+          "accountID": "account-h08",
+          "transID": "tid:h08-source",
+          "timestamp": "<number>",
+          "audioFileURL": null,
+          "hasAsr": true,
+          "asr": {
+            "text": "",
+            "confidence": 1
+          },
+          "hasNlu": true,
+          "nlu": {
+            "intent": "launch-intent",
+            "rules": [
+              "launch"
+            ],
+            "entities": {
+              "e": "v"
+            },
+            "external": {}
+          },
+          "hasMatch": true,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          },
+          "error": {
+            "code": "TIMEOUT_SKILL"
+          },
+          "headers": {
+            "x-jibo-transid": "tid:h08-source",
+            "x-jibo-robotid": "unknown",
+            "x-jibo-logging-config": "{}"
+          }
+        }
+      ],
+      "frames": [
+        {
+          "type": "SOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "EOS",
+          "match": null,
+          "code": null
+        },
+        {
+          "type": "LISTEN",
+          "final": false,
+          "match": {
+            "skillID": "source",
+            "launch": true,
+            "onRobot": false
+          }
+        },
+        {
+          "type": "ERROR",
+          "final": true,
+          "code": "TIMEOUT_SKILL"
+        }
+      ]
+    }
+  }
+}
