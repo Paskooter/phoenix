@@ -1,50 +1,42 @@
 {
-  "anchorFile": "packages/data/src/calendar.js",
-  "anchorLine": 416,
-  "brokenLine": "return isHead ? undefined : relayEnvelope(events, false);",
-  "replacementLine": "return isHead ? undefined : { events };",
-  "scope": "GET miss path only (the cache-write path and the HEAD path were left intact)",
-  "failingDataTests": {
-    "file": "packages/data/test/calendar-relay.test.js",
-    "failedTests": [
-      "- D-04/1 a miss answers the relay envelope with the pinned Google fixture events",
-      "- D-04/2 the calendar timezone (not the server) decides full-day boundaries",
-      "- D-04/3 events without a usable start are filtered and a missing end is omitted",
-      "- D-04/5 a cache hit echoes the stored bytes and does not re-call the provider",
-      "- D-04/6 skipCache keeps the relay truthiness inside the calendar route",
-      "- D-04/7 a new credential drops the cached 60-second payload end to end",
-      "- D-04/9 an unparsable endDate is a 400 with the pinned message; a valid one reaches the provider",
-      " - D-04/11 Outlook replay: offsets come from endDate, not the event timezone",
-      " - D-04/12 an event timezone is honoured (IANA and the Graph Windows id)"
-    ],
-    "counts": {
-      "tests": 15,
-      "pass": 6,
-      "fail": 9,
-      "cancelled": 0
+  "kind": "falsification",
+  "branch": "w14/d04",
+  "method": "break one full code line in packages/data/src/calendar.js, confirm the named tests fail, restore, confirm green",
+  "falsifications": [
+    {
+      "id": "D04-f1-upstream-orderby",
+      "status": "FALSIFIED-THEN-RESTORED",
+      "file": "packages/data/src/calendar.js",
+      "anchor": "buildUpstreamQuery, the Google orderBy param (line 4 of the google params object)",
+      "broke": "      orderBy: 'startTime',",
+      "to": "      orderBy: 'startTime-BROKEN',",
+      "command": "node --test packages/data/test/calendar-relay.test.js",
+      "observed": "# tests 19 / # pass 16 / # fail 3",
+      "failed_tests": [
+        "not ok 16 - D-04/16 the upstream query shows exactly the reference client params",
+        "not ok 17 - D-04/17 a GET reaches the provider with the Google upstream query attached",
+        "not ok 19 - D-04/19 createUpstreamCalendarProvider issues the pinned wire query and returns the fixtures"
+      ],
+      "restored": true,
+      "after_restore": "node --test packages/data/test/calendar-relay.test.js -> # tests 19 / # pass 19 / # fail 0"
     },
-    "capturedError": null
-  },
-  "failingIntegrationTests": {
-    "file": "packages/skills/test/calendar-lasso-integration.test.js",
-    "failedTests": [
-      "- D-04/i1 a provider returning events reaches the report through the real envelope",
-      "- D-04/i3 DIVERGENCE (report side, out of D-04 scope): the report sends a UTC endDate so an all-day Outlook event is not shifted"
-    ],
-    "counts": {
-      "tests": 3,
-      "pass": 1,
-      "fail": 2,
-      "cancelled": 0
-    },
-    "capturedError": "the report received an events array, not a parse failure"
-  },
-  "reportSideError": "Incomplete Lasso data from: google calendar",
-  "restored": {
-    "tests": 18,
-    "pass": 18,
-    "fail": 0,
-    "cancelled": 0
-  },
-  "restoredGreen": true
+    {
+      "id": "D04-f2-top-level-mirror",
+      "status": "FALSIFIED-THEN-RESTORED",
+      "file": "packages/data/src/calendar.js",
+      "anchor": "relayEnvelope body (re-introduces the removed mirror)",
+      "broke": "  const body = { relayData: { events }, lassoDataFromRedis: fromCache };",
+      "to": "  const body = { relayData: { events }, lassoDataFromRedis: fromCache, events };",
+      "command": "node --test packages/data/test/calendar-relay.test.js packages/data/test/credential.test.js",
+      "observed": "# tests 28 / # pass 24 / # fail 4",
+      "failed_tests": [
+        "not ok 1 - D-04/1 a miss answers the relay envelope with the pinned Google fixture events",
+        "not ok 5 - D-04/5 a cache hit echoes the stored bytes and does not re-call the provider",
+        "not ok 19 - D-04/19 createUpstreamCalendarProvider issues the pinned wire query and returns the fixtures",
+        "not ok 27 - GET /v1/google_calendar -> {relayData:{events:[CalendarEvent]}} via stub provider (certified D-02 credential.test.js)"
+      ],
+      "restored": true,
+      "after_restore": "node --test packages/data/test/calendar-relay.test.js packages/data/test/credential.test.js -> # tests 28 / # pass 28 / # fail 0"
+    }
+  ]
 }

@@ -15,8 +15,7 @@
       "contentType": "application/json; charset=utf-8",
       "envelopeKeys": [
         "relayData",
-        "lassoDataFromRedis",
-        "events"
+        "lassoDataFromRedis"
       ],
       "lassoDataFromRedis": false,
       "relayData": {
@@ -115,13 +114,11 @@
       "hitIsStoredBytes": true,
       "missKeyOrder": [
         "relayData",
-        "lassoDataFromRedis",
-        "events"
+        "lassoDataFromRedis"
       ],
       "hitKeyOrder": [
         "relayData",
         "lassoDataFromRedis",
-        "events",
         "lassoInsertedIntoRedisAt"
       ]
     },
@@ -146,6 +143,48 @@
         "status": 400,
         "body": "Missing skillId in Outlook Calendar request"
       }
+    },
+    {
+      "step": "C_upstream_params_on_the_wire",
+      "googleEnvelopeKeys": [
+        "relayData",
+        "lassoDataFromRedis"
+      ],
+      "googleEvents": [
+        "Event With Start and End Date",
+        "Event With Start and End Time"
+      ],
+      "outlookEvents": [
+        "Outlook Event 1",
+        "Outlook Event 2",
+        "Outlook Event 3"
+      ],
+      "googleEventsRequest": {
+        "url": "/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&timeMin=2026-09-11T03%3A53%3A10.587Z&timeMax=2050-12-19T06%3A59%3A59.000Z",
+        "authorization": "Bearer rt-upstream-token",
+        "params": {
+          "singleEvents": "true",
+          "orderBy": "startTime",
+          "timeMin": "2026-09-11T03:53:10.587Z",
+          "timeMax": "2050-12-19T06:59:59.000Z"
+        }
+      },
+      "outlookEventsRequest": {
+        "url": "/v1.0/me/calendarView?startDateTime=2026-09-11T03%3A53%3A10.628Z&endDateTime=2050-12-19T06%3A59%3A59.000Z&%24select=subject%2Cstart%2Cend%2CisAllDay&%24orderby=start%2FdateTime+ASC",
+        "authorization": "Bearer rt-upstream-token",
+        "params": {
+          "startDateTime": "2026-09-11T03:53:10.628Z",
+          "endDateTime": "2050-12-19T06:59:59.000Z",
+          "$select": "subject,start,end,isAllDay",
+          "$orderby": "start/dateTime ASC"
+        }
+      },
+      "timezoneRequestIssued": true,
+      "allUpstreamRequests": [
+        "/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&timeMin=2026-09-11T03%3A53%3A10.587Z&timeMax=2050-12-19T06%3A59%3A59.000Z",
+        "/calendar/v3/calendars/primary",
+        "/v1.0/me/calendarView?startDateTime=2026-09-11T03%3A53%3A10.628Z&endDateTime=2050-12-19T06%3A59%3A59.000Z&%24select=subject%2Cstart%2Cend%2CisAllDay&%24orderby=start%2FdateTime+ASC"
+      ]
     },
     {
       "step": "B_report_reaches_the_report",

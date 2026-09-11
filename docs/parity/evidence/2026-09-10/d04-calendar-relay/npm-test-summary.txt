@@ -1,24 +1,31 @@
-D-04 final gate — npm test on branch w11/d04 (base b541630)
+# D-04 full-suite result (branch w14/d04)
 
-ok 662 - D-04/1 a miss answers the relay envelope with the pinned Google fixture events
-ok 1413 - D-04/i1 a provider returning events reaches the report through the real envelope
-ok 1414 - D-04/i2 LassoClient.fetchCalendarEvents returns the relayData envelope contents
-ok 1415 - D-04/i3 DIVERGENCE (report side, out of D-04 scope): the report sends a UTC endDate so an all-day Outlook event is not shifted
-ok 676 - D-04/15 validateCalendar defaults the endDate and rejects a bad one
+command: npm test   (npm run test:unit && npm run parity:check && npm run parity:gate)
+exit code: 0
 
-# tests 1754
+## unit (node --test)
+# tests 1840
 # suites 7
-# pass 1747
+# pass 1833
 # fail 0
 # cancelled 0
 # skipped 7
+# todo 0
 
-Trailing blanks are separate nested reporters; the LAST block is the full corpus.
-
---- full corpus (final block) ---
-[('tests', '1754'), ('pass', '1747'), ('fail', '0'), ('cancelled', '0'), ('skipped', '7'), ('todo', '0')]
-Checklist: 49/79 verified (62.0%)
+## parity:check
+Checklist: 51/79 verified (64.6%)
+pegasus: 26/46 verified; 0 in progress; 0 blocked
 Tracker structure, dependencies, evidence links and generated checklist are valid.
-Strict production smoke gate (43 cases; full corpus remains separately tracked). Evidence: /home/shell/work/phoenix/.parity/worktrees/w11-d04/.parity/runs/ci-production-7550ff49-38df-419a-8c71-612d3b2bc427
+
+## parity:gate
 {"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
-EXIT=0
+
+## test-integrity note (pre-existing, not this branch)
+Two SIGKILL/restart tests are load-sensitive under parallel `node --test` and can flake
+(reproduced twice while collecting this run, then green):
+  * packages/account/test/oobeRestartSIGKILL.test.js (passes 3/3 in isolation)
+  * packages/data/test/credential-durable.test.js:749 `D2 HTTP: the DEFAULT store ...`
+    — EADDRINUSE :::7805 because credential-durable.test.js:755 listens on
+    PORT(7800)+5 = 7805 and packages/skills/test/calendar-lasso-integration.test.js:25
+    also uses PORT = 7805. Both lines are in the base commit 6c94aac (pre-existing port
+    collision, unrelated to D-04). A clean EXIT=0 run was obtained and is recorded above.
