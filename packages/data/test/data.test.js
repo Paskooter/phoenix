@@ -29,20 +29,24 @@ test('TTLCache: get/set + expiry', () => {
   assert.equal(c.get('e'), null);
 });
 
-test('validateWeather requires numeric lat/lon', () => {
-  assert.throws(() => validateWeather(new URLSearchParams('lat=abc&lon=2')), /lat and lon are required/);
+test('validateWeather rejects bad lat/lon with the original LatLon messages', () => {
+  // Exact messages from pinned pegasus lasso/src/utils/LatLon.ts (DarkSky.test.ts cases).
+  assert.throws(() => validateWeather(new URLSearchParams('lat=abc&lon=2')), /^RangeError: Invalid latitude abc$/);
+  assert.throws(() => validateWeather(new URLSearchParams('lat=42&lon=asdf')), /^RangeError: Invalid longitude asdf$/);
+  assert.throws(() => validateWeather(new URLSearchParams('lon=2')), /^RangeError: Invalid latitude undefined$/);
+  assert.throws(() => validateWeather(new URLSearchParams('lat=-555&lon=1.1')), /^RangeError: Invalid latitude -555$/);
   assert.deepEqual(validateWeather(new URLSearchParams('lat=42&lon=-71')), { lat: 42, lon: -71, secondsSinceEpoch: 0 });
 });
 
-test('openMeteoToDarkSky maps to the Dark Sky shape; "today" = index 1 (past_days=1)', () => {
+test('openMeteoToDarkSky maps to the Dark Sky shape; daily.data[0] is the requested day', () => {
+  // No timestamp -> today (raw window index 1 with past_days=1) becomes daily.data[0].
   const d = openMeteoToDarkSky(OM, { lat: 42, lon: -71, secondsSinceEpoch: 0 });
-  assert.equal(d.daily.data.length, 3);
-  assert.equal(d.daily.data[0].temperatureHigh, 70); // yesterday
-  assert.equal(d.daily.data[0].icon, 'clear-day');
-  assert.equal(d.daily.data[1].temperatureHigh, 75); // today
-  assert.equal(d.daily.data[1].icon, 'rain'); // code 61
-  assert.equal(d.daily.data[1].summary, 'Light rain');
-  assert.equal(d.currently.temperature, 75); // currently follows "today"
+  assert.equal(d.daily.data.length, 2);
+  assert.equal(d.daily.data[0].temperatureHigh, 75); // today
+  assert.equal(d.daily.data[0].icon, 'rain'); // code 61
+  assert.equal(d.daily.data[0].summary, 'Light rain');
+  assert.equal(d.daily.data[1].temperatureHigh, 80); // tomorrow
+  assert.equal(d.currently.temperature, 75); // no current_weather fixture -> requested day's high
   assert.equal(d.flags.sources[0], 'open-meteo');
 });
 
@@ -67,7 +71,7 @@ const getWeather = (qs, method = 'GET') => fetch(`http://localhost:${PORT}/v1/da
 test('GET miss -> lassoDataFromRedis:false; second GET -> cache hit (no refetch)', async () => {
   const r1 = await (await getWeather('lat=42&lon=-71')).json();
   assert.equal(r1.lassoDataFromRedis, false);
-  assert.equal(r1.relayData.daily.data[1].temperatureHigh, 75);
+  assert.equal(r1.relayData.daily.data[0].temperatureHigh, 75); // today at index 0 (pinned indexing)
   assert.equal(fetchCount, 1);
 
   const r2 = await (await getWeather('lat=42&lon=-71')).json();
