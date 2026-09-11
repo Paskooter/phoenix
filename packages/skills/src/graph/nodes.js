@@ -4,15 +4,16 @@
 
 import { newJcpId } from '../jcpId.js';
 import { Node } from './node.js';
+import { sequenceProtocol, parallelProtocol } from './mims/protocol.js';
 
 /** Generate a JCP Action wrapping a single behavior (graph/Utils.generateJCPAction). */
 export function generateJCPAction(behavior) {
   return { type: 'JCP', config: { version: '2.0', jcp: behavior } };
 }
 
-/** SEQUENCE / PARALLEL protocol builders (jibo-command-requester structural.*). */
-export const sequenceProtocol = (children) => ({ id: newJcpId(), type: 'SEQUENCE', children });
-export const parallelProtocol = (children) => ({ id: newJcpId(), type: 'PARALLEL', children, succeedOnFirst: false });
+// SEQUENCE / PARALLEL protocol builders (jibo-command-requester structural.*) live in
+// graph/mims/protocol.js next to the REST of the requester port; re-exported for existing callers.
+export { sequenceProtocol, parallelProtocol };
 
 /** A node that takes no action in the world — only routes via exit(). */
 export class NoOpNode extends Node {

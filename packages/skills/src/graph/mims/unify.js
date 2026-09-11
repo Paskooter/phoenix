@@ -4,13 +4,19 @@
 
 import { loadMims } from './utils.js';
 
+// Unify.ts calls `data.log.createChild('Unifier')`; fall back to the parent logger when the
+// deployment's log object has no createChild so the warning text/behaviour is unchanged.
+function childLog(log, name) {
+  return typeof log?.createChild === 'function' ? log.createChild(name) : log;
+}
+
 /**
  * @param {{baseProvider:any, mimProvider?:any, transform?:Function}} options
  * @param {object} data current skill data
  * @returns {Promise<object>} unified MimConfig
  */
 export async function unifyMims(options, data) {
-  const log = data.log;
+  const log = childLog(data.log, 'Unifier');
   if (!options.baseProvider) throw new Error('Missing base MIM for unification.');
   const mims = await loadAndPrep(options, data, log);
 
