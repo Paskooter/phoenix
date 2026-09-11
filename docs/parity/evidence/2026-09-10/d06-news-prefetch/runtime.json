@@ -1,0 +1,349 @@
+{
+  "pollIntervalDefaultMS": 3600000,
+  "categories": {
+    "42200": {
+      "categoryName": "business",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "I asked my husband to pay into my pension when we had a child - here&apos;s why"
+    },
+    "42201": {
+      "categoryName": "entertainment",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "Esther Rantzen says she is too fragile to travel to Switzerland to end life"
+    },
+    "42202": {
+      "categoryName": "international",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "Yemen&apos;s Houthis reportedly seize strategic Red Sea port of Mokha"
+    },
+    "42203": {
+      "categoryName": "health",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "&apos;My cancer spread while I waited months for surgery&apos;: The cost of England&apos;s cancer wait times"
+    },
+    "42204": {
+      "categoryName": "strange",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "Labour mayors in England vow to cap tourist tax at 5%"
+    },
+    "42205": {
+      "categoryName": "politics",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "Labour mayors in England vow to cap tourist tax at 5%"
+    },
+    "42206": {
+      "categoryName": "science",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "New hurricane season record as &apos;historic&apos; El Niño leaves Atlantic eerily quiet"
+    },
+    "42207": {
+      "categoryName": "sports",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC Sport",
+      "firstStoryHeadline": "Two goals in two games - Sesko gives Man Utd a different threat"
+    },
+    "42208": {
+      "categoryName": "technology",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "Can Europe recharge its battery industry?"
+    },
+    "42209": {
+      "categoryName": "general",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 10,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "BBC News",
+      "firstStoryHeadline": "Labour mayors in England vow to cap tourist tax at 5%",
+      "sampleExcerpt": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:apcm=\"http://ap.org/schemas/03/2005/apcm\">\n  <entry>\n    <title>BBC News</title>\n    <author><name>BBC News</name></author>\n    <rights>Copyright: (C) British Broadcasting Corporation, see https://www.bbc.co.uk/usingthebbc/terms-of-use/#15metadataandrssfeeds for terms and conditions of reuse.</rights>\n    <apcm:ContentMetadata>\n      <apcm:ExtendedHeadLine>BBC News</apcm:ExtendedHeadLine>\n    </apcm:ContentMetadata>\n  </entry>\n  <entry>\n    <title>Labour mayors in England vow to cap tourist tax at 5%</title>\n    <author><name>BBC News</name></author>\n    <rights>Copyright: (C) British Broadcasting Corporation, see https://www.bbc.co.uk/usingthebbc/terms-of-use/#15metadataandrssfeeds for terms and conditions of reuse.</rights>\n    <summary>Reform UK and the Conservatives have criticised plans for the ne"
+    },
+    "42210": {
+      "categoryName": "national",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "entries": 11,
+      "entriesWithProviderImage": 0,
+      "headerEntryHasNoSummaryOrMedia": true,
+      "feedHeaderTitle": "NPR Topics: News",
+      "firstStoryHeadline": "This summer was hot. August shattered global heat records"
+    }
+  },
+  "phaseA": {
+    "intent": "cold cache + polling off: every category is a live provider fetch (miss envelope)",
+    "providerFetches": 11,
+    "distinctProviderFeeds": [
+      "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml",
+      "https://feeds.bbci.co.uk/news/health/rss.xml",
+      "https://feeds.bbci.co.uk/news/politics/rss.xml",
+      "https://feeds.bbci.co.uk/news/rss.xml",
+      "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",
+      "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "https://feeds.bbci.co.uk/sport/rss.xml",
+      "https://feeds.npr.org/1001/rss.xml"
+    ],
+    "cachedKeys": [
+      "ap_news:42200",
+      "ap_news:42201",
+      "ap_news:42202",
+      "ap_news:42203",
+      "ap_news:42204",
+      "ap_news:42205",
+      "ap_news:42206",
+      "ap_news:42207",
+      "ap_news:42208",
+      "ap_news:42209",
+      "ap_news:42210"
+    ],
+    "allMissEnvelope": true
+  },
+  "phaseB": {
+    "intent": "poller enabled: the init poll warms all eleven keys and a GET is served from the warmed key",
+    "afterStart": {
+      "providerFetches": 11,
+      "cachedKeyCount": 11,
+      "cachedKeys": [
+        "ap_news:42200",
+        "ap_news:42201",
+        "ap_news:42202",
+        "ap_news:42203",
+        "ap_news:42204",
+        "ap_news:42205",
+        "ap_news:42206",
+        "ap_news:42207",
+        "ap_news:42208",
+        "ap_news:42209",
+        "ap_news:42210"
+      ],
+      "isPolling": true
+    },
+    "afterHit": {
+      "providerFetches": 11,
+      "lassoDataFromRedis": true,
+      "contentType": "text/html; charset=utf-8",
+      "entriesServed": 11,
+      "networkRequestsForHit": 0
+    },
+    "afterSecondPoll": {
+      "providerFetches": 22,
+      "pollsCompleted": 2,
+      "cachedEntryShape": {
+        "lassoDataFromRedis": true,
+        "lassoInsertedIntoRedisAt": "2026-09-11T01:06:47.791Z",
+        "relayDataEntries": 11
+      }
+    }
+  },
+  "phaseC": {
+    "intent": "one provider feed fails: only that key stays uncached and a later poll caches it",
+    "failedPoll": {
+      "cachedKeyCount": 10,
+      "missingKeys": [
+        "ap_news:42210"
+      ],
+      "nationalMiss": {
+        "status": 503,
+        "body": "Error getting APNews data: \"down\"",
+        "type": "text/html; charset=utf-8"
+      },
+      "generalHit": true
+    },
+    "recoveredPoll": {
+      "cachedKeyCount": 11,
+      "missingKeys": []
+    }
+  },
+  "phaseD": {
+    "intent": "close(): the interval is cleared, so no further provider fetches happen after shutdown",
+    "fetchesAtClose": 11,
+    "fetchesAfterCloseAndWait": 11,
+    "isPollingAfterClose": false,
+    "leaked": false,
+    "cacheKeysRemaining": 11
+  },
+  "phaseE": {
+    "intent": "live provider payloads -> the original consumer (parseXml + newsParse): headers dropped, images resolved",
+    "totalPlayableStories": 73,
+    "categoriesWithStories": [
+      "business",
+      "entertainment",
+      "international",
+      "health",
+      "strange",
+      "politics",
+      "science",
+      "sports",
+      "technology"
+    ],
+    "categoriesWithoutStories": [
+      "general",
+      "national"
+    ],
+    "perCategory": {
+      "business": {
+        "storiesAfterHeaderOffset": 9,
+        "headlines": [
+          "Are interest rates on the way up again?",
+          "Oil, gas and borrowing costs surge as fears over Middle East escalate",
+          "Alstom to build new battery-electric train fleet"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/6586/live/365b8a30-ad4a-11f1-8963-d14e6edce0d0.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/f162/live/08923520-ad29-11f1-980e-4fc6f1211def.jpg"
+        ]
+      },
+      "entertainment": {
+        "storiesAfterHeaderOffset": 9,
+        "headlines": [
+          "New Strictly hosts explain their roles as they reject 'roving presenter' reports",
+          "BBC drops Drag Race UK after eight series",
+          "Harry Styles extends tour, with Kylie as a support act"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/eccb/live/d5b3ae30-ad1f-11f1-826f-933990eae6f0.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/716f/live/1b5de710-ac86-11f1-ab14-5b9069dc795d.jpg"
+        ]
+      },
+      "international": {
+        "storiesAfterHeaderOffset": 8,
+        "headlines": [
+          "Can Trump really pay $5,000 to every American adult?",
+          "Pilot warned Amazon cargo plane going too fast before deadly crash, data shows",
+          "Israel's Netanyahu to sue newspaper over claim UAE warned him of 7 October attack"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/a721/live/979ac0a0-ad26-11f1-a540-61c3f7fc4e6c.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/da5e/live/e1bc0040-ad1c-11f1-826f-933990eae6f0.jpg"
+        ]
+      },
+      "health": {
+        "storiesAfterHeaderOffset": 9,
+        "headlines": [
+          "UK needs new laws for AI in healthcare, says watchdog",
+          "Migraines and acne among five more conditions pharmacists can treat",
+          "Very hot drinks may damage the food pipe and increase cancer risk"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/c4b9/live/69dbfa80-ac63-11f1-be57-03729df1d736.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/37da/live/cda17b80-ace0-11f1-b1d1-571ed4d7ff2c.jpg"
+        ]
+      },
+      "strange": {
+        "storiesAfterHeaderOffset": 5,
+        "headlines": [
+          "Use all powers necessary on anti-migrant protests, home secretary tells police",
+          "Ukraine's fortress cities under fire as Russia bids to seize rest of Donbas",
+          "Can Trump pay $5,000 to every American adult if Republicans win midterm elections?"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/cdf5/live/7015bd10-ad39-11f1-a540-61c3f7fc4e6c.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/fd8d/live/b5d72f90-ad30-11f1-b1d1-571ed4d7ff2c.jpg"
+        ]
+      },
+      "politics": {
+        "storiesAfterHeaderOffset": 8,
+        "headlines": [
+          "Ex-Tory campaign chief pleads guilty over election bet",
+          "Why are MPs voting on assisted dying again?",
+          "Police launch criminal investigation into Reform UK donations"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/1b35/live/2d096810-2f13-11ef-90be-b75b34b0bbb2.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/40e1/live/59cd9570-fcde-11f0-b7e1-afb6d0884c18.jpg"
+        ]
+      },
+      "science": {
+        "storiesAfterHeaderOffset": 9,
+        "headlines": [
+          "Species 'at risk of vanishing' from area of Wales' largest national park",
+          "August joint hottest month on record globally",
+          "August joint-hottest month on record as climate change and El Niño drive heat"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/eb8e/live/6bdb87e0-ad0f-11f1-b1d1-571ed4d7ff2c.png",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/8179/live/4c9027b0-ad0a-11f1-b1d1-571ed4d7ff2c.jpg"
+        ]
+      },
+      "sports": {
+        "storiesAfterHeaderOffset": 9,
+        "headlines": [
+          "England's push for two-day win halted by weather",
+          "Man Utd put four past Sabah on Champions League return",
+          "England captain Jones calls for fertility support"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/2eb5/live/eb3f12c0-ad34-11f1-9bc8-3509bd1a4ead.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/87c6/live/38edb380-ad5a-11f1-bc1f-3f186ca4140c.jpg"
+        ]
+      },
+      "technology": {
+        "storiesAfterHeaderOffset": 7,
+        "headlines": [
+          "Anthropic researcher believes more than 10% chance AI 'could kill all humans'",
+          "White House pulls Tetris-style 'Build The Wall' game after copyright concern",
+          "Meta continues to run ads promoting child sexual abuse material in India - report"
+        ],
+        "imageSources": [
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/cace/live/40c59310-ac2a-11f1-9bd9-7b7da208bd5c.jpg",
+          "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/4129/live/deb20cc0-ac39-11f1-b483-f5be285e6b7e.jpg"
+        ]
+      },
+      "general": {
+        "storiesAfterHeaderOffset": 0,
+        "headlines": [],
+        "imageSources": []
+      },
+      "national": {
+        "storiesAfterHeaderOffset": 0,
+        "headlines": [],
+        "imageSources": []
+      }
+    }
+  }
+}

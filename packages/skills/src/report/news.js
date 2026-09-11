@@ -4,8 +4,10 @@
 // Intro + one Headline MIM per story + Outro (single-skill only).
 //
 // Source behavior: every item must carry AP image metadata and the first feed item is a
-// provider header, so it is removed before the report selects headlines. The Phoenix RSS->AP
-// shim currently emits no image metadata; those entries therefore produce no playable item.
+// provider header, so it is removed before the report selects headlines. The RSS->AP shim
+// (packages/data/src/news.js) emits the provider header entry plus a NITF preview slot for
+// every story the provider gives a URL and both dimensions; a story without complete
+// provider media still produces no playable item (e.g. the NPR national feed).
 
 import { Graph } from '../graph/graph.js';
 import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
