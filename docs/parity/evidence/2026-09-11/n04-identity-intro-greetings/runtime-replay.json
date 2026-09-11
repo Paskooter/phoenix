@@ -1,0 +1,10311 @@
+{
+ "schema": "phoenix.nlu.n04-identity-intro-greetings-replay",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "fixtureSha256": "026d4011ab5a4aaa7ee4634b27e87b11408c18d9da14909f781c52550a80af15",
+ "profile": "ast",
+ "namedRuleCoverage": 21,
+ "transcripts": 7,
+ "cases": 159,
+ "directMatches": 159,
+ "httpMatches": 159,
+ "oracleCases": 10,
+ "oracleMatches": 10,
+ "differences": {
+  "direct": [],
+  "http": [],
+  "oracle": []
+ },
+ "directRows": [
+  {
+   "section": "launchIntents",
+   "id": "launch:hello",
+   "basis": "native",
+   "request": {
+    "text": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:hi-jibo",
+   "basis": "native",
+   "request": {
+    "text": "hi jibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "heyJibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "heyJibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:hey-there",
+   "basis": "native",
+   "request": {
+    "text": "hey there",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-morning",
+   "basis": "native",
+   "request": {
+    "text": "good morning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-afternoon",
+   "basis": "source",
+   "request": {
+    "text": "good afternoon",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodAfternoon",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodAfternoon",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-evening",
+   "basis": "native",
+   "request": {
+    "text": "good evening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodEvening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodEvening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-night",
+   "basis": "source",
+   "request": {
+    "text": "good night",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodNight",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodNight",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:goodbye",
+   "basis": "source",
+   "request": {
+    "text": "goodbye",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodBye",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodBye",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:im-home",
+   "basis": "source",
+   "request": {
+    "text": "i am home",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imHome",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imHome",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:im-back",
+   "basis": "source",
+   "request": {
+    "text": "i am back",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imBack",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imBack",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:howdy",
+   "basis": "native",
+   "request": {
+    "text": "howdy",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:whats-up",
+   "basis": "native",
+   "request": {
+    "text": "whats up",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:whats-happening",
+   "basis": "native",
+   "request": {
+    "text": "whats happening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:happy-holiday",
+   "basis": "source",
+   "request": {
+    "text": "merry christmas",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "holiday": "Christmas",
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "happyHoliday",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "holiday": "Christmas",
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "happyHoliday",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:who-am-i",
+   "basis": "native",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:whats-my-name",
+   "basis": "native",
+   "request": {
+    "text": "whats my name",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-known",
+   "basis": "source",
+   "request": {
+    "text": "this is my friend Mary",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-known-2",
+   "basis": "source",
+   "request": {
+    "text": "enroll Mary",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-unknown",
+   "basis": "source",
+   "request": {
+    "text": "enroll my friend",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "recipient": "null",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "recipient": "null",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-voice",
+   "basis": "source",
+   "request": {
+    "text": "enroll her voice",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "voice",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "voice",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-type-all",
+   "basis": "source",
+   "request": {
+    "text": "do a complete enrollment for my mom",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "all",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "all",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:hello",
+   "request": {
+    "text": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:hey there",
+   "request": {
+    "text": "hey there",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:how are you",
+   "request": {
+    "text": "how are you",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:how is your day going",
+   "request": {
+    "text": "how is your day going",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:greetings",
+   "request": {
+    "text": "greetings",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:good morning",
+   "request": {
+    "text": "good morning",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:good night",
+   "request": {
+    "text": "good night",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:another great day",
+   "request": {
+    "text": "another great day",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:it was great",
+   "request": {
+    "text": "it was great",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:could be worse",
+   "request": {
+    "text": "could be worse",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:could be better",
+   "request": {
+    "text": "could be better",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:unfortunately",
+   "request": {
+    "text": "unfortunately",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:it sure was not",
+   "request": {
+    "text": "it sure was not",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:like a log",
+   "request": {
+    "text": "like a log",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:slept all night",
+   "request": {
+    "text": "slept all night",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:seven hours",
+   "request": {
+    "text": "seven hours",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:two hours",
+   "request": {
+    "text": "two hours",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:kept me up all night",
+   "request": {
+    "text": "kept me up all night",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:how about you",
+   "request": {
+    "text": "how about you",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "noMatch",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "noMatch",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:you too",
+   "request": {
+    "text": "you too",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:thanks jibo you too",
+   "request": {
+    "text": "thanks jibo you too",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:right back at you",
+   "request": {
+    "text": "right back at you",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:you as well",
+   "request": {
+    "text": "you as well",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:neg",
+   "request": {
+    "text": "thanks",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:i will",
+   "request": {
+    "text": "i will",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:sounds good",
+   "request": {
+    "text": "sounds good",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:remind me again later",
+   "request": {
+    "text": "remind me again later",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "reRemind",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "reRemind",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:stop it",
+   "request": {
+    "text": "stop it",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:be quiet",
+   "request": {
+    "text": "be quiet",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:whatever",
+   "request": {
+    "text": "whatever",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_question:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_question:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_question:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_statement:pos:hey jibo",
+   "request": {
+    "text": "hey jibo",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_question:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "yes",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "yes",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_question:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "no",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "no",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_question:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_statement:pos:hey jibo",
+   "request": {
+    "text": "hey jibo",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_question:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_question:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_question:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_statement:pos:hey jibo",
+   "request": {
+    "text": "hey jibo",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:my name is Mary",
+   "request": {
+    "text": "my name is Mary",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:i am bob",
+   "request": {
+    "text": "i am bob",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:john smith",
+   "request": {
+    "text": "john smith",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "john",
+     "LastName": "smith"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "john",
+     "LastName": "smith"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:forget it",
+   "request": {
+    "text": "forget it",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:no one",
+   "request": {
+    "text": "no one",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:my friend is here",
+   "request": {
+    "text": "my friend is here",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:they are ready",
+   "request": {
+    "text": "they are ready",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:nobody else",
+   "request": {
+    "text": "nobody else",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:not right now",
+   "request": {
+    "text": "not right now",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:i am ready",
+   "request": {
+    "text": "i am ready",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:nailed it",
+   "request": {
+    "text": "nailed it",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:no thanks",
+   "request": {
+    "text": "no thanks",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:wait a minute",
+   "request": {
+    "text": "wait a minute",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:close enough",
+   "request": {
+    "text": "close enough",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:certainly",
+   "request": {
+    "text": "certainly",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:not quite",
+   "request": {
+    "text": "not quite",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:not this time",
+   "request": {
+    "text": "not this time",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:face",
+   "request": {
+    "text": "face",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:voice",
+   "request": {
+    "text": "voice",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:my name",
+   "request": {
+    "text": "my name",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:face",
+   "request": {
+    "text": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:voice",
+   "request": {
+    "text": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:name",
+   "request": {
+    "text": "name",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:voice enrollment",
+   "request": {
+    "text": "voice enrollment",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:neg",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:my name is Mary",
+   "request": {
+    "text": "my name is Mary",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:i am bob",
+   "request": {
+    "text": "i am bob",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:i am not in the loop",
+   "request": {
+    "text": "i am not in the loop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:we are not loopers",
+   "request": {
+    "text": "we are not loopers",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:definitely",
+   "request": {
+    "text": "definitely",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:correct",
+   "request": {
+    "text": "correct",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:it is",
+   "request": {
+    "text": "it is",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:wrong again",
+   "request": {
+    "text": "wrong again",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:not me",
+   "request": {
+    "text": "not me",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:close enough",
+   "request": {
+    "text": "close enough",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:kind of",
+   "request": {
+    "text": "kind of",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:not quite",
+   "request": {
+    "text": "not quite",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:close but no cigar",
+   "request": {
+    "text": "close but no cigar",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:go for it",
+   "request": {
+    "text": "go for it",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:you can",
+   "request": {
+    "text": "you can",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:sounds good",
+   "request": {
+    "text": "sounds good",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:later",
+   "request": {
+    "text": "later",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:not a good idea",
+   "request": {
+    "text": "not a good idea",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:empty-launch",
+   "request": {
+    "text": "",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:whitespace-launch",
+   "request": {
+    "text": "   ",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:empty-followup",
+   "request": {
+    "text": "",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:empty-intro",
+   "request": {
+    "text": "",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "ambiguous",
+   "id": "ambiguous:collect-first-name",
+   "request": {
+    "id": "ambiguous:collect-first-name",
+    "text": "my name is Jane",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane-first",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane-second",
+       "firstName": "Jane",
+       "lastName": "Smith"
+      }
+     ]
+    },
+    "note": "Array.find keeps the first member with that firstName (LoopMemberDetector.ts:65-68)",
+    "expect": {
+     "entities": {
+      "GivenName": "jane",
+      "loopMemberReferent": "u-jane-first",
+      "given-name": "Jane",
+      "last-name": "Jetson"
+     },
+     "intent": "loopmember",
+     "rules": [
+      "who-am-i/collect_looper"
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "ambiguous",
+   "id": "ambiguous:collect-full-name",
+   "request": {
+    "id": "ambiguous:collect-full-name",
+    "text": "jane jetson",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane-first",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane-second",
+       "firstName": "Jane",
+       "lastName": "Smith"
+      }
+     ]
+    },
+    "note": "full-name entity lookup resolves the matching member, not the first",
+    "expect": {
+     "entities": {
+      "GivenName": "jane",
+      "loopMemberReferent": "u-jane-first",
+      "given-name": "Jane",
+      "last-name": "Jetson"
+     },
+     "intent": "loopmember",
+     "rules": [
+      "who-am-i/collect_looper"
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "ambiguous",
+   "id": "ambiguous:launch-which-jane",
+   "request": {
+    "id": "ambiguous:launch-which-jane",
+    "text": "who is jane",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane-first",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane-second",
+       "firstName": "Jane",
+       "lastName": "Smith"
+      }
+     ]
+    },
+    "note": "text search keeps the first member with that firstName (LoopMemberDetector.ts:81-90)",
+    "expect": {
+     "entities": {
+      "GivenName": "jane",
+      "union_original_fst_name": "handle:chitchat/launch",
+      "loopMemberReferent": "u-jane-first",
+      "given-name": "Jane",
+      "last-name": "Jetson"
+     },
+     "intent": "whoIsPerson",
+     "rules": [
+      "launch"
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-identity-enrollment#0",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-identity-enrollment#1",
+   "request": {
+    "text": "my name is George",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "george",
+     "loopMemberReferent": "u-george",
+     "given-name": "George",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "george",
+     "loopMemberReferent": "u-george",
+     "given-name": "George",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-identity-enrollment#2",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-identity-enrollment#0",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-identity-enrollment#1",
+   "request": {
+    "text": "my name is Alex",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-identity-enrollment#2",
+   "request": {
+    "text": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#0",
+   "request": {
+    "text": "this is my friend Mary",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch",
+     "loopMemberReferent": "u-mary",
+     "given-name": "Mary",
+     "last-name": "Jackson"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch",
+     "loopMemberReferent": "u-mary",
+     "given-name": "Mary",
+     "last-name": "Jackson"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#1",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#2",
+   "request": {
+    "text": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#3",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-introduction#0",
+   "request": {
+    "text": "this is my friend Alex",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "alex",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "alex",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-introduction#1",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-introduction#2",
+   "request": {
+    "text": "my name is Alex",
+    "rules": [
+     "introductions/intro_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-follow-up#0",
+   "request": {
+    "text": "hello",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-follow-up#1",
+   "request": {
+    "text": "you too",
+    "rules": [
+     "greetings/you_too"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-follow-up#2",
+   "request": {
+    "text": "good morning",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-identity-selfid-vs-introduction#0",
+   "request": {
+    "text": "it's me Mary",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-identity-selfid-vs-introduction#1",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "no-members#0",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "no-members#1",
+   "request": {
+    "text": "my name is George",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "george"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "george"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "error": null,
+   "matches": true
+  }
+ ],
+ "httpRows": [
+  {
+   "section": "launchIntents",
+   "id": "launch:hello",
+   "basis": "native",
+   "request": {
+    "text": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:hi-jibo",
+   "basis": "native",
+   "request": {
+    "text": "hi jibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "heyJibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "heyJibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:hey-there",
+   "basis": "native",
+   "request": {
+    "text": "hey there",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-morning",
+   "basis": "native",
+   "request": {
+    "text": "good morning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-afternoon",
+   "basis": "source",
+   "request": {
+    "text": "good afternoon",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodAfternoon",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodAfternoon",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-evening",
+   "basis": "native",
+   "request": {
+    "text": "good evening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodEvening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodEvening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:good-night",
+   "basis": "source",
+   "request": {
+    "text": "good night",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodNight",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodNight",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:goodbye",
+   "basis": "source",
+   "request": {
+    "text": "goodbye",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodBye",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodBye",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:im-home",
+   "basis": "source",
+   "request": {
+    "text": "i am home",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imHome",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imHome",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:im-back",
+   "basis": "source",
+   "request": {
+    "text": "i am back",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imBack",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imBack",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:howdy",
+   "basis": "native",
+   "request": {
+    "text": "howdy",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:whats-up",
+   "basis": "native",
+   "request": {
+    "text": "whats up",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:whats-happening",
+   "basis": "native",
+   "request": {
+    "text": "whats happening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:happy-holiday",
+   "basis": "source",
+   "request": {
+    "text": "merry christmas",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "holiday": "Christmas",
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "happyHoliday",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "holiday": "Christmas",
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "happyHoliday",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:who-am-i",
+   "basis": "native",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:whats-my-name",
+   "basis": "native",
+   "request": {
+    "text": "whats my name",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-known",
+   "basis": "source",
+   "request": {
+    "text": "this is my friend Mary",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-known-2",
+   "basis": "source",
+   "request": {
+    "text": "enroll Mary",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-unknown",
+   "basis": "source",
+   "request": {
+    "text": "enroll my friend",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "recipient": "null",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "recipient": "null",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-voice",
+   "basis": "source",
+   "request": {
+    "text": "enroll her voice",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "voice",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "voice",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "launchIntents",
+   "id": "launch:enroll-type-all",
+   "basis": "source",
+   "request": {
+    "text": "do a complete enrollment for my mom",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "all",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "all",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:hello",
+   "request": {
+    "text": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:hey there",
+   "request": {
+    "text": "hey there",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:how are you",
+   "request": {
+    "text": "how are you",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:how is your day going",
+   "request": {
+    "text": "how is your day going",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:greetings",
+   "request": {
+    "text": "greetings",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:good morning",
+   "request": {
+    "text": "good morning",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:pos:good night",
+   "request": {
+    "text": "good night",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "hello",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/greetings_hello:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/greetings_hello"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:another great day",
+   "request": {
+    "text": "another great day",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:it was great",
+   "request": {
+    "text": "it was great",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:could be worse",
+   "request": {
+    "text": "could be worse",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:could be better",
+   "request": {
+    "text": "could be better",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:unfortunately",
+   "request": {
+    "text": "unfortunately",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:pos:it sure was not",
+   "request": {
+    "text": "it sure was not",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/day_quality:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/day_quality"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:like a log",
+   "request": {
+    "text": "like a log",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:slept all night",
+   "request": {
+    "text": "slept all night",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:seven hours",
+   "request": {
+    "text": "seven hours",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:two hours",
+   "request": {
+    "text": "two hours",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:kept me up all night",
+   "request": {
+    "text": "kept me up all night",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:pos:how about you",
+   "request": {
+    "text": "how about you",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "noMatch",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "noMatch",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/sleep_quality:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/sleep_quality"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:you too",
+   "request": {
+    "text": "you too",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:thanks jibo you too",
+   "request": {
+    "text": "thanks jibo you too",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:right back at you",
+   "request": {
+    "text": "right back at you",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:pos:you as well",
+   "request": {
+    "text": "you as well",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/you_too:neg",
+   "request": {
+    "text": "thanks",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:i will",
+   "request": {
+    "text": "i will",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:sounds good",
+   "request": {
+    "text": "sounds good",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "iWill",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:remind me again later",
+   "request": {
+    "text": "remind me again later",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "reRemind",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "reRemind",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:stop it",
+   "request": {
+    "text": "stop it",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:be quiet",
+   "request": {
+    "text": "be quiet",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/bedtime_reminder:pos:whatever",
+   "request": {
+    "text": "whatever",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "frustrated",
+    "rules": [
+     "greetings/bedtime_reminder"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_question:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_question:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_question:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/proactive_general_question"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_general_statement:pos:hey jibo",
+   "request": {
+    "text": "hey jibo",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_general_statement"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_question:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "yes",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "yes",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_question:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "no",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "no",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_question:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/proactive_morning_question"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_morning_statement:pos:hey jibo",
+   "request": {
+    "text": "hey jibo",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_morning_statement"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_question:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "good",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_question:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "bad",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_question:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "greetings/proactive_playful_question"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "greetings/proactive_playful_statement:pos:hey jibo",
+   "request": {
+    "text": "hey jibo",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings"
+    },
+    "intent": "returned",
+    "rules": [
+     "greetings/proactive_playful_statement"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:my name is Mary",
+   "request": {
+    "text": "my name is Mary",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:i am bob",
+   "request": {
+    "text": "i am bob",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:john smith",
+   "request": {
+    "text": "john smith",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "john",
+     "LastName": "smith"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "john",
+     "LastName": "smith"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:forget it",
+   "request": {
+    "text": "forget it",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/intro_looper:pos:no one",
+   "request": {
+    "text": "no one",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:my friend is here",
+   "request": {
+    "text": "my friend is here",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:they are ready",
+   "request": {
+    "text": "they are ready",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:nobody else",
+   "request": {
+    "text": "nobody else",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:pos:not right now",
+   "request": {
+    "text": "not right now",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/any_more_intros:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:i am ready",
+   "request": {
+    "text": "i am ready",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:nailed it",
+   "request": {
+    "text": "nailed it",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:no thanks",
+   "request": {
+    "text": "no thanks",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:wait a minute",
+   "request": {
+    "text": "wait a minute",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:pos:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/face_capture_ready:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:close enough",
+   "request": {
+    "text": "close enough",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:certainly",
+   "request": {
+    "text": "certainly",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:not quite",
+   "request": {
+    "text": "not quite",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:not this time",
+   "request": {
+    "text": "not this time",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:pos:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/is_name_right:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:face",
+   "request": {
+    "text": "face",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:voice",
+   "request": {
+    "text": "voice",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:pos:my name",
+   "request": {
+    "text": "my name",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_any_more:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:face",
+   "request": {
+    "text": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:voice",
+   "request": {
+    "text": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:name",
+   "request": {
+    "text": "name",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "name",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:pos:voice enrollment",
+   "request": {
+    "text": "voice enrollment",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "voice",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "introductions/recognition_type_menu:neg",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:my name is Mary",
+   "request": {
+    "text": "my name is Mary",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:i am bob",
+   "request": {
+    "text": "i am bob",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "bob"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:i am not in the loop",
+   "request": {
+    "text": "i am not in the loop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/collect_looper:pos:we are not loopers",
+   "request": {
+    "text": "we are not loopers",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "notInLoop",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:definitely",
+   "request": {
+    "text": "definitely",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:correct",
+   "request": {
+    "text": "correct",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:it is",
+   "request": {
+    "text": "it is",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:wrong again",
+   "request": {
+    "text": "wrong again",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:pos:not me",
+   "request": {
+    "text": "not me",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/confirm:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:close enough",
+   "request": {
+    "text": "close enough",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:kind of",
+   "request": {
+    "text": "kind of",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:not quite",
+   "request": {
+    "text": "not quite",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:pos:close but no cigar",
+   "request": {
+    "text": "close but no cigar",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/name_is_right:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:go for it",
+   "request": {
+    "text": "go for it",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:you can",
+   "request": {
+    "text": "you can",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:sounds good",
+   "request": {
+    "text": "sounds good",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:later",
+   "request": {
+    "text": "later",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:pos:not a good idea",
+   "request": {
+    "text": "not a good idea",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "namedRules",
+   "id": "who-am-i/want_to_enroll:neg",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "who-am-i/want_to_enroll"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:empty-launch",
+   "request": {
+    "text": "",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:whitespace-launch",
+   "request": {
+    "text": "   ",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:empty-followup",
+   "request": {
+    "text": "",
+    "rules": [
+     "who-am-i/confirm"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "noInput",
+   "id": "noinput:empty-intro",
+   "request": {
+    "text": "",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "expected": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "section": "ambiguous",
+   "id": "ambiguous:collect-first-name",
+   "request": {
+    "id": "ambiguous:collect-first-name",
+    "text": "my name is Jane",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane-first",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane-second",
+       "firstName": "Jane",
+       "lastName": "Smith"
+      }
+     ]
+    },
+    "note": "Array.find keeps the first member with that firstName (LoopMemberDetector.ts:65-68)",
+    "expect": {
+     "entities": {
+      "GivenName": "jane",
+      "loopMemberReferent": "u-jane-first",
+      "given-name": "Jane",
+      "last-name": "Jetson"
+     },
+     "intent": "loopmember",
+     "rules": [
+      "who-am-i/collect_looper"
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "ambiguous",
+   "id": "ambiguous:collect-full-name",
+   "request": {
+    "id": "ambiguous:collect-full-name",
+    "text": "jane jetson",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane-first",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane-second",
+       "firstName": "Jane",
+       "lastName": "Smith"
+      }
+     ]
+    },
+    "note": "full-name entity lookup resolves the matching member, not the first",
+    "expect": {
+     "entities": {
+      "GivenName": "jane",
+      "loopMemberReferent": "u-jane-first",
+      "given-name": "Jane",
+      "last-name": "Jetson"
+     },
+     "intent": "loopmember",
+     "rules": [
+      "who-am-i/collect_looper"
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "ambiguous",
+   "id": "ambiguous:launch-which-jane",
+   "request": {
+    "id": "ambiguous:launch-which-jane",
+    "text": "who is jane",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane-first",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane-second",
+       "firstName": "Jane",
+       "lastName": "Smith"
+      }
+     ]
+    },
+    "note": "text search keeps the first member with that firstName (LoopMemberDetector.ts:81-90)",
+    "expect": {
+     "entities": {
+      "GivenName": "jane",
+      "union_original_fst_name": "handle:chitchat/launch",
+      "loopMemberReferent": "u-jane-first",
+      "given-name": "Jane",
+      "last-name": "Jetson"
+     },
+     "intent": "whoIsPerson",
+     "rules": [
+      "launch"
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-identity-enrollment#0",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-identity-enrollment#1",
+   "request": {
+    "text": "my name is George",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "george",
+     "loopMemberReferent": "u-george",
+     "given-name": "George",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "george",
+     "loopMemberReferent": "u-george",
+     "given-name": "George",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-identity-enrollment#2",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "yes",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-identity-enrollment#0",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-identity-enrollment#1",
+   "request": {
+    "text": "my name is Alex",
+    "rules": [
+     "who-am-i/collect_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-identity-enrollment#2",
+   "request": {
+    "text": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "whoAmI"
+    },
+    "intent": "no",
+    "rules": [
+     "who-am-i/name_is_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#0",
+   "request": {
+    "text": "this is my friend Mary",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch",
+     "loopMemberReferent": "u-mary",
+     "given-name": "Mary",
+     "last-name": "Jackson"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch",
+     "loopMemberReferent": "u-mary",
+     "given-name": "Mary",
+     "last-name": "Jackson"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#1",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/face_capture_ready"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#2",
+   "request": {
+    "text": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "face",
+    "rules": [
+     "introductions/recognition_type_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "known-member-introduction#3",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-mary",
+       "firstName": "Mary",
+       "lastName": "Jackson"
+      },
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/recognition_any_more"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-introduction#0",
+   "request": {
+    "text": "this is my friend Alex",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "alex",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "alex",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-introduction#1",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/any_more_intros"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "unknown-member-introduction#2",
+   "request": {
+    "text": "my name is Alex",
+    "rules": [
+     "introductions/intro_looper"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "alex"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "introductions/intro_looper"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-follow-up#0",
+   "request": {
+    "text": "hello",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-follow-up#1",
+   "request": {
+    "text": "you too",
+    "rules": [
+     "greetings/you_too"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "youToo",
+    "rules": [
+     "greetings/you_too"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-follow-up#2",
+   "request": {
+    "text": "good morning",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-identity-selfid-vs-introduction#0",
+   "request": {
+    "text": "it's me Mary",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "greeting-identity-selfid-vs-introduction#1",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "expected": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "introductions/is_name_right"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "no-members#0",
+   "request": {
+    "text": "who am i",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "section": "transcripts",
+   "id": "no-members#1",
+   "request": {
+    "text": "my name is George",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "expected": {
+    "entities": {
+     "GivenName": "george"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "GivenName": "george"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   },
+   "matches": true
+  }
+ ],
+ "oracleRows": [
+  {
+   "id": "launch:hello",
+   "text": "hello",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "hello",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:hi-jibo",
+   "text": "hi jibo",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "heyJibo",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "heyJibo",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:hey-there",
+   "text": "hey there",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "hello",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:good-morning",
+   "text": "good morning",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "goodMorning",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:good-evening",
+   "text": "good evening",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodEvening",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "goodEvening",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:howdy",
+   "text": "howdy",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "hello",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:whats-up",
+   "text": "whats up",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "whatsUp",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:whats-happening",
+   "text": "whats happening",
+   "expected": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "whatsUp",
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:who-am-i",
+   "text": "who am i",
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "launchWhoAmI",
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "launch:whats-my-name",
+   "text": "whats my name",
+   "expected": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   },
+   "anchor": {
+    "intent": "launchWhoAmI",
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    }
+   },
+   "matches": true
+  }
+ ]
+}

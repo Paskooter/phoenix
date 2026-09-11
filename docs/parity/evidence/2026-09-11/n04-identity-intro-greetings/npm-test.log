@@ -1,0 +1,14 @@
+# npm test (full suite) — N-04 revision, 2026-09-11T04:26:33Z
+# command: npm test
+# exit: 0
+# tests 1864
+# suites 7
+# pass 1856
+# fail 0
+# cancelled 0
+# skipped 8
+# todo 0
+
+Checklist: 55/79 verified (69.6%)
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
