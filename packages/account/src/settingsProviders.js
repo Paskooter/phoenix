@@ -969,32 +969,97 @@ function localAccount(store) {
 // exactly as the reference does.
 const LOCAL_PERSON_DEFAULTS = Object.freeze({ offerProactively: true });
 
+// Presentation fields for the locally synthesized report-skill view. The original Settings
+// service returned the report-skill manifest's `settings.view`, whose rows all carry `index`
+// plus a human `title` (and, where authored, `subtitle`/`icon`). The mobile client binds those
+// fields straight onto its rows and dereferences `icon` without a null check
+// (ViewHolders.OauthViewHolder.invalidateView -> Items.OauthItem.getIcon().contains(...)), so a
+// bare {type,valueDefinition} node throws
+// `NullPointerException: String.contains(...) on a null object reference` the moment the settings
+// screen renders.
+//
+// Values transcribed verbatim from the authoritative report-skill manifest:
+//   archive repo jiboV2/pegasus, packages/hub/pegasus-skills/report_skill_manifest.json
+//   sha256 6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc
+// and cross-checked against the Settings service GetSettings response example in the SDK wiki
+// page "Mobile-Settings-Lasso support for Personal Report credentials"
+// (/confluence/display/SDK/Mobile-Settings-Lasso+support+for+Personal+Report+credentials).
+// Keys the manifest authors without a title (weather, homeLocation, workLocation, commuteType,
+// commuteTime) intentionally carry none here either rather than inventing one.
+const REPORT_VIEW_TITLE = 'Personal report';
+const REPORT_VIEW_SUBTITLE = 'Add your commute, calendar and news';
+const REPORT_VIEW_ICON = 'personal_report_icon';
+const REPORT_VIEW_ROWS = Object.freeze({
+  offerProactively: { title: 'Offer report proactively', subtitle: 'Jibo offers your Personal Report when he sees you' },
+  weatherEnabled: { title: 'Weather', subtitle: 'Change temperature units' },
+  commuteEnabled: { title: 'Commute', subtitle: 'Set where, when, and how you commute' },
+  calendarEnabled: { title: 'Calendars', subtitle: 'Connect work and personal calendars' },
+  newsEnabled: { title: 'News', subtitle: 'Customize your topics of interest' },
+  newsInternational: { title: 'International' },
+  newsNational: { title: 'National' },
+  newsBusiness: { title: 'Business' },
+  newsEntertainment: { title: 'Entertainment' },
+  newsSports: { title: 'Sports' },
+  newsHealth: { title: 'Health' },
+  newsPolitics: { title: 'Politics' },
+  newsScience: { title: 'Science' },
+  newsTechnology: { title: 'Technology' },
+  newsStrange: { title: 'Strange' },
+});
+// The four calendar rows the OauthViewHolder switches its icon on. `icon` must keep the
+// google/outlook substring so `getIcon().contains("google"|"outlook")` still selects the right
+// asset; the exact strings are the manifest's.
+const REPORT_OAUTH_ROWS = Object.freeze({
+  'google:personalCalendar:readonly': { title: 'Google Calendar', icon: 'googleCalendarIcon' },
+  'outlook:personalCalendar:readonly': { title: 'Outlook Calendar', icon: 'outlookCalendarIcon' },
+  'google:workCalendar:readonly': { title: 'Google Calendar', icon: 'googleCalendarIcon' },
+  'outlook:workCalendar:readonly': { title: 'Outlook Calendar', icon: 'outlookCalendarIcon' },
+});
+
 function localView(data) {
   const source = data || {};
   const entries = Object.entries(source);
   for (const [key, value] of Object.entries(LOCAL_PERSON_DEFAULTS)) {
     if (!Object.prototype.hasOwnProperty.call(source, key)) entries.push([key, { value }]);
   }
-  const childViews = entries.map(([key, value]) => {
+  // `index` is the row's position within the enclosing childViews array — the contract every
+  // authored manifest node satisfies, the key the client sorts on (SkillsJsonParser.getViews)
+  // and the value it feeds back into its own row list (SkillSettingsFragment ->
+  // mItems.get(dataItem.getIndex())). Emitting 0 for every row silently mis-targets updates.
+  const childViews = entries.map(([key, value], index) => {
     if (value && Object.prototype.hasOwnProperty.call(value, 'credentialExists')) {
       const parts = key.split(':');
-      return {
-        type: 'oauth',
-        valueDefinition: { target: 'lasso', key },
-        oauthParams: {
-          serviceName: parts[0] || 'unknown',
-          serviceAccountName: parts[1] || 'default',
-          scopes: parts.slice(2).filter(Boolean),
-        },
+      const oauth = REPORT_OAUTH_ROWS[key] || {};
+      const node = { type: 'oauth', index };
+      if (oauth.title !== undefined) node.title = oauth.title;
+      if (oauth.icon !== undefined) node.icon = oauth.icon;
+      node.oauthParams = {
+        serviceName: parts[0] || 'unknown',
+        serviceAccountName: parts[1] || 'default',
+        scopes: parts.slice(2).filter(Boolean),
       };
+      node.valueDefinition = { target: 'lasso', key };
+      return node;
     }
     const valueDefinition = { target: 'person', key };
     if (Object.prototype.hasOwnProperty.call(LOCAL_PERSON_DEFAULTS, key)) {
       valueDefinition.default = LOCAL_PERSON_DEFAULTS[key];
     }
-    return { type: 'switch', valueDefinition };
+    const row = REPORT_VIEW_ROWS[key] || {};
+    const node = { type: 'switch', index };
+    if (row.title !== undefined) node.title = row.title;
+    if (row.subtitle !== undefined) node.subtitle = row.subtitle;
+    node.valueDefinition = valueDefinition;
+    return node;
   });
-  return { type: 'group', childViews };
+  return {
+    type: 'group',
+    index: 0,
+    title: REPORT_VIEW_TITLE,
+    subtitle: REPORT_VIEW_SUBTITLE,
+    icon: REPORT_VIEW_ICON,
+    childViews,
+  };
 }
 
 function localHub(store, account) {

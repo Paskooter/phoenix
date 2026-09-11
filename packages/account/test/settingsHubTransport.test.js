@@ -179,9 +179,25 @@ test('local Hub keeps the Account friendly-id prerequisite and local view shape'
     // `offerProactively` person setting (default true); the settings service applies a view
     // node's `default` when the stored property is absent, which is what keeps an unset
     // proactive opt-in routing as the reference does.
+    //
+    // Every row also carries the manifest's `index` (position in the enclosing childViews
+    // array) plus the human `title`/`subtitle` the mobile client binds; without them the
+    // OauthViewHolder NPEs and rows render blank.
     assert.deepEqual(configs[0].settings.view.childViews, [
-      { type: 'switch', valueDefinition: { target: 'person', key: 'weatherEnabled' } },
-      { type: 'switch', valueDefinition: { target: 'person', key: 'offerProactively', default: true } },
+      {
+        type: 'switch',
+        index: 0,
+        title: 'Weather',
+        subtitle: 'Change temperature units',
+        valueDefinition: { target: 'person', key: 'weatherEnabled' },
+      },
+      {
+        type: 'switch',
+        index: 1,
+        title: 'Offer report proactively',
+        subtitle: 'Jibo offers your Personal Report when he sees you',
+        valueDefinition: { target: 'person', key: 'offerProactively', default: true },
+      },
     ]);
   } finally {
     rmSync(dir, { recursive: true, force: true });
