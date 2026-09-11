@@ -1,0 +1,44 @@
+20:31:49.937941 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 182
+E....p@.@............V......<14>1 2026-09-11T00:31:49.937Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.HttpHandler - C.Jetstream.HttpHandler: Handling JetHttpHandler:/listen/start_local_turn
+20:31:49.938863 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 155
+E....q@.@............V......<14>1 2026-09-11T00:31:49.938Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: hjw_JM_START_LOCAL_TURN
+20:31:49.939174 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 151
+E....r@.@............V......<14>1 2026-09-11T00:31:49.939Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: Entering PH-W state
+20:31:49.940813 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 168
+E....s@.@............V......<14>1 2026-09-11T00:31:49.940Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: Handled JM_START_LOCAL_TURN in 2 ms.
+20:31:49.967011 IP localhost.34390 > localhost.syslog: SYSLOG user.warning, length: 210
+E....{@.@............V......<12>1 2026-09-11T00:31:49.966Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jibohub_client.Connection - C.Jibohub_client.Connection: Authorization error connecting to: 192.168.1.182, re-fetching token.
+20:31:50.043528 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 161
+E.....@.@............V......<14>1 2026-09-11T00:31:50.043Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.LhubClient - C.Jetstream.LhubClient: Hub Client connection opened.
+20:31:50.047662 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 164
+E.....@.@............V......<14>1 2026-09-11T00:31:50.047Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: phw_JM_HUB_CLIENT_CONNECT_RESULT
+20:31:50.048232 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 306
+E..N..@.@............V...:.M<14>1 2026-09-11T00:31:50.048Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.LhubClient [messageContext@1 gain="1.000000" requestID="tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9" transID="tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9"] C.Jetstream.LhubClient: Hub LISTEN request keystone log entry
+20:31:50.049705 IP localhost.34390 > localhost.syslog: SYSLOG user.debug, length: 167
+E.....@.@............V......<15>1 2026-09-11T00:31:50.049Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.LhubClient - C.Jetstream.LhubClient: Set Audio encoder to type: LINEAR16
+20:31:50.208735 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 179
+E.....@.@..K.........V......<14>1 2026-09-11T00:31:50.208Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: Handled JM_HUB_CLIENT_CONNECT_RESULT in 161 ms.
+20:31:50.209604 IP localhost.59152 > localhost.syslog: SYSLOG local0.info, length: 188
+E.....@.@..A................<134>1 2026-09-11T00:31:50.190Z Moth-Radius-Breazeal-Felt be 3024 - [versions@1 release="3.3.0 InDev"] T.SF.ServiceClients.Identity.DataConverter: Returning null speaker due to staleness.
+
+20:31:50.283994 IP localhost.59152 > localhost.syslog: SYSLOG local0.info, length: 149
+E.....@.@..f................<134>1 2026-09-11T00:31:50.220Z Moth-Radius-Breazeal-Felt be 3024 - [versions@1 release="3.3.0 InDev"] T.Jibo.Jetstream: Jetstream: localTurnStarted
+
+20:31:52.174315 IP localhost.51960 > localhost.syslog: SYSLOG local0.info, length: 151
+E.....@.@..l................<134>1 2026-09-11T00:31:52.166Z Moth-Radius-Breazeal-Felt ssm 2933 - [versions@1 release="3.3.0 InDev"] T.SSM.Svc.KB.SyncManager: pausing loop syncing
+
+20:31:52.431293 IP localhost.51960 > localhost.syslog: SYSLOG local0.info, length: 152
+E.....@.@..s................<134>1 2026-09-11T00:31:52.429Z Moth-Radius-Breazeal-Felt ssm 2933 - [versions@1 release="3.3.0 InDev"] T.SSM.Svc.KB.SyncManager: resuming loop syncing
+
+20:31:55.165569 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 149
+E....<@.@............V......<14>1 2026-09-11T00:31:55.165Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: phw_JM_HUB_LISTEN
+20:31:55.166884 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 151
+E....>@.@............V......<14>1 2026-09-11T00:31:55.166Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: Entering HJ-W state
+20:31:55.166989 IP localhost.34390 > localhost.syslog: SYSLOG user.info, length: 162
+E....?@.@............V......<14>1 2026-09-11T00:31:55.166Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Jetstream.ListenLoop - C.Jetstream.ListenLoop: Handled JM_HUB_LISTEN in 1 ms.
+20:31:55.183407 IP localhost.59152 > localhost.syslog: SYSLOG local0.info, length: 481
+E....F@.@...................<134>1 2026-09-11T00:31:55.170Z Moth-Radius-Breazeal-Felt be 3024 - [versions@1 release="3.3.0 InDev"] T.Jibo.Jetstream: Jetstream: localTurnResult: { global: false,\n  result: \n   ListenResult {\n     asr: { annotation: 'SOS_TIMEOUT', confidence: 0, text: '' },\n     nlu: { entities: null, intent: null, rules: [] },\n     match: null,\n     transID: 'tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9' },\n  status: 'SUCCEEDED',\n  transID: 'tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9' }
+
+20:32:10.014914 IP localhost.34390 > localhost.syslog: SYSLOG user.debug, length: 148
+E....F@.@.~..........V......<15>1 2026-09-11T00:32:10.014Z Moth-Radius-Breazeal-Felt jibo-jetstream-service 2325 Application.Port - C.Application.Port: Port[1]:: received close
+

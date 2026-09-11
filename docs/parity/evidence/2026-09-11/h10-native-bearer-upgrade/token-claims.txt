@@ -1,0 +1,18 @@
+===== runB-hub-wire.txt 2 distinct tokens
+ sha256=34826cc05723c566fad880fa271716f1848c0be84de22701cb0fdcefcafe47f5
+   claim_order=['accessKeyId', 'friendlyId', 'id', 'payload', 'secretAccessKey', 'iat', 'exp']
+   redacted_claims={"accessKeyId": "<str>", "friendlyId": "Moth-Radius-Breazeal-Felt", "id": "<str>", "payload": null, "secretAccessKey": "<str>", "iat": 1789086488, "exp": 1789097288}
+   lifetime_s=10800
+ sha256=3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432
+   claim_order=['accessKeyId', 'friendlyId', 'id', 'payload', 'secretAccessKey', 'iat', 'exp']
+   redacted_claims={"accessKeyId": "<str>", "friendlyId": "Moth-Radius-Breazeal-Felt", "id": "<str>", "payload": null, "secretAccessKey": "<str>", "iat": 1789086597, "exp": 1789097397}
+   lifetime_s=10800
+===== runC-hub-wire.txt 2 distinct tokens
+ sha256=3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432
+   claim_order=['accessKeyId', 'friendlyId', 'id', 'payload', 'secretAccessKey', 'iat', 'exp']
+   redacted_claims={"accessKeyId": "<str>", "friendlyId": "Moth-Radius-Breazeal-Felt", "id": "<str>", "payload": null, "secretAccessKey": "<str>", "iat": 1789086597, "exp": 1789097397}
+   lifetime_s=10800
+ sha256=a205c3c6b515b41e29762b699a15f5b9ba857992b53b96bf998c739fc1022119
+   claim_order=['accessKeyId', 'friendlyId', 'id', 'payload', 'secretAccessKey', 'iat', 'exp']
+   redacted_claims={"accessKeyId": "<str>", "friendlyId": "Moth-Radius-Breazeal-Felt", "id": "<str>", "payload": null, "secretAccessKey": "<str>", "iat": 1789086710, "exp": 1789097510}
+   lifetime_s=10800
