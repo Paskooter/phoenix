@@ -168,6 +168,27 @@ LLM tool name to an archived Dialogflow intent.
 (not available in this sandbox, so only the HTTP wire contract is exercised against a local mock);
 behaviour of the restored fallback on the real robot.
 
+**Not closed by this candidate** (why `recommend_verified=false`):
+
+1. **Per-profile external/fallback matrix.** The three acceptance criteria end with "for each
+   supported profile". The fallback and external matrices were exercised on the default AST
+   profile (and the external seam is profile-independent), but the compiled FST profile is not
+   provisioned in this worktree (`getCompiledFstRuntime()` throws
+   `requires PHOENIX_NLU_COMPILED_HOME, PHOENIX_NLU_COMPILED_FST_DIRECTORIES, …`), so the
+   compiled-profile run is UNKNOWN here.
+2. **"Cover the archived intent/entity catalog".** The archived 99-intent / 89-entity Dialogflow
+   agent is recorded with per-file hashes and asserted as a denominator, but the restored LLM
+   catalog is a different 15-name list (only `yes`/`no` collide, N-07-D1) and none of its other
+   names are registered anywhere in phoenix. Recording the catalog is not covering its intents.
+3. **Per-rule failure.** The compiled `chooseBest` already converts one failed native request to
+   null and lets the rest arbitrate (`requestParser.js:277-285`; source
+   `RobustParserClient.getRuleResponse`), but no NEW focused test was added for it this pass and it
+   cannot be run here without the compiled graphs.
+4. **Real external agents.** The Dialogflow service is dead, so the external *success* path is only
+   replayed through a replaceable provider constructed in this candidate; there are no archived
+   real external-agent responses to compare against.
+
+
 ## 8. Divergence candidates (do **not** edit `DIVERGENCES.md` from this worktree)
 
 * **N-07-D1** — the restored LLM catalog is *not* derived from the archived Dialogflow agent: only
