@@ -13,6 +13,7 @@
 // NeMo Hypothesis object {text, ...} — unwrapped to a string.
 
 import http from 'node:http';
+import { FastEOS } from './fastEOS.js';
 import {
   AUDIO_ENCODINGS,
   AudioDecodeError,
@@ -71,6 +72,15 @@ export class ParakeetASRSession {
     this.pcmPending = Buffer.alloc(0);
     this.pcmCarry = null;
     this.finalizeReason = null;
+
+    // Parakeet is a batch recognizer, so earlyEOS cannot interrupt an interim
+    // stream. The reference still builds the regex here and (per its comment)
+    // applies it post-hoc in finalize() so the client-visible FAST_EOS
+    // annotation is not silently dropped by the batch replacement.
+    this.fastEOSRegex = null;
+    if (this.config.earlyEOS && this.config.earlyEOS.length > 0) {
+      this.fastEOSRegex = FastEOS.buildRegex(this.config.earlyEOS);
+    }
   }
 
   onStartOfSpeech(handler) { this.sosHandler = handler; }
@@ -296,6 +306,11 @@ export class ParakeetASRSession {
     const wav = ParakeetASRSession.makeWav(pcm);
     const transcript = await this._postToParakeet(wav);
     const result = { text: transcript || '', confidence: transcript ? 1.0 : 0.0 };
+    // Post-hoc earlyEOS: annotate the final transcript when it matches the
+    // cleaned earlyEOS phrases (the reference's stated batch behavior).
+    if (transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)) {
+      result.annotation = 'FAST_EOS';
+    }
     this.lastResult = result;
     if (this.resultHandler) this.resultHandler(result);
     this.state = 'DONE';
