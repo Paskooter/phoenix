@@ -1,0 +1,41 @@
+# `npm test` — D-07 final run (branch w9/d07, worktree .parity/worktrees/w9-d07)
+#
+# Trimmed transcript: the unit TAP body (1570 top-level subtests) is omitted to keep
+# this file small — the runner summary, the parity check and the production gate below
+# are verbatim. Reproduce with `npm test`.
+#
+# (An earlier run of the identical tree reported 1 failure — see the flake note in
+# evidence.md §5. The failing file passes 4/4 in isolation and 0 failures here.)
+
+1..1570
+# tests 1632
+# suites 7
+# pass 1625
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+# duration_ms 57835.64372
+
+> phoenix@0.0.0 parity:check
+> node scripts/parity-status.mjs --check
+
+Checklist: 43/79 verified (54.4%)
+management: 3/3 verified; 0 in progress; 0 blocked
+verification: 4/4 verified; 0 in progress; 0 blocked
+pegasus: 18/46 verified; 0 in progress; 0 blocked
+classic: 18/20 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Next: H-10 — Match hub authentication and context identity checks
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+> phoenix@0.0.0 parity:gate
+> node scripts/parity-production/gate.mjs
+
+Strict production smoke gate (43 cases; full corpus remains separately tracked). Evidence: /home/shell/work/phoenix/.parity/worktrees/w9-d07/.parity/runs/ci-production-c9b8743a-6b85-45ad-8742-74df5d4eb6fc
+image-phoenix
+candidate
+compare
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+NPM_TEST_EXIT=0
