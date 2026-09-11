@@ -12,6 +12,7 @@ import { parseRequest } from '../src/requestParser.js';
 import {
   createExternalAgentProvider, createDisabledExternalAgentProvider,
   attachExternalResult, DECOY_INTENT, DISABLED_EXTERNAL_ERROR, EXTERNAL_STATE,
+  EXTERNAL_ATTACHMENT_REVISION, DEFAULT_EXTERNAL_ATTACHMENT_REVISION, resolveExternalAttachmentRevision,
 } from '../src/externalAgents.js';
 
 const selectedRuntime = process.env.PHOENIX_NLU_RUNTIME;
@@ -110,4 +111,74 @@ test('DECOY_INTENT is the archived decoyIntent name', () => {
   const catalog = JSON.parse(readFileSync(new URL('./fixtures/dialogflow-agent-catalog.json', import.meta.url)));
   assert.equal(DECOY_INTENT, 'decoyIntent');
   assert.ok(catalog.intents.some(i => i.intent === DECOY_INTENT));
+});
+
+// N-07-D2 — the union of the two source revisions is explicit and selectable.
+test('the external-agent attachment revision is pinned to 5c0a739 and selectable', () => {
+  assert.equal(EXTERNAL_ATTACHMENT_REVISION.ATTACH, 'attach');
+  assert.equal(EXTERNAL_ATTACHMENT_REVISION.OMIT, 'omit');
+  assert.equal(DEFAULT_EXTERNAL_ATTACHMENT_REVISION, EXTERNAL_ATTACHMENT_REVISION.ATTACH);
+  assert.equal(resolveExternalAttachmentRevision(undefined), 'attach');
+  assert.equal(resolveExternalAttachmentRevision(null), 'attach');
+  assert.equal(resolveExternalAttachmentRevision('omit'), 'omit');
+  assert.throws(() => resolveExternalAttachmentRevision('attach-external'), /Unsupported external-agent attachment revision/);
+});
+
+test('OMIT reproduces the 715e0dd0 handler, whose getNLUResult has no external block', () => {
+  const result = () => ({ rules: ['clock/timer_set_value'], intent: 'timerValue', entities: { minutes: '5' } });
+
+  // Disabled provider: ATTACH throws the archived Node 8 boundary; OMIT does not.
+  const disabled = createDisabledExternalAgentProvider();
+  assert.throws(
+    () => attachExternalResult({ text: 'five minutes', rules: ['clock/timer_set_value'], external: {} }, result(), disabled),
+    error => error.message === DISABLED_EXTERNAL_ERROR,
+  );
+  const omitted = attachExternalResult(
+    { text: 'five minutes', rules: ['clock/timer_set_value'], external: {} },
+    result(), disabled, EXTERNAL_ATTACHMENT_REVISION.OMIT,
+  );
+  assert.deepEqual(omitted, result());
+  assert.equal('external' in omitted, false);
+
+  // Ready provider: ATTACH attaches the archived map; OMIT returns the result untouched.
+  const provider = createExternalAgentProvider({
+    enabled: true,
+    accessToken: 't',
+    agents: {
+      default: () => ({ intent: 'doesJiboLikeThing', entities: { GeneralLikes: 'Penguin' } }),
+      agent_one: () => ({ intent: 'doesJiboLikeThing', entities: { GeneralLikes: 'Penguin' } }),
+    },
+  });
+  const attached = attachExternalResult(
+    { text: 'do you like penguins', rules: ['launch'], external: { agent_one: { rules: ['launch'] } } },
+    { rules: ['launch'], intent: 'doesJiboLikeThing', entities: {} }, provider,
+  );
+  assert.deepEqual(attached.external, {
+    agent_one: { rules: ['launch'], intent: 'doesJiboLikeThing', entities: { GeneralLikes: 'Penguin' } },
+  });
+  const notAttached = attachExternalResult(
+    { text: 'do you like penguins', rules: ['launch'], external: { agent_one: { rules: ['launch'] } } },
+    { rules: ['launch'], intent: 'doesJiboLikeThing', entities: {} }, provider, EXTERNAL_ATTACHMENT_REVISION.OMIT,
+  );
+  assert.equal('external' in notAttached, false);
+});
+
+test('parseRequest selects the attachment revision per request', () => {
+  // Default (ATTACH): the disabled provider reproduces the boundary.
+  assert.throws(
+    () => parseRequest({ text: 'five minutes', rules: ['clock/timer_set_value'], external: {} }),
+    error => error.message === DISABLED_EXTERNAL_ERROR,
+  );
+  // OMIT: the external request is inert and the selected result is returned.
+  const omitted = parseRequest(
+    { text: 'five minutes', rules: ['clock/timer_set_value'], external: {} },
+    { externalAttachmentRevision: EXTERNAL_ATTACHMENT_REVISION.OMIT },
+  );
+  assert.deepEqual(omitted, { rules: ['clock/timer_set_value'], intent: 'timerValue', entities: { hours: 'null', minutes: '5', seconds: 'null', domain: 'timer' } });
+  assert.equal('external' in omitted, false);
+  // An unknown revision is rejected before any selection.
+  assert.throws(
+    () => parseRequest({ text: 'five minutes', rules: ['clock/timer_set_value'] }, { externalAttachmentRevision: 'nope' }),
+    /Unsupported external-agent attachment revision/,
+  );
 });

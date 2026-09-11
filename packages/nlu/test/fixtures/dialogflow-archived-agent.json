@@ -1,0 +1,4722 @@
+{
+ "schema": "phoenix.nlu.dialogflow-archived-agent",
+ "provenance": {
+  "repo": "jiboV2/pegasus",
+  "ref": "5c0a7390539663ba749d360de348a428c088505c",
+  "path": "packages/parser/dialogflow/main_agent",
+  "agentJsonSha256": "248c30d1e40408a15e5585f7b97f3b5cb7817fb60139ae73306571ad7d8373ed",
+  "note": "Archived Dialogflow agent export. derivedResponse entries are DERIVED from the intent training phrases (DialogflowClient.ts:100-104 copies response.result.metadata.intentName and response.result.parameters), not observed live: the apiai/Dialogflow service is dead."
+ },
+ "intentCount": 99,
+ "entityCount": 89,
+ "annotatedEntityCount": 42,
+ "annotatedCustomEntities": [
+  "Activity",
+  "Animal",
+  "BodyInternal",
+  "BodyPart",
+  "Color",
+  "Competitor",
+  "Emotion",
+  "FamilyMember",
+  "FantasticPerson",
+  "FantasyCreature",
+  "FavoriteCategory",
+  "Food",
+  "GeneralDescriptor",
+  "GeneralLikes",
+  "HairType",
+  "Holiday",
+  "JiboDescriptor",
+  "MovieShow",
+  "Occupation",
+  "Other",
+  "OtherPerson",
+  "Person",
+  "Relation",
+  "ReligionPerson",
+  "RobotCharacter",
+  "SchoolSubject",
+  "ShowEvent",
+  "Song",
+  "Sport",
+  "SportEvent",
+  "ThingYouWear",
+  "Timeframe",
+  "Weather",
+  "Zodiac"
+ ],
+ "annotatedSystemEntities": [
+  "given-name",
+  "last-name",
+  "sys.age",
+  "sys.date",
+  "sys.given-name",
+  "sys.ignore",
+  "sys.last-name",
+  "sys.number"
+ ],
+ "annotatedEntities": [
+  "Activity",
+  "Animal",
+  "BodyInternal",
+  "BodyPart",
+  "Color",
+  "Competitor",
+  "Emotion",
+  "FamilyMember",
+  "FantasticPerson",
+  "FantasyCreature",
+  "FavoriteCategory",
+  "Food",
+  "GeneralDescriptor",
+  "GeneralLikes",
+  "HairType",
+  "Holiday",
+  "JiboDescriptor",
+  "MovieShow",
+  "Occupation",
+  "Other",
+  "OtherPerson",
+  "Person",
+  "Relation",
+  "ReligionPerson",
+  "RobotCharacter",
+  "SchoolSubject",
+  "ShowEvent",
+  "Song",
+  "Sport",
+  "SportEvent",
+  "ThingYouWear",
+  "Timeframe",
+  "Weather",
+  "Zodiac",
+  "given-name",
+  "last-name",
+  "sys.age",
+  "sys.date",
+  "sys.given-name",
+  "sys.ignore",
+  "sys.last-name",
+  "sys.number"
+ ],
+ "intents": [
+  {
+   "name": "canJiboBeDescriptor",
+   "file": "canJiboBeDescriptor.json",
+   "sha256": "a24fcba661a597a184bbddb673ce7a504054391d2fc2925d78ea56621b396000",
+   "usersaysFile": "canJiboBeDescriptor_usersays_en.json",
+   "usersaysSha256": "634f23b98fa7bdca523d22f19683797aed6d3daf9adb5938988b7a2ce5d42214",
+   "trainingPhraseCount": 20,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "canJiboBeDescriptor",
+    "entities": {
+     "Emotion": "upset"
+    }
+   },
+   "derivedFrom": "canJiboBeDescriptor.json[0]"
+  },
+  {
+   "name": "decoyIntent",
+   "file": "decoyIntent.json",
+   "sha256": "f0e70f97b24d9a19966e8d88bc1738c8f9168073af5e9e72986a107ee814e42d",
+   "usersaysFile": "decoyIntent_usersays_en.json",
+   "usersaysSha256": "b102811b3b73f9df0b9cbacbe07581b49f2b689dface01fb97bc296ce5103703",
+   "trainingPhraseCount": 77,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "decoyIntent",
+    "entities": {}
+   },
+   "derivedFrom": "decoyIntent.json[0]"
+  },
+  {
+   "name": "didJiboWatchEvent",
+   "file": "didJiboWatchEvent.json",
+   "sha256": "52460d2130f83f5e66d1f9174ac886229d6373daa9930dc1e655987a7f2d1b5d",
+   "usersaysFile": "didJiboWatchEvent_usersays_en.json",
+   "usersaysSha256": "1d825411cff5a928d7aad2b07eab9ae6df5d7f1cfa9b25f3bb9457b9ff74b98b",
+   "trainingPhraseCount": 42,
+   "attributedEntities": [
+    "MovieShow",
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "MovieShow",
+     "dataType": "@MovieShow",
+     "isList": false,
+     "required": false,
+     "value": "$MovieShow"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "didJiboWatchEvent",
+    "entities": {
+     "MovieShow": "west world"
+    }
+   },
+   "derivedFrom": "didJiboWatchEvent.json[0]"
+  },
+  {
+   "name": "doesJiboBelieveInThing",
+   "file": "doesJiboBelieveInThing.json",
+   "sha256": "c3c3dc996df36d105e58744665e8d00dbc33157e0ab51f3e83c361fdbea3b2fb",
+   "usersaysFile": "doesJiboBelieveInThing_usersays_en.json",
+   "usersaysSha256": "6881e97e99a830e59fef4b3247477aca7034c89a44f00c194ffbfdb3b55196fd",
+   "trainingPhraseCount": 14,
+   "attributedEntities": [
+    "FantasticPerson",
+    "FantasyCreature"
+   ],
+   "responseParameters": [
+    {
+     "name": "FantasyCreature",
+     "dataType": "@FantasyCreature",
+     "isList": false,
+     "required": false,
+     "value": "$FantasyCreature"
+    },
+    {
+     "name": "FantasticPerson",
+     "dataType": "@FantasticPerson",
+     "isList": false,
+     "required": false,
+     "value": "$FantasticPerson"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboBelieveInThing",
+    "entities": {
+     "FantasticPerson": "santa"
+    }
+   },
+   "derivedFrom": "doesJiboBelieveInThing.json[0]"
+  },
+  {
+   "name": "doesJiboCareAboutEvent",
+   "file": "doesJiboCareAboutEvent.json",
+   "sha256": "a0432a349141e23b0051fc0827151654beb05eb06d7ffbc04e357b0ef9fab4cd",
+   "usersaysFile": "doesJiboCareAboutEvent_usersays_en.json",
+   "usersaysSha256": "8e62ac93570cde8fca67480b474025d6690f8efd583ad23f94ad7ad2e420bcd8",
+   "trainingPhraseCount": 31,
+   "attributedEntities": [
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboCareAboutEvent",
+    "entities": {
+     "sys.ignore": "you",
+     "ShowEvent": "the bachelor show"
+    }
+   },
+   "derivedFrom": "doesJiboCareAboutEvent.json[0]"
+  },
+  {
+   "name": "doesJiboCelebrateHoliday",
+   "file": "doesJiboCelebrateHoliday.json",
+   "sha256": "25185463faed1f2351f8ed5c01b496a6978e8e92bc58c130b30724d06a989bb2",
+   "usersaysFile": "doesJiboCelebrateHoliday_usersays_en.json",
+   "usersaysSha256": "4771ebcc33fa14f43c5906dea87fff0758ac99d268f1566e32ea844a38a768f2",
+   "trainingPhraseCount": 33,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboCelebrateHoliday",
+    "entities": {
+     "Holiday": "passover"
+    }
+   },
+   "derivedFrom": "doesJiboCelebrateHoliday.json[0]"
+  },
+  {
+   "name": "doesJiboDislikeThing",
+   "file": "doesJiboDislikeThing.json",
+   "sha256": "2714683909c3d1249d5d75658980635ef00eca5e01fef930342d06b7ec7639d6",
+   "usersaysFile": "doesJiboDislikeThing_usersays_en.json",
+   "usersaysSha256": "44c7d15e0880271959dda4f6994e2aa86184f9d89a6ac3a48d96f961c3aade55",
+   "trainingPhraseCount": 188,
+   "attributedEntities": [
+    "GeneralLikes",
+    "OtherPerson",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboDislikeThing",
+    "entities": {
+     "GeneralLikes": "amazon alexa"
+    }
+   },
+   "derivedFrom": "doesJiboDislikeThing.json[0]"
+  },
+  {
+   "name": "doesJiboFeelEmotionAboutThing",
+   "file": "doesJiboFeelEmotionAboutThing.json",
+   "sha256": "b24b6ee2dce387b02acc800a558780250a6922e4d3ea6e46b043b0e060c062d9",
+   "usersaysFile": "doesJiboFeelEmotionAboutThing_usersays_en.json",
+   "usersaysSha256": "722d8f435a56e53a3c272d885870a86f001ae1e9e1e6431e6ce48069beb97566",
+   "trainingPhraseCount": 89,
+   "attributedEntities": [
+    "Emotion",
+    "FantasyCreature",
+    "Holiday",
+    "JiboDescriptor",
+    "MovieShow",
+    "Other",
+    "OtherPerson",
+    "ShowEvent",
+    "SportEvent",
+    "Weather",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "FantasyCreature",
+     "dataType": "@FantasyCreature",
+     "isList": false,
+     "required": false,
+     "value": "$FantasyCreature"
+    },
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "Weather",
+     "dataType": "@Weather",
+     "isList": false,
+     "required": false,
+     "value": "$Weather"
+    },
+    {
+     "name": "JiboDescriptor",
+     "dataType": "@JiboDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$JiboDescriptor"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "Other",
+     "dataType": "@Other",
+     "isList": false,
+     "required": false,
+     "value": "$Other"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    },
+    {
+     "name": "MovieShow",
+     "dataType": "@MovieShow",
+     "isList": false,
+     "required": false,
+     "value": "$MovieShow"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboFeelEmotionAboutThing",
+    "entities": {
+     "Emotion": "afraid",
+     "FantasyCreature": "zombies"
+    }
+   },
+   "derivedFrom": "doesJiboFeelEmotionAboutThing.json[0]"
+  },
+  {
+   "name": "doesJiboHaveFavorite",
+   "file": "doesJiboHaveFavorite.json",
+   "sha256": "6d0f9d0769625a397f7544f29a99420cd94508464b86b17b3b5c3f3b0d325fe3",
+   "usersaysFile": "doesJiboHaveFavorite_usersays_en.json",
+   "usersaysSha256": "de2060a699ebd226f5d5a0a93da574f9ee8e9494236c6ace636e429814948b71",
+   "trainingPhraseCount": 30,
+   "attributedEntities": [
+    "FavoriteCategory",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "FavoriteCategory",
+     "dataType": "@FavoriteCategory",
+     "isList": false,
+     "required": false,
+     "value": "$FavoriteCategory"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboHaveFavorite",
+    "entities": {
+     "FavoriteCategory": "season"
+    }
+   },
+   "derivedFrom": "doesJiboHaveFavorite.json[0]"
+  },
+  {
+   "name": "doesJiboHaveLeastFavorite",
+   "file": "doesJiboHaveLeastFavorite.json",
+   "sha256": "2a2c694a1dca9df06621103d0101297f5a39e3e34412e332788012f612d79711",
+   "usersaysFile": "doesJiboHaveLeastFavorite_usersays_en.json",
+   "usersaysSha256": "b43a52def68ef238345abb995ec01392f2a57b152e4d75f3edf6c51d97f45f2d",
+   "trainingPhraseCount": 10,
+   "attributedEntities": [
+    "FavoriteCategory"
+   ],
+   "responseParameters": [
+    {
+     "name": "FavoriteCategory",
+     "dataType": "@FavoriteCategory",
+     "isList": false,
+     "required": false,
+     "value": "$FavoriteCategory"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboHaveLeastFavorite",
+    "entities": {
+     "FavoriteCategory": "animal"
+    }
+   },
+   "derivedFrom": "doesJiboHaveLeastFavorite.json[0]"
+  },
+  {
+   "name": "doesJiboHaveOpinionAboutThing",
+   "file": "doesJiboHaveOpinionAboutThing.json",
+   "sha256": "9e825a82d3294167c3fbe1b1d866f787cdff0def2aaa32df200ade1d2eb542cb",
+   "usersaysFile": "doesJiboHaveOpinionAboutThing_usersays_en.json",
+   "usersaysSha256": "5751d1f66179c2ec0616411677e2ed421bed8b615fbb304a559d8b27ee9fa9af",
+   "trainingPhraseCount": 132,
+   "attributedEntities": [
+    "GeneralLikes",
+    "Other",
+    "OtherPerson",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Other",
+     "dataType": "@Other",
+     "isList": false,
+     "required": false,
+     "value": "$Other"
+    },
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "doesJiboHaveOpinionAboutThing",
+    "entities": {
+     "GeneralLikes": "belgian waffle"
+    }
+   },
+   "derivedFrom": "doesJiboHaveOpinionAboutThing.json[0]"
+  },
+  {
+   "name": "doesJiboHavePlansForEvent",
+   "file": "doesJiboHavePlansForEvent.json",
+   "sha256": "f839a672d68d592207f59d572f5c1fb30610f6f4ad5cb8c9faa3a380ef79a39a",
+   "usersaysFile": "doesJiboHavePlansForEvent_usersays_en.json",
+   "usersaysSha256": "45bd0a9143017418754713a12d05ea06369165028dda3f8a3335f11733b153da",
+   "trainingPhraseCount": 94,
+   "attributedEntities": [
+    "Holiday",
+    "ShowEvent",
+    "SportEvent",
+    "Timeframe",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "Timeframe",
+     "dataType": "@Timeframe",
+     "isList": false,
+     "required": false,
+     "value": "$Timeframe"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboHavePlansForEvent",
+    "entities": {
+     "sys.ignore": "you",
+     "Holiday": "easter"
+    }
+   },
+   "derivedFrom": "doesJiboHavePlansForEvent.json[0]"
+  },
+  {
+   "name": "doesJiboHavePreferenceBetweenThings",
+   "file": "doesJiboHavePreferenceBetweenThings.json",
+   "sha256": "f93a1df2dc34d295e4fb9d3149a44fb587805457b4234a8ca8fcd0c6b2c5d3e4",
+   "usersaysFile": "doesJiboHavePreferenceBetweenThings_usersays_en.json",
+   "usersaysSha256": "507a95219e852f8687f9b92cfad9bb8e0c2a7fe4264cbc4fcfa570d8d7a83c86",
+   "trainingPhraseCount": 8,
+   "attributedEntities": [
+    "Animal",
+    "Color",
+    "Timeframe"
+   ],
+   "responseParameters": [
+    {
+     "name": "Color",
+     "dataType": "@Color",
+     "isList": false,
+     "required": false,
+     "value": "$Color"
+    },
+    {
+     "name": "Color1",
+     "dataType": "@Color",
+     "isList": false,
+     "required": false,
+     "value": "$Color1"
+    },
+    {
+     "name": "Timeframe",
+     "dataType": "@Timeframe",
+     "isList": false,
+     "required": false,
+     "value": "$Timeframe"
+    },
+    {
+     "name": "Timeframe1",
+     "dataType": "@Timeframe",
+     "isList": false,
+     "required": false,
+     "value": "$Timeframe1"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboHavePreferenceBetweenThings",
+    "entities": {
+     "Animal": "penguins",
+     "Animal1": "ducks"
+    }
+   },
+   "derivedFrom": "doesJiboHavePreferenceBetweenThings.json[0]"
+  },
+  {
+   "name": "doesJiboHaveRelation",
+   "file": "doesJiboHaveRelation.json",
+   "sha256": "582d481a227bc1abd0dff5f6f26442a10f9bae85041d96fc37a02bf4d77d6b19",
+   "usersaysFile": "doesJiboHaveRelation_usersays_en.json",
+   "usersaysSha256": "3ef2d6fedf03c5ea27692ed17512302fef8654c6e58a5a9ce8a416d91b151675",
+   "trainingPhraseCount": 12,
+   "attributedEntities": [
+    "FamilyMember",
+    "Relation"
+   ],
+   "responseParameters": [
+    {
+     "name": "FamilyMember",
+     "dataType": "@FamilyMember",
+     "isList": false,
+     "required": false,
+     "value": "$FamilyMember"
+    },
+    {
+     "name": "Relation",
+     "dataType": "@Relation",
+     "isList": false,
+     "required": false,
+     "value": "$Relation"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboHaveRelation",
+    "entities": {
+     "FamilyMember": "uncle"
+    }
+   },
+   "derivedFrom": "doesJiboHaveRelation.json[0]"
+  },
+  {
+   "name": "doesJiboHaveThing",
+   "file": "doesJiboHaveThing.json",
+   "sha256": "f48124e368d07ece34c3ebb888fc19f85a1835623c75370a128340fa1544d8f5",
+   "usersaysFile": "doesJiboHaveThing_usersays_en.json",
+   "usersaysSha256": "fea6be4aebe2dbb0a0c7017b165b4b4fba8ab1e7575bd11cbee17f8547570a93",
+   "trainingPhraseCount": 17,
+   "attributedEntities": [
+    "BodyInternal",
+    "BodyPart",
+    "HairType",
+    "ThingYouWear"
+   ],
+   "responseParameters": [
+    {
+     "name": "BodyInternal",
+     "dataType": "@BodyInternal",
+     "isList": false,
+     "required": false,
+     "value": "$BodyInternal"
+    },
+    {
+     "name": "BodyPart",
+     "dataType": "@BodyPart",
+     "isList": false,
+     "required": false,
+     "value": "$BodyPart"
+    },
+    {
+     "name": "Clothing",
+     "dataType": "@Clothing",
+     "isList": false,
+     "required": false,
+     "value": "$Clothing"
+    },
+    {
+     "name": "HairType",
+     "dataType": "@HairType",
+     "isList": false,
+     "required": false,
+     "value": "$HairType"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboHaveThing",
+    "entities": {
+     "BodyInternal": "heart"
+    }
+   },
+   "derivedFrom": "doesJiboHaveThing.json[0]"
+  },
+  {
+   "name": "doesJiboKnowPerson",
+   "file": "doesJiboKnowPerson.json",
+   "sha256": "ae130735670134e454b1a843454824bfaf2c462f540337ca54c0b5d84c2d9cd6",
+   "usersaysFile": "doesJiboKnowPerson_usersays_en.json",
+   "usersaysSha256": "60fc41dd39c2ffd457e077f6274698509563ee172a90fd4bd7312feb3b125445",
+   "trainingPhraseCount": 51,
+   "attributedEntities": [
+    "Competitor",
+    "FantasticPerson",
+    "OtherPerson",
+    "Person",
+    "RobotCharacter",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "RobotCharacter",
+     "dataType": "@RobotCharacter",
+     "isList": false,
+     "required": false,
+     "value": "$RobotCharacter"
+    },
+    {
+     "name": "Competitor",
+     "dataType": "@Competitor",
+     "isList": false,
+     "required": false,
+     "value": "$Competitor"
+    },
+    {
+     "name": "FantasticPerson",
+     "dataType": "@FantasticPerson",
+     "isList": false,
+     "required": false,
+     "value": "$FantasticPerson"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "Person",
+     "dataType": "@Person",
+     "isList": false,
+     "required": false,
+     "value": "$Person"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboKnowPerson",
+    "entities": {
+     "Competitor": "echo"
+    }
+   },
+   "derivedFrom": "doesJiboKnowPerson.json[0]"
+  },
+  {
+   "name": "doesJiboLikeTasteOfThing",
+   "file": "doesJiboLikeTasteOfThing.json",
+   "sha256": "debb0e415dcd14e2aa9d25bfc08f25a86ca3029f64de0b60a32455c1d0655fbc",
+   "usersaysFile": "doesJiboLikeTasteOfThing_usersays_en.json",
+   "usersaysSha256": "4749c263bb2c1a555bceda12bd234f9c84fdd24f7911f89fc97af54ef1b2e704",
+   "trainingPhraseCount": 20,
+   "attributedEntities": [
+    "Food",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Food",
+     "dataType": "@Food",
+     "isList": false,
+     "required": false,
+     "value": "$Food"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboLikeTasteOfThing",
+    "entities": {
+     "Food": "bow tie pasta"
+    }
+   },
+   "derivedFrom": "doesJiboLikeTasteOfThing.json[0]"
+  },
+  {
+   "name": "doesJiboLikeThing",
+   "file": "doesJiboLikeThing.json",
+   "sha256": "85dddf0923e34ac86f0efb948264374bac06846119da8f92da946a670bce3987",
+   "usersaysFile": "doesJiboLikeThing_usersays_en.json",
+   "usersaysSha256": "28ac61e0785c6221c75c5792fb6e85176b93c3780b4c3235b21160bc95be8191",
+   "trainingPhraseCount": 272,
+   "attributedEntities": [
+    "Activity",
+    "GeneralLikes",
+    "MovieShow",
+    "Occupation",
+    "Other",
+    "OtherPerson",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name",
+    "sys.number"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "Activity",
+     "dataType": "@Activity",
+     "isList": false,
+     "required": false,
+     "value": "$Activity"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    },
+    {
+     "name": "number",
+     "dataType": "@sys.number",
+     "isList": false,
+     "required": false,
+     "value": "$number"
+    },
+    {
+     "name": "Other",
+     "dataType": "@Other",
+     "isList": false,
+     "required": false,
+     "value": "$Other"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboLikeThing",
+    "entities": {
+     "Activity": "making crafts"
+    }
+   },
+   "derivedFrom": "doesJiboLikeThing.json[0]"
+  },
+  {
+   "name": "doesJiboLookForwardToThing",
+   "file": "doesJiboLookForwardToThing.json",
+   "sha256": "0a1c20e0eb17bb60a7463ddf6ee98701b4f59b5326b4bc0c23ddfd1d476df338",
+   "usersaysFile": "doesJiboLookForwardToThing_usersays_en.json",
+   "usersaysSha256": "f7ead76bb57166f91f1eb7f69cdec065f6bbe5029481a4b81551f6c38f06cdf9",
+   "trainingPhraseCount": 13,
+   "attributedEntities": [
+    "Holiday",
+    "MovieShow",
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "MovieShow",
+     "dataType": "@MovieShow",
+     "isList": false,
+     "required": false,
+     "value": "$MovieShow"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboLookForwardToThing",
+    "entities": {
+     "sys.ignore": "you",
+     "Holiday": "chinese new year"
+    }
+   },
+   "derivedFrom": "doesJiboLookForwardToThing.json[0]"
+  },
+  {
+   "name": "doesJiboWantThing",
+   "file": "doesJiboWantThing.json",
+   "sha256": "9f4f131853d8ed6b2bdd1060e5d5d191a1da4be461e689e28dcb2aad867b1161",
+   "usersaysFile": "doesJiboWantThing_usersays_en.json",
+   "usersaysSha256": "70ee12fcd2f991c247a283fbebcfc2b87220f9428c485791042fdd14ef082432",
+   "trainingPhraseCount": 11,
+   "attributedEntities": [
+    "Food"
+   ],
+   "responseParameters": [
+    {
+     "name": "Food",
+     "dataType": "@Food",
+     "isList": false,
+     "required": false,
+     "value": "$Food"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboWantThing",
+    "entities": {
+     "Food": "fries"
+    }
+   },
+   "derivedFrom": "doesJiboWantThing.json[0]"
+  },
+  {
+   "name": "doesJiboWatchEvent",
+   "file": "doesJiboWatchEvent.json",
+   "sha256": "c5ac182cd54078c1ca76f471b9e655c4ceb1a3503b3f75f2a8f0474a2fd91241",
+   "usersaysFile": "doesJiboWatchEvent_usersays_en.json",
+   "usersaysSha256": "d704474e0fdeb2234f6365d88c238cadbd074293e8c989c2073e2aeff6f6d13e",
+   "trainingPhraseCount": 34,
+   "attributedEntities": [
+    "MovieShow",
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboWatchEvent",
+    "entities": {
+     "MovieShow": "pacific rim uprising"
+    }
+   },
+   "derivedFrom": "doesJiboWatchEvent.json[0]"
+  },
+  {
+   "name": "doesJiboWearThing",
+   "file": "doesJiboWearThing.json",
+   "sha256": "093f97f9353b93b024296d2dea5243e853859fe59a618a6b2c72729f06622503",
+   "usersaysFile": "doesJiboWearThing_usersays_en.json",
+   "usersaysSha256": "868153d9ecad35a28d8c7b1b00a7f45364ac14cc86c8f40aa01aa86363e14214",
+   "trainingPhraseCount": 5,
+   "attributedEntities": [
+    "ThingYouWear",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "ThingYouWear",
+     "dataType": "@ThingYouWear",
+     "isList": false,
+     "required": false,
+     "value": "$ThingYouWear"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesJiboWearThing",
+    "entities": {
+     "sys.ignore": "you",
+     "ThingYouWear": "christmas sweaters"
+    }
+   },
+   "derivedFrom": "doesJiboWearThing.json[0]"
+  },
+  {
+   "name": "doesUserDislikeThing",
+   "file": "doesUserDislikeThing.json",
+   "sha256": "731aabcb883b32db2127f3c4e8f8c55b6ed5412300ea980e675cfb52d1d333a1",
+   "usersaysFile": "doesUserDislikeThing_usersays_en.json",
+   "usersaysSha256": "e64c54bc2ae0393fe8bf268affeeb616cc055d6b3c581f1beb0cb634fbbeadcb",
+   "trainingPhraseCount": 151,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesUserDislikeThing",
+    "entities": {
+     "GeneralLikes": "alpine skiing"
+    }
+   },
+   "derivedFrom": "doesUserDislikeThing.json[0]"
+  },
+  {
+   "name": "doesUserLikeThing",
+   "file": "doesUserLikeThing.json",
+   "sha256": "bddf46ce26dd1e30cfef1373003d8596a6676dcac76b85dcab5be130bee76db4",
+   "usersaysFile": "doesUserLikeThing_usersays_en.json",
+   "usersaysSha256": "545e18e79fedf969543ecf407e85f4d35ebb54caf9c40771fa1c5ef1cace7870",
+   "trainingPhraseCount": 113,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "doesUserLikeThing",
+    "entities": {
+     "GeneralLikes": "aardvarks"
+    }
+   },
+   "derivedFrom": "doesUserLikeThing.json[0]"
+  },
+  {
+   "name": "generalHowQuestions",
+   "file": "generalHowQuestions.json",
+   "sha256": "5ae2d3362fa3dff27f3883f44b7a38f11e68d86dfcdb018b0dc8eccd37bd66f1",
+   "usersaysFile": "generalHowQuestions_usersays_en.json",
+   "usersaysSha256": "36d69838c3230a2e63f068a4c1d1ab81b35736e1597097678d5dd3b641a072f0",
+   "trainingPhraseCount": 177,
+   "attributedEntities": [
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalHowQuestions",
+    "entities": {}
+   },
+   "derivedFrom": "generalHowQuestions.json[0]"
+  },
+  {
+   "name": "generalQuestions",
+   "file": "generalQuestions.json",
+   "sha256": "3330e2336af6876f176d351cbe36e24f85a889c2ba0b3c6f740a860def6133a5",
+   "usersaysFile": "generalQuestions_usersays_en.json",
+   "usersaysSha256": "97fa8d0b140a4cf0b22539c3816a9d7765609d2a37d2c58110a8e1a89aefb90a",
+   "trainingPhraseCount": 8,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalQuestions",
+    "entities": {}
+   },
+   "derivedFrom": "generalQuestions.json[0]"
+  },
+  {
+   "name": "generalWhatQuestions",
+   "file": "generalWhatQuestions.json",
+   "sha256": "8d17c2bf0cade4b03f8773f2cba7de5f48a0fd7065566cbe16915407ceb12baf",
+   "usersaysFile": "generalWhatQuestions_usersays_en.json",
+   "usersaysSha256": "e96f44080df59f27cde59c76b69c5cc79284dd053fdfe10c1cc7039fadbf6ed6",
+   "trainingPhraseCount": 382,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalWhatQuestions",
+    "entities": {}
+   },
+   "derivedFrom": "generalWhatQuestions.json[0]"
+  },
+  {
+   "name": "generalWhenQuestions",
+   "file": "generalWhenQuestions.json",
+   "sha256": "62af4177abd988b74843f9efc1edf2662b1d649b314da526e3a81159202828df",
+   "usersaysFile": "generalWhenQuestions_usersays_en.json",
+   "usersaysSha256": "729748edbfee3458b3c90ed712d41e893b2dcd5665ad3f78942816315356815d",
+   "trainingPhraseCount": 39,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalWhenQuestions",
+    "entities": {}
+   },
+   "derivedFrom": "generalWhenQuestions.json[0]"
+  },
+  {
+   "name": "generalWhereQuestions",
+   "file": "generalWhereQuestions.json",
+   "sha256": "8d0d80250541dd576f07077b73c41d1cf0a3eb417896c9cddcab21fb4566d329",
+   "usersaysFile": "generalWhereQuestions_usersays_en.json",
+   "usersaysSha256": "d2f2173882763a2c013f8767e9a68a67d4010a0e391986b67931001aa6898995",
+   "trainingPhraseCount": 36,
+   "attributedEntities": [
+    "given-name",
+    "last-name",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalWhereQuestions",
+    "entities": {}
+   },
+   "derivedFrom": "generalWhereQuestions.json[0]"
+  },
+  {
+   "name": "generalWhoQuestions",
+   "file": "generalWhoQuestions.json",
+   "sha256": "92b48d18100e733eed01dd59bf88e42cd5fa11bb8fda85df5425b04a4ab2e321",
+   "usersaysFile": "generalWhoQuestions_usersays_en.json",
+   "usersaysSha256": "636610a836b02ab76409ead22d1adde86adb0efc7ad364885ecf81ac78cb55d6",
+   "trainingPhraseCount": 132,
+   "attributedEntities": [
+    "FamilyMember",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    },
+    {
+     "name": "FamilyMember",
+     "dataType": "@FamilyMember",
+     "isList": false,
+     "required": false,
+     "value": "$FamilyMember"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalWhoQuestions",
+    "entities": {
+     "given-name": "ashley",
+     "last-name": "johnson",
+     "FamilyMember": "sister"
+    }
+   },
+   "derivedFrom": "generalWhoQuestions.json[0]"
+  },
+  {
+   "name": "generalWhyQuestions",
+   "file": "generalWhyQuestions.json",
+   "sha256": "fbe08b1a39c8b9d95bea84aed69ae7a1e26dd27560adb7e7cf29048b2299f4ec",
+   "usersaysFile": "generalWhyQuestions_usersays_en.json",
+   "usersaysSha256": "410b79f1917e55c0d1489a5e07af907f7e35617c9434a387fd3bbfd76a5f4c44",
+   "trainingPhraseCount": 11,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "generalWhyQuestions",
+    "entities": {}
+   },
+   "derivedFrom": "generalWhyQuestions.json[0]"
+  },
+  {
+   "name": "hasJiboMetPerson",
+   "file": "hasJiboMetPerson.json",
+   "sha256": "8f7fcab740ff967ba2e9c9fcfed4c9d565706e5effe19239066100f56b00aee2",
+   "usersaysFile": "hasJiboMetPerson_usersays_en.json",
+   "usersaysSha256": "9bf0a9653af7a61e30f0d5139c0ea3cea19929eafca0976b60e4c97e6ad6f916",
+   "trainingPhraseCount": 34,
+   "attributedEntities": [
+    "Competitor",
+    "FantasticPerson",
+    "OtherPerson",
+    "Person",
+    "RobotCharacter",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "RobotCharacter",
+     "dataType": "@RobotCharacter",
+     "isList": false,
+     "required": false,
+     "value": "$RobotCharacter"
+    },
+    {
+     "name": "Competitor",
+     "dataType": "@Competitor",
+     "isList": false,
+     "required": false,
+     "value": "$Competitor"
+    },
+    {
+     "name": "FantasticPerson",
+     "dataType": "@FantasticPerson",
+     "isList": false,
+     "required": false,
+     "value": "$FantasticPerson"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "Person",
+     "dataType": "@Person",
+     "isList": false,
+     "required": false,
+     "value": "$Person"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "hasJiboMetPerson",
+    "entities": {
+     "Competitor": "alexa"
+    }
+   },
+   "derivedFrom": "hasJiboMetPerson.json[0]"
+  },
+  {
+   "name": "howDescriptorIsJibo",
+   "file": "howDescriptorIsJibo.json",
+   "sha256": "a37edf35df4e184886b156ffec180d0f580fa16f1e8446e29ffcbd71d4cbbf32",
+   "usersaysFile": "howDescriptorIsJibo_usersays_en.json",
+   "usersaysSha256": "ff9ffe932517959773d26b4e0e77262727ab910fc0b83653cb3c8b5698babfd6",
+   "trainingPhraseCount": 10,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "howDescriptorIsJibo",
+    "entities": {
+     "Emotion": "happy"
+    }
+   },
+   "derivedFrom": "howDescriptorIsJibo.json[0]"
+  },
+  {
+   "name": "howDescriptorIsPerson",
+   "file": "howDescriptorIsPerson.json",
+   "sha256": "9251f7e8c0147b0875a1452cf47e528cad90f8bdfc9da4ce8f7946babb81b132",
+   "usersaysFile": "howDescriptorIsPerson_usersays_en.json",
+   "usersaysSha256": "d3d0a8b01509370e7eb9182475058b337d430ff14e75e824ce2e87990b366bc1",
+   "trainingPhraseCount": 14,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "Person",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "howDescriptorIsPerson",
+    "entities": {
+     "Emotion": "angry",
+     "given-name": "robert"
+    }
+   },
+   "derivedFrom": "howDescriptorIsPerson.json[0]"
+  },
+  {
+   "name": "howDescriptorIsUnknown",
+   "file": "howDescriptorIsUnknown.json",
+   "sha256": "a0fd7ef7beb71d4cc3ee9cb8f37170a17e6a20e89e9a0a8275448ce8fa852acc",
+   "usersaysFile": "howDescriptorIsUnknown_usersays_en.json",
+   "usersaysSha256": "0c08f32bcce1ab75f2de492bdfc31db5b66b33947f15fdd58b38b67a96834504",
+   "trainingPhraseCount": 9,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "howDescriptorIsUnknown",
+    "entities": {}
+   },
+   "derivedFrom": "howDescriptorIsUnknown.json[0]"
+  },
+  {
+   "name": "howDescriptorIsUser",
+   "file": "howDescriptorIsUser.json",
+   "sha256": "7092deb62d578d99bd09814db1a8bbffd98c4a5f64cc8d4c95280b8632e19d10",
+   "usersaysFile": "howDescriptorIsUser_usersays_en.json",
+   "usersaysSha256": "ed8336b222ab93e8de6f53f667db77e04187e986304a19a6fe66d82539834281",
+   "trainingPhraseCount": 9,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "howDescriptorIsUser",
+    "entities": {
+     "Emotion": "angry"
+    }
+   },
+   "derivedFrom": "howDescriptorIsUser.json[0]"
+  },
+  {
+   "name": "howIsTimeframe",
+   "file": "howIsTimeframe.json",
+   "sha256": "b2431ca186086d75e3107992def3fbd4aab16e6b1516dd14bc5d4741cf05c388",
+   "usersaysFile": "howIsTimeframe_usersays_en.json",
+   "usersaysSha256": "b7d59eab8bcfbb258a83cab97283106278ad9a7b4f41a7cc83d849b4da4589d0",
+   "trainingPhraseCount": 47,
+   "attributedEntities": [
+    "Holiday",
+    "MovieShow",
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "MovieShow",
+     "dataType": "@MovieShow",
+     "isList": false,
+     "required": false,
+     "value": "$MovieShow"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "howIsTimeframe",
+    "entities": {
+     "sys.ignore": "you",
+     "Holiday": "martin luther king day"
+    }
+   },
+   "derivedFrom": "howIsTimeframe.json[0]"
+  },
+  {
+   "name": "isJiboBestFriendsWithPerson",
+   "file": "isJiboBestFriendsWithPerson.json",
+   "sha256": "52f0bca04b7cf352b31dbfb2eaed9a50fa03a4fcba687870db72eb7c8e157460",
+   "usersaysFile": "isJiboBestFriendsWithPerson_usersays_en.json",
+   "usersaysSha256": "34516f9b75b1098342e28b54249db18c72db3be9f5d676b1c9efe35c23ab4b7a",
+   "trainingPhraseCount": 36,
+   "attributedEntities": [
+    "Competitor",
+    "OtherPerson",
+    "RobotCharacter",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "RobotCharacter",
+     "dataType": "@RobotCharacter",
+     "isList": false,
+     "required": false,
+     "value": "$RobotCharacter"
+    },
+    {
+     "name": "Competitor",
+     "dataType": "@Competitor",
+     "isList": false,
+     "required": false,
+     "value": "$Competitor"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "isJiboBestFriendsWithPerson",
+    "entities": {
+     "Competitor": "cortana"
+    }
+   },
+   "derivedFrom": "isJiboBestFriendsWithPerson.json[0]"
+  },
+  {
+   "name": "isJiboDescriptor",
+   "file": "isJiboDescriptor.json",
+   "sha256": "de12efc700a758bacde0007726365ac8ac33b976a47391d7fef7db855a912e40",
+   "usersaysFile": "isJiboDescriptor_usersays_en.json",
+   "usersaysSha256": "2deae9a04cd739242fc458b29b9916ec440453f94bb492d4240437c80b229616",
+   "trainingPhraseCount": 97,
+   "attributedEntities": [
+    "Animal",
+    "Emotion",
+    "GeneralDescriptor",
+    "JiboDescriptor",
+    "Occupation",
+    "ReligionPerson",
+    "SchoolSubject",
+    "Zodiac",
+    "sys.age",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "JiboDescriptor",
+     "dataType": "@JiboDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$JiboDescriptor"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    },
+    {
+     "name": "SchoolSubject",
+     "dataType": "@SchoolSubject",
+     "isList": false,
+     "required": false,
+     "value": "$SchoolSubject"
+    },
+    {
+     "name": "ReligionPerson",
+     "dataType": "@ReligionPerson",
+     "isList": false,
+     "required": false,
+     "value": "$ReligionPerson"
+    },
+    {
+     "name": "Zodiac",
+     "dataType": "@Zodiac",
+     "isList": false,
+     "required": false,
+     "value": "$Zodiac"
+    },
+    {
+     "name": "Animal",
+     "dataType": "@Animal",
+     "isList": false,
+     "required": false,
+     "value": "$Animal"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "isJiboDescriptor",
+    "entities": {
+     "Animal": "bedbug"
+    }
+   },
+   "derivedFrom": "isJiboDescriptor.json[0]"
+  },
+  {
+   "name": "isJiboFriendsWithPerson",
+   "file": "isJiboFriendsWithPerson.json",
+   "sha256": "c4448c1628f2020c5d099bdb354a2c11e8865ca6ec988f4163e9437ba5ef68f3",
+   "usersaysFile": "isJiboFriendsWithPerson_usersays_en.json",
+   "usersaysSha256": "d03305f303ba34d80ec24ec907834baf2e45e163c422b01f92c08a1b2c960ea5",
+   "trainingPhraseCount": 36,
+   "attributedEntities": [
+    "Competitor",
+    "OtherPerson",
+    "RobotCharacter",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "RobotCharacter",
+     "dataType": "@RobotCharacter",
+     "isList": false,
+     "required": false,
+     "value": "$RobotCharacter"
+    },
+    {
+     "name": "Competitor",
+     "dataType": "@Competitor",
+     "isList": false,
+     "required": false,
+     "value": "$Competitor"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "isJiboFriendsWithPerson",
+    "entities": {
+     "Competitor": "cortana"
+    }
+   },
+   "derivedFrom": "isJiboFriendsWithPerson.json[0]"
+  },
+  {
+   "name": "isJiboGoingToHolidayParty",
+   "file": "isJiboGoingToHolidayParty.json",
+   "sha256": "dcc309d84aa7d9d3868a00f53b52475982a483c1d3d4a3c768d7d13e4d4b7a1c",
+   "usersaysFile": "isJiboGoingToHolidayParty_usersays_en.json",
+   "usersaysSha256": "0318923aeea03f26667d333ae10c30fbf22536784eaa74aec9c47877cefb51cc",
+   "trainingPhraseCount": 26,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "isJiboGoingToHolidayParty",
+    "entities": {
+     "sys.ignore": "you",
+     "Holiday": "christmas"
+    }
+   },
+   "derivedFrom": "isJiboGoingToHolidayParty.json[0]"
+  },
+  {
+   "name": "isJiboRelatedToPerson",
+   "file": "isJiboRelatedToPerson.json",
+   "sha256": "b8263db39c6497129f3b9d07fbc12f3ed9d38425ffdb4b7895fe980d4d8df06d",
+   "usersaysFile": "isJiboRelatedToPerson_usersays_en.json",
+   "usersaysSha256": "9aae0839f60c51b7362fb98a3831fad843a7b7f81e840f984d827d1048d4c92d",
+   "trainingPhraseCount": 28,
+   "attributedEntities": [
+    "Competitor",
+    "FamilyMember",
+    "FantasticPerson",
+    "OtherPerson",
+    "RobotCharacter",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "Competitor",
+     "dataType": "@Competitor",
+     "isList": false,
+     "required": false,
+     "value": "$Competitor"
+    },
+    {
+     "name": "FantasticPerson",
+     "dataType": "@FantasticPerson",
+     "isList": false,
+     "required": false,
+     "value": "$FantasticPerson"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "RobotCharacter",
+     "dataType": "@RobotCharacter",
+     "isList": false,
+     "required": false,
+     "value": "$RobotCharacter"
+    },
+    {
+     "name": "FamilyMember",
+     "dataType": "@FamilyMember",
+     "isList": false,
+     "required": false,
+     "value": "$FamilyMember"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "isJiboRelatedToPerson",
+    "entities": {
+     "Competitor": "alexa",
+     "FamilyMember": "cousins"
+    }
+   },
+   "derivedFrom": "isJiboRelatedToPerson.json[0]"
+  },
+  {
+   "name": "isUnknownDescriptor",
+   "file": "isUnknownDescriptor.json",
+   "sha256": "5fed0d426d52a570e566c1f0e7deff7096e5ccfc0234fe0ef9858547d161313e",
+   "usersaysFile": "isUnknownDescriptor_usersays_en.json",
+   "usersaysSha256": "7d63f56608cea173b9ba697bf078068a88da66e473187a2aa13379edb89a386c",
+   "trainingPhraseCount": 12,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "isUnknownDescriptor",
+    "entities": {}
+   },
+   "derivedFrom": "isUnknownDescriptor.json[0]"
+  },
+  {
+   "name": "isUserDescriptor",
+   "file": "isUserDescriptor.json",
+   "sha256": "469f06110c2f4f6081e2c78c349716eef9bbfae7e6e423787015794e08944a1a",
+   "usersaysFile": "isUserDescriptor_usersays_en.json",
+   "usersaysSha256": "8905bb7e9542542f80e5c7716fb1e78d86e079b9d5d53b8656d2e9ff152f57f8",
+   "trainingPhraseCount": 24,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "Occupation",
+    "sys.age"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "isUserDescriptor",
+    "entities": {
+     "Emotion": "happy"
+    }
+   },
+   "derivedFrom": "isUserDescriptor.json[0]"
+  },
+  {
+   "name": "jiboDislikesThing",
+   "file": "jiboDislikesThing.json",
+   "sha256": "57f71d59e8ba8fe6c505f2a3c9f87a90ea57cc478aa9b7323e68e9705fb1182d",
+   "usersaysFile": "jiboDislikesThing_usersays_en.json",
+   "usersaysSha256": "1617adaeb4dca16502bf2e677d09cb502cb9f87c557bc0ebee38b7bff58f42eb",
+   "trainingPhraseCount": 170,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboDislikesThing",
+    "entities": {
+     "GeneralLikes": "blood orange"
+    }
+   },
+   "derivedFrom": "jiboDislikesThing.json[0]"
+  },
+  {
+   "name": "jiboGivesUserGiftHoliday",
+   "file": "jiboGivesUserGiftHoliday.json",
+   "sha256": "a79120dc79ccfa9d51b583a2cb7ce098ff0b360def34761526199de833c83904",
+   "usersaysFile": "jiboGivesUserGiftHoliday_usersays_en.json",
+   "usersaysSha256": "01b10747e7c45fbe171c9d40fdc8d0d8eb4318dfb8cf3578fb98f5248d8fbee4",
+   "trainingPhraseCount": 42,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboGivesUserGiftHoliday",
+    "entities": {
+     "sys.ignore": "me",
+     "Holiday": "easter"
+    }
+   },
+   "derivedFrom": "jiboGivesUserGiftHoliday.json[0]"
+  },
+  {
+   "name": "jiboHasThing",
+   "file": "jiboHasThing.json",
+   "sha256": "942692e36311a023b671810dc25538a2796bab7de658884e2eeaef7983cb7804",
+   "usersaysFile": "jiboHasThing_usersays_en.json",
+   "usersaysSha256": "ae71eaefafb4af6bdbf84c9560fa4f7919b5ac39fd3b671f3434200431ee1e35",
+   "trainingPhraseCount": 7,
+   "attributedEntities": [
+    "BodyInternal",
+    "BodyPart",
+    "HairType",
+    "ThingYouWear",
+    "sys.number"
+   ],
+   "responseParameters": [
+    {
+     "name": "number",
+     "dataType": "@sys.number",
+     "isList": false,
+     "required": false,
+     "value": "$number"
+    },
+    {
+     "name": "BodyPart",
+     "dataType": "@BodyPart",
+     "isList": false,
+     "required": false,
+     "value": "$BodyPart"
+    },
+    {
+     "name": "BodyInternal",
+     "dataType": "@BodyInternal",
+     "isList": false,
+     "required": false,
+     "value": "$BodyInternal"
+    },
+    {
+     "name": "ThingYouWear",
+     "dataType": "@ThingYouWear",
+     "isList": false,
+     "required": false,
+     "value": "$ThingYouWear"
+    },
+    {
+     "name": "HairType",
+     "dataType": "@HairType",
+     "isList": false,
+     "required": false,
+     "value": "$HairType"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboHasThing",
+    "entities": {
+     "BodyInternal": "heart"
+    }
+   },
+   "derivedFrom": "jiboHasThing.json[0]"
+  },
+  {
+   "name": "jiboIsDescriptor",
+   "file": "jiboIsDescriptor.json",
+   "sha256": "5af07502d457d3a2ce7fe75a8dcc778f0ae4827abdb13ae7ec9d02f77a678bc1",
+   "usersaysFile": "jiboIsDescriptor_usersays_en.json",
+   "usersaysSha256": "5a3ab67a4b928f424f550592fcc1ccf04e38965a26b89ec70d170dd918d23e12",
+   "trainingPhraseCount": 94,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "JiboDescriptor",
+    "Occupation",
+    "sys.age"
+   ],
+   "responseParameters": [
+    {
+     "name": "JiboDescriptor",
+     "dataType": "@JiboDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$JiboDescriptor"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboIsDescriptor",
+    "entities": {
+     "Emotion": "afraid"
+    }
+   },
+   "derivedFrom": "jiboIsDescriptor.json[0]"
+  },
+  {
+   "name": "jiboIsNotDescriptor",
+   "file": "jiboIsNotDescriptor.json",
+   "sha256": "0eb80cab87fcf8886011fac2683d99a90eb8ee506beda87d87b09c83181da57c",
+   "usersaysFile": "jiboIsNotDescriptor_usersays_en.json",
+   "usersaysSha256": "1e0e0cc7156fbe00b22cd6b37e88db84825c2d7c4f4a75f96b8128552ae5e5b4",
+   "trainingPhraseCount": 40,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "JiboDescriptor",
+    "Occupation",
+    "sys.age"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "JiboDescriptor",
+     "dataType": "@JiboDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$JiboDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboIsNotDescriptor",
+    "entities": {
+     "Emotion": "happy"
+    }
+   },
+   "derivedFrom": "jiboIsNotDescriptor.json[0]"
+  },
+  {
+   "name": "jiboLikesThing",
+   "file": "jiboLikesThing.json",
+   "sha256": "18ce2c8e70a365d475eeed26f7a5037399d40a2e19ddd23f19c443f3b2ef9742",
+   "usersaysFile": "jiboLikesThing_usersays_en.json",
+   "usersaysSha256": "cd0ee223b5923a4876fe7455a148939c1739103c331cd7f1820bf788db9ce1d5",
+   "trainingPhraseCount": 201,
+   "attributedEntities": [
+    "Activity",
+    "FavoriteCategory",
+    "GeneralLikes",
+    "Occupation",
+    "Other",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name",
+    "sys.number"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "Activity",
+     "dataType": "@Activity",
+     "isList": false,
+     "required": false,
+     "value": "$Activity"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    },
+    {
+     "name": "number",
+     "dataType": "@sys.number",
+     "isList": false,
+     "required": false,
+     "value": "$number"
+    },
+    {
+     "name": "Other",
+     "dataType": "@Other",
+     "isList": false,
+     "required": false,
+     "value": "$Other"
+    },
+    {
+     "name": "FavoriteCategory",
+     "dataType": "@FavoriteCategory",
+     "isList": false,
+     "required": false,
+     "value": "$FavoriteCategory"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "jiboLikesThing",
+    "entities": {
+     "Activity": "building a snowman"
+    }
+   },
+   "derivedFrom": "jiboLikesThing.json[0]"
+  },
+  {
+   "name": "jiboShouldBeDescriptor",
+   "file": "jiboShouldBeDescriptor.json",
+   "sha256": "d55c987b197f7dc73d7d5507c0538b46656a5fc6911596a95eb706b66275b04f",
+   "usersaysFile": "jiboShouldBeDescriptor_usersays_en.json",
+   "usersaysSha256": "293d636eae532f2840e353ec1dd702c7c02fab2c7777feed54e40d093d6616ce",
+   "trainingPhraseCount": 25,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboShouldBeDescriptor",
+    "entities": {
+     "Emotion": "afraid"
+    }
+   },
+   "derivedFrom": "jiboShouldBeDescriptor.json[0]"
+  },
+  {
+   "name": "jiboShouldDislikeThing",
+   "file": "jiboShouldDislikeThing.json",
+   "sha256": "196c373d52ea45e28df6856e60ce3038538b93109ff55a91fff1c95c409b4e6a",
+   "usersaysFile": "jiboShouldDislikeThing_usersays_en.json",
+   "usersaysSha256": "33914982ae273c3e06228259b5a1eab838b4b84acec889c20aafc52811cc24e5",
+   "trainingPhraseCount": 170,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboShouldDislikeThing",
+    "entities": {
+     "GeneralLikes": "baladi"
+    }
+   },
+   "derivedFrom": "jiboShouldDislikeThing.json[0]"
+  },
+  {
+   "name": "jiboShouldLikeThing",
+   "file": "jiboShouldLikeThing.json",
+   "sha256": "d11c9d4195b997d2696ea0e5cd21591964ecfc955102bb4c0678c71b5bba4737",
+   "usersaysFile": "jiboShouldLikeThing_usersays_en.json",
+   "usersaysSha256": "5ec93bb0635375169d7ae07e9bfd9c7b98e368d3e738c57c40d271b315a293ba",
+   "trainingPhraseCount": 75,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboShouldLikeThing",
+    "entities": {
+     "GeneralLikes": "adult alternative"
+    }
+   },
+   "derivedFrom": "jiboShouldLikeThing.json[0]"
+  },
+  {
+   "name": "jiboShouldNotBeDescriptor",
+   "file": "jiboShouldNotBeDescriptor.json",
+   "sha256": "f409982793c6508a2e5f5e358d2b514a58c13a282e7d67aeb4407725c48a78cc",
+   "usersaysFile": "jiboShouldNotBeDescriptor_usersays_en.json",
+   "usersaysSha256": "a6816c5d7f2fbaca46aca80643f34a11adcb21a2dc53ab6f1e3a8b3220aa0afe",
+   "trainingPhraseCount": 12,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "jiboShouldNotBeDescriptor",
+    "entities": {
+     "Emotion": "scared"
+    }
+   },
+   "derivedFrom": "jiboShouldNotBeDescriptor.json[0]"
+  },
+  {
+   "name": "launchPersonalReport",
+   "file": "launchPersonalReport.json",
+   "sha256": "ae01950b9c9608ca78ec58968e927bbf76d10ac6880ce1a0fcb24bb2d8c397fa",
+   "usersaysFile": "launchPersonalReport_usersays_en.json",
+   "usersaysSha256": "75fc3d5c1499bbd9ba255c75f0add74a343d9a2340565dd7d326b5882c7f5b9b",
+   "trainingPhraseCount": 5,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "launchPersonalReport",
+    "entities": {}
+   },
+   "derivedFrom": "launchPersonalReport.json[0]"
+  },
+  {
+   "name": "no",
+   "file": "no.json",
+   "sha256": "dd9cba9a7ec39a7b45cf15851d91bdbcf7ede23672f24a8a942f4c9df5c4016c",
+   "usersaysFile": "no_usersays_en.json",
+   "usersaysSha256": "b739cfc4d091781cdd3182241818508fadf70dd1f38e3e78a7e48b968f9353b7",
+   "trainingPhraseCount": 18,
+   "attributedEntities": [
+    "sys.ignore"
+   ],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "no",
+    "entities": {}
+   },
+   "derivedFrom": "no.json[0]"
+  },
+  {
+   "name": "requestNews",
+   "file": "requestNews.json",
+   "sha256": "20254d919e97d616b7ba4480165c9d8443651822d75f416ac4b18d33793fd5e2",
+   "usersaysFile": "requestNews_usersays_en.json",
+   "usersaysSha256": "0007d7bd5d745426f15009cbbce0febb786419793a8af2681c7d753eec3fbdf2",
+   "trainingPhraseCount": 7,
+   "attributedEntities": [
+    "sys.date"
+   ],
+   "responseParameters": [
+    {
+     "name": "date",
+     "dataType": "@sys.date",
+     "isList": false,
+     "required": false,
+     "value": "$date"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "requestNews",
+    "entities": {
+     "date": "today"
+    }
+   },
+   "derivedFrom": "requestNews.json[0]"
+  },
+  {
+   "name": "requestSingSong",
+   "file": "requestSingSong.json",
+   "sha256": "d5e0880185650da66dbc7c953513c26384357a1a0d2db021c2d2a24f738a5744",
+   "usersaysFile": "requestSingSong_usersays_en.json",
+   "usersaysSha256": "c1e5b0a7f5b01876a0e2b82c847b7aba7a157c61914f76013c7a2ef6b8521666",
+   "trainingPhraseCount": 57,
+   "attributedEntities": [
+    "Song",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Song",
+     "dataType": "@Song",
+     "isList": false,
+     "required": false,
+     "value": "$Song"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "requestSingSong",
+    "entities": {
+     "sys.ignore": "familiar",
+     "Song": "jingle bells"
+    }
+   },
+   "derivedFrom": "requestSingSong.json[0]"
+  },
+  {
+   "name": "requestWeather",
+   "file": "requestWeather.json",
+   "sha256": "73c25357c8d50b346473cad0cd87aec5dc8a3a1a86b7545923b13ade61955e9b",
+   "usersaysFile": "requestWeather_usersays_en.json",
+   "usersaysSha256": "ea0beb1c1e1178b4b709cfe88805fb4fc3354df025f487c1ac3e02ba075ab799",
+   "trainingPhraseCount": 18,
+   "attributedEntities": [
+    "Weather",
+    "sys.date"
+   ],
+   "responseParameters": [
+    {
+     "name": "date",
+     "dataType": "@sys.date",
+     "isList": false,
+     "required": false,
+     "value": "$date"
+    },
+    {
+     "name": "Weather",
+     "dataType": "@Weather",
+     "isList": false,
+     "required": false,
+     "value": "$Weather"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "requestWeather",
+    "entities": {
+     "Weather": "sunny",
+     "date": "tomorrow"
+    }
+   },
+   "derivedFrom": "requestWeather.json[0]"
+  },
+  {
+   "name": "shouldUserWearThing",
+   "file": "shouldUserWearThing.json",
+   "sha256": "429ad16cc234974667f6c39ac70f820b4227b457537caff595250392faae19a9",
+   "usersaysFile": "shouldUserWearThing_usersays_en.json",
+   "usersaysSha256": "912e29584b23562ba3717a4d9c9702be4fdbc2a2112120ef145622764ed88202",
+   "trainingPhraseCount": 53,
+   "attributedEntities": [
+    "ThingYouWear",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "ThingYouWear",
+     "dataType": "@ThingYouWear",
+     "isList": false,
+     "required": false,
+     "value": "$ThingYouWear"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "shouldUserWearThing",
+    "entities": {
+     "sys.ignore": "I",
+     "ThingYouWear": "scarf"
+    }
+   },
+   "derivedFrom": "shouldUserWearThing.json[0]"
+  },
+  {
+   "name": "unknownIsDescriptor",
+   "file": "unknownIsDescriptor.json",
+   "sha256": "5425fcc90b2b1e9649e8f3d9d8972956b3d14a7ee3954ab7c4fb9b58028f0a12",
+   "usersaysFile": "unknownIsDescriptor_usersays_en.json",
+   "usersaysSha256": "c0602c50d91a3c0adc82e58a2877c2eff01a9804705c8eb7926d0f613c612281",
+   "trainingPhraseCount": 40,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "unknownIsDescriptor",
+    "entities": {
+     "Emotion": "sad"
+    }
+   },
+   "derivedFrom": "unknownIsDescriptor.json[0]"
+  },
+  {
+   "name": "unknownIsNotDescriptor",
+   "file": "unknownIsNotDescriptor.json",
+   "sha256": "dcc3ef638a7cf3c4e517184ffdd96184da35600d4742213ca25be1f57f8fefc7",
+   "usersaysFile": "unknownIsNotDescriptor_usersays_en.json",
+   "usersaysSha256": "660a48a1650d7b6256b20e3b44efe60a50a411ce69f40ee0ba55954d4f737454",
+   "trainingPhraseCount": 12,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "unknownIsNotDescriptor",
+    "entities": {}
+   },
+   "derivedFrom": "unknownIsNotDescriptor.json[0]"
+  },
+  {
+   "name": "userCelebratesThing",
+   "file": "userCelebratesThing.json",
+   "sha256": "bad3bdd9e5c5b250b6b525f1d8cbce001d06b55c6cff70c309e9ebca25108bbf",
+   "usersaysFile": "userCelebratesThing_usersays_en.json",
+   "usersaysSha256": "c8c1aae0af6b5eac1f80decf46aeca2e68ebefd4fe1337821800981b669c3358",
+   "trainingPhraseCount": 15,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userCelebratesThing",
+    "entities": {
+     "sys.ignore": "celebrating",
+     "Holiday": "good friday"
+    }
+   },
+   "derivedFrom": "userCelebratesThing.json[0]"
+  },
+  {
+   "name": "userDislikesThing",
+   "file": "userDislikesThing.json",
+   "sha256": "52c92ed0fc10e9c711fc53947a3b672de7ce2e79983cdc5cae74512b3a6fb2ee",
+   "usersaysFile": "userDislikesThing_usersays_en.json",
+   "usersaysSha256": "19611c35eaa3bfed0f0850fb26fae4b4906a1fc02e71d2ca2f50ba9dbe1867b4",
+   "trainingPhraseCount": 259,
+   "attributedEntities": [
+    "Activity",
+    "GeneralLikes",
+    "OtherPerson",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "Activity",
+     "dataType": "@Activity",
+     "isList": false,
+     "required": false,
+     "value": "$Activity"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "userDislikesThing",
+    "entities": {
+     "Activity": "arm wrestling"
+    }
+   },
+   "derivedFrom": "userDislikesThing.json[0]"
+  },
+  {
+   "name": "userDoesNotGiveJiboGiftHoliday",
+   "file": "userDoesNotGiveJiboGiftHoliday.json",
+   "sha256": "363c5fc76fd909553147c025a65ce782c2b0c3c09b468f89ea744e6be521f0ac",
+   "usersaysFile": "userDoesNotGiveJiboGiftHoliday_usersays_en.json",
+   "usersaysSha256": "57f58327c8a052c915843c7b5f5d4a254492ab29469aec97664ca047ac0b380f",
+   "trainingPhraseCount": 13,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userDoesNotGiveJiboGiftHoliday",
+    "entities": {
+     "sys.ignore": "you",
+     "Holiday": "christmas"
+    }
+   },
+   "derivedFrom": "userDoesNotGiveJiboGiftHoliday.json[0]"
+  },
+  {
+   "name": "userFeelsEmotionAboutThing",
+   "file": "userFeelsEmotionAboutThing.json",
+   "sha256": "6750dac133d4ccf9137f12d37620b3963f95274638b471489e06fec242900e19",
+   "usersaysFile": "userFeelsEmotionAboutThing_usersays_en.json",
+   "usersaysSha256": "c5d7520efdd79bb0c375be2a106f24ab089bf526a8a02f441dd4eefa35ca58a8",
+   "trainingPhraseCount": 9,
+   "attributedEntities": [
+    "Emotion",
+    "sys.given-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userFeelsEmotionAboutThing",
+    "entities": {
+     "Emotion": "scared",
+     "given-name": "rosie"
+    }
+   },
+   "derivedFrom": "userFeelsEmotionAboutThing.json[0]"
+  },
+  {
+   "name": "userGivesJiboGiftHoliday",
+   "file": "userGivesJiboGiftHoliday.json",
+   "sha256": "dce5cfd4eb0ea17e55a62b6924a6dac0a8102ae6a7d49ad8b0f1d255df849049",
+   "usersaysFile": "userGivesJiboGiftHoliday_usersays_en.json",
+   "usersaysSha256": "8a52a8d6c11a27b13295a8e9302071da573d922c5710a48a3e095494b77067ed",
+   "trainingPhraseCount": 35,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userGivesJiboGiftHoliday",
+    "entities": {
+     "Holiday": "christmas",
+     "sys.ignore": "you"
+    }
+   },
+   "derivedFrom": "userGivesJiboGiftHoliday.json[0]"
+  },
+  {
+   "name": "userHasFavorite",
+   "file": "userHasFavorite.json",
+   "sha256": "b7b2c91a3d5acb8adbfd0a0e445cb53e8636acb04000c6ab6d8af2d38fe737c6",
+   "usersaysFile": "userHasFavorite_usersays_en.json",
+   "usersaysSha256": "dfb759fcb34d7dff1b6d2e9da271e9293542fc174a4467e2a641287ac019dd91",
+   "trainingPhraseCount": 6,
+   "attributedEntities": [
+    "Animal",
+    "Color",
+    "FavoriteCategory",
+    "Food",
+    "Sport"
+   ],
+   "responseParameters": [
+    {
+     "name": "Color",
+     "dataType": "@Color",
+     "isList": false,
+     "required": false,
+     "value": "$Color"
+    },
+    {
+     "name": "FavoriteCategory",
+     "dataType": "@FavoriteCategory",
+     "isList": false,
+     "required": false,
+     "value": "$FavoriteCategory"
+    },
+    {
+     "name": "Sport",
+     "dataType": "@Sport",
+     "isList": false,
+     "required": false,
+     "value": "$Sport"
+    },
+    {
+     "name": "Animal",
+     "dataType": "@Animal",
+     "isList": false,
+     "required": false,
+     "value": "$Animal"
+    },
+    {
+     "name": "Food",
+     "dataType": "@Food",
+     "isList": false,
+     "required": false,
+     "value": "$Food"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userHasFavorite",
+    "entities": {
+     "Animal": "dogs",
+     "FavoriteCategory": "animals"
+    }
+   },
+   "derivedFrom": "userHasFavorite.json[0]"
+  },
+  {
+   "name": "userIsBestFriendsWithPerson",
+   "file": "userIsBestFriendsWithPerson.json",
+   "sha256": "a206f9a162e95f6bc60a90373dd40966087cdc1944fc50990ea026da74e5068b",
+   "usersaysFile": "userIsBestFriendsWithPerson_usersays_en.json",
+   "usersaysSha256": "2f3c281ddde5bc0cfc78fe22f66e5ffea2a7a918ec28f537ba7217820e1cd198",
+   "trainingPhraseCount": 23,
+   "attributedEntities": [
+    "OtherPerson",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userIsBestFriendsWithPerson",
+    "entities": {
+     "OtherPerson": "you"
+    }
+   },
+   "derivedFrom": "userIsBestFriendsWithPerson.json[0]"
+  },
+  {
+   "name": "userIsDescriptor",
+   "file": "userIsDescriptor.json",
+   "sha256": "80525e1144704a6abea6e346e8fa62a0739eba1e1e1c1fb1005dd63feb7119ba",
+   "usersaysFile": "userIsDescriptor_usersays_en.json",
+   "usersaysSha256": "95dda7e1a0bff1c002e372086e15ac8d97c49c50da54cc9c490d73eb514ef6d3",
+   "trainingPhraseCount": 51,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "Occupation",
+    "ReligionPerson",
+    "SchoolSubject",
+    "Zodiac",
+    "sys.age"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    },
+    {
+     "name": "SchoolSubject",
+     "dataType": "@SchoolSubject",
+     "isList": false,
+     "required": false,
+     "value": "$SchoolSubject"
+    },
+    {
+     "name": "ReligionPerson",
+     "dataType": "@ReligionPerson",
+     "isList": false,
+     "required": false,
+     "value": "$ReligionPerson"
+    },
+    {
+     "name": "Zodiac",
+     "dataType": "@Zodiac",
+     "isList": false,
+     "required": false,
+     "value": "$Zodiac"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userIsDescriptor",
+    "entities": {
+     "Emotion": "amused"
+    }
+   },
+   "derivedFrom": "userIsDescriptor.json[0]"
+  },
+  {
+   "name": "userIsFriendsWithPerson",
+   "file": "userIsFriendsWithPerson.json",
+   "sha256": "9b25b86cc7894a1e43a16dd89e6df2d31bc74985babafd8bf288aeae2e9af44b",
+   "usersaysFile": "userIsFriendsWithPerson_usersays_en.json",
+   "usersaysSha256": "a2b64916fddfc9b07f54b5784c208d0b5bc8482aa239c579c1e5165711371dfc",
+   "trainingPhraseCount": 23,
+   "attributedEntities": [
+    "OtherPerson",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userIsFriendsWithPerson",
+    "entities": {
+     "OtherPerson": "you"
+    }
+   },
+   "derivedFrom": "userIsFriendsWithPerson.json[0]"
+  },
+  {
+   "name": "userIsGoingToHolidayParty",
+   "file": "userIsGoingToHolidayParty.json",
+   "sha256": "d21788f66d0207d67d1bd0c78ab7d7ed4eb39e47e597088158bbb0530a15bbf7",
+   "usersaysFile": "userIsGoingToHolidayParty_usersays_en.json",
+   "usersaysSha256": "cfce8447f18e6ef244b360d1964ae015604654ca80df3cd011fad8d3bf5115df",
+   "trainingPhraseCount": 36,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "userIsGoingToHolidayParty",
+    "entities": {
+     "Holiday": "halloween"
+    }
+   },
+   "derivedFrom": "userIsGoingToHolidayParty.json[0]"
+  },
+  {
+   "name": "userIsNotDescriptor",
+   "file": "userIsNotDescriptor.json",
+   "sha256": "6288f094fa14a71d02eaf92ef224dfe5ebadb9364ca811e532041b4406cd29f9",
+   "usersaysFile": "userIsNotDescriptor_usersays_en.json",
+   "usersaysSha256": "16cc3e6cc1b5a002e49712a7fc0de3dfba34783e629cc9a47c12e0daed9bf837",
+   "trainingPhraseCount": 32,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "Occupation",
+    "sys.age"
+   ],
+   "responseParameters": [
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    },
+    {
+     "name": "Occupation",
+     "dataType": "@Occupation",
+     "isList": false,
+     "required": false,
+     "value": "$Occupation"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userIsNotDescriptor",
+    "entities": {
+     "Emotion": "sad"
+    }
+   },
+   "derivedFrom": "userIsNotDescriptor.json[0]"
+  },
+  {
+   "name": "userLikesThing",
+   "file": "userLikesThing.json",
+   "sha256": "90e2a7db090a5b218d0b50fb9e69724a445fbb5b8f657e3a88fb4e4c42770cb3",
+   "usersaysFile": "userLikesThing_usersays_en.json",
+   "usersaysSha256": "50bc27d4e28ae82fdf3f505c0b199f972aa95f9a1e251380537a013ec5f5a1e4",
+   "trainingPhraseCount": 125,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "i",
+     "lifespan": 5
+    },
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "userLikesThing",
+    "entities": {
+     "sys.ignore": "do",
+     "GeneralLikes": "christmas"
+    }
+   },
+   "derivedFrom": "userLikesThing.json[0]"
+  },
+  {
+   "name": "userLooksForwardToThing",
+   "file": "userLooksForwardToThing.json",
+   "sha256": "aa4b966acea8071923a74a221bc05bdafce0d651bf23c566c6e8cd121a0fe5c4",
+   "usersaysFile": "userLooksForwardToThing_usersays_en.json",
+   "usersaysSha256": "864ba6111c7c488eff0c01311796e904595e314660c4123e325d94d29a1a70eb",
+   "trainingPhraseCount": 21,
+   "attributedEntities": [
+    "Holiday",
+    "MovieShow",
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "MovieShow",
+     "dataType": "@MovieShow",
+     "isList": false,
+     "required": false,
+     "value": "$MovieShow"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userLooksForwardToThing",
+    "entities": {
+     "Holiday": "chinese new year"
+    }
+   },
+   "derivedFrom": "userLooksForwardToThing.json[0]"
+  },
+  {
+   "name": "userObservedThing",
+   "file": "userObservedThing.json",
+   "sha256": "da40311650182a6420609ca395c132c1048755e28c0f5a5fa1282d13f7347813",
+   "usersaysFile": "userObservedThing_usersays_en.json",
+   "usersaysSha256": "86659dfe9c05a18b77ac2548858193c0392848b6f7fbade15040633f0a4030f4",
+   "trainingPhraseCount": 5,
+   "attributedEntities": [
+    "FantasticPerson"
+   ],
+   "responseParameters": [
+    {
+     "name": "FantasticPerson",
+     "dataType": "@FantasticPerson",
+     "isList": false,
+     "required": false,
+     "value": "$FantasticPerson"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userObservedThing",
+    "entities": {
+     "FantasticPerson": "easter bunny"
+    }
+   },
+   "derivedFrom": "userObservedThing.json[0]"
+  },
+  {
+   "name": "userShouldDislikeThing",
+   "file": "userShouldDislikeThing.json",
+   "sha256": "25c9f21a7b5228d34ebd708919c964b11850fb36393531e7a53d5a1a174b6e24",
+   "usersaysFile": "userShouldDislikeThing_usersays_en.json",
+   "usersaysSha256": "8df62b7f29445d620fe98c100d5366631477a742ed86283974b528cd3158a7d7",
+   "trainingPhraseCount": 170,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userShouldDislikeThing",
+    "entities": {
+     "GeneralLikes": "aeolian harp"
+    }
+   },
+   "derivedFrom": "userShouldDislikeThing.json[0]"
+  },
+  {
+   "name": "userShouldLikeThing",
+   "file": "userShouldLikeThing.json",
+   "sha256": "a36a43dfcdaabc98dd9bfe9ca317df14caa20a8c627c9e22f7b05b66afb4e3ef",
+   "usersaysFile": "userShouldLikeThing_usersays_en.json",
+   "usersaysSha256": "b64cf85dbf54398d9dac55e3db303a7382b3acf2e1c529a6caafc51f300224a3",
+   "trainingPhraseCount": 73,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userShouldLikeThing",
+    "entities": {
+     "GeneralLikes": "admiral butterfly"
+    }
+   },
+   "derivedFrom": "userShouldLikeThing.json[0]"
+  },
+  {
+   "name": "userSupportsSomeoneForEvent",
+   "file": "userSupportsSomeoneForEvent.json",
+   "sha256": "33484d94476925eccf2b09ccdfc40d683ad62fdf786c76459a45cc808a632081",
+   "usersaysFile": "userSupportsSomeoneForEvent_usersays_en.json",
+   "usersaysSha256": "537fe64a3bd2f32392dda5426497ab85a56e21c308c222359cc526eec46a4f4f",
+   "trainingPhraseCount": 26,
+   "attributedEntities": [
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "userSupportsSomeoneForEvent",
+    "entities": {
+     "sys.ignore": "that",
+     "ShowEvent": "oscar awards"
+    }
+   },
+   "derivedFrom": "userSupportsSomeoneForEvent.json[0]"
+  },
+  {
+   "name": "whatGiftDoesJiboWantHoliday",
+   "file": "whatGiftDoesJiboWantHoliday.json",
+   "sha256": "981d4e44e69a9d83ad2eec7f67950b2bb85fa87c590981db9f416df9023e2e66",
+   "usersaysFile": "whatGiftDoesJiboWantHoliday_usersays_en.json",
+   "usersaysSha256": "df3d9fa95cab2910dcbded4352c1d3169adf4569477a14ed64878645678655b4",
+   "trainingPhraseCount": 7,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whatGiftDoesJiboWantHoliday",
+    "entities": {
+     "sys.ignore": "you",
+     "Holiday": "valentines day"
+    }
+   },
+   "derivedFrom": "whatGiftDoesJiboWantHoliday.json[0]"
+  },
+  {
+   "name": "whatGiftShouldUserGiveHoliday",
+   "file": "whatGiftShouldUserGiveHoliday.json",
+   "sha256": "d0b404b1db67ceebc4697bd4015500285245f06f356f95e63f937607f1cf961d",
+   "usersaysFile": "whatGiftShouldUserGiveHoliday_usersays_en.json",
+   "usersaysSha256": "9e3ad28c1af140cd52940659d6bb483e7285d269f6ad99144fcfe24883034430",
+   "trainingPhraseCount": 17,
+   "attributedEntities": [
+    "FamilyMember",
+    "Holiday",
+    "sys.given-name",
+    "sys.ignore",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "FamilyMember",
+     "dataType": "@FamilyMember",
+     "isList": false,
+     "required": false,
+     "value": "$FamilyMember"
+    },
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whatGiftShouldUserGiveHoliday",
+    "entities": {
+     "sys.ignore": "my",
+     "Holiday": "hanukkah",
+     "FamilyMember": "nephew"
+    }
+   },
+   "derivedFrom": "whatGiftShouldUserGiveHoliday.json[0]"
+  },
+  {
+   "name": "whatGiftShouldUserReceive",
+   "file": "whatGiftShouldUserReceive.json",
+   "sha256": "7835580ecb4853d68eca67eb3aed7784b7345eb241a8332230e32eceddb76958",
+   "usersaysFile": "whatGiftShouldUserReceive_usersays_en.json",
+   "usersaysSha256": "cc62979b0a2ac2c91d449afc58ec566d16eeb172038ead5fbcdca56ad2dd6956",
+   "trainingPhraseCount": 14,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whatGiftShouldUserReceive",
+    "entities": {
+     "sys.ignore": "i",
+     "Holiday": "valentines day"
+    }
+   },
+   "derivedFrom": "whatGiftShouldUserReceive.json[0]"
+  },
+  {
+   "name": "whatShouldUserDoForEvent",
+   "file": "whatShouldUserDoForEvent.json",
+   "sha256": "aa080f81d76468a3d979b1b09dd2aeffd7ec2812ff3ee8a6ea779868cdfc1448",
+   "usersaysFile": "whatShouldUserDoForEvent_usersays_en.json",
+   "usersaysSha256": "ab4b5198d31a21ca269297e10ad785d0f3b3a15cab9ba03f3ef1783baeee1c05",
+   "trainingPhraseCount": 24,
+   "attributedEntities": [
+    "Holiday",
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    },
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whatShouldUserDoForEvent",
+    "entities": {
+     "sys.ignore": "celebrate",
+     "Holiday": "new years"
+    }
+   },
+   "derivedFrom": "whatShouldUserDoForEvent.json[0]"
+  },
+  {
+   "name": "whenIsBirthday",
+   "file": "whenIsBirthday.json",
+   "sha256": "f461e0c54952e51b83a4a9b6615b2f2e0539973ffe29be42748b0a9d9ba2e698",
+   "usersaysFile": "whenIsBirthday_usersays_en.json",
+   "usersaysSha256": "17a7cd74d7f721b8bd5661454aa2ef97930763334220768bb075dc1c3a5fa5ad",
+   "trainingPhraseCount": 10,
+   "attributedEntities": [
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whenIsBirthday",
+    "entities": {
+     "given-name": "bob",
+     "last-name": "smith"
+    }
+   },
+   "derivedFrom": "whenIsBirthday.json[0]"
+  },
+  {
+   "name": "whereAreHolidayGifts",
+   "file": "whereAreHolidayGifts.json",
+   "sha256": "34fad8844be1d2e4f4a86e4b702d79bfaf9a79cf713fc6c985f440dd78e8f5f8",
+   "usersaysFile": "whereAreHolidayGifts_usersays_en.json",
+   "usersaysSha256": "a1ee1814017f7637e7e18543a65bcc1f3ad2487cc30233de6891a6a7b6cb689c",
+   "trainingPhraseCount": 39,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [
+    {
+     "name": "launch",
+     "lifespan": 5
+    }
+   ],
+   "derivedResponse": {
+    "intent": "whereAreHolidayGifts",
+    "entities": {
+     "sys.ignore": "know",
+     "Holiday": "hanukkah"
+    }
+   },
+   "derivedFrom": "whereAreHolidayGifts.json[0]"
+  },
+  {
+   "name": "whereIsPerson",
+   "file": "whereIsPerson.json",
+   "sha256": "34e74e9801af7b0111d8db7b2acb1c75bdf3e8582d66d348782a56ac818782ef",
+   "usersaysFile": "whereIsPerson_usersays_en.json",
+   "usersaysSha256": "b39a1cd8e7b1f5548a9fb168fba5ca4694254997a363af6d83959d205133d4e4",
+   "trainingPhraseCount": 27,
+   "attributedEntities": [
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whereIsPerson",
+    "entities": {
+     "given-name": "elizabeth",
+     "last-name": "johnson"
+    }
+   },
+   "derivedFrom": "whereIsPerson.json[0]"
+  },
+  {
+   "name": "whereShouldUserHolidayShop",
+   "file": "whereShouldUserHolidayShop.json",
+   "sha256": "052a665054737be9c112d0e26bb1f35e1253b7c4ee6e714fed963eaa057276d8",
+   "usersaysFile": "whereShouldUserHolidayShop_usersays_en.json",
+   "usersaysSha256": "72f3772396d7e956d2d9c924cef308a589377aa947e509d9e85239d3573f9c1a",
+   "trainingPhraseCount": 27,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    },
+    {
+     "name": "Location",
+     "dataType": "@Location",
+     "isList": false,
+     "required": false,
+     "value": "$Location"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whereShouldUserHolidayShop",
+    "entities": {
+     "sys.ignore": "i",
+     "Holiday": "mothers day"
+    }
+   },
+   "derivedFrom": "whereShouldUserHolidayShop.json[0]"
+  },
+  {
+   "name": "whoDoesJiboSupportForEvent",
+   "file": "whoDoesJiboSupportForEvent.json",
+   "sha256": "af9f2a1cd4603594cf5a169821e881084c4ebac22323bc7e5a449ceeb19c109a",
+   "usersaysFile": "whoDoesJiboSupportForEvent_usersays_en.json",
+   "usersaysSha256": "b258aa6889c25ad6618ef9f4fbb49e345739b9565f1efc858b1515a2f6803683",
+   "trainingPhraseCount": 30,
+   "attributedEntities": [
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whoDoesJiboSupportForEvent",
+    "entities": {
+     "sys.ignore": "amber",
+     "ShowEvent": "the bachelor"
+    }
+   },
+   "derivedFrom": "whoDoesJiboSupportForEvent.json[0]"
+  },
+  {
+   "name": "whoIsJiboRelation",
+   "file": "whoIsJiboRelation.json",
+   "sha256": "311d503bd55e71f36f5e598613566fa3c1c7d28529e00d126f975d693cab4b5b",
+   "usersaysFile": "whoIsJiboRelation_usersays_en.json",
+   "usersaysSha256": "77dcb185e47130a358d1313797ddfd1ea7d6c82678785f58db82c1653a660243",
+   "trainingPhraseCount": 14,
+   "attributedEntities": [
+    "FamilyMember",
+    "Relation"
+   ],
+   "responseParameters": [
+    {
+     "name": "Relation",
+     "dataType": "@Relation",
+     "isList": false,
+     "required": false,
+     "value": "$Relation"
+    },
+    {
+     "name": "FamilyMember",
+     "dataType": "@FamilyMember",
+     "isList": false,
+     "required": false,
+     "value": "$FamilyMember"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whoIsJiboRelation",
+    "entities": {
+     "FamilyMember": "siblings"
+    }
+   },
+   "derivedFrom": "whoIsJiboRelation.json[0]"
+  },
+  {
+   "name": "whoIsPerson",
+   "file": "whoIsPerson.json",
+   "sha256": "f0b7a88f28f9036df86f02228fa8fab6e2705fef03c16daa07e630ed7c39ea25",
+   "usersaysFile": "whoIsPerson_usersays_en.json",
+   "usersaysSha256": "9adacaf731784d9f3a5f1e50eb9f865ddef400bad2191024d03a8a80cece0d2e",
+   "trainingPhraseCount": 51,
+   "attributedEntities": [
+    "Competitor",
+    "FantasticPerson",
+    "OtherPerson",
+    "Person",
+    "RobotCharacter",
+    "sys.given-name",
+    "sys.last-name"
+   ],
+   "responseParameters": [
+    {
+     "name": "RobotCharacter",
+     "dataType": "@RobotCharacter",
+     "isList": false,
+     "required": false,
+     "value": "$RobotCharacter"
+    },
+    {
+     "name": "Competitor",
+     "dataType": "@Competitor",
+     "isList": false,
+     "required": false,
+     "value": "$Competitor"
+    },
+    {
+     "name": "FantasticPerson",
+     "dataType": "@FantasticPerson",
+     "isList": false,
+     "required": false,
+     "value": "$FantasticPerson"
+    },
+    {
+     "name": "OtherPerson",
+     "dataType": "@OtherPerson",
+     "isList": false,
+     "required": false,
+     "value": "$OtherPerson"
+    },
+    {
+     "name": "given-name",
+     "dataType": "@sys.given-name",
+     "isList": false,
+     "required": false,
+     "value": "$given-name"
+    },
+    {
+     "name": "Person",
+     "dataType": "@Person",
+     "isList": false,
+     "required": false,
+     "value": "$Person"
+    },
+    {
+     "name": "last-name",
+     "dataType": "@sys.last-name",
+     "isList": false,
+     "required": false,
+     "value": "$last-name"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whoIsPerson",
+    "entities": {
+     "Competitor": "alexa"
+    }
+   },
+   "derivedFrom": "whoIsPerson.json[0]"
+  },
+  {
+   "name": "whoWillWinEvent",
+   "file": "whoWillWinEvent.json",
+   "sha256": "d4c15dbc8c7cdb9f77bfa4c04b8aeecd4357eed32d2eefccdce277a81f7b866f",
+   "usersaysFile": "whoWillWinEvent_usersays_en.json",
+   "usersaysSha256": "7fe14998d74cc084e199310b256d95a2a40f08b63d8f890989c7ddba2fa6dc5d",
+   "trainingPhraseCount": 32,
+   "attributedEntities": [
+    "ShowEvent",
+    "SportEvent",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "ShowEvent",
+     "dataType": "@ShowEvent",
+     "isList": false,
+     "required": false,
+     "value": "$ShowEvent"
+    },
+    {
+     "name": "SportEvent",
+     "dataType": "@SportEvent",
+     "isList": false,
+     "required": false,
+     "value": "$SportEvent"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whoWillWinEvent",
+    "entities": {
+     "ShowEvent": "grammys"
+    }
+   },
+   "derivedFrom": "whoWillWinEvent.json[0]"
+  },
+  {
+   "name": "whyDoesJiboHaveThing",
+   "file": "whyDoesJiboHaveThing.json",
+   "sha256": "5d276cd44797520521518f30c99d6ace09120145b207ca782a100bc924eb261a",
+   "usersaysFile": "whyDoesJiboHaveThing_usersays_en.json",
+   "usersaysSha256": "86b3add6a3321b4a31445594f13bf415d95c86847f48fee7890b9c02bca33f72",
+   "trainingPhraseCount": 10,
+   "attributedEntities": [
+    "BodyInternal",
+    "BodyPart",
+    "HairType",
+    "sys.number"
+   ],
+   "responseParameters": [
+    {
+     "name": "BodyPart",
+     "dataType": "@BodyPart",
+     "isList": false,
+     "required": false,
+     "value": "$BodyPart"
+    },
+    {
+     "name": "number",
+     "dataType": "@sys.number",
+     "isList": false,
+     "required": false,
+     "value": "$number"
+    },
+    {
+     "name": "HairType",
+     "dataType": "@HairType",
+     "isList": false,
+     "required": false,
+     "value": "$HairType"
+    },
+    {
+     "name": "BodyInternal",
+     "dataType": "@BodyInternal",
+     "isList": false,
+     "required": false,
+     "value": "$BodyInternal"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whyDoesJiboHaveThing",
+    "entities": {
+     "BodyInternal": "heart"
+    }
+   },
+   "derivedFrom": "whyDoesJiboHaveThing.json[0]"
+  },
+  {
+   "name": "whyDoesJiboLikeThing",
+   "file": "whyDoesJiboLikeThing.json",
+   "sha256": "08f519e904fd7ccc214170fc8e94be4d596ea61de62b67dbb31a4e9f19b413a0",
+   "usersaysFile": "whyDoesJiboLikeThing_usersays_en.json",
+   "usersaysSha256": "70440c76fd06f983b6f9a1f1ddc00ae7b4b83784336587a9efda7755ef62e5b2",
+   "trainingPhraseCount": 8,
+   "attributedEntities": [
+    "GeneralLikes",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralLikes",
+     "dataType": "@GeneralLikes",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralLikes"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whyDoesJiboLikeThing",
+    "entities": {
+     "sys.ignore": "you",
+     "GeneralLikes": "macaroni noodles"
+    }
+   },
+   "derivedFrom": "whyDoesJiboLikeThing.json[0]"
+  },
+  {
+   "name": "whyDoesJiboNotHaveThing",
+   "file": "whyDoesJiboNotHaveThing.json",
+   "sha256": "02a9081bc1e95de0801b5d4f810066f1965678807b0ce106b6a0453bbbbe34b1",
+   "usersaysFile": "whyDoesJiboNotHaveThing_usersays_en.json",
+   "usersaysSha256": "d4b14f69f0937b3c458ed4067dfcda63b05ab52ed05bad49443bfa0e6b2b3fd5",
+   "trainingPhraseCount": 16,
+   "attributedEntities": [
+    "BodyInternal",
+    "BodyPart",
+    "HairType",
+    "ThingYouWear",
+    "sys.number"
+   ],
+   "responseParameters": [
+    {
+     "name": "BodyInternal",
+     "dataType": "@BodyInternal",
+     "isList": false,
+     "required": false,
+     "value": "$BodyInternal"
+    },
+    {
+     "name": "BodyPart",
+     "dataType": "@BodyPart",
+     "isList": false,
+     "required": false,
+     "value": "$BodyPart"
+    },
+    {
+     "name": "number",
+     "dataType": "@sys.number",
+     "isList": false,
+     "required": false,
+     "value": "$number"
+    },
+    {
+     "name": "ThingYouWear",
+     "dataType": "@ThingYouWear",
+     "isList": false,
+     "required": false,
+     "value": "$ThingYouWear"
+    },
+    {
+     "name": "HairType",
+     "dataType": "@HairType",
+     "isList": false,
+     "required": false,
+     "value": "$HairType"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whyDoesJiboNotHaveThing",
+    "entities": {
+     "BodyInternal": "appendix"
+    }
+   },
+   "derivedFrom": "whyDoesJiboNotHaveThing.json[0]"
+  },
+  {
+   "name": "whyIsJiboDescriptor",
+   "file": "whyIsJiboDescriptor.json",
+   "sha256": "68c093eb597974f0124606de4c233e10788ea3759f2c9ab247d8287ddac059cb",
+   "usersaysFile": "whyIsJiboDescriptor_usersays_en.json",
+   "usersaysSha256": "137454c7f4b86aee4d6a6cb744c5412deed02bfedb92c5b2c85b3de173978b44",
+   "trainingPhraseCount": 26,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor",
+    "JiboDescriptor",
+    "sys.age"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    },
+    {
+     "name": "JiboDescriptor",
+     "dataType": "@JiboDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$JiboDescriptor"
+    },
+    {
+     "name": "age",
+     "dataType": "@sys.age",
+     "isList": false,
+     "required": false,
+     "value": "$age"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whyIsJiboDescriptor",
+    "entities": {
+     "Emotion": "angry"
+    }
+   },
+   "derivedFrom": "whyIsJiboDescriptor.json[0]"
+  },
+  {
+   "name": "whyIsUnknownDescriptor",
+   "file": "whyIsUnknownDescriptor.json",
+   "sha256": "8f408ce03a33e98a09d54167cf42cbd07201f0f4778267d40e8ef1edcac7d879",
+   "usersaysFile": "whyIsUnknownDescriptor_usersays_en.json",
+   "usersaysSha256": "38aa485872ef191d68c098bba579768a33cbb553c17fb58d2ad517ee064b275b",
+   "trainingPhraseCount": 12,
+   "attributedEntities": [],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whyIsUnknownDescriptor",
+    "entities": {}
+   },
+   "derivedFrom": "whyIsUnknownDescriptor.json[0]"
+  },
+  {
+   "name": "whyIsUserDescriptor",
+   "file": "whyIsUserDescriptor.json",
+   "sha256": "6a6fabf0479e7d050dbc66dac487f881ab0e1338cc21b1a2faabd39b083ca860",
+   "usersaysFile": "whyIsUserDescriptor_usersays_en.json",
+   "usersaysSha256": "3b7aba3ecba3e657eb4667a205709f55e8f312bb2e9704a9108deba2aae21ae5",
+   "trainingPhraseCount": 5,
+   "attributedEntities": [
+    "Emotion",
+    "GeneralDescriptor"
+   ],
+   "responseParameters": [
+    {
+     "name": "GeneralDescriptor",
+     "dataType": "@GeneralDescriptor",
+     "isList": false,
+     "required": false,
+     "value": "$GeneralDescriptor"
+    },
+    {
+     "name": "Emotion",
+     "dataType": "@Emotion",
+     "isList": false,
+     "required": false,
+     "value": "$Emotion"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "whyIsUserDescriptor",
+    "entities": {
+     "Emotion": "angry"
+    }
+   },
+   "derivedFrom": "whyIsUserDescriptor.json[0]"
+  },
+  {
+   "name": "willJiboReceiveHolidayGift",
+   "file": "willJiboReceiveHolidayGift.json",
+   "sha256": "ba53213bc802da06c1fd036da8644600d563e908a9fbf07532ae6bfc3f81bffe",
+   "usersaysFile": "willJiboReceiveHolidayGift_usersays_en.json",
+   "usersaysSha256": "e4d52de6e25de63b699745af069ece9a82956fb98f5fb7dc1a65d42a54e9954f",
+   "trainingPhraseCount": 58,
+   "attributedEntities": [
+    "Holiday",
+    "sys.ignore"
+   ],
+   "responseParameters": [
+    {
+     "name": "Holiday",
+     "dataType": "@Holiday",
+     "isList": false,
+     "required": false,
+     "value": "$Holiday"
+    }
+   ],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "willJiboReceiveHolidayGift",
+    "entities": {
+     "sys.ignore": "anyone",
+     "Holiday": "christmas"
+    }
+   },
+   "derivedFrom": "willJiboReceiveHolidayGift.json[0]"
+  },
+  {
+   "name": "yes",
+   "file": "yes.json",
+   "sha256": "c2302f0cd802c28e1a1153882c16d6e8cc49cf77b43dc7e1bc906502c0eb841a",
+   "usersaysFile": "yes_usersays_en.json",
+   "usersaysSha256": "0c9777c9e9ac84a1f81e09da4c1a2a59a7a144cb61dc94a0d2ebae1f9a51f765",
+   "trainingPhraseCount": 18,
+   "attributedEntities": [
+    "sys.ignore"
+   ],
+   "responseParameters": [],
+   "affectedContexts": [],
+   "derivedResponse": {
+    "intent": "yes",
+    "entities": {}
+   },
+   "derivedFrom": "yes.json[0]"
+  }
+ ],
+ "entities": [
+  {
+   "name": "Activity",
+   "file": "Activity.json",
+   "sha256": "5294deca0c71e2ca785b756c082f183ab7fb0ae29533a720cb8afd361e6f4240"
+  },
+  {
+   "name": "AmericaPresident",
+   "file": "AmericaPresident.json",
+   "sha256": "b7933bc8766fd0f06735154d44ecea341b8d9368209c86dce6b06cdd78e8cbd0"
+  },
+  {
+   "name": "Amphibian",
+   "file": "Amphibian.json",
+   "sha256": "138f603b05e6e38ac7e75383dc63e04d64bbc6676386635ab836a6383de2807a"
+  },
+  {
+   "name": "Animal",
+   "file": "Animal.json",
+   "sha256": "7ac104793d031cd3943489c50b4ed43f0d61f2903d83cf70ac5706c8518c96de"
+  },
+  {
+   "name": "Bird",
+   "file": "Bird.json",
+   "sha256": "90dcf76459634ffa2378762b845bb92e7a4b7bbc8a44bc410e85f99202fad2dd"
+  },
+  {
+   "name": "BoardGame",
+   "file": "BoardGame.json",
+   "sha256": "089cc03ef92c3efe710afe842bcf405b2de52b2c46c8f7ac95bdbcbe71022998"
+  },
+  {
+   "name": "BodyInternal",
+   "file": "BodyInternal.json",
+   "sha256": "6ffc59d5a738d0198099ca95b71260bb5f48e618ef5d6c51fb4a4cb2c0f2e375"
+  },
+  {
+   "name": "BodyOfWater",
+   "file": "BodyOfWater.json",
+   "sha256": "b7c393f86ee7c610bcb40faffa6ae1b91296fe078705587cc97fb742cfcda2cf"
+  },
+  {
+   "name": "BodyPart",
+   "file": "BodyPart.json",
+   "sha256": "9487debe5e2a36c30a00c518fa6c269298783d862f39467eea09167f3f515c71"
+  },
+  {
+   "name": "Breakfast",
+   "file": "Breakfast.json",
+   "sha256": "6e2e8917d3ea6b0e8f5e185a5c29469403a8626d4655fa78c576bcf648a6a0cf"
+  },
+  {
+   "name": "Bug",
+   "file": "Bug.json",
+   "sha256": "047d4ef838ff854bf2a1bc4d605313b88da49338b9322cf73c47a65c589297f3"
+  },
+  {
+   "name": "CelestialObjectGeneral",
+   "file": "CelestialObjectGeneral.json",
+   "sha256": "d55840dd9cdaa270875c57a5fd1024bf8a46fe56cf730bad0cc3779224fe6172"
+  },
+  {
+   "name": "Cheese",
+   "file": "Cheese.json",
+   "sha256": "69b5d3ebe50605560469bffdb25712dd9ef78de671e018784384cdc5d9391432"
+  },
+  {
+   "name": "Color",
+   "file": "Color.json",
+   "sha256": "7a55153a24d555ce60737554535466410507180dbc9b3f874cb0b348a3fc6af9"
+  },
+  {
+   "name": "Competitor",
+   "file": "Competitor.json",
+   "sha256": "76ff6a82e562b519d32b63bd56d63160439b88417b57ec20e2ff7b79cbb4bc9f"
+  },
+  {
+   "name": "Computer",
+   "file": "Computer.json",
+   "sha256": "ce6a00dadd082fe29e3d0a884624dd943630f72d49c6ff08611c13909ad263ec"
+  },
+  {
+   "name": "Condiment",
+   "file": "Condiment.json",
+   "sha256": "8e9a01960276570b3076c5f63a6dc3705635a450bb83a075566118143c7962d9"
+  },
+  {
+   "name": "Continent",
+   "file": "Continent.json",
+   "sha256": "095814f2c963e318909da0b2f59ab84ec3d2ab87db2d9673daec5cf8becc46b2"
+  },
+  {
+   "name": "CookingTool",
+   "file": "CookingTool.json",
+   "sha256": "2e6879b2d1cbbffab565dcabe49cf0bc16c98a09cface89cab02e6113524660e"
+  },
+  {
+   "name": "Country",
+   "file": "Country.json",
+   "sha256": "ad6afd587fd661a6d9faa6de41014376c85166608b3cba7f664b6a203f3025f1"
+  },
+  {
+   "name": "DayOfWeek",
+   "file": "DayOfWeek.json",
+   "sha256": "36ec7afcc41fd449f295ad81a7f0238b902fbc2d146cd116a50521668e67c57b"
+  },
+  {
+   "name": "DinnerTable",
+   "file": "DinnerTable.json",
+   "sha256": "64f15bd162a56aa441e9eec9853ed8dc5578fa717027342ade6880bfd12610ad"
+  },
+  {
+   "name": "Dinosaur",
+   "file": "Dinosaur.json",
+   "sha256": "049a885f91274453b91c85a867649dfa8d60a20e25dc161e54eca8df71d0f95d"
+  },
+  {
+   "name": "Drink",
+   "file": "Drink.json",
+   "sha256": "8072d56886f2cb123a06b155089115d303adbc352b734f21abc1e0358ba4b0f3"
+  },
+  {
+   "name": "Drug",
+   "file": "Drug.json",
+   "sha256": "39ff56ec4f0c29338f5618d136759ae1bb38ea790a2fb704ac36aa54bd3054b5"
+  },
+  {
+   "name": "ElementMaterial",
+   "file": "ElementMaterial.json",
+   "sha256": "b3dcc99fc0012c857f37f7ad91cd1bfa3959b1da960bb72f27bc02e4e49530ca"
+  },
+  {
+   "name": "Emotion",
+   "file": "Emotion.json",
+   "sha256": "9602a21351fff96a996f7f1ea6098a578e887781d4638055a2b0b9d2ff1782e3"
+  },
+  {
+   "name": "Energy",
+   "file": "Energy.json",
+   "sha256": "290421b6c25750d70c66d4111fb45949aa548379b238edbb6fd11751fd41c6dd"
+  },
+  {
+   "name": "FamilyMember",
+   "file": "FamilyMember.json",
+   "sha256": "63e4f5866bb760f06c40fecabe508745331f71acb42b61dc1e8168b1b72b6175"
+  },
+  {
+   "name": "FamousLandmark",
+   "file": "FamousLandmark.json",
+   "sha256": "094fcd02d0eb42cdfc6cab9763658245b2a52364013d7d09d93e136948480964"
+  },
+  {
+   "name": "FantasticPerson",
+   "file": "FantasticPerson.json",
+   "sha256": "69a6835f3689da7f899d7eafd746203febc99bb298ad5c9b63ec7d6e5e184c70"
+  },
+  {
+   "name": "FantasyCreature",
+   "file": "FantasyCreature.json",
+   "sha256": "066ae6f40834a34d68b43139ba6048a793dc1bcccb04d8e63aade5a6335a69c0"
+  },
+  {
+   "name": "FavoriteCategory",
+   "file": "FavoriteCategory.json",
+   "sha256": "2c5ea7e6724f1aa540e78083db69765ac042a179a21aeb31b7f562adb1e182bc"
+  },
+  {
+   "name": "Fish",
+   "file": "Fish.json",
+   "sha256": "a95cbc8ef1ba60d8f51ec504876459e2b95e95058e2bb13da73ed13b9902b47f"
+  },
+  {
+   "name": "Flower",
+   "file": "Flower.json",
+   "sha256": "ffa73ccad81e890cb232f1e491a88a56cba9da6a161c6edb79a1d14e0574a06c"
+  },
+  {
+   "name": "Food",
+   "file": "Food.json",
+   "sha256": "87a3835506007c2188da49bcb5251995cf5157afb40aebd7e2bcffd232819ea8"
+  },
+  {
+   "name": "FoodGeneral",
+   "file": "FoodGeneral.json",
+   "sha256": "28bc673ee0fa4a87f953e3904672faba592c88839b092a159ebcd5de1b1da700"
+  },
+  {
+   "name": "Fruit",
+   "file": "Fruit.json",
+   "sha256": "2848759d76a6f05a55fcf62adc8c6530edc22af38bdd0fbef3eb71d0201e8d48"
+  },
+  {
+   "name": "GeneralDescriptor",
+   "file": "GeneralDescriptor.json",
+   "sha256": "aab160cb9035ce53554b793033e26c63e2dd2c88c73a8544cc86a6282f30ecc2"
+  },
+  {
+   "name": "GeneralLikes",
+   "file": "GeneralLikes.json",
+   "sha256": "c4036c7db81aeb083d283b72a8b56be3fba7189ba14ba531f2c7adb9aa900f2e"
+  },
+  {
+   "name": "Geography",
+   "file": "Geography.json",
+   "sha256": "7993aa2acba56171c09bfc8678135b53b4a7100fd9be006b077f71a7b9596485"
+  },
+  {
+   "name": "HairType",
+   "file": "HairType.json",
+   "sha256": "00dc9cf4a29901f0d0432905588def0cbc7dc4a2a3d12ce79403f02361842e82"
+  },
+  {
+   "name": "HerbAndSpice",
+   "file": "HerbAndSpice.json",
+   "sha256": "fc600362e860f2d2d9e021e7a4da047d2656c815e2e921aa17b88b93d9b202fb"
+  },
+  {
+   "name": "Holiday",
+   "file": "Holiday.json",
+   "sha256": "a04866474300a7d37730d8e43413e5a784b33317e6ce233e1a785d710f270f1e"
+  },
+  {
+   "name": "HouseStuff",
+   "file": "HouseStuff.json",
+   "sha256": "96232dfa7fa6bf2d16909d3d25ddde5f47719c21e53d1660f319ef8b9dd14aac"
+  },
+  {
+   "name": "JiboDescriptor",
+   "file": "JiboDescriptor.json",
+   "sha256": "9ec3c204e8e5114576499603e63a3159d6b5583d69e99bdd006bfb0876bee832"
+  },
+  {
+   "name": "KindOfParty",
+   "file": "KindOfParty.json",
+   "sha256": "0fcef8b489f38030f81b3ec7ef3041c8fce1959618ad67308846bcc13f3a10a1"
+  },
+  {
+   "name": "Language",
+   "file": "Language.json",
+   "sha256": "e9fad8192bcc3bc46e390c74cbfdc482f932a172ad677983e8363e4e5c790a09"
+  },
+  {
+   "name": "Location",
+   "file": "Location.json",
+   "sha256": "a914b1e7557c3d1e988a346e9aaade3872fffb1236e81935cf1998f84dbd41c1"
+  },
+  {
+   "name": "Mammal",
+   "file": "Mammal.json",
+   "sha256": "b9c99e636170d4e7cb1ba9e8c80bf080dccffe6c2cc7bf263e91db191ec86c4d"
+  },
+  {
+   "name": "Month",
+   "file": "Month.json",
+   "sha256": "1ebed1fd18ef8481afbe22b802b536cce6208bb14ea7ac5cfe7cdc775722a6a5"
+  },
+  {
+   "name": "MovieShow",
+   "file": "MovieShow.json",
+   "sha256": "27fedee384a5e2e7662ce9cc993c55af92987e00f68d1b95d8b26782aa63e0d9"
+  },
+  {
+   "name": "MusicType",
+   "file": "MusicType.json",
+   "sha256": "6492916b306fb938558fbc62fcfe79968774508aa6d28760bef0460598146b31"
+  },
+  {
+   "name": "MusicalInstrument",
+   "file": "MusicalInstrument.json",
+   "sha256": "23c3996d62bc1f89a25692e4c3ab82c034b02e3e4ea14fdcd154c56e3843ec06"
+  },
+  {
+   "name": "Nationality",
+   "file": "Nationality.json",
+   "sha256": "b6c6f4a9e4bdbd89e6ff2dc6348b757535071d92356f773a9873d9a324f7f4d2"
+  },
+  {
+   "name": "Occupation",
+   "file": "Occupation.json",
+   "sha256": "7a4d0f51f70fb62a1806f71f94497c6028393def9e7fb2e1213fa19661be29c2"
+  },
+  {
+   "name": "Other",
+   "file": "Other.json",
+   "sha256": "f82a3cca3b3293a864858e642f6d851ab140fc2e2186bd170fa77f6c4551fc8b"
+  },
+  {
+   "name": "OtherLikes",
+   "file": "OtherLikes.json",
+   "sha256": "39c369a93bb962e4f9dc8085e5d30d8f1e0da7283ed283570ba28590ff1d7c5d"
+  },
+  {
+   "name": "OtherPerson",
+   "file": "OtherPerson.json",
+   "sha256": "a2bcc0ed99a7c4d0f2c6a5340ee77dd1cf91544ea100dfba1eeb239ac055d19c"
+  },
+  {
+   "name": "Person",
+   "file": "Person.json",
+   "sha256": "0988df802c5b18799f350e9cca3774ae0a2d948cbe58e868deab26543c035bb0"
+  },
+  {
+   "name": "Pet",
+   "file": "Pet.json",
+   "sha256": "081de91ce1b4b9652cb3d87bb9559bb378712be645a160d74016008eb4be561f"
+  },
+  {
+   "name": "PlaceInCity",
+   "file": "PlaceInCity.json",
+   "sha256": "9ee374eccc0b2e94831907e11ef77fa77a670a2bad6d3e07b3f22e540c67222b"
+  },
+  {
+   "name": "Planet",
+   "file": "Planet.json",
+   "sha256": "11eb7d794dc1e0acf414359ee879371bfdf688dc04b0830695e9920879ee8478"
+  },
+  {
+   "name": "Plant",
+   "file": "Plant.json",
+   "sha256": "7e5124bef02996b6fca5e5e128089a409f37361bc5e34dcd02d4c7154919933d"
+  },
+  {
+   "name": "Relation",
+   "file": "Relation.json",
+   "sha256": "5749e17b0d45e2c6cf37fbff6c7a6889ad40161b4370d31fa53149547a49d2b6"
+  },
+  {
+   "name": "Religion",
+   "file": "Religion.json",
+   "sha256": "fd2e9b92b9038a63dff2fae39d0f7a1a40f31e033eab1de212749cb94159912b"
+  },
+  {
+   "name": "ReligionPerson",
+   "file": "ReligionPerson.json",
+   "sha256": "48bbec85d052134c5133f571a44bb29f78e0bdc00bc9f58ad5b422da259c3fce"
+  },
+  {
+   "name": "Reptile",
+   "file": "Reptile.json",
+   "sha256": "8de8278b3df8705809adf3062b2fb9bfb8a7fd8ca33e53de6db1f736ffcef2b1"
+  },
+  {
+   "name": "RobotCharacter",
+   "file": "RobotCharacter.json",
+   "sha256": "fcb2b111267d15adbf9590ae72cc3b243f003f18cccd04951ab0629a2fba3f64"
+  },
+  {
+   "name": "RoomInHouse",
+   "file": "RoomInHouse.json",
+   "sha256": "72748d46ee55979c749a7cb73b28c5e6c9bb04888111c355b21322d3943f109f"
+  },
+  {
+   "name": "SchoolSubject",
+   "file": "SchoolSubject.json",
+   "sha256": "b4c6ac47c5a1d7d4d69c204da686dafac7b116e534f352c6e7797420f617cd87"
+  },
+  {
+   "name": "Seafood",
+   "file": "Seafood.json",
+   "sha256": "321e06ed72becc165a1a3ee5f9368263f0d05f6ea1cc939b3d2fdb028a13ce16"
+  },
+  {
+   "name": "Sealife",
+   "file": "Sealife.json",
+   "sha256": "105f3a26ca3bd8a8f074b84b9d148ba57522fcf12ecacc4b7e5765aedfd7e2d3"
+  },
+  {
+   "name": "Season",
+   "file": "Season.json",
+   "sha256": "0b3f59f5be0d4c3b3197bfb5396fe3568081a7380a7ad08f5322f71b536b750c"
+  },
+  {
+   "name": "Shape",
+   "file": "Shape.json",
+   "sha256": "228b7d0e49e1afe7dfe141e2fe885d50f6e6dbf806a3f578fd9f278fc8654814"
+  },
+  {
+   "name": "ShowEvent",
+   "file": "ShowEvent.json",
+   "sha256": "8168392441a9a1b3a6dd62db1c3051fdcfc7ce45b0816dae17a80d9b2b333d17"
+  },
+  {
+   "name": "Song",
+   "file": "Song.json",
+   "sha256": "4c22f00d71a5f66dd82a6916215ca5fdc38eee719d10a41d19fa7eb4c4778e6b"
+  },
+  {
+   "name": "Sport",
+   "file": "Sport.json",
+   "sha256": "c064b87d9527093608fa750bdc336b32ac8484a4f80d148f015491d951286436"
+  },
+  {
+   "name": "SportEvent",
+   "file": "SportEvent.json",
+   "sha256": "b6ef76a8bd6714b9b719c8963514584300f43b9269f8ea59157014320c3d6fa1"
+  },
+  {
+   "name": "Sweet",
+   "file": "Sweet.json",
+   "sha256": "881238a0e99035fbffd0173ed1c2e1c3f509c26326bbb0d0d419a5ee3668fda1"
+  },
+  {
+   "name": "ThingYouWear",
+   "file": "ThingYouWear.json",
+   "sha256": "6531f6a073b39cf4bd22ab9fa283b46d93d86fd82c08952eeb3abdcace64fa42"
+  },
+  {
+   "name": "Time",
+   "file": "Time.json",
+   "sha256": "5352151fdcad41d652a84ef9f76ba60bfa8b92a4808f48f9b7d2f4402f689d32"
+  },
+  {
+   "name": "Timeframe",
+   "file": "Timeframe.json",
+   "sha256": "cb0e14f68dca77abfc958f59993544c4fdfa80fe662c22dfa202f0916221ee4f"
+  },
+  {
+   "name": "Tool",
+   "file": "Tool.json",
+   "sha256": "eee7e81caeabd512d72ceda055219a77db672c55c9daabfe22d8742b08e1eeae"
+  },
+  {
+   "name": "Tree",
+   "file": "Tree.json",
+   "sha256": "5f775c7867ebe6546b16b5bdab9a8d76a61e6a5fe84d5377639beb399971b591"
+  },
+  {
+   "name": "Vegetable",
+   "file": "Vegetable.json",
+   "sha256": "291343dd29e7bf9a2b8a953747af2d07358554e649743d2ae2b189e44a692929"
+  },
+  {
+   "name": "Vehicle",
+   "file": "Vehicle.json",
+   "sha256": "153e28993df1364afc9045ba43e60946f38fcf8ff261a35c42d9bcad7fa883a5"
+  },
+  {
+   "name": "Weather",
+   "file": "Weather.json",
+   "sha256": "f046d3610469df18f50c222bf8efe62b964adab86d0e651dbc42dacca5c0cb74"
+  },
+  {
+   "name": "Zodiac",
+   "file": "Zodiac.json",
+   "sha256": "6c689bd192f4994c2ad947e3a7bfbeb3b0dc48dffbc788cb02f2a509661627ba"
+  }
+ ]
+}

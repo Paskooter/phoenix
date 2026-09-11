@@ -1,0 +1,200 @@
+TAP version 13
+# Subtest: the disabled Dialogflow provider reproduces the original external boundary
+not ok 1 - the disabled Dialogflow provider reproduces the original external boundary
+  ---
+  duration_ms: 199.340704
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:38:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:43:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: a replaceable provider preserves the archived external result structure
+not ok 2 - a replaceable provider preserves the archived external result structure
+  ---
+  duration_ms: 13.384156
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:54:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + undefined
+    - {
+    -   agent_missing: {
+    -     entities: {},
+    -     error: "Error accessing Dialogflow agent 'agent_missing': no archived agent available",
+    -     intent: '',
+    -     rules: [
+    -       'clock/timer_set_value'
+    -     ]
+    -   },
+    -   agent_one: {
+    -     entities: {
+    -       GeneralLikes: 'Penguin'
+    -     },
+    -     intent: 'doesJiboLikeThing',
+    -     rules: [
+    -       'launch'
+    -     ]
+    -   },
+    -   agent_two: {
+    -     entities: {
+    -       domain: 'mim_global'
+    -     },
+    -     intent: 'repeat',
+    -     rules: [
+    -       'globals/mim_repeat'
+    -     ]
+    -   }
+    - }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    agent_one:
+      rules:
+        0: 'launch'
+      intent: 'doesJiboLikeThing'
+      entities:
+        GeneralLikes: 'Penguin'
+    agent_two:
+      rules:
+        0: 'globals/mim_repeat'
+      intent: 'repeat'
+      entities:
+        domain: 'mim_global'
+    agent_missing:
+      rules:
+        0: 'clock/timer_set_value'
+      intent: ''
+      entities:
+      error: "Error accessing Dialogflow agent 'agent_missing': no archived agent available"
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:62:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: an enabled provider emits the default-agent + external envelope itself
+ok 3 - an enabled provider emits the default-agent + external envelope itself
+  ---
+  duration_ms: 0.441497
+  type: 'test'
+  ...
+# Subtest: no external key is added when the request carries no agents
+ok 4 - no external key is added when the request carries no agents
+  ---
+  duration_ms: 10.826158
+  type: 'test'
+  ...
+# Subtest: a provider whose default agent is unavailable falls back to the null boundary
+not ok 5 - a provider whose default agent is unavailable falls back to the null boundary
+  ---
+  duration_ms: 0.282865
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:98:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:103:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: DECOY_INTENT is the archived decoyIntent name
+ok 6 - DECOY_INTENT is the archived decoyIntent name
+  ---
+  duration_ms: 0.472606
+  type: 'test'
+  ...
+# Subtest: the external-agent attachment revision is pinned to 5c0a739 and selectable
+not ok 7 - the external-agent attachment revision is pinned to 5c0a739 and selectable
+  ---
+  duration_ms: 0.401211
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:117:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'omit' !== 'attach'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'attach'
+  actual: 'omit'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:120:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: OMIT reproduces the 715e0dd0 handler, whose getNLUResult has no external block
+not ok 8 - OMIT reproduces the 715e0dd0 handler, whose getNLUResult has no external block
+  ---
+  duration_ms: 0.213115
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:127:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:132:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: parseRequest selects the attachment revision per request
+not ok 9 - parseRequest selects the attachment revision per request
+  ---
+  duration_ms: 9.880415
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:166:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/nlu/test/externalAgents.test.js:168:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 3
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 319.246784

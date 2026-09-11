@@ -1,0 +1,32 @@
+Pre-existing flake evidence: the FIRST full npm test on this worktree failed on
+packages/account/test/oobeRestartSIGKILL.test.js ('SIGKILL mid-write leaves a complete snapshot').
+It is unrelated to N-07 (packages/account vs packages/nlu) and reproduces on a CLEAN tree
+with this worktree's changes stashed:
+
+  ...
+# Subtest: buildPlaintext rejects a newline inside a field (it would silently split the robot payload)
+ok 176 - buildPlaintext rejects a newline inside a field (it would silently split the robot payload)
+  ---
+  duration_ms: 0.70701
+  type: 'test'
+  ...
+# Subtest: SIGKILL mid-write leaves a complete snapshot with the issued robot credentials
+not ok 177 - SIGKILL mid-write leaves a complete snapshot with the issued robot credentials
+  ---
+  duration_ms: 477.105585
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/account/test/oobeRestartSIGKILL.test.js:37:1'
+  failureType: 'testCodeFailure'
+  error: 'stray temp file after SIGKILL: account.json.27173c99-c9c8-43f3-86fe-21366b3c6fff.tmp'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'fail'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n07/packages/account/test/oobeRestartSIGKILL.test.js:68:41)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+
+=== clean tree (git stash -u) runs of that single file ===
+run1 pass 2 fail 1 | run2 pass 3 fail 0 | run3 pass 2 fail 1 | run4 pass 3 fail 0
