@@ -10,7 +10,7 @@ import { DefaultPort } from '@phoenix/contracts';
 import { TTLCache } from './cache.js';
 import { createRelay } from './relay.js';
 import { validateWeather, weatherKey, fetchWeather } from './weather.js';
-import { validateNews, newsKey, fetchNews } from './news.js';
+import { validateNews, newsKey, fetchNews, NEWS_CACHE_TTL_SECONDS, installNewsPolling } from './news.js';
 import { validateMaps, mapsKey, fetchMaps } from './maps.js';
 import { CredentialStore, credentialHandlers } from './credentials.js';
 import { createCalendarHandler } from './calendar.js';
@@ -18,10 +18,13 @@ import { createCalendarHandler } from './calendar.js';
 /**
  * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function,
  *           credentialStore?: CredentialStore, googleCalendarProvider?: Function,
- *           outlookCalendarProvider?: Function }} [opts]
+ *           outlookCalendarProvider?: Function,
+ *           newsPolling?: { enabled?: boolean, intervalMS?: number } }} [opts]
  *   *Get/*Provider override the live upstream calls (used by tests).
+ *   newsPolling mirrors the source APNewsConfig (LassoService.ts:28-32); when it is
+ *   omitted the ETCO_lasso_apNews* environment wins, and polling stays off by default.
  */
-export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore = new CredentialStore(), googleCalendarProvider, outlookCalendarProvider } = {}) {
+export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore = new CredentialStore(), googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
   const weather = createRelay({
     name: 'DarkSky',
     ttlSeconds: 15 * 60,
@@ -32,7 +35,7 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
   });
   const news = createRelay({
     name: 'APNews',
-    ttlSeconds: 65 * 60,
+    ttlSeconds: NEWS_CACHE_TTL_SECONDS,
     cache,
     validate: validateNews,
     key: newsKey,
@@ -51,7 +54,7 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
   const googleCal = createCalendarHandler({ provider: googleCalendarProvider, store: credentialStore });
   const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider, store: credentialStore });
 
-  return createService({
+  const service = createService({
     name: 'data',
     routes: {
       'GET /v1/dark_sky': weather,
@@ -67,6 +70,13 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
       'DELETE /v1/credential': cred.del,
     },
   });
+
+  // APNewsHandler.init()/close(): the poller warms every category key under the *same*
+  // relay cache+TTL as a live request, starts on the first listen(), and is cleared when
+  // that server closes. `service.newsPoller` is the handle to poll/stop it explicitly.
+  installNewsPolling(service, { cache, get: newsGet, ...(newsPolling || {}) });
+
+  return service;
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.data, opts = {}) {
