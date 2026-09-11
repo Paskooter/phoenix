@@ -334,6 +334,8 @@ test('A12e: codified Log errors keep the AWS code envelope (429/403/401 unchange
 
 // A12f: Joi's VerbosityLevel shape has NO required members, so `{}`, `{namespace}` and
 // `{level}` are all valid upstream -> 200; present members are still type/enum checked.
+// Derived from the pinned handler schema with the pinned joi 10.6.0 and the pinned
+// @jibo/server 4.0.10 validatePayload options ({ allowUnknown: true }).
 test('A12f: SetLevel namespaces items have no required members (Joi VerbosityLevel)', async () => {
   const admin = { 'x-amz-credentials': JSON.stringify({ id: 'a', friendlyId: 'f', isAdmin: true }) };
   const call = (namespaces) => api('Log_20150309.SetLevel', { friendlyIds: [], namespaces }, { headers: admin });
@@ -346,6 +348,58 @@ test('A12f: SetLevel namespaces items have no required members (Joi VerbosityLev
   assert.equal((await call([{ level: 'loud' }])).status, 422, 'level must be in the npm enum');
   assert.equal((await call(['nope'])).status, 422, 'items must be objects');
   assert.equal((await call([null])).status, 422, 'items must be objects');
+});
+
+// A12f (both directions): the source's namespace is `Joi.string().allow("")` — the EMPTY
+// STRING is a valid namespace, but non-strings are rejected. `level` has no `allow("")`,
+// so "" is not in the enum. validatePayload runs Joi with { allowUnknown: true }, so unknown
+// extra members (top-level and inside a namespace item) are accepted, not rejected.
+test('A12f: SetLevel namespace accepts "" (Joi.string().allow("")) and rejects non-strings', async () => {
+  const admin = { 'x-amz-credentials': JSON.stringify({ id: 'a', friendlyId: 'f', isAdmin: true }) };
+  const call = (namespaces) => api('Log_20150309.SetLevel', { friendlyIds: [], namespaces }, { headers: admin });
+  assert.equal((await call([{ namespace: '' }])).status, 200, 'namespace "" is valid (Joi .allow(""))');
+  assert.equal((await call([{ namespace: '', level: 'debug' }])).status, 200, '"" namespace + valid level valid');
+  assert.equal((await call([{ namespace: null }])).status, 422, 'null is not a string');
+  assert.equal((await call([{ namespace: true }])).status, 422, 'boolean is not a string');
+  assert.equal((await call([{ level: '' }])).status, 422, 'level "" is not in the enum');
+  assert.equal((await call([{ namespace: 'x', extra: 1 }])).status, 200, 'unknown nested member allowed (allowUnknown: true)');
+  const topExtra = await api('Log_20150309.SetLevel', { friendlyIds: [], namespaces: [], junkTop: 1 }, { headers: admin });
+  assert.equal(topExtra.status, 200, 'unknown top-level member allowed (allowUnknown: true)');
+});
+
+// A12f (both directions, all seven ops): joi@10 rejects the EMPTY STRING for every
+// `Joi.string()` member ("is not allowed to be empty") — the source handler's PutEvents
+// deviceId/trackingId, PutEventsAsync serial, PutBinaryAsync trackingId, PutBinary's
+// x-tracking-id header, and PutAsrBinary's required trackingId all share that rule.
+test('A12f: Joi.string() members reject the empty string across the Log ops', async () => {
+  const peDevice = await api('Log_20150309.PutEvents', { events: [], deviceId: '' });
+  assert.equal(peDevice.status, 422, 'PutEvents.deviceId "" is not allowed to be empty');
+  assert.match(peDevice.body.message, /deviceId" is not allowed to be empty/);
+  const peTrack = await api('Log_20150309.PutEvents', { events: [], trackingId: '' });
+  assert.equal(peTrack.status, 422, 'PutEvents.trackingId "" is not allowed to be empty');
+  const serial = await api('Log_20150309.PutEventsAsync', { kind: 'HEALTH', serial: '' });
+  assert.equal(serial.status, 422, 'PutEventsAsync.serial "" is not allowed to be empty');
+  assert.match(serial.body.message, /serial" is not allowed to be empty/);
+  const binTrack = await api('Log_20150309.PutBinaryAsync', { trackingId: '' });
+  assert.equal(binTrack.status, 422, 'PutBinaryAsync.trackingId "" is not allowed to be empty');
+  const asrTrack = await api('Log_20150309.PutAsrBinary', { trackingId: '' });
+  assert.equal(asrTrack.status, 422, 'PutAsrBinary.trackingId "" is required/not allowed to be empty');
+  // PutBinary validates the x-tracking-id HEADER (validateHeaders), before the throttle check.
+  const raw = async (trackingHeader) => {
+    const res = await fetch(`${base()}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-amz-target': 'Log_20150309.PutBinary',
+        ...(trackingHeader === undefined ? {} : { 'x-tracking-id': trackingHeader }),
+      },
+      body: Buffer.from('x'),
+    });
+    return { status: res.status };
+  };
+  assert.equal((await raw('')).status, 422, 'empty x-tracking-id header is not allowed to be empty');
+  assert.equal((await raw(undefined)).status, 200, 'an absent x-tracking-id header passes (optional)');
+  assert.equal((await raw('cam-9')).status, 200, 'a non-empty header passes');
 });
 
 // A12f: the source's FriendlyId is Joi.string(), which rejects the empty string.
@@ -389,6 +443,50 @@ test('defect 3: GET /log/blob survives a process restart (index rebuilt from the
     const after = await fetch(`http://localhost:${p}/log/blob?key=${encodeURIComponent(key)}`);
     assert.equal(after.status, 200, 'the object file is still on disk, so the index is rebuilt from it');
     assert.deepEqual(Buffer.from(await after.arrayBuffer()), bytes, 'bytes survive the restart');
+  } finally {
+    second?.close();
+    if (prev === undefined) delete process.env.ETCO_classic_logDir;
+    else process.env.ETCO_classic_logDir = prev;
+  }
+});
+
+// A-12 acceptance: "usable binary/ASR upload destinations and a retrievable durable sink".
+// End-to-end through a REAL restart: PutAsrBinary handshake -> PUT the handshake uploadUrl
+// -> the process dies -> a brand-new process serves the SAME key from the object file.
+test('binary/ASR upload path is durable: handshake -> PUT -> restart -> GET', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-log-asr-restart-'));
+  const prev = process.env.ETCO_classic_logDir;
+  process.env.ETCO_classic_logDir = dir;
+  const bytes = Buffer.from('asr-audio-after-restart-\x00\xff\x01', 'binary');
+  let key; let uploadUrl;
+  let first; let firstSvc;
+  try {
+    firstSvc = createClassicEntrypoint();
+    first = await firstSvc.listen(0);
+    const p = first.address().port;
+    const hs = await fetch(`http://localhost:${p}/`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Log_20150309.PutAsrBinary' },
+      body: JSON.stringify({ trackingId: 'asr-durable-1', metadata: { role: 'listener' } }),
+    });
+    assert.equal(hs.status, 200);
+    const grant = await hs.json();
+    key = grant.key;
+    uploadUrl = grant.uploadUrl;
+    assert.ok(uploadUrl.startsWith(`http://localhost:${p}/`), 'uploadUrl is usable against this entrypoint');
+    const put = await fetch(uploadUrl, { method: 'PUT', body: bytes });
+    assert.equal(put.status, 200, 'the ASR handshake URL accepts the upload');
+  } finally {
+    first?.close();
+  }
+  let second; let secondSvc;
+  try {
+    secondSvc = createClassicEntrypoint();
+    second = await secondSvc.listen(0);
+    assert.equal(secondSvc.logStore.index.size, 0, 'restarted process has an empty in-memory index');
+    const got = await fetch(`http://localhost:${second.address().port}/log/blob?key=${encodeURIComponent(key)}`);
+    assert.equal(got.status, 200, 'the ASR object is retrievable after a restart');
+    assert.deepEqual(Buffer.from(await got.arrayBuffer()), bytes, 'ASR bytes survive the restart');
   } finally {
     second?.close();
     if (prev === undefined) delete process.env.ETCO_classic_logDir;
