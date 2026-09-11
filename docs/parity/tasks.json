@@ -1317,7 +1317,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "missing",
       "owner": "Codex",
       "dependsOn": [
@@ -1338,7 +1338,18 @@
         "Cover each named introduction/who-am-i/greeting rule, including no-input/no-match and ambiguous name responses.",
         "Compare entities/referents and rule names in multi-turn robot transcripts using known and unknown loop members."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "21 named rules (introductions 7, who-am-i 5, greetings 12) line-for-line vs pinned archive; 159/159 fixture cases through parseRequest AND live /v1/parse; 10/10 native-anchored launch rows match the oracle; 7 multi-turn transcripts (known/unknown members). Root falsified the referent write (3 named fails, restore 8/0).",
+          "artifact": "docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "5b89872d12c5e600239a5ed03c24239d1ad9cfa4",
+          "command": "npm test",
+          "notes": ""
+        }
+      ]
     },
     {
       "id": "N-05",
@@ -2244,7 +2255,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2265,7 +2276,18 @@
         "Match ListenResult precedence and global cancel/repeat/thanks handling across skill updates.",
         "Compare speaker overrides, sequence/parallel supplemental behaviors, analytics names/fields and failure handling using original framework tests."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "39-probe differential vs pinned original under Node 8.9.4: DIFFS(0), error strings byte-for-byte, 0 carve-outs. Global cancel/repeat/thanks reach nodes unchanged; SetLooperIDNode 5 branches cell-for-cell (found + fixed a real referent-access bug). Root falsified the fix line (2 named fails, restore 11/0).",
+          "artifact": "docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "5b89872d12c5e600239a5ed03c24239d1ad9cfa4",
+          "command": "npm test",
+          "notes": ""
+        }
+      ]
     },
     {
       "id": "S-03",
@@ -2273,7 +2295,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2293,7 +2315,18 @@
         "Replay each factory's success, failure, no-input, no-match, escalation and terminal branches with frozen inputs.",
         "Verify repeat, thanks, cancel, wrong identity, unknown speaker, accept/decline and dialog referent changes through complete sessions."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "All 5 factories + 8 MIM nodes + opt-in nodes vs pinned source; vendored base MIMs content-identical; found + fixed a real wire divergence (optIn Skill Offer event name). 34/34 tests, 39/39 replay. Root falsified the NM ladder (5 named fails, restore 34/0).",
+          "artifact": "docs/parity/evidence/2026-09-11/s03-mim-factories/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "5b89872d12c5e600239a5ed03c24239d1ad9cfa4",
+          "command": "npm test",
+          "notes": ""
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root and Luna Max / http_contract_repair",
@@ -2311,7 +2344,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2333,7 +2366,18 @@
         "Verify full JCP action/listen/display trees, timing/GUI thresholds and cancellation behavior against reference output.",
         "Test variation distributions separately where the reference is intentionally random; do not loosen exact structural comparisons."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "MIM selection, JCP output, display/listen trees vs pinned requester; weightedSample exact at 1313 pinned points + boundaries; protocol.js line-for-line port. Root falsified the boundary (1 named fail, restore 15/0).",
+          "artifact": "docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "5b89872d12c5e600239a5ed03c24239d1ad9cfa4",
+          "command": "npm test",
+          "notes": ""
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",

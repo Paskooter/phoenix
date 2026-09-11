@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 30 | 46 | 0 | 0 |
+| pegasus | 34 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -620,7 +620,7 @@ Evidence: pending.
 
 ### N-04 — Verify identity, introduction and greeting follow-up rules
 
-- [ ] **todo** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: missing
 
 Owner: Codex. Dependencies: N-02, N-06.
 
@@ -635,7 +635,7 @@ Source: [Original Pegasus packages/parser/robust-parser/rules_src/introductions]
 
 Phoenix: [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar); [packages/harness](../../packages/harness).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md](../../docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md) (2026-09-11; 21 named rules (introductions 7, who-am-i 5, greetings 12) line-for-line vs pinned archive; 159/159 fixture cases through parseRequest AND live /v1/parse; 10/10 native-anchored launch rows match the oracle; 7 multi-turn transcripts (known/unknown members). Root falsified the referent write (3 named fails, restore 8/0).).
 
 ### N-05 — Verify remaining device/content rules and global commands
 
@@ -976,7 +976,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/gr
 
 ### S-02 — Verify global results, speaker overrides and supplemental behaviors
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: S-01, C-02.
 
@@ -991,11 +991,11 @@ Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.
 
 Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/nodes.js](../../packages/skills/src/graph/nodes.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md](../../docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md) (2026-09-11; 39-probe differential vs pinned original under Node 8.9.4: DIFFS(0), error strings byte-for-byte, 0 carve-outs. Global cancel/repeat/thanks reach nodes unchanged; SetLooperIDNode 5 branches cell-for-cell (found + fixed a real referent-access bug). Root falsified the fix line (2 named fails, restore 11/0).).
 
 ### S-03 — Verify MIM factories, no-input/no-match escalation and opt-in
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: S-01, N-06.
 
@@ -1010,7 +1010,7 @@ Source: [Original Pegasus packages/baseskill/src/graph/mims/factories](https://p
 
 Phoenix: [packages/skills/src/graph/mims/factories.js](../../packages/skills/src/graph/mims/factories.js); [packages/skills/src/graph/mims/optIn.js](../../packages/skills/src/graph/mims/optIn.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/s03-mim-factories/review.md](../../docs/parity/evidence/2026-09-11/s03-mim-factories/review.md) (2026-09-11; All 5 factories + 8 MIM nodes + opt-in nodes vs pinned source; vendored base MIMs content-identical; found + fixed a real wire divergence (optIn Skill Offer event name). 34/34 tests, 39/39 replay. Root falsified the NM ladder (5 named fails, restore 34/0).).
 
 - [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
 
@@ -1022,7 +1022,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/production/residual-re
 
 ### S-04 — Match MIM rendering, conditions, selection and JCP output
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-02, S-01.
 
@@ -1038,7 +1038,7 @@ Source: [Original Pegasus packages/baseskill/src/graph/mims/utils](https://pvind
 
 Phoenix: [packages/skills/src/graph/mims/slimmer.js](../../packages/skills/src/graph/mims/slimmer.js); [packages/skills/src/graph/mims/unify.js](../../packages/skills/src/graph/mims/unify.js); [packages/skills/src/jcp.js](../../packages/skills/src/jcp.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md](../../docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md) (2026-09-11; MIM selection, JCP output, display/listen trees vs pinned requester; weightedSample exact at 1313 pinned points + boundaries; protocol.js line-for-line port. Root falsified the boundary (1 named fail, restore 15/0).).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 

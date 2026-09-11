@@ -510,8 +510,9 @@ test('D2 uniqueness (D-02b CLOSED): a same-slot save whose scopes OVERLAP an exi
 
 test('D2 uniqueness (D-02b CLOSED) over HTTP: an overlapping-scope save answers 200 {credentialExists:true}', async () => {
   const store = plainStore();
-  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 7);
-  const post = (body) => fetch(`http://localhost:${PORT + 7}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(0);
+  const p7 = svc.address().port;
+  const post = (body) => fetch(`http://localhost:${p7}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   try {
     const first = { ...googleCred({ accountId: 'ov-http', scopes: [GOOGLE_READONLY] }), accessToken: 't', refreshToken: 'r', expiresAt: 1 };
     assert.deepEqual(await (await post(first)).json(), { created: true });
@@ -519,7 +520,7 @@ test('D2 uniqueness (D-02b CLOSED) over HTTP: an overlapping-scope save answers 
     assert.deepEqual(await (await post({ ...first, scopes: [GOOGLE_READWRITE, GOOGLE_READONLY], accessToken: 't3', refreshToken: 'r3', expiresAt: 3 })).json(),
       { credentialExists: true }, 'overlapping scope set → the reference\'s E11000 envelope, nothing stored');
     assert.equal(store.m.size, 1);
-    assert.deepEqual(await (await fetch(`http://localhost:${PORT + 7}/v1/credential?accountId=ov-http&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=${encodeURIComponent(GOOGLE_READONLY)}`)).json(),
+    assert.deepEqual(await (await fetch(`http://localhost:${p7}/v1/credential?accountId=ov-http&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=${encodeURIComponent(GOOGLE_READONLY)}`)).json(),
       { credentialExists: true }, 'the shared scope still resolves — no multi-match false negative');
   } finally {
     svc.close();
@@ -543,7 +544,10 @@ test('D2 inactive credentials are hidden from lookup and reactivated on save (al
 // HTTP wire level: validation status codes and a persisted-store restart e2e
 // ---------------------------------------------------------------------------
 
-const PORT = 7800;
+// Ports are ephemeral (listen(0)) and read back from the bound server. Fixed
+// ports collide when suites run concurrently: 7804 was taken by another file's
+// service and this suite failed with EADDRINUSE rather than a real assertion.
+let basePort;
 let tmp;
 let service1;
 let persistedFile;
@@ -554,11 +558,12 @@ before(async () => {
   service1 = await createDataService({
     credentialStore: new CredentialStore({ file: persistedFile }),
     googleCalendarProvider: async () => [],
-  }).listen(PORT);
+  }).listen(0);
+  basePort = service1.address().port;
 });
 after(() => { service1?.close?.(); rmSync(tmp, { recursive: true, force: true }); rmSync(ROOT, { recursive: true, force: true }); });
 
-const j = (path, opts) => fetch(`http://localhost:${PORT}${path}`, opts);
+const j = (path, opts) => fetch(`http://localhost:${basePort}${path}`, opts);
 
 test('D2 HTTP: missing fields -> 400 plain-text messages', async () => {
   const postMissing = await j('/v1/credential', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({}) });
@@ -611,13 +616,14 @@ test('D2 HTTP: a credential persisted by one service instance is found by the ne
   const beforeRestart = await (await j(`/v1/credential?${qs}`)).json();
   assert.deepEqual(beforeRestart, { credentialExists: true }, 'still live on the first instance');
   service1.close(); service1 = null;
-  const service2 = await createDataService({ credentialStore: new CredentialStore(persistedFile), googleCalendarProvider: async () => [] }).listen(PORT + 1);
+  const service2 = await createDataService({ credentialStore: new CredentialStore(persistedFile), googleCalendarProvider: async () => [] }).listen(0);
+  const p1 = service2.address().port;
   try {
-    const afterRestart = await (await fetch(`http://localhost:${PORT + 1}/v1/credential?${qs}`)).json();
+    const afterRestart = await (await fetch(`http://localhost:${p1}/v1/credential?${qs}`)).json();
     assert.deepEqual(afterRestart, { credentialExists: true }, 'a brand-new store on the same file sees the credential');
-    const del = await (await fetch(`http://localhost:${PORT + 1}/v1/credential?accountId=http-acct&skillId=*&serviceName=*&serviceAccountName=*`, { method: 'DELETE' })).json();
+    const del = await (await fetch(`http://localhost:${p1}/v1/credential?accountId=http-acct&skillId=*&serviceName=*&serviceAccountName=*`, { method: 'DELETE' })).json();
     assert.deepEqual(del, { deleted: true });
-    const gone = await (await fetch(`http://localhost:${PORT + 1}/v1/credential?${qs}`)).json();
+    const gone = await (await fetch(`http://localhost:${p1}/v1/credential?${qs}`)).json();
     assert.deepEqual(gone, { credentialExists: false }, 'delete persists too');
   } finally {
     service2.close();
@@ -649,8 +655,9 @@ test('D2 credentialQueryFromParams reproduces the pinned qs shapes (D-02c CLOSED
 
 test('D2 HTTP (D-02c CLOSED): a single bare scopes param is 400 "Scopes should be an array"; the indexed and bracketed client forms are 200', async () => {
   const store = plainStore();
-  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 8);
-  const base = `http://localhost:${PORT + 8}/v1/credential`;
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(0);
+  const p8 = svc.address().port;
+  const base = `http://localhost:${p8}/v1/credential`;
   const head = 'accountId=form-acct&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar';
   try {
     await fetch(base, {
@@ -698,9 +705,10 @@ test('D2 HTTP (D-02c CLOSED): a single bare scopes param is 400 "Scopes should b
 
 test('D2 HTTP: report-skill + google with no clientId gets the default clientId; a non-report skill 400s', async () => {
   const store = plainStore();
-  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 4);
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(0);
+  const p4 = svc.address().port;
   try {
-    const post = (body) => fetch(`http://localhost:${PORT + 4}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const post = (body) => fetch(`http://localhost:${p4}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     const base = { accountId: 'dflt-acct', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: ['read'], authCode: 'testAuthCode' };
     assert.deepEqual(await (await post({ ...base, skillId: 'report-skill' })).json(), { created: true });
     const found = store.find({ accountId: 'dflt-acct', skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: ['read'] });
@@ -723,15 +731,16 @@ test('D2 end-to-end (D-02c CLOSED): the Settings Lasso client resolves against t
   // test drives the real client code against the real service code.
   const { createSettingsProviders } = await import('../../account/src/settingsProviders.js');
   const store = plainStore();
-  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 9);
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(0);
+  const p9 = svc.address().port;
   try {
-    const saved = await fetch(`http://localhost:${PORT + 9}/v1/credential`, {
+    const saved = await fetch(`http://localhost:${p9}/v1/credential`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify(googleCred({ accountId: 'e2e-acct', authCode: 'testAuthCode' })),
     });
     assert.deepEqual(await saved.json(), { created: true });
 
-    const lasso = createSettingsProviders({ store: {}, env: { NET_settings_lasso: `127.0.0.1:${PORT + 9}` } }).lasso;
+    const lasso = createSettingsProviders({ store: {}, env: { NET_settings_lasso: `127.0.0.1:${p9}` } }).lasso;
     const context = { loopId: 'loop-1', userId: 'e2e-acct', transactionId: 'tx-1' };
     const params = { skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: [GOOGLE_READONLY] };
     // getCredential rejects (throws) on a non-2xx or a body without
@@ -752,15 +761,17 @@ test('D2 HTTP: the DEFAULT store (createDataService with no store arg) survives 
   const qs = 'accountId=dflt-durable&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=https://www.googleapis.com/auth/calendar.readonly';
   try {
     process.env.ETCO_data_credentialsFile = join(dir, 'credentials.json');
-    const svcA = await createDataService({ googleCalendarProvider: async () => [] }).listen(PORT + 5);
-    assert.deepEqual(await (await fetch(`http://localhost:${PORT + 5}/v1/credential`, {
+    const svcA = await createDataService({ googleCalendarProvider: async () => [] }).listen(0);
+  const p5 = svcA.address().port;
+    assert.deepEqual(await (await fetch(`http://localhost:${p5}/v1/credential`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify(googleCred({ accountId: 'dflt-durable', authCode: 'testAuthCode' })),
     })).json(), { created: true });
     svcA.close();
-    const svcB = await createDataService({ googleCalendarProvider: async () => [] }).listen(PORT + 6);
+    const svcB = await createDataService({ googleCalendarProvider: async () => [] }).listen(0);
+  const p6 = svcB.address().port;
     try {
-      assert.deepEqual(await (await fetch(`http://localhost:${PORT + 6}/v1/credential?${qs}`)).json(),
+      assert.deepEqual(await (await fetch(`http://localhost:${p6}/v1/credential?${qs}`)).json(),
         { credentialExists: true }, 'default-resolved store persisted across a restart');
     } finally { svcB.close(); }
   } finally {
