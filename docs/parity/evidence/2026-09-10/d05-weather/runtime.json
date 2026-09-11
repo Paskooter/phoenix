@@ -1,0 +1,53 @@
+{"t":"2026-09-11T01:24:43.071Z","level":"info","ns":"data","msg":"listening","port":0}
+{
+  "generated": "2026-09-11T01:24:43.072Z",
+  "cases": [
+    {
+      "label": "no coordinates at all",
+      "query": "",
+      "status": 400,
+      "body": "Invalid latitude undefined",
+      "upstreamCalls": 0,
+      "cacheWrites": 0
+    },
+    {
+      "label": "non-numeric latitude",
+      "query": "lat=abc&lon=2",
+      "status": 400,
+      "body": "Invalid latitude abc",
+      "upstreamCalls": 0,
+      "cacheWrites": 0
+    },
+    {
+      "label": "latitude out of range",
+      "query": "lat=-555&lon=1.1",
+      "status": 400,
+      "body": "Invalid latitude -555",
+      "upstreamCalls": 0,
+      "cacheWrites": 0
+    },
+    {
+      "label": "longitude non-numeric",
+      "query": "lat=1&lon=asdf",
+      "status": 400,
+      "body": "Invalid longitude asdf",
+      "upstreamCalls": 0,
+      "cacheWrites": 0
+    },
+    {
+      "label": "bad timestamp",
+      "query": "lat=1&lon=2&secondsSinceEpoch=very%20much%20not%20a%20number!",
+      "status": 400,
+      "body": "Invalid timestamp: 'very much not a number!'",
+      "upstreamCalls": 0,
+      "cacheWrites": 0
+    }
+  ],
+  "validForecast": {
+    "status": 200,
+    "upstreamCalls": 1
+  },
+  "cacheKeys": [
+    "dark_sky:1;2"
+  ]
+}

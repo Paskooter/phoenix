@@ -199,3 +199,42 @@ open questions; root read the source and classifies them here.
 | D05a | **`GET /v1/dark_sky` with no lat/lon returns 200.** `Number(null) === 0` passes `Number.isFinite`, so Phoenix answers `latitude:0, longitude:0` and caches `dark_sky:0;0`. The original's `LatLon.make_from_strings` throws `RangeError('Invalid latitude undefined')` → 400. Observed at runtime; owned by D-05. |
 | D07a | **Map coordinates are only range-checked by `Number.isFinite`.** `{lat:800}` / `{lon:654}` pass validation and reach the provider; the original rejects them with `Invalid latitude 800`. INFERRED from the pinned `GoogleMaps.test.ts`; owned by D-07. |
 | D02d | **A legacy credential snapshot may violate the new scope-overlap invariant.** `_load()` does not enforce it, so a file written by an older Phoenix could still multi-match on `find()`. New writes cannot create that state. |
+
+## D05b — historical timestamps outside the Open-Meteo window (open)
+`requestedDayIndex()` falls back to the window's base day when `secondsSinceEpoch` lies outside
+Open-Meteo's `past_days=1` window, while the cache key still carries the requested date — so
+`dark_sky:1;2;2018-01-19` returns today's payload. The original time-machined to the requested day.
+Closing it needs an Open-Meteo archive query. The report skill's real historical request (now-24h) is
+inside the window and is correct.
+
+## D06a — news poller start() was not concurrency-safe (FIXED)
+`createNewsPoller.start()` awaited the initial poll BEFORE assigning `timer`, so the `if (timer)`
+guard could not stop a second concurrent call: both polled all 11 categories (22 provider fetches).
+This surfaced as a flaky `D06/11` failing `22 !== 11` only under full-suite load — the agent's own
+report claimed exit 0 because its second run happened to pass. Root reproduced it directly (three
+concurrent `start()` calls -> 22 fetches), fixed it by memoising the in-flight start promise, and
+re-verified: 3 concurrent starts -> 11 fetches, later sequential start still a no-op.
+LESSON: an `if (guard)` set only AFTER an await does not guard anything.
+
+## D07b/D07c — maps feature gaps (open, retained)
+`mode=transit` is answered with a driving-car route (ORS' free tier has no transit profile), and
+there is no traffic model, so `duration_in_traffic` always equals `duration` and the report skill's
+commute quality can never select Poor/Terrible. Both are provider gaps, not port defects.
+
+## N03a — conditional semantic actions are silently skipped (open)
+`parser.js parseActionBlock` accepts only `key = value` statements and `continue`s on anything else,
+so `{% if (this._intent == 'yes') {this._intent = 'delete'} %}` in clock/alarm_timer_change.rule and
+clock/alarm_timer_other_set.rule is DROPPED. Observed: 'yes' yields intent 'yes' where the pinned
+source maps yes->delete. 10 such conditional statements exist across 5 rules-src files.
+
+## N03b — caller rules leak into `$factory:yes_no` (open)
+`requestParser.js:218` merges `Object.assign({}, state.factoryRules, entry.ast.rules)` into ONE flat
+namespace, so a caller's local YES/NO override the factory's. Observable: 'replace it', 'delete it',
+'trash it' and even 'guess' all yield `yes_no._nl='yes'`, although the pinned yes_no.grm cannot match
+any of them. A `$factory:` reference should compile to its own namespace.
+
+## N03c — the factory dependency gate is coarser than the native graph (open)
+`requestParser.js:204-209` refuses clock/alarm_timer_ampm wholesale because ONE arm declares
+`$factory:time`, even though its `$AM_PM` arm needs no factory. Native FST would still expose that
+path. This is why N-03 remains UNVERIFIED: bare 'am'/'pm' is unreachable even though nothing about
+it requires the missing time factory.

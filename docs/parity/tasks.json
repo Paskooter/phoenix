@@ -1953,7 +1953,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1972,7 +1972,18 @@
         "Replay reference current/historical requests and success/error payloads, preserving units, timezone, icons and optional fields.",
         "Verify the restored weather shim separately, including past_days indexing and error behavior; any deliberate bug fix has an explicit compatibility test."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Closed D05a, the coordinate-validation bug: missing/invalid/out-of-range lat or lon were silently coerced to 0 and cached under 'dark_sky:0;0'. Now rejected 400 with the pinned LatLon messages ('Invalid latitude undefined', 'Invalid latitude -555') before any upstream call or cache write. The agent also CONFIRMED the secondsSinceEpoch=0 finding at runtime: the raw query string must stay a string, because the pinned createRedisKey tests truthiness, so '0' is truthy and the key gains ';1970-01-01' where Number(0) collapsed onto the timestamp-less entry. Root falsified the guard (restoring the ?? '0' coercion): 2 named tests failed, restore green.",
+          "artifact": "docs/parity/evidence/2026-09-10/d05-weather/evidence.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "43debcc04ba304b180610030c29d9eef0b5ff3a9",
+          "command": "npm test",
+          "notes": "Open divergences D05b (out-of-window historical timestamps fall back to the window base day), D05c (apparentTemperature)."
+        }
+      ]
     },
     {
       "id": "D-06",
@@ -1980,7 +1991,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2000,7 +2011,18 @@
         "Reproduce configurable polling/prefetch behavior, category-specific cache updates and shutdown cleanup.",
         "Verify RSS translation as an adapter without treating omitted reference fields as parity."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Implemented the prefetch/poll warming D-01 flagged as unimplemented, reproducing APNewsHandler.init/close: one awaited poll of all 11 categories at listen(), then setInterval, cleared on server close. Verified at runtime through the real data service: a warmed key serves a GET with zero provider requests. All 11 sourceIDs match the pinned enum. Root falsified the rights/author line: 1 named test failed, restore green.",
+          "artifact": "docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "43debcc04ba304b180610030c29d9eef0b5ff3a9",
+          "command": "npm test",
+          "notes": "transit/national provider gaps recorded; AP feed metadata is an adapter omission, not parity. Root fixed a concurrency race the agent's own report missed (see notes below)."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
@@ -2020,7 +2042,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2038,7 +2060,18 @@
         "Compare coordinate validation, nested query parsing, modes, geometry, units, duration/traffic fields, empty routes and upstream errors.",
         "Supply equivalent provider behavior or explicitly retain an unresolved feature gap for unsupported modes; do not count shape-only mocks as functional verification."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Closed D07a: out-of-range coordinates reached the provider. Now rejected with the pinned messages; root verified over real HTTP that lat=800 returns 400 'Invalid latitude 800' with the provider never called and nothing cached. All four CommuteMode values exercised end-to-end against the real ORS provider path with the correct profile and [lon,lat] body. Root falsified the latitude upper bound: 3 named tests failed, restore green.",
+          "artifact": "docs/parity/evidence/2026-09-10/d07-maps/evidence.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "43debcc04ba304b180610030c29d9eef0b5ff3a9",
+          "command": "npm test",
+          "notes": "D07b transit is answered with a driving route (ORS free tier has no transit profile) and D07c there is no traffic model, so duration_in_traffic always equals duration - both retained feature gaps, not parity."
+        }
+      ]
     },
     {
       "id": "S-01",

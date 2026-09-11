@@ -347,6 +347,7 @@ export function createNewsPoller({
 } = {}) {
   const intervalMS = pollIntervalMS || NEWS_POLL_INTERVAL_MS;
   let timer = null;
+  let starting = null;
 
   /** fetchAllNews: APNewsHandler.ts:62-78 — every sourceID, failures become null. */
   async function fetchAllNews() {
@@ -387,11 +388,23 @@ export function createNewsPoller({
   async function start() {
     if (!pollingEnabled) return false;
     if (timer) return true;
-    await pollOnce();
-    // "No need to await hourly polling" (APNewsHandler.ts:36-37): the callback is
-    // fire-and-forget, and pollOnce() cannot reject because both phases catch per item.
-    timer = timers.setInterval(() => { pollOnce().catch((err) => log?.error?.('APNews poll failed:', err)); }, intervalMS);
-    return true;
+    // The `timer` guard above cannot cover a second call that arrives while the first is
+    // still awaiting its initial poll, because `timer` is not assigned until that poll
+    // resolves. Memoise the in-flight start so concurrent callers share one init poll
+    // instead of each fetching every category (observed as a doubled 22-fetch count).
+    if (starting) return starting;
+    starting = (async () => {
+      await pollOnce();
+      // "No need to await hourly polling" (APNewsHandler.ts:36-37): the callback is
+      // fire-and-forget, and pollOnce() cannot reject because both phases catch per item.
+      timer = timers.setInterval(() => { pollOnce().catch((err) => log?.error?.('APNews poll failed:', err)); }, intervalMS);
+      return true;
+    })();
+    try {
+      return await starting;
+    } finally {
+      starting = null;
+    }
   }
 
   /** close(): clearInterval (APNewsHandler.ts:42-45). */

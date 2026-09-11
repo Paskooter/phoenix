@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 19 | 46 | 0 | 0 |
+| pegasus | 22 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -823,7 +823,7 @@ Evidence: pending.
 
 ### D-05 — Match weather data and forecast/date semantics
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: D-01.
 
@@ -838,11 +838,11 @@ Source: [Original Pegasus packages/lasso/src/relay/DarkSkyHandler.ts](https://pv
 
 Phoenix: [packages/data/src/weather.js](../../packages/data/src/weather.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/d05-weather/evidence.md](../../docs/parity/evidence/2026-09-10/d05-weather/evidence.md) (2026-09-11; Closed D05a, the coordinate-validation bug: missing/invalid/out-of-range lat or lon were silently coerced to 0 and cached under 'dark_sky:0;0'. Now rejected 400 with the pinned LatLon messages ('Invalid latitude undefined', 'Invalid latitude -555') before any upstream call or cache write. The agent also CONFIRMED the secondsSinceEpoch=0 finding at runtime: the raw query string must stay a string, because the pinned createRedisKey tests truthiness, so '0' is truthy and the key gains ';1970-01-01' where Number(0) collapsed onto the timestamp-less entry. Root falsified the guard (restoring the ?? '0' coercion): 2 named tests failed, restore green.).
 
 ### D-06 — Match news payloads, categories and prefetch scheduling
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: D-01.
 
@@ -858,7 +858,7 @@ Source: [Original Pegasus packages/lasso/src/relay/APNewsHandler.ts](https://pvi
 
 Phoenix: [packages/data/src/news.js](../../packages/data/src/news.js); [packages/data/src/index.js](../../packages/data/src/index.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json](../../docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json) (2026-09-11; Implemented the prefetch/poll warming D-01 flagged as unimplemented, reproducing APNewsHandler.init/close: one awaited poll of all 11 categories at listen(), then setInterval, cleared on server close. Verified at runtime through the real data service: a warmed key serves a GET with zero provider requests. All 11 sourceIDs match the pinned enum. Root falsified the rights/author line: 1 named test failed, restore green.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -870,7 +870,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/hardware/s13-news-revi
 
 ### D-07 — Match maps routes, modes and commute payloads
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: D-01.
 
@@ -885,7 +885,7 @@ Source: [Original Pegasus packages/lasso/src/relay/GoogleMapsHandler.ts](https:/
 
 Phoenix: [packages/data/src/maps.js](../../packages/data/src/maps.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/d07-maps/evidence.md](../../docs/parity/evidence/2026-09-10/d07-maps/evidence.md) (2026-09-11; Closed D07a: out-of-range coordinates reached the provider. Now rejected with the pinned messages; root verified over real HTTP that lat=800 returns 400 'Invalid latitude 800' with the provider never called and nothing cached. All four CommuteMode values exercised end-to-end against the real ORS provider path with the correct profile and [lon,lat] body. Root falsified the latitude upper bound: 3 named tests failed, restore green.).
 
 ### A-02 — Match Classic dispatch, authentication and error handling
 
