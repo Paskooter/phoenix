@@ -1,4 +1,6 @@
 // Graph — port of baseskill/graph/Graph.ts + Types.ts (TransitionContainer).
+// writeDotFile is a faithful port of Graph.ts:234-325 (GraphViz dump used by
+// the original's skill-graph tooling); it is not on the robot wire path.
 // A Graph owns a set of Nodes wired by name: addNode(node, [[transition, dest|exitName]]) maps
 // every declared transition either to another Node or to one of the graph's named exit
 // transitions; addSubGraph splices a finalized child graph in by connecting ITS exit transitions
@@ -7,6 +9,8 @@
 // passed in so a host can select source-compatible shared allocation or an
 // isolated deployment scope.
 
+import fs from 'node:fs';
+
 export class TransitionContainer {
   constructor(transition, destination = null, exitTransition = null) {
     this.transition = transition;
@@ -14,6 +18,8 @@ export class TransitionContainer {
     this.exitTransition = exitTransition;
   }
 }
+
+import { Node } from './node.js';
 
 export class Graph {
   /**
@@ -25,7 +31,9 @@ export class Graph {
     this.gm = gm;
     this.name = name;
     this.exitTransitions = new Map();
-    this.initial = null;
+    // Graph.ts declares `public initial: Node` with no initializer, so the
+    // field reads as `undefined` (not `null`) until the first node is added.
+    this.initial = undefined;
     this.nodes = new Set();
     this.finalized = false;
 
@@ -66,7 +74,7 @@ export class Graph {
 
     for (const [transition, dest] of transitionMapping) {
       if (typeof dest === 'string') node.transitions.set(transition, new TransitionContainer(transition, null, dest));
-      else if (dest && typeof dest.enter === 'function') node.transitions.set(transition, new TransitionContainer(transition, dest, null));
+      else if (dest instanceof Node) node.transitions.set(transition, new TransitionContainer(transition, dest, null));
       else throw new Error(`Must provide a valid destination for node '${this.name}' and transition '${transition}'`);
     }
   }
@@ -121,7 +129,10 @@ export class Graph {
           if (!containers) throw new Error(`Graph '${this.name}' doesn't have exit transition '${transCont.exitTransition}'`);
           containers.push(transCont);
         } else if (!this.nodes.has(transCont.destination)) {
-          throw new Error(`Graph '${this.name}': Node '${node.name}' has transition to Node '${transCont.destination.name}' which isn't in graph`);
+          // Graph.ts:200-201 interpolates the Node value itself, which stringifies
+          // as '[object Object]' — reproduce the source text verbatim.
+          throw new Error(`Graph '${this.name}': Node '${node.name}' has `
+            + `transition to Node '${transCont.destination}' which isn't in graph`);
         }
       }
     }
@@ -137,5 +148,102 @@ export class Graph {
     }
 
     this.finalized = true;
+  }
+
+  /**
+   * Writes GraphViz dot file to disk at filepath (Graph.ts:234-325).
+   * @param {string} filePath
+   * @returns {boolean|undefined} `true` if writing was successful
+   */
+  writeDotFile(filePath) {
+    if (!this.finalized) {
+      throw new Error(`Can't render dot file of a non-finalized graph '${this.name}'`);
+    }
+
+    const initBgColor = '#4dc3ff';
+    const regBgColor = '#99ddff';
+    const outBgColor = '#0088cc';
+    const graphBgColors = ['#f2f2f2', '#d9d9d9', '#bfbfbf', '#a6a6a6'];
+    const getGraphColor = (ind) => graphBgColors[Math.min(ind, graphBgColors.length - 1)];
+    const cleanName = (name) => String(name).replace(/"/ig, '\\"');
+
+    const lines = ['digraph graphname {'];
+
+    // Add an OUT state
+    const DONE_NAME = 'Done';
+    lines.push(`"${DONE_NAME}" [style=filled,fillcolor="${outBgColor}",color="black"];`);
+
+    // Discover the graph hierarchical structure
+    class GraphContainer {
+      constructor(graph, level) { this.children = new Set(); this.graph = graph; this.level = level; }
+    }
+    const graphs = new Map();
+    const getOrCreate = (graph, level) => {
+      let cont = graphs.get(graph);
+      if (!cont) {
+        cont = new GraphContainer(graph, level);
+        graphs.set(graph, cont);
+      }
+      return cont;
+    };
+
+    // Build the graph tree
+    let topGraph = null;
+    this.nodes.forEach((node) => {
+      for (let i = 0; i < node.graphs.length; i++) {
+        const current = node.graphs[node.graphs.length - 1 - i];
+        const currentContainer = getOrCreate(current, i);
+        if (i === 0 && !topGraph) topGraph = currentContainer;
+        const next = node.graphs[node.graphs.length - 2 - i];
+        if (next) {
+          const nextContainer = getOrCreate(next, i + 1);
+          currentContainer.children.add(nextContainer);
+        }
+      }
+    });
+
+    let clusterCount = 0;
+    const createSubGraph = (graphContainer) => {
+      lines.push(`subgraph cluster_${clusterCount++} {`);
+      lines.push(' style = filled');
+      lines.push(` fillcolor = "${getGraphColor(graphContainer.level)}"`);
+      lines.push(' color = "black"');
+      lines.push(` label = "${graphContainer.graph.name}"`);
+      // Draw all nodes for graph
+      graphContainer.graph.nodes.forEach((node) => {
+        const name = cleanName(node.name);
+        const bgColor = (node === this.initial) ? initBgColor : regBgColor;
+        lines.push(`  "${name}" [style=filled,fillcolor="${bgColor}",color="black"];`);
+      });
+      // Recurse into child graphs
+      graphContainer.children.forEach((child) => createSubGraph(child));
+      lines.push('}');
+    };
+
+    // Start recursive graph rendering
+    createSubGraph(topGraph);
+
+    // All transitions
+    this.nodes.forEach((node) => {
+      node.transitions.forEach((transContainer) => {
+        const sourceNodeName = cleanName(node.name);
+        const targetName = cleanName(this.nodes.has(transContainer.destination) ? transContainer.destination.name : DONE_NAME);
+        const transitionName = cleanName(transContainer.transition);
+        lines.push(`"${sourceNodeName}" -> "${targetName}" [label="${transitionName}"]`);
+      });
+    });
+
+    lines.push('}');
+    const str = lines.join('\n');
+    if (filePath) {
+      try {
+        fs.writeFileSync(filePath, str, { encoding: 'utf8' });
+        return true;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+    return undefined;
   }
 }

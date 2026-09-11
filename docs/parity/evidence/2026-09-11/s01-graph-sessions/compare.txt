@@ -1,0 +1,6 @@
+compared probes: 63
+accepted (deployment-shape): 3
+  ~ graphskill.wireRouterShape: original skills are express routers inside BaseHttpHandler; Phoenix skills are plain async handlers wrapped by skillRoute.
+  ~ manager.constructorLocked: original enforces a process-wide singleton with a locked constructor; Phoenix allows explicit managers so a cohosted host can opt into one. Probe is informational, not a functional contract.
+  ~ manager.singletonIdentity: original exposes GraphManager.instance + _resetInstance; Phoenix exports sharedGraphManager plus per-skill managers.
+DIFFS (0)
