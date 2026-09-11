@@ -17,15 +17,42 @@
 import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { HistoryStore } from './store.js';
+import { validateEvent, validateQuery } from './validators.js';
 
 export function createHistoryService(store = new HistoryStore()) {
+  // Validation lives in the handler layer exactly as the reference puts it in
+  // SkillLaunchRequestsHandler (not in the collection):
+  //   saveSkillLaunch/saveSkillPayload  -> data.timestamp = data.timestamp || Date.now();
+  //                                        validators.event.validate(data); then the db call
+  //   getLatestSkillLaunch/getEventsCount -> validators.query.validate(query); then the db call
+  // So an invalid write is never persisted and an invalid query never reaches the store.
   const handlers = {
-    'POST /skill/launch': ({ body }) => store.addSkillLaunch(body),
-    'PUT /skill/launch/payload': ({ body }) => store.saveSkillPayload(body), // record | null
-    'POST /skill/launch/latest': ({ body }) => store.getLatest(body),
-    'GET /skill/launch/latest': ({ req }) => store.getLatest(req.query),
-    'POST /skill/launch/count': ({ body }) => ({ count: store.getCount(body) }),
-    'GET /skill/launch/count': ({ req }) => ({ count: store.getCount(req.query) }),
+    'POST /skill/launch': ({ body }) => {
+      body.timestamp = body.timestamp || Date.now();
+      validateEvent(body);
+      return store.addSkillLaunch(body);
+    },
+    'PUT /skill/launch/payload': ({ body }) => {
+      body.timestamp = body.timestamp || Date.now();
+      validateEvent(body);
+      return store.saveSkillPayload(body); // record | null
+    },
+    'POST /skill/launch/latest': ({ body }) => {
+      validateQuery(body);
+      return store.getLatest(body);
+    },
+    'GET /skill/launch/latest': ({ req }) => {
+      validateQuery(req.query);
+      return store.getLatest(req.query);
+    },
+    'POST /skill/launch/count': ({ body }) => {
+      validateQuery(body);
+      return { count: store.getCount(body) };
+    },
+    'GET /skill/launch/count': ({ req }) => {
+      validateQuery(req.query);
+      return { count: store.getCount(req.query) };
+    },
     'POST /speech': ({ body }) => ({ id: store.addSpeech(body) }),
     'PUT /speech/:id': ({ req, body }) => ({ id: store.updateSpeech(req.params.id, body) }),
   };
@@ -45,6 +72,7 @@ export function start(port = Number(process.env.PORT) || DefaultPort.history) {
 
 export { HistoryStore } from './store.js';
 export { buildPredicate, resolveMatch, MatchMethod, RuleField } from './query.js';
+export { validateEvent, validateQuery, validateRule, ValidationError } from './validators.js';
 
 // Executable boundary: source History scripts/run-service.js resolves the port from
 // argv/ETCO_server_port, logs its success line and closes the service on SIGINT/SIGTERM.
