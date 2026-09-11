@@ -1,0 +1,708 @@
+{
+  "s02.analytics.launchEntryEvent": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "analytics": {
+        "probe-skill": [
+          {
+            "event": "Skill Entry",
+            "properties": {
+              "initial_intent": "n/a",
+              "domain": "",
+              "was_hey_jibo_launch": true,
+              "user_initiated": true,
+              "last_skill": "n/a"
+            }
+          },
+          {
+            "event": "Probe Event",
+            "properties": {
+              "marker": "entry"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "s02.analytics.proactiveLaunchEntryEvent": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "analytics": {
+        "probe-skill": [
+          {
+            "event": "Skill Entry",
+            "properties": {
+              "initial_intent": "n/a",
+              "domain": "",
+              "was_hey_jibo_launch": false,
+              "user_initiated": false,
+              "last_skill": "n/a"
+            }
+          },
+          {
+            "event": "Probe Event",
+            "properties": {
+              "marker": "entry"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "s02.analytics.trackDefaultsAndOrder": {
+    "ok": {
+      "events": [
+        {
+          "event": "Skill Entry",
+          "properties": {
+            "initial_intent": "n/a",
+            "domain": "",
+            "was_hey_jibo_launch": true,
+            "user_initiated": true,
+            "last_skill": "n/a"
+          }
+        },
+        {
+          "event": "First Event",
+          "properties": {}
+        },
+        {
+          "event": "Second Event",
+          "properties": {
+            "i": 2
+          }
+        }
+      ]
+    }
+  },
+  "s02.analytics.notPersistedAcrossTurns": {
+    "ok": {
+      "turn1": [
+        "Skill Entry",
+        "Probe Event"
+      ],
+      "turn2": [],
+      "turn2HasEntryEvent": false,
+      "sessionData": {}
+    }
+  },
+  "s02.analytics.terminalResponseCarriesAnalytics": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": true,
+      "action": null,
+      "analyticsKeys": []
+    }
+  },
+  "s02.supplemental.sequenceOnly": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "08408e81114dbfa2622242454c6b4f30",
+            "type": "SEQUENCE",
+            "children": [
+              {
+                "id": "seq-1",
+                "type": "SET_PRESENT_PERSON",
+                "looperId": "bob",
+                "source": "USER_OVERRIDE",
+                "confidence": 100
+              },
+              {
+                "id": "seq-2",
+                "type": "IMPACT_EMOTION",
+                "emotion": "HAPPY"
+              },
+              {
+                "id": "seq-main",
+                "type": "SPEAK",
+                "text": "seq-main"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "s02.supplemental.parallelOnly": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "9ebf0056b68fa966253eb26b67a4ca55",
+            "type": "PARALLEL",
+            "children": [
+              {
+                "id": "par-1",
+                "type": "IMPACT_EMOTION",
+                "emotion": "CALM"
+              },
+              {
+                "id": "par-main",
+                "type": "SPEAK",
+                "text": "par-main"
+              }
+            ],
+            "succeedOnFirst": false
+          }
+        }
+      }
+    }
+  },
+  "s02.supplemental.parallelWrapsSequence": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "750bb2b3ec4c2f75ecf3e23217ab99f4",
+            "type": "PARALLEL",
+            "children": [
+              {
+                "id": "par-1",
+                "type": "IMPACT_EMOTION",
+                "emotion": "CALM"
+              },
+              {
+                "id": "par-2",
+                "type": "IMPACT_EMOTION",
+                "emotion": "HAPPY"
+              },
+              {
+                "id": "2f56de227ffe1af0ca6f18ed9764d954",
+                "type": "SEQUENCE",
+                "children": [
+                  {
+                    "id": "seq-1",
+                    "type": "SET_PRESENT_PERSON",
+                    "looperId": "bob",
+                    "source": "USER_OVERRIDE",
+                    "confidence": 100
+                  },
+                  {
+                    "id": "both-main",
+                    "type": "SPEAK",
+                    "text": "both-main"
+                  }
+                ]
+              }
+            ],
+            "succeedOnFirst": false
+          }
+        }
+      }
+    }
+  },
+  "s02.supplemental.nonJcpActionNotWrapped": {
+    "ok": {
+      "action": {
+        "type": "NOT_JCP",
+        "payload": {
+          "id": "raw-action"
+        }
+      }
+    }
+  },
+  "s02.supplemental.noBehaviorsActionUnchanged": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "plain-action",
+            "type": "SPEAK",
+            "text": "plain"
+          }
+        }
+      }
+    }
+  },
+  "s02.supplemental.generatedIdsAreTransactionShaped": {
+    "ok": {
+      "ids": [
+        {
+          "id": "910ca45a1ce1ad7de4b17f1f30ec9df3",
+          "type": "PARALLEL",
+          "idIs32Hex": true
+        },
+        {
+          "id": "par-1",
+          "type": "IMPACT_EMOTION",
+          "idIs32Hex": false
+        },
+        {
+          "id": "par-2",
+          "type": "IMPACT_EMOTION",
+          "idIs32Hex": false
+        },
+        {
+          "id": "03f1cd5d442fda603a53fda722c3756a",
+          "type": "SEQUENCE",
+          "idIs32Hex": true
+        },
+        {
+          "id": "seq-1",
+          "type": "SET_PRESENT_PERSON",
+          "idIs32Hex": false
+        },
+        {
+          "id": "both-main",
+          "type": "SPEAK",
+          "idIs32Hex": false
+        }
+      ]
+    }
+  },
+  "s02.speaker.overrideSetsPerceptionSpeaker": {
+    "ok": {
+      "speakerAfter": "looper-9",
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "speaker-action",
+            "type": "SPEAK",
+            "text": "speaker"
+          }
+        }
+      }
+    }
+  },
+  "s02.speaker.overrideWithNullClearsSpeaker": {
+    "ok": {
+      "speakerAfter": null,
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "clear-action",
+            "type": "SPEAK",
+            "text": "clear"
+          }
+        }
+      }
+    }
+  },
+  "s02.speaker.overrideWithoutRuntimeContextIsNoop": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": false,
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "noruntime-action",
+            "type": "SPEAK",
+            "text": "noruntime"
+          }
+        }
+      }
+    }
+  },
+  "s02.looper.cancel": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "cancel-action",
+            "type": "SPEAK",
+            "text": "cancel"
+          }
+        }
+      },
+      "speakerAfter": "original",
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "Cancel"
+        },
+        {
+          "nodeID": 2,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.loopmemberWithReferent": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "935c8dfc908aa87213b0d156bc6a7cf0",
+            "type": "SEQUENCE",
+            "children": [
+              {
+                "id": "df119c05640523ddbeeae4f7179473b8",
+                "type": "SET_PRESENT_PERSON",
+                "looperId": "bob",
+                "source": "USER_OVERRIDE",
+                "confidence": 100
+              },
+              {
+                "id": "success-action",
+                "type": "SPEAK",
+                "text": "success"
+              }
+            ]
+          }
+        }
+      },
+      "speakerAfter": "bob",
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "Success"
+        },
+        {
+          "nodeID": 3,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.loopmemberWithoutReferentFallsThrough": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "notinloop-action",
+            "type": "SPEAK",
+            "text": "notInLoop"
+          }
+        }
+      },
+      "speakerAfter": null,
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "NotInLoop"
+        },
+        {
+          "nodeID": 4,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.loopmemberWithEmptyStringReferent": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "notinloop-action",
+            "type": "SPEAK",
+            "text": "notInLoop"
+          }
+        }
+      },
+      "speakerAfter": null,
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "NotInLoop"
+        },
+        {
+          "nodeID": 4,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.notInLoop": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "notinloop-action",
+            "type": "SPEAK",
+            "text": "notInLoop"
+          }
+        }
+      },
+      "speakerAfter": null,
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "NotInLoop"
+        },
+        {
+          "nodeID": 4,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.unknownIntent": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "notinloop-action",
+            "type": "SPEAK",
+            "text": "notInLoop"
+          }
+        }
+      },
+      "speakerAfter": null,
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "NotInLoop"
+        },
+        {
+          "nodeID": 4,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.nullResult": {
+    "ok": {
+      "action": {
+        "type": "JCP",
+        "config": {
+          "version": "2.0",
+          "jcp": {
+            "id": "notinloop-action",
+            "type": "SPEAK",
+            "text": "notInLoop"
+          }
+        }
+      },
+      "speakerAfter": null,
+      "trace": [
+        {
+          "nodeID": 0,
+          "transition": "Next"
+        },
+        {
+          "nodeID": 1,
+          "transition": "NotInLoop"
+        },
+        {
+          "nodeID": 4,
+          "transition": null
+        }
+      ]
+    }
+  },
+  "s02.looper.nluWithoutEntitiesThrows": {
+    "error": {
+      "message": "Cannot read property 'loopMemberReferent' of undefined",
+      "ctor": "TypeError"
+    }
+  },
+  "s02.global.cancelOnUpdate": {
+    "ok": {
+      "launchText": "launch",
+      "updateText": "intent:cancel",
+      "final": true
+    }
+  },
+  "s02.global.repeatOnUpdate": {
+    "ok": {
+      "launchText": "launch",
+      "updateText": "intent:repeat",
+      "final": true
+    }
+  },
+  "s02.global.thanksOnUpdate": {
+    "ok": {
+      "launchText": "launch",
+      "updateText": "intent:thanks",
+      "final": true
+    }
+  },
+  "s02.global.globalIntentDoesNotEmitEntryEvent": {
+    "ok": {
+      "updateAnalytics": {},
+      "entryEvents": []
+    }
+  },
+  "s02.global.thanksAfterTerminal": {
+    "ok": {
+      "u1": {
+        "nodeID": 1,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": null
+          }
+        ]
+      },
+      "u2": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": true,
+        "action": null,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": "Done"
+          }
+        ]
+      }
+    }
+  },
+  "s02.failure.missingGeneral": {
+    "error": {
+      "message": "Skill request without general.accountID arrived",
+      "ctor": "Error"
+    }
+  },
+  "s02.failure.missingAccountID": {
+    "error": {
+      "message": "Skill request without general.accountID arrived",
+      "ctor": "Error"
+    }
+  },
+  "s02.failure.missingRobotID": {
+    "error": {
+      "message": "Skill request without general.robotID arrived",
+      "ctor": "Error"
+    }
+  },
+  "s02.failure.skillMismatch": {
+    "error": {
+      "message": "Incoming skill name doesn't match. This: 'probe-skill', incoming: 'other-skill'",
+      "ctor": "Error"
+    }
+  },
+  "s02.failure.unknownRequestType": {
+    "error": {
+      "message": "Unknown request type 'NOT_A_REQUEST'",
+      "ctor": "Error"
+    }
+  },
+  "s02.failure.missingResultStillResponds": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": false,
+      "text": "entry"
+    }
+  },
+  "s02.failure.missingSessionOnUpdate": {
+    "error": {
+      "message": "Skill session is required",
+      "ctor": "Error"
+    }
+  },
+  "s02.failure.dataNull": {
+    "error": {
+      "message": "Cannot read property 'general' of null",
+      "ctor": "TypeError"
+    }
+  },
+  "s02.failure.dataUndefined": {
+    "error": {
+      "message": "Cannot read property 'general' of undefined",
+      "ctor": "TypeError"
+    }
+  },
+  "s02.wire.launchEnvelopeThroughRoute": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": false,
+      "analytics": {
+        "probe-skill": [
+          {
+            "event": "Skill Entry",
+            "properties": {
+              "initial_intent": "n/a",
+              "domain": "",
+              "was_hey_jibo_launch": true,
+              "user_initiated": true,
+              "last_skill": "n/a"
+            }
+          },
+          {
+            "event": "Probe Event",
+            "properties": {
+              "marker": "entry"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "s02.wire.terminalEnvelopeThroughRoute": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": true,
+      "action": null
+    }
+  },
+  "s02.wire.errorEnvelopeThroughRoute": {
+    "ok": {
+      "type": "ERROR",
+      "message": "Incoming skill name doesn't match. This: 'probe-skill', incoming: 'other-skill'",
+      "skill": {
+        "id": "probe-skill"
+      }
+    }
+  },
+  "__meta": {
+    "runtime": "v8.9.4",
+    "runtimeRoot": "/runtime",
+    "baseskillVersion": "1.0.0",
+    "pins": {
+      "jiboV2/pegasus:packages/baseskill/src/GraphSkill.ts": "5c0a7390539663ba749d360de348a428c088505c",
+      "jiboV2/pegasus:packages/baseskill/src/graph/nodes/SetLooperIDNode.ts": "5c0a7390539663ba749d360de348a428c088505c",
+      "jiboV2/pegasus:packages/interfaces/src/skill/behaviors.ts": "5c0a7390539663ba749d360de348a428c088505c"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+# S-02 final full test run (branch w15/s02, base 30f2b46)
+# command: npm test  ==  npm run test:unit && npm run parity:check && npm run parity:gate
+# EXIT CODE: 0
+
+## test:unit (summary lines)
+# tests 1867
+# suites 7
+# pass 1859
+# fail 0
+# cancelled 0
+# skipped 8
+# todo 0
+# duration_ms 63983.677152
+
+## parity:check
+Checklist: 55/79 verified (69.6%)
+management: 3/3 verified; 0 in progress; 0 blocked
+verification: 4/4 verified; 0 in progress; 0 blocked
+pegasus: 30/46 verified; 0 in progress; 0 blocked
+classic: 18/20 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Next: N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+## parity:gate
+> phoenix@0.0.0 parity:gate
+> node scripts/parity-production/gate.mjs
+Strict production smoke gate (43 cases; full corpus remains separately tracked). Evidence: /home/shell/work/phoenix/.parity/worktrees/w15-s02/.parity/runs/ci-production-73710a9b-f956-43e6-a511-f25d5356155d
+image-phoenix
+candidate
+compare
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
