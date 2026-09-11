@@ -1,0 +1,106 @@
+# jiboV2/pegasus:packages/hub/src/skill/SkillRequestHelper.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { common } from '@jibo/utils';
+import { skill } from '@jibo/interfaces';
+import { SkillRequestInput } from './interfaces';
+import ListenLaunchRequest = skill.request.ListenLaunchRequest;
+import ListenUpdateRequest = skill.request.ListenUpdateRequest;
+import MessageType = skill.request.MessageType;
+import ProactiveLaunchRequest = skill.request.ProactiveLaunchRequest;
+
+
+/**
+ * Helper used to build skill requests
+ */
+export class SkillRequestHelper {
+
+    public static buildListenLaunchRequest(skillID: skill.config.SkillID, input: SkillRequestInput): ListenLaunchRequest {
+        SkillRequestHelper.injectDialogContext(input);
+        return {
+            type: MessageType.LISTEN_LAUNCH,
+            msgID: common.getUUID(),
+            ts: Date.now(),
+            data: {
+                general: input.context.general,
+                runtime: input.context.runtime,
+                skill: {
+                    id: skillID
+                },
+                result: {
+                    nlu: input.nlu,
+                    asr: input.asr,
+                    memo: input.memo
+                }
+            }
+        };
+    }
+
+    public static buildListenUpdateRequest(skillID: skill.config.SkillID, input: SkillRequestInput): ListenUpdateRequest {
+        SkillRequestHelper.injectDialogContext(input);
+        // ensure that session is provided
+        if (!input.context.skill || !input.context.skill.session) {
+            throw new Error(`Skill update error: no session data`);
+        }
+        // ensure that session belongs to the the same skill to which request is sent
+        if (input.context.skill.id !== skillID) {
+            throw new Error(`Skill update error: skill ID in context is ${input.context.skill.id} but request is sent to ${skillID}`);
+        }
+        return {
+            type: MessageType.LISTEN_UPDATE,
+            msgID: common.getUUID(),
+            ts: Date.now(),
+            data: {
+                general: input.context.general,
+                runtime: input.context.runtime,
+                skill: {
+                    id: skillID,
+                    session: input.context.skill.session
+                },
+                result: {
+                    nlu: input.nlu,
+                    asr: input.asr,
+                }
+            }
+        };
+    }
+
+    public static buildProactiveLaunchRequest(skillID: skill.config.SkillID, input: SkillRequestInput): ProactiveLaunchRequest {
+        if (!input.context || !input.context.general) {
+            throw new Error('Malformed context--missing general');
+        }
+        if (!input.context || !input.context.runtime) {
+            throw new Error('Malformed context--missing runtime');
+        }
+        return {
+            type: MessageType.PROACTIVE_LAUNCH,
+            msgID: common.getUUID(),
+            ts: Date.now(),
+            data: {
+                general: input.context.general,
+                runtime: input.context.runtime,
+                skill: {
+                    id: skillID
+                },
+                result: {
+                    nlu: input.nlu,
+                    memo: input.memo
+                }
+            }
+        };
+    }
+
+    /**
+     * Inject important Dialog context from NLU into the main runtime context
+     */
+    private static injectDialogContext(input: SkillRequestInput): void {
+        if (input.nlu && input.nlu.entities) {
+            const referent = input.nlu.entities.loopMemberReferent as string|string[];
+            // If we have a referent, it must either be a string or an array of strings (with at least 1 value in it)
+            if (referent && (!Array.isArray(referent) || (Array.isArray(referent) && referent.length))) {
+                const resolvedReferent = Array.isArray(referent) ? referent[0] : referent;
+                input.context.runtime.dialog.referent = resolvedReferent;
+            }
+        }
+    }
+}
+

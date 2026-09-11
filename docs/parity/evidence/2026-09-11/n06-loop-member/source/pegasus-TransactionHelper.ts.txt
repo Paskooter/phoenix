@@ -1,0 +1,31 @@
+# jiboV2/pegasus:packages/hub/src/utils/TransactionHelper.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { skill, jibo } from '@jibo/interfaces';
+
+
+export class TransactionHelper {
+
+    /**
+     * Gets personIDs for SkillLaunch history record
+     * @param {jibo.runtime.RuntimeContext} context
+     * @returns {string[]}
+     */
+    static getPersonIDs(context: jibo.runtime.RuntimeContext): string[] {
+        // "UNKNOWN" is a dirty hack for hashbrown to handle unknown people in history queries.
+        return context.perception && context.perception.speaker ? [ context.perception.speaker ] : ["UNKNOWN"];
+    }
+
+    static getAccountId(runtime: jibo.runtime.RuntimeContext, personID: string): string {
+        if (!personID) {
+            return null;
+        }
+        const looper = runtime.loop.users.find(looper => (looper.id === personID));
+        return looper && looper.accountId;
+    }
+
+    static getSkillSessionID(skillResponse: skill.response.SkillResponse): string {
+        const skillData = skillResponse && skillResponse.data && skillResponse.data.skill;
+        return skillData && skillData.session && skillData.session.id;
+    }
+}
+
