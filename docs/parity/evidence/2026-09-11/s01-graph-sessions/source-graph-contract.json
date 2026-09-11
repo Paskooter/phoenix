@@ -1,0 +1,679 @@
+{
+  "graph.duplicateExitNames": {
+    "error": {
+      "message": "Graph 'G' has duplicate exit transition names",
+      "ctor": "Error"
+    }
+  },
+  "graph.noExitTransitions": {
+    "error": {
+      "message": "Graph 'G' needs to have at least one exit transition",
+      "ctor": "Error"
+    }
+  },
+  "graph.exitTransitionNames": {
+    "ok": {
+      "keys": [
+        "Alpha",
+        "Beta"
+      ],
+      "initial": {
+        "__undefined": true
+      },
+      "finalized": false
+    }
+  },
+  "graph.addNodeAfterFinalize": {
+    "error": {
+      "message": "Can't add Node 'C' to graph 'G' after it's been finalized",
+      "ctor": "Error"
+    }
+  },
+  "graph.addNodeDuplicateInGraph": {
+    "error": {
+      "message": "Node already added to graph",
+      "ctor": "Error"
+    }
+  },
+  "graph.addNodeNonUniqueMapping": {
+    "error": {
+      "message": "Non-unique transitions found in transition mapping for node 'A': x",
+      "ctor": "Error"
+    }
+  },
+  "graph.addNodeNonMatchingLength": {
+    "error": {
+      "message": "Non-matching length of transition mapping for node 'A'",
+      "ctor": "Error"
+    }
+  },
+  "graph.addNodeMissingTransitionName": {
+    "error": {
+      "message": "Missing transition 'y' in transition mapping for node 'A'",
+      "ctor": "Error"
+    }
+  },
+  "graph.addNodeInvalidDestination": {
+    "error": {
+      "message": "Must provide a valid destination for node 'G' and transition 'x'",
+      "ctor": "Error"
+    }
+  },
+  "graph.addNodeStringExitDestination": {
+    "ok": {
+      "destination": null,
+      "exitTransition": "Done",
+      "containers": 1
+    }
+  },
+  "graph.addNodeFirstBecomesInitial": {
+    "ok": {
+      "initial": "A",
+      "nodes": [
+        "A",
+        "B"
+      ]
+    }
+  },
+  "graph.finalizeDanglingWithoutExitTransition": {
+    "error": {
+      "message": "Graph 'G' doesn't have exit transition 'NotAnExit'",
+      "ctor": "Error"
+    }
+  },
+  "graph.finalizeTransitionToForeignNode": {
+    "error": {
+      "message": "Graph 'G': Node 'A' has transition to Node '[object Object]' which isn't in graph",
+      "ctor": "Error"
+    }
+  },
+  "graph.finalizeUnreachableNode": {
+    "error": {
+      "message": "Graph 'G': Node 'Island' is not reachable from any other state.",
+      "ctor": "Error"
+    }
+  },
+  "graph.finalizeUnconnectedExit": {
+    "error": {
+      "message": "Graph 'G' has not connected exit transition 'Unused'",
+      "ctor": "Error"
+    }
+  },
+  "graph.setInitialNodeForeign": {
+    "error": {
+      "message": "Node 'Foreign' isn't a part of this graph",
+      "ctor": "Error"
+    }
+  },
+  "graph.forEachDescendentBeforeAdd": {
+    "error": {
+      "message": "Can't traverse descendents until we've been added to graph",
+      "ctor": "Error"
+    }
+  },
+  "graph.forEachDescendentOrderAndEarlyExit": {
+    "ok": {
+      "early": true,
+      "seen": [
+        "B",
+        "C"
+      ],
+      "seen2": [
+        "B",
+        "C",
+        "D"
+      ],
+      "nodeIDs": {
+        "a": 0,
+        "b": 1,
+        "c": 2,
+        "d": 3
+      },
+      "counter": 4
+    }
+  },
+  "graph.nodeDuplicateTransitionNames": {
+    "error": {
+      "message": "Node 'A' has duplicate transition names",
+      "ctor": "Error"
+    }
+  },
+  "graph.writeDotFileNonFinalized": {
+    "error": {
+      "message": "Can't render dot file of a non-finalized graph 'G'",
+      "ctor": "Error"
+    }
+  },
+  "graph.writeDotFileNoPath": {
+    "ok": {
+      "returned": {
+        "__undefined": true
+      }
+    }
+  },
+  "graph.writeDotFileContent": {
+    "ok": {
+      "returned": true,
+      "dot": "digraph graphname {\n\"Done\" [style=filled,fillcolor=\"#0088cc\",color=\"black\"];\nsubgraph cluster_0 {\n style = filled\n fillcolor = \"#f2f2f2\"\n color = \"black\"\n label = \"Dot\"\n  \"Alpha\" [style=filled,fillcolor=\"#4dc3ff\",color=\"black\"];\n  \"Bravo\" [style=filled,fillcolor=\"#99ddff\",color=\"black\"];\n}\n\"Alpha\" -> \"Bravo\" [label=\"go\"]\n\"Bravo\" -> \"Done\" [label=\"Done\"]\n}"
+    }
+  },
+  "subgraph.nonFinalized": {
+    "error": {
+      "message": "Can't add subgraph non-finalized 'Child' to graph 'Parent'",
+      "ctor": "Error"
+    }
+  },
+  "subgraph.composeConnectsExitToParent": {
+    "ok": {
+      "parentNodes": [
+        "ChildA",
+        "After"
+      ],
+      "childNodesRegistered": 1,
+      "aGraphs": [
+        "Child",
+        "Parent"
+      ],
+      "containerDestination": "After",
+      "parentInitial": "ChildA"
+    }
+  },
+  "subgraph.nonMatchingLength": {
+    "error": {
+      "message": "Non-matching length of transition mapping for subgraph 'Child'",
+      "ctor": "Error"
+    }
+  },
+  "subgraph.missingTransitionInMapping": {
+    "error": {
+      "message": "Missing transition 'Out' in transition mapping for subgraph 'Child'",
+      "ctor": "Error"
+    }
+  },
+  "subgraph.overrideAssignedTransition": {
+    "error": {
+      "message": "Can't override already assigned transition, subgraph: 'Child' exit transition: 'Out' dest state: 'P1'",
+      "ctor": "Error"
+    }
+  },
+  "subgraph.foreignManager": {
+    "error": {
+      "message": "Subgraph node 'CA' from graph 'Child' not registered with same graph manager",
+      "ctor": "Error"
+    }
+  },
+  "subgraph.nodeAlreadyInParent": {
+    "error": {
+      "message": "Subgraph node 'ChildA' from graph 'Child' is already in this graph",
+      "ctor": "Error"
+    }
+  },
+  "subgraph.afterFinalize": {
+    "error": {
+      "message": "Can't add subgraph 'Child' to graph 'Parent' after it's been finalized",
+      "ctor": "Error"
+    }
+  },
+  "manager.constructorLocked": {
+    "error": {
+      "message": "GraphManager is a singleton, use 'GraphManager.instance'",
+      "ctor": "Error"
+    }
+  },
+  "manager.singletonIdentity": {
+    "ok": {
+      "same": true
+    }
+  },
+  "manager.addNodeAlreadyInGraphMessage": {
+    "error": {
+      "message": "Node 'A' has already been added",
+      "ctor": "Error"
+    }
+  },
+  "manager.addNodeWithPresetIDMessage": {
+    "error": {
+      "message": "This node 'A' is already in a graph",
+      "ctor": "Error"
+    }
+  },
+  "manager.addNodeAlreadyAddedToManager": {
+    "error": {
+      "message": "Node 'A' has already been added",
+      "ctor": "Error"
+    }
+  },
+  "manager.registry": {
+    "ok": {
+      "aID": 0,
+      "bID": 1,
+      "getNode0": "A",
+      "hasA": true,
+      "counter": 2
+    }
+  },
+  "manager.startExistingSession": {
+    "error": {
+      "message": "Skill session should not exist here",
+      "ctor": "Error"
+    }
+  },
+  "manager.startCreatesSession": {
+    "ok": {
+      "response": null,
+      "session": {
+        "id": "fa48c741-db02-4f72-92fd-4d5ee302642e",
+        "nodeID": 0,
+        "data": {},
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Done"
+          }
+        ]
+      },
+      "idLooksUUID": true
+    }
+  },
+  "manager.enterNodeNoSession": {
+    "error": {
+      "message": "Skill session is required",
+      "ctor": "Error"
+    }
+  },
+  "manager.exitNodeNoSession": {
+    "error": {
+      "message": "Skill session is required",
+      "ctor": "Error"
+    }
+  },
+  "manager.enterNodeUnknownNodeID": {
+    "error": {
+      "message": "Node id '999' isn't a part of this graph",
+      "ctor": "Error"
+    }
+  },
+  "manager.exitNodeUnknownNodeID": {
+    "error": {
+      "message": "Node id '999' isn't a part of this graph",
+      "ctor": "Error"
+    }
+  },
+  "manager.executeTransitionUnregistered": {
+    "error": {
+      "message": "State 'N' returned unregistered transition 'Nope'",
+      "ctor": "Error"
+    }
+  },
+  "manager.executeTransitionEmptyTrace": {
+    "error": {
+      "message": "Trace should exist",
+      "ctor": "Error"
+    }
+  },
+  "manager.executeTransitionTransitionAlreadySet": {
+    "error": {
+      "message": "Trace transition shouldn't exist",
+      "ctor": "Error"
+    }
+  },
+  "manager.executeTransitionWrongTraceNodeID": {
+    "error": {
+      "message": "Unexpected trace node ID",
+      "ctor": "Error"
+    }
+  },
+  "manager.executeTransitionTerminalReturnsNull": {
+    "ok": {
+      "returned": null
+    }
+  },
+  "manager.executeTransitionDataResultPropagation": {
+    "ok": {
+      "resultWhenNullSupplied": null,
+      "resultWhenAbsent": null
+    }
+  },
+  "graphskill.launchCreatesSessionAndOpensTransaction": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": false,
+      "fireAndForget": false,
+      "actionType": "JCP",
+      "session": {
+        "idLooksUUID": true,
+        "nodeID": 0,
+        "data": {},
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": null
+          }
+        ]
+      },
+      "analytics": {
+        "probe-skill": [
+          {
+            "event": "Skill Entry",
+            "properties": {
+              "initial_intent": "n/a",
+              "domain": "",
+              "was_hey_jibo_launch": true,
+              "user_initiated": true,
+              "last_skill": "n/a"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "graphskill.updateContinuesSessionToTerminal": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": true,
+      "fireAndForget": false,
+      "session": {
+        "nodeID": 1,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": null
+          }
+        ]
+      },
+      "analytics": {}
+    }
+  },
+  "graphskill.updateReplayOfIdenticalPreStateSession": {
+    "ok": {
+      "first": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "nodeID": 1
+      },
+      "replay": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "nodeID": 1
+      },
+      "replayDeterministic": true
+    }
+  },
+  "graphskill.updateWithAlreadyConsumedTraceTransition": {
+    "error": {
+      "message": "Trace transition shouldn't exist",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.updateWithMismatchedTraceNodeID": {
+    "error": {
+      "message": "Unexpected trace node ID",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.crossSkillSessionNodeIDRejected": {
+    "error": {
+      "message": "Node id '12' isn't a part of this graph",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.updateCorruptedSessionUnknownNode": {
+    "error": {
+      "message": "Node id '4242' isn't a part of this graph",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.updateSessionMissingEntirely": {
+    "error": {
+      "message": "Skill session is required",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.launchRejectsExistingSession": {
+    "error": {
+      "message": "Skill session should not exist here",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.noActionNodeTerminalResponse": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "probe-skill",
+          "session": {
+            "id": "e94e8f4a-c531-4eb2-9c03-30a461052a70",
+            "nodeID": 0,
+            "data": {},
+            "trace": [
+              {
+                "nodeID": 0,
+                "transition": "Done"
+              }
+            ]
+          }
+        },
+        "action": null,
+        "analytics": {
+          "probe-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "final": true,
+        "fireAndForget": true
+      },
+      "timings": {
+        "__undefined": true
+      }
+    }
+  },
+  "graphskill.chainWalksAllNodesWithoutRobotTurn": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": true,
+      "session": {
+        "id": "b3c0c419-112a-4d4a-9599-157a621ac2bf",
+        "nodeID": 2,
+        "data": {},
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "go"
+          },
+          {
+            "nodeID": 1,
+            "transition": "go"
+          },
+          {
+            "nodeID": 2,
+            "transition": "Done"
+          }
+        ]
+      }
+    }
+  },
+  "graphskill.redirectResponseShape": {
+    "ok": {
+      "type": "SKILL_REDIRECT",
+      "data": {
+        "launch": true,
+        "onRobot": false,
+        "match": {
+          "skillID": "other"
+        },
+        "skill": {
+          "id": "probe-skill",
+          "session": {
+            "id": "9bda3a8e-cc96-43d0-8b15-abdabde81291",
+            "nodeID": 0,
+            "data": {},
+            "trace": [
+              {
+                "nodeID": 0,
+                "transition": null
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "graphskill.threeTurnContinuation": {
+    "ok": {
+      "launch": {
+        "type": "SKILL_ACTION",
+        "final": false,
+        "nodeID": 0,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": null
+          }
+        ]
+      },
+      "update1": {
+        "type": "SKILL_ACTION",
+        "final": false,
+        "nodeID": 1,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": null
+          }
+        ]
+      },
+      "update2": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "nodeID": 2,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": "Confirmed"
+          },
+          {
+            "nodeID": 2,
+            "transition": null
+          }
+        ]
+      },
+      "postTerminalUpdate": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": true,
+        "action": null,
+        "nodeID": 2,
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": "Confirmed"
+          },
+          {
+            "nodeID": 2,
+            "transition": null
+          }
+        ]
+      }
+    }
+  },
+  "graphskill.threeTurnDataResultFlow": {
+    "ok": {
+      "u1Echo": true,
+      "u2Final": true,
+      "sessionAfterU2": {
+        "id": "1d41f608-1343-487e-b422-0297ee94f012",
+        "nodeID": 2,
+        "data": {},
+        "trace": [
+          {
+            "nodeID": 0,
+            "transition": "Answered"
+          },
+          {
+            "nodeID": 1,
+            "transition": "Confirmed"
+          },
+          {
+            "nodeID": 2,
+            "transition": null
+          }
+        ]
+      }
+    }
+  },
+  "graphskill.unknownRequestType": {
+    "error": {
+      "message": "Unknown request type 'NOT_A_REQUEST'",
+      "ctor": "Error"
+    }
+  },
+  "graphskill.wireErrorEnvelopeForCorruptedSession": {
+    "ok": {
+      "type": "ERROR",
+      "msgID": "8c10ad4e-5858-4605-92e1-e386841fa1aa",
+      "ts": 1789092763596,
+      "data": {
+        "message": "Node id '4242' isn't a part of this graph",
+        "skill": {
+          "id": "probe-skill"
+        }
+      }
+    }
+  },
+  "graphskill.wireLaunchEnvelope": {
+    "ok": {
+      "type": "SKILL_ACTION",
+      "final": false,
+      "nodeID": 0,
+      "timingsKeys": [
+        "total"
+      ]
+    }
+  },
+  "graphskill.wireRouterShape": {
+    "ok": [
+      {
+        "hasRoute": true,
+        "path": "/",
+        "methods": {
+          "post": true
+        },
+        "handlers": 1,
+        "handlerType": "function"
+      }
+    ]
+  },
+  "__meta": {
+    "runtime": "v8.9.4",
+    "runtimeRoot": "/runtime",
+    "baseskillVersion": "1.0.0",
+    "pins": {
+      "jiboV2/pegasus:packages/baseskill/src/GraphSkill.ts": "5c0a7390539663ba749d360de348a428c088505c"
+    }
+  }
+}

@@ -16,7 +16,8 @@ export class GraphManager {
   /** Register a node, assigning the next sequential id. */
   addNode(node) {
     if (this.nodeToID.has(node)) throw new Error(`Node '${node.name}' has already been added`);
-    if (node.id !== null) throw new Error(`Node '${node.name}' is already in a graph`);
+    // GraphManager.ts:123-125 interpolates "This node", not "Node".
+    if (node.id !== null) throw new Error(`This node '${node.name}' is already in a graph`);
     node.id = this.nodeIDCounter++;
     this.nodeToID.set(node, node.id);
     this.idToNode.set(node.id, node);
