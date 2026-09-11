@@ -1679,7 +1679,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1698,7 +1698,18 @@
         "Implement GET and POST query variants, complete saved launch/payload records, no-match null and speech create/update behavior.",
         "Compare URL/query/body parsing, errors and unknown IDs using the unmodified history client."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Every history HTTP route re-derived from pinned source and probed at runtime. Found and fixed a real ordering divergence: the reference builds the $set document EAGERLY as findOneAndUpdate's second argument (SkillLaunchCollection.ts:48-53), so Object.keys(data.payload) throws BEFORE the query is issued - a missing or null payload is always a 500, never a 200 no-match. Root reproduced the falsification: making payloadSize null-safe failed exactly three named tests (500-without-payload, 500-even-when-nothing-matches, 500-on-null-payload), restoring returned 13/0.",
+          "artifact": "docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "bdd61b156c3e2770f7ec8119b0e0280fce195f8c",
+          "command": "node --test packages/history/test/history.routes.test.js && npm test",
+          "notes": "Divergence I-01c (additive bare-path aliases for /skill/launch and /speech) remains recorded and unchanged."
+        }
+      ]
     },
     {
       "id": "I-02",
@@ -1762,7 +1773,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1782,7 +1793,18 @@
         "Compare GET/HEAD validation, cache hit/miss, skipCache, TTLs, metadata, warming and upstream status/error envelopes.",
         "Use deterministic cache/time/upstream fixtures to prove prefetch responds immediately and handles upstream/cache failures as the reference does."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Relay and cache contract certified against replayed original transactions (status, content-type, length, ETag and body). Found and fixed a real truthiness bug: skipCache did not match Express qs semantics across encodings. Root reproduced the falsification: replacing the qs-compatible truthiness at relay.js:77 with a bare false failed exactly four named tests including the replayed-transaction comparison, restoring returned 7/0. Cache GET provably precedes the provider call, and a failure or empty reply is never cached.",
+          "artifact": "packages/data/test/relay-runtime.test.js",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "bdd61b156c3e2770f7ec8119b0e0280fce195f8c",
+          "command": "node --test packages/data/test/relay-runtime.test.js && npm test",
+          "notes": "Verified together with I-01: 20/0 across both suites."
+        }
+      ]
     },
     {
       "id": "D-02",

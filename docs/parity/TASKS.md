@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 12 | 46 | 0 | 0 |
+| pegasus | 14 | 46 | 0 | 0 |
 | classic | 17 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -475,7 +475,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration
 
 ### I-01 — Match all history HTTP routes and payloads
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-01.
 
@@ -490,11 +490,11 @@ Source: [Original Pegasus packages/history/src/HistoryService.ts](https://pvinde
 
 Phoenix: [packages/history/src/index.js](../../packages/history/src/index.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md](../../docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md) (2026-09-11; Every history HTTP route re-derived from pinned source and probed at runtime. Found and fixed a real ordering divergence: the reference builds the $set document EAGERLY as findOneAndUpdate's second argument (SkillLaunchCollection.ts:48-53), so Object.keys(data.payload) throws BEFORE the query is issued - a missing or null payload is always a 500, never a 200 no-match. Root reproduced the falsification: making payloadSize null-safe failed exactly three named tests (500-without-payload, 500-even-when-nothing-matches, 500-on-null-payload), restoring returned 13/0.).
 
 ### D-01 — Match the common relay and cache contract
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-01.
 
@@ -509,7 +509,7 @@ Source: [Original Pegasus packages/lasso/src/relay/AbstractRelayRequestHandler.t
 
 Phoenix: [packages/data/src/relay.js](../../packages/data/src/relay.js); [packages/data/src/cache.js](../../packages/data/src/cache.js); [packages/data/src/index.js](../../packages/data/src/index.js).
 
-Evidence: pending.
+Evidence: [packages/data/test/relay-runtime.test.js](../../packages/data/test/relay-runtime.test.js) (2026-09-11; Relay and cache contract certified against replayed original transactions (status, content-type, length, ETag and body). Found and fixed a real truthiness bug: skipCache did not match Express qs semantics across encodings. Root reproduced the falsification: replacing the qs-compatible truthiness at relay.js:77 with a bare false failed exactly four named tests including the replayed-transaction comparison, restoring returned 7/0. Cache GET provably precedes the provider call, and a failure or empty reply is never cached.).
 
 ## 2. Complete parsing, data and state behavior
 
