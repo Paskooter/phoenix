@@ -1,0 +1,46 @@
+TAP version 13
+# {"t":"2026-09-11T04:00:08.102Z","level":"info","ns":"nlu","msg":"listening","port":0}
+# {"t":"2026-09-11T04:00:08.110Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-11T04:00:08.666Z","level":"info","ns":"nlu","msg":"listening","port":0}
+# Subtest: N-06 speaker/referent: the speaker (perception) and the referred member (dialog) are independent in one turn
+# {"t":"2026-09-11T04:00:08.668Z","level":"info","ns":"gateway","msg":"listening","port":0}
+not ok 1 - N-06 speaker/referent: the speaker (perception) and the referred member (dialog) are independent in one turn
+  ---
+  duration_ms: 566.206849
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w14-n06/packages/gateway/test/n06SpeakerReferent.test.js:137:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    SkillRequestHelper.injectDialogContext copied the referent entity
+    + actual - expected
+    
+    + 'u-jane__falsified__'
+    - 'u-jane'
+             ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'u-jane'
+  actual: 'u-jane__falsified__'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w14-n06/packages/gateway/test/n06SpeakerReferent.test.js:164:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: N-06 speaker/referent: an unmatched name writes no referent, so dialog.referent stays empty
+ok 2 - N-06 speaker/referent: an unmatched name writes no referent, so dialog.referent stays empty
+  ---
+  duration_ms: 114.542694
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8765.610477

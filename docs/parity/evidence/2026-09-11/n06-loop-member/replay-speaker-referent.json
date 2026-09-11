@@ -1,0 +1,445 @@
+{
+ "schema": "phoenix.nlu.n06-loop-member-replay",
+ "reference": {
+  "repo": "jiboV2/pegasus",
+  "ref": "5c0a7390539663ba749d360de348a428c088505c",
+  "detector": "packages/parser/src/utils/LoopMemberDetector.ts",
+  "fixtures": "packages/parser/tests/utils/LoopMemberDetector.test.ts",
+  "interfaces": "packages/interfaces/src/nlu.ts",
+  "speakerReferent": [
+   "packages/interfaces/src/jibo/runtime.ts:132-143",
+   "packages/hub/src/skill/SkillRequestHelper.ts:95-99",
+   "packages/hub/src/utils/TransactionHelper.ts:13-16",
+   "packages/hub/src/listen/ListenTransactionHandler.ts:311-312,421-429"
+  ]
+ },
+ "sourceFixtureCases": 12,
+ "speakerReferentCases": 3,
+ "httpCases": 4,
+ "matches": 19,
+ "differences": [],
+ "rows": [
+  {
+   "id": "source:01",
+   "phase": "source-fixture",
+   "text": "How are you doing today?",
+   "got": {
+    "when": "today"
+   },
+   "expected": {
+    "when": "today"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:02",
+   "phase": "source-fixture",
+   "text": "Is Mary your best friend?",
+   "got": {
+    "RobotCharacter": "",
+    "Competitor": "",
+    "OtherPerson": "",
+    "given-name": "Mary",
+    "loopMemberReferent": "loop-member-uuid-1",
+    "last-name": "Jackson"
+   },
+   "expected": {
+    "RobotCharacter": "",
+    "Competitor": "",
+    "OtherPerson": "",
+    "given-name": "Mary",
+    "last-name": "Jackson",
+    "loopMemberReferent": "loop-member-uuid-1"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:03",
+   "phase": "source-fixture",
+   "text": "Is Bob your best friend?",
+   "got": {
+    "RobotCharacter": "",
+    "Competitor": "",
+    "OtherPerson": "",
+    "given-name": "Bob"
+   },
+   "expected": {
+    "RobotCharacter": "",
+    "Competitor": "",
+    "OtherPerson": "",
+    "given-name": "Bob"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:04",
+   "phase": "source-fixture",
+   "text": "Is Mary Smith your best friend?",
+   "got": {
+    "RobotCharacter": "",
+    "Competitor": "",
+    "OtherPerson": "",
+    "given-name": "Mary",
+    "last-name": "Smith"
+   },
+   "expected": {
+    "RobotCharacter": "",
+    "Competitor": "",
+    "OtherPerson": "",
+    "given-name": "Mary",
+    "last-name": "Smith"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:05",
+   "phase": "source-fixture",
+   "text": "Have you heard of benjamin harrison?",
+   "got": {
+    "RobotCharacter": "",
+    "AmericaPresident": "BenjaminHarrison",
+    "Competitor": "",
+    "FantasticPerson": "",
+    "OtherPerson": "",
+    "given-name": "benjamin",
+    "loopMemberReferent": "loop-member-uuid-2",
+    "last-name": "harrison"
+   },
+   "expected": {
+    "RobotCharacter": "",
+    "AmericaPresident": "BenjaminHarrison",
+    "Competitor": "",
+    "FantasticPerson": "",
+    "OtherPerson": "",
+    "given-name": "benjamin",
+    "last-name": "harrison",
+    "loopMemberReferent": "loop-member-uuid-2"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:06",
+   "phase": "source-fixture",
+   "text": "Is Alexa or Mary your best friend?",
+   "got": {
+    "RobotCharacter": "",
+    "Competitor": "Alexa",
+    "OtherPerson": "",
+    "given-name": "Mary",
+    "loopMemberReferent": "loop-member-uuid-1",
+    "last-name": "Jackson"
+   },
+   "expected": {
+    "RobotCharacter": "",
+    "Competitor": "Alexa",
+    "OtherPerson": "",
+    "given-name": "Mary",
+    "last-name": "Jackson",
+    "loopMemberReferent": "loop-member-uuid-1"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:07",
+   "phase": "source-fixture",
+   "text": "Is Alexa your best friend?",
+   "got": {
+    "RobotCharacter": "",
+    "Competitor": "Alexa",
+    "OtherPerson": "",
+    "given-name": ""
+   },
+   "expected": {
+    "RobotCharacter": "",
+    "Competitor": "Alexa",
+    "OtherPerson": "",
+    "given-name": ""
+   },
+   "matches": true
+  },
+  {
+   "id": "source:08",
+   "phase": "source-fixture",
+   "text": "Who is Mary Jackson?",
+   "got": {
+    "loopMemberReferent": "loop-member-uuid-1",
+    "given-name": "Mary",
+    "last-name": "Jackson"
+   },
+   "expected": {
+    "given-name": "Mary",
+    "last-name": "Jackson",
+    "loopMemberReferent": "loop-member-uuid-1"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:09",
+   "phase": "source-fixture",
+   "text": "Who is mary jackson?",
+   "got": {
+    "loopMemberReferent": "loop-member-uuid-1",
+    "given-name": "Mary",
+    "last-name": "Jackson"
+   },
+   "expected": {
+    "given-name": "Mary",
+    "last-name": "Jackson",
+    "loopMemberReferent": "loop-member-uuid-1"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:10",
+   "phase": "source-fixture",
+   "text": "Who is Mary bla bla bla Jackson?",
+   "got": {},
+   "expected": {},
+   "matches": true
+  },
+  {
+   "id": "source:11",
+   "phase": "source-fixture",
+   "text": "Who is Mary bla bla bla Jackson?",
+   "got": {
+    "given-name": "Mary",
+    "loopMemberReferent": "loop-member-uuid-1",
+    "last-name": "Jackson"
+   },
+   "expected": {
+    "given-name": "Mary",
+    "last-name": "Jackson",
+    "loopMemberReferent": "loop-member-uuid-1"
+   },
+   "matches": true
+  },
+  {
+   "id": "source:12",
+   "phase": "source-fixture",
+   "text": "Have you seen Bob?",
+   "got": {},
+   "expected": {},
+   "matches": true
+  },
+  {
+   "id": "separation:names-other-member",
+   "phase": "speaker-referent",
+   "text": "Who is Jane Jetson?",
+   "speaker": "u-george",
+   "dialogReferent": "u-george",
+   "got": {
+    "loopMemberReferent": "u-jane",
+    "given-name": "Jane",
+    "last-name": "Jetson"
+   },
+   "expected": {
+    "given-name": "Jane",
+    "last-name": "Jetson",
+    "loopMemberReferent": "u-jane"
+   },
+   "matches": true
+  },
+  {
+   "id": "separation:names-first-member",
+   "phase": "speaker-referent",
+   "text": "Who is George Jetson?",
+   "speaker": "u-jane",
+   "dialogReferent": "u-jane",
+   "got": {
+    "loopMemberReferent": "u-george",
+    "given-name": "George",
+    "last-name": "Jetson"
+   },
+   "expected": {
+    "given-name": "George",
+    "last-name": "Jetson",
+    "loopMemberReferent": "u-george"
+   },
+   "matches": true
+  },
+  {
+   "id": "separation:nobody-named",
+   "phase": "speaker-referent",
+   "text": "sing me a song",
+   "speaker": "u-george",
+   "dialogReferent": "u-george",
+   "got": {},
+   "expected": {},
+   "matches": true
+  },
+  {
+   "id": "http:alias-givenname",
+   "phase": "http",
+   "status": 200,
+   "request": {
+    "text": "who is jane jetson",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "rules": [
+     "launch"
+    ],
+    "intent": "whoIsPerson",
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "http:no-fallthrough",
+   "phase": "http",
+   "status": 200,
+   "request": {
+    "text": "who is jane jetson",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "rules": [
+     "launch"
+    ],
+    "intent": "whoIsPerson",
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "http:empty-users",
+   "phase": "http",
+   "status": 200,
+   "request": {
+    "text": "who is jane jetson",
+    "rules": [
+     "launch"
+    ],
+    "loop": {
+     "users": []
+    }
+   },
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   },
+   "expected": {
+    "rules": [
+     "launch"
+    ],
+    "intent": "whoIsPerson",
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch"
+    }
+   },
+   "matches": true
+  },
+  {
+   "id": "http:named-rule-fullname",
+   "phase": "http",
+   "status": 200,
+   "request": {
+    "text": "jane jetson",
+    "rules": [
+     "shared/wrong_id"
+    ],
+    "loop": {
+     "users": [
+      {
+       "id": "u-george",
+       "firstName": "George",
+       "lastName": "Jetson"
+      },
+      {
+       "id": "u-jane",
+       "firstName": "Jane",
+       "lastName": "Jetson"
+      }
+     ]
+    }
+   },
+   "got": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "shared/wrong_id"
+    ]
+   },
+   "expected": {
+    "rules": [
+     "shared/wrong_id"
+    ],
+    "intent": "loopmember",
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    }
+   },
+   "matches": true
+  }
+ ],
+ "sha256": "f7e21a695fe6dcc735b322b0a4caff4f14c5dfa31f0236fcc24db2ddcfe1ba83"
+}

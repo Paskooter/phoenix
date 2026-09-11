@@ -331,3 +331,95 @@ test('HTTP: parsed launch result survives the direct parse result identity', asy
     loop: { users: [{ id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' }] },
   }).entities.loopMemberReferent, 'u-jane');
 });
+
+// ---------------------------------------------------------------------------
+// Part 4 — the speaker/referent interaction.
+//
+// LoopMemberDetector has NO speaker input: it keys only off
+// `request.loop.users` and `result.entities`/`request.text`
+// (LoopMemberDetector.ts:48-93). The "speaker" and the "referent" are two
+// distinct identities that meet later, in the skill's RuntimeContext:
+//   * `perception.speaker` = "ID of the currently active speaker"
+//     (pegasus:packages/interfaces/src/jibo/runtime.ts:132-137);
+//   * `dialog.referent` = "ID of a loop member that was referred to in utterance"
+//     (runtime.ts:139-143);
+//   * the hub fills `dialog.referent` by copying the entity this detector writes:
+//       const referent = input.nlu.entities.loopMemberReferent
+//       input.context.runtime.dialog.referent = resolvedReferent
+//     (pegasus:packages/hub/src/skill/SkillRequestHelper.ts:95-99);
+//   * the speaker is consumed separately, only for history personIDs
+//     (pegasus:packages/hub/src/utils/TransactionHelper.ts:13-16).
+//
+// The source fixture file pins no speaker case. These cases pin the invariant
+// the source code defines: detection is a pure function of loop.users + the
+// entities/text, so the member NAMED in the utterance is the referent even
+// when the speaker (or array order) is a different member.
+// ---------------------------------------------------------------------------
+
+test('speaker/referent: the NAMED member is the referent, not the array-first (speaker-position) member', () => {
+  // George is first in loop.users (the "speaker" position); the utterance names
+  // Jane. Step 3 (LoopMemberDetector.ts:71-80) resolves the member about whom
+  // the turn asks.
+  detect(
+    { text: 'Who is Jane Jetson?', loopUsers: [
+      { id: 'u-george', firstName: 'George', lastName: 'Jetson' },
+      { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
+    ] },
+    { intent: 'whoIsPerson', entities: {} },
+    { 'given-name': 'Jane', 'last-name': 'Jetson', loopMemberReferent: 'u-jane' },
+  );
+  // Symmetrically, naming the array-first member still resolves that member.
+  detect(
+    { text: 'Who is George Jetson?', loopUsers: [
+      { id: 'u-george', firstName: 'George', lastName: 'Jetson' },
+      { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
+    ] },
+    { intent: 'whoIsPerson', entities: {} },
+    { 'given-name': 'George', 'last-name': 'Jetson', loopMemberReferent: 'u-george' },
+  );
+});
+
+test('speaker/referent: a perception/dialog context on the request never influences detection', () => {
+  // The NLURequestData schema (pegasus:packages/interfaces/src/nlu.ts:34-46) has
+  // no perception/speaker/dialog field. Even if a caller smuggles the robot
+  // runtime context onto the parser request, the detector reads only
+  // loop.users + entities + text — so the smuggled speaker must not win.
+  const users = [
+    { id: 'u-george', firstName: 'George', lastName: 'Jetson' },
+    { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
+  ];
+  const smuggled = {
+    text: 'Who is Jane Jetson?',
+    rules: ['launch'],
+    loop: { users },
+    perception: { speaker: 'u-george', peoplePresent: [] },
+    dialog: { referent: 'u-george' },
+  };
+  const janeResult = { intent: 'whoIsPerson', entities: {} };
+  LoopMemberDetector.detectLoopMembers(smuggled, janeResult);
+  assert.equal(janeResult.entities.loopMemberReferent, 'u-jane',
+    'the smuggled perception.speaker/dialog.referent did not override the named member');
+
+  // With nobody named, no referent is written even though the smuggled
+  // dialog.referent claims George is the referent.
+  const nobodyResult = { intent: 'whoIsPerson', entities: {} };
+  LoopMemberDetector.detectLoopMembers({ ...smuggled, text: 'sing me a song' }, nobodyResult);
+  assert.deepEqual(nobodyResult.entities, {},
+    'no member named in the text => no referent written');
+});
+
+test('speaker/referent: the referent output is the plain loop-member id injectDialogContext copies', () => {
+  // This is the exact value SkillRequestHelper.injectDialogContext assigns to
+  // runtime.dialog.referent (SkillRequestHelper.ts:95-99).
+  const result = { intent: 'whoIsPerson', entities: {} };
+  LoopMemberDetector.detectLoopMembers({
+    text: 'Who is Jane Jetson?',
+    rules: ['launch'],
+    loop: { users: [
+      { id: 'u-george', firstName: 'George', lastName: 'Jetson' },
+      { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
+    ] },
+  }, result);
+  assert.equal(typeof result.entities.loopMemberReferent, 'string');
+  assert.equal(result.entities.loopMemberReferent, 'u-jane');
+});

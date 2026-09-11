@@ -1,0 +1,199 @@
+# jiboV2/pegasus:packages/test-utils/src/skill-test/SkillConversation.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import axios from 'axios';
+import * as utils from '@jibo/utils';
+import { skill, jibo, nlu, service as service_interface } from '@jibo/interfaces';
+import { getPort } from '../net-utils';
+import { mockRuntimeData } from '../mockRuntimeData';
+import MessageType = skill.request.MessageType;
+import deepMerge = utils.common.object.deepMerge;
+import JiboHeaders = utils.service.JiboHeaders;
+
+
+const MOCK_GENERAL_DATA: jibo.data.GeneralData = {
+    accountID: 'some-account-id',
+    robotID: 'some-robot-id',
+    lang: 'en',
+    release: '8.67.5309'
+};
+
+/**
+ * Use as a skill client to test skills.
+ * </br>
+ * Should not be used for concurrent sessions, because tracks session between calls.
+ * All methods except except close return this for chaining
+ */
+export class SkillConversation {
+
+    /** [[SkillResponse]] */
+    public response: skill.response.SkillResponse;
+
+    /**
+     * For `response.type = ERROR` will contain error message, will contain `null` otherwise
+     */
+    public errorMessage: string;
+
+    private jiboHeaders: JiboHeaders;
+    private port: number;
+    private session;
+    private speakerId: boolean = true;
+    private injectReferent: boolean = false;
+    private iso: string = "2017-12-11T16:05:52.585-05:00";
+
+    constructor(private service: utils.service.BaseService) {
+        this.jiboHeaders = new JiboHeaders({
+            [service_interface.Headers.transID]: 'tid:1234'
+        });
+    }
+
+    /**
+     * Initialize conversation with the skill.
+     * Call it before sending requests
+     */
+    async init(): Promise<SkillConversation> {
+        this.port = await getPort();
+        await this.service.init(this.port);
+        return this;
+    }
+
+    /**
+     * Close conversation with the skill.
+     * Call it after you have finished sending requests to the skill
+     */
+    async close(): Promise<void> {
+        await this.service.close();
+    }
+
+    /**
+     * Indicate runtime data for all subsequent requests should have or have not speakerId defined
+     * @param speakerId `true` if speakerId should be defined
+     */
+    withSpeakerId(speakerId: boolean): SkillConversation {
+        this.speakerId = speakerId;
+        return this;
+    }
+
+    /**
+     * Indicate runtime data for all subsequent requests should have or have not referent defined
+     * @param injectReferent `true` if referent should be defined
+     */
+    withReferent(injectReferent: boolean): SkillConversation {
+        this.injectReferent = injectReferent;
+        return this;
+    }
+
+    /**
+     * Indicate runtime data for all subsequent requests should be at a certain time
+     * @param iso ISO string including timezone offset
+     */
+    atISOTime(iso: string): SkillConversation {
+        this.iso = iso;
+        return this;
+    }
+
+    /**
+     * Send Launch request to the skill. See [[ListenLaunchRequest]]
+     * @param nluData [[AgentResult]]
+     * @param skill [[SkillData]]
+     * @param data [[LaunchListenData]]
+     * @returns This
+     */
+    async launch(
+        nluData: string|Partial<nlu.AgentResult>,
+        skill: jibo.data.SkillData,
+        data: Partial<skill.request.LaunchListenData> = {}
+    ): Promise<SkillConversation> {
+        let nlu: nlu.AgentResult;
+        if (typeof nluData === 'string') {  // To allow for backwards compatiblity with only passing intent in
+            nlu = {
+                rules: [],
+                intent: nluData,
+                entities: {},
+            };
+        } else {
+            nlu = {
+                rules: nluData.rules || [],
+                intent: nluData.intent || '',
+                entities: nluData.entities || {},
+            };
+        }
+        const defaultLaunchListenData: skill.request.LaunchListenData = {
+            nlu,
+            asr: {
+                text: '',
+                confidence: 1
+            }
+        };
+        const result = deepMerge(defaultLaunchListenData, data);
+        this.saveAndParseResponse(await sendHttpPost({
+            type: MessageType.LISTEN_LAUNCH,
+            msgID: utils.common.getUUID(),
+            ts: Date.now(),
+            data: {
+                general: MOCK_GENERAL_DATA,
+                runtime: mockRuntimeData(this.speakerId, this.injectReferent, this.iso),
+                skill,
+                result
+            }
+        }, this.port, this.jiboHeaders));
+        return this;
+    }
+
+    /**
+     * @param skillData [[SkillData]]
+     * @param data [[ListenData]]
+     */
+    async actionResult(skillData: jibo.data.SkillData, data?: skill.request.ListenData) {
+        const defaultListenData: skill.request.ListenData = {
+            nlu: {
+                rules: [],
+                intent: null,
+                entities: {},
+            },
+            asr: {
+                text: '',
+                confidence: 1
+            }
+        };
+        const result = deepMerge(defaultListenData, data);
+        const skill = typeof skillData.session === 'undefined' ?
+            { ...skillData, session: this.session } :
+            { ...skillData };
+        this.saveAndParseResponse(await sendHttpPost({
+            type: MessageType.LISTEN_UPDATE,
+            msgID: utils.common.getUUID(),
+            ts: Date.now(),
+            data: {
+                general: MOCK_GENERAL_DATA,
+                runtime: mockRuntimeData(this.speakerId, this.injectReferent, this.iso),
+                skill,
+                result
+            }
+        }, this.port, this.jiboHeaders));
+        return this;
+    }
+
+    private saveAndParseResponse(response: skill.response.SkillResponse) {
+        this.response = response;
+        this.session = this.response.data.skill.session;
+        if (response.type === skill.response.ResponseType.ERROR) {
+            this.errorMessage = (response.data as skill.response.ErrorData).message;
+        } else {
+            this.errorMessage = null;
+        }
+    }
+}
+
+/**
+ * @param data [[SkillRequest]]
+ * @returns [[SkillResponse]]
+ */
+async function sendHttpPost(data: skill.request.SkillRequest, port: number, jiboHeaders?: JiboHeaders): Promise<skill.response.SkillResponse> {
+    const response = await axios.post(
+        `http://localhost:${port}/v1/main`,
+        data,
+        { headers: jiboHeaders ? jiboHeaders.toHeader() : undefined }
+    );
+    return response.data;
+}
+

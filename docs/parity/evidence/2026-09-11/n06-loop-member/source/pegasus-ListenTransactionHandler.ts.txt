@@ -1,0 +1,700 @@
+# jiboV2/pegasus:packages/hub/src/listen/ListenTransactionHandler.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { service, hub, nlu, asr, common, skill, history } from '@jibo/interfaces';
+import HubErrorCode = hub.response.HubErrorCode;
+import BaseMessage = service.BaseMessage;
+import * as utils from '@jibo/utils';
+import time = utils.common.time;
+import ResponseWrapper = utils.service.ResponseWrapper;
+import { ASRFactory } from '../asr/ASRFactory';
+import { ASRSession, ASRSessionConfig } from '../asr/ASRSession';
+import { ASRUtils } from '../asr/ASRUtils';
+import { HubComponents } from '../HubService';
+import { mediateDecision } from '../intent/DecisionMediator';
+import { normalizeString } from '../utils/StringNormalizer';
+import { TransactionHandler } from '../utils/TransactionHandler';
+import { SocketMessage } from '../utils/SocketMessageReader';
+import { AudioBuffer } from '../utils/AudioBuffer';
+import { HubError } from '../utils/HubError';
+import { timeout2 } from '../utils/PromiseUtils';
+import { MessageValidator } from '../utils/MessageValidator';
+import { SkillUtils } from '../skill/SkillUtils';
+import { SkillRequestOutput } from "../skill/interfaces";
+import { SpeechHistoryRecord }  from '@jibo/history-client';
+import RedirectResponse = skill.response.RedirectResponse;
+import ContextMessage = hub.request.ContextMessage;
+
+enum State {
+    WAIT_LISTEN = 'WAIT_LISTEN',
+    WAIT_CLIENT_ASR = 'WAIT_CLIENT_ASR',
+    WAIT_CLIENT_NLU = 'WAIT_CLIENT_NLU',
+    ASR = 'ASR',
+    NLU = 'NLU',
+    ROUTE = 'ROUTE',
+    DONE = 'DONE',
+    STOP = 'STOPPED',
+}
+
+const TIMEOUT_ASR = 40 * 1000;
+// TOFIX This should be shorter but we've been seeing consistent cases
+// of dialogflow taking around 5 seconds to return a valid response
+// should be reduced when we figure out why that is and fix.
+const TIMEOUT_PARSER = 10 * 1000;
+const TIMEOUT_CONTEXT = 5 * 1000;
+const TIMEOUT_SKILL = 10 * 1000;
+
+
+/**
+ * Handles ASRNLU request, which usually has audio stream
+ * and messages like LISTEN, CONTEXT
+ */
+export class ListenTransactionHandler extends TransactionHandler {
+
+    private audioStream = new AudioBuffer();
+
+    private state: State;
+    private stateTrace: State[] = [];
+
+    private listenMessage: hub.request.ListenMessage;
+    private contextMessagePr = new utils.common.ExtPromise<ContextMessage>();
+
+    private asrSession: ASRSession;
+    private sosTimeoutHandle = null;
+    private finalASRTimeoutHandle = null;
+
+    private asrData: asr.ASRResult;
+    private nluData: nlu.NLUResult;
+
+    private speechHistoryRecord: SpeechHistoryRecord;
+
+    constructor(ws: utils.service.PegasusWebSocket, components: HubComponents, response: ResponseWrapper<hub.response.HubResponse>) {
+        super(ws, components, response);
+        // Set the initial state
+        this.state = State.WAIT_LISTEN;
+        this.stateTrace.push(this.state);
+        if (this.components.hubSettings.recordSpeechHistory) {
+            this.speechHistoryRecord = new SpeechHistoryRecord({
+                robotID: this.ws.auth.friendlyId,
+                accountID: this.ws.auth.id,
+                transID: ws.jibo.transID,
+                timestamp: Date.now(),
+                audioFileURL: null
+            });
+        }
+    }
+
+    private updateSpeechHistoryRecord(data: history.speech.SpeechHistoryUpdate): void {
+        if (this.components.hubSettings.recordSpeechHistory) {
+            this.speechHistoryRecord.update(data);
+        }
+    }
+
+    private saveSpeechHistoryRecord(){
+        this.components.history.speechHistory.save(this.speechHistoryRecord, this.ws.jibo)
+            .catch(err => {
+                this.logger.error(err.message); // just log error
+            });
+    }
+
+    onTransactionSuccess(){
+        if (this.components.hubSettings.recordSpeechHistory) {
+            this.saveSpeechHistoryRecord();
+        }
+    }
+
+    onTransactionError(err: Error){
+        if (this.components.hubSettings.recordSpeechHistory) {
+            this.speechHistoryRecord.update({ error: err });
+            this.saveSpeechHistoryRecord();
+        }
+    }
+
+
+    public handleMessage(message: SocketMessage): void {
+        if (message.audio) {
+            this.handleAudio(message.audio)
+                .catch(error => this.reject(error));
+        }
+        else if (message.json) {
+            this.handleJSONMessage(message.json)
+                .catch(error => this.reject(error));
+        }
+        else {
+            this.reject(new Error('Message has no audio and no data'));
+        }
+    }
+
+    protected async handleAudio(buffer: Buffer): Promise<void> {
+        if (this.audioStream) {
+            this.logger.debug('Got audio packet');
+            this.audioStream.write(buffer);
+        } else {
+            this.logger.debug('Got audio packet but audio stream is closed');
+        }
+    }
+
+    protected async handleJSONMessage(message: BaseMessage<string, any>): Promise<void> {
+        try {
+            switch (message.type) {
+                case hub.request.MessageType.LISTEN:
+                    this.logger.debug('LISTEN message arrived: %j', message);
+                    await this.handleListenMessage(<hub.request.ListenMessage>message);
+                    break;
+                case 'SPEAKER_ID':
+                    this.logger.warn('Received deprecated message type SPEAKER_ID, ignoring: %j', message);
+                    break;
+                case hub.request.MessageType.CONTEXT:
+                    this.logger.debug('CONTEXT message arrived: %j', message);
+                    this.handleContextMessage(<ContextMessage>message);
+                    break;
+                case hub.request.MessageType.CLIENT_ASR:
+                    this.logger.debug('CLIENT_ASR message arrived: %j', message);
+                    await this.handleClientASRMessage(<hub.request.ClientASRMessage>message);
+                    break;
+                case hub.request.MessageType.CLIENT_NLU:
+                    this.logger.debug('CLIENT_NLU message arrived: %j', message);
+                    await this.handleClientNLUMessage(<hub.request.ClientNLUMessage>message);
+                    break;
+                default:
+                    throw new Error(`Unknown message type: ${message.type}`);
+            }
+        } catch (error) {
+            this.reject(error);
+        }
+    }
+
+    /**
+     * Stops the whole transaction and transitions to state STOPPED
+     */
+    public stop() {
+        // TODO cancel an NLU session
+        this.gotoState(State.STOP);
+    }
+
+    /**
+     * Sets the current state of the state machine and adds it to the trace
+     */
+    private gotoState(state: State): void {
+        switch (state) {
+            case State.WAIT_LISTEN:
+                return;
+            case State.ASR:
+                return this._gotoStateIfValid(state, [State.WAIT_LISTEN],
+                    () => this.performASR());
+            case State.NLU:
+                return this._gotoStateIfValid(state, [State.ASR, State.WAIT_CLIENT_ASR, State.WAIT_CLIENT_NLU],
+                    () => this.performNLU());
+            case State.ROUTE:
+                return this._gotoStateIfValid(state, [State.ASR, State.NLU, State.WAIT_CLIENT_ASR, State.WAIT_CLIENT_NLU],
+                    () => this.performRouting());
+            case State.DONE:
+                return this._gotoStateIfValid(state, [State.ROUTE, State.ASR],
+                    () => this.done());
+            case State.STOP:
+                return this._gotoStateIfValid(state, 'ALL',
+                    () => this.done());
+            // We don't really do anything when moving to WAIT_FOR_CLIENT_X states
+            case State.WAIT_CLIENT_ASR:
+            case State.WAIT_CLIENT_NLU:
+                return this._gotoStateIfValid(state, [State.WAIT_LISTEN],
+                    () => Promise.resolve());
+            default:
+                this.reject(new Error(`Invalid state requested: '${state}'`));
+        }
+    }
+
+    /**
+     * Transitions to target state if current state is within allowed set of states
+     */
+    private _gotoStateIfValid(targetState: State, allowedStates: State[] | 'ALL', stateExecutor: () => Promise<void>): void {
+        if (allowedStates === 'ALL' || allowedStates.indexOf(this.state) !== -1) {
+            this._exitCurrentState();
+            this.stateTrace.push(targetState);
+            this.state = targetState;
+            this.logger.debug('Entering state: ', targetState);
+            // run state executor, don't await its result
+            // on executor error - reject transaction
+            stateExecutor().catch(err => this.reject(err));
+        } else {
+            this.logger.info(`Bad transition to '${targetState}'. In state '${this.state}' - expected '${allowedStates}'`);
+        }
+    }
+
+    private _exitCurrentState() {
+        switch (this.state) {
+            case State.ASR:
+                this.stopASR();
+        }
+    }
+
+    /**
+     * When JIBO message `LISTEN` arrives, it does ASR, NLU, and intent router processing
+     */
+    private async handleListenMessage(message: hub.request.ListenMessage): Promise<void> {
+        this.listenMessage = message;
+        const Mode = hub.request.ListenMessageMode;
+        if (!message.data.mode) {
+            // Here we get the ASR data from Google
+            this.gotoState(State.ASR);
+        } else if (message.data.mode === Mode.CLIENT_ASR) {
+            // If client is sending ASR or NLU we fake the SOS and wait for the client message
+            this.emitSOS(-1);
+            this.gotoState(State.WAIT_CLIENT_ASR);
+        } else if (message.data.mode === Mode.CLIENT_NLU) {
+            this.emitSOS(-1);
+            this.gotoState(State.WAIT_CLIENT_NLU);
+        } else {
+            throw new Error(`Invalid value for mode '${message.data.mode}'`);
+        }
+    }
+
+    /**
+     * Handles the fake ASR message, performs NLU and IR and complete transaction
+     */
+    private async handleClientASRMessage(message: hub.request.ClientASRMessage): Promise<void> {
+        // If we're already doing ASR then we cancel that
+        if (this.state === State.ASR) {
+            this.stopASR();
+        }
+        this.asrData = {
+            text: message.data.text,
+            confidence: 1
+        };
+        this.updateSpeechHistoryRecord({asr: this.asrData});
+        this.logger.debug('Client ASR result: %j', this.asrData);
+        this.timings.asr = -1;
+        // Emit fake EOS
+        this.emitEOS(-1);
+        this.gotoState(State.NLU);
+    }
+
+    /**
+     * Handles the fake client NLU message, performs NLU and IR and complete transaction
+     */
+    private async handleClientNLUMessage(message: hub.request.ClientNLUMessage): Promise<void> {
+        // If we're already doing ASR then we cancel that
+        if (this.state === State.ASR) {
+            this.stopASR();
+        }
+        this.nluData = message.data;
+        this.timings.nlu = -1;
+        this.asrData = {
+            text: '',
+            confidence: 1
+        };
+        this.updateSpeechHistoryRecord({asr: this.asrData, nlu: this.nluData});
+        this.timings.asr = -1;
+        this.logger.debug('Client NLU result: %j', this.nluData);
+        // Emit fake EOS
+        this.emitEOS(-1);
+        this.gotoState(State.ROUTE);
+    }
+
+    /**
+     * Enter the state where we communicate to the Parser
+     */
+    private async performNLU(): Promise<void> {
+        // Get and wait for the context message
+        const context = await timeout2(this.contextMessagePr.promise, TIMEOUT_CONTEXT);
+        if (context === 'TIMEOUT') {
+            throw new HubError(HubErrorCode.TIMEOUT_CONTEXT, `Timeout of ${TIMEOUT_CONTEXT} while waiting for the context message`);
+        }
+
+        this.logger.debug('Starting NLU...');
+
+        // Forward ASR text to API.ai
+        try {
+            const parserResult = await timeout2(time(this.components.parser.handleNLU({
+                text: this.asrData.text,
+                rules: this.listenMessage.data.rules,
+                external: this.listenMessage.data.agents,
+                loop: {
+                    users: this.getLoopUsersInfo(context)
+                }
+            }, this.ws.jibo)), TIMEOUT_PARSER);
+
+            if (parserResult === 'TIMEOUT') {
+                throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${TIMEOUT_PARSER} while waiting for parser`);
+            } else {
+                [this.nluData, this.timings.nlu] = parserResult;
+            }
+        } catch (error) {
+            throw new HubError(HubErrorCode.PARSER, utils.common.getErrorMessage(error));
+        }
+
+        this.updateSpeechHistoryRecord({ nlu: this.nluData });
+        this.logger.debug('NLU result: %j', this.nluData);
+        this.gotoState(State.ROUTE);
+    }
+
+    /**
+     * Performs IR before completing the transaction
+     */
+    private async performRouting() {
+        this.logger.debug('Starting IntentRouter ...');
+
+        // Get and wait for the context message
+        const context = await timeout2(this.contextMessagePr.promise, TIMEOUT_CONTEXT);
+        if (context === 'TIMEOUT') {
+            throw new HubError(HubErrorCode.TIMEOUT_CONTEXT, `Timeout of ${TIMEOUT_CONTEXT} while waiting for the context message`);
+        }
+
+        // Check to see if a skill matches the NLU
+        const decision = this.components.intentRouter.getSkillIDFromNLU(this.nluData);
+
+        if (decision) {
+            this.logger.debug(`NLU matched with skill's IR config: '${decision.skillID}'`);
+            const alteredDecision = mediateDecision(decision, this.asrData, this.nluData, context.data.general.release);
+            if (alteredDecision) {
+                this.logger.debug(`Decision Mediator altered decision due to external factors. New skill match is '${alteredDecision.skillID}'`);
+            }
+            const finalDecision = alteredDecision || decision;
+            await this.onSkillMatch(finalDecision.skillID, context, finalDecision.memo);
+        } else if (context.data && context.data.skill && context.data.skill.id && !this.listenMessage.data.hotphrase) {
+            // TODO: This will need to be revisted if we ever want Cloud Skills to be able to handle globals
+            //
+            // If we have skillID and the listen request was not triggered by "HJ" (if it was then it might
+            // for example be "HJ stop" during a cloud skill in which case we don't want to route to the skill).
+            const skillID = context.data.skill.id;
+            this.logger.debug(`Skill ID was set in context: '${skillID}'`);
+            await this.onSkillMatch(skillID, context, null, true);
+        } else {
+            this.emitListenResult(null, true);
+        }
+        this.gotoState(State.DONE);
+    }
+
+    /**
+     * Enter the last state in the state sequence
+     */
+    private async done(): Promise<void> {
+        this.resolve();
+    }
+
+    private async onSkillMatch(
+        skillID: string,
+        context: ContextMessage,
+        memo: any = null,
+        isSkillUpdate: boolean = false
+    ): Promise<void> {
+        const isOnRobotSkill = this.components.skillConfigManager.isOnRobotSkill(skillID);
+        const matchData: common.GlobalMatchResponseData = {
+            skillID: skillID,
+            launch: !isSkillUpdate,
+            onRobot: isOnRobotSkill
+        };
+        if (isOnRobotSkill) {
+            this.emitListenResult(matchData, true);
+            if (this.components.hubSettings.recordLaunchHistory) {
+                this.contextMessagePr.promise.then(context => {
+                    this.recordSkillLaunch(skillID, this.nluData.intent, context);
+                });
+            }
+        } else {
+            this.emitListenResult(matchData, false);
+            // Get and wait for the skill response
+            let skillOutput: SkillRequestOutput;
+            const skillResponse = await timeout2(time(
+                this.getSkillResponse(skillID, context, isSkillUpdate, memo)), TIMEOUT_SKILL);
+            if (skillResponse === 'TIMEOUT') {
+                throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${TIMEOUT_SKILL} while waiting for the skill response from '${skillID}'`);
+            } else {
+                [skillOutput, this.timings.skill] = skillResponse;
+            }
+            // If the response is a redirect message then handle that
+            if (SkillUtils.isRedirect(skillOutput.response)) {
+                const redirectResponse = await timeout2(time(
+                    this.handleSkillRedirect(<RedirectResponse>skillOutput.response, context)), TIMEOUT_SKILL);
+                if (redirectResponse === 'TIMEOUT') {
+                    throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${TIMEOUT_SKILL} while waiting for the redirect skill response from '${skillOutput.skillID}'`);
+                } else {
+                    [skillOutput, this.timings.skill] = redirectResponse;
+                }
+            }
+            this.emitSkillResult(skillOutput, true);
+        }
+    }
+
+    /**
+     * Returns array of loop users for NLU request
+     */
+    private getLoopUsersInfo(contextMessage: hub.request.ContextMessage): nlu.LooperBasicInfo[] {
+        const runtime = contextMessage && contextMessage.data && contextMessage.data.runtime;
+        const loopUsers = (runtime && runtime.loop && runtime.loop.users) || [];
+        return loopUsers.map(user => ({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            id: user.id
+        }));
+    }
+
+    /**
+     * Handles Jibo message with type 'CONTEXT'
+     */
+    private handleContextMessage(message: hub.request.ContextMessage): void {
+        this.contextMessagePr.resolve(MessageValidator.validateContextMessage(message));
+    }
+
+    /**
+     * Stops any ongoing ASR activity and audio streaming
+     */
+    private async stopASR() {
+        if (this.asrSession) {
+            this.asrSession.stop();
+            this.asrSession = null;
+        }
+        if (this.audioStream) {
+            this.audioStream.end();
+            this.audioStream = null;
+        }
+        this.clearSOSTimeout();
+        this.clearMaxSpeechTimeout();
+    }
+
+    private async performASR(): Promise<void> {
+        this.logger.debug('Starting ASR...');
+
+        try {
+            const asrOutput = await timeout2(time(this._performASR()), TIMEOUT_ASR);
+            if (asrOutput === 'TIMEOUT') {
+                throw new HubError(HubErrorCode.TIMEOUT_ASR, `Timeout of ${TIMEOUT_ASR} while waiting for ASR`);
+            } else {
+                const [asrData, time] = asrOutput;
+                // ASRData may not be here if we got a CLIENT_NLU message (eg. menu click)
+                if (asrData) {
+                    this.asrData = asrData;
+                    this.timings.asr = time;
+                    this.updateSpeechHistoryRecord({ asr: Object.assign({}, this.asrData) }); // Avoid logging normalized ASR
+                    this.asrData.text = normalizeString(this.asrData.text);
+
+                    if (asrData.annotation === asr.ASRAnnotation.GARBAGE) {
+                        this.nluData = {
+                            intent: null,
+                            rules: [],
+                            entities: {}
+                        };
+                        this.emitListenResult(null, true);
+                        return this.gotoState(State.DONE);
+                    }
+                }
+            }
+        } catch (error) {
+            throw new HubError(HubErrorCode.ASR, utils.common.getErrorMessage(error));
+        }
+
+        this.gotoState(State.NLU);
+    }
+
+    /**
+     * Executes speech recognition, emits SOS and EOS events, returns asr.ASRResult
+     */
+    private async _performASR(): Promise<asr.ASRResult> {
+        let result: asr.ASRResult = null;
+        try {
+            result = await new Promise<asr.ASRResult>((resolve, reject) => {
+                const listenData = this.listenMessage.data;
+                // build ASRSessionConfig
+                const asrData = (listenData.asr && listenData.asr !== 'FAKE') ? listenData.asr : {};
+                const config: ASRSessionConfig = Object.assign({ lang: listenData.lang }, asrData);
+                config.hints = asrData.hints ? ASRUtils.cleanHintsEOS(asrData.hints, true) : undefined;
+                config.earlyEOS = asrData.earlyEOS ? ASRUtils.cleanHintsEOS(asrData.earlyEOS) : undefined;
+                config.maxSpeechTimeout = asrData.maxSpeechTimeout || 60 * 1000; // Default is 60 sec timeout
+                // start session
+                this.asrSession = ASRFactory.startSession(config, this.logger);
+
+                if (config.sosTimeout > 0) {
+                    this.startSOSTimeout(config.sosTimeout)
+                        .then(() => resolve({
+                            text: '',
+                            confidence: 0,
+                            annotation: asr.ASRAnnotation.SOS_TIMEOUT
+                        }));
+                }
+                this.asrSession.onStartOfSpeech(() => {
+                    this.clearSOSTimeout();
+                    this.emitSOS();
+                    if (config.maxSpeechTimeout > 0) {
+                        this.startMaxSpeechTimeout(config.maxSpeechTimeout)
+                            .then(() => {
+                                const lastResult = this.asrSession.getLastIncremental();
+                                resolve({
+                                    text: (lastResult && lastResult.text) || '',
+                                    confidence: (lastResult && lastResult.confidence) || 0,
+                                    annotation: asr.ASRAnnotation.MAX_SPEECH_TIMEOUT
+                                });
+                            });
+                    }
+                });
+
+                this.asrSession.onEndOfSpeech(() => {
+                    this.clearMaxSpeechTimeout();
+                    this.emitEOS();
+                });
+
+                this.audioStream.on('data', (data: Buffer) => {
+                    if (this.asrSession) {
+                        this.asrSession.provideAudio(data);
+                    }
+                });
+                this.audioStream.on('error', reject);
+                this.asrSession.start()
+                    .then(data => resolve(data))
+                    .catch(error => reject(error));
+            });
+        } finally {
+            this.stopASR();
+        }
+
+        return result;
+    }
+
+    /**
+     * Starts SOS timeout, sets sosTimeoutHandle,
+     * rejects if sosTimeoutHandle is not canceled in time
+     */
+    private startSOSTimeout(timeMs: number): Promise<void> {
+        return new Promise((resolve) => {
+            this.sosTimeoutHandle = setTimeout(() => {
+                this.logger.debug('SoS timeout reached');
+                resolve();
+            }, timeMs);
+        });
+    }
+
+    /**
+     * Starts max speech timeout, sets finalASRTimeoutHandle,
+     * rejects if finalASRTimeoutHandle is not canceled in time
+     */
+    private startMaxSpeechTimeout(timeMs: number): Promise<void> {
+        return new Promise((resolve) => {
+            this.finalASRTimeoutHandle = setTimeout(() => {
+                this.logger.debug('Max speech timeout reached');
+                resolve();
+            }, timeMs);
+        });
+    }
+
+    private clearSOSTimeout(): void {
+        clearTimeout(this.sosTimeoutHandle);
+    }
+
+    private clearMaxSpeechTimeout(): void {
+        clearTimeout(this.finalASRTimeoutHandle);
+    }
+
+    /**
+     * Sends launch or update request to the skill, returns SkillRequestOutput
+     */
+    private async getSkillResponse(skillID: string, context: ContextMessage, update = false, memo?: any): Promise<SkillRequestOutput> {
+        const skillOutput = await this.components.skillRequestMaker.skillLaunchOrUpdate(
+            skillID,
+            {
+                context: context.data,
+                nlu: this.nluData,
+                asr: this.asrData,
+                memo: memo
+            },
+            this.ws.jibo,
+            this.logger,
+            update);
+        this.updateSpeechHistoryRecord({ skill: skillOutput });
+        // record skill launch or update
+        if (skillOutput && !skillOutput.error) {
+            if (this.components.hubSettings.recordLaunchHistory) {
+                this.contextMessagePr.promise.then(context => {
+                    this.recordSkillLaunch(skillID, this.nluData.intent, context, skillOutput.response);
+                });
+            }
+        }
+        return skillOutput;
+    }
+
+    /**
+     * Handles skill redirect:
+     * - emits redirect notification
+     * - sends launch request to another skill
+     * - checks that no more redirects
+     * - returns SkillRequestOutput
+     */
+    private async handleSkillRedirect(redirect: RedirectResponse, context: ContextMessage): Promise<SkillRequestOutput> {
+        this.logger.debug('Processing skill redirect: %j', redirect.data);
+        this.updateSpeechHistoryRecord({ redirect: redirect.data });
+        // emit redirect notification
+        this.emitSkillRedirectNotification(redirect.data);
+        // send new skill launch request
+        const skillOutput = await this.components.skillRequestMaker.skillLaunch(
+            redirect.data.skillID,
+            {
+                context: context.data,
+                nlu: redirect.data.nlu,
+                memo: redirect.data.memo
+            },
+            this.ws.jibo,
+            this.logger);
+        this.updateSpeechHistoryRecord({ skill: skillOutput });
+        if (skillOutput && !skillOutput.error) {
+            if (this.components.hubSettings.recordLaunchHistory) {
+                this.contextMessagePr.promise.then(context => {
+                    this.recordSkillLaunch(redirect.data.skillID, this.nluData.intent, context, skillOutput.response);
+                });
+            }
+        }
+        // throw error if skill returned another redirect
+        if (SkillUtils.isRedirect(skillOutput.response)) {
+            throw new Error('Too many redirects');
+        }
+        return skillOutput;
+    }
+
+    private emitEOS(totalTime?: number): void {
+        const response: hub.response.EoSResponse = {
+            type: hub.response.MessageType.EOS,
+            data: null,
+            msgID: utils.common.getUUID(),
+            ts: Date.now(),
+            timings: {
+                total: totalTime || Date.now() - this.startTime
+            }
+        };
+        this.logger.debug('EOS message emitted: %j', response);
+        this.response.write(response);
+    }
+
+    private emitSOS(totalTime?: number): void {
+        const response: hub.response.SoSResponse = {
+            type: hub.response.MessageType.SOS,
+            data: null,
+            msgID: utils.common.getUUID(),
+            ts: Date.now(),
+            timings: {
+                total: totalTime || Date.now() - this.startTime
+            }
+        };
+        this.logger.debug('SOS message emitted: %j', response);
+        this.response.write(response);
+    }
+
+    private emitListenResult(match: common.GlobalMatchResponseData, final = false): void {
+        this.updateSpeechHistoryRecord({ match: match });
+        const listenResponse: hub.response.ListenResponse = {
+            type: hub.response.MessageType.LISTEN,
+            msgID: utils.common.getUUID(),
+            ts: Date.now(),
+            data: {
+                asr: this.asrData,
+                nlu: this.nluData,
+                match
+            },
+            final,
+            timings: {
+                total: Date.now() - this.startTime,
+                asr: this.timings.asr,
+                nlu: this.timings.nlu,
+            }
+        };
+
+        this.logger.debug('LISTEN result emitted: %j', listenResponse);
+        this.response.write(listenResponse);
+    }
+}
+

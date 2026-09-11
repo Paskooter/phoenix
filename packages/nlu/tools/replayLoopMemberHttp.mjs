@@ -1,12 +1,19 @@
 // N-06 runtime replay: LoopMemberDetector over the live NLU HTTP service plus
 // direct parser calls.
 //
-// Two phases, both exercised against the real code paths:
+// Three phases, all exercised against the real code paths:
 //   phase 1  source fixtures (from pegasus:packages/parser/tests/utils/
 //            LoopMemberDetector.test.ts@5c0a739) driven through
 //            LoopMemberDetector.detectLoopMembers and deep-equalled.
 //   phase 2  real HTTP POST /v1/parse requests with a `loop` context against a
 //            live service bound to an ephemeral port.
+//   phase 3  speaker/referent separation — the detector takes no speaker input,
+//            so a smuggled runtime context (perception.speaker / dialog.referent)
+//            must not change which member the utterance resolves. Pinned source
+//            for the downstream meeting point:
+//              interfaces/src/jibo/runtime.ts:132-143  (perception.speaker, dialog.referent)
+//              hub/src/skill/SkillRequestHelper.ts:95-99 (referent <- loopMemberReferent)
+//              hub/src/utils/TransactionHelper.ts:13-16 (speaker -> history personIDs)
 //
 // Usage: node packages/nlu/tools/replayLoopMemberHttp.mjs [--out <path>]
 import { createHash } from 'node:crypto';
@@ -47,6 +54,35 @@ const sourceRows = sourceFixtures.map(([id, text, loopUsers, nluResult, expected
   return { id, phase: 'source-fixture', text, got, expected, matches: stable(got) === stable(expected) };
 });
 
+// --- phase 3: speaker/referent separation -----------------------------------
+// The speaker and the referent are distinct identities that meet in the skill's
+// RuntimeContext (runtime.ts:132-143); the detector itself has no speaker input.
+const SEPARATION_USERS = [
+  { id: 'u-george', firstName: 'George', lastName: 'Jetson' },
+  { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
+];
+const speakerReferentCases = [
+  ['separation:names-other-member', 'Who is Jane Jetson?', { speaker: 'u-george', referent: 'u-george' }, 'whoIsPerson',
+    { 'given-name': 'Jane', 'last-name': 'Jetson', loopMemberReferent: 'u-jane' }],
+  ['separation:names-first-member', 'Who is George Jetson?', { speaker: 'u-jane', referent: 'u-jane' }, 'whoIsPerson',
+    { 'given-name': 'George', 'last-name': 'Jetson', loopMemberReferent: 'u-george' }],
+  ['separation:nobody-named', 'sing me a song', { speaker: 'u-george', referent: 'u-george' }, 'whoIsPerson', {}],
+];
+
+const separationRows = speakerReferentCases.map(([id, text, context, intent, expected]) => {
+  const request = {
+    text, rules: ['launch'], loop: { users: SEPARATION_USERS },
+    perception: { speaker: context.speaker, peoplePresent: [] },
+    dialog: { referent: context.referent },
+  };
+  const result = { intent, rules: ['launch'], entities: {} };
+  LoopMemberDetector.detectLoopMembers(request, result);
+  return {
+    id, phase: 'speaker-referent', text, speaker: context.speaker, dialogReferent: context.referent,
+    got: result.entities, expected, matches: stable(result.entities) === stable(expected),
+  };
+});
+
 // --- phase 2: live HTTP requests --------------------------------------------
 const httpCases = [
   ['http:alias-givenname', { text: 'who is jane jetson', rules: ['launch'], loop: { users: [{ id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' }] } },
@@ -76,7 +112,7 @@ try {
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
 }
 
-const rows = [...sourceRows, ...httpRows];
+const rows = [...sourceRows, ...separationRows, ...httpRows];
 const differences = rows.filter(r => !r.matches).map(r => r.id);
 const out = {
   schema: 'phoenix.nlu.n06-loop-member-replay',
@@ -86,8 +122,15 @@ const out = {
     detector: 'packages/parser/src/utils/LoopMemberDetector.ts',
     fixtures: 'packages/parser/tests/utils/LoopMemberDetector.test.ts',
     interfaces: 'packages/interfaces/src/nlu.ts',
+    speakerReferent: [
+      'packages/interfaces/src/jibo/runtime.ts:132-143',
+      'packages/hub/src/skill/SkillRequestHelper.ts:95-99',
+      'packages/hub/src/utils/TransactionHelper.ts:13-16',
+      'packages/hub/src/listen/ListenTransactionHandler.ts:311-312,421-429',
+    ],
   },
   sourceFixtureCases: sourceRows.length,
+  speakerReferentCases: separationRows.length,
   httpCases: httpRows.length,
   matches: rows.filter(r => r.matches).length,
   differences,
@@ -104,6 +147,7 @@ if (outIndex !== -1 && process.argv[outIndex + 1]) {
 
 console.log(`reference              : ${out.reference.repo}@${out.reference.ref}`);
 console.log(`source-fixture cases   : ${out.sourceFixtureCases}`);
+console.log(`speaker/referent cases : ${out.speakerReferentCases}`);
 console.log(`http cases             : ${out.httpCases}`);
 console.log(`matches                : ${out.matches}/${rows.length}`);
 console.log(`differences            : ${differences.length ? differences.join(', ') : 'none'}`);
