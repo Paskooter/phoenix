@@ -7,6 +7,10 @@
 //   phase B (report):          reportCalendar.getData() -> LassoClient -> this binary,
 //     proving a provider returning events reaches the report rather than failing
 //     envelope parsing (acceptance item 3).
+//   phase C (upstream params): a second real binary wired with
+//     ETCO_lasso_calendarUpstreamUrl (the real HTTP provider) against a mock
+//     Calendar API that records the pinned upstream query
+//     (singleEvents/orderBy/timeMin/timeMax, Graph endDateTime/$orderby).
 //
 // Emits a JSON report on stdout:
 //   node packages/data/scripts/calendar-runtime.mjs > runtime.json
@@ -30,6 +34,14 @@ const sha256 = (path) => createHash('sha256').update(readFileSync(path)).digest(
 
 const PORT = 8913;
 const base = `http://localhost:${PORT}`;
+// Phase C: a second real binary wired to the real HTTP provider
+// (ETCO_lasso_calendarUpstreamUrl) and a local mock Calendar API that records the
+// exact upstream request (the pinned singleEvents/orderBy/timeMin/timeMax and
+// Graph endDateTime/$orderby).
+const UPSTREAM_SERVICE_PORT = 8914;
+const MOCK_UPSTREAM_PORT = 8915;
+const upstreamBase = `http://localhost:${UPSTREAM_SERVICE_PORT}`;
+const mockUpstreamBase = `http://localhost:${MOCK_UPSTREAM_PORT}`;
 const END_DATE_WEST = '2050-12-18T23:59:59-07:00';
 const url = (service, accountId, extra = '') => `/v1/${service}_calendar?skillId=skill1&accountId=${accountId}&calendar=personalCalendar&endDate=${END_DATE_WEST}${extra}`;
 
@@ -37,6 +49,7 @@ const dir = mkdtempSync(join(tmpdir(), 'd04-calendar-runtime-'));
 const fixtureDir = join(dir, 'calendar');
 mkdirSync(fixtureDir, { recursive: true });
 const credentialsFile = join(dir, 'credentials.json');
+const credentialsFileUpstream = join(dir, 'credentials-upstream.json');
 
 const googleFixture = join(FIXTURES, 'google-events.json');
 const googleCalendarFixture = join(FIXTURES, 'google-calendar.json');
@@ -83,12 +96,29 @@ function startService() {
   return child;
 }
 
-async function waitHealthy(tries = 80) {
+/** Phase C: the same binary with the real upstream HTTP provider wired in. */
+function startUpstreamService() {
+  const child = spawn(process.execPath, [join(REPO, 'packages/data/src/index.js')], {
+    env: {
+      ...process.env,
+      PORT: String(UPSTREAM_SERVICE_PORT),
+      ETCO_data_credentialsFile: credentialsFileUpstream,
+      ETCO_lasso_calendarUpstreamUrl: mockUpstreamBase,
+      ETCO_lasso_calendarUpstreamToken: 'rt-upstream-token',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  child.stderr.on('data', () => {});
+  child.stdout.on('data', () => {});
+  return child;
+}
+
+async function waitHealthy(origin = base, tries = 80) {
   for (let i = 0; i < tries; i++) {
-    try { const r = await fetch(`${base}/healthcheck`); if (r.ok) return true; } catch { /* not up yet */ }
+    try { const r = await fetch(`${origin}/healthcheck`); if (r.ok) return true; } catch { /* not up yet */ }
     await new Promise((r) => setTimeout(r, 100));
   }
-  throw new Error('service did not become healthy');
+  throw new Error(`service at ${origin} did not become healthy`);
 }
 
 const get = (p) => fetch(`${base}${p}`);
@@ -98,10 +128,32 @@ const read = async (p) => {
   let body; try { body = JSON.parse(text); } catch { body = text; }
   return { status: r.status, contentType: r.headers.get('content-type'), body, text };
 };
+const readAt = async (origin, p) => {
+  const r = await fetch(`${origin}${p}`);
+  const text = await r.text();
+  let body; try { body = JSON.parse(text); } catch { body = text; }
+  return { status: r.status, contentType: r.headers.get('content-type'), body, text };
+};
+
+// Mock Calendar API for phase C: records every request and serves the pinned
+// raw client responses (Google `{items}` + calendar resource, Graph `{value}`).
+const upstreamRequests = [];
+const mockUpstream = http.createServer((req, res) => {
+  upstreamRequests.push({ method: req.method, url: req.url, authorization: req.headers.authorization || null });
+  res.setHeader('content-type', 'application/json');
+  if (req.url.startsWith('/calendar/v3/calendars/primary/events')) { res.end(readFileSync(googleFixture)); return; }
+  if (req.url.startsWith('/calendar/v3/calendars/')) { res.end(readFileSync(googleCalendarFixture)); return; }
+  if (req.url.startsWith('/v1.0/me/calendarView')) { res.end(readFileSync(outlookFixture)); return; }
+  res.statusCode = 404;
+  res.end('{}');
+});
+await new Promise((resolve) => mockUpstream.listen(MOCK_UPSTREAM_PORT, resolve));
 
 const child = startService();
+const upstreamChild = startUpstreamService();
 try {
   await waitHealthy();
+  await waitHealthy(upstreamBase);
 
   // --- A1. pinned Google replay through the real binary ---------------------
   const a1 = await read(url('google', 'rt-google'));
@@ -212,6 +264,27 @@ try {
     missingSkillIdOutlook: { status: missing.status, body: missing.body },
   });
 
+  // --- C. upstream params on the wire through the REAL HTTP provider --------
+  // The second real binary (startUpstreamService) is wired with
+  // ETCO_lasso_calendarUpstreamUrl; the mock Calendar API records every request,
+  // proving the pinned singleEvents/orderBy/timeMin/timeMax and Graph
+  // endDateTime/$orderby actually leave the service.
+  const cg = await readAt(upstreamBase, url('google', 'rt-up-g'));
+  const co = await readAt(upstreamBase, url('outlook', 'rt-up-o'));
+  const parseUpstream = (u) => Object.fromEntries(new URLSearchParams(u.split('?')[1] || ''));
+  const googleReq = upstreamRequests.find((r) => r.url.startsWith('/calendar/v3/calendars/primary/events'));
+  const graphReq = upstreamRequests.find((r) => r.url.startsWith('/v1.0/me/calendarView'));
+  report.steps.push({
+    step: 'C_upstream_params_on_the_wire',
+    googleEnvelopeKeys: Object.keys(cg.body),
+    googleEvents: cg.body.relayData.events.map((e) => e.summary),
+    outlookEvents: co.body.relayData.events.map((e) => e.summary),
+    googleEventsRequest: { url: googleReq.url, authorization: googleReq.authorization, params: parseUpstream(googleReq.url) },
+    outlookEventsRequest: { url: graphReq.url, authorization: graphReq.authorization, params: parseUpstream(graphReq.url) },
+    timezoneRequestIssued: upstreamRequests.some((r) => r.url === '/calendar/v3/calendars/primary'),
+    allUpstreamRequests: upstreamRequests.map((r) => r.url),
+  });
+
   // --- B. the real report path against this binary -------------------------
   const reportFixtureEvents = (() => {
     const now = new Date();
@@ -265,6 +338,8 @@ try {
   });
 } finally {
   child.kill('SIGKILL');
+  upstreamChild.kill('SIGKILL');
+  await new Promise((resolve) => mockUpstream.close(resolve));
   rmSync(dir, { recursive: true, force: true });
 }
 

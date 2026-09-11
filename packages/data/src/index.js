@@ -16,7 +16,7 @@ import { validateWeather, weatherKey, fetchWeather } from './weather.js';
 import { validateNews, newsKey, fetchNews, NEWS_CACHE_TTL_SECONDS, installNewsPolling } from './news.js';
 import { validateMaps, mapsKey, fetchMaps } from './maps.js';
 import { CredentialStore, credentialHandlers } from './credentials.js';
-import { createCalendarHandler } from './calendar.js';
+import { createCalendarHandler, createUpstreamCalendarProvider } from './calendar.js';
 import { createOAuthProvider } from './oauth.js';
 
 /**
@@ -64,6 +64,26 @@ function calendarFixtureProvider(serviceName) {
 }
 
 /**
+ * Build the real upstream events provider when a Calendar API base URL is
+ * configured (ETCO_lasso_calendarUpstreamUrl). It performs the same HTTP request
+ * the pinned clients do, using the params the handler hands over as
+ * ctx.upstreamQuery (buildUpstreamQuery: Google singleEvents/orderBy/timeMin/
+ * timeMax, Graph startDateTime/endDateTime/$select/$orderby). The bearer token
+ * is ETCO_lasso_calendarUpstreamToken or the looked-up credential's access
+ * token. Takes precedence over the fixture directory.
+ */
+function calendarUpstreamProvider(serviceName) {
+  const baseUrl = process.env.ETCO_lasso_calendarUpstreamUrl || process.env.ETCO_data_calendarUpstreamUrl;
+  if (!baseUrl) return undefined;
+  const envToken = process.env.ETCO_lasso_calendarUpstreamToken || process.env.ETCO_data_calendarUpstreamToken;
+  return createUpstreamCalendarProvider({
+    serviceName,
+    baseUrl,
+    getToken: (_input, ctx) => envToken || (ctx && ctx.credential && ctx.credential.oauth2 && ctx.credential.oauth2.accessToken),
+  });
+}
+
+/**
  * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function,
  *           credentialStore?: CredentialStore, googleCalendarProvider?: Function,
  *           outlookCalendarProvider?: Function, oauth?: object, oauthSecretsDir?: string,
@@ -106,8 +126,8 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     fetchExternal: (input) => fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
   });
 
-  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarFixtureProvider('google'), store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
-  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarFixtureProvider('outlook'), store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
+  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarUpstreamProvider('google') ?? calendarFixtureProvider('google'), store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
+  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarUpstreamProvider('outlook') ?? calendarFixtureProvider('outlook'), store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
   // LassoService.ts:86-95 — a new credential notifies the calendar handlers, which
   // drop the cached payload for that (skillId, accountId, calendar) key.
   const cred = credentialHandlers(store, {

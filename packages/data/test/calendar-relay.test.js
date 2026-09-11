@@ -9,20 +9,24 @@
 // endDate default/validation, timezone/all-day normalization and invalid-event filtering.
 //
 // NOTE: the reference emits exactly `{ relayData, lassoDataFromRedis }`
-// (AbstractRelayRequestHandler.ts:112-131). These tests additionally pin the
-// top-level `events` mirror that D-04 keeps for the certified D-02/D-03 tests
-// (packages/data/test/credential.test.js:98-103, packages/data/test/oauth.test.js:211-331);
-// the pinned source has no such key — documented divergence, see D-04 evidence.
+// (AbstractRelayRequestHandler.ts:112-131) and both pinned relay tests deep-equal
+// that two-key body (tests/relay/GoogleCalendar.test.ts:132-162,
+// tests/relay/OutlookCalendar.test.ts:126-145). D-04 emits exactly those keys.
+// The upstream request the real clients issue is ported as
+// buildUpstreamQuery/createUpstreamCalendarProvider and pinned in D-04/16-19.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDataService } from '../src/index.js';
 import {
   normalizeEvent, normalizeOutlookEvent, validateCalendar, buildDefaultEndDate, endDateOffsetMinutes,
+  buildUpstreamQuery, createUpstreamCalendarProvider,
 } from '../src/calendar.js';
+import { TTLCache } from '../src/cache.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, 'fixtures', 'calendar');
@@ -39,8 +43,8 @@ const base = `http://localhost:${PORT}`;
 let server;
 
 const providerCalls = [];
-const googleProvider = async (req) => {
-  providerCalls.push({ service: 'google', req });
+const googleProvider = async (req, ctx) => {
+  providerCalls.push({ service: 'google', req, ctx });
   if (req.accountId === 'chi') return { events: chicagoEvents.items, calendarTimezone: chicagoTimezone };
   if (req.accountId === 'invalid') {
     return {
@@ -54,8 +58,8 @@ const googleProvider = async (req) => {
   }
   return { events: googleEvents.items, calendarTimezone: googleTimezone };
 };
-const outlookProvider = async (req) => {
-  providerCalls.push({ service: 'outlook', req });
+const outlookProvider = async (req, ctx) => {
+  providerCalls.push({ service: 'outlook', req, ctx });
   if (req.accountId === 'o-windows') {
     return {
       events: [
@@ -108,9 +112,8 @@ test('D-04/1 a miss answers the relay envelope with the pinned Google fixture ev
     ],
   });
   assert.equal(body.lassoDataFromRedis, false);
-  assert.deepEqual(Object.keys(body), ['relayData', 'lassoDataFromRedis', 'events'],
-    'the reference keys plus the documented top-level events mirror');
-  assert.deepEqual(body.events, body.relayData.events, 'the mirror is the same array');
+  assert.deepEqual(Object.keys(body), ['relayData', 'lassoDataFromRedis'],
+    'exactly the reference relay keys (AbstractRelayRequestHandler.ts:112-117)');
   // the pinned suite also asserts dateTime is the exact representation of timestamp
   for (const event of body.relayData.events) {
     assert.equal(new Date(event.start.dateTime).getTime(), event.start.timestamp);
@@ -179,7 +182,7 @@ test('D-04/5 a cache hit echoes the stored bytes and does not re-call the provid
   assert.equal(hit.lassoDataFromRedis, true);
   assert.match(hit.lassoInsertedIntoRedisAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
   assert.deepEqual(Object.keys(hit),
-    ['relayData', 'lassoDataFromRedis', 'events', 'lassoInsertedIntoRedisAt'],
+    ['relayData', 'lassoDataFromRedis', 'lassoInsertedIntoRedisAt'],
     'the stored string is sent verbatim, not re-serialized');
   assert.equal(hitText, JSON.stringify(hit));
 });
@@ -326,4 +329,116 @@ test('D-04/15 validateCalendar defaults the endDate and rejects a bad one', () =
     /^Error: Invalid end date: nope$/);
   assert.throws(() => validateCalendar(q('accountId=a&calendar=c'), 'outlook'),
     /^Error: Missing skillId in Outlook Calendar request$/);
+});
+
+// ---------------------------------------------------------------------------
+// upstream request params — the D04a gap: unported client pagination/ordering
+// ---------------------------------------------------------------------------
+
+test('D-04/16 the upstream query shows exactly the reference client params', () => {
+  const endDate = '2050-12-18T23:59:59-07:00';
+  const timeMax = new Date(endDate).toISOString(); // pinned test: new Date(endDate).toISOString()
+
+  const google = buildUpstreamQuery('google', { endDate, now: Date.parse('2026-06-12T12:00:00Z') });
+  assert.deepEqual(google, {
+    method: 'GET',
+    path: '/calendar/v3/calendars/primary/events',
+    calendarId: 'primary',
+    params: {
+      singleEvents: true,
+      orderBy: 'startTime',
+      timeMin: '2026-06-12T12:00:00.000Z',
+      timeMax,
+    },
+  });
+
+  const outlook = buildUpstreamQuery('outlook', { endDate, now: Date.parse('2026-06-12T12:00:00Z') });
+  assert.deepEqual(outlook, {
+    method: 'GET',
+    path: '/v1.0/me/calendarView',
+    params: {
+      startDateTime: '2026-06-12T12:00:00.000Z',
+      endDateTime: timeMax,
+      $select: 'subject,start,end,isAllDay',
+      $orderby: 'start/dateTime ASC',
+    },
+  });
+});
+
+test('D-04/17 a GET reaches the provider with the Google upstream query attached', async () => {
+  const endDate = '2050-12-18T23:59:59-07:00';
+  await json(url('google', 'up-g', `&endDate=${endDate}`));
+  const { ctx } = callsFor('up-g')[0];
+  const up = ctx.upstreamQuery;
+  assert.equal(up.method, 'GET');
+  assert.equal(up.path, '/calendar/v3/calendars/primary/events');
+  assert.equal(up.calendarId, 'primary');
+  assert.equal(up.params.singleEvents, true, 'GoogleCalendarClient.ts:125');
+  assert.equal(up.params.orderBy, 'startTime', 'GoogleCalendarClient.ts:128');
+  assert.equal(up.params.timeMax, new Date(endDate).toISOString(), 'GoogleCalendarClient.ts:127');
+  assert.ok(Math.abs(Date.parse(up.params.timeMin) - Date.now()) < 10_000,
+    'timeMin is "now" (GoogleCalendarClient.ts:126)');
+});
+
+test('D-04/18 a GET reaches the provider with the Graph upstream query attached', async () => {
+  const endDate = '2050-12-18T23:59:59-07:00';
+  await json(url('outlook', 'up-o', `&endDate=${endDate}`));
+  const { ctx } = callsFor('up-o')[0];
+  const up = ctx.upstreamQuery;
+  assert.equal(up.method, 'GET');
+  assert.equal(up.path, '/v1.0/me/calendarView');
+  assert.equal(up.params.endDateTime, new Date(endDate).toISOString(), 'OutlookCalendarClient.ts:148');
+  assert.equal(up.params.$orderby, 'start/dateTime ASC', 'OutlookCalendarClient.ts:152');
+  assert.equal(up.params.$select, 'subject,start,end,isAllDay', 'OutlookCalendarClient.ts:151');
+  assert.ok(Math.abs(Date.parse(up.params.startDateTime) - Date.now()) < 10_000,
+    'startDateTime is "now" (OutlookCalendarClient.ts:147)');
+});
+
+test('D-04/19 createUpstreamCalendarProvider issues the pinned wire query and returns the fixtures', async () => {
+  const seen = [];
+  const upstream = http.createServer((req, res) => {
+    seen.push(req.url);
+    res.setHeader('content-type', 'application/json');
+    if (req.url.startsWith('/calendar/v3/calendars/primary/events')) { res.end(JSON.stringify(googleEvents)); return; }
+    if (req.url.startsWith('/calendar/v3/calendars/primary')) { res.end(JSON.stringify({ timeZone: 'America/Los_Angeles' })); return; }
+    if (req.url.startsWith('/v1.0/me/calendarView')) { res.end(JSON.stringify(outlookEvents)); return; }
+    res.statusCode = 404;
+    res.end('{}');
+  });
+  await new Promise((resolve) => upstream.listen(7810, resolve));
+  const upstreamBase = 'http://localhost:7810';
+  const service = await createDataService({
+    cache: new TTLCache(),
+    googleCalendarProvider: createUpstreamCalendarProvider({ serviceName: 'google', baseUrl: upstreamBase, getToken: () => 'goog-token' }),
+    outlookCalendarProvider: createUpstreamCalendarProvider({ serviceName: 'outlook', baseUrl: upstreamBase, getToken: () => 'graph-token' }),
+  }).listen(7811);
+  try {
+    const wireBase = 'http://localhost:7811';
+    const endDate = '2050-12-18T23:59:59-07:00';
+    const g = await (await fetch(`${wireBase}${url('google', 'wire-g', `&endDate=${endDate}`)}`)).json();
+    assert.deepEqual(Object.keys(g), ['relayData', 'lassoDataFromRedis'], 'no top-level mirror');
+    assert.deepEqual(g.relayData.events.map((e) => e.summary),
+      ['Event With Start and End Date', 'Event With Start and End Time'],
+      'the Google fixture reached the envelope through the real HTTP provider');
+
+    const o = await (await fetch(`${wireBase}${url('outlook', 'wire-o', `&endDate=${endDate}`)}`)).json();
+    assert.deepEqual(o.relayData.events.map((e) => e.summary),
+      ['Outlook Event 1', 'Outlook Event 2', 'Outlook Event 3']);
+
+    // what actually went on the wire
+    const gq = new URLSearchParams(seen.find((u) => u.startsWith('/calendar/v3/calendars/primary/events')).split('?')[1]);
+    assert.equal(gq.get('singleEvents'), 'true', 'pinned GoogleCalendar.test.ts:170');
+    assert.equal(gq.get('orderBy'), 'startTime', 'pinned GoogleCalendar.test.ts:169');
+    assert.equal(gq.get('timeMax'), new Date(endDate).toISOString(), 'pinned GoogleCalendar.test.ts:171');
+    assert.ok(Math.abs(Date.parse(gq.get('timeMin')) - Date.now()) < 10_000);
+
+    const oq = new URLSearchParams(seen.find((u) => u.startsWith('/v1.0/me/calendarView')).split('?')[1]);
+    assert.equal(oq.get('endDateTime'), new Date(endDate).toISOString(), 'pinned OutlookCalendar.test.ts:190');
+    assert.equal(oq.get('$orderby'), 'start/dateTime ASC', 'pinned OutlookCalendar.test.ts:189');
+    assert.equal(oq.get('$select'), 'subject,start,end,isAllDay');
+    assert.ok(seen.includes('/calendar/v3/calendars/primary'), 'getCalendarTimezone issued (GoogleCalendarHandler.ts:109)');
+  } finally {
+    service.close();
+    await new Promise((resolve) => upstream.close(resolve));
+  }
 });

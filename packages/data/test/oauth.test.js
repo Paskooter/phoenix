@@ -211,7 +211,9 @@ test('D-03 refresh: an expired credential is refreshed at the provider and the n
   const res = await j('/v1/google_calendar?skillId=report-skill&accountId=rf-1&calendar=personalCalendar');
   assert.equal(res.status, 200);
   const body = await res.json();
-  assert.equal(body.events.length, 1);
+  // D-04 removed the top-level events mirror: read the reference envelope
+  // (AbstractRelayRequestHandler.ts:112-131). Same D-03 finding.
+  assert.equal(body.relayData.events.length, 1);
 
   assert.equal(tokenRequests.length, 1);
   assert.equal(tokenRequests[0].form.grant_type, 'refresh_token');
@@ -308,26 +310,26 @@ test('D-03 cache invalidation: a new credential drops the cached calendar payloa
     await fetch(`${base}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(seedBody) });
 
     const read = () => fetch(`${base}/v1/google_calendar?skillId=report-skill&accountId=ci-1&calendar=personalCalendar`).then((r) => r.json());
-    assert.equal((await read()).events[0].summary, 'v1');
+    assert.equal((await read()).relayData.events[0].summary, 'v1');
     assert.equal(calls, 1);
     // cache hit within 60s: provider not called again
-    assert.equal((await read()).events[0].summary, 'v1');
+    assert.equal((await read()).relayData.events[0].summary, 'v1');
     assert.equal(calls, 1, 'second read served from the calendar cache');
 
     // A new credential for the same slot invalidates the cached key.
     events = [{ summary: 'v2', start: { dateTime: '2026-06-08T10:00:00Z' } }];
     await fetch(`${base}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...seedBody, accessToken: 'at2', refreshToken: 'rt2', expiresAt: Date.now() + 3600 * 1000 }) });
 
-    assert.equal((await read()).events[0].summary, 'v2', 'cache was invalidated by the new credential');
+    assert.equal((await read()).relayData.events[0].summary, 'v2', 'cache was invalidated by the new credential');
     assert.equal(calls, 2, 'provider re-fetched after invalidation');
 
     // Reference skipCache truthiness: `skipCache=1` re-fetches; a bare `skipCache=` is falsy.
     events = [{ summary: 'v3', start: { dateTime: '2026-06-08T11:00:00Z' } }];
     const skipped = await fetch(`${base}/v1/google_calendar?skillId=report-skill&accountId=ci-1&calendar=personalCalendar&skipCache=1`).then((r) => r.json());
-    assert.equal(skipped.events[0].summary, 'v3');
+    assert.equal(skipped.relayData.events[0].summary, 'v3');
     assert.equal(calls, 3, 'skipCache=1 bypasses the cache');
     const bare = await fetch(`${base}/v1/google_calendar?skillId=report-skill&accountId=ci-1&calendar=personalCalendar&skipCache=`).then((r) => r.json());
-    assert.equal(bare.events[0].summary, 'v3');
+    assert.equal(bare.relayData.events[0].summary, 'v3');
     assert.equal(calls, 3, 'bare skipCache= is falsy -> cache hit');
   } finally {
     local.close();

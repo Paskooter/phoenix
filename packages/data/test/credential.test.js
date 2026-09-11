@@ -95,11 +95,17 @@ test('POST/GET/DELETE /v1/credential', async () => {
   assert.deepEqual(del, { deleted: true });
 });
 
-test('GET /v1/google_calendar -> {events:[CalendarEvent]} via stub provider', async () => {
+// D-02 finding: a stored credential + a configured events provider makes the
+// calendar route answer events. Since D-04 removed the top-level `events` mirror
+// to match the pinned reference envelope (AbstractRelayRequestHandler.ts:112-131,
+// tests/relay/GoogleCalendar.test.ts:132-162), this reads the relay envelope's
+// nested events — the same finding, at the reference path.
+test('GET /v1/google_calendar -> {relayData:{events:[CalendarEvent]}} via stub provider', async () => {
   const r = await (await j('/v1/google_calendar?skillId=report-skill&accountId=acct1&calendar=personalCalendar')).json();
-  assert.equal(r.events.length, 1);
-  assert.equal(r.events[0].summary, 'Standup');
-  assert.equal(r.events[0].fullDay, false);
+  assert.deepEqual(Object.keys(r), ['relayData', 'lassoDataFromRedis']);
+  assert.equal(r.relayData.events.length, 1);
+  assert.equal(r.relayData.events[0].summary, 'Standup');
+  assert.equal(r.relayData.events[0].fullDay, false);
 });
 
 test('calendar missing skillId -> 400', async () => {

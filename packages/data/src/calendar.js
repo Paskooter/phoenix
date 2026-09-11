@@ -30,6 +30,13 @@
 // clients are a separate task): `provider` is injected as before, and when a
 // non-oauth provider is used the handler behaves exactly as the certified D-01
 // version did (no credential/refresh step, default provider still 501).
+//
+// The upstream request the real clients issue is ported here as
+// buildUpstreamQuery (GoogleCalendarClient.ts:119-138 `singleEvents/orderBy/
+// timeMin/timeMax`; OutlookCalendarClient.ts:138-162 Graph `startDateTime/
+// endDateTime/$select/$orderby`) and is handed to the provider as
+// `ctx.upstreamQuery`, so a provider built by createUpstreamCalendarProvider
+// performs the same HTTP request the reference client does.
 
 import { sendText } from '@phoenix/common';
 import { CredentialError } from './oauth.js';
@@ -187,6 +194,116 @@ export function endDateOffsetMinutes(endDate) {
   return m[1] === '-' ? -minutes : minutes;
 }
 
+// --- upstream request params (what the provider sends to Google/Graph) ------
+
+/** GoogleCalendarHandler.ts:106 — the handler always reads the primary calendar. */
+const GOOGLE_CALENDAR_ID = 'primary';
+
+/**
+ * The exact upstream request the pinned calendar clients issue, as a descriptor
+ * (method/path/params) a provider turns into an HTTP call.
+ *
+ * GoogleCalendarClient.getEvents (calendar-client/GoogleCalendarClient.ts:119-138):
+ *   calendar.events.list({ calendarId: 'primary', singleEvents: true,
+ *     timeMin: new Date().toISOString(), timeMax: new Date(endDate).toISOString(),
+ *     orderBy: 'startTime' })
+ * The pinned wire assertion is tests/relay/GoogleCalendar.test.ts:168-172
+ * (`orderBy: 'startTime'`, `singleEvents: 'true'`, `timeMax = new Date(endDate).toISOString()`).
+ *
+ * OutlookCalendarClient.getEvents (calendar-client/OutlookCalendarClient.ts:138-162):
+ *   /me/calendarView?startDateTime=<now ISO>&endDateTime=<endDate ISO>
+ *     .select('subject,start,end,isAllDay').orderby('start/dateTime ASC')
+ * The pinned wire assertion is tests/relay/OutlookCalendar.test.ts:179-199
+ * (`$orderby: 'start/dateTime ASC'`, `endDateTime = new Date(endDate).toISOString()`).
+ */
+export function buildUpstreamQuery(serviceName, { endDate, now = Date.now() } = {}) {
+  const startDateTime = new Date(now).toISOString();
+  const endDateTime = new Date(endDate).toISOString();
+  if (serviceName === 'outlook') {
+    return {
+      method: 'GET',
+      path: '/v1.0/me/calendarView',
+      params: {
+        startDateTime,
+        endDateTime,
+        $select: 'subject,start,end,isAllDay',
+        $orderby: 'start/dateTime ASC',
+      },
+    };
+  }
+  return {
+    method: 'GET',
+    path: `/calendar/v3/calendars/${GOOGLE_CALENDAR_ID}/events`,
+    calendarId: GOOGLE_CALENDAR_ID,
+    params: {
+      singleEvents: true,
+      orderBy: 'startTime',
+      timeMin: startDateTime,
+      timeMax: endDateTime,
+    },
+  };
+}
+
+/** The reference clients' error wording (`Failed to get <Calendar> events, …`). */
+function upstreamErrorMessage(serviceName, status, text) {
+  let detail = String(text || '');
+  try {
+    const json = JSON.parse(detail);
+    detail = (json && (
+      json.error_description
+      || (json.error && (json.error.message || json.error))
+      || json.message
+      || json.code
+    )) || detail;
+  } catch { /* non-JSON body: keep the text */ }
+  if (serviceName === 'outlook') return `Failed to get Outlook events, Outlook response was ${status} ${detail}`;
+  return `Failed to get Google Calendar events, Google response was ${status} ${detail}`;
+}
+
+/**
+ * A real events provider that performs the reference client's HTTP request using
+ * the upstream descriptor the handler hands over as `ctx.upstreamQuery`.
+ * Google issues two GETs (getCalendarTimezone on the calendar resource, then the
+ * events.list window); Outlook issues the single Graph calendarView GET. The
+ * event body is read exactly like the clients do (`items` for Google, `value`
+ * for Graph, a bare array otherwise).
+ *
+ * @param {{ serviceName?: 'google'|'outlook', baseUrl: string,
+ *           getToken?: (input:object, ctx:object)=>string|Promise<string>,
+ *           fetchImpl?: Function, calendarId?: string }} opts
+ */
+export function createUpstreamCalendarProvider({
+  serviceName = 'google', baseUrl, getToken = () => undefined, fetchImpl, calendarId = GOOGLE_CALENDAR_ID,
+} = {}) {
+  const doFetch = fetchImpl || ((...args) => fetch(...args));
+  const root = String(baseUrl || '').replace(/\/+$/, '');
+  const isOutlook = serviceName === 'outlook';
+  return async (input, ctx = {}) => {
+    const upstream = (ctx && ctx.upstreamQuery) || buildUpstreamQuery(serviceName, { endDate: input.endDate });
+    const token = await getToken(input, ctx);
+    const headers = { accept: 'application/json' };
+    if (token) headers.authorization = `Bearer ${token}`;
+
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(upstream.params)) qs.set(k, String(v));
+    const eventsUrl = `${root}${upstream.path}?${qs.toString()}`;
+    const res = await doFetch(eventsUrl, { method: upstream.method, headers });
+    if (!res.ok) {
+      const text = typeof res.text === 'function' ? await res.text().catch(() => '') : '';
+      throw new Error(upstreamErrorMessage(serviceName, res.status, text));
+    }
+    const payload = await res.json();
+    const events = Array.isArray(payload) ? payload : (payload.items || payload.value || []);
+    if (isOutlook) return { events };
+
+    // GoogleCalendarHandler.ts:109 — the timezone comes from a second calendars.get.
+    const calRes = await doFetch(`${root}/calendar/v3/calendars/${upstream.calendarId || calendarId}`, { method: 'GET', headers });
+    if (!calRes.ok) return { events };
+    const resource = await calRes.json();
+    return { events, calendarTimezone: resource.timeZone };
+  };
+}
+
 // --- event normalization ----------------------------------------------------
 
 /**
@@ -303,18 +420,14 @@ function sendEmptyOk(res) {
 
 /**
  * The relay envelope (AbstractRelayRequestHandler.ts:112-131): the miss body is
- * `{ relayData, lassoDataFromRedis: false }` and the cached body adds
- * `lassoInsertedIntoRedisAt`.
- *
- * `events` is ALSO mirrored at the top level. The reference has no such key
- * (`tests/relay/GoogleCalendar.test.ts:132-162` deep-equals the two-key body), but
- * the certified D-02/D-03 Phoenix tests assert `body.events`
- * (packages/data/test/credential.test.js:98-103 and
- * packages/data/test/oauth.test.js:211-331), so D-04 keeps them green with a
- * documented superset. Dropping the mirror is a root decision, not a worker one.
+ * exactly `{ relayData, lassoDataFromRedis: false }` and the cached body adds
+ * `lassoInsertedIntoRedisAt`. The reference emits no other key — the pinned
+ * `tests/relay/GoogleCalendar.test.ts:132-162` and
+ * `tests/relay/OutlookCalendar.test.ts:126-145` deep-equal that two-key body —
+ * so there is no top-level `events` mirror (removed to close D-04 divergence D04a).
  */
 function relayEnvelope(events, fromCache) {
-  const body = { relayData: { events }, lassoDataFromRedis: fromCache, events };
+  const body = { relayData: { events }, lassoDataFromRedis: fromCache };
   if (fromCache) body.lassoInsertedIntoRedisAt = new Date().toISOString();
   return body;
 }
@@ -384,9 +497,13 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
       }
 
       // 2. Fetch events, invalidating the credential on a revoked/invalid reply.
+      // The upstream request (pinned client params) is built here and handed to
+      // the provider as ctx.upstreamQuery (GoogleCalendarClient.ts:119-138,
+      // OutlookCalendarClient.ts:138-162).
+      const upstreamQuery = buildUpstreamQuery(serviceName, { endDate: input.endDate });
       let raw;
       try {
-        raw = await provider(input, { store, credential });
+        raw = await provider(input, { store, credential, upstreamQuery });
       } catch (err) {
         if (credential && err && typeof err.message === 'string') {
           if (isOutlook && /InvalidAuthenticationToken/.test(err.message)) {
