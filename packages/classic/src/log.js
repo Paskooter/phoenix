@@ -14,9 +14,10 @@
 //   PutAsrBinary                    -> { bucketName, key, metadata, uploadUrl }    async ack
 //   SetLevel (admin)                -> { result: "Command accepted" }              sync ack
 //
-// Validation mirrors the source's Joi rules (unknown members allowed, required fields,
-// enum checks); failures are the source's Boom.badData -> HTTP 422 and unknown ops are
-// Boom.notFound -> HTTP 404. Both are emitted as the source's raw Boom payload
+// Validation mirrors the source's Joi rules (unknown members allowed, required fields, enum
+// checks, and Joi.string()'s rejection of the empty string); failures are the source's
+// Boom.badData -> HTTP 422 and unknown ops are Boom.notFound -> HTTP 404. Both are emitted
+// as the source's raw Boom payload
 // `{statusCode, error, message}` — with no error `code` — because that is what the pinned
 // client read (`extractError` -> body.error = the HTTP reason phrase). The source's codified
 // REQUEST_THROTTLED (429) / ROBOT_ONLY (403) / AUTHORIZED_UNDER_ADMIN (401) errors keep their
@@ -77,8 +78,25 @@ function sendLogError(res, err) {
   res.end(body);
 }
 
-const validString = (v) => v === undefined || typeof v === 'string';
 const plainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * The Joi failure clause for a `Joi.string()` member, or null when it passes — the wire
+ * behaviour and message text of the pinned handler's schemas, not just "is a string":
+ * joi@10 rejects the EMPTY STRING for `Joi.string()` ("is not allowed to be empty") unless
+ * the schema calls `.allow("")`; the only Log member that does is SetLevel's `namespace`.
+ * A missing value is "is required" for a `.required()` member and passes otherwise.
+ */
+const stringClause = (v, required = false) => {
+  if (v === undefined) return required ? 'is required' : null;
+  if (typeof v !== 'string') return 'must be a string';
+  if (v === '') return 'is not allowed to be empty';
+  return null;
+};
+const stringMemberError = (name, v, required = false) => {
+  const clause = stringClause(v, required);
+  return clause ? boomBadData(`child "${name}" fails because ["${name}" ${clause}]`) : null;
+};
 
 function credentialsFrom(req) {
   try {
@@ -206,8 +224,10 @@ export function makeLogHandler(store, baseFn) {
         if (!Array.isArray(b.events)) {
           return void sendLogError(res, boomBadData('child "events" fails because ["events" is required]'));
         }
-        if (!validString(b.deviceId)) return void sendLogError(res, boomBadData('child "deviceId" fails because ["deviceId" must be a string]'));
-        if (!validString(b.trackingId)) return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
+        const badDevice = stringMemberError('deviceId', b.deviceId);
+        if (badDevice) return void sendLogError(res, badDevice);
+        const badTracking = stringMemberError('trackingId', b.trackingId);
+        if (badTracking) return void sendLogError(res, badTracking);
         const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
         for (const event of b.events) {
           if (b.deviceId) event.deviceId = b.deviceId;
@@ -227,9 +247,8 @@ export function makeLogHandler(store, baseFn) {
         if (typeof b.kind !== 'string' || !KINDS.includes(b.kind)) {
           return void sendLogError(res, boomBadData('child "kind" fails because ["kind" must be one of [HEALTH, LOG]]'));
         }
-        if (typeof b.serial !== 'string') {
-          return void sendLogError(res, boomBadData('child "serial" fails because ["serial" is required]'));
-        }
+        const badSerial = stringMemberError('serial', b.serial, true);
+        if (badSerial) return void sendLogError(res, badSerial);
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
         const date = new Date();
@@ -258,7 +277,11 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'putbinary': {
-        // RAW binary body (payload stream); x-tracking-id arrives as a header.
+        // RAW binary body (payload stream); x-tracking-id arrives as a header. The source's
+        // @validateHeaders({'x-tracking-id': Joi.string()}) runs before the throttle check, so
+        // an absent header passes but an empty/non-string one is the usual Joi.string() 422.
+        const badHeader = stringMemberError('x-tracking-id', req?.headers?.['x-tracking-id']);
+        if (badHeader) return void sendLogError(res, badHeader);
         const trackingId = req?.headers?.['x-tracking-id'] || '';
         if (!selected()) return sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId } = credentialsFrom(req);
@@ -272,7 +295,8 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'putbinaryasync': {
-        if (!validString(b.trackingId)) return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
+        const badTrackingId = stringMemberError('trackingId', b.trackingId);
+        if (badTrackingId) return void sendLogError(res, badTrackingId);
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId } = credentialsFrom(req);
         const trackingIdPart = b.trackingId ? `${b.trackingId}/` : '';
@@ -281,12 +305,8 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'putasrbinary': {
-        if (b.trackingId !== undefined && typeof b.trackingId !== 'string') {
-          return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" must be a string]'));
-        }
-        if (typeof b.trackingId === 'undefined' || b.trackingId === '') {
-          return void sendLogError(res, boomBadData('child "trackingId" fails because ["trackingId" is required]'));
-        }
+        const badTrackingId = stringMemberError('trackingId', b.trackingId, true);
+        if (badTrackingId) return void sendLogError(res, badTrackingId);
         if (b.metadata !== undefined && !plainObject(b.metadata)) {
           return void sendLogError(res, boomBadData('child "metadata" fails because ["metadata" must be an object]'));
         }
@@ -316,9 +336,13 @@ export function makeLogHandler(store, baseFn) {
         }
         // Joi's VerbosityLevel has NO required members, so `{}`, `{namespace}` and `{level}`
         // are all valid upstream (200); a member that IS present is still type/enum checked.
+        // `namespace` is Joi.string().allow('') upstream, so the EMPTY STRING is a valid
+        // namespace (only non-strings are rejected); `level` has no allow(''), so '' is not
+        // in the enum and is rejected. Unknown extra members are allowed (validatePayload
+        // runs Joi with { allowUnknown: true }), so they are not checked here either.
         for (const ns of b.namespaces) {
           if (!plainObject(ns)
-            || (ns.namespace !== undefined && (typeof ns.namespace !== 'string' || ns.namespace === ''))
+            || (ns.namespace !== undefined && typeof ns.namespace !== 'string')
             || (ns.level !== undefined && !NPM_LEVELS.includes(ns.level))) {
             return void sendLogError(res, boomBadData('child "namespaces" fails because ["namespaces" items must be {namespace?, level?}]'));
           }
