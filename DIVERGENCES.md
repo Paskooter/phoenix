@@ -182,7 +182,7 @@ open questions; root read the source and classifies them here.
 |---|---|---|---|
 | D-fb | `FacebookConnect`, `FacebookMobileConnect` and `FacebookPrepareLogin` are **not implemented** and are excluded from the A-03 denominator | All three wrap Facebook's 2015-era Graph API using a Jibo-owned application ID and secret. The Graph versions they target are retired, and the Jibo app registration died with the company; a new app ID would not reproduce the original permissions, token formats, or review model. Same class as the existing `[DEAD]` exclusions (Google STT, Bing/Wolfram, Dialogflow, real OAuth refresh). | The **account-side data is retained**: `facebookAccessToken` is stored and preserved by the account model, `facebookConnected` is projected in the `Account` JSON, and Loop member projections strip the token exactly as source does. An imported household carrying a Facebook token still serializes correctly. Only the three operations that must call Facebook are excluded. A-03's implementable set is therefore **25 of 28** `Account_20151111` operations. Full reasoning: [A-03-facebook-dead-determination-20260911.md](docs/parity/candidates/A-03-facebook-dead-determination-20260911.md). |
 
-| A19a | **Jot target-prefix ambiguity.** `apis/jot-2016-05-12.normal.json` declares `targetPrefix Jot_20160126`, but the only recovered runtime test sends `Jot_20160512`. Phoenix accepts both; which was deployed at end-of-life is unresolved. |
+| A19a | **RESOLVED 2026-09-11: Jot target-prefix is not significant.** The `@jibo/server` dispatcher reads only the operation segment (`lowerMethodName = target.split('.')[1]`, byte-identical in `@jibo/server@2.1.3 dst/server.js:64-68` and `@jibo/server@3.1.1 dst/server.js:70-73`); the prefix is never compared, so `Jot_20160126` (model metadata) and `Jot_20160512` (archived runtime test) — and any other prefix — reach the same five handlers. Four prefixes x five operations return 200 against the live entrypoint. |
 | A19b | **Jot party-era operations unimplemented.** 19 pairs (CreatePart, GetMessages, UpdateMessage, MarkAllDelivered, MarkAllSeen, ListInbox, ListSent, ...) answer 400 — no matching-era handler was recovered in the archive. |
 | A19c | **Two Jot membership gaps reproduced deliberately.** `markRead` has no membership check (TODO at `srv-jot-ws-archived message.ctrl.js:134`) and `numberOfUnreadMessagesInLoops` is a raw count with no membership check, so a caller can count unread in a loop it cannot list. Faithful to source; not closed. |
 | A19d | **Jot Kafka fan-out not reconstructed.** `JotMessageCreated` is emitted with the exact `server/message-bus` payload but lands in a durable local event ledger, not a broker round-trip. |
@@ -298,4 +298,28 @@ credential.test.js:98-103 and oauth.test.js:211-331 assert body.events; the pinn
 emits exactly two keys. Removing the mirror needs those two certified files edited (root
 decision, deferred). Upstream pagination/ordering (Google singleEvents/orderBy/timeMin/timeMax,
 Graph orderby/endDateTime) lives in unported API clients. D-04 stays a candidate.
+## N03d — the time gate stays coarse deliberately (retained refusal)
+Narrowing the whole-rule `$factory:time` refusal so the `$AM_PM` arm executes is arm-for-arm
+reproducible for bare am/pm — but it converts the loud refusal into silent no-matches (`noon`,
+`morning`, `seven thirty am`) and surfaces `alarm_set_value` `$*`-wrapped arms that are not
+provably the reference's. Sound narrowing requires the time factory, whose only source does not
+parse (`time.grm:22,40` `?(?:` lexes COLON). The gate is retained and pinned by tests; N-03
+stays UNVERIFIED with 18/20 rules replayed 122/122 on three layers (parseRequest, live /v1/parse,
+local-turn WS).
+
+## N03e — worktree @phoenix/* symlink hazard (test-integrity note, second sighting)
+Worktree `node_modules` symlinks to the main checkout, so `@phoenix/*` package-name imports
+exercise the MAIN tree, not the worktree under test. The N-03 agent's broken-gate falsification
+left the gateway test green until it switched to relative imports. First sighting was H-06's
+@phoenix/gateway draft. LESSON: worktree tests must import relatively; a passing suite that
+imports by package name proves the wrong tree.
+
+## A19e/A19f/A19g — Jot error-envelope mismatches (open, deliberately not changed)
+A19e: Joi payload failures are 422 raw Boom in source (`server/server src/validate.js:22-25`)
+but 400 ValidationException in Phoenix. A19f: JOT_* business errors are raw Boom with a `code`
+field and no `x-amzn-errortype` (`@jibo/server dst/boom.js`) but Phoenix uses the shared
+`sendAmzError` envelope. A19g: a dotless Jot target throws (500) in source but Phoenix answers
+400 UnknownOperationException. All three change the raw bytes of every Jot error and the
+package-wide convention, so they were flagged, not unilaterally fixed. A-19 stays a CANDIDATE
+on these plus the dead-original-client substitution for criterion 4.
 
