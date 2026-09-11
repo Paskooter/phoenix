@@ -55,7 +55,7 @@ export class RouteNode extends NoOpNode {
 
 export const YesNoWrongIDTransition = Object.freeze({ Yes: 'Yes', No: 'No', WrongID: 'WrongID', NoMatch: 'NoMatch', NoInput: 'NoInput' });
 
-/** Reads the proposal answer; tracks the SKILL_OFFER analytics event. (YesNoWrongIDNode.ts) */
+/** Reads the proposal answer; tracks the Skill Offer analytics event. (YesNoWrongIDNode.ts) */
 export class YesNoWrongIDNode extends NoOpNode {
   constructor(name, currentSkill) {
     super(name, Object.values(YesNoWrongIDTransition));
@@ -92,9 +92,10 @@ export class YesNoWrongIDNode extends NoOpNode {
       transition = YesNoWrongIDTransition.NoInput;
     }
 
-    // SKILL_OFFER analytics for the current skill (modality: touch vs speech vs n/a)
+    // Skill Offer analytics for the current skill (modality: touch vs speech vs n/a).
+    // Source event name is skill/analytics.ts EVENTS.SKILL_OFFER = 'Skill Offer'.
     try {
-      this.currentSkill.track(data, 'SKILL_OFFER', {
+      this.currentSkill.track(data, 'Skill Offer', {
         user_response: (nlu && nlu.intent) || failure,
         modality: failure ? 'n/a' : (nlu.intent && !(asr && asr.text)) ? 'touch' : 'speech',
       });

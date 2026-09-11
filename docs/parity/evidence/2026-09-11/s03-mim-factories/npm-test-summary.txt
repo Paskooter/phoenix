@@ -1,0 +1,12 @@
+npm test (w15/s03, base 30f2b46) — EXIT 0
+# tests 1890
+# suites 7
+# pass 1882
+# fail 0
+# cancelled 0
+# skipped 8
+# todo 0
+
+Checklist: 55/79 verified (69.6%)
+Strict production smoke gate (43 cases; full corpus remains separately tracked). Evidence: /home/shell/work/phoenix/.parity/worktrees/w15-s03/.parity/runs/ci-production-21138392-4f1e-48a7-867a-3dc43910ce7c
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
