@@ -7,9 +7,10 @@ import { newMsgId, now, RequestType, ResponseType, HubErrorCode, Timeouts } from
 import { readTrace } from '@phoenix/common';
 import { preprocessContext, validateContextMessage } from '../preprocessor.js';
 import { HubError } from '../listenTransaction.js';
-import { checkContextRules, extractContextData, getAccountId, getPersonIDs } from './contextRules.js';
+import { checkContextRules, extractContextData, getAccountId } from './contextRules.js';
 import { checkIHRules } from './ihRules.js';
 import { checkSettingsRegistrations, getSkillSettingsMap } from './settingsRules.js';
+import { validateIHQuery } from '../skillConfigValidation.js';
 
 const CONTEXT_TIMEOUT = 30_000;
 
@@ -26,6 +27,7 @@ export class ProactiveTransaction {
     this.trace = readTrace({ headers: socket._jiboHeaders || {} });
     this.auth = socket._auth || null;
     this.startTime = now();
+    this.timings = {};
     this.contextPr = defer();
     this._handle = defer();
     this._txTimer = setTimeout(() => this.reject(new HubError(HubErrorCode.INTERNAL, `Maximum transaction time of ${Timeouts.transaction} exceeded`)), Timeouts.transaction);
@@ -59,6 +61,8 @@ export class ProactiveTransaction {
 
   async _chooseAction(req, context) {
     const eligible = await this._getEligible(context, req.data);
+    // RandomUtils.sample (lodash.sample) — a uniform pick, same index math as
+    // `array[Math.floor(Math.random() * array.length)]`.
     const chosen = eligible.length ? eligible[Math.floor(Math.random() * eligible.length)] : null;
     const skipSurprises = req.data.triggerSource === 'SURPRISE';
 
@@ -70,13 +74,17 @@ export class ProactiveTransaction {
       return;
     }
     this._emitMatch(chosen.skillID, false, skipSurprises);
+    const skillStart = now();
     const out = await withTimeout(
       this.components.skillClient.proactiveLaunch(chosen.skillID, { context: context.data, memo: chosen.memo }, this.trace),
       Timeouts.skill,
     );
     if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout while waiting for proactive skill ${chosen.skillID}`);
-    this._emitSkillResult(out);
+    // TransactionHandler.emitSkillResult reports the skill round-trip as `timings.skill`.
+    this.timings.skill = now() - skillStart;
+    // ProactiveTransactionHandler.getSkillResponse records BEFORE the result frame is written.
     if (out && !out.error) this._record(chosen.skillID, context, out.response);
+    this._emitSkillResult(out);
   }
 
   async _getEligible(context, reqData) {
@@ -86,8 +94,10 @@ export class ProactiveTransaction {
     const runtime = context.data.runtime || {};
     // ProactiveTransactionHandler.getTransactionData: the speaker's account is the loop
     // member whose id is the focused person; an unknown person (or one not in the loop)
-    // has no account and therefore no settings to fetch.
+    // has no account and therefore no settings to fetch. wakeUpTime is always null in the
+    // source (ProactiveTransactionHandler.ts:116), so a SinceWaking IH offset always throws.
     const focusedPersonAccountID = focusedPerson && getAccountId(runtime, focusedPerson);
+    const data = { robotID, loopID: runtime.loop && runtime.loop.loopId, focusedPerson, wakeUpTime: null };
     // To save calls to the settings service, consolidate them all into one request before
     // processing each skill config (source getEligibleActions step 3). A focus person with
     // no account, a missing loop id, or a settings-service error leaves the map empty, so
@@ -97,7 +107,7 @@ export class ProactiveTransaction {
     if (focusedPersonAccountID) {
       try {
         skillSettingsMap = await getSkillSettingsMap(
-          configs, focusedPersonAccountID, runtime.loop && runtime.loop.loopId,
+          configs, focusedPersonAccountID, data.loopID,
           this.trace.transId, this.components.settingsClient, this.log,
         );
       } catch (e) {
@@ -107,8 +117,11 @@ export class ProactiveTransaction {
     const results = [];
     for (const c of configs) {
       let prs = c.proactives.map((pr) => ({ ...pr, skillID: c.id }));
-      prs = prs.filter((pr) => { try { return checkContextRules(pr, context, reqData); } catch { return false; } });
-      prs = await checkIHRules(prs, c.IHQueries || {}, { robotID, focusedPerson }, this.components.historyClient);
+      // ContextTools.checkContextRules throws for a malformed contain/containedIn rule and the
+      // source does NOT catch it here (ProactiveTransactionHandler.ts:212-214), so the whole
+      // transaction fails rather than silently dropping the registration.
+      prs = prs.filter((pr) => checkContextRules(pr, context, reqData));
+      prs = await checkIHRules(prs, c.IHQueries || {}, data, this.components.historyClient, validateIHQuery);
       prs = checkSettingsRegistrations(prs, skillSettingsMap);
       results.push(...prs);
     }
@@ -131,16 +144,21 @@ export class ProactiveTransaction {
       this.response.write({ type: ResponseType.ERROR, final: true, ts: now(), msgID: newMsgId(), data: { message: (out.error && out.error.message) || 'skill error' } });
       return;
     }
-    this.response.write(Object.assign({}, out.response, { final: true, timings: { total: now() - this.startTime } }));
+    this.response.write(Object.assign({}, out.response, { final: true, timings: { total: now() - this.startTime, skill: this.timings.skill } }));
   }
 
   _record(skillID, context, skillResponse) {
     if (!this.components.config.recordLaunchHistory || !this.components.historyClient) return;
     const general = context.data.general || {};
+    const runtime = context.data.runtime || {};
     const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
+    // TransactionHelper.getPersonIDs (utils/TransactionHelper.ts:9-14): the record's identity is
+    // the speaker only, with the 'UNKNOWN' sentinel when no speaker was identified — the same
+    // rule ListenTransaction.recordSkillLaunch follows. peoplePresent is NOT folded in.
+    const speaker = runtime.perception && runtime.perception.speaker;
     this.components.historyClient.writeSkillLaunch({
       robotID: general.robotID, sessionID, skillID, intent: 'proactive',
-      personIDs: [...getPersonIDs(context.data.runtime || {}, { triggerData: {} })],
+      personIDs: speaker ? [speaker] : ['UNKNOWN'],
     }, this.trace);
   }
 

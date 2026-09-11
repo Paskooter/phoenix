@@ -117,7 +117,7 @@ function validateIHRule(ihrule, queryDefinitions = {}) {
   if (valueType === 'object' && ihrule.value !== null) throw new Error('Value in IHRule cannot be an object except null');
 }
 
-function validateIHQuery(query) {
+export function validateIHQuery(query) {
   checkProperties(query, ['type', 'queryRules', 'personID', 'startTimeOffset', 'endTimeOffset'], 'IHQuery');
   if (!query.type) throw new Error('IHQuery should have a type');
   if (!queryTypes[query.type]) throw new Error(`Unsupported IHQuery type: ${query.type}`);
