@@ -8,6 +8,7 @@
 
 import { newMsgId, now, ResponseType, RequestType, HubErrorCode, Timeouts } from '@phoenix/contracts';
 import { readTrace } from '@phoenix/common';
+import { SpeechHistoryRecord } from './historyClient.js';
 import { preprocessContext, validateContextMessage } from './preprocessor.js';
 import { isRedirect } from './skillClient.js';
 import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
@@ -66,6 +67,19 @@ export class ListenTransaction {
       loggingConfig: trace.loggingConfig || '{}',
     };
     this.auth = socket._auth || null;
+
+    // Speech-history log sink (ListenTransactionHandler.ts:73-82). Created once per
+    // transaction when the hub config enables it; every later update mutates this record and
+    // the whole thing is written on transaction completion (success or failure).
+    this.speechRecord = this.components.config && this.components.config.recordSpeechHistory
+      ? new SpeechHistoryRecord({
+        robotID: this.auth ? this.auth.friendlyId : undefined,
+        accountID: this.auth ? this.auth.id : undefined,
+        transID: this.trace.transId,
+        timestamp: now(),
+        audioFileURL: null,
+      })
+      : null;
 
     this.state = State.WAIT_LISTEN;
     this.stateTrace = [this.state];
@@ -158,6 +172,7 @@ export class ListenTransaction {
     if (!this.listenMessage) this._beginGlobalTurn(State.WAIT_CLIENT_ASR);
     this.asrData = { text: message.data.text, confidence: 1 };
     this.timings.asr = -1;
+    this._updateSpeech({ asr: this.asrData }); // ListenTransactionHandler.ts:261
     this._emitEOS(-1);
     this._gotoState(State.NLU);
   }
@@ -170,6 +185,7 @@ export class ListenTransaction {
     this.timings.nlu = -1;
     this.asrData = { text: '', confidence: 1 };
     this.timings.asr = -1;
+    this._updateSpeech({ asr: this.asrData, nlu: this.nluData }); // ListenTransactionHandler.ts:283
     this._emitEOS(-1);
     this._gotoState(State.ROUTE);
   }
@@ -259,6 +275,9 @@ export class ListenTransaction {
       if (out) {
         this.asrData = out;
         this.timings.asr = now() - t0;
+        // Record the RAW ASR before normalization (ListenTransactionHandler.ts:465); the clone
+        // keeps the logged transcript from following the in-place normalizeString below.
+        this._updateSpeech({ asr: Object.assign({}, this.asrData) });
         this.asrData.text = normalizeString(this.asrData.text);
         if (out.annotation === 'GARBAGE') {
           this.nluData = { intent: null, rules: [], entities: {} };
@@ -382,6 +401,7 @@ export class ListenTransaction {
       // {"code":"PARSER","message":"Request failed with status code 503"}).
       throw new HubError(HubErrorCode.PARSER, errMsg(err));
     }
+    this._updateSpeech({ nlu: this.nluData }); // ListenTransactionHandler.ts:323
     this._gotoState(State.ROUTE);
   }
 
@@ -411,7 +431,7 @@ export class ListenTransaction {
 
     const t0 = now();
     let skillOutput = await withTimeout(
-      this.components.skillClient.launchOrUpdate(skillID, { context: context.data, nlu: this.nluData, asr: this.asrData, memo }, this.trace, isUpdate),
+      this._skillLaunchOrUpdate(skillID, { context: context.data, nlu: this.nluData, asr: this.asrData, memo }, this.trace, isUpdate),
       Timeouts.skill,
     );
     if (skillOutput === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the skill response from '${skillID}'`);
@@ -448,12 +468,52 @@ export class ListenTransaction {
     this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace);
   }
 
+  // --- speech-history log sink (ListenTransactionHandler.ts:84-108) -----------
+
+  /** Mutate the in-flight speech record (no-op when recordSpeechHistory is off). */
+  _updateSpeech(data) {
+    if (this.speechRecord) this.speechRecord.update(data);
+  }
+
+  /**
+   * Fire-and-forget write of the whole speech record (ListenTransactionHandler.saveSpeechHistoryRecord).
+   * Never throws into the transaction: a history outage is logged, exactly as the reference does.
+   */
+  _saveSpeech() {
+    if (!this.speechRecord || !this.components.historyClient) return;
+    this.components.historyClient.saveSpeechRecord(this.speechRecord, this.trace)
+      .catch((err) => this.log.error(err.message));
+  }
+
+  /**
+   * Reference getSkillResponse (ListenTransactionHandler.ts:586-608): the skill output is
+   * recorded on the call's own settlement, not after the outer timeout race, so the record
+   * reflects whatever the skill call resolves with (the source records a late error envelope the
+   * same way). Mirrors `getSkillResponse`'s `updateSpeechHistoryRecord({ skill })` before any
+   * redirect handling.
+   */
+  async _skillLaunchOrUpdate(skillID, input, trace, isUpdate) {
+    const out = await this.components.skillClient.launchOrUpdate(skillID, input, trace, isUpdate);
+    this._updateSpeech({ skill: out });
+    return out;
+  }
+
+  /** Reference handleSkillRedirect's skill launch (ListenTransactionHandler.ts:623-632). */
+  async _skillLaunch(skillID, input, trace) {
+    const out = await this.components.skillClient.launch(skillID, input, trace);
+    this._updateSpeech({ skill: out });
+    return out;
+  }
+
   async _handleRedirect(redirect, context, sourceSkillID) {
+    // The reference records the redirect payload BEFORE emitting the notification and before
+    // the second skill call (ListenTransactionHandler.ts:619).
+    this._updateSpeech({ redirect: redirect.data });
     this._emitSkillRedirectNotification(redirect.data);
     const out = await withTimeout(
       // TransactionHelper's redirect launch omits ASR. The redirect NLU and
       // memo are supplied by the redirect notification instead.
-      this.components.skillClient.launch(redirect.data.skillID, { context: context.data, nlu: redirect.data.nlu, memo: redirect.data.memo }, this.trace),
+      this._skillLaunch(redirect.data.skillID, { context: context.data, nlu: redirect.data.nlu, memo: redirect.data.memo }, this.trace),
       Timeouts.skill,
     );
     // The reference's redirect timeout message names the ORIGINAL skill: the
@@ -485,6 +545,7 @@ export class ListenTransaction {
     this.response.write({ type: ResponseType.EOS, data: null, msgID: newMsgId(), ts: now(), timings: { total: total ?? now() - this.startTime } });
   }
   _emitListenResult(match, final) {
+    this._updateSpeech({ match }); // ListenTransactionHandler.ts:676 — recorded even when match is null
     this.response.write({
       type: ResponseType.LISTEN,
       msgID: newMsgId(),
@@ -521,12 +582,22 @@ export class ListenTransaction {
   resolve() {
     clearTimeout(this._txTimer);
     this._handle.resolve();
+    this._saveSpeech(); // TransactionHandler.onTransactionSuccess
   }
 
   reject(err) {
     clearTimeout(this._txTimer);
     this.state = State.STOP;
     this._handle.reject(err);
+    // TransactionHandler.reject runs onTransactionError (record the error, then save) and then
+    // stop() -> gotoState(STOP) -> done() -> resolve() -> onTransactionSuccess, which saves the
+    // SAME record a second time. Both calls are fire-and-forget creates while the record still
+    // has no id, so a failed turn writes the speech record TWICE. Observed on the pinned
+    // original in docs/parity/evidence/2026-09-11/h08-speech-history/source-speech-history.json
+    // (tooManyRedirects / parserFailure: two speechSave events, both recordId=<undefined>).
+    this._updateSpeech({ error: err });
+    this._saveSpeech();
+    this._saveSpeech();
   }
 }
 
