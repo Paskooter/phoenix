@@ -145,6 +145,16 @@ Therefore:
 The original has the same property: `GraphSkill.handle` never validates a session against the host
 shape, and `GraphManager` only checks that the id resolves inside the current manager.
 
+**Deployment half (w14 closure).** The cutover clause is closed by narrowing it to the observable
+skill-side contract above plus a runtime-tested deploy-time runbook — see
+[`cutover-runbook.md`](./cutover-runbook.md). In short: pinned source shows the hub only *reads*
+`skill.session` (`hub/src/skill/SkillRequestHelper.ts:36-63`) and receives the blob from the robot
+(`hub/src/listen/ListenTransactionHandler.ts:431-435`), so the deployment, not the cloud, owns the
+drop/re-launch decision. `scripts/parity-s01/cutover-gate.mjs` fingerprints the live node-id
+allocation and prints resume vs drop; `packages/skills/test/graph.cutover.test.js` exercises it at
+runtime (standalone `report-skill` = nodeID 31, cohosted = 35). Robot-side execution of the drop
+stays UNKNOWN below.
+
 ## Falsification (performed, concrete)
 
 1. `packages/skills/src/graph/graphManager.js:63`
@@ -181,10 +191,12 @@ shape, and `GraphManager` only checks that the id resolves inside the current ma
 
 ## Open / not verified
 
-* **UNKNOWN — robot-side cutover behaviour.** Whether the deployed hub/robot actually drops or
-  re-launches in-flight sessions on a shape change is not observable from this worktree and is not
-  covered by the skill-side evidence above. S-01 acceptance 3 is *specified and skill-side verified*,
-  not certified end-to-end.
+* **UNKNOWN — robot-side cutover action.** Whether the deployed hub/robot actually ends or
+  re-launches in-flight sessions after the cutover gate reports a shape change is not observable
+  from this worktree. The deployment side is now specified and runtime-tested
+  (`cutover-runbook.md`, `scripts/parity-s01/cutover-gate.mjs`); the robot-side action remains an
+  operator step. S-01 acceptance 3 is closed as *specified + skill-side verified + deploy-time
+  procedure verified in-process*, not certified end-to-end on hardware.
 * **UNKNOWN — deployed BE/native ASR session continuation on real hardware.** Out of scope here
   (root owns hardware); the live evidence is HTTP-level against the real skills host.
 * **INFERRED — `Graph.ts:104-108` is dead code.** The post-install loop

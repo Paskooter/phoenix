@@ -1,0 +1,33 @@
+# S-01 cutover-closure npm test summary (2026-09-11, worktree w14-s01 @ branch w14/s01, base 6c94aac)
+
+$ npm test            # npm run test:unit && npm run parity:check && npm run parity:gate
+
+## node --test (all packages)
+# duration_ms 42947.553141
+# tests 1839
+# suites 7
+# pass 1832
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+
+## npm run parity:check
+Checklist: 51/79 verified (64.6%)
+management: 3/3 verified; 0 in progress; 0 blocked
+verification: 4/4 verified; 0 in progress; 0 blocked
+pegasus: 26/46 verified; 0 in progress; 0 blocked
+classic: 18/20 verified; 0 in progress; 0 blocked
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+## npm run parity:gate
+Strict production smoke gate (43 cases; full corpus remains separately tracked).
+Evidence: .parity/runs/ci-production-3fff60de-801a-4920-a7f3-3aa83f6fa684
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+
+EXIT=0
+
+# Delta vs the w12 run (docs/parity/evidence/2026-09-11/s01-graph-sessions/npm-test-summary.txt):
+# +3 tests (packages/skills/test/graph.cutover.test.js), 0 fail, 0 cancelled, checklist unchanged at 51/79.
