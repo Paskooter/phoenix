@@ -156,12 +156,20 @@ test('applies loop member detection after the named parse', () => {
     'given-name': 'Jane',
     'last-name': 'Jetson',
   });
+  // Source parity (LoopMemberDetector.ts:70-79): a member with no usable name
+  // still builds the literal pattern `\bundefined undefined\b`, and this text
+  // contains it, so the member IS resolved and the undefined names are written
+  // onto the entities. The guard/escape that used to sit here was a Phoenix
+  // divergence from the pinned source; N-06 removed it.
   assert.deepEqual(parseRequest({
     text: 'who is undefined undefined',
     rules: ['launch'],
     loop: { users: [{ id: 'u-malformed' }] },
   }).entities, {
     union_original_fst_name: 'handle:chitchat/launch',
+    loopMemberReferent: 'u-malformed',
+    'given-name': undefined,
+    'last-name': undefined,
   });
   assert.deepEqual(parseRequest({
     text: 'jane jetson',

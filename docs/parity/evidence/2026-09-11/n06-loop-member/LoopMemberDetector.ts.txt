@@ -1,0 +1,96 @@
+# jiboV2/pegasus:packages/parser/src/utils/LoopMemberDetector.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { nlu } from '@jibo/interfaces';
+
+
+function isEqual(a: string, b: string) {
+    return a.toLowerCase() === b.toLowerCase();
+}
+
+function getStringEntityValue(entities: nlu.Entities, key: string): string {
+    const entityValue = entities && entities[key];
+    if (typeof entityValue === 'string' && entityValue.length > 0) {
+        return <string>entityValue;
+    } else {
+        return null;
+    }
+}
+
+/**
+ * Used for post-processing of NLU result
+ * to detect loop member names in entities and text
+ */
+export class LoopMemberDetector {
+
+    /**
+     * Checks which loop member is mentioned and adds loop member entities to NLU result
+     * @param request [[NLURequestData]]
+     * @param result [[NLUResult]]
+     * @returns [[NLUResult]] 
+     */
+    public static detectLoopMembers(request: nlu.NLURequestData, result: nlu.NLUResult): nlu.NLUResult {
+        const loopMember = LoopMemberDetector.findLoopMember(request, result);
+        if (loopMember) {
+            result.entities["loopMemberReferent"] = loopMember.id;
+            result.entities["given-name"] = loopMember.firstName;
+            result.entities["last-name"] = loopMember.lastName;
+        }
+        return result;
+    }
+
+    /**
+     * Finds loop member which is mentioned in NLU request
+     * by checking entities and request text
+     * @param request [[NLURequestData]]
+     * @param result [[NLUResult]]
+     * @returns Mentioned [[LoopMember]]
+     */
+    private static findLoopMember(request: nlu.NLURequestData, result: nlu.NLUResult): nlu.LooperBasicInfo {
+        if (!request.loop || !request.loop.users || !result || !result.intent) {
+            return null;
+        }
+
+        const loopUsers = request.loop.users;
+        const givenNameEntityExpected = result.entities && (result.entities.hasOwnProperty('given-name') || result.entities.hasOwnProperty('GivenName'));
+        const givenNameEntityValue = getStringEntityValue(result.entities, 'given-name') || getStringEntityValue(result.entities, 'GivenName');
+        const lastNameEntityValue =  getStringEntityValue(result.entities, 'last-name') || getStringEntityValue(result.entities, 'LastName');
+
+        // 1. Try to find loop member by provided 'given-name'+'last-name' entities
+        if (givenNameEntityValue && lastNameEntityValue) {
+            return loopUsers.find((loopUser) => {
+                return isEqual(loopUser.firstName, givenNameEntityValue)
+                    && isEqual(loopUser.lastName, lastNameEntityValue);
+            });
+        }
+
+        // 2. Try to find loop member by provided 'given-name' entity
+        if (givenNameEntityValue && !lastNameEntityValue) {
+            return loopUsers.find((loopUser) => isEqual(loopUser.firstName, givenNameEntityValue));
+        }
+
+        if (!givenNameEntityValue) {
+            // 3. Try to find loop member by first + last match in text
+            const mentionedUser = loopUsers.find((loopUser) => {
+                const fullNameRegEx = new RegExp(`\\b${loopUser.firstName} ${loopUser.lastName}\\b`, 'i');
+                return fullNameRegEx.test(request.text);
+            });
+            if (mentionedUser) {
+                return mentionedUser;
+            }
+        }
+
+        if (givenNameEntityExpected) {
+            // 4. Try to find loop member first name in text
+            const mentionedByName = loopUsers.find((loopUser) => {
+                const firstNameRegEx = new RegExp(`\\b${loopUser.firstName}\\b`, 'i');
+                return firstNameRegEx.test(request.text);
+            });
+            if (mentionedByName) {
+                return mentionedByName;
+            }
+        }
+
+        return null;
+    }
+}
+
