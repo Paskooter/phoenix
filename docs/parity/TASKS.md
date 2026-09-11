@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 24 | 46 | 0 | 0 |
+| pegasus | 26 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -515,7 +515,7 @@ Evidence: [packages/data/test/relay-runtime.test.js](../../packages/data/test/re
 
 ### H-06 — Verify proactive context/history selection and payloads
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: H-05, I-02.
 
@@ -530,7 +530,7 @@ Source: [Original Pegasus packages/hub/src/proactive](https://pvindex.org/gitea/
 
 Phoenix: [packages/gateway/src/proactive](../../packages/gateway/src/proactive).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md](../../docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md) (2026-09-11; Closed 14 substantive divergences across contextRules/ihRules/proactiveTransaction: CONTAINS_* collection rejection, string character-walk, element-equality includes, the real 13-boundary PartOfDayTimes table (replacing a hand-rolled bucket table that mis-bucketed 17:30/19:00/20:00), IH personID rules, SinceWaking throw, source unit names, type-mismatch short-circuit, missing-query abort, no per-PR swallow, speaker-only launch personIDs, record-before-result ordering, timings.skill. Live /v1/proactive socket runs incl. report_skill manifest end-to-end. Root falsified twice on the committed tree: the boundary minute edge (3 named tests failed, restore 24/0) and the malformed-rule propagation (1 named test failed, restore 24/0).).
 
 ### H-07 — Complete original ASR behavior through a replaceable provider
 
@@ -639,7 +639,7 @@ Evidence: pending.
 
 ### N-05 — Verify remaining device/content rules and global commands
 
-- [ ] **todo** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: missing
 
 Owner: Codex. Dependencies: N-02.
 
@@ -654,7 +654,7 @@ Source: [Original Pegasus packages/parser/robust-parser/rules_src](https://pvind
 
 Phoenix: [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md](../../docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md) (2026-09-11; Fixture suite covers all 98 named rules plus globals/interruption/guards: 219/219 through parseRequest AND live /v1/parse. Closed two real bugs the fixtures exposed: factory namespace isolation (a public rule's own YES/NO shadowed the factory's, so literal yes/no no-matched; now each factory top binds its own rule map) and conditional {% if %} actions (alarm_timer_change yes->delete/no->keep, right_word yes->agreement, greetings yes->good). Root falsified both lines independently (2 named tests each, restore 8/0).).
 
 ### N-06 — Implement LoopMemberDetector and contextual entity resolution
 

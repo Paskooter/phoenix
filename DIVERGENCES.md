@@ -265,4 +265,37 @@ silently reinterpreted instead of rejected. Source-faithful (the original never 
 session against the host shape), but cutover must drop/re-launch sessions; the cloud cannot
 enforce it. S-01 stays UNVERIFIED for its deployment-half acceptance (fleet behaviour on a
 shape change is not observable from a worktree).
+## H06a — proactive selection collection order (open, kept)
+The source collects skill configs with Promise.all so `results` order is completion order
+(ProactiveTransactionHandler.ts:202-239); the port iterates sequentially in config order.
+Unobservable in a single outcome because the pick is uniform. Not changed.
+
+## N05a — factory namespace isolation (FIXED)
+Phoenix merged each `$factory:NAME` into the requesting rule's namespace, so a public rule
+declaring its own YES/NO (15 vendored rules do) silently replaced the factory's and literal
+'yes'/'no' no-matched. `compileRuleTree()` now binds each graph's refs to its own rule map
+(matcher.js:129-138) and each factory top is pre-compiled against its own rules
+(requestParser.js:86-92,232-235). This also resolves N-03/D2 (N03b) for the yes_no factory.
+
+## N05b — conditional {% if %} semantic actions (FIXED)
+`parseActionBlock` skipped whole-block control flow, so 5 rules leaked the raw factory intent.
+The parser now emits `cond` tags (parser.js:243-252) evaluated in `applyTags`
+(matcher.js:183-189): alarm_timer_change yes->delete/no->keep, right_word yes->agreement,
+alarm_timer_other_set yes->replace, greetings proactive questions yes->good/no->bad. This also
+resolves N-03/D1 (N03a). Conditional coverage: 10 statements across 5 rules-src files.
+
+## N07a — N-07 accepted as candidate (open items)
+Restored 15-tool LLM catalog + fallback arbitration + external-agent provider seam are merged
+and falsified, but three acceptance sub-items stay open: compiled-FST profile unprovisioned,
+archived intent/entity catalog only a hashed denominator (the restored catalog names differ,
+N-07-D1), and the real external-agent success path has no archived responses (Dialogflow dead).
+Also noted: the 715e0dd0 handler DELETES the external-agent attachment that 5c0a739 performs;
+Phoenix keeps the 5c0a739 boundary — the union needs ratification (N-07-D2).
+
+## D04a — calendar envelope mirror + unported clients (open items)
+The calendar relay envelope mirrors `events` at top level only because certified
+credential.test.js:98-103 and oauth.test.js:211-331 assert body.events; the pinned reference
+emits exactly two keys. Removing the mirror needs those two certified files edited (root
+decision, deferred). Upstream pagination/ordering (Google singleEvents/orderBy/timeMin/timeMax,
+Graph orderby/endDateTime) lives in unported API clients. D-04 stays a candidate.
 

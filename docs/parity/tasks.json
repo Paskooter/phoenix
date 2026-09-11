@@ -836,7 +836,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -855,7 +855,18 @@
         "Replay NEW_ARRIVAL and SURPRISE with focused person, multiple/no candidates, every context/IH operator and date boundary.",
         "Verify memo, speaker/referent, skipSurprises, no-action/final frames and seeded selection through actual history/settings services."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Closed 14 substantive divergences across contextRules/ihRules/proactiveTransaction: CONTAINS_* collection rejection, string character-walk, element-equality includes, the real 13-boundary PartOfDayTimes table (replacing a hand-rolled bucket table that mis-bucketed 17:30/19:00/20:00), IH personID rules, SinceWaking throw, source unit names, type-mismatch short-circuit, missing-query abort, no per-PR swallow, speaker-only launch personIDs, record-before-result ordering, timings.skill. Live /v1/proactive socket runs incl. report_skill manifest end-to-end. Root falsified twice on the committed tree: the boundary minute edge (3 named tests failed, restore 24/0) and the malformed-rule propagation (1 named test failed, restore 24/0).",
+          "artifact": "docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "2f1fe8bd1b839cdfa7fe59ab99105c2a1f7795c3",
+          "command": "npm test",
+          "notes": "Open: Promise.all completion-order selection, handleMessage no-audio/no-json silence, context-timeout wording. No live-original hub capture exists; contract is port-vs-pinned-source plus live Phoenix sockets."
+        }
+      ]
     },
     {
       "id": "H-07",
@@ -1335,7 +1346,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "missing",
       "owner": "Codex",
       "dependsOn": [
@@ -1354,7 +1365,18 @@
         "Use the rule inventory to cover all remaining named rules and explicit global stop/repeat/thanks/navigation behavior.",
         "Exercise global interruption and local-rule precedence without false launches or over-triggering; no named rule is left without a fixture."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Fixture suite covers all 98 named rules plus globals/interruption/guards: 219/219 through parseRequest AND live /v1/parse. Closed two real bugs the fixtures exposed: factory namespace isolation (a public rule's own YES/NO shadowed the factory's, so literal yes/no no-matched; now each factory top binds its own rule map) and conditional {% if %} actions (alarm_timer_change yes->delete/no->keep, right_word yes->agreement, greetings yes->good). Root falsified both lines independently (2 named tests each, restore 8/0).",
+          "artifact": "docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "2f1fe8bd1b839cdfa7fe59ab99105c2a1f7795c3",
+          "command": "npm test",
+          "notes": "Open: pre-existing N02a digit/year tag composition; AST-vs-compiled profile differences (compiled artifact absent)."
+        }
+      ]
     },
     {
       "id": "N-06",
