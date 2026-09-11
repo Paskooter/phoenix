@@ -141,7 +141,10 @@ export function extractContextData(field, context, requestData) {
     case 'PART_OF_DAY':
       return getPartOfDay(getTimezonedDate((runtime.location || {}).iso));
     case 'DAY_OF_WEEK':
-      return getTimezonedDate((runtime.location || {}).iso).getDay(); // 0-6, Sunday-Saturday
+      // getTimezonedDate encodes the robot's wall clock as a UTC instant, so the
+      // UTC accessor is the wall-clock day on every host.  (The source used the
+      // local accessor, which only agreed on the UTC-configured cloud host.)
+      return getTimezonedDate((runtime.location || {}).iso).getUTCDay(); // 0-6, Sunday-Saturday
     case 'TRIGGER_SOURCE':
       return requestData.triggerSource;
     default:
@@ -169,12 +172,17 @@ const PART_OF_DAY_TIMES = [
 
 /**
  * TimeUtils.getPartOfDay(date): walk the boundaries backwards and stop at the last one whose
- * (hour, minute) is not after the input's. `date.getHours()/getMinutes()` are LOCAL accessors,
- * exactly as the source uses them.
+ * (hour, minute) is not after the input's.
+ *
+ * `getTimezonedDate` hands over the robot's wall clock encoded as a UTC instant
+ * (`new Date(DateTime(iso).utc + DateTime(iso).timezone.offsetUTC)`), so reading
+ * it with the UTC accessors yields that wall clock on every host.  The source
+ * used `getHours()/getMinutes()`, which is only equal to the wall clock when the
+ * server timezone is UTC — the configuration the decommissioned cloud ran in.
  */
 export function getPartOfDay(date) {
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
   let pod = PART_OF_DAY_TIMES[0].pod;
   for (let i = PART_OF_DAY_TIMES.length - 1; i >= 0; i--) {
     pod = PART_OF_DAY_TIMES[i].pod;

@@ -1,0 +1,38 @@
+S-05 final `npm test` (worktree /home/shell/work/phoenix/.parity/worktrees/w16-s05, branch w16/s05)
+
+$ npm test            # npm run test:unit && npm run parity:check && npm run parity:gate
+
+INLINE COUNTS (node --test, 1..1880 top level)
+  # tests 1942
+  # suites 7
+  # pass 1934
+  # fail 0
+  # cancelled 0
+  # skipped 8
+  # todo 0
+
+PARITY CHECK
+  Checklist: 59/79 verified (74.7%)
+  Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+PARITY GATE JSON
+  {"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+
+EXIT CODE
+  0
+
+Tail of the run:
+restoration: 0/1 verified; 0 in progress; 0 blocked
+release: 0/5 verified; 0 in progress; 0 blocked
+Next: N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
+Tracker structure, dependencies, evidence links and generated checklist are valid.
+
+> phoenix@0.0.0 parity:gate
+> node scripts/parity-production/gate.mjs
+
+Strict production smoke gate (43 cases; full corpus remains separately tracked). Evidence: /home/shell/work/phoenix/.parity/worktrees/w16-s05/.parity/runs/ci-production-d49774e2-a327-4858-89d4-80dc8a0b10ea
+image-phoenix
+candidate
+compare
+{"result": "match", "cases": 43, "differences": 0, "invariants": 0, "coverageGaps": 0}
+EXIT=0

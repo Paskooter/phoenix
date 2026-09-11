@@ -2,14 +2,21 @@
 // supplies the resolved fields; this helper adds the source's region and
 // string methods without performing a provider lookup.
 
-function titleCase(value) {
-  return String(value).replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+// The pinned jibo-data-utils `toTitleCase`/`areStringsEqual` helpers call
+// String prototype methods directly; they never coerce.  A non-string runtime
+// location field therefore throws out of `toString`, `equals`, `isLocal`,
+// `getStandardName` and `prefixIn` instead of being stringified.  The parameter
+// names are kept as the source has them so the thrown TypeError messages stay
+// byte-identical ("str.replace is not a function",
+// "strA.toLowerCase is not a function").
+function titleCase(str) {
+  return str.replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
 }
-function sameString(a, b) {
-  if (a && !b) return false;
-  if (b && !a) return false;
-  if (!a && !b) return true;
-  return String(a).toLowerCase() === String(b).toLowerCase();
+function sameString(strA, strB) {
+  if (strA && !strB) return false;
+  if (strB && !strA) return false;
+  if (!strA && !strB) return true;
+  return strA.toLowerCase() === strB.toLowerCase();
 }
 
 const JIBO_HOME = Object.freeze({
@@ -49,14 +56,18 @@ export class PromptLocation {
   isInRegion(regions) {
     if (!this.calculatedRegions) this.calculatedRegions = this.calculateRegions();
     if (typeof regions === 'string') return this.calculatedRegions.indexOf(regions) > -1;
-    if (!Array.isArray(regions)) return false;
-    return regions.some(region => this.calculatedRegions.indexOf(region) > -1);
+    // Source behaviour: a string is matched whole, anything else is walked by
+    // `length`.  A non-array without `length` (or null) therefore either misses
+    // or throws exactly as the original does; do not invent an array guard.
+    for (let i = 0, length = regions.length; i < length; ++i) {
+      if (this.calculatedRegions.indexOf(regions[i]) > -1) return true;
+    }
+    return false;
   }
 
-  equals(other) {
-    if (this === other) return true;
-    if (!other) return false;
-    return sameString(this.city, other.city) && sameString(this.stateAbbr, other.stateAbbr) && sameString(this.country, other.country);
+  equals(loc) {
+    if (this === loc) return true;
+    return sameString(this.city, loc.city) && sameString(this.stateAbbr, loc.stateAbbr) && sameString(this.country, loc.country);
   }
 
   get isLocal() {

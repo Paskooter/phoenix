@@ -1,0 +1,148 @@
+{
+ "timezones": [
+  "UTC",
+  "America/New_York",
+  "Asia/Tokyo",
+  "Australia/Lord_Howe",
+  "Pacific/Chatham"
+ ],
+ "sections": {
+  "datetime-matrix": {
+   "parity": {
+    "UTC": 0,
+    "America/New_York": 0,
+    "Asia/Tokyo": 0,
+    "Australia/Lord_Howe": 0,
+    "Pacific/Chatham": 0
+   },
+   "source_host_tz_sensitivity": {
+    "UTC": 0,
+    "America/New_York": 0,
+    "Asia/Tokyo": 0,
+    "Australia/Lord_Howe": 0,
+    "Pacific/Chatham": 0
+   },
+   "phoenix_host_tz_stability": {
+    "UTC": 0,
+    "America/New_York": 0,
+    "Asia/Tokyo": 0,
+    "Australia/Lord_Howe": 0,
+    "Pacific/Chatham": 0
+   }
+  },
+  "context-matrix": {
+   "parity": {
+    "UTC": 0,
+    "America/New_York": 0,
+    "Asia/Tokyo": 0,
+    "Australia/Lord_Howe": 0,
+    "Pacific/Chatham": 0
+   },
+   "source_host_tz_sensitivity": {
+    "UTC": 0,
+    "America/New_York": 4944,
+    "Asia/Tokyo": 4964,
+    "Australia/Lord_Howe": 4970,
+    "Pacific/Chatham": 4958
+   },
+   "phoenix_host_tz_stability": {
+    "UTC": 0,
+    "America/New_York": 0,
+    "Asia/Tokyo": 0,
+    "Australia/Lord_Howe": 0,
+    "Pacific/Chatham": 0
+   }
+  }
+ },
+ "corpus": {
+  "season_pairs_from_mim_resources": 852,
+  "season_dates": 1847,
+  "isInRange_comparisons_per_run": 1573644,
+  "datetime_option_matrix_records": 297,
+  "phrasing_records": 16623,
+  "contexts": 100,
+  "isinrange_pairs_fixture": 852
+ },
+ "outputs": {
+  "context-original-America_New_York.json": {
+   "sha256": "d5edca36f784db3b330717a2e280be0368c451665ee36a0e2941b506b9be7374",
+   "bytes": 471582
+  },
+  "context-original-Asia_Tokyo.json": {
+   "sha256": "840bc3e06c56d3aa008c1615fb8ce7e765037d55b6c7d03fbb6d8310760da3b8",
+   "bytes": 471562
+  },
+  "context-original-Australia_Lord_Howe.json": {
+   "sha256": "341e1c23652cf8be02eec6f73c0396682614d0267d5cc05b4ca1133f10ff3d68",
+   "bytes": 471562
+  },
+  "context-original-Pacific_Chatham.json": {
+   "sha256": "cc83d7122d9c0c98d5467a39f035258f054d3ba9fbd9512aa58d0408770ebd18",
+   "bytes": 471574
+  },
+  "context-original-UTC.json": {
+   "sha256": "d6ecf9dded415417d1629f4fc6b8d14414f5f1c34c5a3f163a3edffd09d5e5ae",
+   "bytes": 471284
+  },
+  "context-phoenix-America_New_York.json": {
+   "sha256": "d6ecf9dded415417d1629f4fc6b8d14414f5f1c34c5a3f163a3edffd09d5e5ae",
+   "bytes": 471284
+  },
+  "context-phoenix-Asia_Tokyo.json": {
+   "sha256": "d6ecf9dded415417d1629f4fc6b8d14414f5f1c34c5a3f163a3edffd09d5e5ae",
+   "bytes": 471284
+  },
+  "context-phoenix-Australia_Lord_Howe.json": {
+   "sha256": "d6ecf9dded415417d1629f4fc6b8d14414f5f1c34c5a3f163a3edffd09d5e5ae",
+   "bytes": 471284
+  },
+  "context-phoenix-Pacific_Chatham.json": {
+   "sha256": "d6ecf9dded415417d1629f4fc6b8d14414f5f1c34c5a3f163a3edffd09d5e5ae",
+   "bytes": 471284
+  },
+  "context-phoenix-UTC.json": {
+   "sha256": "d6ecf9dded415417d1629f4fc6b8d14414f5f1c34c5a3f163a3edffd09d5e5ae",
+   "bytes": 471284
+  },
+  "datetime-original-America_New_York.json": {
+   "sha256": "eab1a9caeaa7232390587e5f0f55096ae1e52eea16dff8b7b31517ba1a642a1b",
+   "bytes": 13522064
+  },
+  "datetime-original-Asia_Tokyo.json": {
+   "sha256": "26ac2b93041e8a0cfd84d33c576593495756afac473470d6e78c8d81073bb15b",
+   "bytes": 13522058
+  },
+  "datetime-original-Australia_Lord_Howe.json": {
+   "sha256": "889eb8d4c5e3002039ca02cff6aec786223e1d58a14cd183524125aa7268ffb8",
+   "bytes": 13522067
+  },
+  "datetime-original-Pacific_Chatham.json": {
+   "sha256": "a349f4950eb8f56e8800d58abc0c1dd0227afe8c5174041241fe311a082130e4",
+   "bytes": 13522063
+  },
+  "datetime-original-UTC.json": {
+   "sha256": "e36a7ae6e4ac6b5b205b3da2c580e09e67d7099c3a592d3789ac444bd6a4c84a",
+   "bytes": 13522051
+  },
+  "datetime-phoenix-America_New_York.json": {
+   "sha256": "eab1a9caeaa7232390587e5f0f55096ae1e52eea16dff8b7b31517ba1a642a1b",
+   "bytes": 13522064
+  },
+  "datetime-phoenix-Asia_Tokyo.json": {
+   "sha256": "26ac2b93041e8a0cfd84d33c576593495756afac473470d6e78c8d81073bb15b",
+   "bytes": 13522058
+  },
+  "datetime-phoenix-Australia_Lord_Howe.json": {
+   "sha256": "889eb8d4c5e3002039ca02cff6aec786223e1d58a14cd183524125aa7268ffb8",
+   "bytes": 13522067
+  },
+  "datetime-phoenix-Pacific_Chatham.json": {
+   "sha256": "a349f4950eb8f56e8800d58abc0c1dd0227afe8c5174041241fe311a082130e4",
+   "bytes": 13522063
+  },
+  "datetime-phoenix-UTC.json": {
+   "sha256": "e36a7ae6e4ac6b5b205b3da2c580e09e67d7099c3a592d3789ac444bd6a4c84a",
+   "bytes": 13522051
+  }
+ }
+}
