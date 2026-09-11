@@ -1,13 +1,17 @@
 // ASR factory + utils — port of hub/src/asr/{ASRFactory,ASRUtils}.ts.
 //
-// Default provider is Parakeet (self-hosted NeMo over REST). The reference also
-// had a Google STT provider (ETCO_server_asrProvider=google) — dead-era creds,
-// not ported [DEAD-DEP]; selecting it throws so the misconfiguration is loud.
+// Default provider is Parakeet (self-hosted NeMo over REST). The original
+// provider is Google Cloud STT streaming (ETCO_server_asrProvider=google); it is
+// ported behind the same seam and drives whatever recognizer stream is configured
+// (the original ETCO_server_gspeechMockAddress/Port mock seam, or an injected
+// recognizer factory). Selecting it without a recognizer seam throws loudly —
+// dead-era credentials must not silently degrade the client-visible contract.
 // Only en-US / en-CA are supported, anything else throws (reference behavior).
 // setASRProvider(fn) lets tests inject a fake session provider, mirroring
 // ASRFactory.setASRProvider.
 
 import { ParakeetASRSession } from './parakeetSession.js';
+import { GoogleASRProvider } from './googleProvider.js';
 
 const PARAKEET_URL = () => process.env.ETCO_server_parakeetUrl || process.env.PARAKEET_URL || 'http://192.168.1.252:6972';
 
@@ -18,7 +22,7 @@ export function setASRProvider(provider) { injectedProvider = provider || null; 
 
 function defaultProvider(config, log) {
   if (process.env.ETCO_server_asrProvider === 'google') {
-    throw new Error('Google STT provider is not available in phoenix (dead-era credentials); use parakeet');
+    return GoogleASRProvider.startSession(config, log);
   }
   return new ParakeetASRSession(PARAKEET_URL(), config, log);
 }
