@@ -10,13 +10,14 @@ import { Store } from '../src/store.js';
 const REPORT = 'report-skill';
 const OTHER = 'answer-skill';
 
-async function amz(base, op, body, accountId, prefix = 'Settings_20171219') {
+async function amz(base, op, body, accountId, prefix = 'Settings_20171219', accessKeyId = null) {
   const res = await fetch(`${base}/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1',
       'x-amz-target': `${prefix}.${op}`,
       ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
+      ...(accessKeyId ? { authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260911/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=abc` } : {}),
     },
     body: JSON.stringify(body || {}),
   });
@@ -108,6 +109,19 @@ test('A-06 runtime: all four Settings operations are served with the report and 
       const afterDelete = await amz(base, 'GetSettings',
         { loopId: loop._id, skills: REPORT, getView: false }, owner._id);
       assert.equal(afterDelete.body[0].data.weatherEnabled.value, 1, 'delete resets to default');
+
+      // SigV4-only caller (the app, the robot): no x-amz-credentials header, only the
+      // Authorization Credential scope. The access key resolves to the member's account
+      // id through the store (same seam as key/media); a stranger's key fails closed.
+      const sigv4 = await amz(base, 'GetSettings',
+        { loopId: loop._id, transId: 't-sigv4', skills: REPORT, getView: false }, null,
+        'Settings_20171219', owner.accessKeyId);
+      assert.equal(sigv4.status, 200);
+      assert.deepEqual(sigv4.body.map((s) => s.skillId), [REPORT]);
+      const stranger = await amz(base, 'GetSettings',
+        { loopId: loop._id, transId: 't-stranger' }, null,
+        'Settings_20171219', 'AKIDEXAMPLE12345678');
+      assert.equal(stranger.status, 403);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

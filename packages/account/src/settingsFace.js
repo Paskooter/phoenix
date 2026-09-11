@@ -73,13 +73,22 @@ function validationError(res, field, detail, hapiHeaders = false) {
 
 function accountIdFromCreds(req) {
   const raw = req.headers && req.headers['x-amz-credentials'];
-  if (!raw) return null;
-  try {
-    const credentials = JSON.parse(raw);
-    return credentials && typeof credentials.id === 'string' && credentials.id.length
-      ? credentials.id
-      : null;
-  } catch { return null; }
+  if (raw) {
+    try {
+      const credentials = JSON.parse(raw);
+      if (credentials && typeof credentials.id === 'string' && credentials.id.length) return credentials.id;
+    } catch { /* fall through to SigV4 */ }
+  }
+  // Real clients (the app, the robot) authenticate with SigV4 only and carry no
+  // x-amz-credentials header — the gateway used to resolve that to an account id.
+  // Read the access key from the Credential scope and let the caller map it via
+  // the account store (same seam as key.js keyCallerAccountId and media.js
+  // accessKeyAccountResolver). Returns the raw access key when no store is
+  // available; callers compare against account ids, so without a store lookup
+  // a SigV4-only caller still fails closed (LOOP_MEMBER_ONLY, not a bypass).
+  const auth = (req.headers && req.headers.authorization) || '';
+  const m = /Credential=([^/,\s]+)\//.exec(auth);
+  return m ? m[1] : null;
 }
 
 // parseCredentials catches only JSON parsing failures. The handler then reads
@@ -94,6 +103,33 @@ function credentialIdFromCreds(req) {
     credentials = {};
   }
   return credentials.id;
+}
+
+/**
+ * Resolve the Settings caller's account id. The forwarded x-amz-credentials header wins
+ * (gateway seam, same as Backup/key/media). Failing that, a SigV4-only caller — the app,
+ * the robot — is resolved through the account store: the Credential scope's access key
+ * maps to the owning account's _id (same seam as key.js keyCallerAccountId and media.js
+ * accessKeyAccountResolver). Without a store the raw access key is returned, which fails
+ * closed at the membership check (LOOP_MEMBER_ONLY), never a bypass.
+ */
+function resolveSettingsCaller(req, store) {
+  const direct = accountIdFromCreds(req);
+  if (direct) {
+    // A forwarded gateway identity is already an account id. A SigV4 Credential
+    // scope is a 20-char access key — resolve it through the store instead of
+    // comparing it against account ids (which always refused with LOOP_MEMBER_ONLY).
+    const looksLikeAccessKey = /^[A-Za-z0-9]{16,40}$/.test(direct);
+    if (!looksLikeAccessKey) return direct;
+    if (store && typeof store.accountByAccessKeyId === 'function') {
+      try {
+        const account = store.accountByAccessKeyId(direct);
+        if (account) return String(account.id ?? account._id ?? direct);
+      } catch { /* fall through to raw key (fails closed) */ }
+    }
+    return direct;
+  }
+  return credentialIdFromCreds(req);
 }
 
 function validateGetRequest(body, requireSettings) {
@@ -270,11 +306,11 @@ function applyInternalCors(res, req) {
   res.setHeader('access-control-expose-headers', 'WWW-Authenticate,Server-Authorization');
 }
 
-async function getWithProviders({ req, body, providers }) {
+async function getWithProviders({ req, body, providers, store = null }) {
   const context = {
     loopId: body.loopId,
     transactionId: body.transId,
-    userId: credentialIdFromCreds(req),
+    userId: resolveSettingsCaller(req, store),
   };
   const options = sourceOptions(body);
   // The handler builds options before entering SettingsController, so a
@@ -371,8 +407,8 @@ async function getWithProviders({ req, body, providers }) {
   });
 }
 
-function dispatchWithProviders(res, req, body, providers) {
-  return getWithProviders({ req, body, providers })
+function dispatchWithProviders(res, req, body, providers, store = null) {
+  return getWithProviders({ req, body, providers, store })
     .then((result) => sourceJson(res, 200, result))
     .catch((error) => {
       const info = sourceErrorInfo(error);
@@ -401,7 +437,7 @@ export function settingsAwsDispatch(store, {
         return true;
       }
       void prefix;
-      return dispatchWithProviders(res, req, body, effectiveProviders);
+      return dispatchWithProviders(res, req, body, effectiveProviders, store);
     }
     case 'getdataforsettings': {
       const validation = validateGetRequest(body, true);
@@ -409,7 +445,7 @@ export function settingsAwsDispatch(store, {
         validationError(res, validation.field, validation.detail, true);
         return true;
       }
-      return dispatchWithProviders(res, req, body, effectiveProviders);
+      return dispatchWithProviders(res, req, body, effectiveProviders, store);
     }
     case 'updatesettings': {
       if (!accountId) { amz(res, 401, { __type: 'CREDENTIALS_REQUIRED', message: 'x-amz-credentials required' }); return true; }
