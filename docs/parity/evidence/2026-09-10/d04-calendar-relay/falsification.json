@@ -1,0 +1,50 @@
+{
+  "anchorFile": "packages/data/src/calendar.js",
+  "anchorLine": 416,
+  "brokenLine": "return isHead ? undefined : relayEnvelope(events, false);",
+  "replacementLine": "return isHead ? undefined : { events };",
+  "scope": "GET miss path only (the cache-write path and the HEAD path were left intact)",
+  "failingDataTests": {
+    "file": "packages/data/test/calendar-relay.test.js",
+    "failedTests": [
+      "- D-04/1 a miss answers the relay envelope with the pinned Google fixture events",
+      "- D-04/2 the calendar timezone (not the server) decides full-day boundaries",
+      "- D-04/3 events without a usable start are filtered and a missing end is omitted",
+      "- D-04/5 a cache hit echoes the stored bytes and does not re-call the provider",
+      "- D-04/6 skipCache keeps the relay truthiness inside the calendar route",
+      "- D-04/7 a new credential drops the cached 60-second payload end to end",
+      "- D-04/9 an unparsable endDate is a 400 with the pinned message; a valid one reaches the provider",
+      " - D-04/11 Outlook replay: offsets come from endDate, not the event timezone",
+      " - D-04/12 an event timezone is honoured (IANA and the Graph Windows id)"
+    ],
+    "counts": {
+      "tests": 15,
+      "pass": 6,
+      "fail": 9,
+      "cancelled": 0
+    },
+    "capturedError": null
+  },
+  "failingIntegrationTests": {
+    "file": "packages/skills/test/calendar-lasso-integration.test.js",
+    "failedTests": [
+      "- D-04/i1 a provider returning events reaches the report through the real envelope",
+      "- D-04/i3 DIVERGENCE (report side, out of D-04 scope): the report sends a UTC endDate so an all-day Outlook event is not shifted"
+    ],
+    "counts": {
+      "tests": 3,
+      "pass": 1,
+      "fail": 2,
+      "cancelled": 0
+    },
+    "capturedError": "the report received an events array, not a parse failure"
+  },
+  "reportSideError": "Incomplete Lasso data from: google calendar",
+  "restored": {
+    "tests": 18,
+    "pass": 18,
+    "fail": 0,
+    "cancelled": 0
+  },
+  "restoredGreen": true
+}

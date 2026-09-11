@@ -1,0 +1,12 @@
+{
+  "kind": "calendar#calendar",
+  "etag": "\"ASvuD9Px_Z7bJgz-bQqJHWVYut0/-MetKqHLCNgF5GKDWwdBG6M-BgQ\"",
+  "id": "calendar-owner@gmail.com",
+  "summary": "calendar-owner@gmail.com",
+  "timeZone": "America/Chicago",
+  "conferenceProperties": {
+    "allowedConferenceSolutionTypes": [
+      "eventHangout"
+    ]
+  }
+}

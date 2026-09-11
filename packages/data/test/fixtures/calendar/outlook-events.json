@@ -1,0 +1,47 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('esharovar%40outlook.com')/calendarView(subject,start,end,isAllDay)",
+  "value": [
+    {
+      "@odata.etag": "W/\"tVAyDaDGsk2hEI2QLFk/zwAACGUpCg==\"",
+      "id": "AQMkADAwATMwMAItMTA5OQAtZGZhZS0wMAItMDAKAEYAAANFFo-hOpxrSbzPhJLQjxNTBwC1UDINoMayTaEQjZAsWT-PAAACAQ0AAAC1UDINoMayTaEQjZAsWT-PAAAACGWDhwAAAA==",
+      "subject": "Outlook Event 1",
+      "isAllDay": false,
+      "start": {
+        "dateTime": "2018-04-25T15:00:00.0000000",
+        "timeZone": "UTC"
+      },
+      "end": {
+        "dateTime": "2018-04-25T15:30:00.0000000",
+        "timeZone": "UTC"
+      }
+    },
+    {
+      "@odata.etag": "W/\"tVAyDaDGsk2hEI2QLFk/zwAACGUpKw==\"",
+      "id": "AQMkADAwATMwMAItMTA5OQAtZGZhZS0wMAItMDAKAEYAAANFFo-hOpxrSbzPhJLQjxNTBwC1UDINoMayTaEQjZAsWT-PAAACAQ0AAAC1UDINoMayTaEQjZAsWT-PAAAACGWDhgAAAA==",
+      "subject": "Outlook Event 2",
+      "isAllDay": false,
+      "start": {
+        "dateTime": "2018-04-24T15:00:00.0000000",
+        "timeZone": "UTC"
+      },
+      "end": {
+        "dateTime": "2018-04-24T15:30:00.0000000",
+        "timeZone": "UTC"
+      }
+    },
+    {
+      "@odata.etag": "W/\"tVAyDaDGsk2hEI2QLFk/zwAACGUpJA==\"",
+      "id": "AQMkADAwATMwMAItMTA5OQAtZGZhZS0wMAItMDAKAEYAAANFFo-hOpxrSbzPhJLQjxNTBwC1UDINoMayTaEQjZAsWT-PAAACAQ0AAAC1UDINoMayTaEQjZAsWT-PAAAACGWDiAAAAA==",
+      "subject": "Outlook Event 3",
+      "isAllDay": true,
+      "start": {
+        "dateTime": "2018-04-24T00:00:00.0000000",
+        "timeZone": "UTC"
+      },
+      "end": {
+        "dateTime": "2018-04-25T00:00:00.0000000",
+        "timeZone": "UTC"
+      }
+    }
+  ]
+}

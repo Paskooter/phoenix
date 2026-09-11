@@ -1,0 +1,129 @@
+{
+    "items": [
+      {
+        "kind": "calendar#event",
+        "etag": "\"3036876302622000\"",
+        "id": "3i68a469oavm9drtls7bmqladr",
+        "status": "confirmed",
+        "htmlLink": "https://www.google.com/calendar/event?eid=M2k2OGE0NjlvYXZtOWRydGxzN2JtcWxhZHIgZWxlbmFzaGFyb3ZhckBt",
+        "created": "2018-02-12T12:22:31.000Z",
+        "updated": "2018-02-12T12:22:31.311Z",
+        "summary": "Event With Start and End Date",
+        "creator": {
+          "email": "calendar-owner@gmail.com",
+          "displayName": "Calendar Owner",
+          "self": true
+        },
+        "organizer": {
+          "email": "calendar-owner@gmail.com",
+          "displayName": "Calendar Owner",
+          "self": true
+        },
+        "start": {
+          "date": "2018-04-21"
+        },
+        "end": {
+          "date": "2018-04-23"
+        },
+        "transparency": "transparent",
+        "iCalUID": "3i68a469oavm9drtls7bmqladr@google.com",
+        "sequence": 0,
+        "hangoutLink": "https://plus.google.com/hangouts/_/calendar/ZWxlbmFzaGFyb3ZhckBnbWFpbC5jb20.3i68a469oavm9drtls7bmqladr",
+        "conferenceData": {
+          "createRequest": {
+            "requestId": "l9pdkm6b063pupe23huefs34t8",
+            "conferenceSolutionKey": {
+              "type": "eventHangout"
+            },
+            "status": {
+              "statusCode": "success"
+            }
+          },
+          "entryPoints": [
+            {
+              "entryPointType": "video",
+              "uri": "https://plus.google.com/hangouts/_/calendar/ZWxlbmFzaGFyb3ZhckBnbWFpbC5jb20.3i68a469oavm9drtls7bmqladr"
+            }
+          ],
+          "conferenceSolution": {
+            "key": {
+              "type": "eventHangout"
+            },
+            "name": "Hangouts",
+            "iconUri": "https://lh5.googleusercontent.com/proxy/9vT2XwMHPzrIcW56Ic3FX6_OSYvrjHEwOUYOmA0eMoR-_sY59k4mQMd0JnqCp8GCOmqimFKP3vSeFaIe4k5MewpEcCuK6PXlB2Z4AKTMV78OB_CJqXHrrkAO-yf5FYJsiaTBwjUP9cU0lRlP-HPC2w"
+          },
+          "signature": "ANii440AyD0NpboMir7eWwJet9k4"
+        },
+        "reminders": {
+          "useDefault": false,
+          "overrides": [
+            {
+              "method": "popup",
+              "minutes": 30
+            },
+            {
+              "method": "email",
+              "minutes": 430
+            }
+          ]
+        }
+      },
+      {
+        "kind": "calendar#event",
+        "etag": "\"3045488389818000\"",
+        "id": "5jck25k88kn1b54s45ckn1lnec",
+        "status": "confirmed",
+        "htmlLink": "https://www.google.com/calendar/event?eid=NWpjazI1azg4a24xYjU0czQ1Y2tuMWxuZWMgZWxlbmFzaGFyb3ZhckBt",
+        "created": "2018-04-03T08:29:54.000Z",
+        "updated": "2018-04-03T08:29:54.909Z",
+        "summary": "Event With Start and End Time",
+        "creator": {
+          "email": "calendar-owner@gmail.com",
+          "displayName": "Calendar Owner",
+          "self": true
+        },
+        "organizer": {
+          "email": "calendar-owner@gmail.com",
+          "displayName": "Calendar Owner",
+          "self": true
+        },
+        "start": {
+          "dateTime": "2018-08-23T07:30:00-07:00"
+        },
+        "end": {
+          "dateTime": "2018-08-23T08:30:00-07:00"
+        },
+        "iCalUID": "5jck25k88kn1b54s45ckn1lnec@google.com",
+        "sequence": 0,
+        "hangoutLink": "https://hangouts.google.com/hangouts/_/calendar/ZWxlbmFzaGFyb3ZhckBnbWFpbC5jb20.5jck25k88kn1b54s45ckn1lnec",
+        "conferenceData": {
+          "createRequest": {
+            "requestId": "a4mbn6nv0tb5v2affmtrc4ih3s",
+            "conferenceSolutionKey": {
+              "type": "eventHangout"
+            },
+            "status": {
+              "statusCode": "success"
+            }
+          },
+          "entryPoints": [
+            {
+              "entryPointType": "video",
+              "uri": "https://hangouts.google.com/hangouts/_/calendar/ZWxlbmFzaGFyb3ZhckBnbWFpbC5jb20.5jck25k88kn1b54s45ckn1lnec"
+            }
+          ],
+          "conferenceSolution": {
+            "key": {
+              "type": "eventHangout"
+            },
+            "name": "Hangouts",
+            "iconUri": "https://lh5.googleusercontent.com/proxy/9vT2XwMHPzrIcW56Ic3FX6_OSYvrjHEwOUYOmA0eMoR-_sY59k4mQMd0JnqCp8GCOmqimFKP3vSeFaIe4k5MewpEcCuK6PXlB2Z4AKTMV78OB_CJqXHrrkAO-yf5FYJsiaTBwjUP9cU0lRlP-HPC2w"
+          },
+          "signature": "ANii441UcZO8+Y+aKEyKRAoo3o4D"
+        },
+        "reminders": {
+          "useDefault": true
+        }
+      }
+    ]
+}
