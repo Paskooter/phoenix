@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 18 | 46 | 0 | 0 |
+| pegasus | 19 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **H-10 — Match hub authentication and context identity checks**.
+Next ready task: **H-08 — Restore speech and launch-history side effects**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -418,7 +418,7 @@ Evidence: [docs/parity/evidence/2026-09-10/h09-skill-main-url/](../../docs/parit
 
 ### H-10 — Match hub authentication and context identity checks
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: C-02, A-02.
 
@@ -435,7 +435,7 @@ Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvi
 
 Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/preprocessor.js](../../packages/gateway/src/preprocessor.js); [packages/common/src/jwt.js](../../packages/common/src/jwt.js); [packages/gateway/test/hubAuth.test.js](../../packages/gateway/test/hubAuth.test.js); [docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json](../../docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md](../../docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md) (2026-09-11; The CreateHubToken -> Bearer upgrade that previously left H-10 unverified is now EXERCISED ON THE REAL ROBOT against the live server, twice, in both rotation directions. Moth sent GET /v1/listen with Authorization: Bearer <CreateHubToken JWT> to 192.168.1.182:29000 and got 101 Switching Protocols, then completed a native turn. The accepted token is provably Account CreateHubToken output (claim order [accessKeyId, friendlyId, id, payload, secretAccessKey, iat, exp], payload null, exp-iat 10800s) verified against ETCO_server_hubTokenSecret. After a real hub-secret rotation the cached token was refused 401 'JsonWebTokenError: invalid signature', the robot's own log recorded the re-fetch, and EXACTLY ONE refetch plus one retry with a different token upgraded to 101. Root reproduced the falsification: changing the ws auth rejection at packages/gateway/src/index.js:114 from 401 to 200 failed exactly three named tests while the CONTEXT-identity test correctly stayed green; restoring returned 4/0.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 

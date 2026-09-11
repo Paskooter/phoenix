@@ -995,7 +995,7 @@
       "track": "pegasus",
       "phase": 1,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1022,7 +1022,18 @@
         "Verify the optional account-backed extension with revocation, unavailable account service and bounded upgrade latency separately from original shared-secret behavior.",
         "Run the original signed CreateHubToken-to-Bearer-upgrade sequence, including expiry and the native single 401 refetch/retry; do not substitute portal token creation."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "The CreateHubToken -> Bearer upgrade that previously left H-10 unverified is now EXERCISED ON THE REAL ROBOT against the live server, twice, in both rotation directions. Moth sent GET /v1/listen with Authorization: Bearer <CreateHubToken JWT> to 192.168.1.182:29000 and got 101 Switching Protocols, then completed a native turn. The accepted token is provably Account CreateHubToken output (claim order [accessKeyId, friendlyId, id, payload, secretAccessKey, iat, exp], payload null, exp-iat 10800s) verified against ETCO_server_hubTokenSecret. After a real hub-secret rotation the cached token was refused 401 'JsonWebTokenError: invalid signature', the robot's own log recorded the re-fetch, and EXACTLY ONE refetch plus one retry with a different token upgraded to 101. Root reproduced the falsification: changing the ws auth rejection at packages/gateway/src/index.js:114 from 401 to 200 failed exactly three named tests while the CONTEXT-identity test correctly stayed green; restoring returned 4/0.",
+          "artifact": "docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "73eb73af83f9257f3c6b476255a3af4b13879a37",
+          "command": "node --test packages/gateway/test/hubAuth.sequence.test.js && npm test",
+          "notes": "Root verified the live environment was restored after the rotation test: hub-secret sha256 back to 053c74a0b0972017 with its original mtime, no observers left on the robot, and a real notification frame delivered and acked in 1.0s afterwards. UNKNOWN: the plaintext SigV4 CreateHubToken request line is inside TLS 1.2 with ECDHE and was not decryptable; it is proven indirectly by the fresh TLS session at the refetch instant plus the unique token claim object. The 3-hour native expiry crossing was not waited out. Microphone/wake-word/physical-ring items remain open as before."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
