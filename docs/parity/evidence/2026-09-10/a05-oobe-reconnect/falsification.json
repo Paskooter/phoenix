@@ -1,0 +1,29 @@
+{
+  "kind": "a05-falsification",
+  "date": "2026-09-10",
+  "method": "Break ONE full code line, run the test file that protects it, confirm the named test fails, restore, confirm green.",
+  "file": "packages/account/src/robotFace.js",
+  "line": 116,
+  "original_line": "    getservicetoken: getServiceToken,",
+  "broken_line": "    getservicetoken: undefined,",
+  "command": "node --test packages/account/test/oobeTargetContract.test.js",
+  "observed_failure": {
+    "tests": 7,
+    "pass": 3,
+    "fail": 4,
+    "failing_tests": [
+      "every archived OOBE operation reaches a real handler, never UnknownOperationException",
+      "the admin operation shares the normal OOBE_20161026 target prefix",
+      "PrepareRobot/GetStatus/SetupRobot/ReconnectRobot/GetServiceToken return the archived output shapes",
+      "controller failures keep the AWS-JSON envelope plus the x-amzn-errortype header"
+    ],
+    "first_failure_message": "OOBE_20161026.GetServiceToken must be a served operation (errType observed: UnknownOperationException)"
+  },
+  "after_restore": {
+    "line": "    getservicetoken: getServiceToken,",
+    "git_diff_empty": true,
+    "tests": 7,
+    "pass": 7,
+    "fail": 0
+  }
+}

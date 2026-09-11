@@ -1,0 +1,121 @@
+{
+  "kind": "a05-oobe-reconnect-runtime-probe",
+  "targets": {
+    "OOBE_20161026.PrepareRobot": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "token": "HKhSKxN",
+        "expires": 1789097513530
+      }
+    },
+    "OOBE_20161026.GetStatus(pending)": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "complete": false
+      }
+    },
+    "OOBE_20161026.SetupRobot": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "accessKeyId": "WuD4sWMoVkRXIT2otXY2",
+        "secretAccessKey": "uiNCAVX4GkDJn4OFIPySZ3eqH2btli4mMceBERWR"
+      }
+    },
+    "OOBE_20161026.GetStatus(done)": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "complete": true
+      }
+    },
+    "OOBE_20161026.ReconnectRobot": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "result": "Command accepted"
+      }
+    },
+    "OOBE_20161026.ReconnectRobot(unknown-token)": {
+      "status": 404,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": "TOKEN_NOT_FOUND",
+      "body": {
+        "__type": "TOKEN_NOT_FOUND",
+        "message": "Token not found"
+      }
+    },
+    "OOBE_20161026.GetServiceToken(non-admin)": {
+      "status": 401,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": "AUTHORIZED_UNDER_ADMIN",
+      "body": {
+        "__type": "AUTHORIZED_UNDER_ADMIN",
+        "message": "Must be authorized under admin account"
+      }
+    },
+    "OOBE_20161026.GetServiceToken(admin)": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "token": "V4GHNhf",
+        "expires": 1789097513601
+      }
+    },
+    "OOBE_20161026.UnknownOp": {
+      "status": 400,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": "UnknownOperationException",
+      "body": {
+        "__type": "UnknownOperationException",
+        "message": "unknown target OOBE_20161026.Frobnicate"
+      }
+    },
+    "OOBE.PrepareRobot(bare-prefix)": {
+      "status": 200,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": null,
+      "body": {
+        "token": "7Yj59Ef",
+        "expires": 1789097513612
+      }
+    },
+    "OOBE_20161026.SetupRobot(used-token-replay)": {
+      "status": 404,
+      "contentType": "application/x-amz-json-1.1",
+      "errType": "TOKEN_NOT_FOUND",
+      "body": {
+        "__type": "TOKEN_NOT_FOUND",
+        "message": "Token not found"
+      }
+    }
+  },
+  "persistence": {
+    "method": "spawn a real node process, wait for its first atomic snapshot, SIGKILL mid-write, reopen the file",
+    "childExit": {
+      "code": null,
+      "signal": "SIGKILL"
+    },
+    "issued": {
+      "ownerId": "0c058de847767419b5261212",
+      "robotId": "7576db817029a748719dc169",
+      "accessKeyId": "Zr5vzTde75A6vy21w6yK",
+      "secretAccessKey": "I4QPJzDoVPiM6xtX08cGwZnI26qr4VecNKLJChtX",
+      "loopId": "92ea9e4cec8f035d4ad67a29"
+    },
+    "preserved": {
+      "accessKeyId": true,
+      "secretAccessKey": true,
+      "loopRobot": true,
+      "accessKeyResolves": true
+    }
+  }
+}

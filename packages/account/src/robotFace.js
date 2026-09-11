@@ -3,9 +3,11 @@
 //
 // The robot's @jibo/jibo-server-client sends:
 //   POST /                          Content-Type: application/x-amz-json-1.1
-//   X-Amz-Target: <Prefix>.<Operation>     (we dispatch on the OPERATION, prefix-tolerant —
-//                                           the OOBE prefix isn't in the archived API defs;
-//                                           unknown prefixes are logged for field diagnosis)
+//   X-Amz-Target: <Prefix>.<Operation>     (we dispatch on the OPERATION, prefix-tolerant;
+//                                           the archived API models confirm targetPrefix
+//                                           OOBE_20161026 for BOTH apis/oobe-2016-10-26 and
+//                                           apis/oobeadmin-2016-10-26, and unknown prefixes
+//                                           are logged for field diagnosis)
 //   Authorization: AWS4-HMAC-SHA256 Credential=<accessKeyId>/...   (the remaining OOBE/Loop
 //                                           compatibility handlers retain LAN trust like the
 //                                           hub's DISABLE_AUTH; the bounded suspend handlers

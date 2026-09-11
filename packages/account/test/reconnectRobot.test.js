@@ -1,5 +1,14 @@
-// A-04/reconnect — OOBE_20161026.ReconnectRobot, implemented from
-// oobe.handler.ts / oobe.ctrl.ts @ srv-account-ws 6cea434.
+// A-04/reconnect — OOBE_20161026.ReconnectRobot.
+//
+// Handler decorators pin to srv-account-ws@6cea434 (the A-04 source snapshot):
+//   src/handlers/oobe.handler.ts — @parseCredentials({}) then
+//   @validatePayload({ id: Joi.string(), token: Joi.string().required() }).
+// The controller BODY asserted here (token -> loop exists -> not suspended -> the token's
+// account is an ACCEPTED member -> delete the token -> COMMAND_RESULT, with robotAccountId
+// taken from the parsed credentials) is the srv-account-ws master/default-branch
+// src/controllers/oobe.ctrl.ts. The pinned 6cea434 snapshot has the earlier trivial body
+// (`reconnectRobot({ token }) { deleteToken; return COMMAND_RESULT }`), which would accept a
+// reconnect with no loop, a suspended loop, or a non-member token; phoenix follows master.
 // Check order: credentials -> token (TOKEN_NOT_FOUND / TOKEN_EXPIRED) -> the
 // robot's loop (LOOP_NOT_FOUND) -> not suspended (LOOP_SUSPENDED) -> the
 // token's account is an ACCEPTED member (MEMBER_CAN_REQUEST) -> delete the
