@@ -1,0 +1,36 @@
+{
+  "task": "S-02",
+  "date": "2026-09-11",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "worktreeBranch": "w15/s02",
+  "baseRevision": "30f2b46",
+  "method": "break one full code line, confirm the named test fails, restore, confirm green",
+  "attempts": [
+    {
+      "file": "packages/skills/src/graph/nodes.js:78",
+      "originalLine": "    const looper = sourceLoopMemberReferent(data.result.nlu);",
+      "brokenLine": "    const looper = data.result.nlu.entities.loopMemberReferent;",
+      "whatItRemoves": "the localized Node 8 precondition read for data.result.nlu.entities.loopMemberReferent, so the modern V8 property-access message reaches the wire again",
+      "command": "node --test packages/skills/test/s02GlobalSupplemental.test.js",
+      "expectedNamedTest": "S-02 failure: SetLooperIDNode reproduces the source Node 8 property-access error for incomplete entities",
+      "observed": {
+        "failedTests": [
+          "not ok 9 - S-02 failure: SetLooperIDNode reproduces the source Node 8 property-access error for incomplete entities",
+          "not ok 11 - S-02 live entrypoint: entry analytics, supplemental wrapping and global cancel over HTTP"
+        ],
+        "firstFailure": "AssertionError: The validation function is expected to return \"true\". Received false / Caught error: TypeError: Cannot read properties of undefined (reading 'loopMemberReferent')",
+        "counts": "# tests 11 / # pass 9 / # fail 2",
+        "exitCode": 1
+      },
+      "restored": true,
+      "afterRestore": {
+        "command": "node --test packages/skills/test/s02GlobalSupplemental.test.js",
+        "counts": "# tests 11 / # pass 11 / # fail 0",
+        "exitCode": 0
+      }
+    }
+  ],
+  "unrelatedProbeFalsification": {
+    "note": "S-01 already falsified the graph-layer trace guard and the foreign-destination message (docs/parity/evidence/2026-09-11/s01-graph-sessions/README.md). S-02 reuses those harnesses but falsifies its own change only."
+  }
+}

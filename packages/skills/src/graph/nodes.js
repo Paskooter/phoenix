@@ -45,6 +45,20 @@ export class JCPNode extends Node {}
 
 export const SetLooperIDTransition = Object.freeze({ Cancel: 'Cancel', Success: 'Success', NotInLoop: 'NotInLoop' });
 
+// SetLooperIDNode's first source access after the nlu default is
+// `data.result.nlu.entities.loopMemberReferent`. Node 8 reported a
+// null/undefined intermediate as "Cannot read property ... of ...", while
+// current Node reports "Cannot read properties ...". The original emitted the
+// Node 8 wording on the cloud wire (the error envelope carries the message), so
+// localize only this precondition access; errors thrown by skill logic stay
+// native.
+function sourceLoopMemberReferent(nlu) {
+  const entities = nlu.entities;
+  if (entities === null) throw new TypeError("Cannot read property 'loopMemberReferent' of null");
+  if (entities === undefined) throw new TypeError("Cannot read property 'loopMemberReferent' of undefined");
+  return entities.loopMemberReferent;
+}
+
 /**
  * Reads the wrongID-flow NLU result: 'cancel' → Cancel; 'loopmember' with a loopMemberReferent
  * → override the perceived speaker (+ a supplemental SetPresentPerson behavior) → Success;
@@ -61,7 +75,7 @@ export class SetLooperIDNode extends NoOpNode {
     if (!data.result.nlu) data.result.nlu = { entities: { loopMemberReferent: null } };
 
     const intent = data.result.nlu.intent;
-    const looper = data.result.nlu.entities.loopMemberReferent;
+    const looper = sourceLoopMemberReferent(data.result.nlu);
 
     switch (intent) {
       case 'cancel':
