@@ -863,7 +863,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -886,7 +886,18 @@
         "Verify chunk boundaries, silence/noise/partial speech, upstream failures and cancellation without live vendor dependence.",
         "Measure real audio quality/latency separately; a provider replacement cannot silently remove client-visible features."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Original streaming ASR behaviour ported behind the replaceable provider seam. Root reproduced the falsification: disabling the FAST_EOS branch at packages/gateway/src/asr/googleSession.js:136 failed exactly five named tests (earlyEOS FAST_EOS annotation, the over-13-word GARBAGE rule, the isQuestionRegex exemption, END_OF_SINGLE_UTTERANCE SOS+EOS ordering, and the upstream error envelope); restoring returned 50/0 across both ASR suites.",
+          "artifact": "packages/gateway/test/asr.google.test.js",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "8665e49d97431bbd6563277ffb73f05d726fa76b",
+          "command": "node --test packages/gateway/test/asr.google.test.js packages/gateway/test/asr.test.js && npm test",
+          "notes": "packages/gateway/test/asr.test.js has a known 3000ms timing flake under concurrent full-suite load; it passes in isolation (34/0 confirmed by root). Real speech from a physical robot microphone was not exercised - the provider seam is driven with encoded fixtures."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / audio_encoding_repair",

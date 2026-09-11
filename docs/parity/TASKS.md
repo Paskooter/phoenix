@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 15 | 46 | 0 | 0 |
+| pegasus | 16 | 46 | 0 | 0 |
 | classic | 17 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -534,7 +534,7 @@ Evidence: pending.
 
 ### H-07 — Complete original ASR behavior through a replaceable provider
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: H-02.
 
@@ -550,7 +550,7 @@ Source: [Original Pegasus packages/hub/src/asr/google](https://pvindex.org/gitea
 
 Phoenix: [packages/gateway/src/asr](../../packages/gateway/src/asr); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/test/asr.test.js](../../packages/gateway/test/asr.test.js).
 
-Evidence: pending.
+Evidence: [packages/gateway/test/asr.google.test.js](../../packages/gateway/test/asr.google.test.js) (2026-09-11; Original streaming ASR behaviour ported behind the replaceable provider seam. Root reproduced the falsification: disabling the FAST_EOS branch at packages/gateway/src/asr/googleSession.js:136 failed exactly five named tests (earlyEOS FAST_EOS annotation, the over-13-word GARBAGE rule, the isQuestionRegex exemption, END_OF_SINGLE_UTTERANCE SOS+EOS ordering, and the upstream error envelope); restoring returned 50/0 across both ASR suites.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
 
