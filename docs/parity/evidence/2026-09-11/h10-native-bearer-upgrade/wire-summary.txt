@@ -1,0 +1,16 @@
+===== runB-hub-wire.txt
+  {"attempt": 1, "kind": "request", "url": "/v1/listen", "token_sha256": "34826cc05723c566fad880fa271716f1848c0be84de22701cb0fdcefcafe47f5", "ts": "20:29:57.560322"}
+  {"attempt": 1, "kind": "response", "status": "401 Unauthorized", "ts": "20:29:57.563636"}
+  {"attempt": 2, "kind": "request", "url": "/v1/listen", "token_sha256": "34826cc05723c566fad880fa271716f1848c0be84de22701cb0fdcefcafe47f5", "ts": "20:29:57.567215"}
+  {"attempt": 2, "kind": "response", "status": "401 Unauthorized", "ts": "20:29:57.569516"}
+  {"attempt": 3, "kind": "request", "url": "/v1/listen", "token_sha256": "3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432", "ts": "20:29:57.624921"}
+  {"attempt": 3, "kind": "response", "status": "101 Switching Protocols", "ts": "20:29:57.627124"}
+  token-redacted copy written to runB-hub-wire-redacted.txt
+===== runC-hub-wire.txt
+  {"attempt": 1, "kind": "request", "url": "/v1/listen", "token_sha256": "3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432", "ts": "20:31:49.952370"}
+  {"attempt": 1, "kind": "response", "status": "401 Unauthorized", "ts": "20:31:49.959132"}
+  {"attempt": 2, "kind": "request", "url": "/v1/listen", "token_sha256": "3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432", "ts": "20:31:49.963060"}
+  {"attempt": 2, "kind": "response", "status": "401 Unauthorized", "ts": "20:31:49.965595"}
+  {"attempt": 3, "kind": "request", "url": "/v1/listen", "token_sha256": "a205c3c6b515b41e29762b699a15f5b9ba857992b53b96bf998c739fc1022119", "ts": "20:31:50.040005"}
+  {"attempt": 3, "kind": "response", "status": "101 Switching Protocols", "ts": "20:31:50.042770"}
+  token-redacted copy written to runC-hub-wire-redacted.txt

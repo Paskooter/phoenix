@@ -1,0 +1,93 @@
+TAP version 13
+# {"t":"2026-09-11T00:48:44.814Z","level":"info","ns":"account","msg":"listening","port":0}
+# {"t":"2026-09-11T00:48:44.863Z","level":"info","ns":"classic","msg":"classic request","target":"Account_20151111.CreateHubToken","op":"CreateHubToken","matched":"proxy"}
+# {"t":"2026-09-11T00:48:44.882Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-11T00:48:44.893Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"Authorization is required"}
+# Subtest: the native signed CreateHubToken issues a token the Hub accepts as a Bearer credential
+not ok 1 - the native signed CreateHubToken issues a token the Hub accepts as a Bearer credential
+  ---
+  duration_ms: 82.242334
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:228:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    200 !== 401
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 401
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    file:///home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:244:12
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:237:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"t":"2026-09-11T00:48:44.901Z","level":"info","ns":"classic","msg":"classic request","target":"Account_20151111.CreateHubToken","op":"CreateHubToken","matched":"proxy"}
+# {"t":"2026-09-11T00:48:44.907Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-11T00:48:44.909Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"JsonWebTokenError: invalid signature"}
+# Subtest: a rotated Hub secret is a 401 on the cached token and the native client recovers with exactly one refetch and one retry
+not ok 2 - a rotated Hub secret is a 401 on the cached token and the native client recovers with exactly one refetch and one retry
+  ---
+  duration_ms: 13.897973
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:251:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    a stale token must be refused at the upgrade boundary
+    
+    200 !== 401
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 401
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    file:///home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:260:14
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:258:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"t":"2026-09-11T00:48:44.915Z","level":"info","ns":"classic","msg":"classic request","target":"Account_20151111.CreateHubToken","op":"CreateHubToken","matched":"proxy"}
+# {"t":"2026-09-11T00:48:44.920Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-11T00:48:44.922Z","level":"warn","ns":"gateway","msg":"ws auth failed","error":"TokenExpiredError: jwt expired"}
+# Subtest: an expired CreateHubToken is refused with the source 401 body
+not ok 3 - an expired CreateHubToken is refused with the source 401 body
+  ---
+  duration_ms: 12.261501
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:279:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    200 !== 401
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 401
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    file:///home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:286:12
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w8-h10/packages/gateway/test/hubAuth.sequence.test.js:284:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"t":"2026-09-11T00:48:44.927Z","level":"info","ns":"classic","msg":"classic request","target":"Account_20151111.CreateHubToken","op":"CreateHubToken","matched":"proxy"}
+# {"t":"2026-09-11T00:48:44.932Z","level":"info","ns":"gateway","msg":"listening","port":0}
+# {"t":"2026-09-11T00:48:44.938Z","level":"error","ns":"gateway.listen","msg":"transaction failed","error":"data.general.accountID is not equal to socket accountID"}
+# {"t":"2026-09-11T00:48:44.955Z","level":"error","ns":"gateway.proactive","msg":"transaction failed","error":"data.general.accountID is not equal to socket accountID"}
+# Subtest: CONTEXT identity is checked against the CreateHubToken identity, on both Hub paths
+ok 4 - CONTEXT identity is checked against the CreateHubToken identity, on both Hub paths
+  ---
+  duration_ms: 61.489548
+  type: 'test'
+  ...

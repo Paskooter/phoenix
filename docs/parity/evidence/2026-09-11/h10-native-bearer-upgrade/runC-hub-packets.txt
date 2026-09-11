@@ -1,0 +1,327 @@
+20:31:39.138033 IP Moth-Radius-Breazeal-Felt.jibo.32916 > api.jibo.com.https: Flags [P.], seq 1000740966:1000741001, ack 115348484, win 179, options [nop,nop,TS val 253556094 ecr 2251452912], length 35
+20:31:39.141335 IP Moth-Radius-Breazeal-Felt.jibo.32916 > api.jibo.com.https: Flags [.], ack 32, win 179, options [nop,nop,TS val 253556097 ecr 2251455913], length 0
+20:31:40.292197 IP api.jibo.com.https > Moth-Radius-Breazeal-Felt.jibo.32916: Flags [F.], seq 32, ack 35, win 501, options [nop,nop,TS val 2251457063 ecr 253556097], length 0
+20:31:40.292912 IP Moth-Radius-Breazeal-Felt.jibo.32916 > api.jibo.com.https: Flags [P.], seq 35:72, ack 33, win 179, options [nop,nop,TS val 253557249 ecr 2251457063], length 37
+20:31:40.293061 IP Moth-Radius-Breazeal-Felt.jibo.32916 > api.jibo.com.https: Flags [P.], seq 72:103, ack 33, win 179, options [nop,nop,TS val 253557249 ecr 2251457063], length 31
+20:31:40.293105 IP Moth-Radius-Breazeal-Felt.jibo.32916 > api.jibo.com.https: Flags [F.], seq 103, ack 33, win 179, options [nop,nop,TS val 253557249 ecr 2251457063], length 0
+20:31:40.295692 IP api.jibo.com.https > Moth-Radius-Breazeal-Felt.jibo.32916: Flags [R], seq 115348516, win 0, length 0
+20:31:40.295807 IP api.jibo.com.https > Moth-Radius-Breazeal-Felt.jibo.32916: Flags [R], seq 115348516, win 0, length 0
+20:31:49.945139 IP Moth-Radius-Breazeal-Felt.jibo.34270 > api.jibo.com.29000: Flags [S], seq 1295136999, win 14600, options [mss 1460,sackOK,TS val 253566901 ecr 0,nop,wscale 7], length 0
+20:31:49.952033 IP Moth-Radius-Breazeal-Felt.jibo.34270 > api.jibo.com.29000: Flags [.], ack 1, win 115, options [nop,nop,TS val 253566908 ecr 2251466724], length 0
+20:31:49.952370 IP Moth-Radius-Breazeal-Felt.jibo.34270 > api.jibo.com.29000: Flags [P.], seq 1:669, ack 1, win 115, options [nop,nop,TS val 253566908 ecr 2251466724], length 668
+Authorization: Bearer sha256:3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432
+X-JIBO-transID: tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9
+X-JIBO-robotID: Moth-Radius-Breazeal-Felt
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Key: Pe/oFOQnaiT1cboj7l0hWA==
+Host: 192.168.1.182:29000
+Connection: close
+Content-Type: text/html
+Content-Length: 36
+JsonWebTokenError: invalid signature
+20:31:49.959253 IP api.jibo.com.29000 > Moth-Radius-Breazeal-Felt.jibo.34270: Flags [F.], seq 130, ack 669, win 504, options [nop,nop,TS val 2251466730 ecr 253566908], length 0
+20:31:49.959483 IP Moth-Radius-Breazeal-Felt.jibo.34270 > api.jibo.com.29000: Flags [.], ack 130, win 123, options [nop,nop,TS val 253566915 ecr 2251466730], length 0
+20:31:49.959773 IP Moth-Radius-Breazeal-Felt.jibo.34270 > api.jibo.com.29000: Flags [F.], seq 669, ack 131, win 123, options [nop,nop,TS val 253566916 ecr 2251466730], length 0
+20:31:49.959942 IP Moth-Radius-Breazeal-Felt.jibo.34271 > api.jibo.com.29000: Flags [S], seq 2706200195, win 14600, options [mss 1460,sackOK,TS val 253566916 ecr 0,nop,wscale 7], length 0
+20:31:49.962762 IP Moth-Radius-Breazeal-Felt.jibo.34271 > api.jibo.com.29000: Flags [.], ack 1, win 115, options [nop,nop,TS val 253566919 ecr 2251466733], length 0
+20:31:49.963060 IP Moth-Radius-Breazeal-Felt.jibo.34271 > api.jibo.com.29000: Flags [P.], seq 1:669, ack 1, win 115, options [nop,nop,TS val 253566919 ecr 2251466733], length 668
+Authorization: Bearer sha256:3c9c3d9527bc0e1660f452295e2b46108153d714c151c26e19a3ee4c4a938432
+X-JIBO-transID: tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9
+X-JIBO-robotID: Moth-Radius-Breazeal-Felt
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Key: Pe/oFOQnaiT1cboj7l0hWA==
+Host: 192.168.1.182:29000
+Connection: close
+Content-Type: text/html
+Content-Length: 36
+JsonWebTokenError: invalid signature
+20:31:49.965641 IP api.jibo.com.29000 > Moth-Radius-Breazeal-Felt.jibo.34271: Flags [F.], seq 130, ack 669, win 504, options [nop,nop,TS val 2251466737 ecr 253566919], length 0
+20:31:49.965927 IP Moth-Radius-Breazeal-Felt.jibo.34271 > api.jibo.com.29000: Flags [.], ack 130, win 123, options [nop,nop,TS val 253566922 ecr 2251466737], length 0
+20:31:49.966474 IP Moth-Radius-Breazeal-Felt.jibo.34271 > api.jibo.com.29000: Flags [F.], seq 669, ack 131, win 123, options [nop,nop,TS val 253566922 ecr 2251466737], length 0
+20:31:49.975210 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [S], seq 1658495895, win 14600, options [mss 1460,sackOK,TS val 253566931 ecr 0,nop,wscale 7], length 0
+20:31:49.977677 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [.], ack 1, win 115, options [nop,nop,TS val 253566934 ecr 2251466749], length 0
+20:31:49.978017 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [P.], seq 1:518, ack 1, win 115, options [nop,nop,TS val 253566934 ecr 2251466749], length 517
+20:31:49.985427 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [.], ack 1327, win 137, options [nop,nop,TS val 253566941 ecr 2251466754], length 0
+20:31:50.004852 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [P.], seq 518:644, ack 1327, win 137, options [nop,nop,TS val 253566961 ecr 2251466754], length 126
+20:31:50.011339 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [P.], seq 644:1154, ack 1585, win 158, options [nop,nop,TS val 253566967 ecr 2251466780], length 510
+20:31:50.031135 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [P.], seq 1154:1185, ack 2215, win 181, options [nop,nop,TS val 253566987 ecr 2251466802], length 31
+20:31:50.031266 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [F.], seq 1185, ack 2215, win 181, options [nop,nop,TS val 253566987 ecr 2251466802], length 0
+20:31:50.034822 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [R], seq 1658497081, win 0, length 0
+20:31:50.034856 IP api.jibo.com.https > Moth-Radius-Breazeal-Felt.jibo.33625: Flags [F.], seq 2246, ack 1186, win 503, options [nop,nop,TS val 2251466807 ecr 253566987], length 0
+20:31:50.034882 IP Moth-Radius-Breazeal-Felt.jibo.33625 > api.jibo.com.https: Flags [R], seq 1658497081, win 0, length 0
+20:31:50.036589 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [S], seq 1886245781, win 14600, options [mss 1460,sackOK,TS val 253566992 ecr 0,nop,wscale 7], length 0
+20:31:50.039231 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], ack 1, win 115, options [nop,nop,TS val 253566995 ecr 2251466811], length 0
+20:31:50.040005 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 1:669, ack 1, win 115, options [nop,nop,TS val 253566996 ecr 2251466811], length 668
+Authorization: Bearer sha256:a205c3c6b515b41e29762b699a15f5b9ba857992b53b96bf998c739fc1022119
+X-JIBO-transID: tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9
+X-JIBO-robotID: Moth-Radius-Breazeal-Felt
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Key: RA9hLvWfq3YOX7UXskqeNg==
+Host: 192.168.1.182:29000
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: hIidv1jkcv74y008DYXK/wpZEc0=
+20:31:50.043161 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], ack 130, win 123, options [nop,nop,TS val 253566999 ecr 2251466815], length 0
+20:31:50.048001 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 669:1038, ack 130, win 123, options [nop,nop,TS val 253567004 ecr 2251466815], length 369
+20:31:50.050192 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 1038:2486, ack 130, win 123, options [nop,nop,TS val 253567006 ecr 2251466815], length 1448
+20:31:50.050274 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 2486:2646, ack 130, win 123, options [nop,nop,TS val 253567006 ecr 2251466815], length 160
+20:31:50.100213 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 2646:4094, ack 130, win 123, options [nop,nop,TS val 253567056 ecr 2251466825], length 1448
+20:31:50.100277 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 4094:4254, ack 130, win 123, options [nop,nop,TS val 253567056 ecr 2251466825], length 160
+20:31:50.150590 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 4254:5702, ack 130, win 123, options [nop,nop,TS val 253567106 ecr 2251466875], length 1448
+20:31:50.150672 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 5702:5862, ack 130, win 123, options [nop,nop,TS val 253567107 ecr 2251466875], length 160
+20:31:50.200748 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 5862:7310, ack 130, win 123, options [nop,nop,TS val 253567157 ecr 2251466925], length 1448
+20:31:50.200838 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 7310:7470, ack 130, win 123, options [nop,nop,TS val 253567157 ecr 2251466925], length 160
+20:31:50.207783 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 7470:8918, ack 130, win 123, options [nop,nop,TS val 253567164 ecr 2251466975], length 1448
+20:31:50.207836 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 8918:10249, ack 130, win 123, options [nop,nop,TS val 253567164 ecr 2251466975], length 1331
+20:31:50.250826 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 10249:11697, ack 130, win 123, options [nop,nop,TS val 253567207 ecr 2251466982], length 1448
+20:31:50.250908 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 11697:11857, ack 130, win 123, options [nop,nop,TS val 253567207 ecr 2251466982], length 160
+20:31:50.300896 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 11857:13305, ack 130, win 123, options [nop,nop,TS val 253567257 ecr 2251467026], length 1448
+20:31:50.300970 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 13305:13465, ack 130, win 123, options [nop,nop,TS val 253567257 ecr 2251467026], length 160
+20:31:50.351008 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 13465:14913, ack 130, win 123, options [nop,nop,TS val 253567307 ecr 2251467075], length 1448
+20:31:50.351096 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 14913:15073, ack 130, win 123, options [nop,nop,TS val 253567307 ecr 2251467075], length 160
+20:31:50.401053 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 15073:16521, ack 130, win 123, options [nop,nop,TS val 253567357 ecr 2251467127], length 1448
+20:31:50.401107 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 16521:16681, ack 130, win 123, options [nop,nop,TS val 253567357 ecr 2251467127], length 160
+20:31:50.451210 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 16681:18129, ack 130, win 123, options [nop,nop,TS val 253567407 ecr 2251467177], length 1448
+20:31:50.451281 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 18129:18289, ack 130, win 123, options [nop,nop,TS val 253567407 ecr 2251467177], length 160
+20:31:50.501314 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 18289:19737, ack 130, win 123, options [nop,nop,TS val 253567457 ecr 2251467226], length 1448
+20:31:50.501391 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 19737:19897, ack 130, win 123, options [nop,nop,TS val 253567457 ecr 2251467226], length 160
+20:31:50.551367 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 19897:21345, ack 130, win 123, options [nop,nop,TS val 253567507 ecr 2251467276], length 1448
+20:31:50.551455 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 21345:21505, ack 130, win 123, options [nop,nop,TS val 253567507 ecr 2251467276], length 160
+20:31:50.601451 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 21505:22953, ack 130, win 123, options [nop,nop,TS val 253567557 ecr 2251467326], length 1448
+20:31:50.601512 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 22953:23113, ack 130, win 123, options [nop,nop,TS val 253567557 ecr 2251467326], length 160
+20:31:50.651847 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 23113:24561, ack 130, win 123, options [nop,nop,TS val 253567608 ecr 2251467376], length 1448
+20:31:50.651927 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 24561:24721, ack 130, win 123, options [nop,nop,TS val 253567608 ecr 2251467376], length 160
+20:31:50.701900 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 24721:26169, ack 130, win 123, options [nop,nop,TS val 253567658 ecr 2251467426], length 1448
+20:31:50.701956 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 26169:26329, ack 130, win 123, options [nop,nop,TS val 253567658 ecr 2251467426], length 160
+20:31:50.751984 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 26329:27777, ack 130, win 123, options [nop,nop,TS val 253567708 ecr 2251467476], length 1448
+20:31:50.752060 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 27777:27937, ack 130, win 123, options [nop,nop,TS val 253567708 ecr 2251467476], length 160
+20:31:50.802099 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 27937:29385, ack 130, win 123, options [nop,nop,TS val 253567758 ecr 2251467527], length 1448
+20:31:50.802154 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 29385:29545, ack 130, win 123, options [nop,nop,TS val 253567758 ecr 2251467527], length 160
+20:31:50.852165 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 29545:30993, ack 130, win 123, options [nop,nop,TS val 253567808 ecr 2251467576], length 1448
+20:31:50.852213 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 30993:31153, ack 130, win 123, options [nop,nop,TS val 253567808 ecr 2251467576], length 160
+20:31:50.902640 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 31153:32601, ack 130, win 123, options [nop,nop,TS val 253567859 ecr 2251467627], length 1448
+20:31:50.902707 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 32601:32761, ack 130, win 123, options [nop,nop,TS val 253567859 ecr 2251467627], length 160
+20:31:50.952730 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 32761:34209, ack 130, win 123, options [nop,nop,TS val 253567909 ecr 2251467677], length 1448
+20:31:50.952790 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 34209:34369, ack 130, win 123, options [nop,nop,TS val 253567909 ecr 2251467677], length 160
+20:31:51.002832 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 34369:35817, ack 130, win 123, options [nop,nop,TS val 253567959 ecr 2251467727], length 1448
+20:31:51.002918 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 35817:35977, ack 130, win 123, options [nop,nop,TS val 253567959 ecr 2251467727], length 160
+20:31:51.052980 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 35977:37425, ack 130, win 123, options [nop,nop,TS val 253568009 ecr 2251467777], length 1448
+20:31:51.053049 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 37425:37585, ack 130, win 123, options [nop,nop,TS val 253568009 ecr 2251467777], length 160
+20:31:51.105740 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 37585:39033, ack 130, win 123, options [nop,nop,TS val 253568062 ecr 2251467828], length 1448
+20:31:51.105820 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 39033:39193, ack 130, win 123, options [nop,nop,TS val 253568062 ecr 2251467828], length 160
+20:31:51.155879 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 39193:40641, ack 130, win 123, options [nop,nop,TS val 253568112 ecr 2251467880], length 1448
+20:31:51.155939 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 40641:40801, ack 130, win 123, options [nop,nop,TS val 253568112 ecr 2251467880], length 160
+20:31:51.205971 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 40801:42249, ack 130, win 123, options [nop,nop,TS val 253568162 ecr 2251467931], length 1448
+20:31:51.206060 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 42249:42409, ack 130, win 123, options [nop,nop,TS val 253568162 ecr 2251467931], length 160
+20:31:51.256075 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 42409:43857, ack 130, win 123, options [nop,nop,TS val 253568212 ecr 2251467982], length 1448
+20:31:51.256161 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 43857:44017, ack 130, win 123, options [nop,nop,TS val 253568212 ecr 2251467982], length 160
+20:31:51.306392 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 44017:45465, ack 130, win 123, options [nop,nop,TS val 253568262 ecr 2251468030], length 1448
+20:31:51.306467 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 45465:45625, ack 130, win 123, options [nop,nop,TS val 253568262 ecr 2251468030], length 160
+20:31:51.356483 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 45625:47073, ack 130, win 123, options [nop,nop,TS val 253568312 ecr 2251468081], length 1448
+20:31:51.356570 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 47073:47233, ack 130, win 123, options [nop,nop,TS val 253568312 ecr 2251468081], length 160
+20:31:51.406605 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 47233:48681, ack 130, win 123, options [nop,nop,TS val 253568362 ecr 2251468132], length 1448
+20:31:51.406865 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 48681:48841, ack 130, win 123, options [nop,nop,TS val 253568363 ecr 2251468132], length 160
+20:31:51.456774 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 48841:50289, ack 130, win 123, options [nop,nop,TS val 253568413 ecr 2251468181], length 1448
+20:31:51.456850 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 50289:50449, ack 130, win 123, options [nop,nop,TS val 253568413 ecr 2251468181], length 160
+20:31:51.506850 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 50449:51897, ack 130, win 123, options [nop,nop,TS val 253568463 ecr 2251468231], length 1448
+20:31:51.506927 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 51897:52057, ack 130, win 123, options [nop,nop,TS val 253568463 ecr 2251468231], length 160
+20:31:51.557389 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 52057:53505, ack 130, win 123, options [nop,nop,TS val 253568513 ecr 2251468281], length 1448
+20:31:51.557481 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 53505:53665, ack 130, win 123, options [nop,nop,TS val 253568513 ecr 2251468281], length 160
+20:31:51.607479 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 53665:55113, ack 130, win 123, options [nop,nop,TS val 253568563 ecr 2251468332], length 1448
+20:31:51.607551 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 55113:55273, ack 130, win 123, options [nop,nop,TS val 253568563 ecr 2251468332], length 160
+20:31:51.657562 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 55273:56721, ack 130, win 123, options [nop,nop,TS val 253568613 ecr 2251468382], length 1448
+20:31:51.657636 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 56721:56881, ack 130, win 123, options [nop,nop,TS val 253568614 ecr 2251468382], length 160
+20:31:51.707640 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 56881:58329, ack 130, win 123, options [nop,nop,TS val 253568664 ecr 2251468433], length 1448
+20:31:51.707710 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 58329:58489, ack 130, win 123, options [nop,nop,TS val 253568664 ecr 2251468433], length 160
+20:31:51.757776 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 58489:59937, ack 130, win 123, options [nop,nop,TS val 253568714 ecr 2251468482], length 1448
+20:31:51.757846 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 59937:60097, ack 130, win 123, options [nop,nop,TS val 253568714 ecr 2251468482], length 160
+20:31:51.807862 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 60097:61545, ack 130, win 123, options [nop,nop,TS val 253568764 ecr 2251468532], length 1448
+20:31:51.807960 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 61545:61705, ack 130, win 123, options [nop,nop,TS val 253568764 ecr 2251468532], length 160
+20:31:51.857980 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 61705:63153, ack 130, win 123, options [nop,nop,TS val 253568814 ecr 2251468582], length 1448
+20:31:51.858028 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 63153:63313, ack 130, win 123, options [nop,nop,TS val 253568814 ecr 2251468582], length 160
+20:31:51.908706 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 63313:64761, ack 130, win 123, options [nop,nop,TS val 253568865 ecr 2251468632], length 1448
+20:31:51.908769 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 64761:64921, ack 130, win 123, options [nop,nop,TS val 253568865 ecr 2251468632], length 160
+20:31:51.958729 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 64921:66369, ack 130, win 123, options [nop,nop,TS val 253568915 ecr 2251468683], length 1448
+20:31:51.958791 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 66369:66529, ack 130, win 123, options [nop,nop,TS val 253568915 ecr 2251468683], length 160
+20:31:52.008822 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 66529:67977, ack 130, win 123, options [nop,nop,TS val 253568965 ecr 2251468734], length 1448
+20:31:52.008916 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 67977:68137, ack 130, win 123, options [nop,nop,TS val 253568965 ecr 2251468734], length 160
+20:31:52.058903 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 68137:69585, ack 130, win 123, options [nop,nop,TS val 253569015 ecr 2251468783], length 1448
+20:31:52.058977 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 69585:69745, ack 130, win 123, options [nop,nop,TS val 253569015 ecr 2251468783], length 160
+20:31:52.109041 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 69745:71193, ack 130, win 123, options [nop,nop,TS val 253569065 ecr 2251468834], length 1448
+20:31:52.109100 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 71193:71353, ack 130, win 123, options [nop,nop,TS val 253569065 ecr 2251468834], length 160
+20:31:52.159134 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 71353:72801, ack 130, win 123, options [nop,nop,TS val 253569115 ecr 2251468883], length 1448
+20:31:52.159217 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 72801:72961, ack 130, win 123, options [nop,nop,TS val 253569115 ecr 2251468883], length 160
+20:31:52.209902 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 72961:74409, ack 130, win 123, options [nop,nop,TS val 253569166 ecr 2251468934], length 1448
+20:31:52.209947 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 74409:74569, ack 130, win 123, options [nop,nop,TS val 253569166 ecr 2251468934], length 160
+20:31:52.260178 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 74569:76017, ack 130, win 123, options [nop,nop,TS val 253569216 ecr 2251468984], length 1448
+20:31:52.260226 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 76017:76177, ack 130, win 123, options [nop,nop,TS val 253569216 ecr 2251468984], length 160
+20:31:52.284623 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [S], seq 3385556161, win 14600, options [mss 1460,sackOK,TS val 253569241 ecr 0,nop,wscale 7], length 0
+20:31:52.287715 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [.], ack 1, win 115, options [nop,nop,TS val 253569244 ecr 2251469059], length 0
+20:31:52.288256 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [P.], seq 1:513, ack 1, win 115, options [nop,nop,TS val 253569244 ecr 2251469059], length 512
+20:31:52.291741 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [.], ack 1327, win 137, options [nop,nop,TS val 253569248 ecr 2251469063], length 0
+20:31:52.302260 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [P.], seq 513:639, ack 1327, win 137, options [nop,nop,TS val 253569258 ecr 2251469063], length 126
+20:31:52.310265 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 76177:77625, ack 130, win 123, options [nop,nop,TS val 253569266 ecr 2251469034], length 1448
+20:31:52.310324 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 77625:77785, ack 130, win 123, options [nop,nop,TS val 253569266 ecr 2251469034], length 160
+20:31:52.320127 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [P.], seq 639:1244, ack 1585, win 158, options [nop,nop,TS val 253569276 ecr 2251469077], length 605
+20:31:52.328623 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [.], ack 4481, win 203, options [nop,nop,TS val 253569285 ecr 2251469100], length 0
+20:31:52.329218 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [.], ack 7377, win 248, options [nop,nop,TS val 253569285 ecr 2251469100], length 0
+20:31:52.329291 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [.], ack 8892, win 271, options [nop,nop,TS val 253569285 ecr 2251469100], length 0
+20:31:52.359052 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [F.], seq 1244, ack 8892, win 271, options [nop,nop,TS val 253569315 ecr 2251469100], length 0
+20:31:52.360347 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 77785:79233, ack 130, win 123, options [nop,nop,TS val 253569316 ecr 2251469084], length 1448
+20:31:52.360396 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 79233:79393, ack 130, win 123, options [nop,nop,TS val 253569316 ecr 2251469084], length 160
+20:31:52.362401 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [R], seq 3385557406, win 0, length 0
+20:31:52.362433 IP api.jibo.com.https > Moth-Radius-Breazeal-Felt.jibo.33660: Flags [F.], seq 8923, ack 1245, win 502, options [nop,nop,TS val 2251469133 ecr 253569315], length 0
+20:31:52.362465 IP Moth-Radius-Breazeal-Felt.jibo.33660 > api.jibo.com.https: Flags [R], seq 3385557406, win 0, length 0
+20:31:52.410422 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 79393:80841, ack 130, win 123, options [nop,nop,TS val 253569366 ecr 2251469134], length 1448
+20:31:52.410476 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 80841:81001, ack 130, win 123, options [nop,nop,TS val 253569366 ecr 2251469134], length 160
+20:31:52.460549 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 81001:82449, ack 130, win 123, options [nop,nop,TS val 253569416 ecr 2251469185], length 1448
+20:31:52.460607 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 82449:82609, ack 130, win 123, options [nop,nop,TS val 253569417 ecr 2251469185], length 160
+20:31:52.510658 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 82609:84057, ack 130, win 123, options [nop,nop,TS val 253569467 ecr 2251469235], length 1448
+20:31:52.510705 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 84057:84217, ack 130, win 123, options [nop,nop,TS val 253569467 ecr 2251469235], length 160
+20:31:52.560681 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 84217:85665, ack 130, win 123, options [nop,nop,TS val 253569517 ecr 2251469285], length 1448
+20:31:52.560713 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 85665:85825, ack 130, win 123, options [nop,nop,TS val 253569517 ecr 2251469285], length 160
+20:31:52.610775 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 85825:87273, ack 130, win 123, options [nop,nop,TS val 253569567 ecr 2251469335], length 1448
+20:31:52.610817 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 87273:87433, ack 130, win 123, options [nop,nop,TS val 253569567 ecr 2251469335], length 160
+20:31:52.660836 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 87433:88881, ack 130, win 123, options [nop,nop,TS val 253569617 ecr 2251469385], length 1448
+20:31:52.660873 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 88881:89041, ack 130, win 123, options [nop,nop,TS val 253569617 ecr 2251469385], length 160
+20:31:52.710931 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 89041:90489, ack 130, win 123, options [nop,nop,TS val 253569667 ecr 2251469435], length 1448
+20:31:52.710978 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 90489:90649, ack 130, win 123, options [nop,nop,TS val 253569667 ecr 2251469435], length 160
+20:31:52.761194 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 90649:92097, ack 130, win 123, options [nop,nop,TS val 253569717 ecr 2251469485], length 1448
+20:31:52.761249 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 92097:92257, ack 130, win 123, options [nop,nop,TS val 253569717 ecr 2251469485], length 160
+20:31:52.811262 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 92257:93705, ack 130, win 123, options [nop,nop,TS val 253569767 ecr 2251469535], length 1448
+20:31:52.811307 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 93705:93865, ack 130, win 123, options [nop,nop,TS val 253569767 ecr 2251469535], length 160
+20:31:52.861884 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 93865:95313, ack 130, win 123, options [nop,nop,TS val 253569818 ecr 2251469585], length 1448
+20:31:52.861961 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 95313:95473, ack 130, win 123, options [nop,nop,TS val 253569818 ecr 2251469585], length 160
+20:31:52.911912 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 95473:96921, ack 130, win 123, options [nop,nop,TS val 253569868 ecr 2251469636], length 1448
+20:31:52.911956 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 96921:97081, ack 130, win 123, options [nop,nop,TS val 253569868 ecr 2251469636], length 160
+20:31:52.961981 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 97081:98529, ack 130, win 123, options [nop,nop,TS val 253569918 ecr 2251469686], length 1448
+20:31:52.962031 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 98529:98689, ack 130, win 123, options [nop,nop,TS val 253569918 ecr 2251469686], length 160
+20:31:53.012133 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 98689:100137, ack 130, win 123, options [nop,nop,TS val 253569968 ecr 2251469736], length 1448
+20:31:53.012210 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 100137:100297, ack 130, win 123, options [nop,nop,TS val 253569968 ecr 2251469736], length 160
+20:31:53.062301 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 100297:101745, ack 130, win 123, options [nop,nop,TS val 253570018 ecr 2251469786], length 1448
+20:31:53.062352 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 101745:101905, ack 130, win 123, options [nop,nop,TS val 253570018 ecr 2251469786], length 160
+20:31:53.112354 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 101905:103353, ack 130, win 123, options [nop,nop,TS val 253570068 ecr 2251469837], length 1448
+20:31:53.112393 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 103353:103513, ack 130, win 123, options [nop,nop,TS val 253570068 ecr 2251469837], length 160
+20:31:53.162495 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 103513:104961, ack 130, win 123, options [nop,nop,TS val 253570118 ecr 2251469886], length 1448
+20:31:53.162564 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 104961:105121, ack 130, win 123, options [nop,nop,TS val 253570118 ecr 2251469886], length 160
+20:31:53.212545 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 105121:106569, ack 130, win 123, options [nop,nop,TS val 253570168 ecr 2251469939], length 1448
+20:31:53.212624 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 106569:106729, ack 130, win 123, options [nop,nop,TS val 253570169 ecr 2251469939], length 160
+20:31:53.262667 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 106729:108177, ack 130, win 123, options [nop,nop,TS val 253570219 ecr 2251469987], length 1448
+20:31:53.262728 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 108177:108337, ack 130, win 123, options [nop,nop,TS val 253570219 ecr 2251469987], length 160
+20:31:53.312724 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 108337:109785, ack 130, win 123, options [nop,nop,TS val 253570269 ecr 2251470037], length 1448
+20:31:53.312773 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 109785:109945, ack 130, win 123, options [nop,nop,TS val 253570269 ecr 2251470037], length 160
+20:31:53.362793 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 109945:111393, ack 130, win 123, options [nop,nop,TS val 253570319 ecr 2251470087], length 1448
+20:31:53.362836 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 111393:111553, ack 130, win 123, options [nop,nop,TS val 253570319 ecr 2251470087], length 160
+20:31:53.412884 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 111553:113001, ack 130, win 123, options [nop,nop,TS val 253570369 ecr 2251470137], length 1448
+20:31:53.412945 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 113001:113161, ack 130, win 123, options [nop,nop,TS val 253570369 ecr 2251470137], length 160
+20:31:53.462926 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 113161:114609, ack 130, win 123, options [nop,nop,TS val 253570419 ecr 2251470187], length 1448
+20:31:53.462965 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 114609:114769, ack 130, win 123, options [nop,nop,TS val 253570419 ecr 2251470187], length 160
+20:31:53.513007 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 114769:116217, ack 130, win 123, options [nop,nop,TS val 253570469 ecr 2251470237], length 1448
+20:31:53.513047 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 116217:116377, ack 130, win 123, options [nop,nop,TS val 253570469 ecr 2251470237], length 160
+20:31:53.563117 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 116377:117825, ack 130, win 123, options [nop,nop,TS val 253570519 ecr 2251470287], length 1448
+20:31:53.563175 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 117825:117985, ack 130, win 123, options [nop,nop,TS val 253570519 ecr 2251470287], length 160
+20:31:53.613208 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 117985:119433, ack 130, win 123, options [nop,nop,TS val 253570569 ecr 2251470337], length 1448
+20:31:53.613273 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 119433:119593, ack 130, win 123, options [nop,nop,TS val 253570569 ecr 2251470337], length 160
+20:31:53.663269 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 119593:121041, ack 130, win 123, options [nop,nop,TS val 253570619 ecr 2251470388], length 1448
+20:31:53.663316 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 121041:121201, ack 130, win 123, options [nop,nop,TS val 253570619 ecr 2251470388], length 160
+20:31:53.713389 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 121201:122649, ack 130, win 123, options [nop,nop,TS val 253570669 ecr 2251470437], length 1448
+20:31:53.713454 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 122649:122809, ack 130, win 123, options [nop,nop,TS val 253570669 ecr 2251470437], length 160
+20:31:53.763417 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 122809:124257, ack 130, win 123, options [nop,nop,TS val 253570719 ecr 2251470488], length 1448
+20:31:53.763460 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 124257:124417, ack 130, win 123, options [nop,nop,TS val 253570719 ecr 2251470488], length 160
+20:31:53.772632 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 124257:124417, ack 130, win 123, options [nop,nop,TS val 253570729 ecr 2251470488], length 160
+20:31:53.813557 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 124417:125865, ack 130, win 123, options [nop,nop,TS val 253570769 ecr 2251470488], length 1448
+20:31:53.813668 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 125865:126025, ack 130, win 123, options [nop,nop,TS val 253570770 ecr 2251470488], length 160
+20:31:53.863611 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 126025:127473, ack 130, win 123, options [nop,nop,TS val 253570819 ecr 2251470629], length 1448
+20:31:53.863654 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 127473:127633, ack 130, win 123, options [nop,nop,TS val 253570820 ecr 2251470629], length 160
+20:31:53.905631 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 127473:127633, ack 130, win 123, options [nop,nop,TS val 253570862 ecr 2251470629], length 160
+20:31:53.914101 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 127633:129081, ack 130, win 123, options [nop,nop,TS val 253570870 ecr 2251470629], length 1448
+20:31:53.914161 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 129081:129241, ack 130, win 123, options [nop,nop,TS val 253570870 ecr 2251470629], length 160
+20:31:53.964152 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 129241:130689, ack 130, win 123, options [nop,nop,TS val 253570920 ecr 2251470629], length 1448
+20:31:53.964193 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 130689:130849, ack 130, win 123, options [nop,nop,TS val 253570920 ecr 2251470629], length 160
+20:31:54.014255 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 130849:132297, ack 130, win 123, options [nop,nop,TS val 253570970 ecr 2251470784], length 1448
+20:31:54.014303 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 132297:132457, ack 130, win 123, options [nop,nop,TS val 253570970 ecr 2251470784], length 160
+20:31:54.064321 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 132457:133905, ack 130, win 123, options [nop,nop,TS val 253571020 ecr 2251470789], length 1448
+20:31:54.064380 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 133905:134065, ack 130, win 123, options [nop,nop,TS val 253571020 ecr 2251470789], length 160
+20:31:54.069549 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [S], seq 1671883650, win 14600, options [mss 1460,sackOK,TS val 253571025 ecr 0,nop,wscale 7], length 0
+20:31:54.114386 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 134065:135513, ack 130, win 123, options [nop,nop,TS val 253571070 ecr 2251470789], length 1448
+20:31:54.114430 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 135513:135673, ack 130, win 123, options [nop,nop,TS val 253571070 ecr 2251470789], length 160
+20:31:54.164453 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 135673:137121, ack 130, win 123, options [nop,nop,TS val 253571120 ecr 2251470789], length 1448
+20:31:54.164496 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 137121:137281, ack 130, win 123, options [nop,nop,TS val 253571120 ecr 2251470789], length 160
+20:31:54.175163 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [.], ack 1, win 115, options [nop,nop,TS val 253571131 ecr 2251470947], length 0
+20:31:54.175637 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [P.], seq 1:518, ack 1, win 115, options [nop,nop,TS val 253571132 ecr 2251470947], length 517
+20:31:54.180155 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [.], ack 1327, win 137, options [nop,nop,TS val 253571136 ecr 2251470952], length 0
+20:31:54.188910 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [P.], seq 518:644, ack 1327, win 137, options [nop,nop,TS val 253571145 ecr 2251470952], length 126
+20:31:54.214533 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 137281:138729, ack 130, win 123, options [nop,nop,TS val 253571170 ecr 2251470946], length 1448
+20:31:54.214595 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 138729:138889, ack 130, win 123, options [nop,nop,TS val 253571170 ecr 2251470946], length 160
+20:31:54.264631 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 138889:140337, ack 130, win 123, options [nop,nop,TS val 253571221 ecr 2251470946], length 1448
+20:31:54.264677 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 140337:140497, ack 130, win 123, options [nop,nop,TS val 253571221 ecr 2251470946], length 160
+20:31:54.314702 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 140497:141945, ack 130, win 123, options [nop,nop,TS val 253571271 ecr 2251470946], length 1448
+20:31:54.314754 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 141945:142105, ack 130, win 123, options [nop,nop,TS val 253571271 ecr 2251470946], length 160
+20:31:54.339746 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [P.], seq 644:1203, ack 1585, win 158, options [nop,nop,TS val 253571295 ecr 2251471110], length 559
+20:31:54.345483 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [P.], seq 1203:1234, ack 1943, win 179, options [nop,nop,TS val 253571301 ecr 2251471117], length 31
+20:31:54.345590 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [F.], seq 1234, ack 1943, win 179, options [nop,nop,TS val 253571301 ecr 2251471117], length 0
+20:31:54.351306 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [S], seq 3777049394, win 14600, options [mss 1460,sackOK,TS val 253571307 ecr 0,nop,wscale 7], length 0
+20:31:54.364754 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 142105:143553, ack 130, win 123, options [nop,nop,TS val 253571321 ecr 2251471110], length 1448
+20:31:54.364795 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 143553:143713, ack 130, win 123, options [nop,nop,TS val 253571321 ecr 2251471110], length 160
+20:31:54.414843 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 143713:145161, ack 130, win 123, options [nop,nop,TS val 253571371 ecr 2251471110], length 1448
+20:31:54.414883 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 145161:145321, ack 130, win 123, options [nop,nop,TS val 253571371 ecr 2251471110], length 160
+20:31:54.464890 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 145321:146769, ack 130, win 123, options [nop,nop,TS val 253571421 ecr 2251471110], length 1448
+20:31:54.464928 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 146769:146929, ack 130, win 123, options [nop,nop,TS val 253571421 ecr 2251471110], length 160
+20:31:54.501463 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1, win 115, options [nop,nop,TS val 253571457 ecr 2251471273], length 0
+20:31:54.501536 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [R], seq 1671884885, win 0, length 0
+20:31:54.501551 IP api.jibo.com.https > Moth-Radius-Breazeal-Felt.jibo.33705: Flags [F.], seq 1974, ack 1235, win 502, options [nop,nop,TS val 2251471273 ecr 253571301], length 0
+20:31:54.501589 IP Moth-Radius-Breazeal-Felt.jibo.33705 > api.jibo.com.https: Flags [R], seq 1671884885, win 0, length 0
+20:31:54.501674 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1:518, ack 1, win 115, options [nop,nop,TS val 253571458 ecr 2251471273], length 517
+20:31:54.506690 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1327, win 137, options [nop,nop,TS val 253571463 ecr 2251471277], length 0
+20:31:54.513755 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 518:644, ack 1327, win 137, options [nop,nop,TS val 253571470 ecr 2251471277], length 126
+20:31:54.514967 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 146929:148377, ack 130, win 123, options [nop,nop,TS val 253571471 ecr 2251471272], length 1448
+20:31:54.515001 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 148377:148537, ack 130, win 123, options [nop,nop,TS val 253571471 ecr 2251471272], length 160
+20:31:54.565066 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 148537:149985, ack 130, win 123, options [nop,nop,TS val 253571521 ecr 2251471272], length 1448
+20:31:54.565104 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 149985:150145, ack 130, win 123, options [nop,nop,TS val 253571521 ecr 2251471272], length 160
+20:31:54.615148 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 150145:151593, ack 130, win 123, options [nop,nop,TS val 253571571 ecr 2251471272], length 1448
+20:31:54.615192 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 151593:151753, ack 130, win 123, options [nop,nop,TS val 253571571 ecr 2251471272], length 160
+20:31:54.665748 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 151753:153201, ack 130, win 123, options [nop,nop,TS val 253571622 ecr 2251471435], length 1448
+20:31:54.665797 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 153201:153361, ack 130, win 123, options [nop,nop,TS val 253571622 ecr 2251471435], length 160
+20:31:54.668354 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 644:1307, ack 1585, win 158, options [nop,nop,TS val 253571624 ecr 2251471436], length 663
+20:31:54.713617 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1743, win 179, options [nop,nop,TS val 253571670 ecr 2251471445], length 0
+20:31:54.715848 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 153361:154809, ack 130, win 123, options [nop,nop,TS val 253571672 ecr 2251471441], length 1448
+20:31:54.715891 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 154809:154969, ack 130, win 123, options [nop,nop,TS val 253571672 ecr 2251471441], length 160
+20:31:54.765958 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 154969:156417, ack 130, win 123, options [nop,nop,TS val 253571722 ecr 2251471441], length 1448
+20:31:54.766017 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 156417:156577, ack 130, win 123, options [nop,nop,TS val 253571722 ecr 2251471441], length 160
+20:31:54.816056 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 156577:158025, ack 130, win 123, options [nop,nop,TS val 253571772 ecr 2251471441], length 1448
+20:31:54.816127 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 158025:158185, ack 130, win 123, options [nop,nop,TS val 253571772 ecr 2251471441], length 160
+20:31:54.866128 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 158185:159633, ack 130, win 123, options [nop,nop,TS val 253571822 ecr 2251471598], length 1448
+20:31:54.866184 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 159633:159793, ack 130, win 123, options [nop,nop,TS val 253571822 ecr 2251471598], length 160
+20:31:54.916222 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 159793:161241, ack 130, win 123, options [nop,nop,TS val 253571872 ecr 2251471598], length 1448
+20:31:54.916293 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 161241:161401, ack 130, win 123, options [nop,nop,TS val 253571872 ecr 2251471598], length 160
+20:31:54.966352 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 161401:162849, ack 130, win 123, options [nop,nop,TS val 253571922 ecr 2251471598], length 1448
+20:31:54.966426 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 162849:163009, ack 130, win 123, options [nop,nop,TS val 253571922 ecr 2251471598], length 160
+20:31:55.016400 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 163009:164457, ack 130, win 123, options [nop,nop,TS val 253571972 ecr 2251471761], length 1448
+20:31:55.016450 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 164457:164617, ack 130, win 123, options [nop,nop,TS val 253571972 ecr 2251471761], length 160
+20:31:55.066498 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 164617:166065, ack 130, win 123, options [nop,nop,TS val 253572022 ecr 2251471761], length 1448
+20:31:55.066565 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 166065:166225, ack 130, win 123, options [nop,nop,TS val 253572022 ecr 2251471761], length 160
+20:31:55.116595 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 166225:167673, ack 130, win 123, options [nop,nop,TS val 253572072 ecr 2251471761], length 1448
+20:31:55.116682 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 167673:167833, ack 130, win 123, options [nop,nop,TS val 253572073 ecr 2251471761], length 160
+20:31:55.169647 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], seq 167833:169281, ack 406, win 131, options [nop,nop,TS val 253572126 ecr 2251471842], length 1448
+20:31:55.169714 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [P.], seq 169281:169441, ack 406, win 131, options [nop,nop,TS val 253572126 ecr 2251471842], length 160
+20:31:55.170015 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [F.], seq 169441, ack 406, win 131, options [nop,nop,TS val 253572126 ecr 2251471842], length 0
+20:31:55.173265 IP api.jibo.com.29000 > Moth-Radius-Breazeal-Felt.jibo.34275: Flags [F.], seq 406, ack 169442, win 501, options [nop,nop,TS val 2251471945 ecr 253572126], length 0
+20:31:55.173326 IP Moth-Radius-Breazeal-Felt.jibo.34275 > api.jibo.com.29000: Flags [.], ack 407, win 131, options [nop,nop,TS val 253572129 ecr 2251471945], length 0
+20:31:57.673388 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1307:1342, ack 1743, win 179, options [nop,nop,TS val 253574629 ecr 2251471445], length 35
+20:31:57.805370 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1774, win 179, options [nop,nop,TS val 253574761 ecr 2251474577], length 0
+20:32:00.673749 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1342:1377, ack 1774, win 179, options [nop,nop,TS val 253577630 ecr 2251474577], length 35
+20:32:00.676948 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1805, win 179, options [nop,nop,TS val 253577633 ecr 2251477448], length 0
+20:32:03.674019 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1377:1412, ack 1805, win 179, options [nop,nop,TS val 253580630 ecr 2251477448], length 35
+20:32:03.677166 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1836, win 179, options [nop,nop,TS val 253580633 ecr 2251480449], length 0
+20:32:06.673372 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1412:1447, ack 1836, win 179, options [nop,nop,TS val 253583629 ecr 2251480449], length 35
+20:32:06.677475 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1867, win 179, options [nop,nop,TS val 253583633 ecr 2251483448], length 0
+20:32:09.673705 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1447:1482, ack 1867, win 179, options [nop,nop,TS val 253586630 ecr 2251483448], length 35
+20:32:09.679116 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1898, win 179, options [nop,nop,TS val 253586635 ecr 2251486450], length 0
+20:32:12.673964 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [P.], seq 1482:1517, ack 1898, win 179, options [nop,nop,TS val 253589630 ecr 2251486450], length 35
+20:32:12.677552 IP Moth-Radius-Breazeal-Felt.jibo.33706 > api.jibo.com.https: Flags [.], ack 1929, win 179, options [nop,nop,TS val 253589633 ecr 2251489450], length 0

@@ -1,0 +1,98 @@
+{
+  "started": "2026-09-11T00:31:49.782887+00:00",
+  "robot": "moth-radius-breazeal-felt.jibo",
+  "mode": "local",
+  "input": "native microphone capture",
+  "text": null,
+  "microphoneAcceptance": false,
+  "events": [
+    {
+      "elapsedMs": 423,
+      "event": {
+        "ts": 1789086710207,
+        "type": "TURN_STARTED",
+        "requestID": "tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9",
+        "transID": "tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9"
+      }
+    },
+    {
+      "elapsedMs": 5379,
+      "event": {
+        "ts": 1789086715166,
+        "type": "TURN_RESULT",
+        "requestID": "tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9",
+        "transID": "tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9",
+        "data": {
+          "global": false,
+          "result": {
+            "asr": {
+              "annotation": "SOS_TIMEOUT",
+              "confidence": 0,
+              "text": ""
+            },
+            "match": null,
+            "nlu": {
+              "entities": null,
+              "intent": null,
+              "rules": []
+            }
+          },
+          "status": "SUCCEEDED"
+        }
+      }
+    }
+  ],
+  "snapshots": [
+    {
+      "elapsedMs": 58,
+      "be": {
+        "skill": "@be/word-of-the-day",
+        "talking": false,
+        "view": null,
+        "listen": "Idle"
+      }
+    },
+    {
+      "elapsedMs": 327,
+      "be": {
+        "skill": "@be/word-of-the-day",
+        "talking": false,
+        "view": null,
+        "listen": "Idle"
+      }
+    },
+    {
+      "elapsedMs": 570,
+      "be": {
+        "skill": "@be/word-of-the-day",
+        "talking": false,
+        "view": null,
+        "listen": "Engage"
+      }
+    },
+    {
+      "elapsedMs": 5700,
+      "be": {
+        "skill": "@be/word-of-the-day",
+        "talking": false,
+        "view": null,
+        "listen": "Idle"
+      }
+    }
+  ],
+  "ack": {
+    "requestID": "tid-2daff73a-ad78-11f1-aeac-5cf821ea7bf9"
+  },
+  "request": {
+    "endpoint": "/listen/start_local_turn",
+    "body": {
+      "nluRules": [
+        "launch"
+      ],
+      "sosTimeout": 5,
+      "maxSpeechTimeout": 12
+    },
+    "via": "original BE Jetstream SDK"
+  },
+  "durationMs": 20223
+}
