@@ -14,10 +14,23 @@
 // as the reference — values inside array rules arrive as strings, identical to Pegasus). The bare
 // (non-/v1) aliases are kept for older phoenix-internal callers (documented Phase A extension).
 
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { HistoryStore } from './store.js';
 import { validateEvent, validateQuery } from './validators.js';
+
+// I-03: the running service is durable, exactly as the reference (rows live in Mongo, not process
+// memory). `./data` sits inside the compose bind mount (`./packages:/phoenix/packages`), so the
+// snapshot also survives a container recreate. A test constructing `new HistoryStore()` with no
+// file stays process-local, so unit tests never share state.
+const DEFAULT_DATA_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'store.json');
+
+/** Durable snapshot path for the history service (`ETCO_history_dataFile` overrides the default). */
+export function historyStoreFile(env = process.env) {
+  return env.ETCO_history_dataFile || DEFAULT_DATA_FILE;
+}
 
 export function createHistoryService(store = new HistoryStore()) {
   // Validation lives in the handler layer exactly as the reference puts it in
@@ -67,7 +80,7 @@ export function createHistoryService(store = new HistoryStore()) {
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.history) {
-  return createHistoryService(new HistoryStore()).listen(port);
+  return createHistoryService(new HistoryStore(historyStoreFile())).listen(port);
 }
 
 export { HistoryStore } from './store.js';
