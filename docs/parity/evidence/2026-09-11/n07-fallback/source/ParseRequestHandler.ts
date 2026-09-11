@@ -1,0 +1,152 @@
+# jiboV2/pegasus:packages/parser/src/handlers/ParseRequestHandler.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import * as utils from '@jibo/utils';
+import logging = utils.logging;
+import HttpError = utils.http.HttpError;
+import { nlu } from '@jibo/interfaces';
+import { ParserService } from '../ParserService';
+import { RobustParserNLUResult } from '../robustparser/interfaces';
+import { DECOY_INTENT } from '../dialogflow/DialogflowClient';
+import { LoopMemberDetector } from '../utils/LoopMemberDetector';
+
+
+const EMPTY_NLU: nlu.NLUResult = {
+    intent: null,
+    entities: null,
+    rules: []
+};
+
+
+export class ParseRequestHandler extends utils.service.BaseHttpHandler {
+
+    constructor(private service: ParserService){
+        super();
+        this.addPostHandler('/', (data: nlu.NLURequest, req: utils.service.PegasusRequest) => this.handleParseRequest(req));
+    }
+
+    private async handleParseRequest(req: utils.service.PegasusRequest<nlu.NLURequest>): Promise<nlu.NLUResponse> {
+        req.log = req.log.createChild('parse');
+        req.log.debug(`Parse request arrived: %j`, req.body);
+        if (!req.body || !req.body.data || (typeof req.body.data.text !== 'string')) {
+            throw new HttpError('Bad request: ' + JSON.stringify(req.body), 400);
+        }
+        const result: nlu.NLUResult = await this.getNLUResult(req.body.data, req.log);
+        LoopMemberDetector.detectLoopMembers(req.body.data, result);
+        return {
+            type: 'NLU',
+            msgID: utils.common.getUUID(),
+            ts: Date.now(),
+            data: result
+        };
+    }
+
+    private async getNLUResult(data: nlu.NLURequestData, log: logging.Log): Promise<nlu.NLUResult> {
+        data.text = data.text.trim();
+        if (!data.text.length) {
+            // If we get an empty string
+            log.info('Received empty text, returning empty NLU results');
+            return EMPTY_NLU;
+        }
+
+        // two result promises
+        // result is null if error happened or client is disabled
+        const parserPromise: Promise<RobustParserNLUResult> = this.service.getRobustParserNLUResult(data)
+            .catch((err: Error) => {
+                log.debug('Robust parser error: %s ', err.message);
+                return null;
+            });
+
+        const dialogflowPromise: Promise<nlu.NLUResult> = this.service.getDialogflowNLUResult(data)
+            .catch((err: Error) => {
+                log.debug('Dialogflow error: %s', err.message);
+                return null;
+            });
+
+        const result = await this.selectResult(parserPromise, dialogflowPromise, log);
+
+        // if external agents were provided
+        // add external response to the result
+        if (result && data.external) {
+            const dialogflowResult = await dialogflowPromise;
+            result.external = dialogflowResult.external;
+        }
+
+        return result;
+    }
+
+    private async selectResult(parserPromise: Promise<RobustParserNLUResult>, dialogflowPromise: Promise<nlu.NLUResult>, log: logging.Log): Promise<nlu.NLUResult> {
+        const [parserResult, parserTime] = await utils.common.time(parserPromise);
+        log.info(`Robust parser result: %j`, parserResult ? parserResult.nlu : 'NONE');
+
+        // if robust parser priority was HIGH, return immediately
+        if (this.isParserResultValid(parserResult, log) && parserResult.priority === 'HIGH') {
+            log.debug(`Timings:`, { parser: parserTime });
+            log.debug(`Robust parser priority was HIGH, returning RobustParser response: %j`, parserResult.nlu);
+            return parserResult.nlu;
+        }
+        // otherwise wait for Dialogflow response
+        const [dialogflowResult, dialogflowTime] = await utils.common.time(dialogflowPromise);
+        log.info(`Dialogflow result: %j`, dialogflowResult);
+        log.debug(`Timings:`, { parser: parserTime, dialogflow: dialogflowTime });
+
+        return this.selectValidResult(parserResult, dialogflowResult, log);
+    }
+
+    private selectValidResult(parserResult: RobustParserNLUResult, dialogflowResult: nlu.NLUResult, log: logging.Log): nlu.NLUResult {
+        // skip invalid results
+        if (!this.isParserResultValid(parserResult, log)) {
+            parserResult = null;
+        }
+        if (!this.isDialogflowResultValid(dialogflowResult, log)) {
+            dialogflowResult = null;
+        }
+
+        // select existing results
+        // RP priority is LOW at this point
+        if (parserResult && dialogflowResult) {
+            log.debug(`Robust parser priority was LOW, returning Dialogflow response: %j`, dialogflowResult);
+            return dialogflowResult;
+        }
+        if (parserResult) {
+            log.debug(`No Dialogflow result, returning robust parser response %j`, parserResult);
+            return parserResult.nlu;
+        }
+        if (dialogflowResult) {
+            log.debug(`No robust parser result, returning Dialogflow response %j`, dialogflowResult);
+            return dialogflowResult;
+        }
+
+        // no results at all
+        return EMPTY_NLU;
+    }
+
+    private isParserResultValid(parserResult: RobustParserNLUResult, log: logging.Log): boolean {
+        if (!parserResult) {
+            return false;
+        }
+        if (!parserResult.nlu || !parserResult.nlu.intent) {
+            log.debug(`Robust parser intent missing, ignored`);
+            return false;
+        }
+        if (parserResult.priority === 'SKIP') {
+            log.debug(`Robust parser priority was SKIP, ignored`);
+            return false;
+        }
+        return true;
+    }
+
+    private isDialogflowResultValid(dialogflowResult: nlu.NLUResult, log: logging.Log): boolean {
+        if (!dialogflowResult) {
+            return false;
+        }
+        if (!dialogflowResult.intent) {
+            log.debug(`Dialogflow intent missing, ignored`);
+            return false;
+        }
+        if (dialogflowResult.intent === DECOY_INTENT) {
+            log.debug(`Dialogflow result was ${DECOY_INTENT}, ignored`);
+            return false;
+        }
+        return true;
+    }
+}

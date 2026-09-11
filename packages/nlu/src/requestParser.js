@@ -16,17 +16,18 @@ import { buildFactoryWords, undeclaredFactoryWordFile } from './grammar/factoryW
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
 import { selectBestNative } from './arbitration.js';
 import { LoopMemberDetector } from './loopMemberDetector.js';
+import { attachExternalResult, createDisabledExternalAgentProvider } from './externalAgents.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
 // ParseRequestHandler's no-result contract uses JSON null for entities. Keep
 // the legacy parse(text) wrapper's object-shaped no-match result separate.
 const EMPTY_NLU = Object.freeze({ rules: [], intent: null, entities: null });
-// The original handler dereferences the disabled Dialogflow result when a
-// truthy external-agent request is present. Keep its Node 8 wire message until
-// the external-agent adapter is implemented; this is deliberately not a new
-// product-facing candidate error.
-const DISABLED_EXTERNAL_ERROR = "Cannot read property 'external' of null";
+// The external-agent (Dialogflow) result is attached through a replaceable
+// provider (see externalAgents.js). The default provider is the disabled
+// Dialogflow client, whose null result reproduces the original Node 8 boundary
+// for a truthy external request.
+const DEFAULT_EXTERNAL_PROVIDER = createDisabledExternalAgentProvider();
 
 let loaded;
 
@@ -299,29 +300,25 @@ function chooseBest(requested, text, state, compiledRuntime) {
   return selectBestNative(candidates);
 }
 
-function applyExternalCompatibility(request, result) {
-  // ParseRequestHandler performs this after empty-text handling and result
-  // selection. Dialogflow is disabled in this candidate, so the original
-  // null.external failure is the source-backed boundary for truthy requests.
-  if (request.external) throw new Error(DISABLED_EXTERNAL_ERROR);
-  return result;
-}
-
 /**
  * Parse one complete NLU request. Missing, empty, or unknown rule lists return
  * EMPTY_NLU just as the reference handler does after its parser client rejects;
  * they never fall back to the broad launch parser. Inventory and source parse
  * failures throw so a broken imported rule cannot be hidden as a no-match.
+ *
+ * `options.externalProvider` replaces the disabled Dialogflow provider so the
+ * archived external-agent result structure can be replayed (N-07).
  */
-export function parseRequest(request) {
+export function parseRequest(request, options = {}) {
+  const externalProvider = options.externalProvider || DEFAULT_EXTERNAL_PROVIDER;
   if (!request || typeof request.text !== 'string') throw new TypeError(`Bad NLU request: ${JSON.stringify(request)}`);
   const text = request.text.trim();
   if (!text) return emptyResult();
-  if (!Array.isArray(request.rules)) return applyExternalCompatibility(request, emptyResult());
+  if (!Array.isArray(request.rules)) return attachExternalResult(request, emptyResult(), externalProvider);
   const state = load();
   const compiledRuntime = getCompiledFstRuntime();
   const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state, compiledRuntime);
-  if (!requested.length) return applyExternalCompatibility(request, emptyResult());
+  if (!requested.length) return attachExternalResult(request, emptyResult(), externalProvider);
   if (!compiledRuntime) {
     for (const entry of requested) {
       const unsupported = unsupportedDependencies(entry.name, state);
@@ -330,7 +327,7 @@ export function parseRequest(request) {
         // selection. A truthy external request therefore retains that boundary
         // error even when this bounded candidate cannot load a requested rule's
         // factory dependency.
-        if (request.external) return applyExternalCompatibility(request, emptyResult());
+        if (request.external) return attachExternalResult(request, emptyResult(), externalProvider);
         throw new Error(`Unsupported NLU factory dependencies for public rule '${entry.name}': ${unsupported.join(', ')}`);
       }
     }
@@ -340,7 +337,7 @@ export function parseRequest(request) {
   // priority therefore returns the empty NLU result and must not promote another final
   // from the same rule or a lower-ranked rule.
   if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
-    return applyExternalCompatibility(request, emptyResult());
+    return attachExternalResult(request, emptyResult(), externalProvider);
   }
   let entities = winner.entities;
   if (winner.requestedName === 'launch') {
@@ -355,7 +352,7 @@ export function parseRequest(request) {
   // (ParseRequestHandler.ts:48 `data.text = data.text.trim()`). The empty
   // branches above return intent:null, so detection there is a provable no-op
   // (LoopMemberDetector.ts:48).
-  return LoopMemberDetector.detectLoopMembers({ ...request, text }, applyExternalCompatibility(request, result));
+  return LoopMemberDetector.detectLoopMembers({ ...request, text }, attachExternalResult(request, result, externalProvider));
 }
 
 export function ruleInventory() {

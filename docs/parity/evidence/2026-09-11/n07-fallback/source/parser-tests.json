@@ -1,0 +1,24 @@
+# jiboV2/pegasus:packages/parser/resources/tests.json@5c0a7390539663ba749d360de348a428c088505c
+
+{
+    "dialogflow": {
+        "enabled": true,
+        "config": {
+            "accessToken": "someToken"
+        }
+    },
+    "robustParser": {
+        "enabled": true,
+        "startProcess": false,
+        "config": {
+            "host": "localhost",
+            "port": 8787,
+            "fstDirectories": [
+                "robust-parser/rules_fst"
+            ],
+            "loadFSTs": false,
+            "connectToLogs": false,
+            "maxConcurrentRequests": 5
+        }
+    }
+}
