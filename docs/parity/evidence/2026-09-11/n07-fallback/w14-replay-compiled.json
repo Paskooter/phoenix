@@ -1,0 +1,373 @@
+{
+ "schema": "phoenix.nlu.n07-fallback-http-replay",
+ "profile": "compiled-fst-approved",
+ "profileRuleCount": 98,
+ "profileLoadedRuleCount": 98,
+ "fixtureSha256": "6aee5d25b524ce6e92cb8afe38e6423b024a8ec1cfacf463be1ec5365cbca8bd",
+ "archivedAgentSha256": "aba7d8e9440ca8e0688b6d5c7ec72caa0ccf0d52c3ec0b70bd37d3af22c78ac6",
+ "providerRequests": 3,
+ "cases": 18,
+ "matches": 18,
+ "mismatches": [],
+ "rows": [
+  {
+   "id": "n07:arb-01",
+   "group": "arbitration",
+   "expected": {
+    "intent": "timerValue",
+    "fallbackCalls": 0
+   },
+   "got": {
+    "intent": "timerValue",
+    "fallbackCalls": 0
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-02",
+   "group": "arbitration",
+   "expected": {
+    "intent": "doYouLike",
+    "entities": {
+     "thing": "Penguins"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "got": {
+    "intent": "doYouLike",
+    "entities": {
+     "thing": "Penguins"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-03",
+   "group": "arbitration",
+   "expected": {
+    "intent": "requestTellJiboContent",
+    "entities": {
+     "JiboContent": "Joke"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "got": {
+    "intent": "requestTellJiboContent",
+    "entities": {
+     "JiboContent": "Joke"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-04",
+   "group": "arbitration",
+   "expected": {
+    "intent": "requestTellJiboContent",
+    "entities": {
+     "JiboContent": "Joke"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "got": {
+    "intent": "requestTellJiboContent",
+    "entities": {
+     "JiboContent": "Joke"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-05",
+   "group": "arbitration",
+   "expected": {
+    "intent": "requestTellJiboContent",
+    "entities": {
+     "JiboContent": "Joke"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "got": {
+    "intent": "requestTellJiboContent",
+    "entities": {
+     "JiboContent": "Joke"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-06",
+   "group": "arbitration",
+   "expected": {
+    "intent": "doYouLike",
+    "entities": {
+     "thing": "Penguins"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "got": {
+    "intent": "doYouLike",
+    "entities": {
+     "thing": "Penguins"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-07",
+   "group": "arbitration",
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "got": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-08",
+   "group": "arbitration",
+   "expected": {
+    "intent": "doYouLike",
+    "entities": {
+     "thing": "Penguins"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "got": {
+    "intent": "doYouLike",
+    "entities": {
+     "thing": "Penguins"
+    },
+    "rules": [
+     "launch"
+    ]
+   },
+   "match": true
+  },
+  {
+   "id": "n07:arb-09",
+   "group": "arbitration",
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "got": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "match": true
+  },
+  {
+   "id": "n07:ext-01",
+   "group": "external",
+   "expected": {
+    "status": 500,
+    "message": "Cannot read property 'external' of null"
+   },
+   "got": {
+    "status": 500,
+    "message": "Cannot read property 'external' of null"
+   },
+   "match": true,
+   "http": true
+  },
+  {
+   "id": "n07:ext-02",
+   "group": "external",
+   "expected": {
+    "status": 200,
+    "data": {
+     "rules": [],
+     "intent": null,
+     "entities": null
+    }
+   },
+   "got": {
+    "status": 200,
+    "data": {
+     "intent": null,
+     "entities": null,
+     "rules": []
+    }
+   },
+   "match": true,
+   "http": true
+  },
+  {
+   "id": "n07:ext-03",
+   "group": "external",
+   "expected": {
+    "status": 200,
+    "intent": "timerValue"
+   },
+   "got": {
+    "status": 200,
+    "intent": "timerValue"
+   },
+   "match": true,
+   "http": true
+  },
+  {
+   "id": "n07:ext-04",
+   "group": "external",
+   "expected": {
+    "intent": "timerValue",
+    "external": {
+     "agent_one": {
+      "rules": [
+       "launch"
+      ],
+      "intent": "doesJiboLikeThing",
+      "entities": {
+       "GeneralLikes": "Penguin"
+      }
+     },
+     "agent_two": {
+      "rules": [
+       "globals/mim_repeat"
+      ],
+      "intent": "repeat",
+      "entities": {
+       "domain": "mim_global"
+      }
+     },
+     "agent_missing": {
+      "rules": [
+       "clock/timer_set_value"
+      ],
+      "intent": "",
+      "entities": {},
+      "error": "Error accessing Dialogflow agent 'agent_missing': no archived agent available"
+     }
+    }
+   },
+   "got": {
+    "intent": "timerValue",
+    "external": {
+     "agent_one": {
+      "rules": [
+       "launch"
+      ],
+      "intent": "doesJiboLikeThing",
+      "entities": {
+       "GeneralLikes": "Penguin"
+      }
+     },
+     "agent_two": {
+      "rules": [
+       "globals/mim_repeat"
+      ],
+      "intent": "repeat",
+      "entities": {
+       "domain": "mim_global"
+      }
+     },
+     "agent_missing": {
+      "rules": [
+       "clock/timer_set_value"
+      ],
+      "intent": "",
+      "entities": {},
+      "error": "Error accessing Dialogflow agent 'agent_missing': no archived agent available"
+     }
+    }
+   },
+   "match": true
+  },
+  {
+   "id": "n07:ext-05",
+   "group": "external",
+   "expected": "Cannot read property 'external' of null",
+   "got": "Cannot read property 'external' of null",
+   "match": true
+  },
+  {
+   "id": "n07:ext-06",
+   "group": "external",
+   "expected": {
+    "intent": "timerValue",
+    "hasExternal": false
+   },
+   "got": {
+    "intent": "timerValue",
+    "hasExternal": false
+   },
+   "match": true
+  },
+  {
+   "id": "n07:cat-01",
+   "group": "catalog",
+   "expected": {
+    "agents": 99,
+    "allPreserved": true
+   },
+   "got": {
+    "agents": 99,
+    "allPreserved": true
+   },
+   "match": true
+  },
+  {
+   "id": "n07:cat-02",
+   "group": "catalog",
+   "expected": {
+    "valid": 98,
+    "rejected": 1
+   },
+   "got": {
+    "valid": 98,
+    "rejected": 1
+   },
+   "match": true
+  },
+  {
+   "id": "n07:cat-03",
+   "group": "catalog",
+   "expected": {
+    "entities": 89,
+    "custom": 34,
+    "system": 8
+   },
+   "got": {
+    "entities": 89,
+    "custom": 34,
+    "system": 8
+   },
+   "match": true
+  }
+ ]
+}

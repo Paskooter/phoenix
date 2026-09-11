@@ -11,12 +11,16 @@ import http from 'node:http';
 import { start } from '../src/index.js';
 import { parseRequest } from '../src/requestParser.js';
 import { createLLMClient } from '../src/llmFallback.js';
-import { resolveHybridNLU, EMPTY_NLU } from '../src/fallbackArbitration.js';
-import { createExternalAgentProvider, createDisabledExternalAgentProvider } from '../src/externalAgents.js';
+import { resolveHybridNLU, EMPTY_NLU, isFallbackResultValid } from '../src/fallbackArbitration.js';
+import { createExternalAgentProvider, createDisabledExternalAgentProvider, EXTERNAL_ATTACHMENT_REVISION } from '../src/externalAgents.js';
+import { defaultParserProfile, compiledFstRuntimeConfig } from '../src/compiledFstRuntime.js';
 
 const fixtureBytes = readFileSync(new URL('../test/fixtures/fallback-provider-recordings.json', import.meta.url));
 const fixture = JSON.parse(fixtureBytes.toString('utf8'));
 const fixtureSha256 = createHash('sha256').update(fixtureBytes).digest('hex');
+const archivedBytes = readFileSync(new URL('../test/fixtures/dialogflow-archived-agent.json', import.meta.url));
+const archived = JSON.parse(archivedBytes.toString('utf8'));
+const archivedSha256 = createHash('sha256').update(archivedBytes).digest('hex');
 
 // --- recorded provider: a real HTTP /chat/completions server ---------------
 function startProvider() {
@@ -153,19 +157,59 @@ async function externalCases() {
   try { parseRequest({ text: 'five minutes', rules: ['clock/timer_set_value'], external: {} }, { externalProvider: createDisabledExternalAgentProvider() }); }
   catch (error) { inProcError = error.message; }
   record('n07:ext-05', 'external', "Cannot read property 'external' of null", inProcError);
+
+  // N-07-D2: the ratified 715e0dd0 reading omits the external block entirely.
+  const omitted = parseRequest(
+    { text: 'five minutes', rules: ['clock/timer_set_value'], external: {} },
+    { externalAttachmentRevision: EXTERNAL_ATTACHMENT_REVISION.OMIT },
+  );
+  record('n07:ext-06', 'external', { intent: 'timerValue', hasExternal: false },
+    { intent: omitted.intent, hasExternal: 'external' in omitted });
+}
+
+async function catalogCases() {
+  // N-07 gap 2/3: the whole archived 99-intent / 89-entity Dialogflow catalog,
+  // exercised through the preserved external envelope in ONE provider call.
+  const agents = { default: () => ({ intent: 'doesJiboLikeThing', entities: { GeneralLikes: 'Penguin' } }) };
+  for (const intent of archived.intents) agents[intent.name] = () => ({ intent: intent.name, entities: intent.derivedResponse.entities });
+  const provider = createExternalAgentProvider({ enabled: true, accessToken: 'archived-token', agents });
+  const external = {};
+  for (const intent of archived.intents) external[intent.name] = { accessToken: `t-${intent.name}`, rules: [intent.name] };
+  const envelope = provider.handleNLU({ text: 'do you like penguins', rules: ['launch'], external });
+  const preserved = Object.entries(envelope.external)
+    .every(([name, r]) => r.intent === name && r.rules[0] === name
+      && JSON.stringify(r.entities) === JSON.stringify(archived.intents.find(i => i.name === name).derivedResponse.entities));
+  record('n07:cat-01', 'catalog', { agents: 99, allPreserved: true },
+    { agents: Object.keys(envelope.external).length, allPreserved: preserved });
+
+  // The archived decoyIntent is the one name the fallback arbitration rejects.
+  const rows = archived.intents.map(i => ({ intent: i.name, entities: i.derivedResponse.entities, rules: ['launch'] }));
+  const valid = rows.filter(isFallbackResultValid).length;
+  record('n07:cat-02', 'catalog', { valid: 98, rejected: 1 }, { valid, rejected: rows.length - valid });
+
+  // Archived entity coverage: 34 custom definitions + 8 system entities.
+  record('n07:cat-03', 'catalog', { entities: 89, custom: 34, system: 8 },
+    { entities: archived.entities.length, custom: archived.annotatedCustomEntities.length, system: archived.annotatedSystemEntities.length });
 }
 
 try {
   await arbitrationCases();
   await externalCases();
+  await catalogCases();
 } finally {
   await new Promise(r => provider.server.close(r));
 }
 
 const mismatches = rows.filter(r => !r.match).map(r => r.id);
+const profile = defaultParserProfile();
+const runtime = compiledFstRuntimeConfig();
 const out = {
   schema: 'phoenix.nlu.n07-fallback-http-replay',
+  profile,
+  profileRuleCount: runtime ? runtime.ruleCount : 0,
+  profileLoadedRuleCount: runtime ? runtime.loadedRuleCount : 0,
   fixtureSha256,
+  archivedAgentSha256: archivedSha256,
   providerRequests: provider.seen.length,
   cases: rows.length,
   matches: rows.length - mismatches.length,
@@ -180,7 +224,9 @@ if (outIndex !== -1 && process.argv[outIndex + 1]) {
   writeFileSync(target, `${JSON.stringify(out, null, 1)}\n`);
 }
 
+console.log(`profile          : ${profile}`);
 console.log(`fixture          : ${fixtureSha256}`);
+console.log(`archived agent   : ${archivedSha256}`);
 console.log(`provider requests: ${out.providerRequests}`);
 console.log(`cases            : ${out.cases}`);
 console.log(`matches          : ${out.matches}`);

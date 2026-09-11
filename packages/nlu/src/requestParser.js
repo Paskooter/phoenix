@@ -308,17 +308,21 @@ function chooseBest(requested, text, state, compiledRuntime) {
  *
  * `options.externalProvider` replaces the disabled Dialogflow provider so the
  * archived external-agent result structure can be replayed (N-07).
+ * `options.externalAttachmentRevision` selects the ratified reading of the
+ * external block: 'attach' (default, ParseRequestHandler@5c0a739) or 'omit'
+ * (ParseRequestHandler@715e0dd0, whose restored handler has no external block).
  */
 export function parseRequest(request, options = {}) {
   const externalProvider = options.externalProvider || DEFAULT_EXTERNAL_PROVIDER;
+  const externalRevision = options.externalAttachmentRevision;
   if (!request || typeof request.text !== 'string') throw new TypeError(`Bad NLU request: ${JSON.stringify(request)}`);
   const text = request.text.trim();
   if (!text) return emptyResult();
-  if (!Array.isArray(request.rules)) return attachExternalResult(request, emptyResult(), externalProvider);
+  if (!Array.isArray(request.rules)) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
   const state = load();
   const compiledRuntime = getCompiledFstRuntime();
   const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state, compiledRuntime);
-  if (!requested.length) return attachExternalResult(request, emptyResult(), externalProvider);
+  if (!requested.length) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
   if (!compiledRuntime) {
     for (const entry of requested) {
       const unsupported = unsupportedDependencies(entry.name, state);
@@ -327,7 +331,7 @@ export function parseRequest(request, options = {}) {
         // selection. A truthy external request therefore retains that boundary
         // error even when this bounded candidate cannot load a requested rule's
         // factory dependency.
-        if (request.external) return attachExternalResult(request, emptyResult(), externalProvider);
+        if (request.external) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
         throw new Error(`Unsupported NLU factory dependencies for public rule '${entry.name}': ${unsupported.join(', ')}`);
       }
     }
@@ -337,7 +341,7 @@ export function parseRequest(request, options = {}) {
   // priority therefore returns the empty NLU result and must not promote another final
   // from the same rule or a lower-ranked rule.
   if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
-    return attachExternalResult(request, emptyResult(), externalProvider);
+    return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
   }
   let entities = winner.entities;
   if (winner.requestedName === 'launch') {
@@ -352,7 +356,7 @@ export function parseRequest(request, options = {}) {
   // (ParseRequestHandler.ts:48 `data.text = data.text.trim()`). The empty
   // branches above return intent:null, so detection there is a provable no-op
   // (LoopMemberDetector.ts:48).
-  return LoopMemberDetector.detectLoopMembers({ ...request, text }, attachExternalResult(request, result, externalProvider));
+  return LoopMemberDetector.detectLoopMembers({ ...request, text }, attachExternalResult(request, result, externalProvider, externalRevision));
 }
 
 export function ruleInventory() {
