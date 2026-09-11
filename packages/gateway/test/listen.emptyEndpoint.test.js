@@ -85,6 +85,10 @@ async function startGateway(t, { parserURL }) {
   t.after(async () => {
     for (const socket of gateway.wss.clients) socket.terminate();
     gateway.wss.close();
+    // A turn that ended by a peer close can leave an accepted socket behind; closing
+    // the listener waits for it, so force the connections down before awaiting close.
+    try { gateway.wss.closeAllConnections?.(); } catch { /* already closed */ }
+    try { gateway.service.server.closeAllConnections?.(); } catch { /* already closed */ }
     await new Promise((resolve) => gateway.service.server.close(resolve));
   });
   return { gateway, port };
