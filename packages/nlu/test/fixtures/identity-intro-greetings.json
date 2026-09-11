@@ -1,0 +1,2455 @@
+{
+ "schema": "phoenix.nlu.n04-identity-intro-greetings-fixture",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "referenceSourceRoot": "packages/parser/robust-parser/rules_src",
+ "nativeOracle": {
+  "source": "packages/nlu/resources/legacy-oracle/golden.jsonl",
+  "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e"
+ },
+ "divergenceCandidates": [
+  {
+   "id": "N04a-selfid-masked",
+   "summary": "greetings/launch's D_GREETINGS_WITH_SELFID arm (selfid + inLoop entities, greetings/launch.rule:39-46) is never the launch-union winner: introductions/launch always also matches a self-identifying phrase and scores higher.",
+   "probe": {
+    "text": "it's me Mary",
+    "rules": [
+     "launch"
+    ],
+    "observed": {
+     "intent": "enrollment",
+     "union_original_fst_name": "handle:introductions/launch"
+    }
+   },
+   "basis": "UNKNOWN natively (no capture); observed in Phoenix."
+  },
+  {
+   "id": "N04b-copula-name-dropped",
+   "summary": "The same enrolment through introductions/launch drops the parsed name when the self-identification uses the full copula (\"it is me <name>\") but keeps it for the contracted form (\"it's me <name>\").",
+   "probe": [
+    {
+     "text": "it's me Mary",
+     "rules": [
+      "launch"
+     ],
+     "observed": {
+      "intent": "enrollment",
+      "GivenName": "mary"
+     }
+    },
+    {
+     "text": "it is me Mary",
+     "rules": [
+      "launch"
+     ],
+     "observed": {
+      "intent": "enrollment",
+      "GivenName": ""
+     }
+    }
+   ],
+   "basis": "UNKNOWN natively; the vendored introductions/launch.rule is byte-identical to the pinned source, so this is AST arm-selection, not a source edit."
+  }
+ ],
+ "namedRules": [
+  {
+   "rule": "greetings/greetings_hello",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/greetings_hello.rule:24-57"
+   ],
+   "positives": [
+    {
+     "text": "hello",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    },
+    {
+     "text": "hey there",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    },
+    {
+     "text": "how are you",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    },
+    {
+     "text": "how is your day going",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    },
+    {
+     "text": "greetings",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    },
+    {
+     "text": "good morning",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    },
+    {
+     "text": "good night",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "hello",
+      "rules": [
+       "greetings/greetings_hello"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/day_quality",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/day_quality.rule:8-58"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "another great day",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "it was great",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "could be worse",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "could be better",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "unfortunately",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    },
+    {
+     "text": "it sure was not",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "greetings/day_quality"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/sleep_quality",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/sleep_quality.rule:7-57"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    },
+    {
+     "text": "like a log",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    },
+    {
+     "text": "slept all night",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    },
+    {
+     "text": "seven hours",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    },
+    {
+     "text": "two hours",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    },
+    {
+     "text": "kept me up all night",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    },
+    {
+     "text": "how about you",
+     "expect": {
+      "entities": {},
+      "intent": "noMatch",
+      "rules": [
+       "greetings/sleep_quality"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/you_too",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/you_too.rule:1-14"
+   ],
+   "positives": [
+    {
+     "text": "you too",
+     "expect": {
+      "entities": {},
+      "intent": "youToo",
+      "rules": [
+       "greetings/you_too"
+      ]
+     }
+    },
+    {
+     "text": "thanks jibo you too",
+     "expect": {
+      "entities": {},
+      "intent": "youToo",
+      "rules": [
+       "greetings/you_too"
+      ]
+     }
+    },
+    {
+     "text": "right back at you",
+     "expect": {
+      "entities": {},
+      "intent": "youToo",
+      "rules": [
+       "greetings/you_too"
+      ]
+     }
+    },
+    {
+     "text": "you as well",
+     "expect": {
+      "entities": {},
+      "intent": "youToo",
+      "rules": [
+       "greetings/you_too"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "thanks",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/bedtime_reminder",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/bedtime_reminder.rule:5-56"
+   ],
+   "positives": [
+    {
+     "text": "i will",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "iWill",
+      "rules": [
+       "greetings/bedtime_reminder"
+      ]
+     }
+    },
+    {
+     "text": "sounds good",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "iWill",
+      "rules": [
+       "greetings/bedtime_reminder"
+      ]
+     }
+    },
+    {
+     "text": "remind me again later",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "reRemind",
+      "rules": [
+       "greetings/bedtime_reminder"
+      ]
+     }
+    },
+    {
+     "text": "stop it",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "frustrated",
+      "rules": [
+       "greetings/bedtime_reminder"
+      ]
+     }
+    },
+    {
+     "text": "be quiet",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "frustrated",
+      "rules": [
+       "greetings/bedtime_reminder"
+      ]
+     }
+    },
+    {
+     "text": "whatever",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "frustrated",
+      "rules": [
+       "greetings/bedtime_reminder"
+      ]
+     }
+    }
+   ],
+   "negative": null,
+   "negativeUnavailable": "the wildcard $D_GREETINGS_INTENT_WILDCARD arm (line 31-36) matches every utterance by design"
+  },
+  {
+   "rule": "greetings/proactive_general_question",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/proactive_general_question.rule"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "good",
+      "rules": [
+       "greetings/proactive_general_question"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "bad",
+      "rules": [
+       "greetings/proactive_general_question"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_general_statement",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/proactive_general_statement.rule"
+   ],
+   "positives": [
+    {
+     "text": "hey jibo",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "returned",
+      "rules": [
+       "greetings/proactive_general_statement"
+      ]
+     }
+    }
+   ],
+   "negative": null,
+   "negativeUnavailable": "declares a wildcard statement arm that matches every utterance by design"
+  },
+  {
+   "rule": "greetings/proactive_morning_question",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/proactive_morning_question.rule"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "yes",
+      "rules": [
+       "greetings/proactive_morning_question"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "no",
+      "rules": [
+       "greetings/proactive_morning_question"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_morning_statement",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/proactive_morning_statement.rule"
+   ],
+   "positives": [
+    {
+     "text": "hey jibo",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "returned",
+      "rules": [
+       "greetings/proactive_morning_statement"
+      ]
+     }
+    }
+   ],
+   "negative": null,
+   "negativeUnavailable": "declares a wildcard statement arm that matches every utterance by design"
+  },
+  {
+   "rule": "greetings/proactive_playful_question",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/proactive_playful_question.rule"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "good",
+      "rules": [
+       "greetings/proactive_playful_question"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "bad",
+      "rules": [
+       "greetings/proactive_playful_question"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_playful_statement",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/greetings/proactive_playful_statement.rule"
+   ],
+   "positives": [
+    {
+     "text": "hey jibo",
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings"
+      },
+      "intent": "returned",
+      "rules": [
+       "greetings/proactive_playful_statement"
+      ]
+     }
+    }
+   ],
+   "negative": null,
+   "negativeUnavailable": "declares a wildcard statement arm that matches every utterance by design"
+  },
+  {
+   "rule": "introductions/intro_looper",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/introductions/intro_looper.rule:1-32"
+   ],
+   "positives": [
+    {
+     "text": "my name is Mary",
+     "expect": {
+      "entities": {
+       "GivenName": "mary"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    },
+    {
+     "text": "i am bob",
+     "expect": {
+      "entities": {
+       "GivenName": "bob"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    },
+    {
+     "text": "john smith",
+     "expect": {
+      "entities": {
+       "GivenName": "john",
+       "LastName": "smith"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    },
+    {
+     "text": "cancel",
+     "expect": {
+      "entities": {},
+      "intent": "cancel",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    },
+    {
+     "text": "forget it",
+     "expect": {
+      "entities": {},
+      "intent": "cancel",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    },
+    {
+     "text": "no one",
+     "expect": {
+      "entities": {},
+      "intent": "cancel",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    }
+   ],
+   "negative": null,
+   "negativeUnavailable": "the LOOPER wildcard arm (?$PREFIX <1.0>+$w<0.0>) matches any \"my name is <x>\" / \"i am <x>\" phrasing"
+  },
+  {
+   "rule": "introductions/any_more_intros",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/introductions/any_more_intros.rule:1-39"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/any_more_intros"
+      ]
+     }
+    },
+    {
+     "text": "my friend is here",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/any_more_intros"
+      ]
+     }
+    },
+    {
+     "text": "they are ready",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/any_more_intros"
+      ]
+     }
+    },
+    {
+     "text": "nobody else",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/any_more_intros"
+      ]
+     }
+    },
+    {
+     "text": "not right now",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/any_more_intros"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/face_capture_ready",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/introductions/face_capture_ready.rule:1-41"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    },
+    {
+     "text": "i am ready",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    },
+    {
+     "text": "nailed it",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    },
+    {
+     "text": "no thanks",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    },
+    {
+     "text": "wait a minute",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    },
+    {
+     "text": "cancel",
+     "expect": {
+      "entities": {},
+      "intent": "cancel",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/is_name_right",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/introductions/is_name_right.rule:1-65"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    },
+    {
+     "text": "close enough",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    },
+    {
+     "text": "certainly",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    },
+    {
+     "text": "not quite",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    },
+    {
+     "text": "not this time",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    },
+    {
+     "text": "cancel",
+     "expect": {
+      "entities": {},
+      "intent": "cancel",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/recognition_any_more",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/introductions/recognition_any_more.rule:1-62"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/recognition_any_more"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "introductions/recognition_any_more"
+      ]
+     }
+    },
+    {
+     "text": "face",
+     "expect": {
+      "entities": {},
+      "intent": "face",
+      "rules": [
+       "introductions/recognition_any_more"
+      ]
+     }
+    },
+    {
+     "text": "voice",
+     "expect": {
+      "entities": {},
+      "intent": "voice",
+      "rules": [
+       "introductions/recognition_any_more"
+      ]
+     }
+    },
+    {
+     "text": "my name",
+     "expect": {
+      "entities": {},
+      "intent": "name",
+      "rules": [
+       "introductions/recognition_any_more"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/recognition_type_menu",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/introductions/recognition_type_menu.rule:1-57"
+   ],
+   "positives": [
+    {
+     "text": "face",
+     "expect": {
+      "entities": {},
+      "intent": "face",
+      "rules": [
+       "introductions/recognition_type_menu"
+      ]
+     }
+    },
+    {
+     "text": "voice",
+     "expect": {
+      "entities": {},
+      "intent": "voice",
+      "rules": [
+       "introductions/recognition_type_menu"
+      ]
+     }
+    },
+    {
+     "text": "name",
+     "expect": {
+      "entities": {},
+      "intent": "name",
+      "rules": [
+       "introductions/recognition_type_menu"
+      ]
+     }
+    },
+    {
+     "text": "voice enrollment",
+     "expect": {
+      "entities": {},
+      "intent": "voice",
+      "rules": [
+       "introductions/recognition_type_menu"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "yes",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/collect_looper",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/who-am-i/collect_looper.rule:1-19"
+   ],
+   "positives": [
+    {
+     "text": "my name is Mary",
+     "expect": {
+      "entities": {
+       "GivenName": "mary"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    },
+    {
+     "text": "i am bob",
+     "expect": {
+      "entities": {
+       "GivenName": "bob"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    },
+    {
+     "text": "i am not in the loop",
+     "expect": {
+      "entities": {},
+      "intent": "notInLoop",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    },
+    {
+     "text": "we are not loopers",
+     "expect": {
+      "entities": {},
+      "intent": "notInLoop",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    }
+   ],
+   "negative": null,
+   "negativeUnavailable": "the LOOPMEMBER_INTENT wildcard arm (?$PREFIX <1.0>+$w<0.0>) matches any \"my name is <x>\" / \"i am <x>\" phrasing"
+  },
+  {
+   "rule": "who-am-i/confirm",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/who-am-i/confirm.rule:1-56"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    },
+    {
+     "text": "definitely",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    },
+    {
+     "text": "correct",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    },
+    {
+     "text": "it is",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    },
+    {
+     "text": "wrong again",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    },
+    {
+     "text": "not me",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "who-am-i/confirm"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/name_is_right",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/who-am-i/name_is_right.rule:1-61"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "yes",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "no",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    },
+    {
+     "text": "close enough",
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "yes",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    },
+    {
+     "text": "kind of",
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "yes",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    },
+    {
+     "text": "not quite",
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "no",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    },
+    {
+     "text": "close but no cigar",
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "no",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/want_to_enroll",
+   "anchors": [
+    "packages/parser/robust-parser/rules_src/who-am-i/want_to_enroll.rule:1-40"
+   ],
+   "positives": [
+    {
+     "text": "yes",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/want_to_enroll"
+      ]
+     }
+    },
+    {
+     "text": "go for it",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/want_to_enroll"
+      ]
+     }
+    },
+    {
+     "text": "you can",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/want_to_enroll"
+      ]
+     }
+    },
+    {
+     "text": "sounds good",
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "who-am-i/want_to_enroll"
+      ]
+     }
+    },
+    {
+     "text": "later",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "who-am-i/want_to_enroll"
+      ]
+     }
+    },
+    {
+     "text": "not a good idea",
+     "expect": {
+      "entities": {},
+      "intent": "no",
+      "rules": [
+       "who-am-i/want_to_enroll"
+      ]
+     }
+    }
+   ],
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  }
+ ],
+ "launchIntents": [
+  {
+   "id": "launch:hello",
+   "text": "hello",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:84-90",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:hi-jibo",
+   "text": "hi jibo",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:68-83",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "heyJibo",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:hey-there",
+   "text": "hey there",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:84-90",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:good-morning",
+   "text": "good morning",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:100-105",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodMorning",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:good-afternoon",
+   "text": "good afternoon",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:107-111",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodAfternoon",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:good-evening",
+   "text": "good evening",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:113-117",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodEvening",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:good-night",
+   "text": "good night",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:119-127",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodNight",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:goodbye",
+   "text": "goodbye",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:129-133",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "goodBye",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:im-home",
+   "text": "i am home",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:56-60",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imHome",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:im-back",
+   "text": "i am back",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:62-66",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "imBack",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:howdy",
+   "text": "howdy",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:84-90",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "hello",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:whats-up",
+   "text": "whats up",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:91-98",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:whats-happening",
+   "text": "whats happening",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:91-98",
+   "expect": {
+    "entities": {
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "whatsUp",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:happy-holiday",
+   "text": "merry christmas",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/greetings/launch.rule:48-54",
+   "expect": {
+    "entities": {
+     "holiday": "Christmas",
+     "domain": "greetings",
+     "skill": "@be/greetings",
+     "union_original_fst_name": "handle:greetings/launch"
+    },
+    "intent": "happyHoliday",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:who-am-i",
+   "text": "who am i",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/who-am-i/launch.rule:1-10",
+   "expect": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:whats-my-name",
+   "text": "whats my name",
+   "rules": [
+    "launch"
+   ],
+   "basis": "native",
+   "anchor": "packages/parser/robust-parser/rules_src/who-am-i/launch.rule:1-10",
+   "expect": {
+    "entities": {
+     "skill": "@be/who-am-i",
+     "union_original_fst_name": "handle:who-am-i/launch"
+    },
+    "intent": "launchWhoAmI",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:enroll-known",
+   "text": "this is my friend Mary",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/introductions/launch.rule:20-29",
+   "expect": {
+    "entities": {
+     "GivenName": "mary",
+     "style": "RequestToMeet",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:enroll-known-2",
+   "text": "enroll Mary",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/introductions/launch.rule:26-27",
+   "expect": {
+    "entities": {
+     "GivenName": "mary",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:enroll-unknown",
+   "text": "enroll my friend",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/introductions/launch.rule:54-60",
+   "expect": {
+    "entities": {
+     "recipient": "null",
+     "enrollmentType": "unknown",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:enroll-voice",
+   "text": "enroll her voice",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/introductions/launch.rule:62-68",
+   "expect": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "voice",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "launch:enroll-type-all",
+   "text": "do a complete enrollment for my mom",
+   "rules": [
+    "launch"
+   ],
+   "basis": "source",
+   "anchor": "packages/parser/robust-parser/rules_src/introductions/launch.rule:41-50",
+   "expect": {
+    "entities": {
+     "GivenName": "",
+     "enrollmentType": "all",
+     "domain": "introductions",
+     "skill": "@be/introductions",
+     "union_original_fst_name": "handle:introductions/launch"
+    },
+    "intent": "enrollment",
+    "rules": [
+     "launch"
+    ]
+   }
+  }
+ ],
+ "noInput": [
+  {
+   "id": "noinput:empty-launch",
+   "text": "",
+   "rules": [
+    "launch"
+   ],
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "noinput:whitespace-launch",
+   "text": "   ",
+   "rules": [
+    "launch"
+   ],
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "noinput:empty-followup",
+   "text": "",
+   "rules": [
+    "who-am-i/confirm"
+   ],
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "noinput:empty-intro",
+   "text": "",
+   "rules": [
+    "introductions/is_name_right"
+   ],
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  }
+ ],
+ "ambiguous": [
+  {
+   "id": "ambiguous:collect-first-name",
+   "text": "my name is Jane",
+   "rules": [
+    "who-am-i/collect_looper"
+   ],
+   "loop": {
+    "users": [
+     {
+      "id": "u-jane-first",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane-second",
+      "firstName": "Jane",
+      "lastName": "Smith"
+     }
+    ]
+   },
+   "note": "Array.find keeps the first member with that firstName (LoopMemberDetector.ts:65-68)",
+   "expect": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   }
+  },
+  {
+   "id": "ambiguous:collect-full-name",
+   "text": "jane jetson",
+   "rules": [
+    "who-am-i/collect_looper"
+   ],
+   "loop": {
+    "users": [
+     {
+      "id": "u-jane-first",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane-second",
+      "firstName": "Jane",
+      "lastName": "Smith"
+     }
+    ]
+   },
+   "note": "full-name entity lookup resolves the matching member, not the first",
+   "expect": {
+    "entities": {
+     "GivenName": "jane",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "loopmember",
+    "rules": [
+     "who-am-i/collect_looper"
+    ]
+   }
+  },
+  {
+   "id": "ambiguous:launch-which-jane",
+   "text": "who is jane",
+   "rules": [
+    "launch"
+   ],
+   "loop": {
+    "users": [
+     {
+      "id": "u-jane-first",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane-second",
+      "firstName": "Jane",
+      "lastName": "Smith"
+     }
+    ]
+   },
+   "note": "text search keeps the first member with that firstName (LoopMemberDetector.ts:81-90)",
+   "expect": {
+    "entities": {
+     "GivenName": "jane",
+     "union_original_fst_name": "handle:chitchat/launch",
+     "loopMemberReferent": "u-jane-first",
+     "given-name": "Jane",
+     "last-name": "Jetson"
+    },
+    "intent": "whoIsPerson",
+    "rules": [
+     "launch"
+    ]
+   }
+  }
+ ],
+ "transcripts": [
+  {
+   "id": "known-member-identity-enrollment",
+   "note": "known household member is resolved to a referent across the who-am-i follow-ups",
+   "loop": {
+    "users": [
+     {
+      "id": "u-george",
+      "firstName": "George",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     }
+    ]
+   },
+   "turns": [
+    {
+     "text": "who am i",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "skill": "@be/who-am-i",
+       "union_original_fst_name": "handle:who-am-i/launch"
+      },
+      "intent": "launchWhoAmI",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "my name is George",
+     "rules": [
+      "who-am-i/collect_looper"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "george",
+       "loopMemberReferent": "u-george",
+       "given-name": "George",
+       "last-name": "Jetson"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    },
+    {
+     "text": "yes",
+     "rules": [
+      "who-am-i/name_is_right"
+     ],
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "yes",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "unknown-member-identity-enrollment",
+   "note": "a name that matches no household member yields no referent",
+   "loop": {
+    "users": [
+     {
+      "id": "u-george",
+      "firstName": "George",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     }
+    ]
+   },
+   "turns": [
+    {
+     "text": "who am i",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "skill": "@be/who-am-i",
+       "union_original_fst_name": "handle:who-am-i/launch"
+      },
+      "intent": "launchWhoAmI",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "my name is Alex",
+     "rules": [
+      "who-am-i/collect_looper"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "alex"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    },
+    {
+     "text": "no",
+     "rules": [
+      "who-am-i/name_is_right"
+     ],
+     "expect": {
+      "entities": {
+       "domain": "whoAmI"
+      },
+      "intent": "no",
+      "rules": [
+       "who-am-i/name_is_right"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "known-member-introduction",
+   "note": "introducing a known member resolves the given name and referent",
+   "loop": {
+    "users": [
+     {
+      "id": "u-mary",
+      "firstName": "Mary",
+      "lastName": "Jackson"
+     },
+     {
+      "id": "u-george",
+      "firstName": "George",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     }
+    ]
+   },
+   "turns": [
+    {
+     "text": "this is my friend Mary",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "mary",
+       "style": "RequestToMeet",
+       "enrollmentType": "unknown",
+       "domain": "introductions",
+       "skill": "@be/introductions",
+       "union_original_fst_name": "handle:introductions/launch",
+       "loopMemberReferent": "u-mary",
+       "given-name": "Mary",
+       "last-name": "Jackson"
+      },
+      "intent": "enrollment",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "yes",
+     "rules": [
+      "introductions/face_capture_ready"
+     ],
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/face_capture_ready"
+      ]
+     }
+    },
+    {
+     "text": "face",
+     "rules": [
+      "introductions/recognition_type_menu"
+     ],
+     "expect": {
+      "entities": {},
+      "intent": "face",
+      "rules": [
+       "introductions/recognition_type_menu"
+      ]
+     }
+    },
+    {
+     "text": "yes",
+     "rules": [
+      "introductions/recognition_any_more"
+     ],
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/recognition_any_more"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "unknown-member-introduction",
+   "note": "introducing an unknown name keeps the parsed name but writes no referent",
+   "loop": {
+    "users": [
+     {
+      "id": "u-george",
+      "firstName": "George",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     }
+    ]
+   },
+   "turns": [
+    {
+     "text": "this is my friend Alex",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "alex",
+       "style": "RequestToMeet",
+       "enrollmentType": "unknown",
+       "domain": "introductions",
+       "skill": "@be/introductions",
+       "union_original_fst_name": "handle:introductions/launch"
+      },
+      "intent": "enrollment",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "yes",
+     "rules": [
+      "introductions/any_more_intros"
+     ],
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/any_more_intros"
+      ]
+     }
+    },
+    {
+     "text": "my name is Alex",
+     "rules": [
+      "introductions/intro_looper"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "alex"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "introductions/intro_looper"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "greeting-follow-up",
+   "note": "greeting then its youToo follow-up then a second greeting",
+   "loop": {
+    "users": [
+     {
+      "id": "u-george",
+      "firstName": "George",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     }
+    ]
+   },
+   "turns": [
+    {
+     "text": "hello",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings",
+       "union_original_fst_name": "handle:greetings/launch"
+      },
+      "intent": "hello",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "you too",
+     "rules": [
+      "greetings/you_too"
+     ],
+     "expect": {
+      "entities": {},
+      "intent": "youToo",
+      "rules": [
+       "greetings/you_too"
+      ]
+     }
+    },
+    {
+     "text": "good morning",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "domain": "greetings",
+       "skill": "@be/greetings",
+       "union_original_fst_name": "handle:greetings/launch"
+      },
+      "intent": "goodMorning",
+      "rules": [
+       "launch"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "greeting-identity-selfid-vs-introduction",
+   "note": "a self-identifying greeting is arbitrated inside the launch union; note this is INFERRED (no native capture)",
+   "loop": {
+    "users": [
+     {
+      "id": "u-george",
+      "firstName": "George",
+      "lastName": "Jetson"
+     },
+     {
+      "id": "u-jane",
+      "firstName": "Jane",
+      "lastName": "Jetson"
+     }
+    ]
+   },
+   "turns": [
+    {
+     "text": "it's me Mary",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "mary",
+       "style": "RequestToMeet",
+       "enrollmentType": "unknown",
+       "domain": "introductions",
+       "skill": "@be/introductions",
+       "union_original_fst_name": "handle:introductions/launch"
+      },
+      "intent": "enrollment",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "yes",
+     "rules": [
+      "introductions/is_name_right"
+     ],
+     "expect": {
+      "entities": {},
+      "intent": "yes",
+      "rules": [
+       "introductions/is_name_right"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-members",
+   "note": "with no loop members every referent stays absent",
+   "turns": [
+    {
+     "text": "who am i",
+     "rules": [
+      "launch"
+     ],
+     "expect": {
+      "entities": {
+       "skill": "@be/who-am-i",
+       "union_original_fst_name": "handle:who-am-i/launch"
+      },
+      "intent": "launchWhoAmI",
+      "rules": [
+       "launch"
+      ]
+     }
+    },
+    {
+     "text": "my name is George",
+     "rules": [
+      "who-am-i/collect_looper"
+     ],
+     "expect": {
+      "entities": {
+       "GivenName": "george"
+      },
+      "intent": "loopmember",
+      "rules": [
+       "who-am-i/collect_looper"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

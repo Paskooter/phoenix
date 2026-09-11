@@ -1,0 +1,164 @@
+TAP version 13
+# {"t":"2026-09-11T04:21:52.801Z","level":"info","ns":"nlu","msg":"listening","port":0}
+# Subtest: N-04 fixture covers every named introduction/who-am-i/greeting rule exactly once
+ok 1 - N-04 fixture covers every named introduction/who-am-i/greeting rule exactly once
+  ---
+  duration_ms: 8.05466
+  type: 'test'
+  ...
+# Subtest: N-04 every named-rule positive and negative matches at runtime through parseRequest
+ok 2 - N-04 every named-rule positive and negative matches at runtime through parseRequest
+  ---
+  duration_ms: 1279.00187
+  type: 'test'
+  ...
+# Subtest: N-04 every launch intent matches, and native-anchored rows agree with the pinned oracle
+ok 3 - N-04 every launch intent matches, and native-anchored rows agree with the pinned oracle
+  ---
+  duration_ms: 5730.775474
+  type: 'test'
+  ...
+# Subtest: N-04 no-input and no-match return the empty NLU result (never a phantom launch)
+ok 4 - N-04 no-input and no-match return the empty NLU result (never a phantom launch)
+  ---
+  duration_ms: 1.268977
+  type: 'test'
+  ...
+# Subtest: N-04 an ambiguous first name resolves deterministically to the first member
+not ok 5 - N-04 an ambiguous first name resolves deterministically to the first member
+  ---
+  duration_ms: 2.697467
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w15-n04/packages/nlu/test/identityIntroGreetings.test.js:165:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    ambiguous:collect-first-name
+    + actual - expected
+    
+      {
+        entities: {
+          'given-name': 'Jane',
+          'last-name': 'Jetson',
+          GivenName: 'jane',
+    +     loopMemberReferent: 'u-jane-first__falsified__'
+    -     loopMemberReferent: 'u-jane-first'
+        },
+        intent: 'loopmember',
+        rules: [
+          'who-am-i/collect_looper'
+        ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    entities:
+      GivenName: 'jane'
+      loopMemberReferent: 'u-jane-first'
+      given-name: 'Jane'
+      last-name: 'Jetson'
+    intent: 'loopmember'
+    rules:
+      0: 'who-am-i/collect_looper'
+  actual:
+    entities:
+      GivenName: 'jane'
+      loopMemberReferent: 'u-jane-first__falsified__'
+      given-name: 'Jane'
+      last-name: 'Jetson'
+    intent: 'loopmember'
+    rules:
+      0: 'who-am-i/collect_looper'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w15-n04/packages/nlu/test/identityIntroGreetings.test.js:167:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: N-04 multi-turn transcripts replay exactly, with referents only for known members
+not ok 6 - N-04 multi-turn transcripts replay exactly, with referents only for known members
+  ---
+  duration_ms: 2551.745611
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w15-n04/packages/nlu/test/identityIntroGreetings.test.js:189:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'known-member-identity-enrollment#1 "my name is George": expected {"entities":{"GivenName":"george","loopMemberReferent":"u-george","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"george","loopMemberReferent":"u-george__falsified__","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}',
+    +   'known-member-identity-enrollment#1: referent u-george__falsified__ != u-george',
+    +   'known-member-introduction#0 "this is my friend Mary": expected {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]} got {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary__falsified__","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]}',
+    +   'known-member-introduction#0: referent u-mary__falsified__ != u-mary'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'known-member-identity-enrollment#1 "my name is George": expected {"entities":{"GivenName":"george","loopMemberReferent":"u-george","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"george","loopMemberReferent":"u-george__falsified__","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}'
+    1: 'known-member-identity-enrollment#1: referent u-george__falsified__ != u-george'
+    2: 'known-member-introduction#0 "this is my friend Mary": expected {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]} got {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary__falsified__","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]}'
+    3: 'known-member-introduction#0: referent u-mary__falsified__ != u-mary'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w15-n04/packages/nlu/test/identityIntroGreetings.test.js:214:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: N-04 every expected entity key is declared by the pinned rule source
+ok 7 - N-04 every expected entity key is declared by the pinned rule source
+  ---
+  duration_ms: 13.49093
+  type: 'test'
+  ...
+# Subtest: N-04 the identity/introduction/greeting contract holds over live POST /v1/parse
+not ok 8 - N-04 the identity/introduction/greeting contract holds over live POST /v1/parse
+  ---
+  duration_ms: 8537.372432
+  type: 'test'
+  location: '/home/shell/work/phoenix/.parity/worktrees/w15-n04/packages/nlu/test/identityIntroGreetings.test.js:263:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'ambiguous:collect-first-name: status 200 expected {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first__falsified__","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}',
+    +   'ambiguous:collect-full-name: status 200 expected {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first__falsified__","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}',
+    +   'ambiguous:launch-which-jane: status 200 expected {"entities":{"GivenName":"jane","union_original_fst_name":"handle:chitchat/launch","loopMemberReferent":"u-jane-first","given-name":"Jane","last-name":"Jetson"},"intent":"whoIsPerson","rules":["launch"]} got {"entities":{"GivenName":"jane","union_original_fst_name":"handle:chitchat/launch","loopMemberReferent":"u-jane-first__falsified__","given-name":"Jane","last-name":"Jetson"},"intent":"whoIsPerson","rules":["launch"]}',
+    +   'known-member-identity-enrollment#1: status 200 expected {"entities":{"GivenName":"george","loopMemberReferent":"u-george","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"george","loopMemberReferent":"u-george__falsified__","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}',
+    +   'known-member-introduction#0: status 200 expected {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]} got {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary__falsified__","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]}'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'ambiguous:collect-first-name: status 200 expected {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first__falsified__","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}'
+    1: 'ambiguous:collect-full-name: status 200 expected {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"jane","loopMemberReferent":"u-jane-first__falsified__","given-name":"Jane","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}'
+    2: 'ambiguous:launch-which-jane: status 200 expected {"entities":{"GivenName":"jane","union_original_fst_name":"handle:chitchat/launch","loopMemberReferent":"u-jane-first","given-name":"Jane","last-name":"Jetson"},"intent":"whoIsPerson","rules":["launch"]} got {"entities":{"GivenName":"jane","union_original_fst_name":"handle:chitchat/launch","loopMemberReferent":"u-jane-first__falsified__","given-name":"Jane","last-name":"Jetson"},"intent":"whoIsPerson","rules":["launch"]}'
+    3: 'known-member-identity-enrollment#1: status 200 expected {"entities":{"GivenName":"george","loopMemberReferent":"u-george","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]} got {"entities":{"GivenName":"george","loopMemberReferent":"u-george__falsified__","given-name":"George","last-name":"Jetson"},"intent":"loopmember","rules":["who-am-i/collect_looper"]}'
+    4: 'known-member-introduction#0: status 200 expected {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]} got {"entities":{"GivenName":"mary","style":"RequestToMeet","enrollmentType":"unknown","domain":"introductions","skill":"@be/introductions","union_original_fst_name":"handle:introductions/launch","loopMemberReferent":"u-mary__falsified__","given-name":"Mary","last-name":"Jackson"},"intent":"enrollment","rules":["launch"]}'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/shell/work/phoenix/.parity/worktrees/w15-n04/packages/nlu/test/identityIntroGreetings.test.js:284:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 5
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18498.563451
