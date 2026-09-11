@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 26 | 46 | 0 | 0 |
+| pegasus | 30 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -658,7 +658,7 @@ Evidence: [docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md]
 
 ### N-06 — Implement LoopMemberDetector and contextual entity resolution
 
-- [ ] **todo** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: missing
 
 Owner: Codex. Dependencies: N-01.
 
@@ -673,11 +673,11 @@ Source: [Original Pegasus packages/parser/src/utils/LoopMemberDetector.ts](https
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/n06-loop-member/review.md](../../docs/parity/evidence/2026-09-11/n06-loop-member/review.md) (2026-09-11; Speaker/referent settled from pinned source: RuntimeContext carries both identities (perception.speaker + dialog.referent); the hub copies the detector's loopMemberReferent entity into dialog.referent while the speaker feeds only history personIDs. Proven at runtime over a real gateway CLIENT_ASR turn (skill receives referent u-jane with speaker u-george; no-referent leaves dialog untouched). Root falsified the referent write (named test failed, restore 2/0).).
 
 ### N-07 — Match fallback arbitration and external-agent behavior
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: N-01, V-01.
 
@@ -693,7 +693,7 @@ Source: [Original Pegasus packages/parser/src/handlers/ParseRequestHandler.ts](h
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/llmFallback.js](../../packages/nlu/src/llmFallback.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md](../../docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md) (2026-09-11; All three open sub-items closed: per-profile matrix provisioned and replayed 18/18 under BOTH ast and compiled-fst-approved with zero row differences; archived catalog re-derived (99 intents/89 entities) and driven through the envelope; D2 ratified as selectable EXTERNAL_ATTACHMENT_REVISION defaulting to attach (5c0a739) with justification (715e0dd0 omission is incomplete - its own ParserService still wires DialogflowClient). Root falsified the attach pin (6 named fails, restore 9/0). Attach-vs-omit remains a root-ratified judgement.).
 
 ### N-08 — Restore exact NLU outputs and close corpus mismatches
 
@@ -803,7 +803,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d03-oauth/evidence.md](../../docs/par
 
 ### D-04 — Implement Google/Outlook calendar relay compatibility
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: D-01, D-03.
 
@@ -819,7 +819,7 @@ Source: [Original Pegasus packages/lasso/src/relay/GoogleCalendarHandler.ts](htt
 
 Phoenix: [packages/data/src/calendar.js](../../packages/data/src/calendar.js); [packages/data/src/index.js](../../packages/data/src/index.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md](../../docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md) (2026-09-11; Both hold items closed: top-level events mirror REMOVED (envelope now exactly {relayData, lassoDataFromRedis}, two certified files updated to read body.relayData.events with findings preserved) and upstream pagination/ordering ported (Google singleEvents/orderBy/timeMin/timeMax, Graph startDateTime/endDateTime/select/orderby) with the pinned wire query recorded against a mock upstream. Root falsified twice (orderBy break: 3 named fails; mirror re-add: 4 fails incl. certified D-02; both restored green).).
 
 ### D-05 — Match weather data and forecast/date semantics
 
@@ -948,7 +948,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/settings-hub-projectio
 
 ### S-01 — Verify GraphSkill sessions and graph execution
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: H-04, V-02.
 
@@ -964,7 +964,7 @@ Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.
 
 Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/graph.js](../../packages/skills/src/graph/graph.js); [packages/skills/src/graph/graphManager.js](../../packages/skills/src/graph/graphManager.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md](../../docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md) (2026-09-11; Acceptance 3 closed via narrowing (b): pinned-source proof that the cloud cannot enforce cutover (no session registry, never validates host shape, session arrives from the robot in CONTEXT) + skill-side contract + runtime-tested deploy-time cutover gate CLI (exit 0 resume / exit 2 drop-or-relaunch, persisted state). Standalone report-skill nodeID 31 vs cohosted 35 observed. Root falsified the gate (named test failed, restore 3/3). Hardware cutover action stays UNKNOWN (root-owned).).
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 

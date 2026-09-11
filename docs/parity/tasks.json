@@ -1384,7 +1384,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "missing",
       "owner": "Codex",
       "dependsOn": [
@@ -1402,7 +1402,18 @@
         "Port the source's ordered name/referent resolution and given-name/last-name/loopMemberReferent output semantics.",
         "Match source fixtures for aliases, punctuation, duplicates, missing members, ambiguous references and speaker/referent interactions."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Speaker/referent settled from pinned source: RuntimeContext carries both identities (perception.speaker + dialog.referent); the hub copies the detector's loopMemberReferent entity into dialog.referent while the speaker feeds only history personIDs. Proven at runtime over a real gateway CLIENT_ASR turn (skill receives referent u-jane with speaker u-george; no-referent leaves dialog untouched). Root falsified the referent write (named test failed, restore 2/0).",
+          "artifact": "docs/parity/evidence/2026-09-11/n06-loop-member/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d6b25bab3e081bc5368a84b618479369201aaca1",
+          "command": "npm test",
+          "notes": "SPEAKER_ID ignoring is faithful (deprecated in source). Detector file-location differs only."
+        }
+      ]
     },
     {
       "id": "N-07",
@@ -1410,7 +1421,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1433,7 +1444,18 @@
         "Preserve fallback entities, rules and external result structure through a replaceable provider; cover the archived intent/entity catalog.",
         "Verify enabled/disabled configuration, timeout budgets, cancellation and unavailable-provider behavior for each supported profile."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "All three open sub-items closed: per-profile matrix provisioned and replayed 18/18 under BOTH ast and compiled-fst-approved with zero row differences; archived catalog re-derived (99 intents/89 entities) and driven through the envelope; D2 ratified as selectable EXTERNAL_ATTACHMENT_REVISION defaulting to attach (5c0a739) with justification (715e0dd0 omission is incomplete - its own ParserService still wires DialogflowClient). Root falsified the attach pin (6 named fails, restore 9/0). Attach-vs-omit remains a root-ratified judgement.",
+          "artifact": "docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d6b25bab3e081bc5368a84b618479369201aaca1",
+          "command": "npm test",
+          "notes": "Pre-existing A-05 oobeRestartSIGKILL flake noted (reproduces on clean tree)."
+        }
+      ]
     },
     {
       "id": "N-08",
@@ -1966,7 +1988,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1989,7 +2011,18 @@
         "Match endDate defaults/validation, pagination, timezone/all-day normalization, ordering and filtered/invalid events.",
         "Run report-skill -> Phoenix data -> provider-fixture integration; a provider returning events must reach the report rather than fail envelope parsing."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Both hold items closed: top-level events mirror REMOVED (envelope now exactly {relayData, lassoDataFromRedis}, two certified files updated to read body.relayData.events with findings preserved) and upstream pagination/ordering ported (Google singleEvents/orderBy/timeMin/timeMax, Graph startDateTime/endDateTime/select/orderby) with the pinned wire query recorded against a mock upstream. Root falsified twice (orderBy break: 3 named fails; mirror re-add: 4 fails incl. certified D-02; both restored green).",
+          "artifact": "docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d6b25bab3e081bc5368a84b618479369201aaca1",
+          "command": "npm test",
+          "notes": "Residual: report-side endDate UTC rendering belongs to the report file, outside D-04 scope. Port-collision guard re-applied on top."
+        }
+      ]
     },
     {
       "id": "D-05",
@@ -2123,7 +2156,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2147,7 +2180,18 @@
         "Continue captured sessions through all follow-up actions, including retries and global interruptions; detect corrupted/replayed sessions.",
         "Specify whether in-flight reference sessions must survive a cutover and verify the migration/reset policy before release."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Acceptance 3 closed via narrowing (b): pinned-source proof that the cloud cannot enforce cutover (no session registry, never validates host shape, session arrives from the robot in CONTEXT) + skill-side contract + runtime-tested deploy-time cutover gate CLI (exit 0 resume / exit 2 drop-or-relaunch, persisted state). Standalone report-skill nodeID 31 vs cohosted 35 observed. Root falsified the gate (named test failed, restore 3/3). Hardware cutover action stays UNKNOWN (root-owned).",
+          "artifact": "docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d6b25bab3e081bc5368a84b618479369201aaca1",
+          "command": "npm test",
+          "notes": "Deploy procedure: run scripts/parity-s01/cutover-gate.mjs at release; drop-or-relaunch sessions on shape change."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root with Luna Max candidates",

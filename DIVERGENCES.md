@@ -322,4 +322,33 @@ field and no `x-amzn-errortype` (`@jibo/server dst/boom.js`) but Phoenix uses th
 400 UnknownOperationException. All three change the raw bytes of every Jot error and the
 package-wide convention, so they were flagged, not unilaterally fixed. A-19 stays a CANDIDATE
 on these plus the dead-original-client substitution for criterion 4.
+## D04a — calendar envelope mirror + unported clients (CLOSED w14/d04)
+Top-level `events` mirror REMOVED: the envelope is now exactly
+`{relayData, lassoDataFromRedis}` (+ `lassoInsertedIntoRedisAt` on a hit), matching
+`AbstractRelayRequestHandler.ts:112-131` and both pinned deep-equal bodies. The two certified
+files (credential.test.js, oauth.test.js) now read `body.relayData.events`; their findings are
+preserved. Upstream pagination/ordering ported with the pinned wire query recorded. Residual:
+report-side endDate UTC rendering belongs to `packages/skills/src/report/calendar.js`, outside
+D-04 scope. The pre-existing port collision (credential-durable PORT+5=7805 vs
+calendar-lasso-integration PORT=7805) is still open; calendar-relay.test.js now retries the
+next port on EADDRINUSE.
+
+## N06b — speaker/referent settled (CLOSED w14/n06)
+`perception.speaker` and `dialog.referent` are independent RuntimeContext fields; the hub copies
+the detector's `loopMemberReferent` entity into `dialog.referent` (SkillRequestHelper.ts:93-102)
+while the speaker feeds only history personIDs (TransactionHelper.ts:13-16). Proven over a real
+gateway CLIENT_ASR turn. `SPEAKER_ID` ignoring is faithful (deprecated in source).
+
+## S01b — cutover gate (CLOSED w14/s01, deploy procedure)
+The cloud cannot enforce session cutover (no registry, no shape validation, session arrives
+from the robot in CONTEXT). Release procedure: run `scripts/parity-s01/cutover-gate.mjs` —
+exit 0 resumes, exit 2 drops-or-relaunches. Standalone report-skill nodeID 31 vs cohosted 35
+observed; cross-shape reuse is silently reinterpreted (HTTP 200), never refused.
+
+## N07b — external-agent revision ratified (CLOSED w14/n07, root judgement kept)
+`EXTERNAL_ATTACHMENT_REVISION {attach, omit}` defaults to `attach` (5c0a739); `omit`
+(715e0dd0) is selectable per request. The omission is an incomplete restoration — its own
+`ParserService.ts:54,121-123` still wires `DialogflowClient`. Per-profile matrix 18/18 under
+both AST and provisioned compiled-FST with zero row differences; archived catalog re-derived
+(99 intents / 89 entities). N-07-D1 (LLM names vs Dialogflow names) stays open but measurable.
 

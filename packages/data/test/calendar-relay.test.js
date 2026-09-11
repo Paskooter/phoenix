@@ -39,8 +39,9 @@ const chicagoTimezone = fixture('google-calendar-chicago.json').timeZone; // Ame
 const outlookEvents = fixture('outlook-events.json');
 
 const PORT = 7804;
-const base = `http://localhost:${PORT}`;
+let base = `http://localhost:${PORT}`;
 let server;
+let portRetries = 0;
 
 const providerCalls = [];
 const googleProvider = async (req, ctx) => {
@@ -75,7 +76,20 @@ const outlookProvider = async (req, ctx) => {
 };
 
 before(async () => {
-  server = await createDataService({ googleCalendarProvider: googleProvider, outlookCalendarProvider: outlookProvider }).listen(PORT);
+  // Fixed-port collision guard: credential-durable.test.js also binds 7800+N in the same
+  // parallel run (EADDRINUSE flake reported in w13/a05). Retry on the next port.
+  for (let attempt = 0; ; attempt++) {
+    const port = PORT + portRetries + attempt;
+    try {
+      server = await createDataService({ googleCalendarProvider: googleProvider, outlookCalendarProvider: outlookProvider }).listen(port);
+      base = `http://localhost:${port}`;
+      if (port !== PORT) portRetries += attempt;
+      break;
+    } catch (err) {
+      if (err?.code === 'EADDRINUSE' && attempt < 5) continue;
+      throw err;
+    }
+  }
 });
 after(() => { server?.close?.(); });
 
