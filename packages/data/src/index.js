@@ -7,6 +7,8 @@
 // docs/atlas/packages/lasso.md, message-protocol.md §9.
 
 import { createService, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { DefaultPort } from '@phoenix/contracts';
 import { TTLCache } from './cache.js';
 import { createRelay } from './relay.js';
@@ -31,6 +33,34 @@ function oauthFromEnv(oauthSecretsDir) {
   if (process.env.ETCO_lasso_googleTokenUrl) endpoints.google = { tokenUrl: process.env.ETCO_lasso_googleTokenUrl };
   if (process.env.ETCO_lasso_outlookTokenUrl) endpoints.outlook = { tokenUrl: process.env.ETCO_lasso_outlookTokenUrl };
   return createOAuthProvider({ secretsDir: dir, endpoints });
+}
+
+/**
+ * Build an events provider from a fixture directory when one is configured
+ * (ETCO_lasso_calendarFixtureDir). This is the D-04 analogue of the token-URL
+ * override above: a QA/ops stand-in for the Google/Outlook Calendar API client
+ * (calendar-client/GoogleCalendarClient.ts:104-138) so the route can be driven
+ * end-to-end without live provider credentials. Both files are re-read on every
+ * call, mirroring the client's two requests:
+ *   <dir>/<service>.json           events.list / calendarView response
+ *                                  (Google `{items}`, Graph `{value}`, or a bare array)
+ *   <dir>/<service>-calendar.json  optional calendar resource; its `timeZone` is
+ *                                  reported like getCalendarTimezone() (Google)
+ * Absent the override the provider stays unset -> the D-01 501 default.
+ */
+function calendarFixtureProvider(serviceName) {
+  const dir = process.env.ETCO_lasso_calendarFixtureDir || process.env.ETCO_data_calendarFixtureDir;
+  if (!dir) return undefined;
+  const file = join(dir, `${serviceName}.json`);
+  if (!existsSync(file)) return undefined;
+  const calendarFile = join(dir, `${serviceName}-calendar.json`);
+  return async () => {
+    const payload = JSON.parse(readFileSync(file, 'utf8'));
+    const events = Array.isArray(payload) ? payload : (payload.items || payload.value || []);
+    if (!existsSync(calendarFile)) return { events };
+    const resource = JSON.parse(readFileSync(calendarFile, 'utf8'));
+    return { events, calendarTimezone: resource.timeZone };
+  };
 }
 
 /**
@@ -76,8 +106,8 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     fetchExternal: (input) => fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
   });
 
-  const googleCal = createCalendarHandler({ provider: googleCalendarProvider, store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
-  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider, store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
+  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarFixtureProvider('google'), store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
+  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarFixtureProvider('outlook'), store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
   // LassoService.ts:86-95 — a new credential notifies the calendar handlers, which
   // drop the cached payload for that (skillId, accountId, calendar) key.
   const cred = credentialHandlers(store, {
@@ -94,7 +124,9 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
       'GET /v1/google_maps': maps,
       'HEAD /v1/google_maps': maps,
       'GET /v1/google_calendar': googleCal,
+      'HEAD /v1/google_calendar': googleCal,
       'GET /v1/outlook_calendar': outlookCal,
+      'HEAD /v1/outlook_calendar': outlookCal,
       'POST /v1/credential': cred.post,
       'GET /v1/credential': cred.get,
       'DELETE /v1/credential': cred.del,

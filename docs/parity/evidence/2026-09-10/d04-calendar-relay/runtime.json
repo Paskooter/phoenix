@@ -1,0 +1,219 @@
+{
+  "harness": "packages/data/scripts/calendar-runtime.mjs",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "fixtureSha256": {
+    "google-events.json": "c76bb7b9e5855229494b5280dc4cdecc8d6ba064f0e22df4ac339aae0997585a",
+    "google-events-chicago.json": "c8ef295535f60505eea7ce0e27056645efdfe5ddfde8cd19b21233ab2a2bca98",
+    "outlook-events.json": "2f3e87688376975dc221435c8a83f512cbf82ecf8ce60f908bc9dd8f1ec54357",
+    "google-calendar.json (timeZone America/Los_Angeles)": "94c8c189b5f8f6ccb36935ac62ebc573f783b5566a116fa93d6d240ae84ca9b1",
+    "google-calendar-chicago.json (timeZone America/Chicago)": "7a7c640ed06066658e249a63ade13621fd47003e6f56fafacccee7bb37d7ba68"
+  },
+  "steps": [
+    {
+      "step": "A1_get_pinned_google_fixture",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "envelopeKeys": [
+        "relayData",
+        "lassoDataFromRedis",
+        "events"
+      ],
+      "lassoDataFromRedis": false,
+      "relayData": {
+        "events": [
+          {
+            "summary": "Event With Start and End Date",
+            "fullDay": true,
+            "start": {
+              "dateTime": "2018-04-21T00:00:00-07:00",
+              "timestamp": 1524294000000
+            },
+            "end": {
+              "dateTime": "2018-04-23T00:00:00-07:00",
+              "timestamp": 1524466800000
+            }
+          },
+          {
+            "summary": "Event With Start and End Time",
+            "fullDay": false,
+            "start": {
+              "dateTime": "2018-08-23T07:30:00-07:00",
+              "timestamp": 1535034600000
+            },
+            "end": {
+              "dateTime": "2018-08-23T08:30:00-07:00",
+              "timestamp": 1535038200000
+            }
+          }
+        ]
+      },
+      "matchesPinnedExpectation": true
+    },
+    {
+      "step": "A2_get_pinned_outlook_fixture",
+      "status": 200,
+      "lassoDataFromRedis": false,
+      "relayData": {
+        "events": [
+          {
+            "summary": "Outlook Event 1",
+            "fullDay": false,
+            "start": {
+              "timestamp": 1524668400000,
+              "dateTime": "2018-04-25T08:00:00-07:00"
+            },
+            "end": {
+              "timestamp": 1524670200000,
+              "dateTime": "2018-04-25T08:30:00-07:00"
+            }
+          },
+          {
+            "summary": "Outlook Event 2",
+            "fullDay": false,
+            "start": {
+              "timestamp": 1524582000000,
+              "dateTime": "2018-04-24T08:00:00-07:00"
+            },
+            "end": {
+              "timestamp": 1524583800000,
+              "dateTime": "2018-04-24T08:30:00-07:00"
+            }
+          },
+          {
+            "summary": "Outlook Event 3",
+            "fullDay": true,
+            "start": {
+              "timestamp": 1524553200000,
+              "dateTime": "2018-04-24T00:00:00-07:00"
+            },
+            "end": {
+              "timestamp": 1524639600000,
+              "dateTime": "2018-04-25T00:00:00-07:00"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": "A3_head",
+      "status": 200,
+      "contentType": null,
+      "contentLength": null,
+      "bodyBytes": 0
+    },
+    {
+      "step": "A3b_get_after_head_is_a_cache_hit",
+      "lassoDataFromRedis": true,
+      "contentType": "text/html; charset=utf-8",
+      "hasInsertedAt": true,
+      "events": 2
+    },
+    {
+      "step": "A4_cache_hit_echoes_stored_bytes",
+      "missContentType": "application/json; charset=utf-8",
+      "hitContentType": "text/html; charset=utf-8",
+      "hitIsStoredBytes": true,
+      "missKeyOrder": [
+        "relayData",
+        "lassoDataFromRedis",
+        "events"
+      ],
+      "hitKeyOrder": [
+        "relayData",
+        "lassoDataFromRedis",
+        "events",
+        "lassoInsertedIntoRedisAt"
+      ]
+    },
+    {
+      "step": "A5_credential_invalidation",
+      "cachedStillV1": "Event With Start and End Date (fromRedis=true)",
+      "credentialPostStatus": 200,
+      "credentialPostBody": {
+        "created": true
+      },
+      "afterCredentialFromRedis": false,
+      "afterCredentialSummary": "AFTER FIXTURE CHANGE"
+    },
+    {
+      "step": "A6_validation",
+      "invalidEndDate": {
+        "status": 400,
+        "contentType": "text/html; charset=utf-8",
+        "body": "Invalid end date: 2018-13-45"
+      },
+      "missingSkillIdOutlook": {
+        "status": 400,
+        "body": "Missing skillId in Outlook Calendar request"
+      }
+    },
+    {
+      "step": "B_report_reaches_the_report",
+      "lassoClientRelayData": {
+        "events": [
+          {
+            "summary": "Work standup",
+            "fullDay": false,
+            "start": {
+              "dateTime": "2026-09-12T09:00:00Z",
+              "timestamp": 1789203600000
+            },
+            "end": {
+              "dateTime": "2026-09-12T09:30:00Z",
+              "timestamp": 1789205400000
+            }
+          },
+          {
+            "summary": "Dinner with Sam",
+            "fullDay": false,
+            "start": {
+              "dateTime": "2026-09-12T18:00:00Z",
+              "timestamp": 1789236000000
+            },
+            "end": {
+              "dateTime": "2026-09-12T19:30:00Z",
+              "timestamp": 1789241400000
+            }
+          },
+          {
+            "summary": "Dentist",
+            "fullDay": false,
+            "start": {
+              "dateTime": "2026-09-13T09:00:00Z",
+              "timestamp": 1789290000000
+            },
+            "end": {
+              "dateTime": "2026-09-13T09:30:00Z",
+              "timestamp": 1789291800000
+            }
+          }
+        ]
+      },
+      "reportCategory": "calendar",
+      "reportEvents": [
+        {
+          "summary": "Work standup",
+          "start": "2026-09-12T09:00:00Z",
+          "timestamp": 1789203600000
+        },
+        {
+          "summary": "Dinner with Sam",
+          "start": "2026-09-12T18:00:00Z",
+          "timestamp": 1789236000000
+        },
+        {
+          "summary": "Dentist",
+          "start": "2026-09-13T09:00:00Z",
+          "timestamp": 1789290000000
+        }
+      ],
+      "parse": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 2
+      },
+      "mimPaths": [
+        "NothingToday"
+      ]
+    }
+  ]
+}
