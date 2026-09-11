@@ -1728,7 +1728,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1749,7 +1749,18 @@
         "Port the original event/query/rule validation matrix, timestamps, identifier constraints and failure payloads.",
         "Verify sorted array EXACT/NOT, all payload operators, nested keys, empty arrays, missing fields, session exclusions and time boundaries against a database oracle."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "History validation and query semantics matched against the reference oracle. Root reproduced the falsification: removing the length check from the EXACT personIDs comparison at packages/history/src/query.js:87 failed exactly two named tests (order-independent EXACT comparison, and the NOT/CONTAINS/CONTAINS_ANY/CONTAINS_ALL/NOT_CONTAIN matrix); restoring returned green.",
+          "artifact": "packages/history/test/history.validation.test.js",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "94d6df4edff5f4cc0bbde7e29f9030e91b7591cc",
+          "command": "node --test packages/history/test/history.validation.test.js && npm test",
+          "notes": "Extends the I-01 reference-oracle harness rather than rebuilding it."
+        }
+      ]
     },
     {
       "id": "I-03",
@@ -1757,7 +1768,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1776,7 +1787,18 @@
         "Persist skill-launch and speech records with restart/recovery, stable identifiers, ordering and payload-update semantics.",
         "Verify eventual 14-day launch expiry independent of insertion order and reference speech retention, including concurrent access and crash recovery."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Retention and restart durability certified, and a REAL defect closed: _pruneExpired previously inspected only skillLaunches[0], so a back-dated launch that was not the head of the insertion-ordered array survived forever (a 40-day-old record still answered count 1). It now filters every record. Root proved the fix directly with the exact trap case - a recent record first, a 40-day-old record second: count drops from 3 to 2 and the evicted row does NOT resurrect after re-opening the store. Root also reproduced the falsification by restoring head-only pruning, which failed the named test 'a back-dated launch is evicted and does NOT reappear after a SIGKILL restart'.",
+          "artifact": "packages/history/test/history.durability.test.js",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "94d6df4edff5f4cc0bbde7e29f9030e91b7591cc",
+          "command": "node --test packages/history/test/history.durability.test.js && npm test",
+          "notes": "Divergence I03b stands: Phoenix prunes synchronously on read while the reference relies on Mongo's TTL monitor (~60s sweep), so the reference is eventually-consistent. INFERRED - no mongod in this environment."
+        }
+      ]
     },
     {
       "id": "D-01",
@@ -3605,7 +3627,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3624,7 +3646,18 @@
         "Provide usable binary/ASR upload destinations and a retrievable durable sink where source semantics require them.",
         "Verify producer retries, trace metadata and retention behavior with the original log client."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-11",
+          "basis": "Log ingestion and binary upload re-certified with A12f CLOSED. The SetLevel Joi asymmetry is now matched in BOTH directions: joi@10 rejects the empty string for Joi.string() unless the schema calls .allow(''), and SetLevel's `namespace` is the only Log member that does - so '' is a VALID namespace while '' remains invalid for `level` (not in the enum). Root reproduced the falsification: making namespace reject '' failed the named test 'A12f: SetLevel namespace accepts \"\" (Joi.string().allow(\"\")) and rejects non-strings'; restoring returned 24/0.",
+          "artifact": "packages/classic/test/logClassic.test.js",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "94d6df4edff5f4cc0bbde7e29f9030e91b7591cc",
+          "command": "node --test packages/classic/test/logClassic.test.js && npm test",
+          "notes": "A12e remains fixed and correctly SCOPED to the Log surface - the shared awsJson.js sendAmzError() helper was deliberately not changed globally, since that would rewrite every classic service's wire contract."
+        }
+      ]
     },
     {
       "id": "A-13",

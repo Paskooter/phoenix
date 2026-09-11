@@ -10,8 +10,8 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 16 | 46 | 0 | 0 |
-| classic | 17 | 20 | 0 | 0 |
+| pegasus | 18 | 46 | 0 | 0 |
+| classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -725,7 +725,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-punctuation-litera
 
 ### I-02 — Match history validation and query semantics
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: I-01.
 
@@ -740,11 +740,11 @@ Source: [Original Pegasus packages/history/src/skilllaunch/validators](https://p
 
 Phoenix: [packages/history/src/query.js](../../packages/history/src/query.js); [packages/history/src/store.js](../../packages/history/src/store.js); [packages/history/test/history.test.js](../../packages/history/test/history.test.js).
 
-Evidence: pending.
+Evidence: [packages/history/test/history.validation.test.js](../../packages/history/test/history.validation.test.js) (2026-09-11; History validation and query semantics matched against the reference oracle. Root reproduced the falsification: removing the length check from the EXACT personIDs comparison at packages/history/src/query.js:87 failed exactly two named tests (order-independent EXACT comparison, and the NOT/CONTAINS/CONTAINS_ANY/CONTAINS_ALL/NOT_CONTAIN matrix); restoring returned green.).
 
 ### I-03 — Preserve history across restart and verify retention
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: I-01.
 
@@ -759,7 +759,7 @@ Source: [Original Pegasus packages/history/src/skilllaunch/schema/SkillLaunchSch
 
 Phoenix: [packages/history/src/store.js](../../packages/history/src/store.js).
 
-Evidence: pending.
+Evidence: [packages/history/test/history.durability.test.js](../../packages/history/test/history.durability.test.js) (2026-09-11; Retention and restart durability certified, and a REAL defect closed: _pruneExpired previously inspected only skillLaunches[0], so a back-dated launch that was not the head of the insertion-ordered array survived forever (a 40-day-old record still answered count 1). It now filters every record. Root proved the fix directly with the exact trap case - a recent record first, a 40-day-old record second: count drops from 3 to 2 and the evicted row does NOT resurrect after re-opening the store. Root also reproduced the falsification by restoring head-only pruning, which failed the named test 'a back-dated launch is evicted and does NOT reappear after a SIGKILL restart'.).
 
 ### D-02 — Complete credential CRUD, uniqueness and durable state
 
@@ -1547,7 +1547,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a11-key-exchange/review.md](../../doc
 
 ### A-12 — Implement log ingestion and binary-upload behavior
 
-- [ ] **todo** · P1 · classic · implementation: partial
+- [x] **verified** · P1 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-02.
 
@@ -1563,7 +1563,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/log-2015-03-09.normal.json](https
 
 Phoenix: [packages/classic/src/log.js](../../packages/classic/src/log.js).
 
-Evidence: pending.
+Evidence: [packages/classic/test/logClassic.test.js](../../packages/classic/test/logClassic.test.js) (2026-09-11; Log ingestion and binary upload re-certified with A12f CLOSED. The SetLevel Joi asymmetry is now matched in BOTH directions: joi@10 rejects the empty string for Joi.string() unless the schema calls .allow(''), and SetLevel's `namespace` is the only Log member that does - so '' is a VALID namespace while '' remains invalid for `level` (not in the enum). Root reproduced the falsification: making namespace reject '' failed the named test 'A12f: SetLevel namespace accepts "" (Joi.string().allow("")) and rejects non-strings'; restoring returned 24/0.).
 
 ### A-13 — Implement push delivery behind a replaceable provider
 
