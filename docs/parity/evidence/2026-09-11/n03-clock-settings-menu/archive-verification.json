@@ -1,0 +1,78 @@
+{
+ "schema": "phoenix.nlu.n03-archive-verification",
+ "mcp": "https://pvindex.org/mcp",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "files": [
+  {
+   "repo": "jiboV2/pegasus",
+   "ref": "5c0a7390539663ba749d360de348a428c088505c",
+   "path": "packages/parser/robust-parser/rules_src/clock/alarm_timer_ampm.rule",
+   "vendored": "packages/nlu/resources/rules-src/clock/alarm_timer_ampm.rule",
+   "identical": true,
+   "archivedBytes": 471,
+   "vendoredBytes": 471,
+   "vendoredSha256": "4abd795bc17d86363cc41199d0678cd19e4c1200a8b98f78258de82f229a125f"
+  },
+  {
+   "repo": "jiboV2/pegasus",
+   "ref": "5c0a7390539663ba749d360de348a428c088505c",
+   "path": "packages/parser/robust-parser/rules_src/clock/alarm_set_value.rule",
+   "vendored": "packages/nlu/resources/rules-src/clock/alarm_set_value.rule",
+   "identical": true,
+   "archivedBytes": 1829,
+   "vendoredBytes": 1829,
+   "vendoredSha256": "70f1fd871a30620a2b78b6000eb97a1571238c8a9e37e34c3d3f0a5bcffa8fb3"
+  },
+  {
+   "repo": "jiboV2/pegasus",
+   "ref": "5c0a7390539663ba749d360de348a428c088505c",
+   "path": "packages/parser/robust-parser/rules_src/clock/alarm_timer_change.rule",
+   "vendored": "packages/nlu/resources/rules-src/clock/alarm_timer_change.rule",
+   "identical": true,
+   "archivedBytes": 847,
+   "vendoredBytes": 847,
+   "vendoredSha256": "be20ccd0fa926c92fa57d748f8fe77c763827448768c7c1fa782d19f7319f2fd"
+  },
+  {
+   "repo": "jiboV2/pegasus",
+   "ref": "5c0a7390539663ba749d360de348a428c088505c",
+   "path": "packages/parser/robust-parser/rules_src/clock/timer_set_value.rule",
+   "vendored": "packages/nlu/resources/rules-src/clock/timer_set_value.rule",
+   "identical": true,
+   "archivedBytes": 2339,
+   "vendoredBytes": 2339,
+   "vendoredSha256": "8a4f705677656b83a80059d7e1e67ecee47b15721bee58c8b5f681b42ac10a17"
+  },
+  {
+   "repo": "jiboV2/pegasus",
+   "ref": "5c0a7390539663ba749d360de348a428c088505c",
+   "path": "packages/parser/robust-parser/rules_src/settings/volume_control.rule",
+   "vendored": "packages/nlu/resources/rules-src/settings/volume_control.rule",
+   "identical": true,
+   "archivedBytes": 3606,
+   "vendoredBytes": 3606,
+   "vendoredSha256": "cdbad8d92b92f429b911c1b46e9379f032d16acf3b7c1a887aa8cf8677b7e7fe"
+  },
+  {
+   "repo": "jiboV2/pegasus",
+   "ref": "5c0a7390539663ba749d360de348a428c088505c",
+   "path": "packages/parser/robust-parser/rules_src/main-menu/execute_main_menu.rule",
+   "vendored": "packages/nlu/resources/rules-src/main-menu/execute_main_menu.rule",
+   "identical": true,
+   "archivedBytes": 1528,
+   "vendoredBytes": 1528,
+   "vendoredSha256": "d4f634b75602be9cd43b0e97dba076c2742c5a5225592a5503d6f06688ca3314"
+  },
+  {
+   "repo": "ConvTech/jibo-nlu-data",
+   "ref": "master",
+   "path": "en-us/factory_rules/time.grm",
+   "vendored": "packages/nlu/resources/factory-sources/time.grm",
+   "identical": true,
+   "archivedBytes": 14172,
+   "vendoredBytes": 14172,
+   "vendoredSha256": "b4a528c8c36177b55142a9c40f8cbf341013b83c906b24b80371835cf1fba02b"
+  }
+ ],
+ "identicalCount": 7
+}

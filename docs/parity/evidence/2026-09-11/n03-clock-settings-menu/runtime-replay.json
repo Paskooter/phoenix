@@ -1,0 +1,5347 @@
+{
+ "schema": "phoenix.nlu.n03-clock-settings-menu-replay",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "fixtureSha256": "14ff0379d9d4d85fdd8d523e9baf0db9fd1b2a34fb9d9cbb4492c515d6ba39f4",
+ "profile": "ast",
+ "namedRuleCoverage": 20,
+ "matchCases": 122,
+ "refusalCases": 24,
+ "directMatches": 122,
+ "directRefusals": 24,
+ "httpMatches": 122,
+ "httpRefusals": 24,
+ "differences": {
+  "direct": [],
+  "directRefusals": [],
+  "http": [],
+  "httpRefusals": []
+ },
+ "timeFactorySourceParse": "parser: unexpected COLON (:) at 5:23",
+ "narrowingProbe": {
+  "clock/alarm_timer_ampm": [
+   {
+    "text": "am",
+    "narrowedMatch": true,
+    "intent": "set",
+    "ampm": "AM",
+    "time": null
+   },
+   {
+    "text": "pm",
+    "narrowedMatch": true,
+    "intent": "set",
+    "ampm": "PM",
+    "time": null
+   },
+   {
+    "text": "a.m.",
+    "narrowedMatch": true,
+    "intent": "set",
+    "ampm": "AM",
+    "time": null
+   },
+   {
+    "text": "p.m.",
+    "narrowedMatch": true,
+    "intent": "set",
+    "ampm": "PM",
+    "time": null
+   },
+   {
+    "text": "noon",
+    "narrowedMatch": false,
+    "intent": null,
+    "ampm": null,
+    "time": null
+   },
+   {
+    "text": "morning",
+    "narrowedMatch": false,
+    "intent": null,
+    "ampm": null,
+    "time": null
+   },
+   {
+    "text": "seven thirty",
+    "narrowedMatch": false,
+    "intent": null,
+    "ampm": null,
+    "time": null
+   }
+  ],
+  "clock/alarm_set_value": [
+   {
+    "text": "one day from now",
+    "narrowedMatch": true,
+    "intent": "alarmValue",
+    "ampm": "null",
+    "time": "24h0m0s"
+   },
+   {
+    "text": "3 days",
+    "narrowedMatch": true,
+    "intent": "alarmValue",
+    "ampm": "null",
+    "time": "25h0m0s"
+   },
+   {
+    "text": "seven thirty am",
+    "narrowedMatch": false,
+    "intent": null,
+    "ampm": null,
+    "time": null
+   },
+   {
+    "text": "set an alarm for 7:30",
+    "narrowedMatch": false,
+    "intent": null,
+    "ampm": null,
+    "time": null
+   }
+  ]
+ },
+ "directRows": [
+  {
+   "id": "clock/alarm_timer_change:positive:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": "delete",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "delete",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:positive:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": "keep",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:boundary:sure",
+   "request": {
+    "text": "sure",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": "delete",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "delete",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:boundary:cancel it",
+   "request": {
+    "text": "cancel it",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": "delete",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "delete",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:boundary:keep it",
+   "request": {
+    "text": "keep it",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": "keep",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:negative:banana",
+   "request": {
+    "text": "banana",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:positive:change it",
+   "request": {
+    "text": "change it",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "expected": {
+    "intent": "change",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "change",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:positive:cancel it",
+   "request": {
+    "text": "cancel it",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "expected": {
+    "intent": "cancel",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:boundary:edit that",
+   "request": {
+    "text": "edit that",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "expected": {
+    "intent": "change",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "change",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:positive:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:positive:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:sounds good",
+   "request": {
+    "text": "sounds good",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:i think so",
+   "request": {
+    "text": "i think so",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:later",
+   "request": {
+    "text": "later",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:not right now",
+   "request": {
+    "text": "not right now",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:positive:wrong",
+   "request": {
+    "text": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": "wrong",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:wait",
+   "request": {
+    "text": "wait",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": "wrong",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:stop",
+   "request": {
+    "text": "stop",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": "wrong",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:no no",
+   "request": {
+    "text": "no no",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": "wrong",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:not right",
+   "request": {
+    "text": "not right",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": "wrong",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": "wrong",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:negative:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:positive:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "expected": {
+    "intent": "replace",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "replace",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:positive:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "expected": {
+    "intent": "keep",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:boundary:fine",
+   "request": {
+    "text": "fine",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "expected": {
+    "intent": "replace",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "replace",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:boundary:cancel it",
+   "request": {
+    "text": "cancel it",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "expected": {
+    "intent": "replace",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "replace",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:boundary:keep it",
+   "request": {
+    "text": "keep it",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "expected": {
+    "intent": "keep",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_query_menu:positive:change it",
+   "request": {
+    "text": "change it",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "expected": {
+    "intent": "change",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "change",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_query_menu:positive:cancel that",
+   "request": {
+    "text": "cancel that",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "expected": {
+    "intent": "cancel",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_query_menu:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:positive:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:positive:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:boundary:sounds good",
+   "request": {
+    "text": "sounds good",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:boundary:i'm good",
+   "request": {
+    "text": "i'm good",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:what time is it",
+   "request": {
+    "text": "what time is it",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": "askForTime",
+    "entities": {
+     "domain": "clock"
+    },
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "clock"
+    },
+    "intent": "askForTime",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:what is the date",
+   "request": {
+    "text": "what is the date",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": "askForDate",
+    "entities": {
+     "domain": "clock"
+    },
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "clock"
+    },
+    "intent": "askForDate",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:timer",
+   "request": {
+    "text": "timer",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": "start",
+    "entities": {
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "timer"
+    },
+    "intent": "start",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:alarm",
+   "request": {
+    "text": "alarm",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": "set",
+    "entities": {
+     "domain": "alarm"
+    },
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "alarm"
+    },
+    "intent": "set",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:boundary:show me the alarm",
+   "request": {
+    "text": "show me the alarm",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": "set",
+    "entities": {
+     "domain": "alarm"
+    },
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "alarm"
+    },
+    "intent": "set",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:boundary:the time",
+   "request": {
+    "text": "the time",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": "askForTime",
+    "entities": {
+     "domain": "clock"
+    },
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "clock"
+    },
+    "intent": "askForTime",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:negative:five",
+   "request": {
+    "text": "five",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:positive:stop the timer",
+   "request": {
+    "text": "stop the timer",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "expected": {
+    "intent": "stop",
+    "entities": {},
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "stop",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:boundary:kill it",
+   "request": {
+    "text": "kill it",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "expected": {
+    "intent": "stop",
+    "entities": {},
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "stop",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:boundary:end the timer",
+   "request": {
+    "text": "end the timer",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "expected": {
+    "intent": "stop",
+    "entities": {},
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "stop",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:negative:start the timer",
+   "request": {
+    "text": "start the timer",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:positive:set a timer for five minutes",
+   "request": {
+    "text": "set a timer for five minutes",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "timerValue",
+    "entities": {
+     "hours": "null",
+     "minutes": "5",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "5",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:set a timer for one hour",
+   "request": {
+    "text": "set a timer for one hour",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "timerValue",
+    "entities": {
+     "hours": "1",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "1",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:one day",
+   "request": {
+    "text": "one day",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "timerValue",
+    "entities": {
+     "hours": "24",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "24",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:a minute",
+   "request": {
+    "text": "a minute",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "timerValue",
+    "entities": {
+     "hours": "null",
+     "minutes": "1",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "1",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:a second",
+   "request": {
+    "text": "a second",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "timerValue",
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "1",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "1",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:set a timer for 3 days",
+   "request": {
+    "text": "set a timer for 3 days",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "timerValue",
+    "entities": {
+     "hours": "25",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "25",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:positive:cancel the timer",
+   "request": {
+    "text": "cancel the timer",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": "cancel",
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "cancel",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:positive:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:positive:no thanks",
+   "request": {
+    "text": "no thanks",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:boundary:why not",
+   "request": {
+    "text": "why not",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:boundary:not now",
+   "request": {
+    "text": "not now",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:boundary:cancel",
+   "request": {
+    "text": "cancel",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:positive:never",
+   "request": {
+    "text": "never",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": "never",
+    "entities": {},
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "never",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:battery",
+   "request": {
+    "text": "battery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "battery",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "battery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:shut down",
+   "request": {
+    "text": "shut down",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "shutDown",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "shutDown",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:about",
+   "request": {
+    "text": "about",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "about",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "about",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:volume",
+   "request": {
+    "text": "volume",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "volumeQuery",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "volumeQuery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:wifi",
+   "request": {
+    "text": "wifi",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "wifiStatus",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wifiStatus",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:updates",
+   "request": {
+    "text": "updates",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "updates",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "updates",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:wipe",
+   "request": {
+    "text": "wipe",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "wipe",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wipe",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:boundary:turn it off",
+   "request": {
+    "text": "turn it off",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "shutDown",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "shutDown",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:boundary:the battery",
+   "request": {
+    "text": "the battery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": "battery",
+    "entities": {},
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "battery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:positive:okay thanks",
+   "request": {
+    "text": "okay thanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "expected": {
+    "intent": "okayThanks",
+    "entities": {},
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:boundary:got it",
+   "request": {
+    "text": "got it",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "expected": {
+    "intent": "okayThanks",
+    "entities": {},
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:boundary:thank you",
+   "request": {
+    "text": "thank you",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "expected": {
+    "intent": "okayThanks",
+    "entities": {},
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:boundary:thanks",
+   "request": {
+    "text": "thanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "expected": {
+    "intent": "okayThanks",
+    "entities": {},
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:negative:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:positive:yes",
+   "request": {
+    "text": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:positive:no",
+   "request": {
+    "text": "no",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:boundary:definitely",
+   "request": {
+    "text": "definitely",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:boundary:certainly",
+   "request": {
+    "text": "certainly",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "expected": {
+    "intent": "yes",
+    "entities": {},
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:boundary:stay on",
+   "request": {
+    "text": "stay on",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "expected": {
+    "intent": "no",
+    "entities": {},
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:positive:turn the volume up",
+   "request": {
+    "text": "turn the volume up",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeUp",
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeUp",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:positive:turn the volume down",
+   "request": {
+    "text": "turn the volume down",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeDown",
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeDown",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:what's your volume",
+   "request": {
+    "text": "what's your volume",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeQuery",
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeQuery",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:maximum volume",
+   "request": {
+    "text": "maximum volume",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeToValue",
+    "entities": {
+     "volumeLevel": "10",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "10",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:minimum volume",
+   "request": {
+    "text": "minimum volume",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeToValue",
+    "entities": {
+     "volumeLevel": "01",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "01",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:set the volume to five",
+   "request": {
+    "text": "set the volume to five",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeToValue",
+    "entities": {
+     "volumeLevel": "05",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "05",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:turn it up a bit",
+   "request": {
+    "text": "turn it up a bit",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": "volumeUp",
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeUp",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:positive:joke",
+   "request": {
+    "text": "joke",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "joke"
+    },
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "joke"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:positive:dance",
+   "request": {
+    "text": "dance",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "dance"
+    },
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "dance"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:tell me a joke",
+   "request": {
+    "text": "tell me a joke",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "joke"
+    },
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "joke"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:surprise me",
+   "request": {
+    "text": "surprise me",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "surprise"
+    },
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "surprise"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:word of the day",
+   "request": {
+    "text": "word of the day",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "word-of-the-day"
+    },
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "word-of-the-day"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:circuit saver game",
+   "request": {
+    "text": "circuit saver game",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "circuit-saver"
+    },
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "circuit-saver"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:positive:settings",
+   "request": {
+    "text": "settings",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "settings"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "settings"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:positive:clock",
+   "request": {
+    "text": "clock",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "clock"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "clock"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:positive:radio",
+   "request": {
+    "text": "radio",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "radio"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "radio"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:gallery",
+   "request": {
+    "text": "gallery",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "gallery"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "gallery"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:snapshot",
+   "request": {
+    "text": "snapshot",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "snapshot"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "snapshot"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:tutorial",
+   "request": {
+    "text": "tutorial",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "tutorial"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "tutorial"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:fun stuff",
+   "request": {
+    "text": "fun stuff",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "fun"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "fun"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:personal report",
+   "request": {
+    "text": "personal report",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "personal-report"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "personal-report"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:introductions",
+   "request": {
+    "text": "introductions",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "introductions"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "introductions"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:yoga",
+   "request": {
+    "text": "yoga",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "exercise"
+    },
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "exercise"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:positive:weather",
+   "request": {
+    "text": "weather",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "weather"
+    },
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "weather"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:full report",
+   "request": {
+    "text": "full report",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "full-report"
+    },
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "full-report"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:calendar",
+   "request": {
+    "text": "calendar",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "calendar"
+    },
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "calendar"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:commute",
+   "request": {
+    "text": "commute",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "commute"
+    },
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "commute"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:news",
+   "request": {
+    "text": "news",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "expected": {
+    "intent": "loadMenu",
+    "entities": {
+     "destination": "news"
+    },
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "news"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "error": null,
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:negative:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "expected": {
+    "intent": null,
+    "entities": null,
+    "rules": []
+   },
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "error": null,
+   "matches": true
+  }
+ ],
+ "directRefusalRows": [
+  {
+   "id": "clock/alarm_timer_ampm:am",
+   "request": {
+    "text": "am",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:pm",
+   "request": {
+    "text": "pm",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:a.m.",
+   "request": {
+    "text": "a.m.",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:p.m.",
+   "request": {
+    "text": "p.m.",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:noon",
+   "request": {
+    "text": "noon",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:morning",
+   "request": {
+    "text": "morning",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:seven thirty am",
+   "request": {
+    "text": "seven thirty am",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:set an alarm",
+   "request": {
+    "text": "set an alarm",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:5 pm",
+   "request": {
+    "text": "5 pm",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:one day from now",
+   "request": {
+    "text": "one day from now",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:3 days",
+   "request": {
+    "text": "3 days",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_timer_ampm"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:am",
+   "request": {
+    "text": "am",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:pm",
+   "request": {
+    "text": "pm",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:a.m.",
+   "request": {
+    "text": "a.m.",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:p.m.",
+   "request": {
+    "text": "p.m.",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:noon",
+   "request": {
+    "text": "noon",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:morning",
+   "request": {
+    "text": "morning",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:seven thirty am",
+   "request": {
+    "text": "seven thirty am",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:set an alarm",
+   "request": {
+    "text": "set an alarm",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:5 pm",
+   "request": {
+    "text": "5 pm",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:one day from now",
+   "request": {
+    "text": "one day from now",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:3 days",
+   "request": {
+    "text": "3 days",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:qzx florp",
+   "request": {
+    "text": "qzx florp",
+    "rules": [
+     "clock/alarm_set_value"
+    ]
+   },
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "status": 500,
+   "matches": true
+  }
+ ],
+ "httpRows": [
+  {
+   "id": "clock/alarm_timer_change:positive:yes",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "delete",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:positive:no",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:boundary:sure",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "delete",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:boundary:cancel it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "delete",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:boundary:keep it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_change"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_change:negative:banana",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:positive:change it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "change",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:positive:cancel it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:boundary:edit that",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "change",
+    "rules": [
+     "clock/alarm_timer_info"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_info:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:positive:yes",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:positive:no",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:sounds good",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:i think so",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:later",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:boundary:not right now",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_none_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_none_set:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:positive:wrong",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:wait",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:stop",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:no no",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:not right",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:boundary:cancel",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wrong",
+    "rules": [
+     "clock/alarm_timer_okay"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_okay:negative:yes",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:positive:yes",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "replace",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:positive:no",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:boundary:fine",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "replace",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:boundary:cancel it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "replace",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:boundary:keep it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "keep",
+    "rules": [
+     "clock/alarm_timer_other_set"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_other_set:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_query_menu:positive:change it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "change",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_query_menu:positive:cancel that",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "cancel",
+    "rules": [
+     "clock/alarm_timer_query_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_query_menu:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:positive:yes",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:positive:no",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:boundary:sounds good",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:boundary:i'm good",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "clock/alarm_timer_too_long"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_too_long:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:what time is it",
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "clock"
+    },
+    "intent": "askForTime",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:what is the date",
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "clock"
+    },
+    "intent": "askForDate",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:timer",
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "timer"
+    },
+    "intent": "start",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:positive:alarm",
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "alarm"
+    },
+    "intent": "set",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:boundary:show me the alarm",
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "alarm"
+    },
+    "intent": "set",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:boundary:the time",
+   "status": 200,
+   "got": {
+    "entities": {
+     "domain": "clock"
+    },
+    "intent": "askForTime",
+    "rules": [
+     "clock/clock_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/clock_menu:negative:five",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:positive:stop the timer",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "stop",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:boundary:kill it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "stop",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:boundary:end the timer",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "stop",
+    "rules": [
+     "clock/stop_timer"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/stop_timer:negative:start the timer",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:positive:set a timer for five minutes",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "5",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:set a timer for one hour",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "1",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:one day",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "24",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:a minute",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "1",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:a second",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "1",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:boundary:set a timer for 3 days",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "25",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "timerValue",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:positive:cancel the timer",
+   "status": 200,
+   "got": {
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "cancel",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "clock/timer_set_value:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:positive:yes",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:positive:no thanks",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:boundary:why not",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:boundary:not now",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:boundary:cancel",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:positive:never",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "never",
+    "rules": [
+     "settings/download_now_later"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/download_now_later:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:battery",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "battery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:shut down",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "shutDown",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:about",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "about",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:volume",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "volumeQuery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:wifi",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wifiStatus",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:updates",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "updates",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:positive:wipe",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "wipe",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:boundary:turn it off",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "shutDown",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:boundary:the battery",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "battery",
+    "rules": [
+     "settings/execute_settings_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/execute_settings_menu:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:positive:okay thanks",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:boundary:got it",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:boundary:thank you",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:boundary:thanks",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "okayThanks",
+    "rules": [
+     "settings/okay_thanks_to_clear"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/okay_thanks_to_clear:negative:no",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:positive:yes",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:positive:no",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:boundary:definitely",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:boundary:certainly",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "yes",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:boundary:stay on",
+   "status": 200,
+   "got": {
+    "entities": {},
+    "intent": "no",
+    "rules": [
+     "settings/shut_down_confirmation"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/shut_down_confirmation:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:positive:turn the volume up",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeUp",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:positive:turn the volume down",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeDown",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:what's your volume",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeQuery",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:maximum volume",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "10",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:minimum volume",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "01",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:set the volume to five",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "05",
+     "domain": "gui_command"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:boundary:turn it up a bit",
+   "status": 200,
+   "got": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "gui_command"
+    },
+    "intent": "volumeUp",
+    "rules": [
+     "settings/volume_control"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "settings/volume_control:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:positive:joke",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "joke"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:positive:dance",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "dance"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:tell me a joke",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "joke"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:surprise me",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "surprise"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:word of the day",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "word-of-the-day"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:boundary:circuit saver game",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "circuit-saver"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_fun_stuff"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_fun_stuff:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:positive:settings",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "settings"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:positive:clock",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "clock"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:positive:radio",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "radio"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:gallery",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "gallery"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:snapshot",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "snapshot"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:tutorial",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "tutorial"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:fun stuff",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "fun"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:personal report",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "personal-report"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:introductions",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "introductions"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:boundary:yoga",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "exercise"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_main_menu"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_main_menu:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:positive:weather",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "weather"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:full report",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "full-report"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:calendar",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "calendar"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:commute",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "commute"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:boundary:news",
+   "status": 200,
+   "got": {
+    "entities": {
+     "destination": "news"
+    },
+    "intent": "loadMenu",
+    "rules": [
+     "main-menu/execute_personal_report"
+    ]
+   },
+   "matches": true
+  },
+  {
+   "id": "main-menu/execute_personal_report:negative:qzx florp",
+   "status": 200,
+   "got": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   },
+   "matches": true
+  }
+ ],
+ "httpRefusalRows": [
+  {
+   "id": "clock/alarm_timer_ampm:am",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:pm",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:a.m.",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:p.m.",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:noon",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:morning",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:seven thirty am",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:set an alarm",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:5 pm",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:one day from now",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:3 days",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_timer_ampm:qzx florp",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:am",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:pm",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:a.m.",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:p.m.",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:noon",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:morning",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:seven thirty am",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:set an alarm",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:5 pm",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:one day from now",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:3 days",
+   "status": 500,
+   "matches": true
+  },
+  {
+   "id": "clock/alarm_set_value:qzx florp",
+   "status": 500,
+   "matches": true
+  }
+ ]
+}

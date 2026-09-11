@@ -1,0 +1,49 @@
+# Falsification — break the whole-rule gate (packages/nlu/src/requestParser.js:325)
+
+```diff
+-      if (unsupported.length) {
++      if (false && unsupported.length) {
+```
+
+## nlu N-03 suite (broken)
+ok 1 - N-03 fixture covers every clock/settings/main-menu named rule with cited cases
+ok 2 - N-03 every clock/settings/main-menu fixture matches at runtime through parseRequest
+not ok 3 - N-03 every fixture matches through a live POST /v1/parse and the time rules refuse
+not ok 4 - N-03 the time-factory rules refuse loudly for every utterance, never a silent no-match
+ok 5 - N-03 the whole-rule gate is retained: the time factory source does not parse, so no arm can be certified
+not ok 6 - N-03 the non-time AM/PM arm is source-equivalent for bare am/pm but unreachable without the time factory
+ok 7 - N-03 the conditional {% if %} remaps hold for the N-03 subset
+ok 8 - N-03 every expected entity key is declared by the pinned rule source
+# tests 8
+# pass 5
+# fail 3
+
+## gateway N-03 local-turn suite (broken)
+ok 1 - N-03 local turn: clock rules reach the NLU and route on the final LISTEN
+not ok 2 - N-03 local turn: the time-factory rules surface a loud PARSER error, never a silent no-match
+  expected: 'ERROR'
+  actual: 'LISTEN'
+# tests 2
+# pass 1
+# fail 1
+
+## Restored (requestParser.js:325 == `if (unsupported.length) {`)
+ok 1 - N-03 fixture covers every clock/settings/main-menu named rule with cited cases
+ok 2 - N-03 every clock/settings/main-menu fixture matches at runtime through parseRequest
+ok 3 - N-03 every fixture matches through a live POST /v1/parse and the time rules refuse
+ok 4 - N-03 the time-factory rules refuse loudly for every utterance, never a silent no-match
+ok 5 - N-03 the whole-rule gate is retained: the time factory source does not parse, so no arm can be certified
+ok 6 - N-03 the non-time AM/PM arm is source-equivalent for bare am/pm but unreachable without the time factory
+ok 7 - N-03 the conditional {% if %} remaps hold for the N-03 subset
+ok 8 - N-03 every expected entity key is declared by the pinned rule source
+# tests 8
+# pass 8
+# fail 0
+# cancelled 0
+
+ok 1 - N-03 local turn: clock rules reach the NLU and route on the final LISTEN
+ok 2 - N-03 local turn: the time-factory rules surface a loud PARSER error, never a silent no-match
+# tests 2
+# pass 2
+# fail 0
+# cancelled 0
