@@ -5,9 +5,9 @@
 // sandbox against PromptData (the reference uses `vm`).
 
 import vm from 'node:vm';
-import { newJcpId } from '../../jcpId.js';
 import { loadMims, isFunc } from './utils.js';
 import { buildPromptData } from './promptData.js';
+import { playProtocol, listenProtocol, displayProtocol, slimProtocol, sequenceProtocol } from './protocol.js';
 
 export const MimTypes = Object.freeze({ ANNOUNCEMENT: 'announcement', OPTIONAL_RESPONSE: 'optional-response', QUESTION: 'question' });
 export const PromptCategory = Object.freeze({ ENTRY: 'Entry-Core', ERROR: 'Errors', RESPONSE: 'Response' });
@@ -21,20 +21,45 @@ export const PromptSubCategory = Object.freeze({
 /** Fresh MIM dialog state (session.data._mim). */
 export const newMimState = () => ({ noMatch: 0, noInput: 0, noMatchMax: false, noInputMax: false });
 
-/** Weighted random selection. `rng` is injectable for deterministic tests. */
+/**
+ * Weighted random selection — exact port of jibo-cai-utils RandomUtils.weightedRandomSample
+ * (pinned lib/jibo-cai-utils.js:1183-1201, the sampler Slimmer.generatePlay calls).
+ *
+ * Source semantics reproduced exactly:
+ *   - totalWeight is the raw sum of every element's weight (no `|| 1` defaulting here —
+ *     Slimmer already maps `prompt.weight || 1` before building the list, so a falsy weight
+ *     arrives as 1 while a negative weight is passed through unchanged);
+ *   - the selection loop skips elements whose weight is not > 0;
+ *   - the comparison is strict (`rand < ongoingWeight`), so an exact tie does not select;
+ *   - when nothing is selected (every weight non-positive, or rand landing exactly on
+ *     totalWeight) the source returns the empty object literal `{}`.
+ */
 export function weightedSample(weighted, rng = Math.random) {
-  const total = weighted.reduce((s, w) => s + (w.weight || 1), 0);
-  let r = rng() * total;
-  for (const w of weighted) { r -= (w.weight || 1); if (r <= 0) return w.data; }
-  return weighted[weighted.length - 1].data;
+  let result = {};
+  let totalWeight = 0;
+  for (const element of weighted) totalWeight += element.weight;
+  const rand = rng() * totalWeight;
+  let ongoingWeight = 0;
+  for (let i = 0; i < weighted.length; ++i) {
+    if (weighted[i].weight > 0) {
+      ongoingWeight += weighted[i].weight;
+      if (rand < ongoingWeight) { result = weighted[i].data; break; }
+    }
+  }
+  return result;
 }
 
 /**
  * Core prompt selection + resolution (Slimmer.generatePlay): category/sub-category filter →
  * index filter (Errors only) → condition filter → weighted pick → template resolution.
  * Returns a Play behavior or undefined; on an empty NM/NI pick, flags mimState max-exhaustion.
+ *
+ * The fallback block mirrors the source's try/catch, including its error contract: reading MIM
+ * state when `data.skill.session.data._mim` was never initialized re-throws the source's
+ * "Skill data MIM state tracking has not been initialized; cannot track state." error rather
+ * than surfacing the raw TypeError.
  */
-function generatePlay(mim, config, promptData, { rng = Math.random, mimState, log } = {}) {
+function generatePlay(mim, config, promptData, { rng = Math.random, data, mimState, log } = {}) {
   const prompts = mim.prompts || [];
   const autoRules = mim.es_auto_tagging;
   const ctx = vm.createContext({ ...promptData });
@@ -46,32 +71,33 @@ function generatePlay(mim, config, promptData, { rng = Math.random, mimState, lo
     if (indexedPrompts.length) {
       const validPrompts = indexedPrompts.filter((p) => {
         try { return !p.condition || !!vm.runInContext(p.condition, ctx); }
-        catch (e) { log?.warn?.('prompt condition error', { prompt_id: p.prompt_id, error: e.message }); return false; }
+        catch (e) { log?.error?.('Error evaluating prompt condition', { prompt_id: p.prompt_id, error: e.message }); return false; }
       });
       if (validPrompts.length) {
         const choice = weightedSample(validPrompts.map((p) => ({ data: p, weight: p.weight || 1 })), rng);
         let resolvedPrompt = '';
         try { resolvedPrompt = vm.runInContext('`' + choice.prompt + '`', ctx); }
-        catch (e) { log?.warn?.('prompt template error', { prompt_id: choice.prompt_id, error: e.message }); }
+        catch (e) { log?.error?.('Error resolving prompt text', { prompt_id: choice.prompt_id, error: e.message }); }
         // The reference distinguishes an omitted override from an explicit null:
         // only null falls back to the MIM's es_auto_tagging value.  An omitted
         // property therefore remains undefined and is omitted by JSON.stringify.
         const autoRuleConfig = (choice.auto_rule_override !== null) ? choice.auto_rule_override : autoRules;
-        return {
-          id: newJcpId(),
-          type: 'PLAY',
-          autoRuleConfig,
-          esml: resolvedPrompt,
-          meta: { prompt_id: choice.prompt_id, prompt_sub_category: choice.prompt_sub_category, mim_id: mim.mim_id, mim_type: mim.mim_type },
-        };
+        // Temporary until the protocol generators accept meta (Slimmer.ts): the requester
+        // builds the PLAY node and the framework appends meta afterwards.
+        const play = playProtocol(resolvedPrompt, autoRuleConfig);
+        play.meta = { prompt_id: choice.prompt_id, prompt_sub_category: choice.prompt_sub_category, mim_id: mim.mim_id, mim_type: mim.mim_type };
+        return play;
       }
     }
   }
   // No prompt of the requested index — probably a maxed-out NoInput/NoMatch situation.
-  if (mimState) {
-    if (config.subCategory === PromptSubCategory.NO_MATCH) mimState.noMatchMax = true;
-    else if (config.subCategory === PromptSubCategory.NO_INPUT) mimState.noInputMax = true;
+  try {
+    const state = mimState || data.skill.session.data._mim;
+    if (config.subCategory === PromptSubCategory.NO_MATCH) state.noMatchMax = true;
+    else if (config.subCategory === PromptSubCategory.NO_INPUT) state.noInputMax = true;
     else log?.warn?.(`No prompts of requested index in requested category '${config.category}' and sub-category '${config.subCategory}'.`);
+  } catch (err) {
+    throw new Error('Skill data MIM state tracking has not been initialized; cannot track state.');
   }
   return undefined;
 }
@@ -79,7 +105,7 @@ function generatePlay(mim, config, promptData, { rng = Math.random, mimState, lo
 /** Generate a Listen behavior from a MIM (question/optional-response only). */
 function generateListen(mim) {
   if (mim.mim_type === MimTypes.QUESTION || mim.mim_type === MimTypes.OPTIONAL_RESPONSE) {
-    return { id: newJcpId(), type: 'LISTEN', contexts: Array.isArray(mim.rule_name) ? mim.rule_name : [mim.rule_name] };
+    return listenProtocol(mim.rule_name);
   }
   return undefined;
 }
@@ -94,10 +120,7 @@ export function generateDisplay(mim, config, viewData, log) {
       const view = resolveView(mim.gui, viewData, log);
       const skillDisplay = { type: 'SKILL', name: 'MIM_VIEW', context: view };
       const cancelAction = { type: 'HIDE_DISPLAY', name: 'HIDE_MIM_VIEW' }; // temporary onCancel to satisfy RCP
-      return {
-        id: newJcpId(), type: 'DISPLAY', name: 'PEGASUS_VIEW',
-        view: skillDisplay, layer: 0, overlay: undefined, visible: true, keepDisplay: false, onCancel: [cancelAction],
-      };
+      return displayProtocol('PEGASUS_VIEW', skillDisplay, 0, true, false, [cancelAction]);
     }
   }
   return undefined;
@@ -151,13 +174,12 @@ export async function generateSlim(config, providers, data, opts = {}) {
   if (!mims.length) return null;
   if (mims.length > 1) throw new Error('Multiple MIM paths provided to Slim; see SlimSequence.');
   const mim = mims[0];
-  const mimState = data.skill.session.data._mim;
   const slimConfig = {
-    play: generatePlay(mim, config, promptData, { rng: opts.rng, mimState, log }),
+    play: generatePlay(mim, config, promptData, { rng: opts.rng, data, mimState: opts.mimState, log }),
     listen: generateListen(mim),
     display: generateDisplay(mim, config, viewData, log),
   };
-  return slimConfig.play ? { id: newJcpId(), type: 'SLIM', config: slimConfig } : null;
+  return slimConfig.play ? slimProtocol(slimConfig, opts.options) : null;
 }
 
 /**
@@ -170,18 +192,14 @@ export async function generateSlimSequence(config, providers, data, opts = {}) {
   if (mims.some((mim) => mim.mim_type !== MimTypes.ANNOUNCEMENT)) {
     throw new Error('SlimSequences can only contain Announcements');
   }
-  const mimState = data.skill.session.data._mim;
   const slims = mims
-    .map((mim) => ({
-      id: newJcpId(), type: 'SLIM',
-      config: {
-        play: generatePlay(mim, config, promptData, { rng: opts.rng, mimState, log }),
-        display: generateDisplay(mim, config, viewData, log),
-      },
-    }))
+    .map((mim) => slimProtocol({
+      play: generatePlay(mim, config, promptData, { rng: opts.rng, data, mimState: opts.mimState, log }),
+      display: generateDisplay(mim, config, viewData, log),
+    }, opts.options))
     .filter((slim) => slim.config.play); // SLIMs that yielded no prompt are dropped (per reference)
   if (!slims.length) return null;
-  return { id: newJcpId(), type: 'SEQUENCE', children: slims };
+  return sequenceProtocol(slims);
 }
 
 /**
@@ -189,8 +207,8 @@ export async function generateSlimSequence(config, providers, data, opts = {}) {
  * from an in-memory MimConfig and return a FLAT {play, listen?} (callers wrap via buildJcpFromSlim).
  */
 export function generateSlimFromMim(mim, config, promptData, opts = {}) {
-  const { rng = Math.random, mimState, log } = opts;
-  const play = generatePlay(mim, config, promptData, { rng, mimState, log });
+  const { rng = Math.random, mimState, data, log } = opts;
+  const play = generatePlay(mim, config, promptData, { rng, mimState, data, log });
   if (!play) return null;
   const slim = { play };
   const listen = generateListen(mim);
