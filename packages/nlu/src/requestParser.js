@@ -15,6 +15,7 @@ import { loadEqWords } from './grammar/eqWords.js';
 import { buildFactoryWords, undeclaredFactoryWordFile } from './grammar/factoryWords.js';
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
 import { selectBestNative } from './arbitration.js';
+import { LoopMemberDetector } from './loopMemberDetector.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
@@ -292,63 +293,6 @@ function chooseBest(requested, text, state, compiledRuntime) {
   return selectBestNative(candidates);
 }
 
-function equalName(a, b) {
-  return typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase();
-}
-
-function addLoopMember(request, result) {
-  const users = request.loop && Array.isArray(request.loop.users) ? request.loop.users : null;
-  if (!users || !result || !result.intent) return result;
-
-  const entities = result.entities || {};
-  const hasGivenName = Object.prototype.hasOwnProperty.call(entities, 'given-name');
-  const hasGivenNameAlias = Object.prototype.hasOwnProperty.call(entities, 'GivenName');
-  const givenNameEntityExpected = hasGivenName || hasGivenNameAlias;
-  const given = [hasGivenName ? entities['given-name'] : null, hasGivenNameAlias ? entities.GivenName : null]
-    .find(value => typeof value === 'string' && value.length > 0) || null;
-  const last = [
-    Object.prototype.hasOwnProperty.call(entities, 'last-name') ? entities['last-name'] : null,
-    Object.prototype.hasOwnProperty.call(entities, 'LastName') ? entities.LastName : null,
-  ].find(value => typeof value === 'string' && value.length > 0) || null;
-  const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const named = (firstName, lastName) => typeof firstName === 'string' && firstName.length > 0
-    && typeof lastName === 'string' && lastName.length > 0;
-  const enrich = member => member ? {
-    ...result,
-    entities: { ...entities, loopMemberReferent: member.id, 'given-name': member.firstName, 'last-name': member.lastName },
-  } : result;
-
-  // Match LoopMemberDetector's ordered checks. A failed given-name or
-  // given-name+last-name lookup returns unchanged; it does not fall through to
-  // a text search. Text search is only reached when no non-empty given name was
-  // emitted by the selected source rule.
-  if (given && last) {
-    return enrich(users.find(user => equalName(user.firstName, given) && equalName(user.lastName, last)));
-  }
-  if (given && !last) {
-    return enrich(users.find(user => equalName(user.firstName, given)));
-  }
-
-  if (!given) {
-    const mentionedUser = users.find(user => {
-      if (!named(user.firstName, user.lastName)) return false;
-      const fullNameRegExp = new RegExp(`\\b${escapeRegExp(user.firstName)} ${escapeRegExp(user.lastName)}\\b`, 'i');
-      return fullNameRegExp.test(request.text);
-    });
-    if (mentionedUser) return enrich(mentionedUser);
-  }
-
-  if (givenNameEntityExpected) {
-    const mentionedByName = users.find(user => {
-      if (typeof user.firstName !== 'string' || user.firstName.length === 0) return false;
-      const firstNameRegExp = new RegExp(`\\b${escapeRegExp(user.firstName)}\\b`, 'i');
-      return firstNameRegExp.test(request.text);
-    });
-    if (mentionedByName) return enrich(mentionedByName);
-  }
-  return result;
-}
-
 function applyExternalCompatibility(request, result) {
   // ParseRequestHandler performs this after empty-text handling and result
   // selection. Dialogflow is disabled in this candidate, so the original
@@ -398,7 +342,14 @@ export function parseRequest(request) {
     entities = { ...entities, union_original_fst_name: launch.sourceHandles[winner.rule] };
   }
   const result = { entities, intent: winner.intent, rules: [winner.requestedName || winner.rule] };
-  return addLoopMember({ ...request, text }, applyExternalCompatibility(request, result));
+  // ParseRequestHandler.handleParseRequest runs LoopMemberDetector on the
+  // selected result (after the external-agent boundary) and ignores its return
+  // value; the detector mutates result.entities. Pass the trimmed text, which
+  // the source stores back onto request data before detection
+  // (ParseRequestHandler.ts:48 `data.text = data.text.trim()`). The empty
+  // branches above return intent:null, so detection there is a provable no-op
+  // (LoopMemberDetector.ts:48).
+  return LoopMemberDetector.detectLoopMembers({ ...request, text }, applyExternalCompatibility(request, result));
 }
 
 export function ruleInventory() {

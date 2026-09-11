@@ -1,0 +1,378 @@
+# jiboV2/pegasus:packages/parser/tests/utils/LoopMemberDetector.test.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { expect } from 'chai';
+import * as main from '../main';
+import { nlu } from '@jibo/interfaces';
+import LoopMemberDetector = main.utils.LoopMemberDetector;
+
+
+describe('Loop member detector', () => {
+
+    function testLoopMemberDetector(
+        nluRequestParams: {text: string, loopUsers: nlu.LooperBasicInfo[]},
+        nluResult: {intent: string, entities: nlu.Entities},
+        expectedEntities: nlu.Entities,
+    ) {
+        const request: nlu.NLURequestData = {
+            text: nluRequestParams.text,
+            rules: ['launch'],
+            loop: {
+                users: nluRequestParams.loopUsers
+            }
+        };
+        const result: nlu.NLUResult = {
+            intent: nluResult.intent,
+            rules: ['launch'],
+            entities: nluResult.entities
+        };
+        const expectedResult: nlu.NLUResult = {
+            intent: nluResult.intent,
+            rules: ['launch'],
+            entities: expectedEntities
+        };
+        expect(LoopMemberDetector.detectLoopMembers(request, result)).to.deep.equal(expectedResult);
+    }
+
+    describe('when no names in text and no given-name entity', () => {
+        it('should return original entities received from NLU', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'How are you doing today?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'JIBO_chitChat',
+                    entities: {
+                        when: 'today'
+                    }
+                },
+                // expected final entities:
+                {
+                    when: 'today'
+                }
+            );
+        });
+    });
+
+    describe('when there is non-empty given-name entity', () => {
+        it('should find loop member by given-name', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Is Mary your best friend?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'isJiboBestFriendsWithPerson',
+                    entities: {
+                        "RobotCharacter": "",
+                        "Competitor": "",
+                        "OtherPerson": "",
+                        "given-name": "Mary"
+                    }
+                },
+                // expected final entities:
+                {
+                    "RobotCharacter": "",
+                    "Competitor": "",
+                    "OtherPerson": "",
+                    "given-name": "Mary",
+                    "last-name": "Jackson",
+                    "loopMemberReferent": "loop-member-uuid-1"
+                }
+            );
+        });
+
+        it('should do nothing if no loop member found by given-name', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Is Bob your best friend?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'isJiboBestFriendsWithPerson',
+                    entities: {
+                        "RobotCharacter": "",
+                        "Competitor": "",
+                        "OtherPerson": "",
+                        "given-name": "Bob"
+                    }
+                },
+                // expected final entities:
+                {
+                    "RobotCharacter": "",
+                    "Competitor": "",
+                    "OtherPerson": "",
+                    "given-name": "Bob"
+                }
+            );
+        });
+
+        it('should do nothing if last-name does not match', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Is Mary Smith your best friend?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'isJiboBestFriendsWithPerson',
+                    entities: {
+                        "RobotCharacter": "",
+                        "Competitor": "",
+                        "OtherPerson": "",
+                        "given-name": "Mary",
+                        "last-name": "Smith"
+                    }
+                },
+                // expected final entities:
+                {
+                    "RobotCharacter": "",
+                    "Competitor": "",
+                    "OtherPerson": "",
+                    "given-name": "Mary",
+                    "last-name": "Smith"
+                }
+            );
+        });
+    });
+
+    describe('when there is empty given-name entity', () => {
+
+        it('should find loop member in text by first and last name', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Have you heard of benjamin harrison?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-2',
+                        firstName: 'benjamin',
+                        lastName: 'harrison'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'doesJiboKnowPerson',
+                    entities: {
+                        "RobotCharacter": "",
+                        "AmericaPresident": "BenjaminHarrison",
+                        "Competitor": "",
+                        "FantasticPerson": "",
+                        "OtherPerson": "",
+                        "given-name": "",
+
+                    }
+                },
+                // expected final entities:
+                {
+                    "RobotCharacter": "",
+                    "AmericaPresident": "BenjaminHarrison",
+                    "Competitor": "",
+                    "FantasticPerson": "",
+                    "OtherPerson": "",
+                    "given-name": "benjamin",
+                    "last-name": "harrison",
+                    "loopMemberReferent": "loop-member-uuid-2"
+                });
+        });
+
+        it('should find loop member in text by first name', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Is Alexa or Mary your best friend?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'isJiboBestFriendsWithPerson',
+                    entities: {
+                        "RobotCharacter": "",
+                        "Competitor": "Alexa",
+                        "OtherPerson": "",
+                        "given-name": ""
+                    }
+                },
+                // expected final entities:
+                {
+                    "RobotCharacter": "",
+                    "Competitor": "Alexa",
+                    "OtherPerson": "",
+                    "given-name": "Mary",
+                    "last-name": "Jackson",
+                    "loopMemberReferent": "loop-member-uuid-1"
+                }
+            );
+        });
+
+        it('should do nothing if no loop member names in text', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Is Alexa your best friend?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'isJiboBestFriendsWithPerson',
+                    entities: {
+                        "RobotCharacter": "",
+                        "Competitor": "Alexa",
+                        "OtherPerson": "",
+                        "given-name": ""
+                    }
+                },
+                // expected final entities:
+                {
+                    "RobotCharacter": "",
+                    "Competitor": "Alexa",
+                    "OtherPerson": "",
+                    "given-name": ""
+                }
+            );
+        });
+    });
+
+
+    describe('when there is NO given-name entity but IS full loop member name in text', () => {
+        it('should find loop member by first name and last name', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Who is Mary Jackson?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'generalWhoQuestions',
+                    entities: {}
+                },
+                // expected final entities:
+                {
+                    "given-name": "Mary",
+                    "last-name": "Jackson",
+                    "loopMemberReferent": "loop-member-uuid-1"
+                }
+            );
+        });
+
+        it('should find loop member by first name and last name (case-insensitivity test)', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Who is mary jackson?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'generalWhoQuestions',
+                    entities: {}
+                },
+                // expected final entities:
+                {
+                    "given-name": "Mary",
+                    "last-name": "Jackson",
+                    "loopMemberReferent": "loop-member-uuid-1"
+                }
+            );
+        });
+
+        it('should NOT find loop member if first name and last name are not together', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Who is Mary bla bla bla Jackson?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'generalWhoQuestions',
+                    entities: {}
+                },
+                // expected final entities:
+                {}
+            );
+        });
+
+        it('should find loop member if given-name entity is expected', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Who is Mary bla bla bla Jackson?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-1',
+                        firstName: 'Mary',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'generalWhoQuestions',
+                    entities: {
+                        'given-name': ''
+                    }
+                },
+                // expected final entities:
+                {
+                    "given-name": "Mary",
+                    "last-name": "Jackson",
+                    "loopMemberReferent": "loop-member-uuid-1"
+                }
+            );
+        });
+    });
+
+    describe('when there is NO given-name entity but IS loop member first name in text', () => {
+        it('should NOT detect loop member', () => {
+            testLoopMemberDetector(
+                {
+                    text: 'Have you seen Bob?',
+                    loopUsers: [{
+                        id: 'loop-member-uuid-2',
+                        firstName: 'Bob',
+                        lastName: 'Jackson'
+                    }]
+                },
+                // NLU result:
+                {
+                    intent: 'hasJiboSeenThing',
+                    entities: {}
+                },
+                // expected final entities:
+                {}
+            );
+        });
+    });
+});
+
