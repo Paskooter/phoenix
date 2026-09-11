@@ -1,0 +1,31 @@
+FALSIFICATION (S-03) — broke one full line:
+  packages/skills/src/graph/mims/factories.js:103
+-    const index = ++data.skill.session.data._mim.noMatch;
++    const index = (data.skill.session.data._mim.noMatch = 0, 1);
+
+$ node --test packages/skills/test/s03MimFactories.test.js
+not ok 3 - S-03 MIMFactory: NoMatch ladder then FinalNoMatch exits the MIM as NoMatch
+    'nm one' !== 'nm two'
+  expected: 'nm two'
+  actual: 'nm one'
+not ok 5 - S-03 QNFactory cross-escalation: no-match then no-input walks NM -> NI
+    'nm one' !== 'nm two'
+  expected: 'nm two'
+  actual: 'nm one'
+not ok 6 - S-03 QNFactory cross-escalation: no-input then no-match walks NI -> NM
+    'nm one' !== 'nm two'
+  expected: 'nm two'
+  actual: 'nm one'
+not ok 8 - S-03 QNFactory exits the parent on NoMatch only after the NM ladder is exhausted
+    'nm one' !== 'nm two'
+  expected: 'nm two'
+  actual: 'nm one'
+not ok 10 - S-03 session state: QN entry resets _mim, NM/NI entries only increment their ladder
+# tests 34
+# pass 29
+# fail 5
+
+$ node scripts/parity-s03/replay-mim-factories.mjs
+FAIL  MIMSkill / Degenerate run (MIMSkill.test.ts:258-433)
+scenarios 14, checks 39: 37/39 pass, 2 fail
+RESULT: DIFFERENCES

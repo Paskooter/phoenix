@@ -186,14 +186,15 @@ test('OptIn: VERIFY_ID proposal uses unified skill prompt + base listen rule', a
   assert.deepEqual(slim.config.listen.contexts, ['shared/verify_id'], 'base ProposalVerifyID rule kept');
 });
 
-test('OptIn: yes -> Accepted -> content action; SKILL_OFFER analytics tracked', async () => {
+test('OptIn: yes -> Accepted -> content action; Skill Offer analytics tracked', async () => {
   const skill = optInSkill();
   const r1 = await skill(launch('optin-skill'));
   const r2 = await skill(update('optin-skill', r1.data.skill.session, { nlu: { intent: 'yes', entities: {} }, asr: { text: 'yes' } }));
   assert.equal(playOf(r2).esml, 'here is your report.');
   assert.equal(r2.data.final, true);
+  // Source event name: skill/analytics.ts EVENTS.SKILL_OFFER = 'Skill Offer'.
   const events = r2.data.analytics['optin-skill'] || [];
-  assert.ok(events.some((e) => e.event === 'SKILL_OFFER' && e.properties.user_response === 'yes' && e.properties.modality === 'speech'));
+  assert.ok(events.some((e) => e.event === 'Skill Offer' && e.properties.user_response === 'yes' && e.properties.modality === 'speech'));
 });
 
 test('OptIn: no -> decline announcement (final) from the base Decline MIM', async () => {

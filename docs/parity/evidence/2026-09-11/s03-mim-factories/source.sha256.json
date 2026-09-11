@@ -1,0 +1,141 @@
+[
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/factories/MIMFactory.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__factories__MIMFactory.ts",
+  "sha256": "0fdf435bf34e667aa346c4fca1d14366eb4d22c4d5d6e11b31f967aa566ce3db"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/factories/QNFactory.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__factories__QNFactory.ts",
+  "sha256": "9930bae3955a504f08fd71ca50bbd122984e59d28abc3ca7ba0215eb5e69c038"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/factories/ANFactory.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__factories__ANFactory.ts",
+  "sha256": "73588b95d6579837307f26916834b1d19f4f9c93c2605ae1b74bbfdbeca082b3"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/factories/MANFactory.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__factories__MANFactory.ts",
+  "sha256": "d42681093e5fc88969652ee8459bbfff9614b55a103e55c9edab35dab8b4a734"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/factories/OptInFactory.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__factories__OptInFactory.ts",
+  "sha256": "37715fd4ea27622e2e4cb2fc617b1e4514d61c7649d5e59148ce230e86f532c7"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/MultiTurnNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__MultiTurnNode.ts",
+  "sha256": "7952a1ac87fd90dae6eea22de2ca91726d2db93f745dac408402c4d1305e265a"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/QNNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__QNNode.ts",
+  "sha256": "152a71a4a5754d4b114abd39d321cc3578cf146f83a1ce1219f34e1084c102aa"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/ANNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__ANNode.ts",
+  "sha256": "3d046efa4d9a3152223d3486aa11bb4473b9011a620c6326c61178059f7f8bbf"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/MANNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__MANNode.ts",
+  "sha256": "1f55ec86a3f0f15838489296e8f38e6c262d6ea1def6465160e08d09a5c26a74"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/NMNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__NMNode.ts",
+  "sha256": "2cb86936826d4b87d1b3b3ed0438569512739da8ffa420dd101a28ad10204786"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/NINode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__NINode.ts",
+  "sha256": "408d64e7476c799197481d031a938d757195d15eb5080b4edfbd3010018301b3"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/RouterNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__RouterNode.ts",
+  "sha256": "be5f93d2feefc7b4cf0f109bcf2de726bace1d80b90a3734908f34fe64de2d83"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/optIn/RouteNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__optIn__RouteNode.ts",
+  "sha256": "826391700489348b9e2d72d4c520c11043ad9b0b0499931f1778fae8ca7d9615"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/nodes/optIn/YesNoWrongIDNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__nodes__optIn__YesNoWrongIDNode.ts",
+  "sha256": "6eefe5d28586d21969e5bb2eead069eaa4752c634a6292238f5f7013f51f4181"
+ },
+ {
+  "repo_path": "packages/baseskill/tests/MIMSkill.test.ts",
+  "file": "source/pkgs__baseskill__tests__MIMSkill.test.ts",
+  "sha256": "a1b57815634a863311ccf494dc16bd947e629b8b776da5c5523f48fc3e486111"
+ },
+ {
+  "repo_path": "packages/baseskill/tests/OptInSkill.test.ts",
+  "file": "source/pkgs__baseskill__tests__OptInSkill.test.ts",
+  "sha256": "7254a8b3a2baf44de48852281f94b86f9559aa2f124bfa13373d194e76b3b300"
+ },
+ {
+  "repo_path": "packages/baseskill/tests/skills/ExampleMIMSkill.ts",
+  "file": "source/pkgs__baseskill__tests__skills__ExampleMIMSkill.ts",
+  "sha256": "8f3072b76e8c21b9da14f1519199c8960f9355938e0f7db65afc53613b589f80"
+ },
+ {
+  "repo_path": "packages/baseskill/tests/skills/ExampleOptInSkill.ts",
+  "file": "source/pkgs__baseskill__tests__skills__ExampleOptInSkill.ts",
+  "sha256": "cae77503f157c34e2928560aac24e07cb2c07d8690765986491865413e6b09cc"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/nodes/SetLooperIDNode.ts",
+  "file": "source/pkgs__baseskill__src__graph__nodes__SetLooperIDNode.ts",
+  "sha256": "152906a7d8300319e94686b6a26388066cf2ad7cac9767e05a0b4e14d92c6c89"
+ },
+ {
+  "repo_path": "packages/interfaces/src/skill/analytics.ts",
+  "file": "source/pkgs__interfaces__src__skill__analytics.ts",
+  "sha256": "dbfec2b0e334423e259885f939af73fbe8ff9996354418220950ba9129845f47"
+ },
+ {
+  "repo_path": "packages/baseskill/src/GraphSkill.ts",
+  "file": "source/pkgs__baseskill__src__GraphSkill.ts",
+  "sha256": "c7929c0ac08078085286924d67856484cbf9537f306c9f185a294d7492d78ee9"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/utils/Utils.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__utils__Utils.ts",
+  "sha256": "4877409efa938e144f5fca4df51232c26d0638b58cc44925a4ce40813dd5ce60"
+ },
+ {
+  "repo_path": "packages/baseskill/src/graph/mims/utils/unify/Unify.ts",
+  "file": "source/pkgs__baseskill__src__graph__mims__utils__unify__Unify.ts",
+  "sha256": "b58ce7c0a58d30b6dea5325da9b13a2b95a259ee7d4b2822447f0b7a78835926"
+ },
+ {
+  "repo_path": "packages/baseskill/mims/en-us/ProposalVerifyID.mim",
+  "file": "source/mims__ProposalVerifyID.mim",
+  "sha256": "2dd0213376fa95d55928b57aaf29fa087bc0af084d374b4987d84c0b17c73891",
+  "note": "MCP header + trailing blank line stripped"
+ },
+ {
+  "repo_path": "packages/baseskill/mims/en-us/ProposalNoID.mim",
+  "file": "source/mims__ProposalNoID.mim",
+  "sha256": "eb410ed5c8952909efd58a49def7a79928c30ff02aacbf19611d38792df292a0",
+  "note": "MCP header + trailing blank line stripped"
+ },
+ {
+  "repo_path": "packages/baseskill/mims/en-us/WrongID.mim",
+  "file": "source/mims__WrongID.mim",
+  "sha256": "ba8ca8be1e8400be0c01032daa7768e43525d411e7893d786e191f90cc71d846",
+  "note": "MCP header + trailing blank line stripped"
+ },
+ {
+  "repo_path": "packages/baseskill/mims/en-us/Decline.mim",
+  "file": "source/mims__Decline.mim",
+  "sha256": "576d9330e950615a43fa3614baff78e3fb7b0aea2175c7808ae2ec5f528517d8",
+  "note": "MCP header + trailing blank line stripped"
+ }
+]

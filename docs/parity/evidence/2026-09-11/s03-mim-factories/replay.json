@@ -1,0 +1,474 @@
+{
+  "task": "S-03",
+  "generatedAt": "2026-09-11T04:18:48.441Z",
+  "method": "live skills HTTP service (createSkillService) + frozen turns",
+  "sourceSuites": [
+    "jiboV2/pegasus@5c0a739 packages/baseskill/tests/MIMSkill.test.ts",
+    "jiboV2/pegasus@5c0a739 packages/baseskill/tests/OptInSkill.test.ts"
+  ],
+  "scenarios": 14,
+  "checks": 39,
+  "passed": 39,
+  "failed": 0,
+  "differences": [],
+  "results": [
+    {
+      "scenario": "MIMSkill / Successful run (MIMSkill.test.ts:41-100)",
+      "kind": "mim",
+      "pass": true,
+      "checks": [
+        [
+          "launch nodeID 0",
+          true
+        ],
+        [
+          "nodeID sequence",
+          true
+        ],
+        [
+          "trace sequences",
+          true
+        ]
+      ]
+    },
+    {
+      "scenario": "MIMSkill / NoMatch run (MIMSkill.test.ts:102-178)",
+      "kind": "mim",
+      "pass": true,
+      "checks": [
+        [
+          "launch nodeID 0",
+          true
+        ],
+        [
+          "nodeID sequence",
+          true
+        ],
+        [
+          "trace sequences",
+          true
+        ]
+      ]
+    },
+    {
+      "scenario": "MIMSkill / NoInput run (MIMSkill.test.ts:180-256)",
+      "kind": "mim",
+      "pass": true,
+      "checks": [
+        [
+          "launch nodeID 0",
+          true
+        ],
+        [
+          "nodeID sequence",
+          true
+        ],
+        [
+          "trace sequences",
+          true
+        ]
+      ]
+    },
+    {
+      "scenario": "MIMSkill / Degenerate run (MIMSkill.test.ts:258-433)",
+      "kind": "mim",
+      "pass": true,
+      "checks": [
+        [
+          "launch nodeID 0",
+          true
+        ],
+        [
+          "nodeID sequence",
+          true
+        ],
+        [
+          "trace sequences",
+          true
+        ]
+      ]
+    },
+    {
+      "scenario": "OptIn / type OPT_IN offers non-verify-id MIM (OptInSkill.test.ts:64-71)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "mim_id includes OptInProposalNoID",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 3,
+          "jcp": "SLIM",
+          "mim": "OptInProposalNoID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / type OPT_IN_VERIFY_ID offers verify-id MIM (OptInSkill.test.ts:83-90)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "mim_id includes OptInProposalVerifyID",
+          true
+        ],
+        [
+          "prompt_id includes Verify_Test",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play skill's MIM if correct user (OptInSkill.test.ts:102-112)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "final",
+          true
+        ],
+        [
+          "slIM mim_id includes AfterOptIn",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 16,
+          "jcp": "SLIM",
+          "mim": "AfterOptIn",
+          "pid": "AfterOptIn_AN_02",
+          "final": true,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play WrongID MIM if wrong user (OptInSkill.test.ts:114-124)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "mim_id includes OptInWrongID",
+          true
+        ],
+        [
+          "prompt_id includes WrongID",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 6,
+          "jcp": "SLIM",
+          "mim": "OptInWrongID",
+          "pid": "WrongID_QN_01",
+          "final": false,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play fused Decline MIM if 'no' (OptInSkill.test.ts:126-137)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "mim_id includes OptInDecline",
+          true
+        ],
+        [
+          "prompt_id includes Decline_Test",
+          true
+        ],
+        [
+          "final",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 9,
+          "jcp": "SLIM",
+          "mim": "OptInDecline",
+          "pid": "Decline_Test",
+          "final": true,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play fused Decline MIM if no input (OptInSkill.test.ts:139-152)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "decline MIM reached (FinalNoInput -> yes/no NoInput -> decline)",
+          true
+        ],
+        [
+          "decline prompt is the fused Decline_Test",
+          true
+        ],
+        [
+          "decline is final",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 9,
+          "jcp": "SLIM",
+          "mim": "OptInDecline",
+          "pid": "Decline_Test",
+          "final": true,
+          "action": "yes"
+        },
+        {
+          "nodeID": 18,
+          "jcp": null,
+          "mim": null,
+          "pid": null,
+          "final": true,
+          "action": null
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play fused Decline MIM if no match (OptInSkill.test.ts:154-167)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "decline MIM reached (FinalNoMatch -> yes/no NoMatch -> decline)",
+          true
+        ],
+        [
+          "decline prompt is the fused Decline_Test",
+          true
+        ],
+        [
+          "decline is final",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 9,
+          "jcp": "SLIM",
+          "mim": "OptInDecline",
+          "pid": "Decline_Test",
+          "final": true,
+          "action": "yes"
+        },
+        {
+          "nodeID": 18,
+          "jcp": null,
+          "mim": null,
+          "pid": null,
+          "final": true,
+          "action": null
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play skill's MIM if user not in loop (OptInSkill.test.ts:169-181)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "final",
+          true
+        ],
+        [
+          "slIM mim_id includes AfterOptIn",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 6,
+          "jcp": "SLIM",
+          "mim": "OptInWrongID",
+          "pid": "WrongID_QN_05",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 16,
+          "jcp": "SLIM",
+          "mim": "AfterOptIn",
+          "pid": "AfterOptIn_AN_01",
+          "final": true,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / play Decline MIM if user cancels out of fixing ID (OptInSkill.test.ts:183-196)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "mim_id includes OptInDecline",
+          true
+        ],
+        [
+          "prompt_id includes Decline_Test",
+          true
+        ],
+        [
+          "final",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 6,
+          "jcp": "SLIM",
+          "mim": "OptInWrongID",
+          "pid": "WrongID_QN_01",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 9,
+          "jcp": "SLIM",
+          "mim": "OptInDecline",
+          "pid": "Decline_Test",
+          "final": true,
+          "action": "yes"
+        }
+      ]
+    },
+    {
+      "scenario": "OptIn / add present person behavior if user fixes ID (OptInSkill.test.ts:198-220)",
+      "kind": "optin",
+      "pass": true,
+      "checks": [
+        [
+          "jcp is a SEQUENCE",
+          true
+        ],
+        [
+          "2+ children",
+          true
+        ],
+        [
+          "SET_PRESENT_PERSON looperId",
+          true
+        ],
+        [
+          "SET_PRESENT_PERSON source USER_OVERRIDE",
+          true
+        ],
+        [
+          "SLIM mim_id includes AfterOptIn",
+          true
+        ],
+        [
+          "final",
+          true
+        ]
+      ],
+      "observed": [
+        {
+          "nodeID": 0,
+          "jcp": "SLIM",
+          "mim": "OptInProposalVerifyID",
+          "pid": "Verify_Test",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 6,
+          "jcp": "SLIM",
+          "mim": "OptInWrongID",
+          "pid": "WrongID_QN_03",
+          "final": false,
+          "action": "yes"
+        },
+        {
+          "nodeID": 16,
+          "jcp": "SEQUENCE",
+          "mim": "AfterOptIn",
+          "pid": "AfterOptIn_AN_01",
+          "final": true,
+          "action": "yes"
+        }
+      ]
+    }
+  ]
+}
