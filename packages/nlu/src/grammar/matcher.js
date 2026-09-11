@@ -126,6 +126,18 @@ function compiledHeuristicTree(node, rules) {
   return compiled;
 }
 
+// Public: bind a rule's non-prefixed sub-rule references to that rule's OWN
+// namespace, returning a compiled tree. The reference compiler emits every
+// `$factory:NAME` as a self-contained FST whose internal rule names are
+// invisible outside it. Phoenix matches factory grammars as ASTs sharing one
+// merged rule map, so a public rule that declares a sub-rule with the same name
+// as a factory-internal rule (both `yes_no.grm` and 15 vendored rules declare
+// `YES`/`NO`) silently shadows it. Binding the factory top to the factory's own
+// rules reproduces the reference's graph isolation.
+export function compileRuleTree(node, rules) {
+  return compiledHeuristicTree(node, rules);
+}
+
 function sourceWildcardCost(tokens, start, count, prefix) {
   if (prefix) return prefix[start + count] - prefix[start];
   let cost = 0;
@@ -168,6 +180,14 @@ function applyTags(tags, prevEntities, prevSubFields, subFields, parsedText) {
   const ent = freshEnts(prevEntities);
   const sub = freshEnts(prevSubFields);
   for (const tag of tags) {
+    // Conditional semantic action (`{% if (this.k == 'a') {this.k = 'b'} %}`):
+    // applied after the plain assignments of the same tag list, mirroring the
+    // native interpreter running the action block at rule exit.
+    if (tag.kind === 'cond') {
+      const condTarget = tag.key.startsWith('_') ? sub : ent;
+      if (String(condTarget[tag.key]) === tag.when) condTarget[tag.key] = tag.then;
+      continue;
+    }
     let val;
     if (tag.kind === 'lit') val = tag.value;
     else if (tag.kind === 'parsed') val = parsedText;   // `this._parsed` → text this node matched

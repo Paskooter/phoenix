@@ -10,7 +10,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseRules } from './grammar/parser.js';
-import { matchRule, parseScore, tokenize } from './grammar/matcher.js';
+import { matchRule, parseScore, tokenize, compileRuleTree } from './grammar/matcher.js';
 import { loadEqWords } from './grammar/eqWords.js';
 import { buildFactoryWords, undeclaredFactoryWordFile } from './grammar/factoryWords.js';
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
@@ -83,7 +83,13 @@ function load() {
     catch (error) { throw new Error(`Cannot parse NLU factory '${name}': ${error.message}`); }
     const topRuleName = ast.rules.TopRule ? 'TopRule' : Object.keys(ast.rules)[0];
     if (!topRuleName) throw new Error(`NLU factory '${name}' has no rules`);
-    factories.set(name, { name, path, ast, top: ast.rules[topRuleName] });
+    // A factory is a self-contained graph in the reference: its internal rule
+    // names never leak into (or from) the requesting rule. Bind its non-prefixed
+    // references to its OWN rule map so a public rule that happens to declare a
+    // same-named sub-rule (15 vendored rules declare `YES`/`NO`, colliding with
+    // yes_no.grm) cannot shadow the factory's internals.
+    const compiledTop = compileRuleTree(ast.rules[topRuleName], ast.rules);
+    factories.set(name, { name, path, ast, top: ast.rules[topRuleName], compiledTop });
   }
 
   if (factories.size !== inventory.factoryCount) throw new Error(`NLU factory inventory count mismatch: ${factories.size} !== ${inventory.factoryCount}`);
@@ -225,7 +231,7 @@ function matchNamedRule(name, text, state) {
     strictFactories: true,
     factoryHook: factoryName => {
       const factory = state.factories.get(factoryName);
-      return factory ? factory.top : null;
+      return factory ? factory.compiledTop : null;
     },
   };
   const match = matchRule(entry.ast.rules.TopRule, tokenize(text), ctx);

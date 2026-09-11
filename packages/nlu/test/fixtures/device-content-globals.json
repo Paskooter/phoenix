@@ -1,0 +1,2683 @@
+{
+ "schema": "phoenix.nlu.n05-device-content-globals",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "referenceSourceRoot": "packages/parser/robust-parser/rules_src",
+ "globals": [
+  {
+   "id": "global:stop",
+   "rule": "globals/global_commands_launch",
+   "text": "stop it",
+   "source": "globals/global_commands_launch.rule:95-112",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "stop",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:sleep",
+   "rule": "globals/global_commands_launch",
+   "text": "go to sleep",
+   "source": "globals/global_commands_launch.rule:115-123",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "sleep",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:turn-around",
+   "rule": "globals/global_commands_launch",
+   "text": "turn around",
+   "source": "globals/global_commands_launch.rule:181-183",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "turnAround",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:over-here",
+   "rule": "globals/global_commands_launch",
+   "text": "look over here",
+   "source": "globals/global_commands_launch.rule:135-170",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "overHere",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:turn-away",
+   "rule": "globals/global_commands_launch",
+   "text": "turn away",
+   "source": "globals/global_commands_launch.rule:173-179",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "turnAway",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:volume-up",
+   "rule": "globals/global_commands_launch",
+   "text": "turn the volume up",
+   "source": "globals/global_commands_launch.rule:229-241",
+   "expect": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "global_commands"
+    },
+    "intent": "volumeUp",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:volume-down",
+   "rule": "globals/global_commands_launch",
+   "text": "turn the volume down",
+   "source": "globals/global_commands_launch.rule:250-259",
+   "expect": {
+    "entities": {
+     "volumeLevel": "null",
+     "domain": "global_commands"
+    },
+    "intent": "volumeDown",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:volume-to-value",
+   "rule": "globals/global_commands_launch",
+   "text": "set the volume to five",
+   "source": "globals/global_commands_launch.rule:262-267",
+   "expect": {
+    "entities": {
+     "volumeLevel": "05",
+     "domain": "global_commands"
+    },
+    "intent": "volumeToValue",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "global:repeat",
+   "rule": "globals/mim_repeat",
+   "text": "repeat that",
+   "source": "globals/mim_repeat.rule:11-17",
+   "expect": {
+    "entities": {
+     "domain": "mim_global"
+    },
+    "intent": "repeat",
+    "rules": [
+     "globals/mim_repeat"
+    ]
+   }
+  },
+  {
+   "id": "global:thanks",
+   "rule": "globals/mim_thanks",
+   "text": "thank you",
+   "source": "globals/mim_thanks.rule:12-15",
+   "expect": {
+    "entities": {
+     "domain": "mim_global"
+    },
+    "intent": "thanks",
+    "rules": [
+     "globals/mim_thanks"
+    ]
+   }
+  },
+  {
+   "id": "global:nav-right",
+   "rule": "globals/gui_nav",
+   "text": "next page",
+   "source": "globals/gui_nav.rule:49-56",
+   "expect": {
+    "entities": {
+     "domain": "gui_command"
+    },
+    "intent": "right",
+    "rules": [
+     "globals/gui_nav"
+    ]
+   }
+  },
+  {
+   "id": "global:nav-left",
+   "rule": "globals/gui_nav",
+   "text": "previous page",
+   "source": "globals/gui_nav.rule:40-47",
+   "expect": {
+    "entities": {
+     "domain": "gui_command"
+    },
+    "intent": "left",
+    "rules": [
+     "globals/gui_nav"
+    ]
+   }
+  },
+  {
+   "id": "global:nav-close",
+   "rule": "globals/gui_nav",
+   "text": "close",
+   "source": "globals/gui_nav.rule:37",
+   "expect": {
+    "entities": {
+     "domain": "gui_command"
+    },
+    "intent": "close",
+    "rules": [
+     "globals/gui_nav"
+    ]
+   }
+  },
+  {
+   "id": "global:nav-select",
+   "rule": "globals/gui_nav",
+   "text": "select the first one",
+   "source": "globals/gui_nav.rule:71-77",
+   "expect": {
+    "entities": {
+     "itemPosition": "first",
+     "domain": "gui_command"
+    },
+    "intent": "selectItem",
+    "rules": [
+     "globals/gui_nav"
+    ]
+   }
+  }
+ ],
+ "globalNegatives": [
+  {
+   "id": "global-neg:hello",
+   "rule": "globals/global_commands_launch",
+   "text": "hello",
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "global-neg:year",
+   "rule": "globals/global_commands_launch",
+   "text": "what year is it",
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "global-neg:gui-hello",
+   "rule": "globals/gui_nav",
+   "text": "hello",
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "global-neg:repeat-hello",
+   "rule": "globals/mim_repeat",
+   "text": "hello",
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "global-neg:thanks-hello",
+   "rule": "globals/mim_thanks",
+   "text": "hello",
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  }
+ ],
+ "namedRules": [
+  {
+   "rule": "circuit-saver/play_again",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "circuit-saver/play_again"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_set_value",
+   "positive": {
+    "unsupported": "time",
+    "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"
+   },
+   "negative": null,
+   "negativeUnavailable": "rule declares an unsupported factory dependency (time)"
+  },
+  {
+   "rule": "clock/alarm_timer_ampm",
+   "positive": {
+    "unsupported": "time",
+    "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"
+   },
+   "negative": null,
+   "negativeUnavailable": "rule declares an unsupported factory dependency (time)"
+  },
+  {
+   "rule": "clock/alarm_timer_change",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "delete",
+     "rules": [
+      "clock/alarm_timer_change"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_timer_info",
+   "positive": {
+    "text": "change it",
+    "expect": {
+     "entities": {},
+     "intent": "change",
+     "rules": [
+      "clock/alarm_timer_info"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_timer_none_set",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "clock/alarm_timer_none_set"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_timer_okay",
+   "positive": {
+    "text": "wrong",
+    "expect": {
+     "entities": {},
+     "intent": "wrong",
+     "rules": [
+      "clock/alarm_timer_okay"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_timer_other_set",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "replace",
+     "rules": [
+      "clock/alarm_timer_other_set"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_timer_query_menu",
+   "positive": {
+    "text": "change it",
+    "expect": {
+     "entities": {},
+     "intent": "change",
+     "rules": [
+      "clock/alarm_timer_query_menu"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/alarm_timer_too_long",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "clock/alarm_timer_too_long"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/clock_menu",
+   "positive": {
+    "text": "what time is it",
+    "expect": {
+     "entities": {
+      "domain": "clock"
+     },
+     "intent": "askForTime",
+     "rules": [
+      "clock/clock_menu"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/stop_timer",
+   "positive": {
+    "text": "stop the timer",
+    "expect": {
+     "entities": {},
+     "intent": "stop",
+     "rules": [
+      "clock/stop_timer"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "clock/timer_set_value",
+   "positive": {
+    "text": "set a timer for five minutes",
+    "expect": {
+     "entities": {
+      "hours": "null",
+      "minutes": "5",
+      "seconds": "null",
+      "domain": "timer"
+     },
+     "intent": "timerValue",
+     "rules": [
+      "clock/timer_set_value"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "create/execute_create_menu",
+   "positive": {
+    "text": "create a video",
+    "expect": {
+     "entities": {},
+     "intent": "createVideo",
+     "rules": [
+      "create/execute_create_menu"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "create/is_it_a_keeper",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "create/is_it_a_keeper"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "create/take_another_photo",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "create/take_another_photo"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "exercise/pause_hold",
+   "positive": {
+    "text": "continue",
+    "expect": {
+     "entities": {},
+     "intent": "continue",
+     "rules": [
+      "exercise/pause_hold"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "exercise/ready_now",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "exercise/ready_now"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "exercise/ready_to_start",
+   "positive": {
+    "text": "i'm ready",
+    "expect": {
+     "entities": {},
+     "intent": "imReady",
+     "rules": [
+      "exercise/ready_to_start"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "exercise/routine_selector",
+   "positive": {
+    "text": "sun salutation",
+    "expect": {
+     "entities": {},
+     "intent": "SunSalutation",
+     "rules": [
+      "exercise/routine_selector"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "exercise/run_control",
+   "positive": {
+    "text": "pause the exercise",
+    "expect": {
+     "entities": {},
+     "intent": "pause_exercise",
+     "rules": [
+      "exercise/run_control"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "exercise/want_to",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "exercise/want_to"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "friendly-tips/want_more_tdd",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "friendly-tips/want_more_tdd"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "gallery/confirm_delete_item",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "gallery/confirm_delete_item"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "gallery/gallery_preview",
+   "positive": {
+    "text": "select the first one",
+    "expect": {
+     "entities": {
+      "itemPosition": "first",
+      "domain": "gui_command"
+     },
+     "intent": "selectItem",
+     "rules": [
+      "gallery/gallery_preview"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "gallery/item_pause",
+   "positive": {
+    "text": "resume",
+    "expect": {
+     "entities": {
+      "domain": "gui_command"
+     },
+     "intent": "resume",
+     "rules": [
+      "gallery/item_pause"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "gallery/item_view",
+   "positive": {
+    "text": "pause",
+    "expect": {
+     "entities": {
+      "domain": "gui_command"
+     },
+     "intent": "pause",
+     "rules": [
+      "gallery/item_view"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "globals/global_commands_launch",
+   "positive": {
+    "text": "stop it",
+    "expect": {
+     "entities": {
+      "domain": "global_commands"
+     },
+     "intent": "stop",
+     "rules": [
+      "globals/global_commands_launch"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "globals/gui_nav",
+   "positive": {
+    "text": "next page",
+    "expect": {
+     "entities": {
+      "domain": "gui_command"
+     },
+     "intent": "right",
+     "rules": [
+      "globals/gui_nav"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "globals/mim_repeat",
+   "positive": {
+    "text": "repeat that",
+    "expect": {
+     "entities": {
+      "domain": "mim_global"
+     },
+     "intent": "repeat",
+     "rules": [
+      "globals/mim_repeat"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "globals/mim_thanks",
+   "positive": {
+    "text": "thank you",
+    "expect": {
+     "entities": {
+      "domain": "mim_global"
+     },
+     "intent": "thanks",
+     "rules": [
+      "globals/mim_thanks"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/bedtime_reminder",
+   "positive": {
+    "text": "remind me tomorrow",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "wildcard",
+     "rules": [
+      "greetings/bedtime_reminder"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "TURNBACK includes a wildcard intent arm — matches every utterance by design"
+  },
+  {
+   "rule": "greetings/day_quality",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "greetings/day_quality"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/greetings_hello",
+   "positive": {
+    "text": "hello",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "hello",
+     "rules": [
+      "greetings/greetings_hello"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_general_question",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "good",
+     "rules": [
+      "greetings/proactive_general_question"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_general_statement",
+   "positive": {
+    "text": "hey jibo",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "returned",
+     "rules": [
+      "greetings/proactive_general_statement"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "declares a wildcard intent arm — matches every utterance by design"
+  },
+  {
+   "rule": "greetings/proactive_morning_question",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "yes",
+     "rules": [
+      "greetings/proactive_morning_question"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_morning_statement",
+   "positive": {
+    "text": "hey jibo",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "returned",
+     "rules": [
+      "greetings/proactive_morning_statement"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "declares a wildcard intent arm — matches every utterance by design"
+  },
+  {
+   "rule": "greetings/proactive_playful_question",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "good",
+     "rules": [
+      "greetings/proactive_playful_question"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/proactive_playful_statement",
+   "positive": {
+    "text": "hey jibo",
+    "expect": {
+     "entities": {
+      "domain": "greetings",
+      "skill": "@be/greetings"
+     },
+     "intent": "returned",
+     "rules": [
+      "greetings/proactive_playful_statement"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "declares a wildcard intent arm — matches every utterance by design"
+  },
+  {
+   "rule": "greetings/sleep_quality",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "greetings/sleep_quality"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "greetings/you_too",
+   "positive": {
+    "text": "you too",
+    "expect": {
+     "entities": {},
+     "intent": "youToo",
+     "rules": [
+      "greetings/you_too"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/are_lights",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/are_lights"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/delete_data_confirmation",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/delete_data_confirmation"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/did_flash",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/did_flash"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/first_time",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/first_time"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/get_close",
+   "positive": {
+    "text": "i'm ready",
+    "expect": {
+     "entities": {},
+     "intent": "imReady",
+     "rules": [
+      "hue-control/get_close"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/have_app",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/have_app"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/near_lights",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/near_lights"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/need_some_more_time",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/need_some_more_time"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/post_control",
+   "positive": {
+    "text": "turn the lights off",
+    "expect": {
+     "entities": {},
+     "intent": "lightsOff",
+     "rules": [
+      "hue-control/post_control"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": {},
+     "intent": "noMatch",
+     "rules": [
+      "hue-control/post_control"
+     ]
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/press_screen",
+   "positive": {
+    "text": "i'm ready",
+    "expect": {
+     "entities": {},
+     "intent": "imReady",
+     "rules": [
+      "hue-control/press_screen"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/ready",
+   "positive": {
+    "text": "ready",
+    "expect": {
+     "entities": {},
+     "intent": "ready",
+     "rules": [
+      "hue-control/ready"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/want_to_set_up",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/want_to_set_up"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "hue-control/you_still_here",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "hue-control/you_still_here"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "idle/turn_back_question",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "idle/turn_back_question"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/any_more_intros",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "introductions/any_more_intros"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/face_capture_ready",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "introductions/face_capture_ready"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/intro_looper",
+   "positive": {
+    "text": "mary",
+    "expect": {
+     "entities": {
+      "GivenName": "mary"
+     },
+     "intent": "loopmember",
+     "rules": [
+      "introductions/intro_looper"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": {
+      "GivenName": ""
+     },
+     "intent": "loopmember",
+     "rules": [
+      "introductions/intro_looper"
+     ]
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/is_name_right",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "introductions/is_name_right"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/recognition_any_more",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "introductions/recognition_any_more"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "introductions/recognition_type_menu",
+   "positive": {
+    "text": "face",
+    "expect": {
+     "entities": {},
+     "intent": "face",
+     "rules": [
+      "introductions/recognition_type_menu"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "launch",
+   "positive": {
+    "text": "what time is it",
+    "expect": {
+     "entities": {
+      "domain": "clock",
+      "country": "null",
+      "state": "null",
+      "city": "null",
+      "day_of_week": "null",
+      "skill": "@be/clock",
+      "union_original_fst_name": "handle:clock/launch"
+     },
+     "intent": "askForTime",
+     "rules": [
+      "launch"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "main-menu/execute_fun_stuff",
+   "positive": {
+    "text": "joke",
+    "expect": {
+     "entities": {
+      "destination": "joke"
+     },
+     "intent": "loadMenu",
+     "rules": [
+      "main-menu/execute_fun_stuff"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "main-menu/execute_main_menu",
+   "positive": {
+    "text": "settings",
+    "expect": {
+     "entities": {
+      "destination": "settings"
+     },
+     "intent": "loadMenu",
+     "rules": [
+      "main-menu/execute_main_menu"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "main-menu/execute_personal_report",
+   "positive": {
+    "text": "weather",
+    "expect": {
+     "entities": {
+      "destination": "weather"
+     },
+     "intent": "loadMenu",
+     "rules": [
+      "main-menu/execute_personal_report"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "radio/radio_get_genre",
+   "positive": {
+    "text": "play some rock",
+    "expect": {
+     "entities": {},
+     "intent": "ClassicRock",
+     "rules": [
+      "radio/radio_get_genre"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "radio/radio_get_genre_ca",
+   "positive": {
+    "text": "play some rock",
+    "expect": {
+     "entities": {},
+     "intent": "ClassicRock",
+     "rules": [
+      "radio/radio_get_genre_ca"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "radio/run_control",
+   "positive": {
+    "text": "stop dancing",
+    "expect": {
+     "entities": {},
+     "intent": "stop_dancing",
+     "rules": [
+      "radio/run_control"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "settings/download_now_later",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "settings/download_now_later"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "settings/execute_settings_menu",
+   "positive": {
+    "text": "battery",
+    "expect": {
+     "entities": {},
+     "intent": "battery",
+     "rules": [
+      "settings/execute_settings_menu"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "settings/okay_thanks_to_clear",
+   "positive": {
+    "text": "okay thanks",
+    "expect": {
+     "entities": {},
+     "intent": "okayThanks",
+     "rules": [
+      "settings/okay_thanks_to_clear"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "settings/shut_down_confirmation",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "settings/shut_down_confirmation"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "settings/volume_control",
+   "positive": {
+    "text": "turn the volume up",
+    "expect": {
+     "entities": {
+      "volumeLevel": "null",
+      "domain": "gui_command"
+     },
+     "intent": "volumeUp",
+     "rules": [
+      "settings/volume_control"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "shared/no_id",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "shared/no_id"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "shared/verify_id",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "shared/verify_id"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "shared/wildcard",
+   "positive": {
+    "text": "anything at all",
+    "expect": {
+     "entities": {
+      "content": "anything at all"
+     },
+     "intent": "wildcard",
+     "rules": [
+      "shared/wildcard"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "TopRule = ($ANYTHING …) — matches every utterance by design"
+  },
+  {
+   "rule": "shared/wrong_id",
+   "positive": {
+    "text": "cancel",
+    "expect": {
+     "entities": {},
+     "intent": "cancel",
+     "rules": [
+      "shared/wrong_id"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "LOOPER second arm is <1.0>+$w<0.0> — every non-empty utterance matches loopmember by design"
+  },
+  {
+   "rule": "shared/yes_no",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "shared/yes_no"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "surprises-date/offer_date_fact",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "surprises-date/offer_date_fact"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "surprises-ota/offer_ota_release_notes",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "surprises-ota/offer_ota_release_notes"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "surprises-ota/want_to_download_now",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "surprises-ota/want_to_download_now"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "surprises-user-research/future_feature_frequency",
+   "positive": {
+    "text": "sometimes",
+    "expect": {
+     "entities": {},
+     "intent": "sometimes",
+     "rules": [
+      "surprises-user-research/future_feature_frequency"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "surprises-user-research/future_feature_yes_no_maybe",
+   "positive": {
+    "text": "maybe",
+    "expect": {
+     "entities": {},
+     "intent": "maybe",
+     "rules": [
+      "surprises-user-research/future_feature_yes_no_maybe"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "tutorial/dance",
+   "positive": {
+    "text": "dance",
+    "expect": {
+     "entities": {},
+     "intent": "dance",
+     "rules": [
+      "tutorial/dance"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "tutorial/keep_photo",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "tutorial/keep_photo"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "tutorial/take_photo",
+   "positive": {
+    "text": "take a photo",
+    "expect": {
+     "entities": {},
+     "intent": "createOnePhoto",
+     "rules": [
+      "tutorial/take_photo"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "tutorial/where_are_you",
+   "positive": {
+    "text": "over here",
+    "expect": {
+     "entities": {},
+     "intent": "here",
+     "rules": [
+      "tutorial/where_are_you"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "tutorial/yes_no",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "tutorial/yes_no"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/collect_looper",
+   "positive": {
+    "text": "mary",
+    "expect": {
+     "entities": {
+      "GivenName": "mary"
+     },
+     "intent": "loopmember",
+     "rules": [
+      "who-am-i/collect_looper"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": {
+      "GivenName": ""
+     },
+     "intent": "loopmember",
+     "rules": [
+      "who-am-i/collect_looper"
+     ]
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/confirm",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "who-am-i/confirm"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/name_is_right",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {
+      "domain": "whoAmI"
+     },
+     "intent": "yes",
+     "rules": [
+      "who-am-i/name_is_right"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "who-am-i/want_to_enroll",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "who-am-i/want_to_enroll"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "word-of-the-day/fun_fact",
+   "positive": {
+    "text": "that's funny",
+    "expect": {
+     "entities": {},
+     "intent": "thatsFunny",
+     "rules": [
+      "word-of-the-day/fun_fact"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "word-of-the-day/offer",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "yes",
+     "rules": [
+      "word-of-the-day/offer"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "word-of-the-day/puzzle",
+   "positive": {
+    "text": "guess",
+    "expect": {
+     "entities": {
+      "guess": "guess"
+     },
+     "intent": "guess",
+     "rules": [
+      "word-of-the-day/puzzle"
+     ]
+    }
+   },
+   "negative": null,
+   "negativeUnavailable": "third TopRule arm ($ANYTHING){intent='guess'} catches every utterance by design"
+  },
+  {
+   "rule": "word-of-the-day/right_word",
+   "positive": {
+    "text": "yes",
+    "expect": {
+     "entities": {},
+     "intent": "agreement",
+     "rules": [
+      "word-of-the-day/right_word"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  },
+  {
+   "rule": "word-of-the-day/surprise",
+   "positive": {
+    "text": "what's that",
+    "expect": {
+     "entities": {},
+     "intent": "whatsThat",
+     "rules": [
+      "word-of-the-day/surprise"
+     ]
+    }
+   },
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
+  }
+ ],
+ "interruption": [
+  {
+   "id": "interrupt:cancel",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "cancel",
+   "anchor": "native capture n08:004",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "stop",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "interrupt:stop-it",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "stop it",
+   "anchor": "native capture n08:005",
+   "expect": {
+    "entities": {
+     "domain": "global_commands"
+    },
+    "intent": "stop",
+    "rules": [
+     "globals/global_commands_launch"
+    ]
+   }
+  },
+  {
+   "id": "interrupt:repeat-over-skill",
+   "rules": [
+    "clock/timer_set_value",
+    "globals/gui_nav",
+    "globals/mim_repeat",
+    "globals/global_commands_launch"
+   ],
+   "text": "repeat that",
+   "anchor": "native capture n08:019",
+   "expect": {
+    "entities": {
+     "domain": "mim_global"
+    },
+    "intent": "repeat",
+    "rules": [
+     "globals/mim_repeat"
+    ]
+   }
+  },
+  {
+   "id": "interrupt:thanks-over-skill",
+   "rules": [
+    "clock/alarm_timer_okay",
+    "globals/gui_nav",
+    "globals/mim_repeat",
+    "globals/mim_thanks",
+    "globals/global_commands_launch"
+   ],
+   "text": "thanks",
+   "anchor": "native capture n08:028",
+   "expect": {
+    "entities": {
+     "domain": "mim_global"
+    },
+    "intent": "thanks",
+    "rules": [
+     "globals/mim_thanks"
+    ]
+   }
+  },
+  {
+   "id": "local:clock-wins",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "what time is it",
+   "anchor": "native capture n08:006",
+   "expect": {
+    "entities": {
+     "domain": "clock",
+     "country": "null",
+     "state": "null",
+     "city": "null",
+     "day_of_week": "null",
+     "skill": "@be/clock",
+     "union_original_fst_name": "handle:clock/launch"
+    },
+    "intent": "askForTime",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "local:cancel-the-timer",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "cancel the timer",
+   "anchor": "native capture n08:000",
+   "expect": {
+    "entities": {
+     "domain": "timer",
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "null",
+     "skill": "@be/clock",
+     "union_original_fst_name": "handle:clock/launch"
+    },
+    "intent": "stop",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "local:repeat-overlap",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "repeat that",
+   "anchor": "native capture n08:012",
+   "expect": {
+    "entities": {
+     "union_original_fst_name": "handle:chitchat/launch"
+    },
+    "intent": "requestRepeat",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "local:thanks-overlap",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "thanks",
+   "anchor": "native capture n08:013",
+   "expect": {
+    "entities": {
+     "union_original_fst_name": "handle:chitchat/launch"
+    },
+    "intent": "thankJiboForAction",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "local:timer-cancel",
+   "rules": [
+    "clock/timer_set_value",
+    "clock/alarm_timer_okay",
+    "globals/global_commands_launch"
+   ],
+   "text": "cancel",
+   "anchor": "native capture n08:033",
+   "expect": {
+    "entities": {
+     "hours": "null",
+     "minutes": "null",
+     "seconds": "null",
+     "domain": "timer"
+    },
+    "intent": "cancel",
+    "rules": [
+     "clock/timer_set_value"
+    ]
+   }
+  }
+ ],
+ "overTriggers": [
+  {
+   "id": "guard:year-not-global",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "what year is it",
+   "anchor": null,
+   "expect": {
+    "entities": {
+     "union_original_fst_name": "handle:chitchat/launch"
+    },
+    "intent": "generalWhatQuestions",
+    "rules": [
+     "launch"
+    ]
+   }
+  },
+  {
+   "id": "guard:go-back-no-winner",
+   "rules": [
+    "launch",
+    "globals/global_commands_launch"
+   ],
+   "text": "go back",
+   "anchor": "native capture n08:011",
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "guard:hello-no-global",
+   "rules": [
+    "globals/global_commands_launch"
+   ],
+   "text": "hello",
+   "anchor": null,
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  },
+  {
+   "id": "guard:weather-not-global",
+   "rules": [
+    "globals/global_commands_launch"
+   ],
+   "text": "check the weather",
+   "anchor": null,
+   "expect": {
+    "entities": null,
+    "intent": null,
+    "rules": []
+   }
+  }
+ ]
+}
