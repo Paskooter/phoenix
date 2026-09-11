@@ -26,14 +26,19 @@
 // default silently dropped every credential on restart (D-02 gap, verified by
 // restarting `node packages/data/src/index.js`).
 //
-// testAuthCode short-circuits the OAuth exchange (integration-test path); real
-// google/outlook token exchange is out of scope here (501) — supply tokens
-// directly or use testAuthCode.
+// testAuthCode short-circuits the OAuth exchange (integration-test path). Real
+// google/outlook token exchange runs through the configurable provider in
+// oauth.js: the async `saveCredential` (used by POST /v1/credential) performs
+// the exchange exactly like Credentials.redeemAuthCode, while the synchronous
+// `save` keeps the certified D-02 behaviour (direct tokens, testAuthCode, and a
+// 501 when no provider is configured — supply tokens directly or use
+// testAuthCode in that mode). D-03.
 
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CredentialError, setTokens } from './oauth.js';
 
 const DEFAULT_GOOGLE_CLIENT_ID = '830717411721';
 // Durable-by-default store path, mirroring packages/account/src/store.js
@@ -66,6 +71,9 @@ export class CredentialStore {
   constructor(fileOrOpts = {}) {
     const opts = typeof fileOrOpts === 'string' ? { file: fileOrOpts } : (fileOrOpts || {});
     this.file = opts.file ?? process.env.ETCO_data_credentialsFile ?? DEFAULT_FILE;
+    // Optional configurable OAuth provider (see oauth.js); null keeps the
+    // certified D-02 sync behaviour (no live exchange, 501 for google/outlook).
+    this.oauth = opts.oauth || null;
     this.m = new Map();
     this._load();
   }
@@ -169,6 +177,76 @@ export class CredentialStore {
     this._deleteOther(cred);
     this._flush();
     return cred;
+  }
+
+  /**
+   * Async create/update used by the POST /v1/credential boundary. When a
+   * configurable OAuth provider is present and an authCode (not testAuthCode)
+   * arrives for google/outlook, this performs the real token exchange
+   * (Credentials.saveCredential → redeemAuthCode) and commits only on success.
+   * Every other shape delegates to the sync `save`, so the certified D-02
+   * semantics (duplicate detection BEFORE any exchange, direct-token path,
+   * testAuthCode bypass, unsupported-service error) are unchanged.
+   */
+  async saveCredential(data) {
+    requireProps(data, REQUIRED_SAVE);
+    const tokensArrived = data.accessToken && data.refreshToken && data.expiresAt;
+    if (!data.authCode && !tokensArrived) {
+      throw new Error('Missing authCode or tokens (accessToken, refreshToken, expiresAt) in request');
+    }
+    const provider = this.oauth;
+    const canExchange = provider && provider.supports(data.serviceName)
+      && data.authCode && data.authCode !== SPECIAL_AUTH_CODE && !tokensArrived;
+    if (!canExchange) return this.save(data);
+
+    const existing = this.find(data, true);
+    const existingOauth = existing && existing.oauth2 && existing.oauth2.clientId === data.clientId ? existing.oauth2 : {};
+    // Reference order (Credentials.saveCredential): reject a replayed authCode
+    // BEFORE calling the provider, so a duplicate never issues a token request.
+    if (existingOauth.authCode === data.authCode) {
+      const e = new Error('Credential already exists'); e.code = 'DUPLICATE_KEY'; throw e;
+    }
+    if (!existing && this._sharesScopeWithSlot(data)) {
+      const e = new Error('Credential already exists'); e.code = 'DUPLICATE_KEY'; throw e;
+    }
+    const redirectUri = data.redirectUri || existingOauth.redirectUri;
+    const oauth2 = {
+      clientId: data.clientId, authCode: data.authCode, redirectUri,
+      accessToken: null, refreshToken: existingOauth.refreshToken || null, expiresAt: null,
+    };
+    const tokens = await provider.redeem(data.serviceName, {
+      clientId: data.clientId, redirectUri, authCode: data.authCode, scopes: data.scopes,
+    });
+    const credential = existing || {
+      accountId: data.accountId, skillId: data.skillId, serviceName: data.serviceName,
+      serviceAccountName: data.serviceAccountName, scopes: data.scopes, isActive: true, createdAt: Date.now(),
+    };
+    setTokens({ oauth2 }, tokens); // throws before commit if the tokens are unusable
+    if (existing) { credential.isActive = true; credential.error = undefined; }
+    credential.oauth2 = oauth2;
+    if (!credential.oauth2.refreshToken) {
+      console.warn(`Credential for ${credential.serviceName}:${credential.serviceAccountName} is saved without refreshToken`);
+    }
+    this.m.set(keyOf(credential), credential);
+    this._deleteOther(credential);
+    this._flush();
+    return credential;
+  }
+
+  /** StoredCredential.updateTokens (mongo/StoredCredential.ts:165-169). */
+  updateTokens(credential, tokens) {
+    setTokens(credential, tokens);
+    credential.oauth2.refreshedAt = Date.now();
+    this._flush();
+    return credential;
+  }
+
+  /** StoredCredential.setInactive (mongo/StoredCredential.ts:174-178). */
+  setInactive(credential, errorCode = CredentialError.REFRESH_FAILED) {
+    credential.isActive = false;
+    credential.error = errorCode;
+    this._flush();
+    return credential;
   }
 
   /**
@@ -293,12 +371,19 @@ export function credentialQueryFromParams(q) {
 }
 
 /** Build the POST/GET/DELETE /v1/credential route handlers for createService. */
-export function credentialHandlers(store) {
+export function credentialHandlers(store, { onNewCredential } = {}) {
   return {
-    post: ({ body = {}, res }) => {
+    post: async ({ body = {}, res }) => {
       if (body.skillId === 'report-skill' && body.serviceName === 'google' && !body.clientId) body.clientId = DEFAULT_GOOGLE_CLIENT_ID;
       try {
-        store.save(body);
+        const credential = await store.saveCredential(body);
+        // CredentialRequestsHandler.events.newCredential (LassoService wires it
+        // to each calendar handler's onNewCredentialArrived, which deletes the
+        // cached calendar payload so the next read is fresh).
+        if (typeof onNewCredential === 'function') {
+          try { onNewCredential(credential); }
+          catch (err) { console.warn(`newCredential handler failed: ${err.message}`); }
+        }
         return { created: true };
       } catch (e) {
         if (e.code === 'DUPLICATE_KEY') return { credentialExists: true };

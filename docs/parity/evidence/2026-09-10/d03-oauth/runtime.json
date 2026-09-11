@@ -1,0 +1,61 @@
+{
+  "steps": [
+    {
+      "step": "exchange",
+      "status": 200,
+      "body": {
+        "created": true
+      },
+      "token_requests": 1,
+      "last_request": {
+        "path": "/oauth2/v4/token",
+        "form": {
+          "code": "goodCode",
+          "client_id": "668620580899-eus56a4gr8l278apl1a60kpql4c8ik35.apps.googleusercontent.com",
+          "client_secret": "yx740-780cn75-xcVhMp2vjd",
+          "redirect_uri": "https://developers.google.com/oauthplayground",
+          "grant_type": "authorization_code"
+        }
+      }
+    },
+    {
+      "step": "exchange_stored",
+      "oauth2": {
+        "clientId": "668620580899",
+        "authCode": "goodCode",
+        "accessToken": "googleAccessToken",
+        "refreshToken": "googleRefreshToken",
+        "expiresAt": 1789096104370
+      },
+      "expires_in_future_ms": 3599998
+    },
+    {
+      "step": "exchange_error",
+      "status": 400,
+      "body": "Failed to redeem authCode, Google response was 400 Code was already redeemed."
+    },
+    {
+      "step": "refresh",
+      "calendar_status": 502,
+      "calendar_body": "Error getting GoogleCalendar data: Error: Calendar token exchange not configured (personalCalendar); supply a provider",
+      "token_requests": 1,
+      "refresh_grant": {
+        "refresh_token": "goodRefresh",
+        "client_id": "668620580899-eus56a4gr8l278apl1a60kpql4c8ik35.apps.googleusercontent.com",
+        "client_secret": "yx740-780cn75-xcVhMp2vjd",
+        "grant_type": "refresh_token"
+      },
+      "stored_accessToken": "refreshedAccessToken-1",
+      "stored_refreshedAt": 1789092504383,
+      "expires_in_future_ms": 3599999
+    },
+    {
+      "step": "refresh_failure_invalidation",
+      "calendar_status": 502,
+      "calendar_body": "Error getting GoogleCalendar data: Error: Failed to refresh access token, Google response was 400 Bad Request",
+      "isActive": false,
+      "error": "REFRESH_FAILED"
+    }
+  ],
+  "ok": true
+}
