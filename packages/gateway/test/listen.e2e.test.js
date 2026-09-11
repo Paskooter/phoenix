@@ -5,6 +5,9 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { WebSocket } from 'ws';
 import { jwt } from '@phoenix/common';
 import { validate, schemas } from '@phoenix/contracts';
@@ -13,6 +16,7 @@ const SECRET = 'test-secret';
 const PORTS = { nlu: 7511, skills: 7514, gateway: 7510, history: 7516 };
 
 let nluSrv, skillsSrv, historySrv, gw;
+let historyDir;
 
 before(async () => {
   process.env.ETCO_server_hubTokenSecret = SECRET;
@@ -22,6 +26,11 @@ before(async () => {
   // and host its real dependency inside this test instead of contacting a
   // workstation service through the default hostname/port.
   process.env.NET_history = `localhost:${PORTS.history}`;
+  // I-03: the history service is durable (ETCO_history_dataFile, defaulting to
+  // packages/history/data/store.json). Give this e2e run its own store so repeated runs do not
+  // accumulate launch rows and stay deterministic.
+  historyDir = await mkdtemp(join(tmpdir(), 'gw-history-e2e-'));
+  process.env.ETCO_history_dataFile = join(historyDir, 'history.json');
   delete process.env.ETCO_hub_recordLaunchHistory;
   delete process.env.ETCO_hub_disableAuth;
   const { start: startNlu } = await import('@phoenix/nlu');
@@ -40,6 +49,7 @@ after(async () => {
   nluSrv?.close?.();
   skillsSrv?.close?.();
   historySrv?.close?.();
+  if (historyDir) await rm(historyDir, { recursive: true, force: true });
 });
 
 function token() {

@@ -17,6 +17,10 @@ Object.assign(process.env, {
   NET_history: `127.0.0.1:${base + 6}`,
   NET_data: `127.0.0.1:${base + 7}`,
   NET_skills: `127.0.0.1:${base + 3}`,
+  // I-03: the history service is durable. Keep this diagnostic run's launches out of the checkout's
+  // packages/history/data/store.json so repeated runs stay deterministic (authenticated-stack.mjs
+  // does the same for the account store with ETCO_account_dataFile).
+  ETCO_history_dataFile: resolve(runDir, 'history.json'),
 });
 let traceBytes = 0;
 let capturedAudioBytes = 0;

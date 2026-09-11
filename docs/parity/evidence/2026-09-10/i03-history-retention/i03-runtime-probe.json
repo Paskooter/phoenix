@@ -1,0 +1,167 @@
+{
+  "phoenixRevision": "w8/i03",
+  "storeFile": "/tmp/i03-probe-NN0SwT/history.json",
+  "startedAt": 1789086091734,
+  "cases": [
+    {
+      "label": "PASS1 POST fresh launch (13 days old)",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "body": {
+        "id": "9980dbb7-dd93-4df2-9009-a458c4349b97",
+        "timestamp": 1787962891734,
+        "sessionID": "fresh",
+        "robotID": "R-old",
+        "skillID": "SK-old",
+        "intent": "fresh"
+      }
+    },
+    {
+      "label": "PASS1 POST back-dated launch (40 days old, written SECOND so it is NOT the head)",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "body": {
+        "id": "be507925-1a28-4881-a487-6a4a0c4842f6",
+        "timestamp": 1785630091734,
+        "sessionID": "expired",
+        "robotID": "R-old",
+        "skillID": "SK-old",
+        "intent": "expired"
+      }
+    },
+    {
+      "label": "PASS1 POST speech record",
+      "method": "POST",
+      "path": "/v1/speech",
+      "status": 200,
+      "body": {
+        "id": "2d227d36-ac26-4deb-b222-13216262c07b"
+      }
+    },
+    {
+      "label": "PASS1 store file: both rows are on disk, the expired one last",
+      "path": "/tmp/i03-probe-NN0SwT/history.json",
+      "storedRows": [
+        {
+          "sessionID": "fresh",
+          "timestamp": 1787962891734
+        },
+        {
+          "sessionID": "expired",
+          "timestamp": 1785630091734
+        }
+      ],
+      "storedSpeech": 1
+    },
+    {
+      "label": "PASS2 GET count for R-old (I-01 RETENTION case: was 1 with the head-only prune)",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=R-old",
+      "status": 200,
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "PASS2 POST count for the expired intent",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "PASS2 POST latest for R-old (stable identifier + timestamp ordering)",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "body": {
+        "id": "9980dbb7-dd93-4df2-9009-a458c4349b97",
+        "timestamp": 1787962891734,
+        "sessionID": "fresh",
+        "robotID": "R-old",
+        "skillID": "SK-old",
+        "intent": "fresh"
+      }
+    },
+    {
+      "label": "PASS2 PUT the speech id minted before the SIGKILL (500 would mean it was lost)",
+      "method": "PUT",
+      "path": "/v1/speech/2d227d36-ac26-4deb-b222-13216262c07b",
+      "status": 200,
+      "body": {
+        "id": "2d227d36-ac26-4deb-b222-13216262c07b"
+      }
+    }
+  ],
+  "store": {
+    "afterPass1": {
+      "skillLaunches": [
+        {
+          "timestamp": 1787962891734,
+          "sessionID": "fresh",
+          "robotID": "R-old",
+          "skillID": "SK-old",
+          "intent": "fresh",
+          "id": "9980dbb7-dd93-4df2-9009-a458c4349b97",
+          "type": "SKILL_LAUNCH",
+          "_seq": 0
+        },
+        {
+          "timestamp": 1785630091734,
+          "sessionID": "expired",
+          "robotID": "R-old",
+          "skillID": "SK-old",
+          "intent": "expired",
+          "id": "be507925-1a28-4881-a487-6a4a0c4842f6",
+          "type": "SKILL_LAUNCH",
+          "_seq": 1
+        }
+      ],
+      "speech": [
+        {
+          "robotID": "R-old",
+          "accountID": "acct",
+          "transID": "t-1",
+          "timestamp": 1787962891734,
+          "asr": {
+            "text": "hi"
+          },
+          "id": "2d227d36-ac26-4deb-b222-13216262c07b"
+        }
+      ]
+    },
+    "afterPass2": {
+      "skillLaunches": [
+        {
+          "timestamp": 1787962891734,
+          "sessionID": "fresh",
+          "robotID": "R-old",
+          "skillID": "SK-old",
+          "intent": "fresh",
+          "id": "9980dbb7-dd93-4df2-9009-a458c4349b97",
+          "type": "SKILL_LAUNCH",
+          "_seq": 0
+        }
+      ],
+      "speech": [
+        {
+          "robotID": "R-old",
+          "accountID": "acct",
+          "transID": "t-1",
+          "timestamp": 1787962891734,
+          "asr": {
+            "text": "hi"
+          },
+          "id": "2d227d36-ac26-4deb-b222-13216262c07b",
+          "nlu": {
+            "intent": "greet"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HistoryStore } from '../src/store.js';
+import { HistoryStore, SKILL_LAUNCH_RETENTION_MS } from '../src/store.js';
 import { MatchMethod, RuleField } from '../src/query.js';
 
 const ROBOT = 'robot-1';
@@ -97,4 +97,47 @@ test('speech updates are partial (non-erasing)', () => {
   const rec = s.speech.get(id);
   assert.equal(rec.asr.text, 'hi', 'existing field preserved');
   assert.equal(rec.nlu.intent, 'greet', 'new field added');
+});
+
+// ---------------------------------------------------------------------------
+// I-03 retention — expiry is per-record (Mongo TTL semantics), not order-based
+// ---------------------------------------------------------------------------
+// The reference rule is a Mongo TTL index: SkillLaunchSchema.ts sets
+// `expires: config.skillLaunch.eventExpirationSeconds` on `timestamp`, and
+// HistoryServiceConfigProvider.ts sets `eventExpirationSeconds: 14 * 86400`. Mongo's TTL monitor
+// deletes every document whose timestamp passes 14 days, in ANY position, so pruning the head of an
+// insertion-ordered array is not equivalent (AUDIT F08 / probe P12: `skillLaunches[0]` stays recent
+// while a back-dated row survives further down the array).
+
+test('SKILL_LAUNCH_RETENTION_MS is the pinned 14 days (eventExpirationSeconds = 14 * 86400)', () => {
+  assert.equal(SKILL_LAUNCH_RETENTION_MS, 14 * 86400 * 1000);
+  assert.equal(SKILL_LAUNCH_RETENTION_MS, 1209600000);
+});
+
+test('a launch older than the window is pruned even when it is NOT the oldest array element', () => {
+  const s = new HistoryStore();
+  // Recent row first, so the back-dated row is appended AFTER it — this is exactly the P12 shape:
+  // the head of the array is fresh, so a head-only prune never fires.
+  launch(s, { sessionID: 'recent', intent: 'recent' });
+  launch(s, { sessionID: 'stale', intent: 'stale', timestamp: Date.now() - 40 * 86400000 });
+  assert.equal(s.getCount({ robotID: ROBOT }), 1, 'the 40-day-old row must not be counted');
+  assert.equal(s.getCount({ robotID: ROBOT, intent: 'stale' }), 0);
+  assert.equal(s.getLatest({ robotID: ROBOT }).intent, 'recent');
+  assert.deepEqual(s.skillLaunches.map((r) => r.sessionID), ['recent'], 'and it must be evicted, not just filtered');
+});
+
+test('retention boundary: a row inside the window is kept; one past it is evicted', () => {
+  const s = new HistoryStore();
+  const t = Date.now();
+  launch(s, { sessionID: 'inside', timestamp: t - SKILL_LAUNCH_RETENTION_MS + 60000 });
+  launch(s, { sessionID: 'outside', timestamp: t - SKILL_LAUNCH_RETENTION_MS - 60000 });
+  assert.equal(s.getCount({ robotID: ROBOT }), 1);
+  assert.equal(s.getLatest({ robotID: ROBOT }).sessionID, 'inside');
+});
+
+test('retention does not touch speech records (the reference speech schema has no expires)', () => {
+  const s = new HistoryStore();
+  const id = s.addSpeech({ robotID: ROBOT, transID: 't-old', timestamp: Date.now() - 400 * 86400000 });
+  s.getCount({ robotID: ROBOT }); // trigger a prune pass
+  assert.ok(s.speech.has(id), 'an old speech record is retained indefinitely');
 });
