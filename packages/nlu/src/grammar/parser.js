@@ -240,6 +240,16 @@ export function parse(source) {
     for (const raw of String(body).split(';')) {
       const stmt = raw.trim();
       if (!stmt) continue;
+      // `{% if (this.k == 'a') {this.k = 'b'} else if (this.k == 'c') {this.k = 'd'} %}`
+      // — the only control-flow form in the pinned rules (clock/alarm_timer_change,
+      // word-of-the-day/right_word). It renames a private field after the plain
+      // assignments run; emit one cond tag per arm for applyTags to evaluate.
+      let conditional = false;
+      for (const cm of stmt.matchAll(/if\s*\(\s*this\.([A-Za-z_]\w*)\s*==\s*'([^']*)'\s*\)\s*\{\s*this\.\1\s*=\s*'([^']*)'\s*\}/g)) {
+        tags.push({ key: cm[1], op: 'set', kind: 'cond', when: cm[2], then: cm[3] });
+        conditional = true;
+      }
+      if (conditional) continue;
       const m = stmt.match(/^([A-Za-z_][\w]*)\s*=\s*(.+)$/);
       if (!m) continue;
       const key = m[1];
