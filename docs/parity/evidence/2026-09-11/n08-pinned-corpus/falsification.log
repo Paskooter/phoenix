@@ -1,0 +1,38 @@
+== N-08 falsification: break one production line, observe a NAMED test failure, restore ==
+target: packages/nlu/src/fullGrammar.js line 91 (strictFactories: true)
+
+-- BREAK --
+    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null, factoryWords: loadFactoryWords(), strictFactories: true }); } catch { /* skip */ }
+
+$ node --test packages/nlu/test/n08FullGrammarFactoryStrictness.test.js
+not ok 1 - N-08 the legacy launch stage returns the original contract for the clock-wildcard text
+  error: |-
+  expected: 'canJiboAction'
+  actual: 'start'
+not ok 2 - N-08 the same clock-wildcard mechanism is closed for every affected utterance
+  error: |-
+  expected: 'requestJiboGiveThing'
+  actual: 'start'
+ok 3 - N-08 an unserved factory dependency is a no-match, not a wildcard
+ok 4 - N-08 factory strictness keeps genuine clock utterances matching
+ok 5 - N-08 factory strictness does not regress the long-tail launch intents
+# tests 5
+# pass 3
+# fail 2
+
+-- RESTORE --
+    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null, factoryWords: loadFactoryWords(), strictFactories: true }); } catch { /* skip */ }
+
+$ node --test packages/nlu/test/n08FullGrammarFactoryStrictness.test.js
+ok 1 - N-08 the legacy launch stage returns the original contract for the clock-wildcard text
+ok 2 - N-08 the same clock-wildcard mechanism is closed for every affected utterance
+ok 3 - N-08 an unserved factory dependency is a no-match, not a wildcard
+ok 4 - N-08 factory strictness keeps genuine clock utterances matching
+ok 5 - N-08 factory strictness does not regress the long-tail launch intents
+# tests 5
+# pass 5
+# fail 0
+
+git diff --stat:
+ packages/nlu/src/fullGrammar.js | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)

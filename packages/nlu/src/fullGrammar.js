@@ -79,7 +79,16 @@ export function fullParse(text) {
   let best = null; let bestScore = -Infinity;
   for (const sk of skills) {
     let m = null;
-    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null, factoryWords: loadFactoryWords() }); } catch { /* skip */ }
+    // `strictFactories` is the source boundary: a request-scoped grammar must
+    // not turn a factory dependency this profile cannot serve into an arbitrary
+    // 1..3-word wildcard (matcher.js ref case). The native launch union is one
+    // compiled FST whose factory arms are real sub-graphs, so an unserved
+    // factory must be a no-match here, not a wildcard. Without this,
+    // "can you give me the password to my brother's computer" matched
+    // clock/timer `start` through a wildcard-filled timer-value slot while the
+    // original returns chitchat canJiboAction/Action=GiveUserThing
+    // (chitchat:21:0:base).
+    try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null, factoryWords: loadFactoryWords(), strictFactories: true }); } catch { /* skip */ }
     if (!m) continue;
     const score = parseScore(m.entities, m.specificity, m.cost);
     if (!best || score > bestScore) { best = { id: sk.id, m }; bestScore = score; }

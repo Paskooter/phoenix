@@ -1,0 +1,46 @@
+{
+ "schema": "phoenix.nlu.n08-manifest-corpus-replay",
+ "corpus": "packages/harness/resources/test-manifest.json (sha256 ea70a399299e0d5cc3c654268b407a5bdc61cfa0602ce3f8d8db34dc8a177ccd)",
+ "runner": "packages/harness/src/corpusRunner.js (D3 intent / D4 mim, unchanged grader)",
+ "profile": "default AST",
+ "worktreeResolutionNote": "A worktree-local packages/node_modules/@phoenix/nlu -> ../../nlu shadow was required: the runner imports the NLU stage by package name and the shared node_modules symlink otherwise resolves it to the main checkout (D-N08a).",
+ "before": {
+  "stats": {
+   "entries": 4705,
+   "utterances": 10035,
+   "d3Intent": 9991,
+   "d4Mim": 9873,
+   "noMatchOk": 0,
+   "noMatchTotal": 0
+  },
+  "misses": 162
+ },
+ "after": {
+  "stats": {
+   "entries": 4705,
+   "utterances": 10035,
+   "d3Intent": 9993,
+   "d4Mim": 9875,
+   "noMatchOk": 0,
+   "noMatchTotal": 0
+  },
+  "misses": 160
+ },
+ "repaired": [
+  [
+   "can you give me the password to my brother's computer",
+   "canJiboAction",
+   "start",
+   "KU_CanYouGiveMe",
+   null
+  ],
+  [
+   "give me an example of an np hard problem",
+   "requestJiboGiveThing",
+   "start",
+   "KU_GiveMeA",
+   null
+  ]
+ ],
+ "new": []
+}

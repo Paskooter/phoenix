@@ -1,0 +1,68 @@
+{
+ "schema": "phoenix.nlu.n08-manifest-corpus-classification",
+ "corpus": "packages/harness/resources/test-manifest.json",
+ "runner": "packages/harness/src/corpusRunner.js",
+ "profile": "default AST",
+ "before": {
+  "stats": {
+   "entries": 4705,
+   "utterances": 10035,
+   "d3Intent": 9991,
+   "d4Mim": 9873,
+   "noMatchOk": 0,
+   "noMatchTotal": 0
+  },
+  "misses": 162,
+  "buckets": {
+   "A-gqa-rewrite": 14,
+   "C-clock-factory-wildcard": 2,
+   "D-known-launch-union-overlap": 26,
+   "E-other-intent": 2,
+   "F-mim-class-specific": 78,
+   "G-mim-other": 40
+  }
+ },
+ "after": {
+  "stats": {
+   "entries": 4705,
+   "utterances": 10035,
+   "d3Intent": 9993,
+   "d4Mim": 9875,
+   "noMatchOk": 0,
+   "noMatchTotal": 0
+  },
+  "misses": 160,
+  "buckets": {
+   "A-gqa-rewrite": 14,
+   "D-known-launch-union-overlap": 26,
+   "E-other-intent": 2,
+   "F-mim-class-specific": 78,
+   "G-mim-other": 40
+  }
+ },
+ "repaired": [
+  {
+   "cmd": "can you give me the password to my brother's computer",
+   "want": "canJiboAction",
+   "got": "start",
+   "wantMim": "KU_CanYouGiveMe",
+   "skill": "@be/clock",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  },
+  {
+   "cmd": "give me an example of an np hard problem",
+   "want": "requestJiboGiveThing",
+   "got": "start",
+   "wantMim": "KU_GiveMeA",
+   "skill": "@be/clock",
+   "group": [
+    "KU",
+    "RP"
+   ]
+  }
+ ],
+ "note": "Buckets are computed from the runner raw miss reports. D-known-launch-union-overlap includes the legacy-stage copies of the pinned F2 residuals plus the isJiboDescriptor->idle deflector class."
+}
