@@ -1,0 +1,1146 @@
+{
+ "schema": "phoenix.nlu.dialogflow-agent-catalog",
+ "provenance": {
+  "repo": "jiboV2/pegasus",
+  "ref": "5c0a7390539663ba749d360de348a428c088505c",
+  "path": "packages/parser/dialogflow/main_agent",
+  "source": "pinned Pegasus reference checkout (.parity/reference/5c0a7390539663ba749d360de348a428c088505c)",
+  "agentJsonSha256": "248c30d1e40408a15e5585f7b97f3b5cb7817fb60139ae73306571ad7d8373ed",
+  "note": "Archived Dialogflow default-agent intent/entity catalog (the dead statistical NLU)."
+ },
+ "intentCount": 99,
+ "entityCount": 89,
+ "catalogSha256": "446bd3d2ead31db7be6b9562e4e0f0f341d4bfdb1c69cf5282e76e30ef5dd02a",
+ "intents": [
+  {
+   "intent": "canJiboBeDescriptor",
+   "file": "canJiboBeDescriptor.json",
+   "sha256": "a24fcba661a597a184bbddb673ce7a504054391d2fc2925d78ea56621b396000",
+   "bytes": 1204
+  },
+  {
+   "intent": "decoyIntent",
+   "file": "decoyIntent.json",
+   "sha256": "f0e70f97b24d9a19966e8d88bc1738c8f9168073af5e9e72986a107ee814e42d",
+   "bytes": 627
+  },
+  {
+   "intent": "didJiboWatchEvent",
+   "file": "didJiboWatchEvent.json",
+   "sha256": "52460d2130f83f5e66d1f9174ac886229d6373daa9930dc1e655987a7f2d1b5d",
+   "bytes": 1533
+  },
+  {
+   "intent": "doesJiboBelieveInThing",
+   "file": "doesJiboBelieveInThing.json",
+   "sha256": "c3c3dc996df36d105e58744665e8d00dbc33157e0ab51f3e83c361fdbea3b2fb",
+   "bytes": 1224
+  },
+  {
+   "intent": "doesJiboCareAboutEvent",
+   "file": "doesJiboCareAboutEvent.json",
+   "sha256": "a0432a349141e23b0051fc0827151654beb05eb06d7ffbc04e357b0ef9fab4cd",
+   "bytes": 1269
+  },
+  {
+   "intent": "doesJiboCelebrateHoliday",
+   "file": "doesJiboCelebrateHoliday.json",
+   "sha256": "25185463faed1f2351f8ed5c01b496a6978e8e92bc58c130b30724d06a989bb2",
+   "bytes": 955
+  },
+  {
+   "intent": "doesJiboDislikeThing",
+   "file": "doesJiboDislikeThing.json",
+   "sha256": "2714683909c3d1249d5d75658980635ef00eca5e01fef930342d06b7ec7639d6",
+   "bytes": 1828
+  },
+  {
+   "intent": "doesJiboFeelEmotionAboutThing",
+   "file": "doesJiboFeelEmotionAboutThing.json",
+   "sha256": "b24b6ee2dce387b02acc800a558780250a6922e4d3ea6e46b043b0e060c062d9",
+   "bytes": 4259
+  },
+  {
+   "intent": "doesJiboHaveFavorite",
+   "file": "doesJiboHaveFavorite.json",
+   "sha256": "6d0f9d0769625a397f7544f29a99420cd94508464b86b17b3b5c3f3b0d325fe3",
+   "bytes": 977
+  },
+  {
+   "intent": "doesJiboHaveLeastFavorite",
+   "file": "doesJiboHaveLeastFavorite.json",
+   "sha256": "2a2c694a1dca9df06621103d0101297f5a39e3e34412e332788012f612d79711",
+   "bytes": 982
+  },
+  {
+   "intent": "doesJiboHaveOpinionAboutThing",
+   "file": "doesJiboHaveOpinionAboutThing.json",
+   "sha256": "9e825a82d3294167c3fbe1b1d866f787cdff0def2aaa32df200ade1d2eb542cb",
+   "bytes": 2045
+  },
+  {
+   "intent": "doesJiboHavePlansForEvent",
+   "file": "doesJiboHavePlansForEvent.json",
+   "sha256": "f839a672d68d592207f59d572f5c1fb30610f6f4ad5cb8c9faa3a380ef79a39a",
+   "bytes": 1804
+  },
+  {
+   "intent": "doesJiboHavePreferenceBetweenThings",
+   "file": "doesJiboHavePreferenceBetweenThings.json",
+   "sha256": "f93a1df2dc34d295e4fb9d3149a44fb587805457b4234a8ca8fcd0c6b2c5d3e4",
+   "bytes": 1854
+  },
+  {
+   "intent": "doesJiboHaveRelation",
+   "file": "doesJiboHaveRelation.json",
+   "sha256": "582d481a227bc1abd0dff5f6f26442a10f9bae85041d96fc37a02bf4d77d6b19",
+   "bytes": 1170
+  },
+  {
+   "intent": "doesJiboHaveThing",
+   "file": "doesJiboHaveThing.json",
+   "sha256": "f48124e368d07ece34c3ebb888fc19f85a1835623c75370a128340fa1544d8f5",
+   "bytes": 1721
+  },
+  {
+   "intent": "doesJiboKnowPerson",
+   "file": "doesJiboKnowPerson.json",
+   "sha256": "ae130735670134e454b1a843454824bfaf2c462f540337ca54c0b5d84c2d9cd6",
+   "bytes": 2807
+  },
+  {
+   "intent": "doesJiboLikeTasteOfThing",
+   "file": "doesJiboLikeTasteOfThing.json",
+   "sha256": "debb0e415dcd14e2aa9d25bfc08f25a86ca3029f64de0b60a32455c1d0655fbc",
+   "bytes": 907
+  },
+  {
+   "intent": "doesJiboLikeThing",
+   "file": "doesJiboLikeThing.json",
+   "sha256": "85dddf0923e34ac86f0efb948264374bac06846119da8f92da946a670bce3987",
+   "bytes": 3079
+  },
+  {
+   "intent": "doesJiboLookForwardToThing",
+   "file": "doesJiboLookForwardToThing.json",
+   "sha256": "0a1c20e0eb17bb60a7463ddf6ee98701b4f59b5326b4bc0c23ddfd1d476df338",
+   "bytes": 1844
+  },
+  {
+   "intent": "doesJiboWantThing",
+   "file": "doesJiboWantThing.json",
+   "sha256": "9f4f131853d8ed6b2bdd1060e5d5d191a1da4be461e689e28dcb2aad867b1161",
+   "bytes": 899
+  },
+  {
+   "intent": "doesJiboWatchEvent",
+   "file": "doesJiboWatchEvent.json",
+   "sha256": "c5ac182cd54078c1ca76f471b9e655c4ceb1a3503b3f75f2a8f0474a2fd91241",
+   "bytes": 1265
+  },
+  {
+   "intent": "doesJiboWearThing",
+   "file": "doesJiboWearThing.json",
+   "sha256": "093f97f9353b93b024296d2dea5243e853859fe59a618a6b2c72729f06622503",
+   "bytes": 963
+  },
+  {
+   "intent": "doesUserDislikeThing",
+   "file": "doesUserDislikeThing.json",
+   "sha256": "731aabcb883b32db2127f3c4e8f8c55b6ed5412300ea980e675cfb52d1d333a1",
+   "bytes": 1514
+  },
+  {
+   "intent": "doesUserLikeThing",
+   "file": "doesUserLikeThing.json",
+   "sha256": "bddf46ce26dd1e30cfef1373003d8596a6676dcac76b85dcab5be130bee76db4",
+   "bytes": 1511
+  },
+  {
+   "intent": "generalHowQuestions",
+   "file": "generalHowQuestions.json",
+   "sha256": "5ae2d3362fa3dff27f3883f44b7a38f11e68d86dfcdb018b0dc8eccd37bd66f1",
+   "bytes": 1235
+  },
+  {
+   "intent": "generalQuestions",
+   "file": "generalQuestions.json",
+   "sha256": "3330e2336af6876f176d351cbe36e24f85a889c2ba0b3c6f740a860def6133a5",
+   "bytes": 632
+  },
+  {
+   "intent": "generalWhatQuestions",
+   "file": "generalWhatQuestions.json",
+   "sha256": "8d17c2bf0cade4b03f8773f2cba7de5f48a0fd7065566cbe16915407ceb12baf",
+   "bytes": 636
+  },
+  {
+   "intent": "generalWhenQuestions",
+   "file": "generalWhenQuestions.json",
+   "sha256": "62af4177abd988b74843f9efc1edf2662b1d649b314da526e3a81159202828df",
+   "bytes": 636
+  },
+  {
+   "intent": "generalWhereQuestions",
+   "file": "generalWhereQuestions.json",
+   "sha256": "8d0d80250541dd576f07077b73c41d1cf0a3eb417896c9cddcab21fb4566d329",
+   "bytes": 1237
+  },
+  {
+   "intent": "generalWhoQuestions",
+   "file": "generalWhoQuestions.json",
+   "sha256": "92b48d18100e733eed01dd59bf88e42cd5fa11bb8fda85df5425b04a4ab2e321",
+   "bytes": 1513
+  },
+  {
+   "intent": "generalWhyQuestions",
+   "file": "generalWhyQuestions.json",
+   "sha256": "fbe08b1a39c8b9d95bea84aed69ae7a1e26dd27560adb7e7cf29048b2299f4ec",
+   "bytes": 635
+  },
+  {
+   "intent": "hasJiboMetPerson",
+   "file": "hasJiboMetPerson.json",
+   "sha256": "8f7fcab740ff967ba2e9c9fcfed4c9d565706e5effe19239066100f56b00aee2",
+   "bytes": 2766
+  },
+  {
+   "intent": "howDescriptorIsJibo",
+   "file": "howDescriptorIsJibo.json",
+   "sha256": "a37edf35df4e184886b156ffec180d0f580fa16f1e8446e29ffcbd71d4cbbf32",
+   "bytes": 1203
+  },
+  {
+   "intent": "howDescriptorIsPerson",
+   "file": "howDescriptorIsPerson.json",
+   "sha256": "9251f7e8c0147b0875a1452cf47e528cad90f8bdfc9da4ce8f7946babb81b132",
+   "bytes": 1793
+  },
+  {
+   "intent": "howDescriptorIsUnknown",
+   "file": "howDescriptorIsUnknown.json",
+   "sha256": "a0fd7ef7beb71d4cc3ee9cb8f37170a17e6a20e89e9a0a8275448ce8fa852acc",
+   "bytes": 638
+  },
+  {
+   "intent": "howDescriptorIsUser",
+   "file": "howDescriptorIsUser.json",
+   "sha256": "7092deb62d578d99bd09814db1a8bbffd98c4a5f64cc8d4c95280b8632e19d10",
+   "bytes": 1203
+  },
+  {
+   "intent": "howIsTimeframe",
+   "file": "howIsTimeframe.json",
+   "sha256": "b2431ca186086d75e3107992def3fbd4aab16e6b1516dd14bc5d4741cf05c388",
+   "bytes": 1778
+  },
+  {
+   "intent": "isJiboBestFriendsWithPerson",
+   "file": "isJiboBestFriendsWithPerson.json",
+   "sha256": "52f0bca04b7cf352b31dbfb2eaed9a50fa03a4fcba687870db72eb7c8e157460",
+   "bytes": 2191
+  },
+  {
+   "intent": "isJiboDescriptor",
+   "file": "isJiboDescriptor.json",
+   "sha256": "de12efc700a758bacde0007726365ac8ac33b976a47391d7fef7db855a912e40",
+   "bytes": 3408
+  },
+  {
+   "intent": "isJiboFriendsWithPerson",
+   "file": "isJiboFriendsWithPerson.json",
+   "sha256": "c4448c1628f2020c5d099bdb354a2c11e8865ca6ec988f4163e9437ba5ef68f3",
+   "bytes": 2187
+  },
+  {
+   "intent": "isJiboGoingToHolidayParty",
+   "file": "isJiboGoingToHolidayParty.json",
+   "sha256": "dcc309d84aa7d9d3868a00f53b52475982a483c1d3d4a3c768d7d13e4d4b7a1c",
+   "bytes": 1114
+  },
+  {
+   "intent": "isJiboRelatedToPerson",
+   "file": "isJiboRelatedToPerson.json",
+   "sha256": "b8263db39c6497129f3b9d07fbc12f3ed9d38425ffdb4b7895fe980d4d8df06d",
+   "bytes": 2789
+  },
+  {
+   "intent": "isUnknownDescriptor",
+   "file": "isUnknownDescriptor.json",
+   "sha256": "5fed0d426d52a570e566c1f0e7deff7096e5ccfc0234fe0ef9858547d161313e",
+   "bytes": 635
+  },
+  {
+   "intent": "isUserDescriptor",
+   "file": "isUserDescriptor.json",
+   "sha256": "469f06110c2f4f6081e2c78c349716eef9bbfae7e6e423787015794e08944a1a",
+   "bytes": 1727
+  },
+  {
+   "intent": "jiboDislikesThing",
+   "file": "jiboDislikesThing.json",
+   "sha256": "57f71d59e8ba8fe6c505f2a3c9f87a90ea57cc478aa9b7323e68e9705fb1182d",
+   "bytes": 1511
+  },
+  {
+   "intent": "jiboGivesUserGiftHoliday",
+   "file": "jiboGivesUserGiftHoliday.json",
+   "sha256": "a79120dc79ccfa9d51b583a2cb7ce098ff0b360def34761526199de833c83904",
+   "bytes": 954
+  },
+  {
+   "intent": "jiboHasThing",
+   "file": "jiboHasThing.json",
+   "sha256": "942692e36311a023b671810dc25538a2796bab7de658884e2eeaef7983cb7804",
+   "bytes": 1992
+  },
+  {
+   "intent": "jiboIsDescriptor",
+   "file": "jiboIsDescriptor.json",
+   "sha256": "5af07502d457d3a2ce7fe75a8dcc778f0ae4827abdb13ae7ec9d02f77a678bc1",
+   "bytes": 2206
+  },
+  {
+   "intent": "jiboIsNotDescriptor",
+   "file": "jiboIsNotDescriptor.json",
+   "sha256": "0eb80cab87fcf8886011fac2683d99a90eb8ee506beda87d87b09c83181da57c",
+   "bytes": 2014
+  },
+  {
+   "intent": "jiboLikesThing",
+   "file": "jiboLikesThing.json",
+   "sha256": "18ce2c8e70a365d475eeed26f7a5037399d40a2e19ddd23f19c443f3b2ef9742",
+   "bytes": 3211
+  },
+  {
+   "intent": "jiboShouldBeDescriptor",
+   "file": "jiboShouldBeDescriptor.json",
+   "sha256": "d55c987b197f7dc73d7d5507c0538b46656a5fc6911596a95eb706b66275b04f",
+   "bytes": 1206
+  },
+  {
+   "intent": "jiboShouldDislikeThing",
+   "file": "jiboShouldDislikeThing.json",
+   "sha256": "196c373d52ea45e28df6856e60ce3038538b93109ff55a91fff1c95c409b4e6a",
+   "bytes": 1516
+  },
+  {
+   "intent": "jiboShouldLikeThing",
+   "file": "jiboShouldLikeThing.json",
+   "sha256": "d11c9d4195b997d2696ea0e5cd21591964ecfc955102bb4c0678c71b5bba4737",
+   "bytes": 964
+  },
+  {
+   "intent": "jiboShouldNotBeDescriptor",
+   "file": "jiboShouldNotBeDescriptor.json",
+   "sha256": "f409982793c6508a2e5f5e358d2b514a58c13a282e7d67aeb4407725c48a78cc",
+   "bytes": 1209
+  },
+  {
+   "intent": "launchPersonalReport",
+   "file": "launchPersonalReport.json",
+   "sha256": "ae01950b9c9608ca78ec58968e927bbf76d10ac6880ce1a0fcb24bb2d8c397fa",
+   "bytes": 795
+  },
+  {
+   "intent": "no",
+   "file": "no.json",
+   "sha256": "dd9cba9a7ec39a7b45cf15851d91bdbcf7ede23672f24a8a942f4c9df5c4016c",
+   "bytes": 617
+  },
+  {
+   "intent": "requestNews",
+   "file": "requestNews.json",
+   "sha256": "20254d919e97d616b7ba4480165c9d8443651822d75f416ac4b18d33793fd5e2",
+   "bytes": 897
+  },
+  {
+   "intent": "requestSingSong",
+   "file": "requestSingSong.json",
+   "sha256": "d5e0880185650da66dbc7c953513c26384357a1a0d2db021c2d2a24f738a5744",
+   "bytes": 898
+  },
+  {
+   "intent": "requestWeather",
+   "file": "requestWeather.json",
+   "sha256": "73c25357c8d50b346473cad0cd87aec5dc8a3a1a86b7545923b13ade61955e9b",
+   "bytes": 1202
+  },
+  {
+   "intent": "shouldUserWearThing",
+   "file": "shouldUserWearThing.json",
+   "sha256": "429ad16cc234974667f6c39ac70f820b4227b457537caff595250392faae19a9",
+   "bytes": 965
+  },
+  {
+   "intent": "unknownIsDescriptor",
+   "file": "unknownIsDescriptor.json",
+   "sha256": "5425fcc90b2b1e9649e8f3d9d8972956b3d14a7ee3954ab7c4fb9b58028f0a12",
+   "bytes": 1281
+  },
+  {
+   "intent": "unknownIsNotDescriptor",
+   "file": "unknownIsNotDescriptor.json",
+   "sha256": "dcc3ef638a7cf3c4e517184ffdd96184da35600d4742213ca25be1f57f8fefc7",
+   "bytes": 638
+  },
+  {
+   "intent": "userCelebratesThing",
+   "file": "userCelebratesThing.json",
+   "sha256": "bad3bdd9e5c5b250b6b525f1d8cbce001d06b55c6cff70c309e9ebca25108bbf",
+   "bytes": 949
+  },
+  {
+   "intent": "userDislikesThing",
+   "file": "userDislikesThing.json",
+   "sha256": "52c92ed0fc10e9c711fc53947a3b672de7ce2e79983cdc5cae74512b3a6fb2ee",
+   "bytes": 1740
+  },
+  {
+   "intent": "userDoesNotGiveJiboGiftHoliday",
+   "file": "userDoesNotGiveJiboGiftHoliday.json",
+   "sha256": "363c5fc76fd909553147c025a65ce782c2b0c3c09b468f89ea744e6be521f0ac",
+   "bytes": 960
+  },
+  {
+   "intent": "userFeelsEmotionAboutThing",
+   "file": "userFeelsEmotionAboutThing.json",
+   "sha256": "6750dac133d4ccf9137f12d37620b3963f95274638b471489e06fec242900e19",
+   "bytes": 1193
+  },
+  {
+   "intent": "userGivesJiboGiftHoliday",
+   "file": "userGivesJiboGiftHoliday.json",
+   "sha256": "dce5cfd4eb0ea17e55a62b6924a6dac0a8102ae6a7d49ad8b0f1d255df849049",
+   "bytes": 954
+  },
+  {
+   "intent": "userHasFavorite",
+   "file": "userHasFavorite.json",
+   "sha256": "b7b2c91a3d5acb8adbfd0a0e445cb53e8636acb04000c6ab6d8af2d38fe737c6",
+   "bytes": 2078
+  },
+  {
+   "intent": "userIsBestFriendsWithPerson",
+   "file": "userIsBestFriendsWithPerson.json",
+   "sha256": "a206f9a162e95f6bc60a90373dd40966087cdc1944fc50990ea026da74e5068b",
+   "bytes": 930
+  },
+  {
+   "intent": "userIsDescriptor",
+   "file": "userIsDescriptor.json",
+   "sha256": "80525e1144704a6abea6e346e8fa62a0739eba1e1e1c1fb1005dd63feb7119ba",
+   "bytes": 2552
+  },
+  {
+   "intent": "userIsFriendsWithPerson",
+   "file": "userIsFriendsWithPerson.json",
+   "sha256": "9b25b86cc7894a1e43a16dd89e6df2d31bc74985babafd8bf288aeae2e9af44b",
+   "bytes": 1514
+  },
+  {
+   "intent": "userIsGoingToHolidayParty",
+   "file": "userIsGoingToHolidayParty.json",
+   "sha256": "d21788f66d0207d67d1bd0c78ab7d7ed4eb39e47e597088158bbb0530a15bbf7",
+   "bytes": 1114
+  },
+  {
+   "intent": "userIsNotDescriptor",
+   "file": "userIsNotDescriptor.json",
+   "sha256": "6288f094fa14a71d02eaf92ef224dfe5ebadb9364ca811e532041b4406cd29f9",
+   "bytes": 1886
+  },
+  {
+   "intent": "userLikesThing",
+   "file": "userLikesThing.json",
+   "sha256": "90e2a7db090a5b218d0b50fb9e69724a445fbb5b8f657e3a88fb4e4c42770cb3",
+   "bytes": 1809
+  },
+  {
+   "intent": "userLooksForwardToThing",
+   "file": "userLooksForwardToThing.json",
+   "sha256": "aa4b966acea8071923a74a221bc05bdafce0d651bf23c566c6e8cd121a0fe5c4",
+   "bytes": 1841
+  },
+  {
+   "intent": "userObservedThing",
+   "file": "userObservedThing.json",
+   "sha256": "da40311650182a6420609ca395c132c1048755e28c0f5a5fa1282d13f7347813",
+   "bytes": 932
+  },
+  {
+   "intent": "userShouldDislikeThing",
+   "file": "userShouldDislikeThing.json",
+   "sha256": "25c9f21a7b5228d34ebd708919c964b11850fb36393531e7a53d5a1a174b6e24",
+   "bytes": 1516
+  },
+  {
+   "intent": "userShouldLikeThing",
+   "file": "userShouldLikeThing.json",
+   "sha256": "a36a43dfcdaabc98dd9bfe9ca317df14caa20a8c627c9e22f7b05b66afb4e3ef",
+   "bytes": 1513
+  },
+  {
+   "intent": "userSupportsSomeoneForEvent",
+   "file": "userSupportsSomeoneForEvent.json",
+   "sha256": "33484d94476925eccf2b09ccdfc40d683ad62fdf786c76459a45cc808a632081",
+   "bytes": 1274
+  },
+  {
+   "intent": "whatGiftDoesJiboWantHoliday",
+   "file": "whatGiftDoesJiboWantHoliday.json",
+   "sha256": "981d4e44e69a9d83ad2eec7f67950b2bb85fa87c590981db9f416df9023e2e66",
+   "bytes": 918
+  },
+  {
+   "intent": "whatGiftShouldUserGiveHoliday",
+   "file": "whatGiftShouldUserGiveHoliday.json",
+   "sha256": "d0b404b1db67ceebc4697bd4015500285245f06f356f95e63f937607f1cf961d",
+   "bytes": 1903
+  },
+  {
+   "intent": "whatGiftShouldUserReceive",
+   "file": "whatGiftShouldUserReceive.json",
+   "sha256": "7835580ecb4853d68eca67eb3aed7784b7345eb241a8332230e32eceddb76958",
+   "bytes": 955
+  },
+  {
+   "intent": "whatShouldUserDoForEvent",
+   "file": "whatShouldUserDoForEvent.json",
+   "sha256": "aa080f81d76468a3d979b1b09dd2aeffd7ec2812ff3ee8a6ea779868cdfc1448",
+   "bytes": 1573
+  },
+  {
+   "intent": "whenIsBirthday",
+   "file": "whenIsBirthday.json",
+   "sha256": "f461e0c54952e51b83a4a9b6615b2f2e0539973ffe29be42748b0a9d9ba2e698",
+   "bytes": 630
+  },
+  {
+   "intent": "whereAreHolidayGifts",
+   "file": "whereAreHolidayGifts.json",
+   "sha256": "34fad8844be1d2e4f4a86e4b702d79bfaf9a79cf713fc6c985f440dd78e8f5f8",
+   "bytes": 1109
+  },
+  {
+   "intent": "whereIsPerson",
+   "file": "whereIsPerson.json",
+   "sha256": "34e74e9801af7b0111d8db7b2acb1c75bdf3e8582d66d348782a56ac818782ef",
+   "bytes": 1229
+  },
+  {
+   "intent": "whereShouldUserHolidayShop",
+   "file": "whereShouldUserHolidayShop.json",
+   "sha256": "052a665054737be9c112d0e26bb1f35e1253b7c4ee6e714fed963eaa057276d8",
+   "bytes": 1261
+  },
+  {
+   "intent": "whoDoesJiboSupportForEvent",
+   "file": "whoDoesJiboSupportForEvent.json",
+   "sha256": "af9f2a1cd4603594cf5a169821e881084c4ebac22323bc7e5a449ceeb19c109a",
+   "bytes": 1273
+  },
+  {
+   "intent": "whoIsJiboRelation",
+   "file": "whoIsJiboRelation.json",
+   "sha256": "311d503bd55e71f36f5e598613566fa3c1c7d28529e00d126f975d693cab4b5b",
+   "bytes": 1167
+  },
+  {
+   "intent": "whoIsPerson",
+   "file": "whoIsPerson.json",
+   "sha256": "f0b7a88f28f9036df86f02228fa8fab6e2705fef03c16daa07e630ed7c39ea25",
+   "bytes": 2800
+  },
+  {
+   "intent": "whoWillWinEvent",
+   "file": "whoWillWinEvent.json",
+   "sha256": "d4c15dbc8c7cdb9f77bfa4c04b8aeecd4357eed32d2eefccdce277a81f7b866f",
+   "bytes": 1262
+  },
+  {
+   "intent": "whyDoesJiboHaveThing",
+   "file": "whyDoesJiboHaveThing.json",
+   "sha256": "5d276cd44797520521518f30c99d6ace09120145b207ca782a100bc924eb261a",
+   "bytes": 1722
+  },
+  {
+   "intent": "whyDoesJiboLikeThing",
+   "file": "whyDoesJiboLikeThing.json",
+   "sha256": "08f519e904fd7ccc214170fc8e94be4d596ea61de62b67dbb31a4e9f19b413a0",
+   "bytes": 965
+  },
+  {
+   "intent": "whyDoesJiboNotHaveThing",
+   "file": "whyDoesJiboNotHaveThing.json",
+   "sha256": "02a9081bc1e95de0801b5d4f810066f1965678807b0ce106b6a0453bbbbe34b1",
+   "bytes": 2003
+  },
+  {
+   "intent": "whyIsJiboDescriptor",
+   "file": "whyIsJiboDescriptor.json",
+   "sha256": "68c093eb597974f0124606de4c233e10788ea3759f2c9ab247d8287ddac059cb",
+   "bytes": 1742
+  },
+  {
+   "intent": "whyIsUnknownDescriptor",
+   "file": "whyIsUnknownDescriptor.json",
+   "sha256": "8f408ce03a33e98a09d54167cf42cbd07201f0f4778267d40e8ef1edcac7d879",
+   "bytes": 638
+  },
+  {
+   "intent": "whyIsUserDescriptor",
+   "file": "whyIsUserDescriptor.json",
+   "sha256": "6a6fabf0479e7d050dbc66dac487f881ab0e1338cc21b1a2faabd39b083ca860",
+   "bytes": 1203
+  },
+  {
+   "intent": "willJiboReceiveHolidayGift",
+   "file": "willJiboReceiveHolidayGift.json",
+   "sha256": "ba53213bc802da06c1fd036da8644600d563e908a9fbf07532ae6bfc3f81bffe",
+   "bytes": 956
+  },
+  {
+   "intent": "yes",
+   "file": "yes.json",
+   "sha256": "c2302f0cd802c28e1a1153882c16d6e8cc49cf77b43dc7e1bc906502c0eb841a",
+   "bytes": 618
+  }
+ ],
+ "entities": [
+  {
+   "entity": "Activity",
+   "file": "Activity.json",
+   "sha256": "5294deca0c71e2ca785b756c082f183ab7fb0ae29533a720cb8afd361e6f4240",
+   "bytes": 121
+  },
+  {
+   "entity": "AmericaPresident",
+   "file": "AmericaPresident.json",
+   "sha256": "b7933bc8766fd0f06735154d44ecea341b8d9368209c86dce6b06cdd78e8cbd0",
+   "bytes": 129
+  },
+  {
+   "entity": "Amphibian",
+   "file": "Amphibian.json",
+   "sha256": "138f603b05e6e38ac7e75383dc63e04d64bbc6676386635ab836a6383de2807a",
+   "bytes": 122
+  },
+  {
+   "entity": "Animal",
+   "file": "Animal.json",
+   "sha256": "7ac104793d031cd3943489c50b4ed43f0d61f2903d83cf70ac5706c8518c96de",
+   "bytes": 119
+  },
+  {
+   "entity": "Bird",
+   "file": "Bird.json",
+   "sha256": "90dcf76459634ffa2378762b845bb92e7a4b7bbc8a44bc410e85f99202fad2dd",
+   "bytes": 117
+  },
+  {
+   "entity": "BoardGame",
+   "file": "BoardGame.json",
+   "sha256": "089cc03ef92c3efe710afe842bcf405b2de52b2c46c8f7ac95bdbcbe71022998",
+   "bytes": 122
+  },
+  {
+   "entity": "BodyInternal",
+   "file": "BodyInternal.json",
+   "sha256": "6ffc59d5a738d0198099ca95b71260bb5f48e618ef5d6c51fb4a4cb2c0f2e375",
+   "bytes": 125
+  },
+  {
+   "entity": "BodyOfWater",
+   "file": "BodyOfWater.json",
+   "sha256": "b7c393f86ee7c610bcb40faffa6ae1b91296fe078705587cc97fb742cfcda2cf",
+   "bytes": 124
+  },
+  {
+   "entity": "BodyPart",
+   "file": "BodyPart.json",
+   "sha256": "9487debe5e2a36c30a00c518fa6c269298783d862f39467eea09167f3f515c71",
+   "bytes": 121
+  },
+  {
+   "entity": "Breakfast",
+   "file": "Breakfast.json",
+   "sha256": "6e2e8917d3ea6b0e8f5e185a5c29469403a8626d4655fa78c576bcf648a6a0cf",
+   "bytes": 122
+  },
+  {
+   "entity": "Bug",
+   "file": "Bug.json",
+   "sha256": "047d4ef838ff854bf2a1bc4d605313b88da49338b9322cf73c47a65c589297f3",
+   "bytes": 116
+  },
+  {
+   "entity": "CelestialObjectGeneral",
+   "file": "CelestialObjectGeneral.json",
+   "sha256": "d55840dd9cdaa270875c57a5fd1024bf8a46fe56cf730bad0cc3779224fe6172",
+   "bytes": 135
+  },
+  {
+   "entity": "Cheese",
+   "file": "Cheese.json",
+   "sha256": "69b5d3ebe50605560469bffdb25712dd9ef78de671e018784384cdc5d9391432",
+   "bytes": 119
+  },
+  {
+   "entity": "Color",
+   "file": "Color.json",
+   "sha256": "7a55153a24d555ce60737554535466410507180dbc9b3f874cb0b348a3fc6af9",
+   "bytes": 118
+  },
+  {
+   "entity": "Competitor",
+   "file": "Competitor.json",
+   "sha256": "76ff6a82e562b519d32b63bd56d63160439b88417b57ec20e2ff7b79cbb4bc9f",
+   "bytes": 123
+  },
+  {
+   "entity": "Computer",
+   "file": "Computer.json",
+   "sha256": "ce6a00dadd082fe29e3d0a884624dd943630f72d49c6ff08611c13909ad263ec",
+   "bytes": 121
+  },
+  {
+   "entity": "Condiment",
+   "file": "Condiment.json",
+   "sha256": "8e9a01960276570b3076c5f63a6dc3705635a450bb83a075566118143c7962d9",
+   "bytes": 122
+  },
+  {
+   "entity": "Continent",
+   "file": "Continent.json",
+   "sha256": "095814f2c963e318909da0b2f59ab84ec3d2ab87db2d9673daec5cf8becc46b2",
+   "bytes": 122
+  },
+  {
+   "entity": "CookingTool",
+   "file": "CookingTool.json",
+   "sha256": "2e6879b2d1cbbffab565dcabe49cf0bc16c98a09cface89cab02e6113524660e",
+   "bytes": 124
+  },
+  {
+   "entity": "Country",
+   "file": "Country.json",
+   "sha256": "ad6afd587fd661a6d9faa6de41014376c85166608b3cba7f664b6a203f3025f1",
+   "bytes": 120
+  },
+  {
+   "entity": "DayOfWeek",
+   "file": "DayOfWeek.json",
+   "sha256": "36ec7afcc41fd449f295ad81a7f0238b902fbc2d146cd116a50521668e67c57b",
+   "bytes": 122
+  },
+  {
+   "entity": "DinnerTable",
+   "file": "DinnerTable.json",
+   "sha256": "64f15bd162a56aa441e9eec9853ed8dc5578fa717027342ade6880bfd12610ad",
+   "bytes": 124
+  },
+  {
+   "entity": "Dinosaur",
+   "file": "Dinosaur.json",
+   "sha256": "049a885f91274453b91c85a867649dfa8d60a20e25dc161e54eca8df71d0f95d",
+   "bytes": 121
+  },
+  {
+   "entity": "Drink",
+   "file": "Drink.json",
+   "sha256": "8072d56886f2cb123a06b155089115d303adbc352b734f21abc1e0358ba4b0f3",
+   "bytes": 118
+  },
+  {
+   "entity": "Drug",
+   "file": "Drug.json",
+   "sha256": "39ff56ec4f0c29338f5618d136759ae1bb38ea790a2fb704ac36aa54bd3054b5",
+   "bytes": 117
+  },
+  {
+   "entity": "ElementMaterial",
+   "file": "ElementMaterial.json",
+   "sha256": "b3dcc99fc0012c857f37f7ad91cd1bfa3959b1da960bb72f27bc02e4e49530ca",
+   "bytes": 128
+  },
+  {
+   "entity": "Emotion",
+   "file": "Emotion.json",
+   "sha256": "9602a21351fff96a996f7f1ea6098a578e887781d4638055a2b0b9d2ff1782e3",
+   "bytes": 120
+  },
+  {
+   "entity": "Energy",
+   "file": "Energy.json",
+   "sha256": "290421b6c25750d70c66d4111fb45949aa548379b238edbb6fd11751fd41c6dd",
+   "bytes": 119
+  },
+  {
+   "entity": "FamilyMember",
+   "file": "FamilyMember.json",
+   "sha256": "63e4f5866bb760f06c40fecabe508745331f71acb42b61dc1e8168b1b72b6175",
+   "bytes": 125
+  },
+  {
+   "entity": "FamousLandmark",
+   "file": "FamousLandmark.json",
+   "sha256": "094fcd02d0eb42cdfc6cab9763658245b2a52364013d7d09d93e136948480964",
+   "bytes": 127
+  },
+  {
+   "entity": "FantasticPerson",
+   "file": "FantasticPerson.json",
+   "sha256": "69a6835f3689da7f899d7eafd746203febc99bb298ad5c9b63ec7d6e5e184c70",
+   "bytes": 128
+  },
+  {
+   "entity": "FantasyCreature",
+   "file": "FantasyCreature.json",
+   "sha256": "066ae6f40834a34d68b43139ba6048a793dc1bcccb04d8e63aade5a6335a69c0",
+   "bytes": 128
+  },
+  {
+   "entity": "FavoriteCategory",
+   "file": "FavoriteCategory.json",
+   "sha256": "2c5ea7e6724f1aa540e78083db69765ac042a179a21aeb31b7f562adb1e182bc",
+   "bytes": 129
+  },
+  {
+   "entity": "Fish",
+   "file": "Fish.json",
+   "sha256": "a95cbc8ef1ba60d8f51ec504876459e2b95e95058e2bb13da73ed13b9902b47f",
+   "bytes": 117
+  },
+  {
+   "entity": "Flower",
+   "file": "Flower.json",
+   "sha256": "ffa73ccad81e890cb232f1e491a88a56cba9da6a161c6edb79a1d14e0574a06c",
+   "bytes": 119
+  },
+  {
+   "entity": "Food",
+   "file": "Food.json",
+   "sha256": "87a3835506007c2188da49bcb5251995cf5157afb40aebd7e2bcffd232819ea8",
+   "bytes": 117
+  },
+  {
+   "entity": "FoodGeneral",
+   "file": "FoodGeneral.json",
+   "sha256": "28bc673ee0fa4a87f953e3904672faba592c88839b092a159ebcd5de1b1da700",
+   "bytes": 124
+  },
+  {
+   "entity": "Fruit",
+   "file": "Fruit.json",
+   "sha256": "2848759d76a6f05a55fcf62adc8c6530edc22af38bdd0fbef3eb71d0201e8d48",
+   "bytes": 118
+  },
+  {
+   "entity": "GeneralDescriptor",
+   "file": "GeneralDescriptor.json",
+   "sha256": "aab160cb9035ce53554b793033e26c63e2dd2c88c73a8544cc86a6282f30ecc2",
+   "bytes": 130
+  },
+  {
+   "entity": "GeneralLikes",
+   "file": "GeneralLikes.json",
+   "sha256": "c4036c7db81aeb083d283b72a8b56be3fba7189ba14ba531f2c7adb9aa900f2e",
+   "bytes": 125
+  },
+  {
+   "entity": "Geography",
+   "file": "Geography.json",
+   "sha256": "7993aa2acba56171c09bfc8678135b53b4a7100fd9be006b077f71a7b9596485",
+   "bytes": 122
+  },
+  {
+   "entity": "HairType",
+   "file": "HairType.json",
+   "sha256": "00dc9cf4a29901f0d0432905588def0cbc7dc4a2a3d12ce79403f02361842e82",
+   "bytes": 121
+  },
+  {
+   "entity": "HerbAndSpice",
+   "file": "HerbAndSpice.json",
+   "sha256": "fc600362e860f2d2d9e021e7a4da047d2656c815e2e921aa17b88b93d9b202fb",
+   "bytes": 125
+  },
+  {
+   "entity": "Holiday",
+   "file": "Holiday.json",
+   "sha256": "a04866474300a7d37730d8e43413e5a784b33317e6ce233e1a785d710f270f1e",
+   "bytes": 120
+  },
+  {
+   "entity": "HouseStuff",
+   "file": "HouseStuff.json",
+   "sha256": "96232dfa7fa6bf2d16909d3d25ddde5f47719c21e53d1660f319ef8b9dd14aac",
+   "bytes": 123
+  },
+  {
+   "entity": "JiboDescriptor",
+   "file": "JiboDescriptor.json",
+   "sha256": "9ec3c204e8e5114576499603e63a3159d6b5583d69e99bdd006bfb0876bee832",
+   "bytes": 127
+  },
+  {
+   "entity": "KindOfParty",
+   "file": "KindOfParty.json",
+   "sha256": "0fcef8b489f38030f81b3ec7ef3041c8fce1959618ad67308846bcc13f3a10a1",
+   "bytes": 124
+  },
+  {
+   "entity": "Language",
+   "file": "Language.json",
+   "sha256": "e9fad8192bcc3bc46e390c74cbfdc482f932a172ad677983e8363e4e5c790a09",
+   "bytes": 121
+  },
+  {
+   "entity": "Location",
+   "file": "Location.json",
+   "sha256": "a914b1e7557c3d1e988a346e9aaade3872fffb1236e81935cf1998f84dbd41c1",
+   "bytes": 121
+  },
+  {
+   "entity": "Mammal",
+   "file": "Mammal.json",
+   "sha256": "b9c99e636170d4e7cb1ba9e8c80bf080dccffe6c2cc7bf263e91db191ec86c4d",
+   "bytes": 119
+  },
+  {
+   "entity": "Month",
+   "file": "Month.json",
+   "sha256": "1ebed1fd18ef8481afbe22b802b536cce6208bb14ea7ac5cfe7cdc775722a6a5",
+   "bytes": 118
+  },
+  {
+   "entity": "MovieShow",
+   "file": "MovieShow.json",
+   "sha256": "27fedee384a5e2e7662ce9cc993c55af92987e00f68d1b95d8b26782aa63e0d9",
+   "bytes": 122
+  },
+  {
+   "entity": "MusicType",
+   "file": "MusicType.json",
+   "sha256": "6492916b306fb938558fbc62fcfe79968774508aa6d28760bef0460598146b31",
+   "bytes": 122
+  },
+  {
+   "entity": "MusicalInstrument",
+   "file": "MusicalInstrument.json",
+   "sha256": "23c3996d62bc1f89a25692e4c3ab82c034b02e3e4ea14fdcd154c56e3843ec06",
+   "bytes": 130
+  },
+  {
+   "entity": "Nationality",
+   "file": "Nationality.json",
+   "sha256": "b6c6f4a9e4bdbd89e6ff2dc6348b757535071d92356f773a9873d9a324f7f4d2",
+   "bytes": 124
+  },
+  {
+   "entity": "Occupation",
+   "file": "Occupation.json",
+   "sha256": "7a4d0f51f70fb62a1806f71f94497c6028393def9e7fb2e1213fa19661be29c2",
+   "bytes": 123
+  },
+  {
+   "entity": "Other",
+   "file": "Other.json",
+   "sha256": "f82a3cca3b3293a864858e642f6d851ab140fc2e2186bd170fa77f6c4551fc8b",
+   "bytes": 118
+  },
+  {
+   "entity": "OtherLikes",
+   "file": "OtherLikes.json",
+   "sha256": "39c369a93bb962e4f9dc8085e5d30d8f1e0da7283ed283570ba28590ff1d7c5d",
+   "bytes": 123
+  },
+  {
+   "entity": "OtherPerson",
+   "file": "OtherPerson.json",
+   "sha256": "a2bcc0ed99a7c4d0f2c6a5340ee77dd1cf91544ea100dfba1eeb239ac055d19c",
+   "bytes": 124
+  },
+  {
+   "entity": "Person",
+   "file": "Person.json",
+   "sha256": "0988df802c5b18799f350e9cca3774ae0a2d948cbe58e868deab26543c035bb0",
+   "bytes": 119
+  },
+  {
+   "entity": "Pet",
+   "file": "Pet.json",
+   "sha256": "081de91ce1b4b9652cb3d87bb9559bb378712be645a160d74016008eb4be561f",
+   "bytes": 116
+  },
+  {
+   "entity": "PlaceInCity",
+   "file": "PlaceInCity.json",
+   "sha256": "9ee374eccc0b2e94831907e11ef77fa77a670a2bad6d3e07b3f22e540c67222b",
+   "bytes": 124
+  },
+  {
+   "entity": "Planet",
+   "file": "Planet.json",
+   "sha256": "11eb7d794dc1e0acf414359ee879371bfdf688dc04b0830695e9920879ee8478",
+   "bytes": 119
+  },
+  {
+   "entity": "Plant",
+   "file": "Plant.json",
+   "sha256": "7e5124bef02996b6fca5e5e128089a409f37361bc5e34dcd02d4c7154919933d",
+   "bytes": 118
+  },
+  {
+   "entity": "Relation",
+   "file": "Relation.json",
+   "sha256": "5749e17b0d45e2c6cf37fbff6c7a6889ad40161b4370d31fa53149547a49d2b6",
+   "bytes": 121
+  },
+  {
+   "entity": "Religion",
+   "file": "Religion.json",
+   "sha256": "fd2e9b92b9038a63dff2fae39d0f7a1a40f31e033eab1de212749cb94159912b",
+   "bytes": 121
+  },
+  {
+   "entity": "ReligionPerson",
+   "file": "ReligionPerson.json",
+   "sha256": "48bbec85d052134c5133f571a44bb29f78e0bdc00bc9f58ad5b422da259c3fce",
+   "bytes": 127
+  },
+  {
+   "entity": "Reptile",
+   "file": "Reptile.json",
+   "sha256": "8de8278b3df8705809adf3062b2fb9bfb8a7fd8ca33e53de6db1f736ffcef2b1",
+   "bytes": 120
+  },
+  {
+   "entity": "RobotCharacter",
+   "file": "RobotCharacter.json",
+   "sha256": "fcb2b111267d15adbf9590ae72cc3b243f003f18cccd04951ab0629a2fba3f64",
+   "bytes": 127
+  },
+  {
+   "entity": "RoomInHouse",
+   "file": "RoomInHouse.json",
+   "sha256": "72748d46ee55979c749a7cb73b28c5e6c9bb04888111c355b21322d3943f109f",
+   "bytes": 124
+  },
+  {
+   "entity": "SchoolSubject",
+   "file": "SchoolSubject.json",
+   "sha256": "b4c6ac47c5a1d7d4d69c204da686dafac7b116e534f352c6e7797420f617cd87",
+   "bytes": 126
+  },
+  {
+   "entity": "Seafood",
+   "file": "Seafood.json",
+   "sha256": "321e06ed72becc165a1a3ee5f9368263f0d05f6ea1cc939b3d2fdb028a13ce16",
+   "bytes": 120
+  },
+  {
+   "entity": "Sealife",
+   "file": "Sealife.json",
+   "sha256": "105f3a26ca3bd8a8f074b84b9d148ba57522fcf12ecacc4b7e5765aedfd7e2d3",
+   "bytes": 120
+  },
+  {
+   "entity": "Season",
+   "file": "Season.json",
+   "sha256": "0b3f59f5be0d4c3b3197bfb5396fe3568081a7380a7ad08f5322f71b536b750c",
+   "bytes": 119
+  },
+  {
+   "entity": "Shape",
+   "file": "Shape.json",
+   "sha256": "228b7d0e49e1afe7dfe141e2fe885d50f6e6dbf806a3f578fd9f278fc8654814",
+   "bytes": 118
+  },
+  {
+   "entity": "ShowEvent",
+   "file": "ShowEvent.json",
+   "sha256": "8168392441a9a1b3a6dd62db1c3051fdcfc7ce45b0816dae17a80d9b2b333d17",
+   "bytes": 122
+  },
+  {
+   "entity": "Song",
+   "file": "Song.json",
+   "sha256": "4c22f00d71a5f66dd82a6916215ca5fdc38eee719d10a41d19fa7eb4c4778e6b",
+   "bytes": 117
+  },
+  {
+   "entity": "Sport",
+   "file": "Sport.json",
+   "sha256": "c064b87d9527093608fa750bdc336b32ac8484a4f80d148f015491d951286436",
+   "bytes": 118
+  },
+  {
+   "entity": "SportEvent",
+   "file": "SportEvent.json",
+   "sha256": "b6ef76a8bd6714b9b719c8963514584300f43b9269f8ea59157014320c3d6fa1",
+   "bytes": 123
+  },
+  {
+   "entity": "Sweet",
+   "file": "Sweet.json",
+   "sha256": "881238a0e99035fbffd0173ed1c2e1c3f509c26326bbb0d0d419a5ee3668fda1",
+   "bytes": 118
+  },
+  {
+   "entity": "ThingYouWear",
+   "file": "ThingYouWear.json",
+   "sha256": "6531f6a073b39cf4bd22ab9fa283b46d93d86fd82c08952eeb3abdcace64fa42",
+   "bytes": 125
+  },
+  {
+   "entity": "Time",
+   "file": "Time.json",
+   "sha256": "5352151fdcad41d652a84ef9f76ba60bfa8b92a4808f48f9b7d2f4402f689d32",
+   "bytes": 117
+  },
+  {
+   "entity": "Timeframe",
+   "file": "Timeframe.json",
+   "sha256": "cb0e14f68dca77abfc958f59993544c4fdfa80fe662c22dfa202f0916221ee4f",
+   "bytes": 122
+  },
+  {
+   "entity": "Tool",
+   "file": "Tool.json",
+   "sha256": "eee7e81caeabd512d72ceda055219a77db672c55c9daabfe22d8742b08e1eeae",
+   "bytes": 117
+  },
+  {
+   "entity": "Tree",
+   "file": "Tree.json",
+   "sha256": "5f775c7867ebe6546b16b5bdab9a8d76a61e6a5fe84d5377639beb399971b591",
+   "bytes": 117
+  },
+  {
+   "entity": "Vegetable",
+   "file": "Vegetable.json",
+   "sha256": "291343dd29e7bf9a2b8a953747af2d07358554e649743d2ae2b189e44a692929",
+   "bytes": 122
+  },
+  {
+   "entity": "Vehicle",
+   "file": "Vehicle.json",
+   "sha256": "153e28993df1364afc9045ba43e60946f38fcf8ff261a35c42d9bcad7fa883a5",
+   "bytes": 120
+  },
+  {
+   "entity": "Weather",
+   "file": "Weather.json",
+   "sha256": "f046d3610469df18f50c222bf8efe62b964adab86d0e651dbc42dacca5c0cb74",
+   "bytes": 120
+  },
+  {
+   "entity": "Zodiac",
+   "file": "Zodiac.json",
+   "sha256": "6c689bd192f4994c2ad947e3a7bfbeb3b0dc48dffbc788cb02f2a509661627ba",
+   "bytes": 119
+  }
+ ]
+}

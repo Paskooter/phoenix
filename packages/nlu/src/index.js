@@ -13,7 +13,8 @@ import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { grammarParse } from './grammar.js';
 import { launchParse } from './launchRules.js';
 import { fullParse } from './fullGrammar.js';
-import { llmFallback } from './llmFallback.js';
+import { llmFallback, getLLMClient } from './llmFallback.js';
+import { selectValidResult, isFallbackResultValid, isParserResultValid, resolveHybridNLU } from './fallbackArbitration.js';
 import { parseRequest } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 
@@ -61,14 +62,24 @@ export async function parse(text) {
   if (parser) parser = applyGqaContinuity(parser);
   const priority = parser && parser.entities ? parser.entities.priority : undefined;
   if (priority === 'SKIP') parser = null;               // isParserResultValid: SKIP → ignored
-  if (parser && priority === 'HIGH') return parser;      // HIGH → skip the LLM round-trip
+  const parserResult = parser ? { nlu: parser, priority } : null;
 
-  // Stage 2: LLM (only on miss or non-HIGH). Valid LLM beats a non-HIGH parse.
-  const llm = await llmFallback(text);
-  if (llm && parser) return llm;                         // parser was LOW/non-HIGH → LLM wins
-  if (parser) return parser;                             // no LLM result → keep the parse
-  if (llm) return llm;
-  return { rules: [], intent: null, entities: {} };      // EMPTY_NLU
+  // The broad parse() entry historically returned a skill-only launch match
+  // (entities.skill without an intent); the source HTTP validity check
+  // (isParserResultValid) would reject that. Preserve the convenience, then run
+  // the source-exact hybrid selection for every intent-bearing parser result.
+  if (parserResult && !isParserResultValid(parserResult) && parser.entities && parser.entities.skill) {
+    const llmOnly = await llmFallback(text);
+    return isFallbackResultValid(llmOnly) ? llmOnly : parser;
+  }
+
+  // Stage 2: LLM (only on miss or non-HIGH). Valid LLM beats a non-HIGH parse;
+  // a HIGH parse never reaches the LLM round-trip (resolveHybridNLU).
+  return resolveHybridNLU(
+    parserResult,
+    () => llmFallback(text),
+    { rules: [], intent: null, entities: {} },
+  );
 }
 
 // DIVERGENCE B6 — GQA continuity. The real union parses knowledge questions into
@@ -135,7 +146,7 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         robustParserProcess: 'RUNNING',
         robustParserClient: 'CONNECTED',
         dialogflowClient: 'CLOSED',
-        llmClient: process.env.ETCO_parser_llmUrl ? 'READY' : 'DISABLED',
+        llmClient: getLLMClient().state,
       }),
     },
   });

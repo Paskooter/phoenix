@@ -1,0 +1,26 @@
+# jiboV2/pegasus:packages/parser/resources/default.json@5c0a7390539663ba749d360de348a428c088505c
+
+{
+    "dialogflow": {
+        "enabled": true,
+        "config": {
+            "for humans: comment": "This clientID is only used in tests and scripts. When run as service it uses env variable 'ETCO_parser_dialogflow_key'",
+            "for humans: agent name": "pegasus-dev-a",
+            "accessToken": "bca3ddc410a54274ac55bd678bff6747"
+        }
+    },
+    "robustParser": {
+        "enabled": true,
+        "startProcess": true,
+        "config": {
+            "host": "localhost",
+            "port": 8787,
+            "fstDirectories": [
+                "robust-parser/rules_fst"
+            ],
+            "loadFSTs": true,
+            "connectToLogs": true,
+            "maxConcurrentRequests": 15
+        }
+    }
+}
