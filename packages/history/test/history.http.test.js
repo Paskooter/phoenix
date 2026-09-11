@@ -141,14 +141,18 @@ test('GET /v1/skill/launch/latest accepts the IHQuery from the query string', as
   } finally { svc.server.close(); }
 });
 
-test('GET latest without robotID fails with the 500 error envelope', async () => {
+test('GET latest without robotID fails with the joi message the reference produces', async () => {
   const { svc, base } = await startServiceNow();
   try {
     const r = await request(base, 'GET', '/v1/skill/launch/latest');
     assert.equal(r.status, 500);
     assert.equal(r.json.type, 'ERROR');
     assert.equal(r.json.final, true);
-    assert.equal(r.json.data.message, 'Robot ID is required');
+    // I-02: the reference validates with joi@13.1.2 BEFORE the collection is reached, so the wire
+    // message is joi's ValidationError message, not Phoenix's inner `Robot ID is required` guard.
+    // Observed against the real compiled validators:
+    // docs/parity/evidence/2026-09-10/i02-match-history-validation/i02-ref-oracle.json
+    assert.equal(r.json.data.message, 'child "robotID" fails because ["robotID" is required]');
   } finally { svc.server.close(); }
 });
 

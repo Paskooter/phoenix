@@ -1,0 +1,2262 @@
+{
+  "oracle": "REAL compiled pegasus classes (BaseService + real handlers + real validators/joi + real collections); mongoose Model stubbed",
+  "versions": {
+    "express": "4.16.2",
+    "joi": "13.1.2",
+    "bodyParser": "1.18.2"
+  },
+  "modelCalls": {
+    "findOneAndUpdate": 7,
+    "findOne": 6,
+    "count": 58
+  },
+  "recordsAtEnd": 13,
+  "counts": {
+    "compared": 125,
+    "statusDiffs": 0,
+    "bodyDiffs": 0,
+    "missingInPhoenix": 0,
+    "unverifiableDiffs": 2
+  },
+  "restart": {
+    "pass1Cases": 130,
+    "pass2Cases": 130,
+    "sameLabels": true,
+    "statusesIdentical": true,
+    "bodiesIdentical": true,
+    "startedLogs": [
+      [
+        "{\"t\":\"2026-09-11T00:31:45.677Z\",\"level\":\"info\",\"ns\":\"history\",\"msg\":\"History service is successfully started on port 19307\"}"
+      ],
+      [
+        "{\"t\":\"2026-09-11T00:31:46.601Z\",\"level\":\"info\",\"ns\":\"history\",\"msg\":\"History service is successfully started on port 19307\"}"
+      ]
+    ]
+  },
+  "newlyClosedInI02": [
+    {
+      "label": "A01 write bad robotID pattern",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A02 write missing robotID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A03 write missing sessionID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A04 write missing skillID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A05 write bad skillID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A06 write bad intent",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A07 write bad personIDs item",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A08 write unknown key",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A09 write future timestamp",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A10 write personIDs not array",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A11 write empty sessionID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A12 write non-string sessionID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "A13 write two unknown keys",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "B01 payload update bad robotID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "B02 payload update missing robotID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C04 latest bad robotID pattern",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C05 latest one unknown key",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C06 latest two unknown keys",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C08 latest rules null",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C10 latest rule disallowed method",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C11 latest rule empty string value",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C13 latest conflict intent",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C14 latest conflict skillID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C15 latest conflict personID",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C16 latest startTime future",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C17 latest endTime ISO string",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C19 latest bad skillID pattern",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C24 latest rule payload value null (joi ok, builder throws)",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "C27 latest rule empty array value",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "D14 personIDs EXACT empty-backed record only",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "D17 personIDs ONE_OF rejected by validation (array:array allows no ONE_OF)",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    },
+    {
+      "label": "D55 payload key NOT_CONTAIN (array value)",
+      "referenceStatus": 500,
+      "phoenixBefore": 200,
+      "phoenixAfter": 500
+    }
+  ],
+  "statusDiffs": [],
+  "bodyDiffs": [],
+  "missingInPhoenix": [],
+  "unverifiable": [
+    {
+      "label": "X05 payload key NOT_CONTAIN scalar value ($in scalar; real Mongo behaviour needs mongod)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 6
+      },
+      "bodyMatch": false
+    },
+    {
+      "label": "X03 PUT payload on ambiguous triple",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "payload": {
+          "marker": "m1"
+        },
+        "payloadSize": 1,
+        "robotID": "RX",
+        "sessionID": "x1",
+        "skillID": "SK-X",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "payload": {
+          "marker": "m1"
+        },
+        "payloadSize": 1,
+        "robotID": "RX",
+        "sessionID": "x1",
+        "skillID": "SK-X",
+        "timestamp": 1789084001000
+      },
+      "bodyMatch": false
+    }
+  ],
+  "allCases": [
+    {
+      "label": "A01 write bad robotID pattern",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+    },
+    {
+      "label": "A02 write missing robotID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+    },
+    {
+      "label": "A03 write missing sessionID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]",
+      "phxMessage": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+    },
+    {
+      "label": "A04 write missing skillID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"skillID\" fails because [\"skillID\" is required], child \"skillID\" fails because [\"skillID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"skillID\" fails because [\"skillID\" is required], child \"skillID\" fails because [\"skillID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"skillID\" fails because [\"skillID\" is required], child \"skillID\" fails because [\"skillID\" is required]",
+      "phxMessage": "child \"skillID\" fails because [\"skillID\" is required], child \"skillID\" fails because [\"skillID\" is required]"
+    },
+    {
+      "label": "A05 write bad skillID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/], child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+      },
+      "phxBody": {
+        "ERROR": "child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/], child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/], child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]",
+      "phxMessage": "child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/], child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+    },
+    {
+      "label": "A06 write bad intent",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"intent\" fails because [\"intent\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-_]*$/], child \"payload\" fails because [\"payload\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"intent\" fails because [\"intent\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-_]*$/], child \"payload\" fails because [\"payload\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"intent\" fails because [\"intent\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-_]*$/], child \"payload\" fails because [\"payload\" is required]",
+      "phxMessage": "child \"intent\" fails because [\"intent\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-_]*$/], child \"payload\" fails because [\"payload\" is required]"
+    },
+    {
+      "label": "A07 write bad personIDs item",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"personIDs\" fails because [\"personIDs\" at position 0 fails because [\"0\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]], child \"payload\" fails because [\"payload\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"personIDs\" fails because [\"personIDs\" at position 0 fails because [\"0\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]], child \"payload\" fails because [\"payload\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"personIDs\" fails because [\"personIDs\" at position 0 fails because [\"0\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]], child \"payload\" fails because [\"payload\" is required]",
+      "phxMessage": "child \"personIDs\" fails because [\"personIDs\" at position 0 fails because [\"0\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]], child \"payload\" fails because [\"payload\" is required]"
+    },
+    {
+      "label": "A08 write unknown key",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "\"extra\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "\"extra\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "\"extra\" is not allowed, child \"payload\" fails because [\"payload\" is required]",
+      "phxMessage": "\"extra\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+    },
+    {
+      "label": "A09 write future timestamp",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"], child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"]"
+      },
+      "phxBody": {
+        "ERROR": "child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"], child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"], child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"]",
+      "phxMessage": "child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"], child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"<NOW>\"]"
+    },
+    {
+      "label": "A10 write personIDs not array",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"personIDs\" fails because [\"personIDs\" must be an array], child \"payload\" fails because [\"payload\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"personIDs\" fails because [\"personIDs\" must be an array], child \"payload\" fails because [\"payload\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"personIDs\" fails because [\"personIDs\" must be an array], child \"payload\" fails because [\"payload\" is required]",
+      "phxMessage": "child \"personIDs\" fails because [\"personIDs\" must be an array], child \"payload\" fails because [\"payload\" is required]"
+    },
+    {
+      "label": "A11 write empty sessionID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty], child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty]"
+      },
+      "phxBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty], child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty], child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty]",
+      "phxMessage": "child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty], child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty]"
+    },
+    {
+      "label": "A12 write non-string sessionID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" must be a string], child \"sessionID\" fails because [\"sessionID\" must be a string]"
+      },
+      "phxBody": {
+        "ERROR": "child \"sessionID\" fails because [\"sessionID\" must be a string], child \"sessionID\" fails because [\"sessionID\" must be a string]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"sessionID\" fails because [\"sessionID\" must be a string], child \"sessionID\" fails because [\"sessionID\" must be a string]",
+      "phxMessage": "child \"sessionID\" fails because [\"sessionID\" must be a string], child \"sessionID\" fails because [\"sessionID\" must be a string]"
+    },
+    {
+      "label": "A13 write two unknown keys",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "\"foo\" is not allowed, \"bar\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "\"foo\" is not allowed, \"bar\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "\"foo\" is not allowed, \"bar\" is not allowed, child \"payload\" fails because [\"payload\" is required]",
+      "phxMessage": "\"foo\" is not allowed, \"bar\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+    },
+    {
+      "label": "A14 write skillID @be/ form",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "iv",
+        "robotID": "RV",
+        "sessionID": "v1",
+        "skillID": "@be/x-y_z",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "intent": "iv",
+        "robotID": "RV",
+        "sessionID": "v1",
+        "skillID": "@be/x-y_z",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "A15 count RV (nothing malformed persisted)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "A16 write valid sorted personIDs",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "iv",
+        "personIDs": [
+          "pv-1",
+          "pv-2"
+        ],
+        "robotID": "RV",
+        "sessionID": "v1",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "intent": "iv",
+        "personIDs": [
+          "pv-1",
+          "pv-2"
+        ],
+        "robotID": "RV",
+        "sessionID": "v1",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "A17 write payload null (branch B allows)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "payload": null,
+        "robotID": "RV",
+        "sessionID": "v2",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "payload": null,
+        "robotID": "RV",
+        "sessionID": "v2",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "A18 write payload object",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "payload": {
+          "a": 1
+        },
+        "robotID": "RV",
+        "sessionID": "v3",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "payload": {
+          "a": 1
+        },
+        "robotID": "RV",
+        "sessionID": "v3",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "A19 count RV after valid writes",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 4
+      },
+      "phxBody": {
+        "count": 4
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "B01 payload update bad robotID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+    },
+    {
+      "label": "B02 payload update missing robotID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+    },
+    {
+      "label": "B03 payload update no payload key (I-01 case)",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "phxBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "bodyMatch": true,
+      "refMessage": "Cannot convert undefined or null to object",
+      "phxMessage": "Cannot convert undefined or null to object"
+    },
+    {
+      "label": "B04 payload update payload null (I-01 case)",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "phxBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "bodyMatch": true,
+      "refMessage": "Cannot convert undefined or null to object",
+      "phxMessage": "Cannot convert undefined or null to object"
+    },
+    {
+      "label": "B05 payload update no match",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "B06 payload update match",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "iv",
+        "payload": {
+          "k": 1
+        },
+        "payloadSize": 1,
+        "personIDs": [
+          "pv-1",
+          "pv-2"
+        ],
+        "robotID": "RV",
+        "sessionID": "v1",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "intent": "iv",
+        "payload": {
+          "k": 1
+        },
+        "payloadSize": 1,
+        "personIDs": [
+          "pv-1",
+          "pv-2"
+        ],
+        "robotID": "RV",
+        "sessionID": "v1",
+        "skillID": "SK-V",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "C01 latest {} robotID required",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" is required]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" is required]"
+    },
+    {
+      "label": "C02 count {} robotID required",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" is required]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" is required]"
+    },
+    {
+      "label": "C03 GET count no query",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" is required]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" is required]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" is required]"
+    },
+    {
+      "label": "C04 latest bad robotID pattern",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id!\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id!\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id!\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id!\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+    },
+    {
+      "label": "C05 latest one unknown key",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "\"foo\" is not allowed"
+      },
+      "phxBody": {
+        "ERROR": "\"foo\" is not allowed"
+      },
+      "bodyMatch": true,
+      "refMessage": "\"foo\" is not allowed",
+      "phxMessage": "\"foo\" is not allowed"
+    },
+    {
+      "label": "C06 latest two unknown keys",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "\"foo\" is not allowed. \"bar\" is not allowed"
+      },
+      "phxBody": {
+        "ERROR": "\"foo\" is not allowed. \"bar\" is not allowed"
+      },
+      "bodyMatch": true,
+      "refMessage": "\"foo\" is not allowed. \"bar\" is not allowed",
+      "phxMessage": "\"foo\" is not allowed. \"bar\" is not allowed"
+    },
+    {
+      "label": "C07 latest rules not array (string)",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"rules\" fails because [\"rules\" must be an array]"
+      },
+      "phxBody": {
+        "ERROR": "child \"rules\" fails because [\"rules\" must be an array]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"rules\" fails because [\"rules\" must be an array]",
+      "phxMessage": "child \"rules\" fails because [\"rules\" must be an array]"
+    },
+    {
+      "label": "C08 latest rules null",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"rules\" fails because [\"rules\" must be an array]"
+      },
+      "phxBody": {
+        "ERROR": "child \"rules\" fails because [\"rules\" must be an array]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"rules\" fails because [\"rules\" must be an array]",
+      "phxMessage": "child \"rules\" fails because [\"rules\" must be an array]"
+    },
+    {
+      "label": "C09 latest rule unknown field",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Unknown field: bogus"
+      },
+      "phxBody": {
+        "ERROR": "Unknown field: bogus"
+      },
+      "bodyMatch": true,
+      "refMessage": "Unknown field: bogus",
+      "phxMessage": "Unknown field: bogus"
+    },
+    {
+      "label": "C10 latest rule disallowed method",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Match method ONE_OF cannot be used for skillID and value x"
+      },
+      "phxBody": {
+        "ERROR": "Match method ONE_OF cannot be used for skillID and value x"
+      },
+      "bodyMatch": true,
+      "refMessage": "Match method ONE_OF cannot be used for skillID and value x",
+      "phxMessage": "Match method ONE_OF cannot be used for skillID and value x"
+    },
+    {
+      "label": "C11 latest rule empty string value",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "skillID items must be non-empty strings"
+      },
+      "phxBody": {
+        "ERROR": "skillID items must be non-empty strings"
+      },
+      "bodyMatch": true,
+      "refMessage": "skillID items must be non-empty strings",
+      "phxMessage": "skillID items must be non-empty strings"
+    },
+    {
+      "label": "C12 latest empty rules array (valid, no match)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "C13 latest conflict intent",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "You specified intent both in exact match and rules"
+      },
+      "phxBody": {
+        "ERROR": "You specified intent both in exact match and rules"
+      },
+      "bodyMatch": true,
+      "refMessage": "You specified intent both in exact match and rules",
+      "phxMessage": "You specified intent both in exact match and rules"
+    },
+    {
+      "label": "C14 latest conflict skillID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "You specified skillID both in exact match and rules"
+      },
+      "phxBody": {
+        "ERROR": "You specified skillID both in exact match and rules"
+      },
+      "bodyMatch": true,
+      "refMessage": "You specified skillID both in exact match and rules",
+      "phxMessage": "You specified skillID both in exact match and rules"
+    },
+    {
+      "label": "C15 latest conflict personID",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "You specified personID(s) both in exact match and rules"
+      },
+      "phxBody": {
+        "ERROR": "You specified personID(s) both in exact match and rules"
+      },
+      "bodyMatch": true,
+      "refMessage": "You specified personID(s) both in exact match and rules",
+      "phxMessage": "You specified personID(s) both in exact match and rules"
+    },
+    {
+      "label": "C16 latest startTime future",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]"
+      },
+      "phxBody": {
+        "ERROR": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]",
+      "phxMessage": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]"
+    },
+    {
+      "label": "C17 latest endTime ISO string",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"endTime\" fails because [\"endTime\" must be a valid timestamp or number of milliseconds]"
+      },
+      "phxBody": {
+        "ERROR": "child \"endTime\" fails because [\"endTime\" must be a valid timestamp or number of milliseconds]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"endTime\" fails because [\"endTime\" must be a valid timestamp or number of milliseconds]",
+      "phxMessage": "child \"endTime\" fails because [\"endTime\" must be a valid timestamp or number of milliseconds]"
+    },
+    {
+      "label": "C18 latest startTime numeric string",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "C19 latest bad skillID pattern",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"skillID\" fails because [\"skillID\" with value \"has space\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+      },
+      "phxBody": {
+        "ERROR": "child \"skillID\" fails because [\"skillID\" with value \"has space\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"skillID\" fails because [\"skillID\" with value \"has space\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]",
+      "phxMessage": "child \"skillID\" fails because [\"skillID\" with value \"has space\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+    },
+    {
+      "label": "C20 GET count rule unknown field",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Unknown field: bogus"
+      },
+      "phxBody": {
+        "ERROR": "Unknown field: bogus"
+      },
+      "bodyMatch": true,
+      "refMessage": "Unknown field: bogus",
+      "phxMessage": "Unknown field: bogus"
+    },
+    {
+      "label": "C21 GET count rules not array",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"rules\" fails because [\"rules\" must be an array]"
+      },
+      "phxBody": {
+        "ERROR": "child \"rules\" fails because [\"rules\" must be an array]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"rules\" fails because [\"rules\" must be an array]",
+      "phxMessage": "child \"rules\" fails because [\"rules\" must be an array]"
+    },
+    {
+      "label": "C22 latest rules [null]",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot read properties of null (reading 'field')"
+      },
+      "phxBody": {
+        "ERROR": "Cannot read properties of null (reading 'field')"
+      },
+      "bodyMatch": true,
+      "refMessage": "Cannot read properties of null (reading 'field')",
+      "phxMessage": "Cannot read properties of null (reading 'field')"
+    },
+    {
+      "label": "C23 latest rules [string]",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Unknown field: undefined"
+      },
+      "phxBody": {
+        "ERROR": "Unknown field: undefined"
+      },
+      "bodyMatch": true,
+      "refMessage": "Unknown field: undefined",
+      "phxMessage": "Unknown field: undefined"
+    },
+    {
+      "label": "C24 latest rule payload value null (joi ok, builder throws)",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "phxBody": {
+        "ERROR": "Cannot convert undefined or null to object"
+      },
+      "bodyMatch": true,
+      "refMessage": "Cannot convert undefined or null to object",
+      "phxMessage": "Cannot convert undefined or null to object"
+    },
+    {
+      "label": "C25 latest joi robotID beats rule error",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "phxBody": {
+        "ERROR": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]",
+      "phxMessage": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+    },
+    {
+      "label": "C26 latest joi startTime beats rule error",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]"
+      },
+      "phxBody": {
+        "ERROR": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]"
+      },
+      "bodyMatch": true,
+      "refMessage": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]",
+      "phxMessage": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"<NOW>\"]"
+    },
+    {
+      "label": "C27 latest rule empty array value",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "personIDs arrays must be non-empty"
+      },
+      "phxBody": {
+        "ERROR": "personIDs arrays must be non-empty"
+      },
+      "bodyMatch": true,
+      "refMessage": "personIDs arrays must be non-empty",
+      "phxMessage": "personIDs arrays must be non-empty"
+    },
+    {
+      "label": "C28 GET latest valid empty store",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "C29 GET count valid empty store",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "C30 latest second rule invalid",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Unknown field: bogus"
+      },
+      "phxBody": {
+        "ERROR": "Unknown field: bogus"
+      },
+      "bodyMatch": true,
+      "refMessage": "Unknown field: bogus",
+      "phxMessage": "Unknown field: bogus"
+    },
+    {
+      "label": "D01 seed s1",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s1",
+        "skillID": "SK-A",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s1",
+        "skillID": "SK-A",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D02 seed s2",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "intent-b",
+        "personIDs": [
+          "p2",
+          "p3"
+        ],
+        "robotID": "RS",
+        "sessionID": "s2",
+        "skillID": "SK-B",
+        "timestamp": 1789084001000
+      },
+      "phxBody": {
+        "intent": "intent-b",
+        "personIDs": [
+          "p2",
+          "p3"
+        ],
+        "robotID": "RS",
+        "sessionID": "s2",
+        "skillID": "SK-B",
+        "timestamp": 1789084001000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D03 seed s3 (distinct skillID keeps PUT targets unique)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "intent-a",
+        "personIDs": [
+          "p1"
+        ],
+        "robotID": "RS",
+        "sessionID": "s3b",
+        "skillID": "SK-A2",
+        "timestamp": 1789084002000
+      },
+      "phxBody": {
+        "intent": "intent-a",
+        "personIDs": [
+          "p1"
+        ],
+        "robotID": "RS",
+        "sessionID": "s3b",
+        "skillID": "SK-A2",
+        "timestamp": 1789084002000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D04 seed s4 empty personIDs",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "personIDs": [],
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "timestamp": 1789084003000
+      },
+      "phxBody": {
+        "personIDs": [],
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "timestamp": 1789084003000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D05 seed s5 earlier timestamp",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s5",
+        "skillID": "SK-A",
+        "timestamp": 1789084000500
+      },
+      "phxBody": {
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s5",
+        "skillID": "SK-A",
+        "timestamp": 1789084000500
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D06 seed s6 no payload ever",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "personIDs": [
+          "p9"
+        ],
+        "robotID": "RS",
+        "sessionID": "s6",
+        "skillID": "SK-D",
+        "timestamp": 1789084004000
+      },
+      "phxBody": {
+        "personIDs": [
+          "p9"
+        ],
+        "robotID": "RS",
+        "sessionID": "s6",
+        "skillID": "SK-D",
+        "timestamp": 1789084004000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D07 seed s7 literal-dot payload",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s7",
+        "skillID": "SK-E",
+        "timestamp": 1789084002500
+      },
+      "phxBody": {
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s7",
+        "skillID": "SK-E",
+        "timestamp": 1789084002500
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D08 payload s1 full",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "intent-a",
+        "payload": {
+          "key1": "value1",
+          "key2": "value2",
+          "key3": [
+            "value3",
+            "value4"
+          ],
+          "key4": 0,
+          "key5": false
+        },
+        "payloadSize": 5,
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s1",
+        "skillID": "SK-A",
+        "timestamp": 1789084000000
+      },
+      "phxBody": {
+        "intent": "intent-a",
+        "payload": {
+          "key1": "value1",
+          "key2": "value2",
+          "key3": [
+            "value3",
+            "value4"
+          ],
+          "key4": 0,
+          "key5": false
+        },
+        "payloadSize": 5,
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s1",
+        "skillID": "SK-A",
+        "timestamp": 1789084000000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D09 payload s2 nested object",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "intent": "intent-b",
+        "payload": {
+          "a": {
+            "b": 1
+          }
+        },
+        "payloadSize": 1,
+        "personIDs": [
+          "p2",
+          "p3"
+        ],
+        "robotID": "RS",
+        "sessionID": "s2",
+        "skillID": "SK-B",
+        "timestamp": 1789084001000
+      },
+      "phxBody": {
+        "intent": "intent-b",
+        "payload": {
+          "a": {
+            "b": 1
+          }
+        },
+        "payloadSize": 1,
+        "personIDs": [
+          "p2",
+          "p3"
+        ],
+        "robotID": "RS",
+        "sessionID": "s2",
+        "skillID": "SK-B",
+        "timestamp": 1789084001000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D10 payload s3 empty object",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "payload": {},
+        "payloadSize": 0,
+        "personIDs": [],
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "timestamp": 1789084003000
+      },
+      "phxBody": {
+        "payload": {},
+        "payloadSize": 0,
+        "personIDs": [],
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "timestamp": 1789084003000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D11 payload s7 literal \"a.b\" key",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "payload": {
+          "a.b": "flat"
+        },
+        "payloadSize": 1,
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s7",
+        "skillID": "SK-E",
+        "timestamp": 1789084002500
+      },
+      "phxBody": {
+        "payload": {
+          "a.b": "flat"
+        },
+        "payloadSize": 1,
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "robotID": "RS",
+        "sessionID": "s7",
+        "skillID": "SK-E",
+        "timestamp": 1789084002500
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D12 personIDs EXACT reversed value (Preformatter sorts)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D13 personIDs EXACT sorted value",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D14 personIDs EXACT empty-backed record only",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "personIDs arrays must be non-empty"
+      },
+      "phxBody": {
+        "ERROR": "personIDs arrays must be non-empty"
+      },
+      "bodyMatch": true,
+      "refMessage": "personIDs arrays must be non-empty",
+      "phxMessage": "personIDs arrays must be non-empty"
+    },
+    {
+      "label": "D15 personIDs NOT",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 4
+      },
+      "phxBody": {
+        "count": 4
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D16 personIDs CONTAINS scalar",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 4
+      },
+      "phxBody": {
+        "count": 4
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D17 personIDs ONE_OF rejected by validation (array:array allows no ONE_OF)",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Match method ONE_OF cannot be used for personIDs and value p3"
+      },
+      "phxBody": {
+        "ERROR": "Match method ONE_OF cannot be used for personIDs and value p3"
+      },
+      "bodyMatch": true,
+      "refMessage": "Match method ONE_OF cannot be used for personIDs and value p3",
+      "phxMessage": "Match method ONE_OF cannot be used for personIDs and value p3"
+    },
+    {
+      "label": "D18 personIDs CONTAINS_ALL",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D19 personIDs NOT_CONTAIN",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 2
+      },
+      "phxBody": {
+        "count": 2
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D20 personIDs default method (CONTAINS)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 4
+      },
+      "phxBody": {
+        "count": 4
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D21 skillID rule NOT",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 5
+      },
+      "phxBody": {
+        "count": 5
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D22 skillID rule ONE_OF",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D23 intent rule EXACT",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D24 intent exact-match param",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D25 skillID exact-match param",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D26 personID param",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 4
+      },
+      "phxBody": {
+        "count": 4
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D27 personID param unknown",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D28 notSessionID excludes s1",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 6
+      },
+      "phxBody": {
+        "count": 6
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D29 notSessionID unknown",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D30 startTime boundary (gte TS+1000)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 5
+      },
+      "phxBody": {
+        "count": 5
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D31 endTime boundary (lte TS+1000)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D32 startTime=endTime exact",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D33 window excludes both ends",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D34 startTime 0 (falsy, ignored like reference)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D35 payload EXACT full",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D36 payload EXACT subset (size mismatch)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D37 payload EXACT empty {} (payloadSize 0)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D38 payload CONTAINS_ALL subset incl. array",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D39 payload CONTAINS_ALL reversed array value",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D40 payload CONTAINS_ALL empty {}",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D41 payload CONTAINS_ANY one key hit",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D42 payload CONTAINS_ANY miss",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D43 payload CONTAINS_ANY empty {}",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D44 payload NOT_CONTAIN unknown key",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D45 payload NOT_CONTAIN empty {}",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D46 payload NOT array-order-differs",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D47 payload NOT exact copy",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 6
+      },
+      "phxBody": {
+        "count": 6
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D48 payload key nested a.b",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D49 payload key a.b on literal-dot record",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D50 payload CONTAINS_ALL nested path",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D51 payload key number 0",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D52 payload key boolean false",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D53 payload key NOT",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 6
+      },
+      "phxBody": {
+        "count": 6
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D54 payload key CONTAINS ($in [v])",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D55 payload key NOT_CONTAIN (array value)",
+      "refStatus": 500,
+      "phxStatus": 500,
+      "statusMatch": true,
+      "refBody": {
+        "ERROR": "Match method NOT_CONTAIN cannot be used for payload and value value1"
+      },
+      "phxBody": {
+        "ERROR": "Match method NOT_CONTAIN cannot be used for payload and value value1"
+      },
+      "bodyMatch": true,
+      "refMessage": "Match method NOT_CONTAIN cannot be used for payload and value value1",
+      "phxMessage": "Match method NOT_CONTAIN cannot be used for payload and value value1"
+    },
+    {
+      "label": "D55c payload key CONTAINS (scalar wraps in $in [v])",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D55d payload value number 5",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D55e payload value boolean true",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D55f payload value string x",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 0
+      },
+      "phxBody": {
+        "count": 0
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D55g payload NOT empty object",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 6
+      },
+      "phxBody": {
+        "count": 6
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D56 payload key ONE_OF",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D57 payload key on record with no payload",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 1
+      },
+      "phxBody": {
+        "count": 1
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D58 latest R1-style newest wins",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "personIDs": [
+          "p9"
+        ],
+        "robotID": "RS",
+        "sessionID": "s6",
+        "skillID": "SK-D",
+        "timestamp": 1789084004000
+      },
+      "phxBody": {
+        "personIDs": [
+          "p9"
+        ],
+        "robotID": "RS",
+        "sessionID": "s6",
+        "skillID": "SK-D",
+        "timestamp": 1789084004000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D59 latest with skillID rule",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "payload": {},
+        "payloadSize": 0,
+        "personIDs": [],
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "timestamp": 1789084003000
+      },
+      "phxBody": {
+        "payload": {},
+        "payloadSize": 0,
+        "personIDs": [],
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "timestamp": 1789084003000
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D60 GET count personIDs EXACT array",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 3
+      },
+      "phxBody": {
+        "count": 3
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D61 GET count personIDs scalar (default CONTAINS)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 4
+      },
+      "phxBody": {
+        "count": 4
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D62 GET latest payload key numeric string (qs)",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": null,
+      "phxBody": null,
+      "bodyMatch": true
+    },
+    {
+      "label": "D63 GET count notSessionID",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 6
+      },
+      "phxBody": {
+        "count": 6
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D64 GET count time window",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 2
+      },
+      "phxBody": {
+        "count": 2
+      },
+      "bodyMatch": true
+    },
+    {
+      "label": "D65 POST count robotID RS total",
+      "refStatus": 200,
+      "phxStatus": 200,
+      "statusMatch": true,
+      "refBody": {
+        "count": 7
+      },
+      "phxBody": {
+        "count": 7
+      },
+      "bodyMatch": true
+    }
+  ]
+}

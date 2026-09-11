@@ -1,0 +1,2183 @@
+{
+  "oracle": "REAL compiled pegasus classes (BaseService + real handlers + real validators/joi + real collections); mongoose Model stubbed",
+  "express": "4.16.2",
+  "joi": "13.1.2",
+  "bodyParser": "1.18.2",
+  "modelCalls": {
+    "findOneAndUpdate": 7,
+    "findOne": 6,
+    "count": 58
+  },
+  "records": 13,
+  "builtQueries": {
+    "personIDs EXACT": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "personIDs": {
+            "$eq": [
+              "p1",
+              "p2"
+            ]
+          }
+        }
+      ]
+    },
+    "personIDs NOT": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "personIDs": {
+            "$ne": [
+              "p1",
+              "p2"
+            ]
+          }
+        }
+      ]
+    },
+    "personIDs CONTAINS": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "personIDs": {
+            "$in": [
+              "p2"
+            ]
+          }
+        }
+      ]
+    },
+    "personIDs CONTAINS_ALL": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "personIDs": {
+            "$all": [
+              "p1",
+              "p2"
+            ]
+          }
+        }
+      ]
+    },
+    "personIDs NOT_CONTAIN": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "personIDs": {
+            "$not": {
+              "$in": [
+                "p1",
+                "p2"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "payload EXACT": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "$and": [
+            {
+              "payload.key1": {
+                "$eq": "value1"
+              }
+            },
+            {
+              "payloadSize": {
+                "$eq": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "payload CONTAINS_ANY": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "$or": [
+            {
+              "payload.key1": {
+                "$eq": "value1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "payload CONTAINS_ALL": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "$and": [
+            {
+              "payload.key1": {
+                "$eq": "value1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "payload NOT_CONTAIN": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "$and": [
+            {
+              "payload.key1": {
+                "$ne": "value1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "payload key CONTAINS": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "payload.key1": {
+            "$in": [
+              "value1"
+            ]
+          }
+        }
+      ]
+    },
+    "payload key nested": {
+      "$and": [
+        {
+          "robotID": {
+            "$eq": "RS"
+          }
+        },
+        {
+          "payload.a.b": {
+            "$eq": 1
+          }
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "label": "A01 write bad robotID pattern",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "128fc44c-e32d-4ffa-a653-ff806dfdc791",
+        "ts": 1789086703617,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      }
+    },
+    {
+      "label": "A02 write missing robotID",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "1fa5125b-cbf4-4b8f-a86c-baa6024fe722",
+        "ts": 1789086703626,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+      }
+    },
+    {
+      "label": "A03 write missing sessionID",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "716349d4-f1b4-48e7-812a-3d96a111bb07",
+        "ts": 1789086703629,
+        "final": true,
+        "data": {
+          "message": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"sessionID\" fails because [\"sessionID\" is required], child \"sessionID\" fails because [\"sessionID\" is required]"
+      }
+    },
+    {
+      "label": "A04 write missing skillID",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "4fda1346-ebec-4d7e-9ae8-7505c7745b01",
+        "ts": 1789086703632,
+        "final": true,
+        "data": {
+          "message": "child \"skillID\" fails because [\"skillID\" is required], child \"skillID\" fails because [\"skillID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"skillID\" fails because [\"skillID\" is required], child \"skillID\" fails because [\"skillID\" is required]"
+      }
+    },
+    {
+      "label": "A05 write bad skillID",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "d4f9335b-1de7-473c-ac13-7c017cafc65a",
+        "ts": 1789086703635,
+        "final": true,
+        "data": {
+          "message": "child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/], child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/], child \"skillID\" fails because [\"skillID\" with value \"bad id\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+      }
+    },
+    {
+      "label": "A06 write bad intent",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "a23d32cb-50b3-4dd6-901b-26bc2712e219",
+        "ts": 1789086703641,
+        "final": true,
+        "data": {
+          "message": "child \"intent\" fails because [\"intent\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-_]*$/], child \"payload\" fails because [\"payload\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"intent\" fails because [\"intent\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-_]*$/], child \"payload\" fails because [\"payload\" is required]"
+      }
+    },
+    {
+      "label": "A07 write bad personIDs item",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "55d7de99-4b29-4486-b182-8a03d77f6d6b",
+        "ts": 1789086703645,
+        "final": true,
+        "data": {
+          "message": "child \"personIDs\" fails because [\"personIDs\" at position 0 fails because [\"0\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]], child \"payload\" fails because [\"payload\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"personIDs\" fails because [\"personIDs\" at position 0 fails because [\"0\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]], child \"payload\" fails because [\"payload\" is required]"
+      }
+    },
+    {
+      "label": "A08 write unknown key",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "73f429f3-dcd2-4612-9976-e3e888ce4862",
+        "ts": 1789086703648,
+        "final": true,
+        "data": {
+          "message": "\"extra\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "\"extra\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+      }
+    },
+    {
+      "label": "A09 write future timestamp",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "77ca61ee-41e0-401b-8942-7a8d45dfb8ed",
+        "ts": 1789086703651,
+        "final": true,
+        "data": {
+          "message": "child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"], child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"], child \"timestamp\" fails because [\"timestamp\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"]"
+      }
+    },
+    {
+      "label": "A10 write personIDs not array",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "6b244f8e-8a1a-45a6-8d06-15dc8c1bc70c",
+        "ts": 1789086703655,
+        "final": true,
+        "data": {
+          "message": "child \"personIDs\" fails because [\"personIDs\" must be an array], child \"payload\" fails because [\"payload\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"personIDs\" fails because [\"personIDs\" must be an array], child \"payload\" fails because [\"payload\" is required]"
+      }
+    },
+    {
+      "label": "A11 write empty sessionID",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "05b9f921-93a1-4585-aea6-fdbfbd77f2ef",
+        "ts": 1789086703657,
+        "final": true,
+        "data": {
+          "message": "child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty], child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty], child \"sessionID\" fails because [\"sessionID\" is not allowed to be empty]"
+      }
+    },
+    {
+      "label": "A12 write non-string sessionID",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "94437b8d-6e73-4b9e-9f6b-27fd9e57874c",
+        "ts": 1789086703658,
+        "final": true,
+        "data": {
+          "message": "child \"sessionID\" fails because [\"sessionID\" must be a string], child \"sessionID\" fails because [\"sessionID\" must be a string]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"sessionID\" fails because [\"sessionID\" must be a string], child \"sessionID\" fails because [\"sessionID\" must be a string]"
+      }
+    },
+    {
+      "label": "A13 write two unknown keys",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "a650bd4c-23c8-4a01-98f1-6304d152b99c",
+        "ts": 1789086703660,
+        "final": true,
+        "data": {
+          "message": "\"foo\" is not allowed, \"bar\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "\"foo\" is not allowed, \"bar\" is not allowed, child \"payload\" fails because [\"payload\" is required]"
+      }
+    },
+    {
+      "label": "A14 write skillID @be/ form",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "v1",
+        "robotID": "RV",
+        "skillID": "@be/x-y_z",
+        "intent": "iv",
+        "id": "000000000000000000000001"
+      }
+    },
+    {
+      "label": "A15 count RV (nothing malformed persisted)",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RV",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "A16 write valid sorted personIDs",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "v1",
+        "robotID": "RV",
+        "skillID": "SK-V",
+        "intent": "iv",
+        "personIDs": [
+          "pv-1",
+          "pv-2"
+        ],
+        "id": "000000000000000000000002"
+      }
+    },
+    {
+      "label": "A17 write payload null (branch B allows)",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "v2",
+        "robotID": "RV",
+        "skillID": "SK-V",
+        "payload": null,
+        "id": "000000000000000000000003"
+      }
+    },
+    {
+      "label": "A18 write payload object",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "v3",
+        "robotID": "RV",
+        "skillID": "SK-V",
+        "payload": {
+          "a": 1
+        },
+        "id": "000000000000000000000004"
+      }
+    },
+    {
+      "label": "A19 count RV after valid writes",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RV",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 4
+      }
+    },
+    {
+      "label": "B01 payload update bad robotID",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "4e96b0a7-cecc-4dd4-85ec-f311d9346044",
+        "ts": 1789086703669,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/], child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      }
+    },
+    {
+      "label": "B02 payload update missing robotID",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "2408c875-99a6-4e61-9a7d-97404fb4dc7c",
+        "ts": 1789086703670,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" is required], child \"robotID\" fails because [\"robotID\" is required]"
+      }
+    },
+    {
+      "label": "B03 payload update no payload key (I-01 case)",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "b8a47931-acec-4867-90ef-fd66f3f99d1d",
+        "ts": 1789086703672,
+        "final": true,
+        "data": {
+          "message": "Cannot convert undefined or null to object"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot convert undefined or null to object"
+      }
+    },
+    {
+      "label": "B04 payload update payload null (I-01 case)",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "281ad5c2-a2d3-4c79-b9f7-0c98920ff064",
+        "ts": 1789086703673,
+        "final": true,
+        "data": {
+          "message": "Cannot convert undefined or null to object"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot convert undefined or null to object"
+      }
+    },
+    {
+      "label": "B05 payload update no match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "B06 payload update match",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "v1",
+        "robotID": "RV",
+        "skillID": "SK-V",
+        "intent": "iv",
+        "personIDs": [
+          "pv-1",
+          "pv-2"
+        ],
+        "payload": {
+          "k": 1
+        },
+        "payloadSize": 1,
+        "id": "000000000000000000000002"
+      }
+    },
+    {
+      "label": "C01 latest {} robotID required",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "acae1c4a-58cf-43e2-86c1-46108e2f6f94",
+        "ts": 1789086703677,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" is required]"
+      }
+    },
+    {
+      "label": "C02 count {} robotID required",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "a94e577e-ad26-46e7-a879-7f68ce25ed1d",
+        "ts": 1789086703678,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" is required]"
+      }
+    },
+    {
+      "label": "C03 GET count no query",
+      "method": "GET",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "1b804a41-9e20-41ee-a95d-0f1e6eb71e2b",
+        "ts": 1789086703679,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" is required]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" is required]"
+      }
+    },
+    {
+      "label": "C04 latest bad robotID pattern",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "d1eb174d-5308-47e2-bce8-3d0697b5e1ef",
+        "ts": 1789086703680,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id!\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id!\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      }
+    },
+    {
+      "label": "C05 latest one unknown key",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "6e36d141-e9f2-4c2f-a8d9-1f23f81d43ea",
+        "ts": 1789086703682,
+        "final": true,
+        "data": {
+          "message": "\"foo\" is not allowed"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "\"foo\" is not allowed"
+      }
+    },
+    {
+      "label": "C06 latest two unknown keys",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "5f1abde2-7071-4a99-8ed5-078dba86d86d",
+        "ts": 1789086703683,
+        "final": true,
+        "data": {
+          "message": "\"foo\" is not allowed. \"bar\" is not allowed"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "\"foo\" is not allowed. \"bar\" is not allowed"
+      }
+    },
+    {
+      "label": "C07 latest rules not array (string)",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "08285071-d6bc-4655-9ac0-4eb60cf08396",
+        "ts": 1789086703685,
+        "final": true,
+        "data": {
+          "message": "child \"rules\" fails because [\"rules\" must be an array]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"rules\" fails because [\"rules\" must be an array]"
+      }
+    },
+    {
+      "label": "C08 latest rules null",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "60131867-9ee3-4a27-ad87-bb45ef6efcc8",
+        "ts": 1789086703686,
+        "final": true,
+        "data": {
+          "message": "child \"rules\" fails because [\"rules\" must be an array]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"rules\" fails because [\"rules\" must be an array]"
+      }
+    },
+    {
+      "label": "C09 latest rule unknown field",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "e3e85b00-f0ae-448a-a533-012bf371d1ef",
+        "ts": 1789086703688,
+        "final": true,
+        "data": {
+          "message": "Unknown field: bogus"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Unknown field: bogus"
+      }
+    },
+    {
+      "label": "C10 latest rule disallowed method",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "0e565e04-e9ff-436f-a03d-6c6d31807bb8",
+        "ts": 1789086703689,
+        "final": true,
+        "data": {
+          "message": "Match method ONE_OF cannot be used for skillID and value x"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Match method ONE_OF cannot be used for skillID and value x"
+      }
+    },
+    {
+      "label": "C11 latest rule empty string value",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "5bbec30a-2416-4a13-a37c-76debb02e151",
+        "ts": 1789086703691,
+        "final": true,
+        "data": {
+          "message": "skillID items must be non-empty strings"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "skillID items must be non-empty strings"
+      }
+    },
+    {
+      "label": "C12 latest empty rules array (valid, no match)",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "C13 latest conflict intent",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "d9a28815-6622-41fd-95ff-fe17d66d9f79",
+        "ts": 1789086703695,
+        "final": true,
+        "data": {
+          "message": "You specified intent both in exact match and rules"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "You specified intent both in exact match and rules"
+      }
+    },
+    {
+      "label": "C14 latest conflict skillID",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "5e82f956-a78f-41d7-90e0-15307009999f",
+        "ts": 1789086703696,
+        "final": true,
+        "data": {
+          "message": "You specified skillID both in exact match and rules"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "You specified skillID both in exact match and rules"
+      }
+    },
+    {
+      "label": "C15 latest conflict personID",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "eee2e40d-b264-487f-8f16-d340de818497",
+        "ts": 1789086703698,
+        "final": true,
+        "data": {
+          "message": "You specified personID(s) both in exact match and rules"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "You specified personID(s) both in exact match and rules"
+      }
+    },
+    {
+      "label": "C16 latest startTime future",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "369d006e-ff33-4f4d-b990-82e1e30f46f3",
+        "ts": 1789086703700,
+        "final": true,
+        "data": {
+          "message": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"]"
+      }
+    },
+    {
+      "label": "C17 latest endTime ISO string",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "20c438e1-03bf-45bb-bb99-79284c65f663",
+        "ts": 1789086703701,
+        "final": true,
+        "data": {
+          "message": "child \"endTime\" fails because [\"endTime\" must be a valid timestamp or number of milliseconds]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"endTime\" fails because [\"endTime\" must be a valid timestamp or number of milliseconds]"
+      }
+    },
+    {
+      "label": "C18 latest startTime numeric string",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "C19 latest bad skillID pattern",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "69baaae3-e6e9-45f5-a51c-ba60f295b6f9",
+        "ts": 1789086703705,
+        "final": true,
+        "data": {
+          "message": "child \"skillID\" fails because [\"skillID\" with value \"has space\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"skillID\" fails because [\"skillID\" with value \"has space\" fails to match the required pattern: /^(@be\\/)?[a-zA-Z0-9-_]*$/]"
+      }
+    },
+    {
+      "label": "C20 GET count rule unknown field",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RQ&rules[0][field]=bogus&rules[0][value]=x",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "d09236b0-2ba6-48f7-b81a-fd77894d1a25",
+        "ts": 1789086703706,
+        "final": true,
+        "data": {
+          "message": "Unknown field: bogus"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Unknown field: bogus"
+      }
+    },
+    {
+      "label": "C21 GET count rules not array",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RQ&rules=foo",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "47224dc2-2cff-46cf-a2e9-3bed7321a5f5",
+        "ts": 1789086703708,
+        "final": true,
+        "data": {
+          "message": "child \"rules\" fails because [\"rules\" must be an array]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"rules\" fails because [\"rules\" must be an array]"
+      }
+    },
+    {
+      "label": "C22 latest rules [null]",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "d88c931d-40fc-4674-a8d6-cf6f3045bc41",
+        "ts": 1789086703710,
+        "final": true,
+        "data": {
+          "message": "Cannot read properties of null (reading 'field')"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot read properties of null (reading 'field')"
+      }
+    },
+    {
+      "label": "C23 latest rules [string]",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "29813de5-f6c2-44ac-8189-c2fdcd9f2506",
+        "ts": 1789086703712,
+        "final": true,
+        "data": {
+          "message": "Unknown field: undefined"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Unknown field: undefined"
+      }
+    },
+    {
+      "label": "C24 latest rule payload value null (joi ok, builder throws)",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "bd85a8fd-f8bd-40ce-93fd-985b64778066",
+        "ts": 1789086703714,
+        "final": true,
+        "data": {
+          "message": "Cannot convert undefined or null to object"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Cannot convert undefined or null to object"
+      }
+    },
+    {
+      "label": "C25 latest joi robotID beats rule error",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "0b587cd9-1424-4318-9cbc-e73f1c581641",
+        "ts": 1789086703716,
+        "final": true,
+        "data": {
+          "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"robotID\" fails because [\"robotID\" with value \"bad id\" fails to match the required pattern: /^[a-zA-Z0-9-]*$/]"
+      }
+    },
+    {
+      "label": "C26 latest joi startTime beats rule error",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "a6476ab4-c6fb-4aaf-bc17-021e9b23e2c3",
+        "ts": 1789086703720,
+        "final": true,
+        "data": {
+          "message": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"]"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "child \"startTime\" fails because [\"startTime\" must be less than or equal to \"Fri Sep 11 2026 00:31:43 GMT+0000 (Coordinated Universal Time)\"]"
+      }
+    },
+    {
+      "label": "C27 latest rule empty array value",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "7b73f5c9-33f4-4e17-aa05-8627acba5ce8",
+        "ts": 1789086703722,
+        "final": true,
+        "data": {
+          "message": "personIDs arrays must be non-empty"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "personIDs arrays must be non-empty"
+      }
+    },
+    {
+      "label": "C28 GET latest valid empty store",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest?robotID=RQ",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "C29 GET count valid empty store",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RQ",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "C30 latest second rule invalid",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "8dd09341-d10c-4f7e-828e-5508ea4b3402",
+        "ts": 1789086703727,
+        "final": true,
+        "data": {
+          "message": "Unknown field: bogus"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Unknown field: bogus"
+      }
+    },
+    {
+      "label": "D01 seed s1",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "robotID": "RS",
+        "sessionID": "s1",
+        "skillID": "SK-A",
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "id": "000000000000000000000005"
+      }
+    },
+    {
+      "label": "D02 seed s2",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084001000,
+        "robotID": "RS",
+        "sessionID": "s2",
+        "skillID": "SK-B",
+        "intent": "intent-b",
+        "personIDs": [
+          "p2",
+          "p3"
+        ],
+        "id": "000000000000000000000006"
+      }
+    },
+    {
+      "label": "D03 seed s3 (distinct skillID keeps PUT targets unique)",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084002000,
+        "robotID": "RS",
+        "sessionID": "s3b",
+        "skillID": "SK-A2",
+        "intent": "intent-a",
+        "personIDs": [
+          "p1"
+        ],
+        "id": "000000000000000000000007"
+      }
+    },
+    {
+      "label": "D04 seed s4 empty personIDs",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084003000,
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "personIDs": [],
+        "id": "000000000000000000000008"
+      }
+    },
+    {
+      "label": "D05 seed s5 earlier timestamp",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000500,
+        "robotID": "RS",
+        "sessionID": "s5",
+        "skillID": "SK-A",
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "id": "000000000000000000000009"
+      }
+    },
+    {
+      "label": "D06 seed s6 no payload ever",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084004000,
+        "robotID": "RS",
+        "sessionID": "s6",
+        "skillID": "SK-D",
+        "personIDs": [
+          "p9"
+        ],
+        "id": "000000000000000000000010"
+      }
+    },
+    {
+      "label": "D07 seed s7 literal-dot payload",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084002500,
+        "robotID": "RS",
+        "sessionID": "s7",
+        "skillID": "SK-E",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "id": "000000000000000000000011"
+      }
+    },
+    {
+      "label": "D08 payload s1 full",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "robotID": "RS",
+        "sessionID": "s1",
+        "skillID": "SK-A",
+        "intent": "intent-a",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "payload": {
+          "key1": "value1",
+          "key2": "value2",
+          "key3": [
+            "value3",
+            "value4"
+          ],
+          "key4": 0,
+          "key5": false
+        },
+        "payloadSize": 5,
+        "id": "000000000000000000000005"
+      }
+    },
+    {
+      "label": "D09 payload s2 nested object",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084001000,
+        "robotID": "RS",
+        "sessionID": "s2",
+        "skillID": "SK-B",
+        "intent": "intent-b",
+        "personIDs": [
+          "p2",
+          "p3"
+        ],
+        "payload": {
+          "a": {
+            "b": 1
+          }
+        },
+        "payloadSize": 1,
+        "id": "000000000000000000000006"
+      }
+    },
+    {
+      "label": "D10 payload s3 empty object",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084003000,
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "personIDs": [],
+        "payload": {},
+        "payloadSize": 0,
+        "id": "000000000000000000000008"
+      }
+    },
+    {
+      "label": "D11 payload s7 literal \"a.b\" key",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084002500,
+        "robotID": "RS",
+        "sessionID": "s7",
+        "skillID": "SK-E",
+        "personIDs": [
+          "p1",
+          "p2"
+        ],
+        "payload": {
+          "a.b": "flat"
+        },
+        "payloadSize": 1,
+        "id": "000000000000000000000011"
+      }
+    },
+    {
+      "label": "D12 personIDs EXACT reversed value (Preformatter sorts)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D13 personIDs EXACT sorted value",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D14 personIDs EXACT empty-backed record only",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "2a37681d-a6df-4e1b-9003-650ce3625bc4",
+        "ts": 1789086703760,
+        "final": true,
+        "data": {
+          "message": "personIDs arrays must be non-empty"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "personIDs arrays must be non-empty"
+      }
+    },
+    {
+      "label": "D15 personIDs NOT",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 4
+      }
+    },
+    {
+      "label": "D16 personIDs CONTAINS scalar",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 4
+      }
+    },
+    {
+      "label": "D17 personIDs ONE_OF rejected by validation (array:array allows no ONE_OF)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "091e3bd1-1ca9-4aa5-bf70-38e6139b4906",
+        "ts": 1789086703768,
+        "final": true,
+        "data": {
+          "message": "Match method ONE_OF cannot be used for personIDs and value p3"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Match method ONE_OF cannot be used for personIDs and value p3"
+      }
+    },
+    {
+      "label": "D18 personIDs CONTAINS_ALL",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D19 personIDs NOT_CONTAIN",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 2
+      }
+    },
+    {
+      "label": "D20 personIDs default method (CONTAINS)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 4
+      }
+    },
+    {
+      "label": "D21 skillID rule NOT",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 5
+      }
+    },
+    {
+      "label": "D22 skillID rule ONE_OF",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D23 intent rule EXACT",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D24 intent exact-match param",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D25 skillID exact-match param",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D26 personID param",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 4
+      }
+    },
+    {
+      "label": "D27 personID param unknown",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D28 notSessionID excludes s1",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 6
+      }
+    },
+    {
+      "label": "D29 notSessionID unknown",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D30 startTime boundary (gte TS+1000)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 5
+      }
+    },
+    {
+      "label": "D31 endTime boundary (lte TS+1000)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D32 startTime=endTime exact",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D33 window excludes both ends",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D34 startTime 0 (falsy, ignored like reference)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D35 payload EXACT full",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D36 payload EXACT subset (size mismatch)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D37 payload EXACT empty {} (payloadSize 0)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D38 payload CONTAINS_ALL subset incl. array",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D39 payload CONTAINS_ALL reversed array value",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D40 payload CONTAINS_ALL empty {}",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D41 payload CONTAINS_ANY one key hit",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D42 payload CONTAINS_ANY miss",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D43 payload CONTAINS_ANY empty {}",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D44 payload NOT_CONTAIN unknown key",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D45 payload NOT_CONTAIN empty {}",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D46 payload NOT array-order-differs",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D47 payload NOT exact copy",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 6
+      }
+    },
+    {
+      "label": "D48 payload key nested a.b",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D49 payload key a.b on literal-dot record",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D50 payload CONTAINS_ALL nested path",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D51 payload key number 0",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D52 payload key boolean false",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D53 payload key NOT",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 6
+      }
+    },
+    {
+      "label": "D54 payload key CONTAINS ($in [v])",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D55 payload key NOT_CONTAIN (array value)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "type": "ERROR",
+        "msgID": "cf054eed-b5f3-43dd-8c63-6f0b1a66e709",
+        "ts": 1789086703826,
+        "final": true,
+        "data": {
+          "message": "Match method NOT_CONTAIN cannot be used for payload and value value1"
+        }
+      },
+      "envelope": {
+        "type": "ERROR",
+        "final": true,
+        "message": "Match method NOT_CONTAIN cannot be used for payload and value value1"
+      }
+    },
+    {
+      "label": "X05 payload key NOT_CONTAIN scalar value ($in scalar; real Mongo behaviour needs mongod)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "D55c payload key CONTAINS (scalar wraps in $in [v])",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D55d payload value number 5",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D55e payload value boolean true",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D55f payload value string x",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "label": "D55g payload NOT empty object",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 6
+      }
+    },
+    {
+      "label": "D56 payload key ONE_OF",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D57 payload key on record with no payload",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    },
+    {
+      "label": "D58 latest R1-style newest wins",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084004000,
+        "robotID": "RS",
+        "sessionID": "s6",
+        "skillID": "SK-D",
+        "personIDs": [
+          "p9"
+        ],
+        "id": "000000000000000000000010"
+      }
+    },
+    {
+      "label": "D59 latest with skillID rule",
+      "method": "POST",
+      "path": "/v1/skill/launch/latest",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084003000,
+        "robotID": "RS",
+        "sessionID": "s3",
+        "skillID": "SK-C",
+        "personIDs": [],
+        "payload": {},
+        "payloadSize": 0,
+        "id": "000000000000000000000008"
+      }
+    },
+    {
+      "label": "D60 GET count personIDs EXACT array",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RS&rules[0][field]=personIDs&rules[0][match]=EXACT&rules[0][value][]=p1&rules[0][value][]=p2",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 3
+      }
+    },
+    {
+      "label": "D61 GET count personIDs scalar (default CONTAINS)",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RS&rules[0][field]=personIDs&rules[0][value]=p1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 4
+      }
+    },
+    {
+      "label": "D62 GET latest payload key numeric string (qs)",
+      "method": "GET",
+      "path": "/v1/skill/launch/latest?robotID=RS&rules[0][field]=payload&rules[0][key]=key4&rules[0][value]=0",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": null
+    },
+    {
+      "label": "D63 GET count notSessionID",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RS&notSessionID=s1",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 6
+      }
+    },
+    {
+      "label": "D64 GET count time window",
+      "method": "GET",
+      "path": "/v1/skill/launch/count?robotID=RS&startTime=1789084001000&endTime=1789084002000",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 2
+      }
+    },
+    {
+      "label": "D65 POST count robotID RS total",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 7
+      }
+    },
+    {
+      "label": "X01 dup triple first",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "x1",
+        "robotID": "RX",
+        "skillID": "SK-X",
+        "id": "000000000000000000000012"
+      }
+    },
+    {
+      "label": "X02 dup triple second",
+      "method": "POST",
+      "path": "/v1/skill/launch",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084001000,
+        "sessionID": "x1",
+        "robotID": "RX",
+        "skillID": "SK-X",
+        "id": "000000000000000000000013"
+      }
+    },
+    {
+      "label": "X03 PUT payload on ambiguous triple",
+      "method": "PUT",
+      "path": "/v1/skill/launch/payload",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "timestamp": 1789084000000,
+        "sessionID": "x1",
+        "robotID": "RX",
+        "skillID": "SK-X",
+        "payload": {
+          "marker": "m1"
+        },
+        "payloadSize": 1,
+        "id": "000000000000000000000012"
+      }
+    },
+    {
+      "label": "X04 which record received the payload (marker count)",
+      "method": "POST",
+      "path": "/v1/skill/launch/count",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "count": 1
+      }
+    }
+  ]
+}
