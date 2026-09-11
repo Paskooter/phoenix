@@ -1,0 +1,49 @@
+{"t":"2026-09-11T02:53:05.147Z","level":"info","ns":"nlu","msg":"listening","port":0}
+{"t":"2026-09-11T02:53:05.411Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.412Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.413Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.414Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.415Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.416Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.417Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.418Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.419Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.420Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.420Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.421Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"}
+{"t":"2026-09-11T02:53:05.422Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.423Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.423Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.424Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.425Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.426Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.427Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.427Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.428Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.429Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.431Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+{"t":"2026-09-11T02:53:05.432Z","level":"error","ns":"nlu","msg":"handler threw","error":"Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"}
+profile                 : ast
+reference revision      : 5c0a7390539663ba749d360de348a428c088505c
+fixture                 : 14ff0379d9d4d85fdd8d523e9baf0db9fd1b2a34fb9d9cbb4492c515d6ba39f4
+named-rule coverage     : 20
+match cases             : 122
+direct parseRequest     : 122/122
+live HTTP /v1/parse     : 122/122
+refusal cases (thrown)  : 24/24
+refusal cases (HTTP 500): 24/24
+time.grm parse          : parser: unexpected COLON (:) at 5:23
+narrowing probe         :
+  clock/alarm_timer_ampm
+    "am" -> match=true intent="set" ampm="AM" time=null
+    "pm" -> match=true intent="set" ampm="PM" time=null
+    "a.m." -> match=true intent="set" ampm="AM" time=null
+    "p.m." -> match=true intent="set" ampm="PM" time=null
+    "noon" -> match=false intent=null ampm=null time=null
+    "morning" -> match=false intent=null ampm=null time=null
+    "seven thirty" -> match=false intent=null ampm=null time=null
+  clock/alarm_set_value
+    "one day from now" -> match=true intent="alarmValue" ampm="null" time="24h0m0s"
+    "3 days" -> match=true intent="alarmValue" ampm="null" time="25h0m0s"
+    "seven thirty am" -> match=false intent=null ampm=null time=null
+    "set an alarm for 7:30" -> match=false intent=null ampm=null time=null

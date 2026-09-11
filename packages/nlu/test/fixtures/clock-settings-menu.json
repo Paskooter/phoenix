@@ -1,0 +1,1698 @@
+{
+ "schema": "phoenix.nlu.n03-clock-settings-menu-fixture",
+ "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+ "referenceSourceRoot": "pegasus:packages/parser/robust-parser/rules_src",
+ "groups": [
+  "clock/",
+  "settings/",
+  "main-menu/"
+ ],
+ "timeFactoryGate": {
+  "dependency": "time",
+  "referenceFactoryFst": "build/data/en-us/factory_rules/time.fst",
+  "referenceFactorySha256": "ccc50d3c0fb06e43e75433fa828d370c787429a443bfa407c6e91be73cd9d86b",
+  "recoveredSource": "packages/nlu/resources/factory-sources/time.grm",
+  "status": "unsupported",
+  "rationale": "The only source for the time factory does not parse: the AST lexer emits a COLON token for ':' in the literal-colon forms '?(?: ...)'; compiler.l lists ':' as a word character. No non-time arm can be certified arm-for-arm while the factory is absent, so the whole-rule refusal is retained."
+ },
+ "namedRules": [
+  {
+   "rule": "clock/alarm_timer_change",
+   "source": "clock/alarm_timer_change.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "yes",
+     "expect": {
+      "intent": "delete",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_change"
+      ]
+     },
+     "source": "clock/alarm_timer_change.rule:7,12 (yes_no yes -> _intent yes -> cond delete)"
+    },
+    {
+     "kind": "positive",
+     "text": "no",
+     "expect": {
+      "intent": "keep",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_change"
+      ]
+     },
+     "source": "clock/alarm_timer_change.rule:7,13 (yes_no no -> _intent no -> cond keep)"
+    },
+    {
+     "kind": "boundary",
+     "text": "sure",
+     "expect": {
+      "intent": "delete",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_change"
+      ]
+     },
+     "source": "clock/alarm_timer_change.rule:20 ($YES arm yes|yup|sure|okay)"
+    },
+    {
+     "kind": "boundary",
+     "text": "cancel it",
+     "expect": {
+      "intent": "delete",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_change"
+      ]
+     },
+     "source": "clock/alarm_timer_change.rule:22 ($YES arm $V_DELETE ?(it|that))"
+    },
+    {
+     "kind": "boundary",
+     "text": "keep it",
+     "expect": {
+      "intent": "keep",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_change"
+      ]
+     },
+     "source": "clock/alarm_timer_change.rule:32 ($NO arm $V_KEEP ?(it|that))"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_change.rule:5-15 (no arm matches a nonsense token)"
+    },
+    {
+     "kind": "negative",
+     "text": "banana",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_change.rule:5-15 (no arm matches)"
+    }
+   ]
+  },
+  {
+   "rule": "clock/alarm_timer_info",
+   "source": "clock/alarm_timer_info.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "change it",
+     "expect": {
+      "intent": "change",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_info"
+      ]
+     },
+     "source": "clock/alarm_timer_info.rule:12"
+    },
+    {
+     "kind": "positive",
+     "text": "cancel it",
+     "expect": {
+      "intent": "cancel",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_info"
+      ]
+     },
+     "source": "clock/alarm_timer_info.rule:19"
+    },
+    {
+     "kind": "boundary",
+     "text": "edit that",
+     "expect": {
+      "intent": "change",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_info"
+      ]
+     },
+     "source": "clock/alarm_timer_info.rule:12 (change|edit ?(it|that))"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_info.rule:5-8"
+    }
+   ]
+  },
+  {
+   "rule": "clock/alarm_timer_none_set",
+   "source": "clock/alarm_timer_none_set.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "yes",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_none_set"
+      ]
+     },
+     "source": "clock/alarm_timer_none_set.rule:8 ($factory:yes_no _nl)"
+    },
+    {
+     "kind": "positive",
+     "text": "no",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_none_set"
+      ]
+     },
+     "source": "clock/alarm_timer_none_set.rule:8 ($factory:yes_no _nl)"
+    },
+    {
+     "kind": "boundary",
+     "text": "sounds good",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_none_set"
+      ]
+     },
+     "source": "clock/alarm_timer_none_set.rule:21 (YES_OTHER)"
+    },
+    {
+     "kind": "boundary",
+     "text": "i think so",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_none_set"
+      ]
+     },
+     "source": "clock/alarm_timer_none_set.rule:20 (YES_OTHER)"
+    },
+    {
+     "kind": "boundary",
+     "text": "later",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_none_set"
+      ]
+     },
+     "source": "clock/alarm_timer_none_set.rule:27 (NO_OTHER)"
+    },
+    {
+     "kind": "boundary",
+     "text": "not right now",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_none_set"
+      ]
+     },
+     "source": "clock/alarm_timer_none_set.rule:28 (NO_OTHER)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_none_set.rule:6-11"
+    }
+   ]
+  },
+  {
+   "rule": "clock/alarm_timer_okay",
+   "source": "clock/alarm_timer_okay.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "wrong",
+     "expect": {
+      "intent": "wrong",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "source": "clock/alarm_timer_okay.rule:7"
+    },
+    {
+     "kind": "boundary",
+     "text": "wait",
+     "expect": {
+      "intent": "wrong",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "source": "clock/alarm_timer_okay.rule:7"
+    },
+    {
+     "kind": "boundary",
+     "text": "stop",
+     "expect": {
+      "intent": "wrong",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "source": "clock/alarm_timer_okay.rule:7"
+    },
+    {
+     "kind": "boundary",
+     "text": "no no",
+     "expect": {
+      "intent": "wrong",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "source": "clock/alarm_timer_okay.rule:7"
+    },
+    {
+     "kind": "boundary",
+     "text": "not right",
+     "expect": {
+      "intent": "wrong",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "source": "clock/alarm_timer_okay.rule:7"
+    },
+    {
+     "kind": "boundary",
+     "text": "cancel",
+     "expect": {
+      "intent": "wrong",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_okay"
+      ]
+     },
+     "source": "clock/alarm_timer_okay.rule:7"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_okay.rule:5-9"
+    },
+    {
+     "kind": "negative",
+     "text": "yes",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_okay.rule:5-9 (this rule has no positive/yes arm at all)"
+    }
+   ]
+  },
+  {
+   "rule": "clock/alarm_timer_other_set",
+   "source": "clock/alarm_timer_other_set.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "yes",
+     "expect": {
+      "intent": "replace",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_other_set"
+      ]
+     },
+     "source": "clock/alarm_timer_other_set.rule:7,12 (yes_no yes -> cond replace)"
+    },
+    {
+     "kind": "positive",
+     "text": "no",
+     "expect": {
+      "intent": "keep",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_other_set"
+      ]
+     },
+     "source": "clock/alarm_timer_other_set.rule:7,13 (yes_no no -> cond keep)"
+    },
+    {
+     "kind": "boundary",
+     "text": "fine",
+     "expect": {
+      "intent": "replace",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_other_set"
+      ]
+     },
+     "source": "clock/alarm_timer_other_set.rule:24 ($YES arm fine)"
+    },
+    {
+     "kind": "boundary",
+     "text": "cancel it",
+     "expect": {
+      "intent": "replace",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_other_set"
+      ]
+     },
+     "source": "clock/alarm_timer_other_set.rule:22 ($YES arm $V_REPLACE ?(it|that))"
+    },
+    {
+     "kind": "boundary",
+     "text": "keep it",
+     "expect": {
+      "intent": "keep",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_other_set"
+      ]
+     },
+     "source": "clock/alarm_timer_other_set.rule:35 ($NO arm $V_KEEP ?(it|that))"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_other_set.rule:5-15"
+    }
+   ]
+  },
+  {
+   "rule": "clock/alarm_timer_query_menu",
+   "source": "clock/alarm_timer_query_menu.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "change it",
+     "expect": {
+      "intent": "change",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_query_menu"
+      ]
+     },
+     "source": "clock/alarm_timer_query_menu.rule:12"
+    },
+    {
+     "kind": "positive",
+     "text": "cancel that",
+     "expect": {
+      "intent": "cancel",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_query_menu"
+      ]
+     },
+     "source": "clock/alarm_timer_query_menu.rule:19"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_query_menu.rule:5-8"
+    }
+   ]
+  },
+  {
+   "rule": "clock/alarm_timer_too_long",
+   "source": "clock/alarm_timer_too_long.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "yes",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_too_long"
+      ]
+     },
+     "source": "clock/alarm_timer_too_long.rule:16"
+    },
+    {
+     "kind": "positive",
+     "text": "no",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_too_long"
+      ]
+     },
+     "source": "clock/alarm_timer_too_long.rule:30"
+    },
+    {
+     "kind": "boundary",
+     "text": "sounds good",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_too_long"
+      ]
+     },
+     "source": "clock/alarm_timer_too_long.rule:22 ($YES arm sounds good)"
+    },
+    {
+     "kind": "boundary",
+     "text": "i'm good",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "clock/alarm_timer_too_long"
+      ]
+     },
+     "source": "clock/alarm_timer_too_long.rule:34 ($NO arm i'm good)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/alarm_timer_too_long.rule:5-11"
+    }
+   ]
+  },
+  {
+   "rule": "clock/clock_menu",
+   "source": "clock/clock_menu.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "what time is it",
+     "expect": {
+      "intent": "askForTime",
+      "entities": {
+       "domain": "clock"
+      },
+      "rules": [
+       "clock/clock_menu"
+      ]
+     },
+     "source": "clock/clock_menu.rule:15"
+    },
+    {
+     "kind": "positive",
+     "text": "what is the date",
+     "expect": {
+      "intent": "askForDate",
+      "entities": {
+       "domain": "clock"
+      },
+      "rules": [
+       "clock/clock_menu"
+      ]
+     },
+     "source": "clock/clock_menu.rule:16"
+    },
+    {
+     "kind": "positive",
+     "text": "timer",
+     "expect": {
+      "intent": "start",
+      "entities": {
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/clock_menu"
+      ]
+     },
+     "source": "clock/clock_menu.rule:17"
+    },
+    {
+     "kind": "positive",
+     "text": "alarm",
+     "expect": {
+      "intent": "set",
+      "entities": {
+       "domain": "alarm"
+      },
+      "rules": [
+       "clock/clock_menu"
+      ]
+     },
+     "source": "clock/clock_menu.rule:18"
+    },
+    {
+     "kind": "boundary",
+     "text": "show me the alarm",
+     "expect": {
+      "intent": "set",
+      "entities": {
+       "domain": "alarm"
+      },
+      "rules": [
+       "clock/clock_menu"
+      ]
+     },
+     "source": "clock/clock_menu.rule:10,18 (GENERIC_ACTION+THE+SUBSKILLS)"
+    },
+    {
+     "kind": "boundary",
+     "text": "the time",
+     "expect": {
+      "intent": "askForTime",
+      "entities": {
+       "domain": "clock"
+      },
+      "rules": [
+       "clock/clock_menu"
+      ]
+     },
+     "source": "clock/clock_menu.rule:10,15"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/clock_menu.rule:13-20"
+    },
+    {
+     "kind": "negative",
+     "text": "five",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/clock_menu.rule:13-20 (no subskill noun)"
+    }
+   ]
+  },
+  {
+   "rule": "clock/stop_timer",
+   "source": "clock/stop_timer.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "stop the timer",
+     "expect": {
+      "intent": "stop",
+      "entities": {},
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "source": "clock/stop_timer.rule:7"
+    },
+    {
+     "kind": "boundary",
+     "text": "kill it",
+     "expect": {
+      "intent": "stop",
+      "entities": {},
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "source": "clock/stop_timer.rule:7 (kill)"
+    },
+    {
+     "kind": "boundary",
+     "text": "end the timer",
+     "expect": {
+      "intent": "stop",
+      "entities": {},
+      "rules": [
+       "clock/stop_timer"
+      ]
+     },
+     "source": "clock/stop_timer.rule:7 (end)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/stop_timer.rule:3-5"
+    },
+    {
+     "kind": "negative",
+     "text": "start the timer",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/stop_timer.rule:7 (STOP has no start arm)"
+    }
+   ]
+  },
+  {
+   "rule": "clock/timer_set_value",
+   "source": "clock/timer_set_value.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "set a timer for five minutes",
+     "expect": {
+      "intent": "timerValue",
+      "entities": {
+       "hours": "null",
+       "minutes": "5",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:31-39,44-45 (timer factory)"
+    },
+    {
+     "kind": "boundary",
+     "text": "set a timer for one hour",
+     "expect": {
+      "intent": "timerValue",
+      "entities": {
+       "hours": "1",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:44-45 (timer factory)"
+    },
+    {
+     "kind": "boundary",
+     "text": "one day",
+     "expect": {
+      "intent": "timerValue",
+      "entities": {
+       "hours": "24",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:51 (one|1 [day?s])"
+    },
+    {
+     "kind": "boundary",
+     "text": "a minute",
+     "expect": {
+      "intent": "timerValue",
+      "entities": {
+       "hours": "null",
+       "minutes": "1",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:55 (a|an [minute?s])"
+    },
+    {
+     "kind": "boundary",
+     "text": "a second",
+     "expect": {
+      "intent": "timerValue",
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "1",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:57 (a|an [second?s])"
+    },
+    {
+     "kind": "boundary",
+     "text": "set a timer for 3 days",
+     "expect": {
+      "intent": "timerValue",
+      "entities": {
+       "hours": "25",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:48-49 (invalid timescale arm)"
+    },
+    {
+     "kind": "positive",
+     "text": "cancel the timer",
+     "expect": {
+      "intent": "cancel",
+      "entities": {
+       "hours": "null",
+       "minutes": "null",
+       "seconds": "null",
+       "domain": "timer"
+      },
+      "rules": [
+       "clock/timer_set_value"
+      ]
+     },
+     "source": "clock/timer_set_value.rule:62 (D_TIMER_CANCEL)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "clock/timer_set_value.rule:29-63"
+    }
+   ]
+  },
+  {
+   "rule": "settings/download_now_later",
+   "source": "settings/download_now_later.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "yes",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "settings/download_now_later"
+      ]
+     },
+     "source": "settings/download_now_later.rule:5 (yes_no _nl)"
+    },
+    {
+     "kind": "positive",
+     "text": "no thanks",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "settings/download_now_later"
+      ]
+     },
+     "source": "settings/download_now_later.rule:29 (NO_OTHER)"
+    },
+    {
+     "kind": "boundary",
+     "text": "why not",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "settings/download_now_later"
+      ]
+     },
+     "source": "settings/download_now_later.rule:19 (YES_OTHER)"
+    },
+    {
+     "kind": "boundary",
+     "text": "not now",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "settings/download_now_later"
+      ]
+     },
+     "source": "settings/download_now_later.rule:38 (NO_OTHER)"
+    },
+    {
+     "kind": "boundary",
+     "text": "cancel",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "settings/download_now_later"
+      ]
+     },
+     "source": "settings/download_now_later.rule:33 (NO_OTHER)"
+    },
+    {
+     "kind": "positive",
+     "text": "never",
+     "expect": {
+      "intent": "never",
+      "entities": {},
+      "rules": [
+       "settings/download_now_later"
+      ]
+     },
+     "source": "settings/download_now_later.rule:44 (NEVER)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "settings/download_now_later.rule:3-9"
+    }
+   ]
+  },
+  {
+   "rule": "settings/execute_settings_menu",
+   "source": "settings/execute_settings_menu.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "battery",
+     "expect": {
+      "intent": "battery",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:19"
+    },
+    {
+     "kind": "positive",
+     "text": "shut down",
+     "expect": {
+      "intent": "shutDown",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:20"
+    },
+    {
+     "kind": "positive",
+     "text": "about",
+     "expect": {
+      "intent": "about",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:21"
+    },
+    {
+     "kind": "positive",
+     "text": "volume",
+     "expect": {
+      "intent": "volumeQuery",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:22"
+    },
+    {
+     "kind": "positive",
+     "text": "wifi",
+     "expect": {
+      "intent": "wifiStatus",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:23"
+    },
+    {
+     "kind": "positive",
+     "text": "updates",
+     "expect": {
+      "intent": "updates",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:24"
+    },
+    {
+     "kind": "positive",
+     "text": "wipe",
+     "expect": {
+      "intent": "wipe",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:25"
+    },
+    {
+     "kind": "boundary",
+     "text": "turn it off",
+     "expect": {
+      "intent": "shutDown",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:20 ((turn $* off))"
+    },
+    {
+     "kind": "boundary",
+     "text": "the battery",
+     "expect": {
+      "intent": "battery",
+      "entities": {},
+      "rules": [
+       "settings/execute_settings_menu"
+      ]
+     },
+     "source": "settings/execute_settings_menu.rule:12,19 (?($THE) SETTINGSNAME)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "settings/execute_settings_menu.rule:17-26"
+    }
+   ]
+  },
+  {
+   "rule": "settings/okay_thanks_to_clear",
+   "source": "settings/okay_thanks_to_clear.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "okay thanks",
+     "expect": {
+      "intent": "okayThanks",
+      "entities": {},
+      "rules": [
+       "settings/okay_thanks_to_clear"
+      ]
+     },
+     "source": "settings/okay_thanks_to_clear.rule:11 (okay)"
+    },
+    {
+     "kind": "boundary",
+     "text": "got it",
+     "expect": {
+      "intent": "okayThanks",
+      "entities": {},
+      "rules": [
+       "settings/okay_thanks_to_clear"
+      ]
+     },
+     "source": "settings/okay_thanks_to_clear.rule:14 (got it)"
+    },
+    {
+     "kind": "boundary",
+     "text": "thank you",
+     "expect": {
+      "intent": "okayThanks",
+      "entities": {},
+      "rules": [
+       "settings/okay_thanks_to_clear"
+      ]
+     },
+     "source": "settings/okay_thanks_to_clear.rule:13 (thank you)"
+    },
+    {
+     "kind": "boundary",
+     "text": "thanks",
+     "expect": {
+      "intent": "okayThanks",
+      "entities": {},
+      "rules": [
+       "settings/okay_thanks_to_clear"
+      ]
+     },
+     "source": "settings/okay_thanks_to_clear.rule:12 (thanks)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "settings/okay_thanks_to_clear.rule:9-16"
+    },
+    {
+     "kind": "negative",
+     "text": "no",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "settings/okay_thanks_to_clear.rule:9-16 (no negative arm)"
+    }
+   ]
+  },
+  {
+   "rule": "settings/shut_down_confirmation",
+   "source": "settings/shut_down_confirmation.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "yes",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "settings/shut_down_confirmation"
+      ]
+     },
+     "source": "settings/shut_down_confirmation.rule:6 (yes_no _nl)"
+    },
+    {
+     "kind": "positive",
+     "text": "no",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "settings/shut_down_confirmation"
+      ]
+     },
+     "source": "settings/shut_down_confirmation.rule:6 (yes_no _nl)"
+    },
+    {
+     "kind": "boundary",
+     "text": "definitely",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "settings/shut_down_confirmation"
+      ]
+     },
+     "source": "settings/shut_down_confirmation.rule:20 (YES)"
+    },
+    {
+     "kind": "boundary",
+     "text": "certainly",
+     "expect": {
+      "intent": "yes",
+      "entities": {},
+      "rules": [
+       "settings/shut_down_confirmation"
+      ]
+     },
+     "source": "settings/shut_down_confirmation.rule:19 (YES)"
+    },
+    {
+     "kind": "boundary",
+     "text": "stay on",
+     "expect": {
+      "intent": "no",
+      "entities": {},
+      "rules": [
+       "settings/shut_down_confirmation"
+      ]
+     },
+     "source": "settings/shut_down_confirmation.rule:38 (NO)"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "settings/shut_down_confirmation.rule:5-8"
+    }
+   ]
+  },
+  {
+   "rule": "settings/volume_control",
+   "source": "settings/volume_control.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "turn the volume up",
+     "expect": {
+      "intent": "volumeUp",
+      "entities": {
+       "volumeLevel": "null",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:55-60"
+    },
+    {
+     "kind": "positive",
+     "text": "turn the volume down",
+     "expect": {
+      "intent": "volumeDown",
+      "entities": {
+       "volumeLevel": "null",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:63-68"
+    },
+    {
+     "kind": "boundary",
+     "text": "what's your volume",
+     "expect": {
+      "intent": "volumeQuery",
+      "entities": {
+       "volumeLevel": "null",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:38-39"
+    },
+    {
+     "kind": "boundary",
+     "text": "maximum volume",
+     "expect": {
+      "intent": "volumeToValue",
+      "entities": {
+       "volumeLevel": "10",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:42-45"
+    },
+    {
+     "kind": "boundary",
+     "text": "minimum volume",
+     "expect": {
+      "intent": "volumeToValue",
+      "entities": {
+       "volumeLevel": "01",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:49-52"
+    },
+    {
+     "kind": "boundary",
+     "text": "set the volume to five",
+     "expect": {
+      "intent": "volumeToValue",
+      "entities": {
+       "volumeLevel": "05",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:74,84-91"
+    },
+    {
+     "kind": "boundary",
+     "text": "turn it up a bit",
+     "expect": {
+      "intent": "volumeUp",
+      "entities": {
+       "volumeLevel": "null",
+       "domain": "gui_command"
+      },
+      "rules": [
+       "settings/volume_control"
+      ]
+     },
+     "source": "settings/volume_control.rule:55-56"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "settings/volume_control.rule:11-33"
+    }
+   ]
+  },
+  {
+   "rule": "main-menu/execute_fun_stuff",
+   "source": "main-menu/execute_fun_stuff.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "joke",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "joke"
+      },
+      "rules": [
+       "main-menu/execute_fun_stuff"
+      ]
+     },
+     "source": "main-menu/execute_fun_stuff.rule:17"
+    },
+    {
+     "kind": "positive",
+     "text": "dance",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "dance"
+      },
+      "rules": [
+       "main-menu/execute_fun_stuff"
+      ]
+     },
+     "source": "main-menu/execute_fun_stuff.rule:18"
+    },
+    {
+     "kind": "boundary",
+     "text": "tell me a joke",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "joke"
+      },
+      "rules": [
+       "main-menu/execute_fun_stuff"
+      ]
+     },
+     "source": "main-menu/execute_fun_stuff.rule:10,17"
+    },
+    {
+     "kind": "boundary",
+     "text": "surprise me",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "surprise"
+      },
+      "rules": [
+       "main-menu/execute_fun_stuff"
+      ]
+     },
+     "source": "main-menu/execute_fun_stuff.rule:19"
+    },
+    {
+     "kind": "boundary",
+     "text": "word of the day",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "word-of-the-day"
+      },
+      "rules": [
+       "main-menu/execute_fun_stuff"
+      ]
+     },
+     "source": "main-menu/execute_fun_stuff.rule:16"
+    },
+    {
+     "kind": "boundary",
+     "text": "circuit saver game",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "circuit-saver"
+      },
+      "rules": [
+       "main-menu/execute_fun_stuff"
+      ]
+     },
+     "source": "main-menu/execute_fun_stuff.rule:15"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "main-menu/execute_fun_stuff.rule:13-20"
+    }
+   ]
+  },
+  {
+   "rule": "main-menu/execute_main_menu",
+   "source": "main-menu/execute_main_menu.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "settings",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "settings"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:23"
+    },
+    {
+     "kind": "positive",
+     "text": "clock",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "clock"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:21"
+    },
+    {
+     "kind": "positive",
+     "text": "radio",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "radio"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:24"
+    },
+    {
+     "kind": "boundary",
+     "text": "gallery",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "gallery"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:20"
+    },
+    {
+     "kind": "boundary",
+     "text": "snapshot",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "snapshot"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:17"
+    },
+    {
+     "kind": "boundary",
+     "text": "tutorial",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "tutorial"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:14"
+    },
+    {
+     "kind": "boundary",
+     "text": "fun stuff",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "fun"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:16"
+    },
+    {
+     "kind": "boundary",
+     "text": "personal report",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "personal-report"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:18"
+    },
+    {
+     "kind": "boundary",
+     "text": "introductions",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "introductions"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:22"
+    },
+    {
+     "kind": "boundary",
+     "text": "yoga",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "exercise"
+      },
+      "rules": [
+       "main-menu/execute_main_menu"
+      ]
+     },
+     "source": "main-menu/execute_main_menu.rule:25"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "main-menu/execute_main_menu.rule:12-26"
+    }
+   ]
+  },
+  {
+   "rule": "main-menu/execute_personal_report",
+   "source": "main-menu/execute_personal_report.rule",
+   "cases": [
+    {
+     "kind": "positive",
+     "text": "weather",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "weather"
+      },
+      "rules": [
+       "main-menu/execute_personal_report"
+      ]
+     },
+     "source": "main-menu/execute_personal_report.rule:16"
+    },
+    {
+     "kind": "boundary",
+     "text": "full report",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "full-report"
+      },
+      "rules": [
+       "main-menu/execute_personal_report"
+      ]
+     },
+     "source": "main-menu/execute_personal_report.rule:15"
+    },
+    {
+     "kind": "boundary",
+     "text": "calendar",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "calendar"
+      },
+      "rules": [
+       "main-menu/execute_personal_report"
+      ]
+     },
+     "source": "main-menu/execute_personal_report.rule:17"
+    },
+    {
+     "kind": "boundary",
+     "text": "commute",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "commute"
+      },
+      "rules": [
+       "main-menu/execute_personal_report"
+      ]
+     },
+     "source": "main-menu/execute_personal_report.rule:18"
+    },
+    {
+     "kind": "boundary",
+     "text": "news",
+     "expect": {
+      "intent": "loadMenu",
+      "entities": {
+       "destination": "news"
+      },
+      "rules": [
+       "main-menu/execute_personal_report"
+      ]
+     },
+     "source": "main-menu/execute_personal_report.rule:19"
+    },
+    {
+     "kind": "negative",
+     "text": "qzx florp",
+     "expect": {
+      "intent": null,
+      "entities": null,
+      "rules": []
+     },
+     "source": "main-menu/execute_personal_report.rule:13-20"
+    }
+   ]
+  }
+ ],
+ "timeRules": [
+  {
+   "rule": "clock/alarm_timer_ampm",
+   "source": "clock/alarm_timer_ampm.rule",
+   "dependency": "time",
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time",
+   "refusalUtterances": [
+    "am",
+    "pm",
+    "a.m.",
+    "p.m.",
+    "noon",
+    "morning",
+    "seven thirty am",
+    "set an alarm",
+    "5 pm",
+    "one day from now",
+    "3 days",
+    "qzx florp"
+   ]
+  },
+  {
+   "rule": "clock/alarm_set_value",
+   "source": "clock/alarm_set_value.rule",
+   "dependency": "time",
+   "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time",
+   "refusalUtterances": [
+    "am",
+    "pm",
+    "a.m.",
+    "p.m.",
+    "noon",
+    "morning",
+    "seven thirty am",
+    "set an alarm",
+    "5 pm",
+    "one day from now",
+    "3 days",
+    "qzx florp"
+   ]
+  }
+ ]
+}
