@@ -16,7 +16,12 @@ import { randomBytes } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-const DEFAULT_FILE = join(tmpdir(), 'phoenix-notifications.json');
+// Per-process default so two Node processes (or two concurrently scheduled test
+// files) never race on the same atomic tmp+rename. A single shared path in tmpdir
+// caused intermittent "ENOENT: rename .../phoenix-notifications.json.tmp" failures
+// that cancelled unrelated suites. A real deployment always passes an explicit file
+// (ETCO_classic_notificationFile), so only the unconfigured/default path changes.
+const DEFAULT_FILE = join(tmpdir(), `phoenix-notifications.${process.pid}.json`);
 
 export const NOTIFICATIONS_LIMIT = 100;
 export const NOTIFICATION_TTL_MS = 300 * 1000;
