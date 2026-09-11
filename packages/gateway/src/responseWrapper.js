@@ -14,6 +14,12 @@
 //     responsible for closing: it does so as soon as it sees the final frame
 //     (hub-client/src/session/ClientSession.ts:21-26,49-51).
 //   - error() writes {type:'ERROR', msgID, ts, final:true, data:{message, code, ...extra}}
+//
+// Phoenix addition (diagnostic only, no behavior change): the response records
+// WHY and WHEN it ended (`endReason`/`endAt`). The socket-close handler used to be
+// silent, which made "can't write after response ended" un-attributable — a
+// dropped LISTEN result could be a client close, the max-duration timer, or an
+// earlier final frame and there was no way to tell them apart from the logs.
 
 import { newMsgId, now } from '@phoenix/contracts';
 
@@ -27,6 +33,8 @@ export class ResponseWrapper {
     this.log = log;
     this.startTime = now();
     this.ended = false;
+    this.endReason = null;
+    this.endAt = null;
     // Matches the pinned initial value. `closed` only ever becomes true when the
     // peer closes, so `_closeBecauseOfTimeout` never fires (see header comment).
     this.closed = true;
@@ -35,13 +43,21 @@ export class ResponseWrapper {
     this.donePromise = new Promise((resolve) => { this._onEnd = resolve; });
 
     this.maxDurationTimer = setTimeout(() => {
-      this._done();
+      this._done('max-duration');
       this._closeBecauseOfTimeout(TIMEOUT_MAX_DURATION);
     }, TIMEOUT_MAX_DURATION);
     this.maxDurationTimer.unref?.();
 
     socket.on('close', () => {
-      this._done();
+      // The peer closed: record it with the elapsed time and whether the response
+      // had already ended, so a later dropped frame is attributable.
+      this.log?.debug('socket closed by peer', {
+        elapsedMs: now() - this.startTime,
+        readyState: socket.readyState,
+        wasEnded: this.ended,
+        endReason: this.endReason,
+      });
+      this._done('socket-close');
       this._clearCloseAfterFinal();
       this.closed = true;
     });
@@ -50,14 +66,21 @@ export class ResponseWrapper {
   /** Write a message; fills timings.total if missing; schedules close on final. */
   write(data) {
     if (this.ended) {
-      this.log?.warn("can't write after response ended", { type: data?.type });
+      this.log?.warn("can't write after response ended", {
+        type: data?.type,
+        final: !!data?.final,
+        endReason: this.endReason,
+        endedAgoMs: this.endAt === null ? null : now() - this.endAt,
+        elapsedMs: now() - this.startTime,
+      });
       return false;
     }
     if (!data.timings) data.timings = { total: now() - this.startTime };
     if (this.socket.readyState === this.socket.OPEN) this.socket.send(JSON.stringify(data));
+    else this.log?.debug('frame not written: socket is not open', { type: data.type, readyState: this.socket.readyState });
 
     if (data.final) {
-      this._done();
+      this._done('final-write');
       this._clearCloseAfterFinal();
       this.closeAfterFinalTimer = setTimeout(() => this._closeBecauseOfTimeout(TIMEOUT_CLOSE_AFTER_FINAL), TIMEOUT_CLOSE_AFTER_FINAL);
       this.closeAfterFinalTimer.unref?.();
@@ -90,9 +113,12 @@ export class ResponseWrapper {
       this.closed = true;
     }
   }
-  _done() {
+  _done(reason = 'unknown') {
     if (this.ended) return;
     this.ended = true;
+    this.endReason = reason;
+    this.endAt = now();
+    this.log?.debug('response ended', { reason, elapsedMs: this.endAt - this.startTime });
     this._clearMaxDuration();
     this._onEnd?.();
   }

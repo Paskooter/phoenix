@@ -412,7 +412,11 @@ test('Parakeet provider over a real socket: real PCM VAD + post-hoc FAST_EOS ann
 
   const state = await driveTurn(port, {
     listen: listenServerAsr({ encoding: 'LINEAR16', earlyEOS: ['yes'] }),
-    frames: [SPEECH(), SPEECH(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE()],
+    // 500 ms of speech, not 200 ms: on a hotphrase turn the turn's audio opens with
+    // the wake phrase's own tail (150-300 ms observed on the robot), which the
+    // gateway now refuses to treat as an endpoint (see listen.emptyEndpoint.test.js),
+    // so the fixture utterance has to be longer than that tail.
+    frames: [SPEECH(), SPEECH(), SPEECH(), SPEECH(), SPEECH(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE()],
   });
 
   assert.deepEqual(state.types(), ['SOS', 'EOS', 'LISTEN'], `frames: ${JSON.stringify(state.types())}`);

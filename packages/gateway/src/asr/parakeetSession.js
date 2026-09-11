@@ -11,6 +11,19 @@
 // stop() before SOS resolves start() with undefined; after SOS it fires EOS (if
 // needed) and finalizes. Response JSON `{transcript}` may be a plain string or a
 // NeMo Hypothesis object {text, ...} — unwrapped to a string.
+//
+// Phoenix fix (robot-observed): a silence endpoint that recognizes NO words must
+// not end the turn. The robot streams audio into the turn from the moment its
+// wake-phrase spotter fires, so the first energy run is the tail of the wake
+// phrase and the speaker's natural pause after it satisfies the 700 ms
+// trailing-silence endpoint. Finalizing there posts ~1 s of wake-phrase tail
+// (transcript '' or a fragment), the hub routes a no-match LISTEN result, the
+// turn ends, and the user's actual request — arriving after the pause — is
+// streamed into an already-ended response and discarded. The reference's
+// incremental seam could not see this because it reports whatever it has at
+// every endpoint; a batch recognizer reports exactly nothing there. So an empty
+// silence endpoint keeps listening (bounded) and only a recognized utterance —
+// or the caller's budget — ends the ASR phase.
 
 import http from 'node:http';
 import { FastEOS } from './fastEOS.js';
@@ -36,6 +49,20 @@ const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 
 const POST_TIMEOUT_MS = 30000;
 
+// A silence endpoint that recognizes no words is treated as a false endpoint
+// (see the header note): keep listening instead of ending the turn. Bounded so a
+// quiet stream cannot hold a turn open with recognition after recognition.
+const EMPTY_ENDPOINT_RELISTEN_LIMIT = 3;
+
+// A wake-phrase tail is a short energy burst (observed 150-300 ms of the "-bo" in
+// "Hey Jibo"). On a hotphrase turn the turn's audio always opens with it, so an
+// endpoint that follows a run shorter than this cannot be an utterance: keep
+// listening. Local (non-hotphrase) turns have no wake tail, so short answers such
+// as "no" are unaffected. Cumulative speech still ends the turn, so several short
+// bursts converge on a real endpoint.
+const MIN_ENDPOINT_SPEECH_MS = 400;
+const WAKE_TAIL_IGNORE_LIMIT = 2;
+
 const bytesToMs = (bytes) => (bytes / BYTES_PER_SEC) * 1000;
 
 export class ParakeetASRSession {
@@ -56,7 +83,11 @@ export class ParakeetASRSession {
 
     this.sosFired = false;
     this.eosFired = false;
+    this.eosEmitted = false;
     this.stopped = false;
+    this.aborted = false;
+    this.relistenCount = 0;
+    this.wakeTailIgnored = 0;
 
     this.sosHandler = null;
     this.eosHandler = null;
@@ -182,6 +213,18 @@ export class ParakeetASRSession {
       this.silenceBytes += window.length;
       if (this.state === 'SPEAKING') this.state = 'TRAILING_SILENCE';
       if (this.state === 'TRAILING_SILENCE' && bytesToMs(this.silenceBytes) >= SILENCE_TO_EOS_MS) {
+        if (this._isWakeTailBurst()) {
+          // The wake phrase's own tail: not an utterance. Drop the endpoint and
+          // keep listening for the request the speaker has not made yet.
+          this.wakeTailIgnored += 1;
+          this.silenceBytes = 0;
+          this.state = 'WAITING';
+          this.log.debug?.('[asr] short burst after the wake phrase: not an endpoint, continuing to listen', {
+            speechMs: Math.round(bytesToMs(this.speechBytes)),
+            ignored: this.wakeTailIgnored,
+          });
+          return;
+        }
         this._fireEOSAndFinalize('silence');
         return;
       }
@@ -243,7 +286,7 @@ export class ParakeetASRSession {
       if (this.sosFired) {
         if (!this.eosFired) {
           this.eosFired = true;
-          if (this.eosHandler) this.eosHandler(null);
+          this._emitEOS();
         }
         this.state = 'FINALIZING';
         this.finalizeReason = 'stop';
@@ -260,6 +303,36 @@ export class ParakeetASRSession {
     }
   }
 
+  /**
+   * Caller no longer needs a result (peer gone / phase superseded): end the
+   * session, drop the buffered audio and recognize nothing. Without this the
+   * cooperative stop() path still posts a full WAV for a response that can no
+   * longer be delivered.
+   */
+  abort() {
+    if (this.aborted || this.state === 'DONE') { this.aborted = true; return; }
+    this.aborted = true;
+    this.stopped = true;
+    this.state = 'DONE';
+    this.chunks = [];
+    this.totalBytes = 0;
+    this.pcmPending = Buffer.alloc(0);
+    this.pcmCarry = null;
+    this._closeDecoder();
+    if (this.resolveStart) {
+      const resolve = this.resolveStart;
+      this.resolveStart = null;
+      resolve(undefined);
+    }
+  }
+
+  /** Emit the wire EOS at most once, even across empty-endpoint re-listens. */
+  _emitEOS() {
+    if (this.eosEmitted) return;
+    this.eosEmitted = true;
+    if (this.eosHandler) this.eosHandler(null);
+  }
+
   _fireEOSAndFinalize(reason) {
     if (this.eosFired) return;
     this.eosFired = true;
@@ -267,11 +340,72 @@ export class ParakeetASRSession {
     this.finalizeReason = reason;
     this.pcmPending = Buffer.alloc(0);
     this.log.debug?.(`EOS detected (${reason}), finalizing with ${this.chunks.length} chunks`);
-    if (this.eosHandler) this.eosHandler(null);
+    this._emitEOS();
     this._finalize({ mode: 'cancel' }).catch((err) => {
       this.log.error?.('Parakeet finalize failed: ' + err.message);
       this.state = 'DONE';
       if (this.rejectStart) this.rejectStart(err);
+    });
+  }
+
+  /**
+   * Recognize the audio buffered so far, on demand. A batch recognizer can answer
+   * a max-speech timeout with the words it actually holds, which the reference's
+   * incremental `getLastIncremental()` seam cannot. Resolves the transcript text
+   * ('' when the buffer holds no words) or undefined when there is nothing to
+   * recognize.
+   */
+  async finalizeNow() {
+    if (this.aborted || this.stopped || this.state === 'FINALIZING' || this.state === 'DONE') return undefined;
+    this.state = 'FINALIZING';
+    this.finalizeReason = 'max-speech';
+    this.pcmPending = Buffer.alloc(0);
+    await this._finalize({ mode: 'cancel' });
+    // The reference reports MAX_SPEECH_TIMEOUT when its incremental seam supplies
+    // the words at this point; the batch result this session resolves with carries
+    // the same annotation so the robot sees the same turn shape.
+    if (this.lastResult && !this.lastResult.annotation) this.lastResult.annotation = 'MAX_SPEECH_TIMEOUT';
+    return this.lastResult ? this.lastResult.text : undefined;
+  }
+
+  /**
+   * An endpoint that produced no transcript on a silence boundary did not hear an
+   * utterance: keep the session open for the real one (bounded, and never for a
+   * caller stop or a max-buffer cut).
+   */
+  _shouldRelisten() {
+    return !this.stopped
+      && !this.aborted
+      && this.finalizeReason === 'silence'
+      && this.relistenCount < EMPTY_ENDPOINT_RELISTEN_LIMIT;
+  }
+
+  /**
+   * True when the endpoint in flight only followed the wake phrase's own tail: a
+   * hotphrase turn's audio always opens with it (the robot starts streaming as
+   * soon as its spotter fires), and it is far shorter than any utterance.
+   */
+  _isWakeTailBurst() {
+    return this.config.hotphrase === true
+      && !this.eosFired
+      && this.wakeTailIgnored < WAKE_TAIL_IGNORE_LIMIT
+      && bytesToMs(this.speechBytes) < MIN_ENDPOINT_SPEECH_MS;
+  }
+
+  /** Restart the recognition window after an empty endpoint, keeping SOS state. */
+  _resetForRelisten() {
+    this.relistenCount += 1;
+    this.chunks = [];
+    this.totalBytes = 0;
+    this.speechBytes = 0;
+    this.silenceBytes = 0;
+    this.pcmPending = Buffer.alloc(0);
+    this.pcmCarry = null;
+    this.eosFired = false;      // the next endpoint ends this window (wire EOS stays single)
+    this.state = this.sosFired ? 'TRAILING_SILENCE' : 'WAITING';
+    this.finalizeReason = null;
+    this.log.debug?.('[asr] empty silence endpoint: no words recognized, continuing to listen', {
+      relisten: this.relistenCount,
     });
   }
 
@@ -305,6 +439,13 @@ export class ParakeetASRSession {
     }
     const wav = ParakeetASRSession.makeWav(pcm);
     const transcript = await this._postToParakeet(wav);
+    // An empty silence endpoint heard no utterance (typically the wake-phrase
+    // tail before the speaker's pause): keep listening for the real request
+    // instead of ending the turn with an empty no-match result.
+    if (!transcript && this._shouldRelisten()) {
+      this._resetForRelisten();
+      return;
+    }
     const result = { text: transcript || '', confidence: transcript ? 1.0 : 0.0 };
     // Post-hoc earlyEOS: annotate the final transcript when it matches the
     // cleaned earlyEOS phrases (the reference's stated batch behavior).

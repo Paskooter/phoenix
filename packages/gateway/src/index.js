@@ -150,7 +150,14 @@ export async function createGateway(config = loadConfig()) {
     // while a skill request is still in flight. ProactiveTransaction retains
     // Phoenix's existing close behavior until that separate lifecycle is
     // reviewed against the source proactive handler.
+    //
+    // A closed peer cannot receive anything, so the listen transaction's
+    // in-flight ASR phase is abandoned instead (Phoenix fix): the robot closes
+    // this socket on every hotword re-trigger and on cancel_local_turn, and
+    // without this the phase kept streaming into a dead response and recognized
+    // audio whose EOS + LISTEN frames were silently dropped.
     if (isProactive) ws.on('close', () => tx.resolve());
+    else ws.on('close', () => tx.abandon?.());
 
     tx.done.catch((err) => {
       reqLog.error('transaction failed', { error: err.message, code: err.code });

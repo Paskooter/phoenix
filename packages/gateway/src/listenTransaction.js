@@ -95,7 +95,8 @@ export class ListenTransaction {
     // ASR phase bookkeeping. asrCancelled mirrors the reference's stopASR()
     // effect: once a client-supplied turn (or any state exit) supersedes the
     // ASR phase, that phase may no longer emit SOS/EOS or contribute a result.
-    this.asrCancelled = false;
+    this.asrCancelled = false; // mirrors the reference's stopASR() effect
+    this.abandoned = false;    // peer closed: no write can be delivered any more
     this.sosTimer = null;
     this.maxSpeechTimer = null;
 
@@ -300,6 +301,9 @@ export class ListenTransaction {
       const listenData = this.listenMessage.data;
       const asrData = (listenData.asr && listenData.asr !== 'FAKE') ? listenData.asr : {};
       const config = Object.assign({ lang: listenData.lang }, asrData);
+      // The provider needs to know this is a wake-phrase turn: its audio always
+      // opens with the tail of the wake phrase, which is not an utterance.
+      config.hotphrase = !!listenData.hotphrase;
       config.hints = asrData.hints ? cleanHintsEOS(asrData.hints, true, this.log) : undefined;
       config.earlyEOS = asrData.earlyEOS ? cleanHintsEOS(asrData.earlyEOS, false, this.log) : undefined;
       config.maxSpeechTimeout = asrData.maxSpeechTimeout || 60 * 1000;
@@ -327,7 +331,23 @@ export class ListenTransaction {
           this.maxSpeechTimer = setTimeout(() => {
             if (!live()) return;
             const last = session.getLastIncremental();
-            resolve({ text: (last && last.text) || '', confidence: (last && last.confidence) || 0, annotation: 'MAX_SPEECH_TIMEOUT' });
+            const settle = (text, confidence) => {
+              if (!live()) return;
+              resolve({ text: text || '', confidence: confidence || 0, annotation: 'MAX_SPEECH_TIMEOUT' });
+            };
+            // A batch recognizer holds the words until it is asked to recognize;
+            // the reference's incremental seam would report them here, so ask for
+            // them instead of settling the turn with an empty no-match result.
+            if (typeof session.finalizeNow === 'function') {
+              session.finalizeNow().then(
+                (batchText) => (batchText
+                  ? settle(batchText, 1.0)
+                  : settle(last && last.text, last && last.confidence)),
+                (err) => { this.log.warn('batch finalize on max-speech timeout failed', { error: err.message }); settle(last && last.text, last && last.confidence); },
+              );
+            } else {
+              settle(last && last.text, last && last.confidence);
+            }
           }, config.maxSpeechTimeout);
           this.maxSpeechTimer.unref?.();
         }
@@ -373,6 +393,31 @@ export class ListenTransaction {
   _cancelASR() {
     this.asrCancelled = true;
     this._stopASR();
+  }
+
+  /**
+   * The peer is gone (socket close): nothing this transaction writes can be
+   * delivered any more, so make the in-flight ASR phase silent AND cheap. Setting
+   * asrCancelled first makes live() false, which suppresses the EOS and the LISTEN
+   * result that the running session would otherwise emit into an ended response
+   * ("can't write after response ended" — after a hotword re-trigger or a
+   * cancel_local_turn the robot closes the socket, and without this the phase ran
+   * on until maxSpeechTimeout and recognized audio for a dead peer).
+   */
+  abandon() {
+    if (this.abandoned) return;
+    this.abandoned = true;
+    this.asrCancelled = true;
+    const session = this.asrSession;
+    if (session) {
+      try {
+        if (typeof session.abort === 'function') session.abort();
+        else session.stop();
+      } catch { /* the peer is gone; nothing to recover */ }
+      this.asrSession = null;
+    }
+    this._clearASRTimers();
+    this.audioChunks.length = 0;
   }
 
   async _performNLU() {
