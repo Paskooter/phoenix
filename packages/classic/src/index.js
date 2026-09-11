@@ -53,6 +53,7 @@ export {
   JotStore, JotMessageController, JotMessageCreated, makeJotHandler, jotHttpRoutes,
   mediaStoreClient, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS, JOT_TARGET_PREFIXES,
   JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE, JOT_EVENTS, JOT_VALIDATORS, JOT_MESSAGE_CREATED_SCHEMA,
+  JOT_DISPATCH_RULE, jotMethodNotFound, lowerFirstOp,
 } from './jot.js';
 export { PERSON_QUESTIONS, HOLIDAYS } from './personCatalog.js';
 export {

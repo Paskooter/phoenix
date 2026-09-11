@@ -24,27 +24,57 @@
 //   jibo:server/message-bus
 //     src/events/base.js, src/events/jotEvents.js   the JotMessageCreated Kafka event + payload
 //
-// THE VERSIONED CONTRACT AND THE PREFIX CONFLICT (resolved here, explicitly):
-//   Historical SDK models contain 24 distinct (targetPrefix, operation) Jot pairs:
-//     Jot_20160126: CreateMessage, ListIncomingMessages, ListSentMessages, MarkDelivered, MarkSeen,
-//                   RemoveMessage, ListMessages, MarkRead, MarkLoopRead, NumberOfUnreadMessagesInLoops
-//     Jot_20160310: CreatePart, CreateMessage, UpdateMessage, RemoveMessage, GetMessages,
-//                   ListIncomingMessages, ListSentMessages, MarkDelivered, MarkAllDelivered,
-//                   MarkSeen, MarkAllSeen, ListMessages, ListInbox, ListSent
-//   Only the LAST model era (the loop-era handler pinned above) has a recovered handler: it maps
-//   exactly five operations. The other 19 party-era pairs have no recovered matching-era handler,
-//   so this service does NOT invent them: an unmapped Jot operation answers ValidationException
-//   (unknown jot operation), exactly as the other graduated classic services do.
-//   The deployed PREFIX is ambiguous in the archive: the 2016-05-12 model's metadata declares
-//   `targetPrefix: "Jot_20160126"`, while the only recovered integration test sends literal
-//   `Jot_20160512`. Both are real. The source's @jibo/server App dispatched its handlers by the
-//   OPERATION NAME after the dot, not by the prefix, so the two prefixes are the same deployed
-//   service. Phoenix therefore dispatches the five loop-era operations under any `Jot*` prefix and
-//   records both observed prefixes in JOT_TARGET_PREFIXES. Consequence, stated plainly: a
-//   `Jot_20160126.CreateMessage` request is served the loop-era shape (the model that declares that
-//   prefix IS the 2016-05-12 shape); a party-era-only operation such as `Jot_20160310.CreatePart`
-//   is not served at all.
+// HOW THE DEPLOYED SERVICE SELECTS AN OPERATION — this SETTLES DIVERGENCES A19a:
+//   Jot is an `@jibo/server` service (server/jot-ws@9a725d3 src/index.js: `new App({…})`). The
+//   framework dispatcher reads ONLY the operation segment of X-Amz-Target and DISCARDS the prefix —
+//   server/server src/server.js `lowerMethodName(request)`:
+//     const target = request.headers['x-amz-target'];
+//     const methodName = target.split('.')[1];
+//     return methodName[0].toLowerCase() + methodName.substring(1);
+//   (byte-identical in the pinned dependency: @jibo/server@3.1.1 dst/server.js:70-73, which is what
+//   jiborobot/srv-jot-ws-archived pins as `~3.1.1`; @jibo/server@2.1.3 dst/server.js:64-68, the
+//   `^2.1.3` of server/jot-ws@9a725d3, is the same code). The PREFIX IS THEREFORE NOT SIGNIFICANT:
+//   `Jot_20160126` (what the last SDK model declares), `Jot_20160512` (what the only recovered
+//   integration test sends) and any other prefix at all reach the SAME handler. JOT_TARGET_PREFIXES
+//   records the two OBSERVED prefixes for auditing; JOT_DISPATCH_RULE states the mechanism.
 //
+//   Both observed prefixes rest on real, pinned evidence, so both are served:
+//     jiborobot/srv-jibo-server-client@b2da11bc apis/jot-2016-05-12.normal.json
+//       metadata.targetPrefix = "Jot_20160126" — the last model was re-cut for 2016-05-12 but its
+//       prefix metadata still names 2016-01-26
+//     jiborobot/srv-jot-ws-archived@4432ac5d archive/message.spec.js
+//       'X-Amz-Target': 'Jot_20160512.CreateMessage' at line 63 (also ListMessages/MarkRead/
+//       MarkLoopRead) — the only recovered runtime exercise of this service
+//
+// THE VERSIONED CONTRACT (acceptance 1) — every model read directly from the archive MCP:
+//     apis/jot-2016-01-26.normal.json@4c68f963   Jot_20160126: CreateMessage, RemoveMessage,
+//       ListIncomingMessages, ListSentMessages, MarkDelivered, MarkSeen                 (6 ops)
+//     apis/jot-2016-05-12.normal.json@b2da11bc   Jot_20160126: CreateMessage, ListMessages,
+//       MarkRead, MarkLoopRead, NumberOfUnreadMessagesInLoops                          (5 ops)
+//     apis/jot-2016-03-10.normal.json@1b26ad78   Jot_20160310: CreatePart, CreateMessage,
+//       UpdateMessage, RemoveMessage, GetMessages, ListIncomingMessages, ListSentMessages,
+//       MarkDelivered, MarkAllDelivered, MarkSeen, MarkAllSeen                          (11 ops)
+//       (the later 39f53698 cut swaps in ListMessages: … GetMessages, ListMessages, MarkSeen,
+//        MarkAllSeen; the A-01 operation map's Jot_20160310 union also carries ListInbox/ListSent)
+//   UNION under `Jot_20160126` = 10 distinct operation names; under `Jot_20160310` = 14. Only the
+//   LAST (loop-era) handler was recovered — server/jot-ws@9a725d3 message.handler.js maps exactly
+//   createMessage/listMessages/markRead/markLoopRead/numberOfUnreadMessagesInLoops — so the other 19
+//   pairs have no matching-era handler and are NOT invented. `docs/parity/candidates/
+//   A-01-operation-map.json` /denominator/prefixAmbiguity/perPrefixModelUnionPairCounts records the
+//   same 10 + 14 split.
+//
+// THE UNMAPPED-OPERATION ENVELOPE (acceptance 2 — "exact error envelopes"):
+//   A target whose operation is not in the handler's `mapping` never reaches the handler: the
+//   framework answers it first, in the POST / onRequest extension (server/server src/server.js,
+//   @jibo/server@3.1.1 dst/server.js:110-114):
+//     const handler = this.mapping[methodName];
+//     if (!handler) return reply(Boom.notFound('Method ' + methodName + ' not found.'));
+//   i.e. HTTP 404 with the raw Boom body {statusCode:404, error:'Not Found', message:'Method <op>
+//   not found.'} (`<op>` is the lower-first operation name) and NO x-amzn-errortype header. Because
+//   this runs in onRequest it PREcedes @parseCredentials/@validatePayload: an unmapped operation is
+//   a 404 even when unsigned. Reproduced verbatim by jotMethodNotFound()/sendBoom() below; the
+//   sibling graduated service VoiceTraining answers the same class of 404 (src/voiceTraining.js).
+
 // DEAD DEPENDENCIES (explicit seams, never faked):
 //   * AccountClient.get(loopId)  -> GET http://<account>/loop?loopId=  (membership + robot check).
 //     Reproduced by an injected `account` seam `{ get(loopId) }`. When no seam is wired the two
@@ -86,10 +116,35 @@ export const JOT_OPERATIONS = [
 
 /**
  * The observed Jot target prefixes. `Jot_20160126` is what the last (2016-05-12) SDK model declares;
- * `Jot_20160512` is what the archived integration test literally sends. The handler dispatches by
- * operation name, so both resolve to this one service.
+ * `Jot_20160512` is what the archived integration test literally sends. The deployed dispatcher
+ * reads only the operation segment of X-Amz-Target, so the prefix is not significant and both (and
+ * any other) resolve to this one service — see JOT_DISPATCH_RULE.
  */
 export const JOT_TARGET_PREFIXES = ['Jot_20160126', 'Jot_20160512'];
+
+/**
+ * The pinned dispatch rule (server/server src/server.js `lowerMethodName`, @jibo/server@3.1.1
+ * dst/server.js:70-73): X-Amz-Target is split on '.', segment [1] is lower-first'd, and ONLY that
+ * name selects a handler — the prefix is discarded. Because the prefix is never compared, a target
+ * like `<any-prefix>.CreateMessage` reaches the same handler. Recorded as a constant so the resolved
+ * A19a finding is asserted, not just commented.
+ */
+export const JOT_DISPATCH_RULE = 'operation-name-only';
+
+/** srv-server server.ts / @jibo/server lowerMethodName — lowercases ONLY the first character. */
+export function lowerFirstOp(operation) {
+  const s = String(operation === undefined || operation === null ? '' : operation);
+  return s.length ? s[0].toLowerCase() + s.slice(1) : s;
+}
+
+/**
+ * The framework's unmapped-operation refusal. @jibo/server@3.1.1 dst/server.js:112-114 replies
+ * `Boom.notFound('Method ' + methodName + ' not found.')` from the POST / onRequest extension, i.e.
+ * the raw Boom body with the lower-first operation name and no error `code`/`x-amzn-errortype`.
+ */
+export function jotMethodNotFound(operation) {
+  return { statusCode: 404, error: 'Not Found', message: `Method ${lowerFirstOp(operation)} not found.` };
+}
 
 /** message.ctrl.js `const MESSAGES_LIMIT = 50` — the list page size, no cursor. */
 export const JOT_MESSAGES_LIMIT = 50;
@@ -584,6 +639,24 @@ export const JOT_VALIDATORS = {
 // ------------------------------------------------------------------------------------------------
 
 /**
+ * The raw Hapi/Boom body the framework emits for `Boom.notFound(...)` — `{statusCode, error,
+ * message}` with NO `code` and NO `x-amzn-errortype` header. Mirrors the identical helper in
+ * src/backup.js (and the Boom shape src/log.js reproduces), because the shared sendAmzError()
+ * stamps `__type` + `x-amzn-errortype` and would change this wire contract.
+ */
+function sendBoom(res, statusCode, message) {
+  const body = JSON.stringify({ statusCode, error: 'Not Found', message });
+  res.removeHeader?.('x-powered-by');
+  res.writeHead(statusCode, {
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': Buffer.byteLength(body),
+    'cache-control': 'no-cache',
+    vary: 'accept-encoding',
+  });
+  res.end(body);
+}
+
+/**
  * The X-Amz-Target handler for `Jot*.{operation}`.
  *
  * @param {object} [options]
@@ -617,8 +690,14 @@ export function makeJotHandler({ store = new JotStore(), account, media, onEvent
   return async function jotHandler({ req, res, body, op, log }) {
     const name = String(op || '').toLowerCase();
     const handler = ops[name];
-    if (!handler) return void sendAmzError(res, ValidationException, `unknown jot operation: ${op}`);
+    // The framework resolves the handler FIRST, in the POST / onRequest extension — before
+    // @parseCredentials and @validatePayload run. So an unregistered operation is the framework's
+    // raw Boom 404 (`Method <lowerFirst op> not found.`), not a payload error and not an auth error.
+    if (!handler) return void sendBoom(res, 404, jotMethodNotFound(op).message);
     // @parseCredentials({}) is the OUTERMOST decorator, so the auth gate precedes payload validation.
+    // (The gateway enforces the signature for every Jot target before the service hop:
+    //  jiborobot/srv-security-gw src/controllers/auth.ctrl.ts — `unauthorizedMethods` carries no Jot
+    //  target, so a request with no Authorization throws the shared MISSING_AUTH_HEADER 401.)
     const accountId = accountIdFromRequest(req);
     if (!accountId) return void sendAmzError(res, MISSING_AUTH_HEADER);
     const payload = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};

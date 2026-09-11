@@ -24,6 +24,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   createClassicEntrypoint, JotStore, JOT_OPERATIONS, JOT_TARGET_PREFIXES, JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE,
+  JOT_DISPATCH_RULE, jotMethodNotFound, lowerFirstOp,
 } from '../src/index.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -86,6 +87,46 @@ function amzOn(port, target, body, accessKeyId = OWNER) {
   return fetch(`http://localhost:${port}/`, { method: 'POST', headers, body: JSON.stringify(body || {}) })
     .then(async (res) => ({ status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) }));
 }
+
+/**
+ * The archived integration client's EXACT headers (jiborobot/srv-jot-ws-archived@4432ac5d
+ * archive/message.spec.js): `X-Amz-Target: Jot_20160512.<Op>` plus
+ * `X-Amz-Credentials: {"id":"<accountId>"}`. parseCredentials reads that header on the internal hop
+ * (@jibo/server src/parseCredentials.js: `JSON.parse(request.headers['x-amz-credentials'])`), which
+ * is the form the security gateway hands the service. Returns the raw body + every header so the
+ * Boom (non-AWS) envelopes can be asserted exactly.
+ */
+function archivedAmzOn(port, target, body, accountId) {
+  const headers = { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target };
+  if (accountId) headers['x-amz-credentials'] = JSON.stringify({ id: accountId });
+  return fetch(`http://localhost:${port}/`, { method: 'POST', headers, body: JSON.stringify(body || {}) })
+    .then(async (res) => ({
+      status: res.status,
+      errType: res.headers.get('x-amzn-errortype'),
+      contentType: res.headers.get('content-type'),
+      body: await res.json().catch(() => null),
+    }));
+}
+
+// The archived spec's own AccountClient.get fixture (archive/message.spec.js:17-27): the loop robot
+// plus two accepted members that carry ONLY `accountId` — the pre-refactor controller compares
+// `member.accountId`, the refactor compares `member.memberId`, so a faithful fixture proves Phoenix
+// accepts both shapes.
+const ARCHIVED_LOOP = {
+  [LOOP]: {
+    robot: ROBOT,
+    members: [
+      { accountId: OWNER, status: 'accepted' },
+      { accountId: RECEIVER, status: 'accepted' },
+    ],
+  },
+};
+const archivedAccount = { get: async (loopId) => ARCHIVED_LOOP[loopId] || null };
+// The archived spec's MediaClient.getMedia fixture (archive/message.spec.js:29-36).
+const archivedMedia = {
+  getMedia: async (accountId, paths) => paths.filter((path) => path === 'sample')
+    .map((path) => ({ path, url: 'sample_url' })),
+};
 
 /** A private entrypoint + store for one test (no shared state, controllable clock). `sink: false`
  *  leaves the default event sink in place (the durable ledger) instead of capturing into an array. */
@@ -357,22 +398,32 @@ test('only the loop robot may impersonate; a member may not (JOT_ROBOT_CAN_IMPER
   } finally { await j.server.close(); }
 });
 
-test('an unsigned request is MISSING_AUTH_HEADER 401 and an unknown operation is 400', async () => {
+test('an unsigned request is MISSING_AUTH_HEADER 401; an unmapped operation is the framework 404', async () => {
   const j = await fresh();
   try {
     const unsigned = await j.amz('Jot_20160512.ListMessages', { loopId: LOOP }, null);
     assert.equal(unsigned.status, 401);
     assert.equal(unsigned.errType, 'MISSING_AUTH_HEADER');
+    assert.equal(unsigned.body.message, 'Request is not signed properly, missing authorization header');
 
+    // The framework resolves the operation BEFORE parseCredentials/validatePayload, so an unmapped
+    // operation is the raw Boom 404 even when unsigned — not the 400 ValidationException the other
+    // classic services use for an unknown method.
     const unknown = await j.amz('Jot_20160512.Frobnicate', { loopId: LOOP });
-    assert.equal(unknown.status, 400);
-    assert.equal(unknown.errType, 'ValidationException');
-    assert.match(unknown.body.message, /unknown jot operation/);
+    assert.equal(unknown.status, 404);
+    assert.equal(unknown.errType, null, 'the raw Boom body carries no x-amzn-errortype');
+    assert.deepEqual(unknown.body, { statusCode: 404, error: 'Not Found', message: 'Method frobnicate not found.' });
 
-    // A party-era operation with no recovered matching-era handler is NOT invented.
+    const unsignedUnknown = await j.amz('Jot_20160512.Frobnicate', { loopId: LOOP }, null);
+    assert.equal(unsignedUnknown.status, 404, 'handler resolution precedes the auth gate');
+    assert.deepEqual(unsignedUnknown.body, { statusCode: 404, error: 'Not Found', message: 'Method frobnicate not found.' });
+
+    // A party-era operation with no recovered matching-era handler is NOT invented: it is the same
+    // framework 404, with the lower-first operation name quoted back.
     const partyEra = await j.amz('Jot_20160310.CreatePart', { path: 'p' });
-    assert.equal(partyEra.status, 400);
-    assert.equal(partyEra.errType, 'ValidationException');
+    assert.equal(partyEra.status, 404);
+    assert.equal(partyEra.errType, null);
+    assert.deepEqual(partyEra.body, { statusCode: 404, error: 'Not Found', message: 'Method createPart not found.' });
   } finally { await j.server.close(); }
 });
 
@@ -573,4 +624,208 @@ test('jot maps exactly the five pinned loop-era operations and records both obse
   assert.deepEqual(JOT_TARGET_PREFIXES, ['Jot_20160126', 'Jot_20160512']);
   assert.equal(JOT_MESSAGES_LIMIT, 50);
   assert.equal(JOT_BULK_ROUTE, '/numberOfUnreadMessagesBulk');
+  assert.equal(JOT_DISPATCH_RULE, 'operation-name-only');
+});
+
+// ------------------------------------------------------------------------------------------------
+// A19a — the deployed dispatch rule: the target prefix is NOT significant
+// ------------------------------------------------------------------------------------------------
+
+test('A19a resolved: every Jot target prefix reaches the same five handlers', async () => {
+  const j = await fresh();
+  try {
+    // server/server src/server.js lowerMethodName / @jibo/server@3.1.1 dst/server.js:70-73:
+    //   const methodName = target.split('.')[1];
+    //   return methodName[0].toLowerCase() + methodName.substring(1);
+    assert.equal(lowerFirstOp('CreateMessage'), 'createMessage', 'only the FIRST character is lowered');
+    assert.equal(lowerFirstOp('NumberOfUnreadMessagesInLoops'), 'numberOfUnreadMessagesInLoops');
+    assert.equal(lowerFirstOp(''), '');
+
+    // `Jot_20160126` = the prefix the last SDK model declares; `Jot_20160512` = the literal prefix of
+    // the only recovered runtime test; `Jot_20160310` = the party-era model; `Jot_29991231` = a
+    // prefix no archive artifact ever carried. The dispatcher never compares the prefix, so all four
+    // select the same five operations.
+    for (const prefix of ['Jot_20160126', 'Jot_20160512', 'Jot_20160310', 'Jot_29991231']) {
+      const created = await j.amz(`${prefix}.CreateMessage`, { loopId: LOOP, content: `via ${prefix}` });
+      assert.equal(created.status, 200, `${prefix}.CreateMessage`);
+      assert.equal(created.body.sender, OWNER);
+      assert.equal(created.body.content, `via ${prefix}`);
+
+      const listed = await j.amz(`${prefix}.ListMessages`, { loopId: LOOP }, RECEIVER);
+      assert.equal(listed.status, 200, `${prefix}.ListMessages`);
+      assert.ok(listed.body.some((m) => m.content === `via ${prefix}`));
+
+      assert.equal((await j.amz(`${prefix}.MarkRead`, { ids: [created.body.id] }, RECEIVER)).status, 200, `${prefix}.MarkRead`);
+      assert.equal((await j.amz(`${prefix}.MarkLoopRead`, { loopId: LOOP }, RECEIVER)).status, 200, `${prefix}.MarkLoopRead`);
+
+      const count = await j.amz(`${prefix}.NumberOfUnreadMessagesInLoops`, { loopIds: [LOOP] }, RECEIVER);
+      assert.equal(count.status, 200, `${prefix}.NumberOfUnreadMessagesInLoops`);
+      assert.deepEqual(Object.keys(count.body), ['count'], 'the declared output shape is exactly {count}');
+    }
+  } finally { await j.server.close(); }
+});
+
+test('every model-declared Jot operation maps to the served set or the framework 404, per version', async () => {
+  // Read directly from jiborobot/srv-jibo-server-client through the archive MCP (revisions cited in
+  // src/jot.js). Each entry is a model file and its declared operations.
+  const MODEL_OPERATIONS = [
+    ['jot-2016-01-26@4c68f963', 'Jot_20160126', ['CreateMessage', 'RemoveMessage', 'ListIncomingMessages', 'ListSentMessages', 'MarkDelivered', 'MarkSeen']],
+    ['jot-2016-05-12@b2da11bc', 'Jot_20160126', ['CreateMessage', 'ListMessages', 'MarkRead', 'MarkLoopRead', 'NumberOfUnreadMessagesInLoops']],
+    ['jot-2016-03-10@1b26ad78', 'Jot_20160310', ['CreatePart', 'CreateMessage', 'UpdateMessage', 'RemoveMessage', 'GetMessages', 'ListIncomingMessages', 'ListSentMessages', 'MarkDelivered', 'MarkAllDelivered', 'MarkSeen', 'MarkAllSeen']],
+    ['jot-2016-03-10@39f53698', 'Jot_20160310', ['CreatePart', 'CreateMessage', 'UpdateMessage', 'RemoveMessage', 'GetMessages', 'ListMessages', 'MarkSeen', 'MarkAllSeen']],
+  ];
+  // Pairs that live only in the A-01 operation map's Jot_20160310 union (a later model cut that was
+  // not fetched here); included so the map the task refers to is covered end to end.
+  const MAP_ONLY = ['ListInbox', 'ListSent'];
+
+  const pairs = [];
+  for (const [, prefix, ops] of MODEL_OPERATIONS) for (const op of ops) pairs.push([prefix, op]);
+  for (const op of MAP_ONLY) pairs.push(['Jot_20160310', op]);
+
+  // A body that satisfies the pinned @validatePayload for each SERVED operation. An unserved
+  // operation is answered before @validatePayload runs, so its body is irrelevant (asserted below).
+  const validBodyFor = (op) => ({
+    CreateMessage: { loopId: LOOP, content: 'model-op' },
+    ListMessages: { loopId: LOOP },
+    MarkRead: { ids: ['a'.repeat(24)] },
+    MarkLoopRead: { loopId: LOOP },
+    NumberOfUnreadMessagesInLoops: { loopIds: [LOOP] },
+  }[op] || {});
+
+  const j = await fresh();
+  try {
+    const served = new Set();
+    const refused = new Set();
+    for (const [prefix, op] of pairs) {
+      const r = await j.amz(`${prefix}.${op}`, validBodyFor(op));
+      if (r.status === 200) { served.add(op.toLowerCase()); continue; }
+      assert.equal(r.status, 404, `${prefix}.${op}`);
+      assert.equal(r.errType, null, `${prefix}.${op} carries no x-amzn-errortype`);
+      assert.deepEqual(r.body, jotMethodNotFound(op), `${prefix}.${op}`);
+      refused.add(op.toLowerCase());
+    }
+    assert.deepEqual([...served].sort(), [...JOT_OPERATIONS].sort(), 'exactly the five loop-era names are served');
+    // 17 distinct model operation names - the 5 served = the 12 refused.
+    assert.equal(refused.size, 12);
+    for (const name of refused) assert.ok(!JOT_OPERATIONS.includes(name));
+  } finally { await j.server.close(); }
+});
+
+// ------------------------------------------------------------------------------------------------
+// Original-client messaging journeys (acceptance 4) — the substitution, stated explicitly
+// ------------------------------------------------------------------------------------------------
+// The original client is DEAD: the Jibo mobile app and the robot's SDK build cannot be run, and the
+// only recovered EXERCISE of this service is jiborobot/srv-jot-ws-archived@4432ac5d
+// archive/message.spec.js (an in-process Hapi `server.inject` suite). THE SUBSTITUTE: that spec's
+// requests are replayed VERBATIM at the WIRE level against a REAL Phoenix entrypoint listening on a
+// real TCP socket. The wire contract is byte-for-byte the archived client's — POST /, Content-Type
+// application/x-amz-json-1.1, X-Amz-Target `Jot_20160512.<Op>`, X-Amz-Credentials `{"id":…}` — and
+// every postcondition the archived spec asserted is asserted here. What it cannot prove is named in
+// the task report (the real SDK's SigV4 signing / the TLS hop to the security gateway, which is
+// substituted by the x-amz-credentials form the gateway injects on the internal hop).
+
+test('original-client journey: the archived archive/message.spec.js sequence, over real HTTP', async () => {
+  const j = await fresh({ account: archivedAccount, media: archivedMedia });
+  const amz = (target, body, accountId = OWNER) => archivedAmzOn(j.port, target, body, accountId);
+  try {
+    // 20 creates with parts[{path:'sample'}] (message.spec.js:49-80).
+    const createdMessages = [];
+    for (let i = 0; i < 20; i += 1) {
+      const r = await amz('Jot_20160512.CreateMessage', {
+        loopId: LOOP, content: `sample${i}`, tags: [RECEIVER], parts: [{ path: 'sample' }],
+      });
+      assert.equal(r.status, 200, `create ${i}`);
+      createdMessages.push(r.body);
+      assert.equal(r.body.content, `sample${i}`);
+      assert.equal(r.body.isRead, true, 'the sender reads their own message');
+      assert.equal(r.body.parts.length, 1);
+      assert.equal(r.body.parts[0].url, 'sample_url', 'MediaClient.getMedia populated the part url');
+    }
+
+    // list inbox as the receiver: 20 rows, the first still unread (message.spec.js:81-98).
+    let listed = await amz('Jot_20160512.ListMessages', { loopId: LOOP }, RECEIVER);
+    assert.equal(listed.status, 200);
+    assert.equal(listed.body.length, 20);
+    assert.equal(listed.body[0].isRead, false);
+
+    // markRead [0,1] as the receiver, then list read (message.spec.js:99-133).
+    assert.equal((await amz('Jot_20160512.MarkRead', { ids: [createdMessages[0].id, createdMessages[1].id] }, RECEIVER)).status, 200);
+    listed = await amz('Jot_20160512.ListMessages', { loopId: LOOP }, RECEIVER);
+    assert.equal(listed.body.length, 20);
+    assert.equal(listed.body[0].isRead, true);
+    assert.equal(listed.body[1].isRead, true);
+
+    // markLoopRead as the receiver, then list all read (message.spec.js:134-168).
+    assert.equal((await amz('Jot_20160512.MarkLoopRead', { loopId: LOOP }, RECEIVER)).status, 200);
+    listed = await amz('Jot_20160512.ListMessages', { loopId: LOOP }, RECEIVER);
+    assert.equal(listed.body.length, 20);
+    assert.equal(listed.body[2].isRead, true);
+    assert.equal(listed.body[3].isRead, true);
+
+    // list after/before a created timestamp (message.spec.js:169-204).
+    const after = await amz('Jot_20160512.ListMessages', { loopId: LOOP, after: createdMessages[5].created }, RECEIVER);
+    assert.equal(after.body.length, 14);
+    const before = await amz('Jot_20160512.ListMessages', { loopId: LOOP, before: createdMessages[14].created }, RECEIVER);
+    assert.equal(before.body.length, 14);
+
+    // the robot creates a message as a member, parts and all (message.spec.js:205-230).
+    const impersonated = await amz('Jot_20160512.CreateMessage', {
+      loopId: LOOP, content: 'sample', tags: [RECEIVER], impersonateAs: OWNER, parts: [{ path: 'sample' }],
+    }, ROBOT);
+    assert.equal(impersonated.status, 200);
+    assert.equal(impersonated.body.sender, OWNER, 'impersonateAs attributes the message to the member');
+    assert.equal(impersonated.body.parts[0].url, 'sample_url');
+  } finally { await j.server.close(); }
+});
+
+// ------------------------------------------------------------------------------------------------
+// Retry semantics
+// ------------------------------------------------------------------------------------------------
+
+test('retry semantics: a re-sent CreateMessage is not deduplicated; a re-sent MarkRead is a no-op', async () => {
+  const j = await fresh();
+  try {
+    const body = { loopId: LOOP, content: 'sent-once-intended', tags: [RECEIVER] };
+    const first = await j.amz('Jot_20160512.CreateMessage', body);
+    const retry = await j.amz('Jot_20160512.CreateMessage', body);
+    assert.equal(first.status, 200);
+    assert.equal(retry.status, 200);
+    // No idempotency key exists anywhere in the pinned model, handler or controller.
+    assert.notEqual(first.body.id, retry.body.id);
+    assert.equal(j.store.findForList({ loopId: LOOP }).length, 2);
+    assert.deepEqual(j.events.map((e) => e.payload.messageId), [first.body.id, retry.body.id],
+      'each attempt emits its own JotMessageCreated');
+
+    // `$addToSet` makes the read side idempotent: delivering the same MarkRead twice is invisible.
+    await j.amz('Jot_20160512.MarkRead', { ids: [first.body.id] }, RECEIVER);
+    const beforeRow = (await j.amz('Jot_20160512.ListMessages', { loopId: LOOP }, RECEIVER)).body.find((m) => m.id === first.body.id);
+    await j.amz('Jot_20160512.MarkRead', { ids: [first.body.id] }, RECEIVER);
+    const afterRow = (await j.amz('Jot_20160512.ListMessages', { loopId: LOOP }, RECEIVER)).body.find((m) => m.id === first.body.id);
+    assert.equal(beforeRow.isRead, true);
+    assert.deepEqual(afterRow, beforeRow);
+  } finally { await j.server.close(); }
+});
+
+test('retry after a failed media hop: the failed attempt persisted, the retry adds a second row', async () => {
+  let fail = true;
+  const flaky = {
+    getMedia: async () => {
+      if (fail) { fail = false; throw new Error('media down'); }
+      return [];
+    },
+  };
+  const j = await fresh({ media: flaky });
+  try {
+    const first = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'flaky' });
+    assert.equal(first.status, 503);
+    assert.equal(first.errType, 'MEDIA_SERVICE_UNAVAILABLE');
+    const retry = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'flaky' });
+    assert.equal(retry.status, 200);
+    // The source order is create -> send event -> populateParts, so the 503 attempt had already
+    // committed; a real client retrying the 503 therefore leaves TWO rows, and the ledger holds one
+    // event per committed row.
+    const rows = j.store.findForList({ loopId: LOOP });
+    assert.equal(rows.length, 2);
+    assert.deepEqual(j.events.map((e) => e.payload.messageId), rows.map((r) => r.id));
+  } finally { await j.server.close(); }
 });
