@@ -310,6 +310,59 @@ test('D2 REGRESSION FIXTURE: a NON-report-skill save does NOT trigger cross-prov
   assert.equal(s.find(otherOutlook).oauth2.accessToken, 'outlookAccessToken2');
 });
 
+// The reference's own guard, executed verbatim (Credentials.ts:143). The
+// single `=` is the source defect D-02a: it is an ASSIGNMENT, so it is always
+// truthy AND it rewrites `skillId` to 'report-skill' on the in-memory document
+// before the remove() below reads it.
+function referenceDeleteOtherCredentials(newCredential, db) {
+  // eslint-disable-next-line no-cond-assign
+  if (newCredential.skillId = 'report-skill') {
+    if (['workCalendar', 'personalCalendar'].includes(newCredential.serviceAccountName)) {
+      for (const [k, c] of [...db]) {
+        if (c.accountId !== newCredential.accountId) continue;
+        if (c.skillId !== newCredential.skillId) continue;
+        if (c.serviceName === newCredential.serviceName) continue;
+        if (c.serviceAccountName !== newCredential.serviceAccountName) continue;
+        db.delete(k);
+      }
+    }
+  }
+}
+
+test('D2 DIVERGENCE (D-02a): the reference guard is an assignment — always truthy, and it rewrites skillId', () => {
+  const arriving = { skillId: 'some-other-skill', accountId: 'acct', serviceName: 'outlook', serviceAccountName: 'workCalendar' };
+  assert.equal(arriving.skillId, 'some-other-skill');
+  // eslint-disable-next-line no-cond-assign
+  const truthy = (arriving.skillId = 'report-skill');
+  assert.equal(truthy, 'report-skill', 'the assignment expression evaluates to the assigned value → always truthy');
+  assert.equal(arriving.skillId, 'report-skill', 'the guard also OVERWRITES the arriving skillId');
+});
+
+test('D2 DIVERGENCE (D-02a): the source defect deletes an existing report-skill other-provider credential; Phoenix keeps it', () => {
+  // Source side: an existing report-skill google:workCalendar credential, then
+  // a NON-report-skill outlook:workCalendar save. The buggy guard rewrites the
+  // arriving skillId to 'report-skill', so the remove() query matches the
+  // report-skill google row and deletes it — the source's own deletion fixture
+  // suite misses this because every "not report-skill" case there saves BOTH
+  // credentials under the same non-report skill (Credential.deletion.test.ts
+  // :182-198). Faithfulness would mean deleting a healthy credential here.
+  const sourceDb = new Map();
+  const existing = { accountId: 'acct', skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'workCalendar' };
+  sourceDb.set('existing', existing);
+  referenceDeleteOtherCredentials({ skillId: 'some-other-skill', accountId: 'acct', serviceName: 'outlook', serviceAccountName: 'workCalendar' }, sourceDb);
+  assert.equal(sourceDb.size, 0, 'the reference (with the assignment bug) deletes the report-skill google credential');
+
+  // Phoenix side: the same scenario keeps the report-skill credential, because
+  // `_deleteOther` compares instead of assigning (the deliberate D-02a fix,
+  // recorded in DIVERGENCES.md and regression-pinned above).
+  const s = plainStore();
+  const reportGoogle = googleCred({ ...googleTokens(), accountId: 'acct', serviceAccountName: 'workCalendar' });
+  s.save(reportGoogle);
+  s.save(outlookCred({ ...outlookTokens(), accountId: 'acct', skillId: 'some-other-skill', serviceAccountName: 'workCalendar' }));
+  assert.ok(s.find(reportGoogle), 'Phoenix preserves the report-skill credential (correctness over faithfulness)');
+  assert.equal(s.m.size, 2);
+});
+
 // ---------------------------------------------------------------------------
 // Durable state — unique keys + atomic updates surviving restarts
 // ---------------------------------------------------------------------------
@@ -427,28 +480,50 @@ test('D2 a corrupt snapshot file fails loudly instead of silently losing credent
   }
 });
 
-test('D2 DIVERGENCE (scope-overlap uniqueness): same-slot overlapping scope sets coexist, and a shared-scope GET is a multi-match false negative', () => {
-  // Mongo's unique multikey index on the array field scopes (StoredCredential.ts
-  // :107-119) makes the SECOND save collide whenever two same-slot records SHARE
-  // a scope value: the new doc's index keys overlap the stored doc's, Mongo
-  // throws E11000, and the handler answers 200 {credentialExists:true}
-  // (CredentialRequestsHandler.ts:36-39). Phoenix keys the slot by the SORTED
-  // scope set, so overlapping-but-not-equal sets coexist instead. Consequence:
-  // find() can match more than one record and returns undefined (the reference's
-  // "critical bug" path, Credentials.ts:221-226), so GET reports
-  // credentialExists:false for a scope that IS stored. The original fixtures
-  // never save overlapping scope sets, so neither behaviour is pinned by the
-  // reference; this test pins PHOENIX's and the difference is reported as a
-  // divergence candidate, not labelled parity.
+test('D2 uniqueness (D-02b CLOSED): a same-slot save whose scopes OVERLAP an existing record is rejected like the Mongo multikey index', () => {
+  // Mongoose builds the unique `credentials_index` on the ARRAY field `scopes`
+  // as a MULTIKEY index (StoredCredential.ts:107-119), so the SECOND insert in
+  // a slot collides whenever the two scope lists SHARE a value: E11000 →
+  // CredentialRequestsHandler.ts:36-39 → 200 {credentialExists:true}, nothing
+  // stored. Phoenix keys the slot by the sorted scope set and now also refuses
+  // the insert when any scope value is shared, so its state space matches the
+  // reference's: no two same-slot records can share a scope, so find() can
+  // never multi-match and a stored scope can never read back as
+  // `credentialExists:false`.
   const s = redeemStore();
   const slot = { accountId: 'ov', skillId: 'sk', serviceName: 'google', serviceAccountName: 'personalCalendar' };
   s.save(googleCred({ ...slot, scopes: ['a'], authCode: 'a1' }));
-  s.save(googleCred({ ...slot, scopes: ['a', 'b'], authCode: 'a2' }));
-  s.save(googleCred({ ...slot, scopes: ['b', 'c'], authCode: 'a3' }));
-  assert.equal(s.m.size, 3, 'Phoenix stores all three overlapping records (reference would reject #2/#3)');
-  assert.equal(s.find({ ...slot, scopes: ['a'] }), undefined, 'a shared scope matches >1 record -> undefined');
-  assert.deepEqual(s.checkExists({ ...slot, scopes: ['a'] }), { credentialExists: false }, 'multi-match surfaces as credentialExists:false');
-  assert.equal(s.find({ ...slot, scopes: ['c'] }).oauth2.authCode, 'a3', 'a scope unique to one record still resolves');
+  assert.throws(() => s.save(googleCred({ ...slot, scopes: ['a', 'b'], authCode: 'a2' })),
+    (e) => e.code === 'DUPLICATE_KEY' && /already exists/.test(e.message), 'shared scope value → E11000-equivalent');
+  assert.throws(() => s.save(googleCred({ ...slot, scopes: ['c', 'a'], authCode: 'a3' })),
+    (e) => e.code === 'DUPLICATE_KEY', 'the overlap need only be one value');
+  assert.equal(s.m.size, 1, 'only the first record exists (reference would reject #2/#3)');
+  assert.equal(s.find({ ...slot, scopes: ['a'] }).oauth2.authCode, 'a1', 'the stored scope still resolves — no multi-match');
+  assert.deepEqual(s.checkExists({ ...slot, scopes: ['a'] }), { credentialExists: true });
+  assert.deepEqual(s.checkExists({ ...slot, scopes: ['b'] }), { credentialExists: false }, 'the rejected record was never stored');
+  // DISJOINT scope sets still coexist — the original "other scopes" fixture.
+  s.save(googleCred({ ...slot, scopes: ['x'], authCode: 'a4' }));
+  s.save(googleCred({ ...slot, scopes: ['y'], authCode: 'a5' }));
+  assert.equal(s.m.size, 3, 'disjoint scope sets remain distinct unique-key records');
+  assert.equal(s.find({ ...slot, scopes: ['y'] }).oauth2.authCode, 'a5');
+});
+
+test('D2 uniqueness (D-02b CLOSED) over HTTP: an overlapping-scope save answers 200 {credentialExists:true}', async () => {
+  const store = plainStore();
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 7);
+  const post = (body) => fetch(`http://localhost:${PORT + 7}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  try {
+    const first = { ...googleCred({ accountId: 'ov-http', scopes: [GOOGLE_READONLY] }), accessToken: 't', refreshToken: 'r', expiresAt: 1 };
+    assert.deepEqual(await (await post(first)).json(), { created: true });
+    assert.deepEqual(await (await post({ ...first, accessToken: 't2', refreshToken: 'r2', expiresAt: 2 })).json(), { created: true }, 'equal scope set → same record updated');
+    assert.deepEqual(await (await post({ ...first, scopes: [GOOGLE_READWRITE, GOOGLE_READONLY], accessToken: 't3', refreshToken: 'r3', expiresAt: 3 })).json(),
+      { credentialExists: true }, 'overlapping scope set → the reference\'s E11000 envelope, nothing stored');
+    assert.equal(store.m.size, 1);
+    assert.deepEqual(await (await fetch(`http://localhost:${PORT + 7}/v1/credential?accountId=ov-http&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=${encodeURIComponent(GOOGLE_READONLY)}`)).json(),
+      { credentialExists: true }, 'the shared scope still resolves — no multi-match false negative');
+  } finally {
+    svc.close();
+  }
 });
 
 test('D2 inactive credentials are hidden from lookup and reactivated on save (allowInactive)', () => {
@@ -528,7 +603,11 @@ test('D2 HTTP: an unsupported serviceName on the authCode path -> 400 "Service i
 });
 
 test('D2 HTTP: a credential persisted by one service instance is found by the next (restart)', async () => {
-  const qs = 'accountId=http-acct&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes=https://www.googleapis.com/auth/calendar.readonly';
+  // Wire form: the pinned axios 0.17.1 client (used by the original lasso
+  // fixtures) serializes an array param as `scopes[]=`; Express/qs parses that
+  // back into an array. A single bare `scopes=` value is NOT this form and the
+  // reference rejects it (see the D-02c test below).
+  const qs = 'accountId=http-acct&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=https://www.googleapis.com/auth/calendar.readonly';
   const beforeRestart = await (await j(`/v1/credential?${qs}`)).json();
   assert.deepEqual(beforeRestart, { credentialExists: true }, 'still live on the first instance');
   service1.close(); service1 = null;
@@ -545,14 +624,76 @@ test('D2 HTTP: a credential persisted by one service instance is found by the ne
   }
 });
 
-// Defensive check of the query parser: repeated params become an array; a
-// single comma-joined parameter stays ONE literal scope value (pre-existing
-// Phoenix behavior — the reference wire sends scopes as repeated params).
-test('D2 credentialQueryFromParams: repeated params -> array; single param -> one literal', () => {
-  const p = new URL('http://x/v1/credential?scopes=a&scopes=b').searchParams;
-  assert.deepEqual(credentialQueryFromParams(p).scopes, ['a', 'b']);
-  const p2 = new URL('http://x/v1/credential?scopes=a,b').searchParams;
-  assert.deepEqual(credentialQueryFromParams(p2).scopes, ['a,b']);
+// D-02c: the reference parses its query with Express 4.16.2's default
+// 'extended' (qs 6.5.1) parser. These shapes were produced by running the
+// pinned qs from .parity/reference/5c0a739…; each is asserted here so the
+// parser cannot drift away from the reference's validateScopes outcomes.
+test('D2 credentialQueryFromParams reproduces the pinned qs shapes (D-02c CLOSED)', () => {
+  const p = (qs) => new URL(`http://x/v1/credential?${qs}`).searchParams;
+  // Indexed brackets — the wire form the Settings service sends
+  // (srv-settings-ws src/clients/lasso.ts:38-40) and the reason a real
+  // Settings -> Lasso GET used to 400 in Phoenix.
+  assert.deepEqual(credentialQueryFromParams(p('scopes[0]=a&scopes[1]=b')).scopes, ['a', 'b']);
+  assert.deepEqual(credentialQueryFromParams(p('scopes[0]=a')).scopes, ['a'], 'single indexed value is an ARRAY');
+  // Bracketed — the wire form the pinned axios 0.17.1 client sends (the shape
+  // the original lasso fixtures use).
+  assert.deepEqual(credentialQueryFromParams(p('scopes[]=a&scopes[]=b')).scopes, ['a', 'b']);
+  // Repeated bare params.
+  assert.deepEqual(credentialQueryFromParams(p('scopes=a&scopes=b')).scopes, ['a', 'b']);
+  // A single bare param stays a STRING, exactly like qs — so validateScopes
+  // rejects it with the reference's message rather than accepting it.
+  assert.equal(credentialQueryFromParams(p('scopes=a')).scopes, 'a');
+  assert.equal(credentialQueryFromParams(p('scopes=a,b')).scopes, 'a,b');
+  assert.equal(credentialQueryFromParams(p('accountId=a')).scopes, null, 'absent → null → Missing scopes in request');
+});
+
+test('D2 HTTP (D-02c CLOSED): a single bare scopes param is 400 "Scopes should be an array"; the indexed and bracketed client forms are 200', async () => {
+  const store = plainStore();
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 8);
+  const base = `http://localhost:${PORT + 8}/v1/credential`;
+  const head = 'accountId=form-acct&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar';
+  try {
+    await fetch(base, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(googleCred({ accountId: 'form-acct', authCode: 'testAuthCode' })),
+    });
+    // Reference: qs yields the string 'read' → validateScopes → 400.
+    for (const single of [`${head}&scopes=${encodeURIComponent(GOOGLE_READONLY)}`, `${head}&scopes=a,b`]) {
+      const r = await fetch(`${base}?${single}`);
+      assert.equal(r.status, 400, single);
+      assert.equal(await r.text(), 'Scopes should be an array');
+    }
+    // Reference: qs yields an array → 200 {credentialExists:true}.
+    for (const form of [
+      `${head}&scopes[0]=${encodeURIComponent(GOOGLE_READONLY)}`,                       // Settings service
+      `${head}&scopes[]=${encodeURIComponent(GOOGLE_READONLY)}`,                         // pinned axios 0.17.1
+      `${head}&scopes=${encodeURIComponent(GOOGLE_READONLY)}&scopes=${encodeURIComponent(GOOGLE_READONLY)}`,
+      `${head}&scopes[2]=${encodeURIComponent(GOOGLE_READONLY)}`,
+    ]) {
+      const r = await fetch(`${base}?${form}`);
+      assert.equal(r.status, 200, form);
+      assert.deepEqual(await r.json(), { credentialExists: true }, form);
+    }
+    // A requested scope the credential lacks stays a 200 false (no regression
+    // from making the indexed form parse).
+    const absent = await fetch(`${base}?${head}&scopes[0]=${encodeURIComponent(GOOGLE_READWRITE)}`);
+    assert.deepEqual(await absent.json(), { credentialExists: false });
+    // Absent scopes still reports the reference's missing-field message.
+    const missing = await fetch(`${base}?accountId=form-acct&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar`);
+    assert.equal(missing.status, 400);
+    assert.equal(await missing.text(), 'Missing scopes in request');
+    // DELETE: scopes are optional for the reference and are not validated, so a
+    // non-matching scope list must NOT delete the record (the indexed form is
+    // now parsed instead of being ignored).
+    const notMatching = await fetch(`${base}?${head}&scopes[0]=${encodeURIComponent('some-other-scope')}`, { method: 'DELETE' });
+    assert.deepEqual(await notMatching.json(), { deleted: true }, 'DELETE still answers {deleted:true}');
+    assert.equal(store.m.size, 1, 'a DELETE naming a scope the credential lacks removed nothing');
+    const matching = await fetch(`${base}?${head}&scopes[0]=${encodeURIComponent(GOOGLE_READONLY)}`, { method: 'DELETE' });
+    assert.deepEqual(await matching.json(), { deleted: true });
+    assert.equal(store.m.size, 0, 'a DELETE naming the stored scope removes it');
+  } finally {
+    svc.close();
+  }
 });
 
 test('D2 HTTP: report-skill + google with no clientId gets the default clientId; a non-report skill 400s', async () => {
@@ -572,10 +713,43 @@ test('D2 HTTP: report-skill + google with no clientId gets the default clientId;
   }
 });
 
+test('D2 end-to-end (D-02c CLOSED): the Settings Lasso client resolves against the data service', async () => {
+  // The deployed Settings face talks to Lasso with indexed scope params
+  // (packages/account/src/settingsProviders.js:1307,1350 — ported from
+  // srv-settings-ws src/clients/lasso.ts, which does
+  // `uri.searchParams.set(`scopes[${i}]`, scope)`). Before D-02c was closed,
+  // that GET answered 400 "Missing scopes in request" from the data service, so
+  // the Settings → Lasso hop could never report an existing credential. This
+  // test drives the real client code against the real service code.
+  const { createSettingsProviders } = await import('../../account/src/settingsProviders.js');
+  const store = plainStore();
+  const svc = await createDataService({ credentialStore: store, googleCalendarProvider: async () => [] }).listen(PORT + 9);
+  try {
+    const saved = await fetch(`http://localhost:${PORT + 9}/v1/credential`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(googleCred({ accountId: 'e2e-acct', authCode: 'testAuthCode' })),
+    });
+    assert.deepEqual(await saved.json(), { created: true });
+
+    const lasso = createSettingsProviders({ store: {}, env: { NET_settings_lasso: `127.0.0.1:${PORT + 9}` } }).lasso;
+    const context = { loopId: 'loop-1', userId: 'e2e-acct', transactionId: 'tx-1' };
+    const params = { skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: [GOOGLE_READONLY] };
+    // getCredential rejects (throws) on a non-2xx or a body without
+    // credentialExists, so a 400 from the data service fails loudly here.
+    assert.deepEqual(await lasso.getCredential(context, params), { credentialExists: true });
+    assert.deepEqual(await lasso.getCredential(context, { ...params, skillId: 'other-skill' }), { credentialExists: false });
+    await lasso.deleteCredential(context, params);
+    assert.equal(store.m.size, 0, 'the Settings DELETE removed the credential');
+    assert.deepEqual(await lasso.getCredential(context, params), { credentialExists: false });
+  } finally {
+    svc.close();
+  }
+});
+
 test('D2 HTTP: the DEFAULT store (createDataService with no store arg) survives a service restart', async () => {
   const dir = tmpDir();
   const prev = process.env.ETCO_data_credentialsFile;
-  const qs = 'accountId=dflt-durable&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes=https://www.googleapis.com/auth/calendar.readonly';
+  const qs = 'accountId=dflt-durable&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=https://www.googleapis.com/auth/calendar.readonly';
   try {
     process.env.ETCO_data_credentialsFile = join(dir, 'credentials.json');
     const svcA = await createDataService({ googleCalendarProvider: async () => [] }).listen(PORT + 5);

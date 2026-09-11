@@ -84,7 +84,11 @@ test('POST/GET/DELETE /v1/credential', async () => {
   const dup = await (await j('/v1/credential', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...base, authCode: 'testAuthCode' }) })).json();
   assert.deepEqual(dup, { credentialExists: true });
 
-  const get = await (await j('/v1/credential?accountId=acct1&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes=read')).json();
+  // Wire form of the original fixtures: pinned axios 0.17.1 serializes an
+  // array param as `scopes[]=` (Express/qs parses it back to an array). The
+  // bare `scopes=read` form is rejected by the reference — see the D-02c test
+  // in credential-durable.test.js.
+  const get = await (await j('/v1/credential?accountId=acct1&skillId=report-skill&serviceName=google&serviceAccountName=personalCalendar&scopes[]=read')).json();
   assert.deepEqual(get, { credentialExists: true });
 
   const del = await (await j('/v1/credential?accountId=acct1&skillId=*&serviceName=*&serviceAccountName=*', { method: 'DELETE' })).json();
