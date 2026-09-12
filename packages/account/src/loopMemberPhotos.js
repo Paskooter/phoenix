@@ -40,29 +40,86 @@ function target(store, { ownerId, loopId, id }) {
   return { loop, member };
 }
 
+function photoObjectKey(photoUrl) {
+  if (photoUrl === undefined || photoUrl === null) return null;
+  return String(photoUrl).split('/').pop() || null;
+}
+
 function save(store, before, memberId, photoUrl, outbox) {
   const draft = JSON.parse(JSON.stringify(before));
-  draft.members.find((member) => sameId(member._id, memberId)).memberProperties.photoUrl = photoUrl;
+  const member = draft.members.find((item) => sameId(item._id, memberId));
+  member.memberProperties = member.memberProperties || {};
+  member.memberProperties.photoUrl = photoUrl;
   draft.updated = Date.now();
   store.loops.set(draft._id, draft);
   try { outbox.record(draft); }
   catch (error) { store.loops.set(before._id, before); throw error; }
-  return populateLoop(store, draft);
+  return draft;
+}
+
+function restoreOutbox(store, snapshot) {
+  store.notificationOutbox.clear();
+  for (const [key, value] of snapshot) store.notificationOutbox.set(key, value);
+}
+
+function rollbackPhotoCommit(store, committed, before, previousOutbox) {
+  const committedLoop = store.loops.get(committed._id);
+  const committedOutbox = new Map(store.notificationOutbox);
+  store.loops.set(before._id, before);
+  restoreOutbox(store, previousOutbox);
+  try {
+    store.flush();
+  } catch (error) {
+    // The first commit succeeded, so restore that committed in-memory view if
+    // the best-effort cleanup rollback cannot itself be made durable.
+    if (committedLoop) store.loops.set(committed._id, committedLoop);
+    else store.loops.delete(committed._id);
+    restoreOutbox(store, committedOutbox);
+    throw error;
+  }
 }
 
 export async function updateMemberPhoto(store, payload, binaryProvider, outbox, clock = Date.now) {
   const { loop, member } = target(store, payload);
   const saved = await binaryProvider.createPublic({ dataStream: payload.dataStream, path: payload.id + clock() });
-  // Source uploads first, then removes the previous object, then saves the Loop.
-  // Failure of removal/save does not roll back already completed binary effects.
-  if (member.memberProperties.photoUrl) await binaryProvider.remove(member.memberProperties.photoUrl.split('/').pop());
-  return save(store, loop, payload.id, saved.url, outbox);
+  const oldObject = photoObjectKey(member.memberProperties?.photoUrl);
+  const newObject = photoObjectKey(saved.path || saved.url);
+  const previousOutbox = new Map(store.notificationOutbox);
+  let committed;
+  try {
+    // The outbox record is the metadata commit. Do not remove the old object
+    // until this call has durably committed both loop and LoopUpdated row.
+    committed = save(store, loop, payload.id, saved.url, outbox);
+  } catch (error) {
+    if (newObject && newObject !== oldObject) {
+      try { await binaryProvider.remove(newObject); } catch { /* preserve commit error */ }
+    }
+    throw error;
+  }
+  try {
+    if (oldObject && oldObject !== newObject) await binaryProvider.remove(oldObject);
+  } catch (error) {
+    // The source rejects the request before exposing the replacement when the
+    // old-object cleanup fails. Roll back the loop and its event row together;
+    // the committed replacement remains for provider-side orphan recovery.
+    try { rollbackPhotoCommit(store, committed, loop, previousOutbox); } catch { /* keep committed state if rollback is unavailable */ }
+    throw error;
+  }
+  return populateLoop(store, committed);
 }
 
 export async function removeMemberPhoto(store, payload, binaryProvider, outbox) {
   const { loop, member } = target(store, payload);
-  if (member.memberProperties.photoUrl) await binaryProvider.remove(member.memberProperties.photoUrl.split('/').pop());
-  return save(store, loop, payload.id, null, outbox);
+  const oldObject = photoObjectKey(member.memberProperties?.photoUrl);
+  const previousOutbox = new Map(store.notificationOutbox);
+  const committed = save(store, loop, payload.id, null, outbox);
+  try {
+    if (oldObject) await binaryProvider.remove(oldObject);
+  } catch (error) {
+    try { rollbackPhotoCommit(store, committed, loop, previousOutbox); } catch { /* keep committed state if rollback is unavailable */ }
+    throw error;
+  }
+  return populateLoop(store, committed);
 }
 
 export function isMemberPhotoUpload(req) {

@@ -103,6 +103,34 @@ function otaBase() {
   return /^https?:\/\//.test(net) ? net : `http://${net}`;
 }
 
+const OTA_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const OTA_MAX_REDIRECTS = 10;
+
+function otaRedirectError(message) {
+  const error = new Error(message);
+  error.code = 'OTA_REDIRECT_REJECTED';
+  return error;
+}
+
+function validatedOtaRedirect(currentUrl, location, configuredOrigin) {
+  if (!location) throw otaRedirectError('OTA redirect did not include a location');
+  let destination;
+  try {
+    destination = new URL(location, currentUrl);
+  } catch {
+    throw otaRedirectError('OTA redirect location is invalid');
+  }
+  // The proxy may only follow redirects within the explicitly configured OTA
+  // origin. Reject URL userinfo as well; it is never needed for this service.
+  if (!['http:', 'https:'].includes(destination.protocol)
+    || destination.origin !== configuredOrigin
+    || destination.username
+    || destination.password) {
+    throw otaRedirectError('OTA redirect destination is not allowed');
+  }
+  return destination;
+}
+
 /** @param {import('./store.js').Store} store */
 export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
@@ -411,8 +439,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       if (!claim()) return;
       const robotAccount = findOrCreateRobotAccount(store, id);
       removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
-      ({ loop } = createLoop(store, { owner: account, robotId: id }));
-      loopUpdatedOutbox.record(loop);
+      // Pass the outbox into creation so the loop and its required
+      // LoopUpdated row share one Store snapshot. A second record() call
+      // would leave a durable loop without its notification on failure.
+      ({ loop } = createLoop(store, { owner: account, robotId: id }, loopUpdatedOutbox));
       dispatchLoopCreated(loop, invitationProviders);
     }
 
@@ -865,24 +895,80 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   async function proxyToOta(req, res, body, log) {
     try {
-      const upstream = await fetch(`${otaBase()}/`, {
-        method: 'POST',
-        headers: {
+      let target;
+      try {
+        target = new URL(otaBase());
+      } catch {
+        throw otaRedirectError('OTA endpoint is invalid');
+      }
+      if (!['http:', 'https:'].includes(target.protocol) || target.username || target.password) {
+        throw otaRedirectError('OTA endpoint is not allowed');
+      }
+      // NET_ota is a service base, so match the previous `${base}/` request
+      // while discarding config query/fragment material that is not part of the
+      // OTA API endpoint.
+      target.pathname = target.pathname.replace(/\/?$/, '/');
+      target.search = '';
+      target.hash = '';
+      const configuredOrigin = target.origin;
+      let method = 'POST';
+      let requestBody = JSON.stringify(body == null ? {} : body);
+      let authorization = req.headers.authorization;
+      let redirects = 0;
+
+      while (true) {
+        const requestHeaders = {
           'content-type': req.headers['content-type'] || AMZ_JSON,
           'x-amz-target': req.headers['x-amz-target'],
-          ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}),
-        },
-        body: JSON.stringify(body || {}),
-      });
-      const text = await upstream.text();
-      const headers = { 'content-type': upstream.headers.get('content-type') || AMZ_JSON, 'content-length': Buffer.byteLength(text) };
-      const errType = upstream.headers.get('x-amzn-errortype');
-      if (errType) headers['x-amzn-errortype'] = errType;
-      res.writeHead(upstream.status, headers);
-      res.end(text);
+        };
+        // The robot's credential is accepted by the configured OTA service on
+        // the first hop for compatibility. Never carry it over a redirect;
+        // redirect destinations must authenticate independently if required.
+        if (authorization && redirects === 0) requestHeaders.authorization = authorization;
+        const upstream = await fetch(target, {
+          method,
+          headers: requestHeaders,
+          body: method === 'GET' || method === 'HEAD' ? undefined : requestBody,
+          redirect: 'manual',
+        });
+
+        if (OTA_REDIRECT_STATUSES.has(upstream.status)) {
+          if (redirects >= OTA_MAX_REDIRECTS) {
+            try { await upstream.body?.cancel(); } catch { /* preserve redirect error */ }
+            throw otaRedirectError('Maximum redirections reached');
+          }
+          const location = upstream.headers.get('location');
+          try { await upstream.body?.cancel(); } catch { /* follow-up request is still safe */ }
+          const next = validatedOtaRedirect(target, location, configuredOrigin);
+          if ((upstream.status === 301 || upstream.status === 302) && method === 'POST') {
+            method = 'GET';
+            requestBody = undefined;
+          } else if (upstream.status === 303 && method !== 'HEAD') {
+            method = 'GET';
+            requestBody = undefined;
+          }
+          target = next;
+          authorization = undefined;
+          redirects += 1;
+          continue;
+        }
+
+        const text = await upstream.text();
+        const headers = {
+          'content-type': upstream.headers.get('content-type') || AMZ_JSON,
+          'content-length': Buffer.byteLength(text),
+        };
+        const errType = upstream.headers.get('x-amzn-errortype');
+        if (errType) headers['x-amzn-errortype'] = errType;
+        res.writeHead(upstream.status, headers);
+        res.end(text);
+        return;
+      }
     } catch (err) {
-      log.error('OTA proxy failed', { error: err.message, ota: otaBase() });
-      sendJson(res, 502, { error: `OTA service unreachable: ${err.message}` });
+      const safeMessage = err?.code === 'OTA_REDIRECT_REJECTED'
+        ? err.message : 'OTA service unreachable';
+      try { log?.error('OTA proxy failed', { code: err?.code || 'OTA_PROXY_FAILED' }); } catch { /* logging is best effort */ }
+      sendJson(res, 502, { error: safeMessage });
     }
   }
 }

@@ -1109,13 +1109,14 @@ function drainPhotoRequest(req) {
 }
 
 function photoObjectKey(photoUrl) {
-  return String(photoUrl).split('/').pop();
+  if (photoUrl === undefined || photoUrl === null) return null;
+  return String(photoUrl).split('/').pop() || null;
 }
 
 /**
- * AccountController.updatePhoto. Upload the new public object first, then
- * delete the previous basename, then persist photoUrl. A failed remove/save
- * does not roll back the already completed binary write.
+ * AccountController.updatePhoto. Stage the new public object, commit its URL,
+ * then delete the old object. If the metadata commit fails, remove the staged
+ * object so a rejected account write cannot leave an orphan.
  */
 export async function updatePhoto(store, { ownerId, dataStream, photoProvider, clock = Date.now }) {
   const account = findById(store, ownerId);
@@ -1123,23 +1124,50 @@ export async function updatePhoto(store, { ownerId, dataStream, photoProvider, c
     dataStream,
     path: account._id.valueOf() + clock(),
   });
-  if (account.photoUrl) await photoProvider.remove(photoObjectKey(account.photoUrl));
+  const oldObject = photoObjectKey(account.photoUrl);
+  const newObject = photoObjectKey(savedPhoto.path || savedPhoto.url);
   const previous = snapshotAccount(account);
   const next = { ...account, photoUrl: savedPhoto.url, updated: Date.now() };
-  persistAccount(store, next, previous);
+  try {
+    persistAccount(store, next, previous);
+  } catch (error) {
+    // Best-effort compensation must not hide the original durable-commit
+    // failure. If the provider itself is unavailable, recovery can still see
+    // the old metadata and retry cleanup using the staged object key.
+    if (newObject && newObject !== oldObject) {
+      try { await photoProvider.remove(newObject); } catch { /* preserve commit error */ }
+    }
+    throw error;
+  }
+  try {
+    if (oldObject && oldObject !== newObject) await photoProvider.remove(oldObject);
+  } catch (error) {
+    // Preserve the pre-request account state when cleanup fails, matching the
+    // source's request-level failure semantics. The new object is deliberately
+    // left for the provider's normal orphan-recovery path because it is no
+    // longer safe to issue another destructive operation here.
+    try { persistAccount(store, previous, next); } catch { /* keep committed state if rollback is unavailable */ }
+    throw error;
+  }
   return next;
 }
 
 /**
- * AccountController.removePhoto. Delete the basename when photoUrl is set,
- * then persist photoUrl = null even when no object existed.
+ * AccountController.removePhoto. Commit photoUrl = null before deleting the
+ * old object, so a failed metadata flush never points at a missing object.
  */
 export async function removePhoto(store, { ownerId, photoProvider }) {
   const account = findById(store, ownerId);
-  if (account.photoUrl) await photoProvider.remove(photoObjectKey(account.photoUrl));
+  const oldObject = photoObjectKey(account.photoUrl);
   const previous = snapshotAccount(account);
   const next = { ...account, photoUrl: null, updated: Date.now() };
   persistAccount(store, next, previous);
+  try {
+    if (oldObject) await photoProvider.remove(oldObject);
+  } catch (error) {
+    try { persistAccount(store, previous, next); } catch { /* keep committed state if rollback is unavailable */ }
+    throw error;
+  }
   return next;
 }
 
