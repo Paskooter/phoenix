@@ -1,6 +1,6 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRequest, ruleInventory } from '../src/requestParser.js';
+import { isUsableWinner, parseRequest, ruleInventory } from '../src/requestParser.js';
 import { start } from '../src/index.js';
 
 let server;
@@ -19,6 +19,37 @@ before(async () => {
 after(async () => {
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RUNTIME = selectedRuntime;
+});
+
+test('AST selected winner validation rejects SKIP and missing intent', () => {
+  assert.equal(isUsableWinner({ intent: 'right', priority: 'SKIP' }), false);
+  assert.equal(isUsableWinner({ intent: 'right', priority: 'skip' }), false);
+  assert.equal(isUsableWinner({ intent: 'right', priority: ' SKIP ' }), false);
+  assert.equal(isUsableWinner({ intent: null, priority: 'LOW' }), false);
+  assert.equal(isUsableWinner({ intent: 'right', priority: 'LOW' }), true);
+});
+
+test('AST parse rejects a selected SKIP winner instead of leaking it', () => {
+  let astMatcherCalls = 0;
+  const result = parseRequest({ text: 'synthetic AST input', rules: ['launch', 'globals/gui_nav'] }, {
+    // Keep the fixture at the request-parser boundary: these are AST candidates
+    // after source matching and before ParseRequestHandler winner validation.
+    astMatcher: name => {
+      astMatcherCalls += 1;
+      const skip = name === 'globals/gui_nav';
+      return {
+        rule: name,
+        intent: skip ? 'right' : 'lower-ranked',
+        priority: skip ? 'SKIP' : 'LOW',
+        entities: { domain: skip ? 'gui_command' : 'synthetic' },
+        score: skip ? 999 : 1,
+      };
+    },
+  });
+  assert.ok(astMatcherCalls > 1);
+  // The selected SKIP winner must produce EMPTY_NLU; the lower-ranked AST
+  // candidate is not promoted after winner validation rejects it.
+  assert.deepEqual(result, { rules: [], intent: null, entities: null });
 });
 
 test('loads the complete source inventory and the timer named rule', () => {

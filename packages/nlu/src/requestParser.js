@@ -183,6 +183,17 @@ function emptyResult() {
   return { intent: EMPTY_NLU.intent, entities: EMPTY_NLU.entities, rules: EMPTY_NLU.rules.slice() };
 }
 
+/**
+ * ParseRequestHandler validates the selected parser result after arbitration.
+ * Keep this check profile-independent: AST and compiled candidates share the
+ * same no-result contract, and a selected SKIP winner must never leak through
+ * merely because no compiled runtime is active.
+ */
+export function isUsableWinner(winner) {
+  return Boolean(winner && winner.intent
+    && String(winner.priority || '').trim().toUpperCase() !== 'SKIP');
+}
+
 export const INVALID_NLU_REQUEST = 'Invalid NLU request';
 
 function invalidRequest() {
@@ -290,12 +301,15 @@ function matchNamedRule(name, text, state) {
   };
 }
 
-function chooseBest(requested, text, state, compiledRuntime) {
+function chooseBest(requested, text, state, compiledRuntime, options = {}) {
   if (!compiledRuntime) {
+    // `astMatcher` is only a deterministic test seam. The production path uses
+    // matchNamedRule, which reads the hash-checked source inventory above.
+    const astMatcher = typeof options.astMatcher === 'function' ? options.astMatcher : matchNamedRule;
     const candidates = [];
     for (const requestedEntry of requested) {
       for (const name of requestedEntry.names) {
-        const candidate = matchNamedRule(name, text, state);
+        const candidate = astMatcher(name, text, state);
         if (!candidate) continue;
         if (requestedEntry.name !== name) candidate.requestedName = requestedEntry.name;
         candidates.push(candidate);
@@ -336,6 +350,9 @@ function chooseBest(requested, text, state, compiledRuntime) {
  *
  * `options.externalProvider` replaces the disabled Dialogflow provider so the
  * archived external-agent result structure can be replayed (N-07).
+ * `options.astMatcher` is an internal deterministic test seam for injecting an
+ * already-shaped AST candidate; normal callers must omit it.
+ *
  * `options.externalAttachmentRevision` selects the ratified reading of the
  * external block: 'attach' (default, ParseRequestHandler@5c0a739) or 'omit'
  * (ParseRequestHandler@715e0dd0, whose restored handler has no external block).
@@ -364,11 +381,11 @@ export function parseRequest(request, options = {}) {
       }
     }
   }
-  const winner = chooseBest(requested, text, state, compiledRuntime);
+  const winner = chooseBest(requested, text, state, compiledRuntime, options);
   // ParseRequestHandler validates only the selected result. A missing intent or SKIP
   // priority therefore returns the empty NLU result and must not promote another final
   // from the same rule or a lower-ranked rule.
-  if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
+  if (!isUsableWinner(winner)) {
     return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
   }
   let entities = winner.entities;
