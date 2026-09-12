@@ -3,10 +3,14 @@
 
 import { message, ResponseType } from '@phoenix/contracts';
 import { writeTrace } from '@phoenix/common';
+import { boundedSignal, DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS, signalFromOptions } from './requestSignal.js';
 
 export class ParserClient {
-  constructor(parserURL) {
+  constructor(parserURL, options = {}) {
     this.parserURL = parserURL.replace(/\/$/, '');
+    this.timeoutMs = typeof options === 'number'
+      ? options
+      : (options.timeoutMs ?? (DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS + 1000));
   }
 
   /**
@@ -14,10 +18,11 @@ export class ParserClient {
    * @param {object} [trace]
    * @returns {Promise<{rules:string[], intent:(string|null), entities:object, external?:object}>}
    */
-  async handleNLU(data, trace) {
+  async handleNLU(data, trace, options) {
     const body = message(ResponseType.NLU, data); // { type:'NLU', msgID, ts, data }
     const res = await fetch(`${this.parserURL}/v1/parse`, {
       method: 'POST',
+      signal: boundedSignal(this.timeoutMs, signalFromOptions(options)),
       headers: { 'content-type': 'application/json', ...writeTrace(trace) },
       body: JSON.stringify(body),
     });

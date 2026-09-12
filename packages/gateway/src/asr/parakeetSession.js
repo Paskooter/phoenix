@@ -577,18 +577,21 @@ export class ParakeetASRSession {
     if (this.pcmCarry) throw new AudioFormatError('ASR PCM ended on an odd byte boundary');
     const pcm = Buffer.concat(this.chunks);
     if (pcm.length === 0) {
+      const emptyResult = { text: '', confidence: 0 };
+      if (this.finalizeReason === 'max-speech') emptyResult.annotation = 'MAX_SPEECH_TIMEOUT';
+      this.lastResult = emptyResult;
       this.state = 'DONE';
-      this._resolveStart(undefined, { close: false });
-      return;
+      this._resolveStart(emptyResult);
+      return emptyResult;
     }
     const wav = ParakeetASRSession.makeWav(pcm);
     const transcript = await this._postToParakeet(wav);
     if (this.aborted) return;
     // Post-hoc earlyEOS: annotate the final transcript when it matches the
     // cleaned earlyEOS phrases (the reference's stated batch behavior).
-    const annotation = transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)
-      ? 'FAST_EOS'
-      : undefined;
+    const annotation = this.finalizeReason === 'max-speech'
+      ? 'MAX_SPEECH_TIMEOUT'
+      : (transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript) ? 'FAST_EOS' : undefined);
     this._completeResult(transcript || '', annotation);
   }
 

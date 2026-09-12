@@ -147,19 +147,9 @@ export async function createGateway(config = loadConfig()) {
       catch { return tx.reject(new Error(`Invalid JSON arrived into socket: ${data}`)); }
       tx.handleMessage({ json });
     });
-    // ListenHandler's SocketMessageReader resolves its read promise on close,
-    // but the transaction itself remains pending until normal completion or
-    // TransactionHandler's timeout. Resolving a listen transaction here makes
-    // an early client disconnect look like a successful turn and can settle it
-    // while a skill request is still in flight. ProactiveTransaction retains
-    // Phoenix's existing close behavior until that separate lifecycle is
-    // reviewed against the source proactive handler.
-    //
-    // A closed peer cannot receive anything, so the listen transaction's
-    // in-flight ASR phase is abandoned instead (Phoenix fix): the robot closes
-    // this socket on every hotword re-trigger and on cancel_local_turn, and
-    // without this the phase kept streaming into a dead response and recognized
-    // audio whose EOS + LISTEN frames were silently dropped.
+    // A closed peer cannot receive anything. Abandoning the listen transaction
+    // aborts its shared ASR/parser/skill/history work before settling the promise,
+    // preventing a late completion from writing frames or launch history.
     if (isProactive) ws.on('close', () => tx.abandon?.());
     else ws.on('close', () => tx.abandon?.());
 

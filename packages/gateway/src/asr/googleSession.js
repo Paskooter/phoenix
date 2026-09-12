@@ -215,9 +215,10 @@ export class GoogleASRSession {
       const handleEnd = () => {
         if (this.startSettled) return;
         // A transport ending without a final frame is still a terminal provider
-        // outcome. Return the last usable interim rather than leaving start()
-        // pending forever.
-        this._resolveStart(this.lastASRResult || undefined);
+        // outcome. Preserve the robot's SOS/EOS ordering for any speech already
+        // observed and return a concrete empty envelope when it ended silently.
+        if (this.haveSentSOS) this.sendEOS();
+        this._resolveStart(this.lastASRResult || { text: '', confidence: 0 });
       };
 
       try {
