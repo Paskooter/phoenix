@@ -13,7 +13,7 @@ const dir = mkdtempSync(join(tmpdir(), 'phx-robotface-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
 const { createAccountService, getStore } = await import('../src/index.js');
-const { createOwnerAccount, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
+const { createOwnerAccount, createLoop, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
 
 let server; let base; let mockOta; let otaHits = [];
 
@@ -143,19 +143,64 @@ test('getStatus flips to complete once the token is consumed (or invalid)', asyn
 test('prepareRobot: authed by SigV4 Credential accessKeyId; reuses the live token', async () => {
   const store = getStore();
   const owner = store.accountByEmail('jane@jetson.test');
-  const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
+  const signed = (target, body, keyId) => signedLoopHeaders(store, base, target, body, keyId);
 
   const anon = await amz('OOBE.PrepareRobot', {});
   assert.equal(anon.status, 401);
-  assert.equal(anon.body.__type, 'CREDENTIALS_REQUIRED');
+  assert.equal(anon.body.__type, 'MISSING_AUTH_HEADER');
 
-  const r1 = await amz('OOBE.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
+  const r1 = await amz('OOBE.PrepareRobot', {}, signed('OOBE.PrepareRobot', {}, owner.accessKeyId));
   assert.equal(r1.status, 200);
   assert.ok(r1.body.token && r1.body.expires > Date.now());
 
   // token.ctrl.ts create: same account+loopId within TTL -> the SAME token, refreshed
-  const r2 = await amz('OOBE.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
+  const r2 = await amz('OOBE.PrepareRobot', {}, signed('OOBE.PrepareRobot', {}, owner.accessKeyId));
   assert.equal(r2.body.token, r1.body.token);
+});
+
+test('forged SigV4 signatures cannot reach PrepareRobot, GetServiceToken, or ReconnectRobot', async () => {
+  const store = getStore();
+  const owner = createOwnerAccount(store, {
+    email: 'forged-oobe@jetson.test', password: 'orbit-city-4ever', firstName: 'Forged',
+  });
+  owner.isAdmin = true;
+  const { loop, robot } = createLoop(store, { owner, robotId: 'forged-oobe-robot' });
+  const token = mintSetupToken(store, owner._id, loop._id);
+  const forge = (target, body) => {
+    const headers = signedLoopHeaders(store, base, target, body, owner.accessKeyId);
+    const authorizationKey = Object.keys(headers).find((key) => key.toLowerCase() === 'authorization');
+    headers[authorizationKey] = headers[authorizationKey].replace(/Signature=[^,]+/, 'Signature=00'.padEnd(64, '0'));
+    return headers;
+  };
+  const beforeTokens = store.tokens.size;
+
+  const prepared = await amz('OOBE.PrepareRobot', {}, forge('OOBE.PrepareRobot', {}));
+  assert.equal(prepared.status, 401);
+  assert.equal(prepared.body.__type, 'SIGNATURE_MISMATCH');
+
+  const service = await amz('OOBE.GetServiceToken', {}, forge('OOBE.GetServiceToken', {}));
+  assert.equal(service.status, 401);
+  assert.equal(service.body.__type, 'SIGNATURE_MISMATCH');
+  assert.equal(store.tokens.size, beforeTokens, 'forged admin request minted no token');
+
+  const reconnect = await amz(
+    'OOBE.ReconnectRobot', { token: token._id }, forge('OOBE.ReconnectRobot', { token: token._id }),
+  );
+  assert.equal(reconnect.status, 401);
+  assert.equal(reconnect.body.__type, 'SIGNATURE_MISMATCH');
+  assert.ok(store.tokens.has(token._id), 'forged reconnect did not consume the token');
+  assert.notEqual(store.accounts.get(robot._id).isDeleted, true);
+
+  const plain = createOwnerAccount(store, {
+    email: 'plain-oobe@jetson.test', password: 'orbit-city-4ever', firstName: 'Plain',
+  });
+  const injectedAdminHeaders = signedLoopHeaders(
+    store, base, 'OOBE.GetServiceToken', {}, plain.accessKeyId,
+    { 'x-amz-credentials': JSON.stringify({ id: owner._id, isAdmin: true }) },
+  );
+  const injectedAdmin = await amz('OOBE.GetServiceToken', {}, injectedAdminHeaders);
+  assert.equal(injectedAdmin.status, 401);
+  assert.equal(injectedAdmin.body.__type, 'AUTHORIZED_UNDER_ADMIN');
 });
 
 test('Update_* targets proxy through to the OTA service untouched', async () => {

@@ -45,7 +45,18 @@ export const ACCOUNT_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d-
 const ACCOUNT_MINIMAL_AGE = 13;
 const GENDERS = Object.freeze(['male', 'female', 'other', 'they']);
 const ROLES = Object.freeze(['user', 'developer']);
-const EXCLUDED_UPDATE_PROPS = Object.freeze(['email', 'password', 'accessKeyId', 'secretAccessKey']);
+// Account.Update is intentionally deny-by-default. `updated` is only a
+// compare-and-swap version precondition; it is never copied onto the account.
+// Identity, ownership, privilege, lifecycle, credential, and secret fields are
+// not update fields even when they happen to be present in the stored document.
+const ACCOUNT_UPDATE_MUTABLE_FIELDS = Object.freeze([
+  'birthday',
+  'firstName',
+  'gender',
+  'lastName',
+  'messagingAllowed',
+]);
+const ACCOUNT_UPDATE_VERSION_FIELD = 'updated';
 export const EMAIL_RESET_STATUS = Object.freeze({
   NEW: 'new',
   USED: 'used',
@@ -600,13 +611,16 @@ function validateGet(body) {
 function validateUpdate(body) {
   const top = payloadObjectMessage(body);
   if (top) return top;
+  // Do this before field coercion/validation so protected fields cannot be
+  // smuggled through as a harmless-looking value and then copied by updateAccount.
+  for (const field of Object.keys(body)) {
+    if (field !== ACCOUNT_UPDATE_VERSION_FIELD && !ACCOUNT_UPDATE_MUTABLE_FIELDS.includes(field)) {
+      return requiredChild(field, 'is not allowed');
+    }
+  }
   if (body.birthday !== undefined) {
     const birthday = joiNumber(body.birthday, 'birthday', { allowNull: true });
     if (birthday) return birthday;
-  }
-  if (body.email !== undefined) {
-    const email = joiString(body.email, 'email');
-    if (email) return email;
   }
   if (body.firstName !== undefined) {
     const firstName = joiString(body.firstName, 'firstName');
@@ -624,10 +638,6 @@ function validateUpdate(body) {
   if (body.messagingAllowed !== undefined) {
     const messaging = joiBoolean(body.messagingAllowed, 'messagingAllowed');
     if (messaging) return messaging;
-  }
-  if (body.password !== undefined) {
-    const password = joiString(body.password, 'password');
-    if (password) return password;
   }
   if (body.updated !== undefined) {
     const updated = joiDate(body.updated, 'updated', { allowNull: true });
@@ -894,10 +904,8 @@ function updateAccount(store, ownerId, payload) {
   }
   const previous = snapshotAccount(existing);
   const next = { ...existing };
-  for (const prop of Object.keys(payload)) {
-    if (!Array.isArray(next[prop]) && EXCLUDED_UPDATE_PROPS.indexOf(prop) === -1) {
-      next[prop] = payload[prop];
-    }
+  for (const prop of ACCOUNT_UPDATE_MUTABLE_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(payload, prop)) next[prop] = payload[prop];
   }
   next.updated = Date.now();
   persistAccount(store, next, previous);

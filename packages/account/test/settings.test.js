@@ -8,12 +8,14 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { SkillRequestType } from '@phoenix/contracts';
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-settings-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
-const { createAccountService, getStore } = await import('../src/index.js');
+const { createAccountService, createSettingsInternalService, getStore } = await import('../src/index.js');
 const { createOwnerAccount, createLoop } = await import('../src/model.js');
+const { getSettingsData } = await import('../src/settingsData.js');
 const { Store } = await import('../src/store.js');
 
 let server; let base; let store; let owner; let loop; const jar = new Map();
@@ -25,12 +27,20 @@ async function call(method, path, body, jarName = 'c') {
   const sc = res.headers.get('set-cookie'); if (sc) jar.set(jarName, sc.split(';')[0]);
   return { status: res.status, body: await res.json().catch(() => null), headers: res.headers };
 }
-async function amzSettings(op, body, accountId, prefix = 'Settings_20171219') {
+async function amzSettings(
+  op, body, accountId, prefix = 'Settings_20171219', signedAccountId = accountId,
+) {
+  const target = `${prefix}.${op}`;
+  const account = signedAccountId && store.accounts.get(signedAccountId);
+  const signed = account ? signedLoopHeaders(store, base, target, body || {}, account.accessKeyId) : {};
   const res = await fetch(`${base}/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': `${prefix}.${op}`,
+      'x-amz-target': target,
+      ...signed,
+      // Preserve the gateway forwarding header as untrusted metadata; the
+      // public handler must ignore it in favor of the signed access key.
       ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
     },
     body: JSON.stringify(body || {}),
@@ -90,7 +100,7 @@ test('Account peer routes expose the source Account client response fields', asy
 
 test('internal Settings credentials preserve null failure and falsy primitive provider context', async () => {
   const contexts = [];
-  const providerServer = await createAccountService({
+  const providerServer = await createSettingsInternalService({
     store: new Store(join(dir, 'credential-edge-store.json')),
     settingsProviders: {
       account: { checkUserBelongsToLoop: async (context) => {
@@ -221,6 +231,30 @@ test('Settings Get validation follows source credentials/loop/settings requireme
   assert.equal(emptySettings.body.message, 'child "settings" fails because ["settings" must contain at least 1 items]');
 });
 
+test('public Settings mutations use the verified signer, not x-amz-credentials identity', async () => {
+  const signer = createOwnerAccount(store, {
+    email: 'settings-signer@jetson.test', password: 'orbit-city-4ever', firstName: 'Signer',
+  });
+  const injected = createOwnerAccount(store, {
+    email: 'settings-injected@jetson.test', password: 'orbit-city-4ever', firstName: 'Injected',
+  });
+  const { loop } = createLoop(store, { owner: signer, robotId: 'settings-identity-robot' });
+  const body = {
+    loopId: loop._id,
+    data: { weatherEnabled: { value: 1 } },
+  };
+  const result = await amzSettings(
+    'UpdateSettings', body, injected._id, 'Settings_20171219', signer._id,
+  );
+  assert.equal(result.status, 200);
+  assert.equal(getSettingsData(store, signer._id).weatherEnabled.value, 1);
+  assert.equal(store.settings.has(injected._id), false);
+
+  const unsigned = await amzSettings('UpdateSettings', body, signer._id, 'Settings_20171219', null);
+  assert.equal(unsigned.status, 401, 'public mutation without SigV4 is rejected');
+  assert.equal(unsigned.body.__type, 'MISSING_AUTH_HEADER');
+});
+
 test('source-shaped Settings provider seams preserve view, provider order, and per-node data', async () => {
   const calls = [];
   const view = {
@@ -247,7 +281,7 @@ test('source-shaped Settings provider seams preserve view, provider order, and p
     },
   };
   const providerStore = new Store(join(dir, 'provider-store.json'));
-  const providerServer = await createAccountService({ store: providerStore, settingsProviders: providers }).listen(0);
+  const providerServer = await createSettingsInternalService({ store: providerStore, settingsProviders: providers }).listen(0);
   const providerBase = `http://localhost:${providerServer.address().port}`;
   try {
     const response = await fetch(`${providerBase}/`, {
@@ -319,7 +353,7 @@ test('source Settings graph runs service groups concurrently and updates connect
     },
   };
   const providerStore = new Store(join(dir, 'concurrent-provider-store.json'));
-  const providerServer = await createAccountService({ store: providerStore, settingsProviders: providers }).listen(0);
+  const providerServer = await createSettingsInternalService({ store: providerStore, settingsProviders: providers }).listen(0);
   try {
     const response = await fetch(`http://localhost:${providerServer.address().port}/`, {
       method: 'POST',
@@ -353,7 +387,7 @@ test('source Settings graph preserves null credentials and source null-map diagn
     lasso: { getCredential: async () => null },
   };
   const providerStore = new Store(join(dir, 'null-provider-store.json'));
-  const providerServer = await createAccountService({ store: providerStore, settingsProviders: providers }).listen(0);
+  const providerServer = await createSettingsInternalService({ store: providerStore, settingsProviders: providers }).listen(0);
   async function request(body) {
     const response = await fetch(`http://localhost:${providerServer.address().port}/`, {
       method: 'POST',
@@ -407,7 +441,7 @@ test('source Settings graph preserves null credentials and source null-map diagn
 
 test('Settings route accepts source JSON values before Joi and does not invent item schemas', async () => {
   const providerStore = new Store(join(dir, 'validation-provider-store.json'));
-  const providerServer = await createAccountService({
+  const providerServer = await createSettingsInternalService({
     store: providerStore,
     settingsProviders: {
       account: { checkUserBelongsToLoop: async () => {} },

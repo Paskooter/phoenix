@@ -198,6 +198,15 @@ function sameValue(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+function activeMemberCount(loop) {
+  return (loop?.members || []).filter((member) => {
+    // MAX_SIZE applies to household members, not the robot account that is
+    // stored as a loop member for wire compatibility.
+    if (loop.robot && idsEqual(loop.robot, member.accountId)) return false;
+    return isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED);
+  }).length;
+}
+
 function getMemberPath(member, path) {
   return String(path).split('.').reduce((value, part) => (
     value === undefined || value === null ? undefined : value[part]
@@ -276,10 +285,14 @@ function applyLoopMutation(store, mutation) {
   const currentVersion = loopVersion(current);
 
   if (mutation.kind === 'append') {
-    // Observed Mongoose 4.9.8 operators for a new member: `$pushAll.members`
-    // and `$inc.__v` with no version predicate, so two independently loaded
-    // invite drafts both survive.
-    next.members = (next.members || []).concat(mutation.members.map(snapshotLoop));
+    // The invitation limit is a commit-time invariant. Requests may all have
+    // loaded the same pre-mutation snapshot, so checking only in addMember()
+    // would let concurrent drafts overfill the loop.
+    const candidateMembers = (next.members || []).concat(mutation.members.map(snapshotLoop));
+    if (activeMemberCount({ ...next, members: candidateMembers }) > MAX_SIZE) {
+      fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
+    }
+    next.members = candidateMembers;
     next.__v = currentVersion + 1;
   } else if (mutation.kind === 'touch') {
     // Assigning a member path its current value does not mark it dirty. The
@@ -299,6 +312,7 @@ function applyLoopMutation(store, mutation) {
     }
     next.__v = currentVersion;
   }
+  if (activeMemberCount(next) > MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
   next.updated = mutation.draft.updated;
   store.loops.set(mutation.loopId, next);
   mutation.draft.__v = next.__v;
@@ -635,10 +649,10 @@ async function addMember(store, {
       fields: { status: existingMember.status, invitationCode: existingMember.invitationCode },
     });
   }
-  // Source compares the filtered array with MAX_SIZE, not `.length`. Preserve that.
-  const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
-    && (isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED)));
-  if (existingAffectingSize >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
+  // Keep a cheap request-side rejection for an already-full loop, but the
+  // authoritative check is applyLoopMutation() above because concurrent
+  // requests may all observe the same draft size.
+  if (!existingMember && activeMemberCount(loop) >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
   const memberIsChild = coppaEnabled && memberProperties && memberProperties.isChild;
   const memberStatus = memberProperties && !memberProperties.email && !memberIsChild
     ? MEMBER_STATUS.ACCEPTED

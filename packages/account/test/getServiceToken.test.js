@@ -113,9 +113,10 @@ test('GetServiceToken rejects an unauthenticated caller', async () => {
   const store = getStore();
   const before = store.accounts.size;
   const res = await amz('OOBE_20161026.GetServiceToken', {});
-  // errors/*.ts gives AUTHORIZED_UNDER_ADMIN statusCode 401 (not 403).
+  // SigV4 verification rejects a missing Authorization header before the
+  // admin gate can consume a caller.
   assert.equal(res.status, 401);
-  assert.equal(res.body.__type, 'AUTHORIZED_UNDER_ADMIN');
+  assert.equal(res.body.__type, 'MISSING_AUTH_HEADER');
   assert.equal(store.accounts.size, before, 'no account created without credentials');
 });
 

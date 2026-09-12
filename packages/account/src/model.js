@@ -362,6 +362,7 @@ export function createLoop(store, { owner, robotId }) {
 export function mintSetupToken(store, accountId, loopId = null, extra = {}) {
   const live = [...store.tokens.values()].find((t) =>
     t.accountId === accountId && (t.loopId || null) === (loopId || null)
+    && t.claimedAt === undefined
     && Date.now() - t.created <= ACCESS_TOKEN_LIFETIME_MS);
   if (live) {
     live.created = Date.now();
@@ -381,9 +382,60 @@ export function mintSetupToken(store, accountId, loopId = null, extra = {}) {
  */
 export function findToken(store, tokenId) {
   const token = store.tokens.get(tokenId);
-  if (!token) return { error: 'TOKEN_NOT_FOUND' };
+  if (!token || token.claimedAt !== undefined) return { error: 'TOKEN_NOT_FOUND' };
   if (Date.now() - token.created > ACCESS_TOKEN_LIFETIME_MS) return { error: 'TOKEN_EXPIRED' };
   return { token };
+}
+
+/**
+ * Claim a live setup token synchronously before an async SetupRobot step.
+ * JavaScript's single-threaded map mutation makes the check-and-mark one
+ * commit point for all requests in this process; the marker is flushed so a
+ * crash cannot turn an in-flight redemption back into a reusable token.
+ */
+export function claimSetupToken(store, tokenId) {
+  const found = findToken(store, tokenId);
+  if (found.error) return found;
+  const token = store.tokens.get(tokenId);
+  if (!token || token.claimedAt !== undefined) return { error: 'TOKEN_NOT_FOUND' };
+  const claimedAt = Date.now();
+  token.claimedAt = claimedAt;
+  try {
+    store.flush();
+  } catch (error) {
+    delete token.claimedAt;
+    throw error;
+  }
+  return { token };
+}
+
+/** Release a claim when a redemption fails before its successful commit. */
+export function releaseSetupToken(store, tokenId, claimedToken) {
+  const token = store.tokens.get(tokenId);
+  if (!token || token !== claimedToken || token.claimedAt === undefined) return false;
+  const claimedAt = token.claimedAt;
+  delete token.claimedAt;
+  try {
+    store.flush();
+  } catch (error) {
+    token.claimedAt = claimedAt;
+    throw error;
+  }
+  return true;
+}
+
+/** Consume only the claim held by this redemption, with rollback on flush failure. */
+export function consumeClaimedSetupToken(store, tokenId, claimedToken) {
+  const token = store.tokens.get(tokenId);
+  if (!token || token !== claimedToken || token.claimedAt === undefined) return false;
+  store.tokens.delete(tokenId);
+  try {
+    store.flush();
+  } catch (error) {
+    store.tokens.set(tokenId, token);
+    throw error;
+  }
+  return true;
 }
 
 export function takeValidToken(store, tokenId) {

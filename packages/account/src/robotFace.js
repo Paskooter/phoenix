@@ -26,7 +26,8 @@ import { randomUUID } from 'node:crypto';
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import {
   ACCESS_TOKEN_LIFETIME_MS, MEMBER_STATUS, createAuthenticatedHubToken, createLoop, createOwnerAccount,
-  findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
+  findOrCreateRobotAccount, mintSetupToken, findToken, claimSetupToken, releaseSetupToken,
+  consumeClaimedSetupToken, deleteToken, newId,
   populateLoop, ensureLoopMemberIds, isAcceptedStatus,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
@@ -116,6 +117,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     getservicetoken: getServiceToken,
     createhubtoken: issueHubToken,
   };
+  const verifiedOobeOperations = new Set(['preparerobot', 'getservicetoken', 'reconnectrobot']);
 
   const dispatch = async ({ req, res, body, log }) => {
     const { prefix, op } = parseTarget(req);
@@ -137,9 +139,21 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       return proxyToOta(req, res, body, log);
     }
 
-    // Settings_* — the report-skill's user-prefs source (NET_settings points here).
+    // Settings_* — read calls retain the existing internal-client compatibility
+    // contract (`x-amz-credentials` is metadata only for reads). Mutating
+    // public Settings calls are a security boundary: require SigV4 and pass
+    // only the verified caller to the dispatcher; it must never trust the
+    // caller-supplied identity header.
     if (/^settings/i.test(prefix)) {
-      return settingsAwsDispatch(store, { req, res, body, op, prefix, log, providers: settingsProviders });
+      const publicMutation = /^(UpdateSettings|DeleteSettings)$/i.test(op);
+      const verifiedCaller = publicMutation
+        ? await verifiedClassicCaller(store, req, res, body)
+        : null;
+      if (publicMutation && !verifiedCaller) return;
+      return settingsAwsDispatch(store, {
+        req, res, body, op, prefix, log, providers: settingsProviders,
+        publicRequest: publicMutation, verifiedCaller,
+      });
     }
 
     // Loop_* — the robot reads its loop here (e.g. jibo-system-backup.js: Loop.list -> loopId
@@ -234,6 +248,15 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
       return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unknown target ${prefix}.${op}`);
     }
+    const handlerBody = op.toLowerCase() === 'createhubtoken' ? body : (body || {});
+    if (verifiedOobeOperations.has(op.toLowerCase())) {
+      // These OOBE handlers consume the caller (including the admin gate). Do
+      // not let a Credential= substring or x-amz-credentials header reach them
+      // until the complete AWS V4 signature has been checked.
+      const caller = await verifiedClassicCaller(store, req, res, handlerBody);
+      if (caller === undefined) return;
+      req._phoenixVerifiedCredentials = caller;
+    }
     if (op.toLowerCase() === 'createhubtoken' && !/^account/i.test(prefix)) {
       log.warn('CreateHubToken requires the Account service prefix', { target: `${prefix}.${op}` });
       return void sendAmzError(res, { code: 'UnknownOperationException', statusCode: 400 }, `unknown target ${prefix}.${op}`);
@@ -244,7 +267,6 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // AccountHandler's Joi payload decorator sees the original value for
     // CreateHubToken: null, arrays, and primitive JSON values are validation
     // errors, while the other legacy robot handlers use an object default.
-    const handlerBody = op.toLowerCase() === 'createhubtoken' ? body : (body || {});
     return handler({ req, res, body: handlerBody, log });
   };
   // Hapi presents an omitted request payload to CreateHubToken as null. Other
@@ -279,7 +301,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    *   !loop.owner.equals(account._id)  — OWNER_CAN_MANIPULATE.
    *   loop.isSuspended                 — replace the robot and unsuspend; else a
    *                                      different robot is LOOP_MUST_BE_SUSPENDED.
-   *   getRobot / deleteToken           — ONE-TIME token, RobotCredentials.
+   *   getRobot / atomically claim and consume token -> RobotCredentials.
    */
   async function setupRobot({ res, body, log }) {
     const validationMessage = oobeTokenValidationMessage(body, { requiredId: true });
@@ -293,7 +315,25 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (!account) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
     if (account.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
 
+    let claimedToken = null;
+    const claim = () => {
+      const result = claimSetupToken(store, tokenId);
+      if (result.error) {
+        sendAmzError(res, Errors[result.error]);
+        return false;
+      }
+      claimedToken = result.token;
+      return true;
+    };
+    const releaseClaim = () => {
+      if (claimedToken) {
+        releaseSetupToken(store, tokenId, claimedToken);
+        claimedToken = null;
+      }
+    };
+
     let loop;
+    try {
     if (token.loopId) {
       // BaseLoopController.findById -> Loop.findById, behind the schema's
       // not-deleted find middleware: a soft-deleted loop is LOOP_NOT_FOUND.
@@ -306,6 +346,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         return void sendAmzError(res, Errors.OWNER_CAN_MANIPULATE);
       }
       if (loop.isSuspended) {
+        if (!claim()) return;
         // ROBOT REPLACEMENT. Source order is exact:
         //   newRobotAccount = findOrCreateRobotAccount({ robotId: id })
         //   removeRobotFromLoops(loop.robot)          // old robot -> suspends its loop
@@ -317,7 +358,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
         removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
         loop = activeLoopById(token.loopId);
-        if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+        if (!loop) {
+          releaseClaim();
+          return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+        }
         // Mutate a detached draft: saveLoop must be able to leave the stored
         // object untouched when the LoopUpdated write is rejected.
         const before = JSON.parse(JSON.stringify(loop));
@@ -349,6 +393,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         if (currentRobot.friendlyId !== id) {
           return void sendAmzError(res, Errors.LOOP_MUST_BE_SUSPENDED);
         }
+        if (!claim()) return;
       }
     } else {
       // Source loop.ctrl.ts create({ ownerId, name, robotId }):
@@ -363,6 +408,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       if (lookup && lookup.payload && lookup.payload.suspended === true) {
         return void sendAmzError(res, Errors.ROBOT_DISABLED);
       }
+      if (!claim()) return;
       const robotAccount = findOrCreateRobotAccount(store, id);
       removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
       ({ loop } = createLoop(store, { owner: account, robotId: id }));
@@ -371,7 +417,11 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     }
 
     const robot = store.accounts.get(loop.robot) || findOrCreateRobotAccount(store, id);
-    deleteToken(store, token._id); // ONE-TIME
+    if (!consumeClaimedSetupToken(store, tokenId, claimedToken)) {
+      releaseClaim();
+      return void sendAmzError(res, Errors.TOKEN_NOT_FOUND);
+    }
+    claimedToken = null;
 
     const credentials = {
       accessKeyId: robot.accessKeyId,
@@ -380,12 +430,17 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     };
     log.info('setupRobot complete', { friendlyId: id, loop: loop._id });
     return void sendAmz(res, 200, credentials);
+    } catch (error) {
+      if (claimedToken) {
+        try { releaseClaim(); } catch { /* preserve the original failure */ }
+      }
+      throw error;
+    }
   }
 
-  /** oobe.handler.ts PrepareRobot — authed: accountId from the SigV4 Credential accessKeyId. */
+  /** oobe.handler.ts PrepareRobot — authed: accountId from the verified SigV4 credentials. */
   function prepareRobot({ req, res, body }) {
-    const accessKeyId = accessKeyIdFromAuth(req);
-    const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+    const account = req._phoenixVerifiedCredentials;
     if (!account) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
     // @parseCredentials({}) runs before @validatePayload({ loopId: Joi.string() }).
     const validationMessage = oobeLoopIdValidationMessage(body);
@@ -426,7 +481,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    * pair — the account differs every time.
    */
   function getServiceToken({ req, res, log }) {
-    const caller = accountForClassicRequest(req);
+    const caller = req._phoenixVerifiedCredentials;
     if (!caller || !caller.isAdmin) {
       return void sendAmzError(res, Errors.AUTHORIZED_UNDER_ADMIN);
     }
@@ -455,7 +510,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    * account is an ACCEPTED member → delete token (one-time) → COMMAND_RESULT.
    */
   function reconnectRobot({ req, res, body, log }) {
-    const caller = accountForClassicRequest(req);
+    const caller = req._phoenixVerifiedCredentials;
     if (!caller) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
     // @parseCredentials({}) then @validatePayload({ id: Joi.string(), token: Joi.string().required() }).
     const validationMessage = oobeTokenValidationMessage(body, { optionalId: true });

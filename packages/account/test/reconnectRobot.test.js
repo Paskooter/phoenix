@@ -20,6 +20,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
+
 const dir = mkdtempSync(join(tmpdir(), 'phx-reconnect-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
@@ -29,23 +31,30 @@ const { createOwnerAccount, createLoop, findOrCreateRobotAccount, mintSetupToken
 let server; let base;
 
 async function amz(target, body, headers = {}) {
+  const marker = headers.authorization && typeof headers.authorization === 'object'
+    ? headers.authorization.__accessKeyId : null;
+  const requestHeaders = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': target,
+    ...headers,
+    connection: 'close',
+  };
+  if (marker) {
+    delete requestHeaders.authorization;
+    Object.assign(requestHeaders, signedLoopHeaders(getStore(), base, target, body, marker));
+  }
   const res = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      ...headers,
-      connection: 'close',
-    },
+    headers: requestHeaders,
     body: JSON.stringify(body),
   });
   return { status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) };
 }
 
-// The OOBE compatibility face resolves the caller's accessKeyId from the
-// Authorization Credential; like the source's parseCredentials, no SigV4
-// signature check applies on this legacy LAN path.
-const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
+// Every authenticated test request is re-signed by `amz` with the Store
+// secret. The marker keeps the call sites compact while ensuring the server
+// receives a real cryptographic signature, not a Credential= substring.
+const sig = (keyId) => ({ __accessKeyId: keyId });
 
 before(async () => {
   server = await createAccountService().listen(0);
@@ -168,14 +177,14 @@ test('ReconnectRobot: a member record with a pending status in any case must not
   assert.equal(r.body.__type, 'MEMBER_CAN_REQUEST');
 });
 
-test('ReconnectRobot: missing credentials is 401 CREDENTIALS_REQUIRED', async () => {
+test('ReconnectRobot: missing credentials is 401 MISSING_AUTH_HEADER', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-anon@jetson.test', password: 'orbit-city-4ever', firstName: 'Anon' });
   const token = mintSetupToken(store, owner._id);
 
   const r = await amz('OOBE_20161026.ReconnectRobot', { token: token._id });
   assert.equal(r.status, 401);
-  assert.equal(r.body.__type, 'CREDENTIALS_REQUIRED');
+  assert.equal(r.body.__type, 'MISSING_AUTH_HEADER');
 });
 
 test('ReconnectRobot: missing token payload is a 422 Joi validation error', async () => {

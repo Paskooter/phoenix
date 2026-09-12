@@ -2,10 +2,12 @@
 // source. Two faces:
 //   - AWS-JSON (the report-skill's SettingsClient calls this at NET_settings): GetSettings /
 //     UpdateSettings / DeleteSettings / GetDataForSettings, dispatched on POST / by op. The
-//     caller identifies the account via `x-amz-credentials: {"id":<accountId>}` (we trust it —
-//     LAN, like everything else; no SigV4 verification). Both the legacy Pegasus target and the
-//     newer SDK target return the source array shape. Get requests use the source provider graph;
-//     unconfigured peers are explicit local storage seams reported by createSettingsProviders.
+//     x-amz-credentials header. Legacy/public read calls retain that metadata
+//     compatibility, but public mutations are verified at the robot-facing
+//     boundary and derive identity from the signed access key. Both faces return
+//     the source array shape. Get requests use the source provider graph;
+//     unconfigured peers are explicit local storage seams reported by
+//     createSettingsProviders.
 //   - Portal REST (GET/PUT /api/settings, session-cookie auth): the friendly editor, stored under
 //     the logged-in owner's account._id.
 //
@@ -71,6 +73,9 @@ function validationError(res, field, detail, hapiHeaders = false) {
   sourceError(res, 422, 'Unprocessable Entity', `child "${field}" fails because ["${field}" ${detail}]`, undefined, hapiHeaders);
 }
 
+// `accountIdFromCreds` is retained for the legacy public-read and private
+// Settings peer transports. Public mutations are dispatched only with a
+// verified caller from robotFace and never use this header for identity.
 function accountIdFromCreds(req) {
   const raw = req.headers && req.headers['x-amz-credentials'];
   if (raw) {
@@ -114,6 +119,10 @@ function credentialIdFromCreds(req) {
  * closed at the membership check (LOOP_MEMBER_ONLY), never a bypass.
  */
 function resolveSettingsCaller(req, store) {
+  const verified = req && req._phoenixVerifiedCredentials;
+  if (verified && (verified._id !== undefined || verified.id !== undefined)) {
+    return String(verified._id ?? verified.id);
+  }
   const direct = accountIdFromCreds(req);
   if (direct) {
     // A forwarded gateway identity is already an account id. A SigV4 Credential
@@ -426,8 +435,12 @@ function dispatchWithProviders(res, req, body, providers, store = null) {
  */
 export function settingsAwsDispatch(store, {
   req, res, body, op, prefix = DEFAULT_SETTINGS_PREFIX, log, providers = null,
+  publicRequest = false, verifiedCaller = null,
 }) {
-  const accountId = accountIdFromCreds(req);
+  const accountId = publicRequest
+    ? (verifiedCaller && (verifiedCaller._id ?? verifiedCaller.id) !== undefined
+      ? String(verifiedCaller._id ?? verifiedCaller.id) : null)
+    : accountIdFromCreds(req);
   const effectiveProviders = providers || createSettingsProviders({ store });
   switch (op.toLowerCase()) {
     case 'getsettings': {

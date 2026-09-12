@@ -293,8 +293,15 @@ test('InviteLoopMember enforces owner access, statuses, and source errors', asyn
       loopId: many.body.id,
       firstName: `Extra${i}`,
     }, owner.accessKeyId);
-    assert.equal(extra.status, 200, `source compares the member array with MAX_SIZE, so invite ${i} is not ACTIVE_LIMIT_REACHED`);
+    const expectedStatus = i < 15 ? 200 : 409;
+    assert.equal(extra.status, expectedStatus, `MAX_SIZE commit invariant at invite ${i}`);
+    if (expectedStatus === 409) assert.equal(extra.body.__type, 'ACTIVE_LIMIT_REACHED');
   }
+  const active = store.loops.get(many.body.id).members.filter((member) => {
+    if (member.accountId === store.loops.get(many.body.id).robot) return false;
+    return [MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.INVITED].includes(String(member.status).toLowerCase());
+  });
+  assert.equal(active.length, 16);
 });
 
 test('InviteLoopMember rejects mutation of a suspended or deleted loop', async () => {

@@ -214,6 +214,42 @@ test('same-email sequential InviteLoopMember updates the pending row through Cla
   }
 });
 
+test('20 concurrent invitations commit at most MAX_SIZE active members', async () => {
+  const state = makeState('a04-race-cap');
+  const side = makeProviders();
+  const outbox = new LoopUpdatedOutbox(state.store);
+  try {
+    const results = await Promise.allSettled(Array.from({ length: 20 }, (_, index) => inviteMember(
+      state.store,
+      {
+        ownerId: state.owner._id,
+        loopId: state.loop._id,
+        email: `cap-${index}@fixture.test`,
+        firstName: `Cap ${index}`,
+      },
+      outbox,
+      { invitationProviders: side.invitationProviders },
+    )));
+    const fulfilled = results.filter((result) => result.status === 'fulfilled');
+    const rejected = results.filter((result) => result.status === 'rejected');
+    assert.equal(fulfilled.length, 15, 'owner occupies one of the 16 active member slots');
+    assert.equal(rejected.length, 5);
+    assert.ok(rejected.every((result) => result.reason.code === 'ACTIVE_LIMIT_REACHED'));
+
+    const saved = state.store.loops.get(state.loop._id);
+    const active = saved.members.filter((member) => {
+      if (String(member.accountId) === String(saved.robot)) return false;
+      return [MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.INVITED].includes(String(member.status).toLowerCase());
+    });
+    assert.equal(active.length, 16);
+    assert.ok(active.length <= 16, 'commit-time invariant prevents over-capacity');
+    assert.equal(side.mail.length, 15, 'side effects run only for committed invitations');
+    assert.equal(side.events.length, 15);
+  } finally {
+    rmSync(state.directory, { recursive: true, force: true });
+  }
+});
+
 test('same-email concurrent InviteLoopMember appends two members when both load before save', async () => {
   const state = makeState('a04-race-dup-append');
   const side = makeProviders();

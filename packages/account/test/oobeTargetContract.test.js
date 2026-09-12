@@ -24,6 +24,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
+
 const dir = mkdtempSync(join(tmpdir(), 'phx-oobe-targets-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 delete process.env.NET_robotread;
@@ -35,19 +37,26 @@ const { createOwnerAccount, createLoop, mintSetupToken } = await import('../src/
 
 let server; let base;
 
-// The legacy OOBE face resolves the caller by the Authorization Credential accessKeyId
-// (oobe.handler.ts @parseCredentials); the gateway, not this handler, owns SigV4.
-const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
+// Every authenticated test request is re-signed by `amz` with the Store
+// secret; no fake signature is accepted by the handler.
+const sig = (keyId) => ({ __accessKeyId: keyId });
 
 async function amz(target, body, headers = {}) {
+  const marker = headers.authorization && typeof headers.authorization === 'object'
+    ? headers.authorization.__accessKeyId : null;
+  const requestHeaders = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': target,
+    ...headers,
+    connection: 'close',
+  };
+  if (marker) {
+    delete requestHeaders.authorization;
+    Object.assign(requestHeaders, signedLoopHeaders(getStore(), base, target, body, marker));
+  }
   const res = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      ...headers,
-      connection: 'close',
-    },
+    headers: requestHeaders,
     body: JSON.stringify(body),
   });
   return {
@@ -79,11 +88,11 @@ test('every archived OOBE operation reaches a real handler, never UnknownOperati
   // SetupRobot and GetStatus are in the gateway's unauthorizedMethods, so a bare request
   // reaches the handler and is refused by the handler's own boundary (Joi / credentials).
   const cases = [
-    ['OOBE_20161026.PrepareRobot', {}, {}, 'CREDENTIALS_REQUIRED'],
+    ['OOBE_20161026.PrepareRobot', {}, {}, 'MISSING_AUTH_HEADER'],
     ['OOBE_20161026.GetStatus', {}, {}, 'ValidationException(422)'],
     ['OOBE_20161026.SetupRobot', {}, {}, 'ValidationException(422)'],
-    ['OOBE_20161026.ReconnectRobot', {}, {}, 'CREDENTIALS_REQUIRED'],
-    ['OOBE_20161026.GetServiceToken', {}, {}, 'AUTHORIZED_UNDER_ADMIN'],
+    ['OOBE_20161026.ReconnectRobot', {}, {}, 'MISSING_AUTH_HEADER'],
+    ['OOBE_20161026.GetServiceToken', {}, {}, 'MISSING_AUTH_HEADER'],
   ];
   for (const [target, body, headers, expected] of cases) {
     const r = await amz(target, body, headers);

@@ -395,16 +395,13 @@ test('Get requires a verified signature, defaults empty ids to the caller, and e
   }
 });
 
-test('Update mutates the authenticated owner, ignores email/password/keys, and rejects robots and stale writes', async () => {
+test('Update uses a strict mutable-field allowlist and rejects protected fields, robots, and stale writes', async () => {
   const beforeBytes = readFileSync(storeFile);
   const updated = await post(accountBase, 'Account_20151111.Update', {
     firstName: 'Renamed',
     lastName: 'Owner',
     gender: 'other',
     messagingAllowed: false,
-    email: 'ignored@synthetic.invalid',
-    password: OTHER_PASSWORD,
-    accessKeyId: 'should-not-apply',
   }, owner);
   assert.equal(updated.status, 200);
   assert.equal(updated.body.firstName, 'Renamed');
@@ -414,6 +411,24 @@ test('Update mutates the authenticated owner, ignores email/password/keys, and r
   assert.equal(store.accounts.get(owner._id).accessKeyId, owner.accessKeyId);
   assert.equal(compareAccountPassword(PASSWORD, store.accounts.get(owner._id).password), true);
   assert.ok(!readFileSync(storeFile).equals(beforeBytes));
+
+  const protectedBefore = JSON.stringify(store.accounts.get(owner._id));
+  for (const [field, value] of [
+    ['isAdmin', true],
+    ['owner', 'attacker-owned'],
+    ['roles', ['developer']],
+    ['isDeleted', true],
+    ['friendlyId', 'attacker-robot'],
+    ['email', 'ignored@synthetic.invalid'],
+    ['password', OTHER_PASSWORD],
+    ['accessKeyId', 'should-not-apply'],
+    ['secretAccessKey', 'should-not-apply'],
+  ]) {
+    const rejected = await post(accountBase, 'Account_20151111.Update', { [field]: value }, owner);
+    assert.equal(rejected.status, 422, `${field} is not an Account.Update field`);
+    assert.match(rejected.body.message, new RegExp(`\\"${field}\\".*not allowed`));
+    assert.equal(JSON.stringify(store.accounts.get(owner._id)), protectedBefore, `${field} did not persist`);
+  }
 
   const robotUpdate = await post(accountBase, 'Account_20151111.Update', { firstName: 'Bot' }, robot);
   assertAmzError(robotUpdate, ACCOUNT_ERRORS.ROBOT_CANNOT_BE_UPDATED);
