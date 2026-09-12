@@ -22,6 +22,7 @@ import { join } from 'node:path';
 import { createServer } from 'node:http';
 import { WebSocket } from 'ws';
 import { jwt } from '@phoenix/common';
+import { signedLoopHeaders } from '../../account/test/fixtures/signedLoopRequest.js';
 
 const { createGateway } = await import('@phoenix/gateway');
 const { createAccountService } = await import('@phoenix/account');
@@ -182,10 +183,21 @@ async function withRuntime({ settingsURL }, run) {
   });
   await gateway.service.listen(0);
   const port = gateway.service.server.address().port;
+  const accountBase = `http://127.0.0.1:${account.address().port}`;
 
   const amz = (op, body, accountId) => fetch(`http://127.0.0.1:${account.address().port}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json;charset=utf-8', 'x-amz-target': `Settings_20160801.${op}`, 'x-amz-credentials': JSON.stringify({ id: accountId }) },
+    headers: {
+      'content-type': 'application/json;charset=utf-8',
+      ...signedLoopHeaders(
+        store,
+        accountBase,
+        `Settings_20160801.${op}`,
+        body,
+        store.accounts.get(accountId).accessKeyId,
+      ),
+      'x-amz-credentials': JSON.stringify({ id: accountId }),
+    },
     body: JSON.stringify(body),
   }).then(async (res) => ({ status: res.status, body: await res.json().catch(() => null) }));
 

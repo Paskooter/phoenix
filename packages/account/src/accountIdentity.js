@@ -1451,7 +1451,11 @@ export async function handleAccountIdentity({ store, req, res, body, log, mailPr
   if (!spec) return false;
   const upload = methodName === 'updatePhoto';
   try {
-    if (upload && req.headers.authorization && !req.headers['x-amz-content-sha256'] && !req.photoBodyDigest) {
+    // Account.UpdatePhoto is a raw-body route. Stage every signed upload,
+    // including requests that declare x-amz-content-sha256, so verification
+    // and the provider consume the exact received bytes. Without this, an
+    // explicit digest was verified against an empty compatibility body.
+    if (upload && req.headers.authorization && !req.photoBodyDigest) {
       await stagePhotoDigest(req);
     }
     const auth = authenticatePublicAccount({ store, req, body, target, auth: spec.auth });

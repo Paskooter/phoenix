@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { signSigV4 } from '@phoenix/common';
 import { createAccountService } from '../src/index.js';
 import { createOwnerAccount, createLoop } from '../src/model.js';
 import { Store } from '../src/store.js';
@@ -10,16 +11,37 @@ import { Store } from '../src/store.js';
 const REPORT = 'report-skill';
 const OTHER = 'answer-skill';
 
-async function amz(base, op, body, accountId, prefix = 'Settings_20171219', accessKeyId = null) {
+function signedHeaders(base, target, body, account) {
+  return signSigV4({
+    method: 'POST',
+    path: '/',
+    headers: {
+      host: new URL(base).host,
+      'content-type': 'application/x-amz-json-1.1',
+      'x-amz-target': target,
+    },
+    body: JSON.stringify(body || {}),
+    accessKeyId: account.accessKeyId,
+    secretAccessKey: account.secretAccessKey,
+    region: 'global',
+    service: 'jibo',
+  }).headers;
+}
+
+async function amz(base, op, body, accountId, prefixOrSigner = 'Settings_20171219', signer = null) {
+  const prefix = typeof prefixOrSigner === 'string' ? prefixOrSigner : 'Settings_20171219';
+  if (typeof prefixOrSigner === 'object' && prefixOrSigner !== null) signer = prefixOrSigner;
+  const target = `${prefix}.${op}`;
+  const wireBody = JSON.stringify(body || {});
   const res = await fetch(`${base}/`, {
     method: 'POST',
     headers: {
       'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': `${prefix}.${op}`,
+      'x-amz-target': target,
+      ...(signer && typeof signer === 'object' ? signedHeaders(base, target, body, signer) : {}),
       ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
-      ...(accessKeyId ? { authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260911/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=abc` } : {}),
     },
-    body: JSON.stringify(body || {}),
+    body: wireBody,
   });
   return { status: res.status, body: await res.json().catch(() => null) };
 }
@@ -96,7 +118,7 @@ test('A-06 runtime: all four Settings operations are served with the report and 
 
       // UpdateSettings — partial write through the deployed robot face.
       const update = await amz(base, 'UpdateSettings',
-        { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 1 } } }, owner._id);
+        { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 1 } } }, owner._id, owner);
       assert.equal(update.status, 200);
       const afterUpdate = await amz(base, 'GetSettings',
         { loopId: loop._id, skills: REPORT, getView: false }, owner._id);
@@ -104,7 +126,7 @@ test('A-06 runtime: all four Settings operations are served with the report and 
       assert.equal(afterUpdate.body[0].data.newsEnabled.value, 1);
 
       // DeleteSettings — removes the stored record; reads fall back to defaults.
-      const del = await amz(base, 'DeleteSettings', { loopId: loop._id, data: {} }, owner._id);
+      const del = await amz(base, 'DeleteSettings', { loopId: loop._id, data: {} }, owner._id, owner);
       assert.equal(del.status, 200);
       const afterDelete = await amz(base, 'GetSettings',
         { loopId: loop._id, skills: REPORT, getView: false }, owner._id);
@@ -115,7 +137,7 @@ test('A-06 runtime: all four Settings operations are served with the report and 
       // id through the store (same seam as key/media); a stranger's key fails closed.
       const sigv4 = await amz(base, 'GetSettings',
         { loopId: loop._id, transId: 't-sigv4', skills: REPORT, getView: false }, null,
-        'Settings_20171219', owner.accessKeyId);
+        'Settings_20171219', owner);
       assert.equal(sigv4.status, 200);
       assert.deepEqual(sigv4.body.map((s) => s.skillId), [REPORT]);
       const stranger = await amz(base, 'GetSettings',
@@ -138,8 +160,8 @@ test('A-06 runtime: per-account/loop ownership and malformed/unknown settings', 
     const server = await createAccountService({ store }).listen(0);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
-      await amz(base, 'UpdateSettings', { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 1 } } }, owner._id);
-      await amz(base, 'UpdateSettings', { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 0 } } }, member._id);
+      await amz(base, 'UpdateSettings', { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 1 } } }, owner._id, owner);
+      await amz(base, 'UpdateSettings', { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 0 } } }, member._id, member);
       const readOwner = await amz(base, 'GetSettings', { loopId: loop._id, skills: REPORT, getView: false }, owner._id);
       const readMember = await amz(base, 'GetSettings', { loopId: loop._id, skills: REPORT, getView: false }, member._id);
       assert.deepEqual(readOwner.body[0].data.newsEnabled, { value: 1 }, 'owner keeps own settings');
@@ -187,7 +209,7 @@ test('A-06 durability: persisted settings survive a real service restart', async
     const { owner, loop } = seed(first);
     let server = await createAccountService({ store: first }).listen(0);
     let base = `http://127.0.0.1:${server.address().port}`;
-    await amz(base, 'UpdateSettings', { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 1 }, homeLocation: { lat: 42.36, lng: -71.06 } } }, owner._id);
+    await amz(base, 'UpdateSettings', { loopId: loop._id, data: { weatherEnabled: { value: 0 }, newsEnabled: { value: 1 }, homeLocation: { lat: 42.36, lng: -71.06 } } }, owner._id, owner);
     await new Promise((resolve) => server.close(resolve));
 
     // A fresh process-equivalent: new Store reads the same file, new service instance.

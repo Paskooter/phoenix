@@ -24,6 +24,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-oobe-setup-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
@@ -44,7 +45,8 @@ const robotReadClient = {
 };
 
 let server; let base;
-const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
+const signed = (target, body, accessKeyId) =>
+  signedLoopHeaders(getStore(), base, target, body, accessKeyId);
 
 async function amz(target, body, headers = {}) {
   const res = await fetch(`${base}/`, {
@@ -345,13 +347,20 @@ test('the normal OOBE payload validations use the 422 Hapi/Joi envelope', async 
   assert.equal(status.body.message, 'child "token" fails because ["token" is required]');
 
   // PrepareRobot's own schema only constrains loopId (after credentials).
-  const prepared = await amz('OOBE_20161026.PrepareRobot', { loopId: 123 }, { authorization: sig(o.accessKeyId) });
+  const preparedBody = { loopId: 123 };
+  const prepared = await amz(
+    'OOBE_20161026.PrepareRobot', preparedBody,
+    signed('OOBE_20161026.PrepareRobot', preparedBody, o.accessKeyId),
+  );
   assert.equal(prepared.status, 422);
   assert.equal(prepared.body.message, 'child "loopId" fails because ["loopId" must be a string]');
 
   // ReconnectRobot: credentials are checked before the payload; id is optional.
-  const reconnect = await amz('OOBE_20161026.ReconnectRobot', { token: token._id, id: 9 },
-    { authorization: sig(o.accessKeyId) });
+  const reconnectBody = { token: token._id, id: 9 };
+  const reconnect = await amz(
+    'OOBE_20161026.ReconnectRobot', reconnectBody,
+    signed('OOBE_20161026.ReconnectRobot', reconnectBody, o.accessKeyId),
+  );
   assert.equal(reconnect.status, 422);
   assert.equal(reconnect.body.message, 'child "id" fails because ["id" must be a string]');
   assert.ok(store.tokens.has(token._id), 'validation precedes the reconnect checks');
@@ -364,7 +373,11 @@ test('the normal OOBE payload validations use the 422 Hapi/Joi envelope', async 
 test('the full setup sequence is served: PrepareRobot -> SetupRobot -> GetStatus -> token expiry', async () => {
   const store = getStore();
   const o = owner('sequence-owner', 'Sequence');
-  const prepared = await amz('OOBE_20161026.PrepareRobot', {}, { authorization: sig(o.accessKeyId) });
+  const preparedBody = {};
+  const prepared = await amz(
+    'OOBE_20161026.PrepareRobot', preparedBody,
+    signed('OOBE_20161026.PrepareRobot', preparedBody, o.accessKeyId),
+  );
   assert.equal(prepared.status, 200);
   assert.equal(typeof prepared.body.token, 'string');
   assert.ok(prepared.body.expires > Date.now(), 'expires = now + 15 minutes');

@@ -41,6 +41,7 @@ import { HistoryStore } from '../../history/src/store.js';
 import { createAccountService } from '../../account/src/index.js';
 import { Store } from '../../account/src/store.js';
 import { createOwnerAccount, createLoop } from '../../account/src/model.js';
+import { signedLoopHeaders } from '../../account/test/fixtures/signedLoopRequest.js';
 
 const SECRET = 'h06-runtime-secret';
 const ROBOT = 'h06-robot';
@@ -373,10 +374,21 @@ async function withRuntime({ skills, historyURL, settingsURL }, run) {
   });
   await gateway.service.listen(0);
   const port = gateway.service.server.address().port;
+  const accountBase = `http://127.0.0.1:${account.address().port}`;
 
   const amz = (op, body) => fetch(`http://127.0.0.1:${account.address().port}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json;charset=utf-8', 'x-amz-target': `Settings_20160801.${op}`, 'x-amz-credentials': JSON.stringify({ id: owner._id }) },
+    headers: {
+      'content-type': 'application/json;charset=utf-8',
+      ...signedLoopHeaders(
+        store,
+        accountBase,
+        `Settings_20160801.${op}`,
+        body,
+        owner.accessKeyId,
+      ),
+      'x-amz-credentials': JSON.stringify({ id: owner._id }),
+    },
     body: JSON.stringify(body),
   }).then(async (res) => ({ status: res.status, body: await res.json().catch(() => null) }));
 
