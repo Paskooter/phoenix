@@ -51,7 +51,12 @@ export class GoogleASRSession {
     this.fastEOSRegex = null;
     this.isQuestionRegex = /^(who|what|when|where|why|how|which|are|can|did|do|does|is|was|were)/i;
     this.haveSentSOS = false;
+    this.haveSentEOS = false;
     this.finalResultTimeout = null;
+    this.startPromise = null;
+    this.resolveStart = null;
+    this.rejectStart = null;
+    this.startSettled = false;
 
     if (this.config.earlyEOS && this.config.earlyEOS.length > 0) {
       this.fastEOSRegex = FastEOS.buildRegex(this.config.earlyEOS);
@@ -65,11 +70,44 @@ export class GoogleASRSession {
 
   /** Stop the current session: close the recognizer stream, clear the timer. */
   stop() {
-    if (!this.stopped) {
-      this.stopped = true;
-      this.recStream.end();
-    }
+    this._resolveStart(undefined);
+    this._closeStream();
+  }
+
+  _closeStream() {
     clearTimeout(this.finalResultTimeout);
+    this.finalResultTimeout = null;
+    if (this.stopped) return;
+    this.stopped = true;
+    try {
+      this.recStream.end();
+    } catch (error) {
+      this.log.warn?.(`Google recognizer stream close failed: ${error.message}`);
+    }
+  }
+
+  _resolveStart(value) {
+    if (this.startSettled) return;
+    this.startSettled = true;
+    clearTimeout(this.finalResultTimeout);
+    this.finalResultTimeout = null;
+    const resolve = this.resolveStart;
+    this.resolveStart = null;
+    this.rejectStart = null;
+    this._closeStream();
+    resolve?.(value);
+  }
+
+  _rejectStart(error) {
+    if (this.startSettled) return;
+    this.startSettled = true;
+    clearTimeout(this.finalResultTimeout);
+    this.finalResultTimeout = null;
+    const reject = this.rejectStart;
+    this.resolveStart = null;
+    this.rejectStart = null;
+    this._closeStream();
+    reject?.(error);
   }
 
   onStartOfSpeech(handler) { this.sosHandler = handler; }
@@ -83,85 +121,114 @@ export class GoogleASRSession {
 
   /** Start the current session; resolves with the ASRResult. */
   start() {
-    return new Promise((resolve, reject) => {
-      this.recStream
-        .on('error', (error) => {
-          this.stop();
-          reject(error);
-        })
-        .on('data', (data) => {
-          this.log.debug?.(`Received data from google: ${JSON.stringify(data)}`);
-          if (this.stopped) {
-            this.log.debug?.('ASR data arrived but GoogleASRSession is stopped already');
-            return;
-          }
-          if (data.error) {
-            reject(data.error);
-          } else if (data.speechEventType) {
-            if (data.speechEventType === 'END_OF_SINGLE_UTTERANCE') {
-              if (!this.haveSentSOS) this.sendSOS();
-              this.sendEOS();
-              // Begin waiting for the final message.
-              this.finalResultTimeout = setTimeout(() => {
-                const asrResult = this.getLastIncremental();
-                this.log.info?.(`Timeout waiting for final result after EOS, returning ${JSON.stringify(asrResult)}`);
-                this.sendResult(asrResult);
-                resolve(asrResult);
-              }, FINAL_RESULT_WAIT_MS);
-            } else if (data.speechEventType === 'SPEECH_EVENT_UNSPECIFIED') {
-              if (data.results.length) {
-                const result = data.results[0];
-                const asrResult = {
-                  text: result.alternatives[0].transcript,
-                  confidence: result.alternatives[0].confidence,
-                };
+    if (this.startPromise) return this.startPromise;
+    if (this.stopped) {
+      this.startSettled = true;
+      this.startPromise = Promise.resolve(undefined);
+      return this.startPromise;
+    }
 
-                // Keep the last good ASR result that we receive.
-                if (!this.lastASRResult || asrResult.confidence >= this.lastASRResult.confidence) {
-                  this.lastASRResult = asrResult;
-                }
+    this.startPromise = new Promise((resolve, reject) => {
+      this.resolveStart = resolve;
+      this.rejectStart = reject;
 
-                // We have incremental results; SOS fires on the first one.
-                if (!this.haveSentSOS) this.sendSOS();
+      const fail = (error) => this._rejectStart(error);
+      const handleData = (rawData) => {
+        const data = rawData || {};
+        this.log.debug?.(`Received data from google: ${JSON.stringify(data)}`);
+        if (this.stopped || this.startSettled) {
+          this.log.debug?.('ASR data arrived but GoogleASRSession is stopped already');
+          return;
+        }
+        if (data.error) {
+          fail(data.error);
+          return;
+        }
+        if (!data.speechEventType) {
+          this.log.warn?.(`Missing speechEventType: ${JSON.stringify(data)}`);
+          return;
+        }
 
-                if (asrResult.text.split(' ').length > 13 && !this.isQuestionRegex.test(asrResult.text)) {
-                  this.log.warn?.('Incremental transcription appears to potentially be "garbage". Stopping ASR and ignoring.');
-                  const annotatedResult = Object.assign({}, asrResult, { annotation: 'GARBAGE' });
-                  this.sendEOS();
-                  this.sendResult(annotatedResult);
-                  resolve(annotatedResult);
-                } else if (result.isFinal) {
-                  this.sendResult(asrResult);
-                  resolve(asrResult);
-                } else if (this.fastEOSRegex && this.fastEOSRegex.test(asrResult.text)) {
-                  this.log.info?.('Incremental transcription contains a FastEOS trigger word/phrase. Stopping ASR and returning.');
-                  const annotatedResult = Object.assign({}, asrResult, { annotation: 'FAST_EOS' });
-                  this.sendEOS();
-                  this.sendResult(annotatedResult);
-                  resolve(annotatedResult);
-                }
-              } else {
-                // This happens now and then and doesn't seem to have a negative effect.
-                this.log.info?.(`Received empty results: ${JSON.stringify(data)}`);
-              }
-            } else {
-              this.log.warn?.(`Unknown speechEventType '${data.speechEventType}': ${JSON.stringify(data)}`);
-            }
-          } else {
-            this.log.warn?.(`Missing speechEventType: ${JSON.stringify(data)}`);
-          }
-        })
-        .on('end', () => {
-          if (this.stopped) resolve();
-          this.stopped = true;
-        });
-    }).catch((error) => {
-      this.stop();
-      throw error;
-    }).then((result) => {
-      this.stop();
-      return result;
+        if (data.speechEventType === 'END_OF_SINGLE_UTTERANCE') {
+          if (this.haveSentEOS) return;
+          if (!this.haveSentSOS) this.sendSOS();
+          if (this.startSettled) return;
+          this.sendEOS();
+          this.finalResultTimeout = setTimeout(() => {
+            if (this.startSettled) return;
+            const asrResult = this.getLastIncremental();
+            this.log.info?.(`Timeout waiting for final result after EOS, returning ${JSON.stringify(asrResult)}`);
+            this.sendResult(asrResult);
+            this._resolveStart(asrResult);
+          }, FINAL_RESULT_WAIT_MS);
+          return;
+        }
+
+        if (data.speechEventType !== 'SPEECH_EVENT_UNSPECIFIED') {
+          this.log.warn?.(`Unknown speechEventType '${data.speechEventType}': ${JSON.stringify(data)}`);
+          return;
+        }
+
+        const results = Array.isArray(data.results) ? data.results : [];
+        if (results.length === 0) {
+          // Google occasionally sends a progress frame without results. It is
+          // not speech and must not advance SOS or settle the transaction.
+          this.log.info?.(`Received empty results: ${JSON.stringify(data)}`);
+          return;
+        }
+        const result = results[0];
+        const alternative = result && Array.isArray(result.alternatives) ? result.alternatives[0] : null;
+        if (!alternative) {
+          this.log.info?.(`Received a result without an alternative: ${JSON.stringify(data)}`);
+          return;
+        }
+        const asrResult = {
+          text: typeof alternative.transcript === 'string' ? alternative.transcript : '',
+          confidence: typeof alternative.confidence === 'number' ? alternative.confidence : 0,
+        };
+
+        // Keep the last good ASR result that we receive.
+        if (!this.lastASRResult || asrResult.confidence >= this.lastASRResult.confidence) {
+          this.lastASRResult = asrResult;
+        }
+
+        // We have incremental results; SOS fires on the first one.
+        if (!this.haveSentSOS) this.sendSOS();
+
+        if (asrResult.text.split(' ').length > 13 && !this.isQuestionRegex.test(asrResult.text)) {
+          this.log.warn?.('Incremental transcription appears to potentially be "garbage". Stopping ASR and ignoring.');
+          const annotatedResult = Object.assign({}, asrResult, { annotation: 'GARBAGE' });
+          this.sendEOS();
+          this.sendResult(annotatedResult);
+          this._resolveStart(annotatedResult);
+        } else if (result.isFinal) {
+          this.sendResult(asrResult);
+          this._resolveStart(asrResult);
+        } else if (this.fastEOSRegex && this.fastEOSRegex.test(asrResult.text)) {
+          this.log.info?.('Incremental transcription contains a FastEOS trigger word/phrase. Stopping ASR and returning.');
+          const annotatedResult = Object.assign({}, asrResult, { annotation: 'FAST_EOS' });
+          this.sendEOS();
+          this.sendResult(annotatedResult);
+          this._resolveStart(annotatedResult);
+        }
+      };
+      const handleEnd = () => {
+        if (this.startSettled) return;
+        // A transport ending without a final frame is still a terminal provider
+        // outcome. Return the last usable interim rather than leaving start()
+        // pending forever.
+        this._resolveStart(this.lastASRResult || undefined);
+      };
+
+      try {
+        this.recStream.on('error', fail);
+        this.recStream.on('data', handleData);
+        this.recStream.on('end', handleEnd);
+      } catch (error) {
+        fail(error);
+      }
     });
+    return this.startPromise;
   }
 
   sendSOS() {
@@ -170,6 +237,8 @@ export class GoogleASRSession {
   }
 
   sendEOS() {
+    if (this.haveSentEOS) return;
+    this.haveSentEOS = true;
     if (!this.stopped && this.eosHandler) this.eosHandler(null);
   }
 

@@ -287,6 +287,11 @@ export class ListenTransaction {
         }
       }
     } catch (err) {
+      // A canceled ASR promise may reject after CLIENT_ASR/CLIENT_NLU has
+      // already moved the transaction into its replacement phase. That stale
+      // rejection is not an error in the replacement transaction and must not
+      // call reject() a second time.
+      if (this.asrCancelled || this.state !== State.ASR) return;
       // The reference's outer catch re-wraps EVERY ASR failure — including its
       // own TIMEOUT_ASR throw — as HubErrorCode.ASR, so TIMEOUT_ASR never
       // reaches the robot (ListenTransactionHandler.ts:452-484).

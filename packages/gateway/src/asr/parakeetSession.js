@@ -55,13 +55,13 @@ const POST_TIMEOUT_MS = 30000;
 const EMPTY_ENDPOINT_RELISTEN_LIMIT = 3;
 
 // A wake-phrase tail is a short energy burst (observed 150-300 ms of the "-bo" in
-// "Hey Jibo"). On a hotphrase turn the turn's audio always opens with it, so an
-// endpoint that follows a run shorter than this cannot be an utterance: keep
-// listening. Local (non-hotphrase) turns have no wake tail, so short answers such
-// as "no" are unaffected. Cumulative speech still ends the turn, so several short
-// bursts converge on a real endpoint.
+// "Hey Jibo"). On a hotphrase turn the turn's audio always opens with it, so the
+// first endpoint after a short burst is suppressed instead of posting the wake
+// tail. Resetting the VAD counters at that boundary makes the next burst — even
+// a short legitimate request — eligible for recognition. Local (non-hotphrase)
+// turns have no wake tail, so short answers such as "no" are unaffected.
 const MIN_ENDPOINT_SPEECH_MS = 400;
-const WAKE_TAIL_IGNORE_LIMIT = 2;
+const WAKE_TAIL_IGNORE_LIMIT = 1;
 
 const bytesToMs = (bytes) => (bytes / BYTES_PER_SEC) * 1000;
 
@@ -81,6 +81,16 @@ export class ParakeetASRSession {
     this.silenceBytes = 0;
     this.state = 'WAITING';
 
+    // A silence endpoint is only a recognition candidate: the recognizer may
+    // answer empty while the robot is already sending the real request. Keep
+    // decoded PCM that arrives after the candidate boundary until that answer
+    // decides whether the turn is actually over. This queue is also where the
+    // tail of a single caller buffer lands when VAD finds EOS mid-buffer.
+    this.deferredPcm = Buffer.alloc(0);
+    this.candidate = null;
+    this.activeRequests = new Set();
+    this.activeResponses = new Set();
+
     this.sosFired = false;
     this.eosFired = false;
     this.eosEmitted = false;
@@ -95,6 +105,7 @@ export class ParakeetASRSession {
 
     this.resolveStart = null;
     this.rejectStart = null;
+    this.startSettled = false;
     this.lastResult = null;
     this.startPromise = null;
     this.started = false;
@@ -122,12 +133,18 @@ export class ParakeetASRSession {
   getLastIncremental() { return this.lastResult; }
 
   provideAudio(audioBuffer) {
-    if (this.stopped || this.state === 'FINALIZING' || this.state === 'DONE') return;
+    if (this.stopped || this.state === 'DONE') return;
     if (!Buffer.isBuffer(audioBuffer)) throw new AudioFormatError('ASR audio frames must be Buffers');
     if (audioBuffer.length === 0) return;
     if (this.audio.encoding !== AUDIO_ENCODINGS.LINEAR16) {
       if (this.started) {
+        if (!this.decoder) {
+          this._handleAudioError(new AudioDecodeError('Encoded audio arrived after the decoder was closed'));
+          return;
+        }
         try {
+          // Keep the encoded stream alive while a silence candidate is being
+          // recognized. Its PCM callback queues post-boundary audio below.
           this.decoder.write(audioBuffer);
         } catch (err) {
           this._handleAudioError(err);
@@ -150,11 +167,24 @@ export class ParakeetASRSession {
     this.pendingEncodedBytes += audioBuffer.length;
   }
 
+  _queueDeferredPcm(pcm) {
+    if (!pcm || pcm.length === 0) return;
+    if (this.deferredPcm.length + pcm.length > MAX_BUFFER_BYTES) {
+      this._handleAudioError(new AudioDecodeError(`Deferred ASR audio exceeded ${MAX_BUFFER_BYTES} bytes`));
+      return;
+    }
+    this.deferredPcm = this.deferredPcm.length === 0
+      ? Buffer.from(pcm)
+      : Buffer.concat([this.deferredPcm, pcm]);
+  }
+
   _consumePcm(audioBuffer) {
-    // A caller stop is an end-of-input drain; VAD/max-buffer EOS is a
-    // cancellation boundary and drops PCM arriving after that boundary.
+    // A silence candidate is still live: preserve audio that arrives after its
+    // boundary until its response says whether relisten is needed. Caller stop
+    // and max-buffer are terminal boundaries and intentionally drop later PCM.
     if (this.state === 'FINALIZING') {
-      if (this.finalizeReason === 'stop') this._appendEndOfInputPcm(audioBuffer);
+      if (this.finalizeReason === 'silence' && this.candidate) this._queueDeferredPcm(audioBuffer);
+      else if (this.finalizeReason === 'stop') this._appendEndOfInputPcm(audioBuffer);
       return;
     }
     if (this.state === 'DONE' || audioBuffer.length === 0) return;
@@ -170,9 +200,14 @@ export class ParakeetASRSession {
       this._consumeVadWindow(window);
     }
 
-    // An SOS callback may synchronously call stop(). Preserve the partial
-    // window already accepted by that caller stop before finalization runs.
-    if (this.state === 'FINALIZING' && this.finalizeReason === 'stop') {
+    // An endpoint can be found in the middle of one caller buffer. Do not throw
+    // away the unprocessed tail; it belongs to the next listening window.
+    if (this.state === 'FINALIZING' && this.finalizeReason === 'silence') {
+      this._queueDeferredPcm(this.pcmPending);
+      this.pcmPending = Buffer.alloc(0);
+    } else if (this.state === 'FINALIZING' && this.finalizeReason === 'stop') {
+      // An SOS callback may synchronously call stop(). Preserve the partial
+      // window already accepted by that caller stop before finalization runs.
       this._appendEndOfInputPcm();
     }
   }
@@ -214,13 +249,19 @@ export class ParakeetASRSession {
       if (this.state === 'SPEAKING') this.state = 'TRAILING_SILENCE';
       if (this.state === 'TRAILING_SILENCE' && bytesToMs(this.silenceBytes) >= SILENCE_TO_EOS_MS) {
         if (this._isWakeTailBurst()) {
-          // The wake phrase's own tail: not an utterance. Drop the endpoint and
-          // keep listening for the request the speaker has not made yet.
+          // Discard only the initial wake tail and start a fresh VAD window.
+          // Resetting speechBytes is important: otherwise a short real request
+          // is added to the tail and can be misclassified as another tail.
           this.wakeTailIgnored += 1;
+          this.chunks = [];
+          this.totalBytes = 0;
+          this.speechBytes = 0;
           this.silenceBytes = 0;
+          this.pcmCarry = null;
+          this.eosFired = false;
           this.state = 'WAITING';
           this.log.debug?.('[asr] short burst after the wake phrase: not an endpoint, continuing to listen', {
-            speechMs: Math.round(bytesToMs(this.speechBytes)),
+            speechMs: Math.round(bytesToMs(window.length)),
             ignored: this.wakeTailIgnored,
           });
           return;
@@ -240,22 +281,13 @@ export class ParakeetASRSession {
       this.rejectStart = reject;
     });
     if (this.stopped || this.state === 'DONE') {
-      if (this.decoderError) {
-        const reject = this.rejectStart;
-        this.rejectStart = null;
-        reject(this.decoderError);
-      } else {
-        const resolve = this.resolveStart;
-        this.resolveStart = null;
-        resolve(undefined);
-      }
+      if (this.decoderError) this._rejectStart(this.decoderError);
+      else this._resolveStart(undefined, { close: false });
       return this.startPromise;
     }
     this.started = true;
     if (this.decoderError) {
-      const reject = this.rejectStart;
-      this.rejectStart = null;
-      reject(this.decoderError);
+      this._rejectStart(this.decoderError);
       return this.startPromise;
     }
     if (this.audio.encoding !== AUDIO_ENCODINGS.LINEAR16) {
@@ -269,7 +301,10 @@ export class ParakeetASRSession {
           log: this.log,
         });
         this.decoder.start();
-        for (const chunk of this.pendingEncodedChunks) this.decoder.write(chunk);
+        for (const chunk of this.pendingEncodedChunks) {
+          if (this.decoderError || !this.decoder) break;
+          this.decoder.write(chunk);
+        }
         this.pendingEncodedChunks = [];
         this.pendingEncodedBytes = 0;
       } catch (err) {
@@ -282,7 +317,10 @@ export class ParakeetASRSession {
   stop() {
     if (this.stopped) return;
     this.stopped = true;
-    if (this.state !== 'FINALIZING' && this.state !== 'DONE') {
+    // A silence candidate is already being recognized. Stop means no more input,
+    // not "discard the candidate"; its response still determines the result.
+    if (this.state === 'FINALIZING') return;
+    if (this.state !== 'DONE') {
       if (this.sosFired) {
         if (!this.eosFired) {
           this.eosFired = true;
@@ -292,13 +330,14 @@ export class ParakeetASRSession {
         this.finalizeReason = 'stop';
         this._finalize({ mode: 'end-of-input' }).catch((err) => {
           this.log.error?.('Parakeet finalize on stop failed: ' + err.message);
+          if (this.aborted) return;
           this.state = 'DONE';
-          if (this.rejectStart) this.rejectStart(err);
+          this._rejectStart(err);
         });
       } else {
         this.state = 'DONE';
         this._closeDecoder();
-        if (this.resolveStart) this.resolveStart(undefined);
+        this._resolveStart(undefined);
       }
     }
   }
@@ -310,20 +349,53 @@ export class ParakeetASRSession {
    * longer be delivered.
    */
   abort() {
-    if (this.aborted || this.state === 'DONE') { this.aborted = true; return; }
+    if (this.aborted) return;
     this.aborted = true;
     this.stopped = true;
     this.state = 'DONE';
+    this.candidate = null;
     this.chunks = [];
+    this.deferredPcm = Buffer.alloc(0);
     this.totalBytes = 0;
     this.pcmPending = Buffer.alloc(0);
     this.pcmCarry = null;
+    this._abortRequests();
     this._closeDecoder();
-    if (this.resolveStart) {
-      const resolve = this.resolveStart;
-      this.resolveStart = null;
-      resolve(undefined);
+    this._resolveStart(undefined, { close: false });
+  }
+
+  _resolveStart(value, { close = true } = {}) {
+    if (this.startSettled || !this.resolveStart) return;
+    this.startSettled = true;
+    const resolve = this.resolveStart;
+    this.resolveStart = null;
+    this.rejectStart = null;
+    if (close && !this.stopped) {
+      this.stopped = true;
+      this._closeDecoder();
     }
+    resolve(value);
+  }
+
+  _rejectStart(error) {
+    if (this.startSettled || !this.rejectStart) return;
+    this.startSettled = true;
+    const reject = this.rejectStart;
+    this.resolveStart = null;
+    this.rejectStart = null;
+    reject(error);
+  }
+
+  _abortRequests() {
+    const error = new Error('Parakeet request aborted');
+    for (const response of this.activeResponses) {
+      try { response.destroy(error); } catch { /* already closed */ }
+    }
+    for (const request of this.activeRequests) {
+      try { request.destroy(error); } catch { /* already closed */ }
+    }
+    this.activeResponses.clear();
+    this.activeRequests.clear();
   }
 
   /** Emit the wire EOS at most once, even across empty-endpoint re-listens. */
@@ -336,6 +408,32 @@ export class ParakeetASRSession {
   _fireEOSAndFinalize(reason) {
     if (this.eosFired) return;
     this.eosFired = true;
+
+    if (reason === 'silence') {
+      // This is a candidate, not yet a wire endpoint. Snapshot only the audio
+      // that led to this boundary, then keep the decoder and queue all later PCM
+      // while Parakeet decides whether the candidate contains words.
+      const candidatePcm = Buffer.concat(this.chunks);
+      const pending = this.pcmPending;
+      this.chunks = [];
+      this.totalBytes = 0;
+      this.speechBytes = 0;
+      this.silenceBytes = 0;
+      this.pcmCarry = null;
+      this.pcmPending = Buffer.alloc(0);
+      this._queueDeferredPcm(pending);
+      this.state = 'FINALIZING';
+      this.finalizeReason = 'silence';
+      const candidate = { pcm: candidatePcm };
+      this.candidate = candidate;
+      this.log.debug?.(`EOS candidate detected (${reason}), recognizing ${candidatePcm.length} bytes`);
+      this._postToParakeet(ParakeetASRSession.makeWav(candidatePcm)).then(
+        (transcript) => this._completeCandidate(candidate, transcript),
+        (err) => this._failCandidate(candidate, err),
+      );
+      return;
+    }
+
     this.state = 'FINALIZING';
     this.finalizeReason = reason;
     this.pcmPending = Buffer.alloc(0);
@@ -343,9 +441,55 @@ export class ParakeetASRSession {
     this._emitEOS();
     this._finalize({ mode: 'cancel' }).catch((err) => {
       this.log.error?.('Parakeet finalize failed: ' + err.message);
+      if (this.aborted) return;
       this.state = 'DONE';
-      if (this.rejectStart) this.rejectStart(err);
+      this._rejectStart(err);
     });
+  }
+
+  _completeCandidate(candidate, transcript) {
+    if (!candidate || this.candidate !== candidate || this.aborted) return;
+    if (!transcript && this._shouldRelisten()) {
+      this.candidate = null;
+      this._resetForRelisten();
+      this._drainDeferredPcm();
+      return;
+    }
+    const annotation = transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)
+      ? 'FAST_EOS'
+      : undefined;
+    this.candidate = null;
+    this._completeResult(transcript || '', annotation, { emitEOS: true });
+  }
+
+  _failCandidate(candidate, err) {
+    if (!candidate || this.candidate !== candidate || this.aborted) return;
+    this.candidate = null;
+    this.log.error?.('Parakeet candidate failed: ' + err.message);
+    this.state = 'DONE';
+    this._closeDecoder();
+    this._rejectStart(err);
+  }
+
+  _drainDeferredPcm() {
+    if (this.deferredPcm.length === 0 || this.stopped || this.aborted || this.state === 'DONE') return;
+    const pcm = this.deferredPcm;
+    this.deferredPcm = Buffer.alloc(0);
+    this._consumePcm(pcm);
+  }
+
+  _completeResult(transcript, annotation, { emitEOS = false } = {}) {
+    if (this.aborted || this.state === 'DONE') return;
+    const result = { text: transcript || '', confidence: transcript ? 1.0 : 0.0 };
+    if (annotation) result.annotation = annotation;
+    this.lastResult = result;
+    // Silence candidates defer EOS until the recognizer accepts one. Stop and
+    // max-buffer paths already emitted it, so this is idempotent.
+    if (emitEOS) this._emitEOS();
+    if (this.resultHandler) this.resultHandler(result);
+    this.state = 'DONE';
+    this._closeDecoder();
+    this._resolveStart(result);
   }
 
   /**
@@ -402,7 +546,7 @@ export class ParakeetASRSession {
     this.pcmPending = Buffer.alloc(0);
     this.pcmCarry = null;
     this.eosFired = false;      // the next endpoint ends this window (wire EOS stays single)
-    this.state = this.sosFired ? 'TRAILING_SILENCE' : 'WAITING';
+    this.state = 'WAITING';
     this.finalizeReason = null;
     this.log.debug?.('[asr] empty silence endpoint: no words recognized, continuing to listen', {
       relisten: this.relistenCount,
@@ -412,13 +556,13 @@ export class ParakeetASRSession {
   async _finalize({ mode = 'cancel' } = {}) {
     // A caller stop is the encoded stream's end-of-input: retain complete
     // frames already accepted by the session, and let the decoder discard an
-    // incomplete container tail.  VAD/max-buffer EOS is a cancellation point;
+    // incomplete container tail. VAD/max-buffer EOS is a cancellation point;
     // audio after the detected EOS must not be appended while the POST starts.
     if (mode === 'end-of-input' && this.decoder) {
       const decoder = this.decoder;
       try {
         // An explicit stop is end-of-input for the bytes already accepted by
-        // the session.  Let complete decoder frames drain so accepted speech
+        // the session. Let complete decoder frames drain so accepted speech
         // reaches the WAV; an incomplete final container frame is discarded.
         await decoder.finish({ allowTruncated: true });
       } finally {
@@ -434,28 +578,18 @@ export class ParakeetASRSession {
     const pcm = Buffer.concat(this.chunks);
     if (pcm.length === 0) {
       this.state = 'DONE';
-      if (this.resolveStart) this.resolveStart(undefined);
+      this._resolveStart(undefined, { close: false });
       return;
     }
     const wav = ParakeetASRSession.makeWav(pcm);
     const transcript = await this._postToParakeet(wav);
-    // An empty silence endpoint heard no utterance (typically the wake-phrase
-    // tail before the speaker's pause): keep listening for the real request
-    // instead of ending the turn with an empty no-match result.
-    if (!transcript && this._shouldRelisten()) {
-      this._resetForRelisten();
-      return;
-    }
-    const result = { text: transcript || '', confidence: transcript ? 1.0 : 0.0 };
+    if (this.aborted) return;
     // Post-hoc earlyEOS: annotate the final transcript when it matches the
     // cleaned earlyEOS phrases (the reference's stated batch behavior).
-    if (transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)) {
-      result.annotation = 'FAST_EOS';
-    }
-    this.lastResult = result;
-    if (this.resultHandler) this.resultHandler(result);
-    this.state = 'DONE';
-    if (this.resolveStart) this.resolveStart(result);
+    const annotation = transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)
+      ? 'FAST_EOS'
+      : undefined;
+    this._completeResult(transcript || '', annotation);
   }
 
   _handleAudioError(err) {
@@ -465,12 +599,11 @@ export class ParakeetASRSession {
       : new AudioDecodeError(err?.message || String(err), err);
     this.stopped = true;
     this.state = 'DONE';
+    this.candidate = null;
+    this.deferredPcm = Buffer.alloc(0);
+    this._abortRequests();
     this._closeDecoder();
-    if (this.rejectStart) {
-      const reject = this.rejectStart;
-      this.rejectStart = null;
-      reject(this.decoderError);
-    }
+    this._rejectStart(this.decoderError);
   }
 
   _closeDecoder() {
@@ -514,45 +647,81 @@ export class ParakeetASRSession {
 
   _postToParakeet(wav) {
     return new Promise((resolve, reject) => {
-      const parsed = new URL(this.parakeetUrl);
-      const boundary = '----jiboparakeet' + Date.now() + Math.floor(Math.random() * 1e9).toString(16);
-      const head = Buffer.from(
-        `--${boundary}\r\n`
-        + 'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
-        + 'Content-Type: audio/wav\r\n\r\n');
-      const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
-      const body = Buffer.concat([head, wav, tail]);
+      let settled = false;
+      let req = null;
+      let res = null;
+      const cleanup = () => {
+        if (req) this.activeRequests.delete(req);
+        if (res) this.activeResponses.delete(res);
+      };
+      const settle = (handler, value) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        handler(value);
+      };
+      const fail = (err) => settle(reject, err);
 
-      const req = http.request({
-        method: 'POST',
-        host: parsed.hostname,
-        port: parsed.port ? parseInt(parsed.port, 10) : 80,
-        path: '/transcribe',
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': body.length,
-        },
-      }, (res) => {
-        const bufs = [];
-        res.on('data', (c) => bufs.push(c));
-        res.on('end', () => {
-          const text = Buffer.concat(bufs).toString('utf8');
-          if (res.statusCode !== 200) return reject(new Error(`Parakeet returned ${res.statusCode}: ${text}`));
-          try {
-            const json = JSON.parse(text);
-            let transcript = json.transcript;
-            if (transcript && typeof transcript === 'object') transcript = transcript.text;
-            if (typeof transcript !== 'string') transcript = '';
-            resolve(transcript);
-          } catch (e) {
-            reject(new Error('Could not parse Parakeet response: ' + e));
-          }
+      try {
+        const parsed = new URL(this.parakeetUrl);
+        const boundary = '----jiboparakeet' + Date.now() + Math.floor(Math.random() * 1e9).toString(16);
+        const head = Buffer.from(
+          `--${boundary}\r\n`
+          + 'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
+          + 'Content-Type: audio/wav\r\n\r\n');
+        const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+        const body = Buffer.concat([head, wav, tail]);
+
+        req = http.request({
+          method: 'POST',
+          host: parsed.hostname,
+          port: parsed.port ? parseInt(parsed.port, 10) : 80,
+          path: '/transcribe',
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            'Content-Length': body.length,
+          },
+        }, (response) => {
+          res = response;
+          this.activeResponses.add(res);
+          const bufs = [];
+          let responseEnded = false;
+          res.on('data', (chunk) => bufs.push(chunk));
+          res.on('error', fail);
+          res.on('aborted', () => fail(new Error('Parakeet response was aborted')));
+          res.on('close', () => {
+            if (!responseEnded && !settled) fail(new Error('Parakeet response closed before completion'));
+          });
+          res.on('end', () => {
+            responseEnded = true;
+            const text = Buffer.concat(bufs).toString('utf8');
+            if (res.statusCode !== 200) {
+              fail(new Error(`Parakeet returned ${res.statusCode}: ${text}`));
+              return;
+            }
+            try {
+              const json = JSON.parse(text);
+              let transcript = json.transcript;
+              if (transcript && typeof transcript === 'object') transcript = transcript.text;
+              if (typeof transcript !== 'string') transcript = '';
+              settle(resolve, transcript);
+            } catch (error) {
+              fail(new Error('Could not parse Parakeet response: ' + error));
+            }
+          });
         });
-      });
-      req.setTimeout(POST_TIMEOUT_MS, () => { req.destroy(new Error('Parakeet request timed out')); });
-      req.on('error', reject);
-      req.write(body);
-      req.end();
+        this.activeRequests.add(req);
+        req.setTimeout(POST_TIMEOUT_MS, () => { req.destroy(new Error('Parakeet request timed out')); });
+        req.on('error', fail);
+        req.write(body);
+        req.end();
+      } catch (error) {
+        // A synchronous write/setup failure can otherwise leave the request
+        // socket alive even though the promise has rejected.
+        try { if (req) req.destroy(error); } catch { /* already closed */ }
+        try { if (res) res.destroy(error); } catch { /* already closed */ }
+        fail(error);
+      }
     });
   }
 }

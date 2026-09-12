@@ -41,12 +41,72 @@ function mockParakeet(transcript) {
       req.on('end', () => {
         const body = Buffer.concat(chunks);
         srv._lastBody = body;
+        srv._requests = (srv._requests || 0) + 1;
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify({ transcript }));
       });
     });
     srv.listen(0, () => resolve(srv));
   });
+}
+
+function deferred() {
+  let resolve;
+  const promise = new Promise((done) => { resolve = done; });
+  return { promise, resolve };
+}
+
+/** A deterministic Parakeet peer whose response is released by the test. */
+async function heldParakeet(transcripts) {
+  const remaining = [...transcripts];
+  const requests = [];
+  const requestSignals = [];
+  const responseGates = [];
+  const responseCloseSignals = [];
+  const server = http.createServer(async (req, res) => {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const index = requests.length;
+    const record = { body: Buffer.concat(chunks), req, res };
+    requests.push(record);
+    requestSignals[index] ||= deferred();
+    requestSignals[index].resolve(record);
+    const responseGate = deferred();
+    responseGates[index] = responseGate;
+    const answer = remaining.length > 1 ? remaining.shift() : remaining[0];
+    const responseClosed = deferred();
+    responseCloseSignals[index] = responseClosed;
+    res.once('close', () => responseClosed.resolve());
+    await responseGate.promise;
+    if (!res.destroyed) {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ transcript: answer }));
+    }
+  });
+  server.listen(0, '127.0.0.1');
+  await new Promise((resolve) => server.once('listening', resolve));
+  server.requests = requests;
+  server.waitForRequest = (index) => {
+    if (requests[index]) return Promise.resolve(requests[index]);
+    requestSignals[index] ||= deferred();
+    return requestSignals[index].promise;
+  };
+  server.release = (index) => responseGates[index]?.resolve();
+  server.responseClosed = (index) => {
+    responseCloseSignals[index] ||= deferred();
+    return responseCloseSignals[index].promise;
+  };
+  return server;
+}
+
+function encodeRawPcm(raw, format) {
+  const codec = format === 'ogg' ? 'libopus' : 'flac';
+  const result = spawnSync(process.env.PHOENIX_FFMPEG || 'ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '16000', '-ac', '1',
+    '-i', 'pipe:0', '-c:a', codec, '-f', format, 'pipe:1',
+  ], { input: raw });
+  assert.equal(result.status, 0, result.stderr.toString());
+  return result.stdout;
 }
 
 function wavPayload(body) {
@@ -104,14 +164,35 @@ test('VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock'
     assert.equal(sos, 1);
     for (let i = 0; i < 6; i += 1) session.provideAudio(SILENCE()); // 600ms silence: no EOS yet
     assert.equal(eos, 0);
-    session.provideAudio(SILENCE());            // 700ms -> EOS + finalize
-    assert.equal(eos, 1);
+    session.provideAudio(SILENCE());            // 700ms -> recognition candidate (wire EOS waits)
+    assert.equal(eos, 0);
 
     const result = await withTimeout(startPr);
+    assert.equal(eos, 1, 'EOS is emitted only when the candidate is accepted');
     assert.equal(result.text, 'what time is it');
     assert.equal(result.confidence, 1.0);
     // the POSTed body is a WAV: RIFF header + all buffered PCM
     assert.equal(srv._lastBody.includes('audio.wav'), true);
+  } finally {
+    await cleanupSession(session, startPr, srv);
+  }
+});
+
+test('VAD: a short request after the hotphrase tail is not ignored', async () => {
+  const srv = await mockParakeet('short request');
+  const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, {
+    lang: 'en-US', hotphrase: true,
+  }, console);
+  const startPr = session.start();
+  try {
+    // The first 200 ms burst is the wake tail. The second 100 ms burst is the
+    // legitimate request and must be retained despite being shorter than SOS.
+    session.provideAudio(Buffer.concat([
+      SPEECH(), SPEECH(), ...Array.from({ length: 7 }, SILENCE),
+      SPEECH(), ...Array.from({ length: 7 }, SILENCE),
+    ]));
+    assert.deepEqual(await withTimeout(startPr), { text: 'short request', confidence: 1.0 });
+    assert.equal(srv._requests, 1, 'the wake tail is not posted as an utterance');
   } finally {
     await cleanupSession(session, startPr, srv);
   }
@@ -267,6 +348,102 @@ test('encoded fixtures preserve VAD events and PCM cut across decoder chunking',
   }
 });
 
+test('PCM in the same buffer as an empty endpoint is preserved for relisten', async () => {
+  const parakeet = await heldParakeet(['', 'same-buffer request']);
+  const session = new ParakeetASRSession(`http://127.0.0.1:${parakeet.address().port}`, { lang: 'en-US' }, console);
+  const startPr = session.start();
+  const burst = Buffer.concat([SPEECH(), SPEECH(), ...Array.from({ length: 7 }, SILENCE)]);
+  let eos = 0;
+  session.onEndOfSpeech(() => { eos += 1; });
+  try {
+    session.provideAudio(Buffer.concat([burst, burst]));
+    const first = await withTimeout(parakeet.waitForRequest(0));
+    assert.equal(eos, 0, 'an empty candidate does not emit wire EOS');
+    assert.equal(wavPayload(first.body).length, burst.length);
+
+    parakeet.release(0);
+    const second = await withTimeout(parakeet.waitForRequest(1));
+    assert.equal(eos, 0, 'wire EOS remains deferred until a candidate is accepted');
+    assert.equal(wavPayload(second.body).length, burst.length);
+    parakeet.release(1);
+
+    assert.deepEqual(await withTimeout(startPr), { text: 'same-buffer request', confidence: 1.0 });
+    assert.equal(eos, 1);
+  } finally {
+    if (!session.stopped) session.abort();
+    for (let i = 0; i < 2; i += 1) parakeet.release(i);
+    parakeet.closeAllConnections?.();
+    await new Promise((resolve) => parakeet.close(resolve));
+  }
+});
+
+test('PCM arriving while an empty candidate POST is held is preserved for relisten', async () => {
+  const parakeet = await heldParakeet(['', 'held-response request']);
+  const session = new ParakeetASRSession(`http://127.0.0.1:${parakeet.address().port}`, { lang: 'en-US' }, console);
+  const startPr = session.start();
+  const burst = Buffer.concat([SPEECH(), SPEECH(), ...Array.from({ length: 7 }, SILENCE)]);
+  try {
+    session.provideAudio(burst);
+    await withTimeout(parakeet.waitForRequest(0));
+    session.provideAudio(burst);
+    assert.equal(parakeet.requests.length, 1, 'the second endpoint waits behind the held candidate');
+
+    parakeet.release(0);
+    await withTimeout(parakeet.waitForRequest(1));
+    parakeet.release(1);
+    assert.deepEqual(await withTimeout(startPr), { text: 'held-response request', confidence: 1.0 });
+  } finally {
+    if (!session.stopped) session.abort();
+    for (let i = 0; i < 2; i += 1) parakeet.release(i);
+    parakeet.closeAllConnections?.();
+    await new Promise((resolve) => parakeet.close(resolve));
+  }
+});
+
+test('encoded OGG and FLAC relisten keep their decoder alive across an empty candidate', { skip: !FFMPEG_AVAILABLE && 'ffmpeg is required to build the relisten fixtures' }, async () => {
+  const raw = Buffer.concat([fixturePcm(), fixturePcm()]);
+  for (const [encoding, format] of [[AUDIO_ENCODINGS.OGG_OPUS, 'ogg'], [AUDIO_ENCODINGS.FLAC, 'flac']]) {
+    const parakeet = await heldParakeet(['', `encoded ${encoding}`]);
+    const session = new ParakeetASRSession(`http://127.0.0.1:${parakeet.address().port}`, { lang: 'en-US', encoding }, console);
+    const startPr = session.start();
+    try {
+      session.provideAudio(encodeRawPcm(raw, format));
+      await withTimeout(parakeet.waitForRequest(0));
+      assert.ok(session.decoder, `${encoding}: decoder remains open while candidate response is held`);
+      parakeet.release(0);
+      await withTimeout(parakeet.waitForRequest(1));
+      assert.ok(session.decoder, `${encoding}: relisten still has a live decoder`);
+      parakeet.release(1);
+      assert.deepEqual(await withTimeout(startPr), { text: `encoded ${encoding}`, confidence: 1.0 });
+      assert.equal(session.decoder, null, `${encoding}: decoder closes only after the accepted result`);
+    } finally {
+      if (!session.stopped) session.abort();
+      for (let i = 0; i < 2; i += 1) parakeet.release(i);
+      parakeet.closeAllConnections?.();
+      await new Promise((resolve) => parakeet.close(resolve));
+    }
+  }
+});
+
+test('abort destroys an in-flight Parakeet HTTP request', async () => {
+  const parakeet = await heldParakeet(['never returned']);
+  const session = new ParakeetASRSession(`http://127.0.0.1:${parakeet.address().port}`, { lang: 'en-US' }, console);
+  const startPr = session.start();
+  const burst = Buffer.concat([SPEECH(), SPEECH(), ...Array.from({ length: 7 }, SILENCE)]);
+  try {
+    session.provideAudio(burst);
+    await withTimeout(parakeet.waitForRequest(0));
+    const responseClosed = withTimeout(parakeet.responseClosed(0));
+    session.abort();
+    assert.equal(await withTimeout(startPr), undefined);
+    await responseClosed;
+  } finally {
+    parakeet.release(0);
+    parakeet.closeAllConnections?.();
+    await new Promise((resolve) => parakeet.close(resolve));
+  }
+});
+
 test('max-buffer EOS cuts a large PCM chunk at the 30-second boundary', async () => {
   const srv = await mockParakeet('max-buffer');
   const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, { lang: 'en-US' }, console);
@@ -285,6 +462,13 @@ test('max-buffer EOS cuts a large PCM chunk at the 30-second boundary', async ()
 test('declared audio formats are validated before a provider session starts', () => {
   assert.throws(() => new ParakeetASRSession('http://localhost:9', { lang: 'en-US', encoding: 'AMR' }), /Unsupported ASR audio encoding/);
   assert.throws(() => new ParakeetASRSession('http://localhost:9', { lang: 'en-US', encoding: 'FLAC', sampleRate: 8000 }), /requires 16000/);
+});
+
+test('decoder error before session start rejects the later start promise', async () => {
+  const session = new ParakeetASRSession('http://localhost:9', { lang: 'en-US', encoding: 'OGG_OPUS' }, console);
+  session.provideAudio(Buffer.alloc(AUDIO_DECODER_LIMITS.maxPendingInputBytes + 1));
+  const startPr = session.start();
+  await assert.rejects(withTimeout(startPr), (err) => err.code === 'ERR_AUDIO_DECODE' && /input queue exceeded/.test(err.message));
 });
 
 test('bounded decoder queue rejects input without buffering a whole turn', async () => {
