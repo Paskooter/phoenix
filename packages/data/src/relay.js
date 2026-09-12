@@ -29,6 +29,7 @@
 //     empty (`?skipCache[]=` skips).
 
 import { sendJson, sendText } from '@phoenix/common';
+import { DEFAULT_UPSTREAM_TIMEOUT_MS, requestAbortSignal, withUpstreamTimeout } from './upstream.js';
 
 class ClientError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -90,10 +91,11 @@ function sendEmptyOk(res) {
  *   validate: (q: URLSearchParams) => any,    // throws on bad input (-> 400)
  *   key: (input: any) => string,
  *   fetchExternal: (input: any, log: any) => Promise<any>,  // returns relayData (or throws)
+ *   timeoutMs?: number,
  * }} opts
  * @returns {(ctx: any) => Promise<void>} a service route handler
  */
-export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExternal }) {
+export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExternal, timeoutMs = DEFAULT_UPSTREAM_TIMEOUT_MS }) {
   return async ({ req, res, url, log }) => {
     let input;
     try {
@@ -120,14 +122,20 @@ export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExter
     }
 
     let relayData;
+    const requestLifecycle = requestAbortSignal(req, res);
     try {
-      relayData = await fetchExternal(input, log);
+      relayData = await withUpstreamTimeout(
+        (signal) => fetchExternal(input, log, { signal }),
+        { signal: requestLifecycle.signal, timeoutMs, label: name },
+      );
     } catch (e) {
       if (!isHead && !res.writableEnded) {
         const ce = fetchError(name, e);
         sendText(res, ce.status, ce.message);
       }
       return;
+    } finally {
+      requestLifecycle.cleanup();
     }
     if (!relayData) { // reference line 167: any falsy provider result is "empty"
       if (!isHead && !res.writableEnded) sendText(res, 502, `Empty reply from ${name}`);

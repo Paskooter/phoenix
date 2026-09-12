@@ -41,6 +41,7 @@
 import { sendText } from '@phoenix/common';
 import { CredentialError } from './oauth.js';
 import { TTLCache } from './cache.js';
+import { DEFAULT_UPSTREAM_TIMEOUT_MS, requestAbortSignal, withUpstreamTimeout } from './upstream.js';
 
 // --- pinned constants -------------------------------------------------------
 
@@ -53,6 +54,7 @@ const CALENDAR_SCOPES = {
 const CALENDAR_NAME = { google: 'GoogleCalendar', outlook: 'OutlookCalendar' };
 // GoogleCalendarHandler.ts:16 / OutlookCalendarHandler.ts:18.
 const CACHE_TTL_SECONDS = 60;
+export const CALENDAR_TIMEOUT_MS = DEFAULT_UPSTREAM_TIMEOUT_MS;
 
 /** DateTimeUtils.validateEndDate (pegasus packages/lasso/src/utils/DateTimeUtils.ts:9-14). */
 export function validateEndDate(endDate) {
@@ -270,38 +272,48 @@ function upstreamErrorMessage(serviceName, status, text) {
  *
  * @param {{ serviceName?: 'google'|'outlook', baseUrl: string,
  *           getToken?: (input:object, ctx:object)=>string|Promise<string>,
- *           fetchImpl?: Function, calendarId?: string }} opts
+ *           fetchImpl?: Function, calendarId?: string, timeoutMs?: number }} opts
  */
 export function createUpstreamCalendarProvider({
-  serviceName = 'google', baseUrl, getToken = () => undefined, fetchImpl, calendarId = GOOGLE_CALENDAR_ID,
+  serviceName = 'google', baseUrl, getToken = () => undefined, fetchImpl,
+  calendarId = GOOGLE_CALENDAR_ID, timeoutMs = CALENDAR_TIMEOUT_MS,
 } = {}) {
   const doFetch = fetchImpl || ((...args) => fetch(...args));
   const root = String(baseUrl || '').replace(/\/+$/, '');
   const isOutlook = serviceName === 'outlook';
-  return async (input, ctx = {}) => {
+  return async (input, ctx = {}) => withUpstreamTimeout(async (signal) => {
     const upstream = (ctx && ctx.upstreamQuery) || buildUpstreamQuery(serviceName, { endDate: input.endDate });
-    const token = await getToken(input, ctx);
+    const token = await getToken(input, { ...ctx, signal });
     const headers = { accept: 'application/json' };
     if (token) headers.authorization = `Bearer ${token}`;
 
     const qs = new URLSearchParams();
     for (const [k, v] of Object.entries(upstream.params)) qs.set(k, String(v));
     const eventsUrl = `${root}${upstream.path}?${qs.toString()}`;
-    const res = await doFetch(eventsUrl, { method: upstream.method, headers });
+    const res = await doFetch(eventsUrl, { method: upstream.method, headers, signal });
     if (!res.ok) {
       const text = typeof res.text === 'function' ? await res.text().catch(() => '') : '';
-      throw new Error(upstreamErrorMessage(serviceName, res.status, text));
+      let parsed;
+      try { parsed = text ? JSON.parse(text) : undefined; } catch { parsed = undefined; }
+      const code = parsed?.error?.code || parsed?.code || parsed?.error?.innerError?.code;
+      const error = new Error(upstreamErrorMessage(serviceName, res.status, text));
+      if (code) error.code = code;
+      throw error;
     }
     const payload = await res.json();
     const events = Array.isArray(payload) ? payload : (payload.items || payload.value || []);
     if (isOutlook) return { events };
 
     // GoogleCalendarHandler.ts:109 — the timezone comes from a second calendars.get.
-    const calRes = await doFetch(`${root}/calendar/v3/calendars/${upstream.calendarId || calendarId}`, { method: 'GET', headers });
+    const calRes = await doFetch(`${root}/calendar/v3/calendars/${upstream.calendarId || calendarId}`, { method: 'GET', headers, signal });
     if (!calRes.ok) return { events };
     const resource = await calRes.json();
     return { events, calendarTimezone: resource.timeZone };
-  };
+  }, {
+    signal: ctx && ctx.signal,
+    timeoutMs,
+    label: isOutlook ? 'Microsoft Calendar' : 'Google Calendar',
+  });
 }
 
 // --- event normalization ----------------------------------------------------
@@ -382,9 +394,24 @@ const defaultProvider = async (req) => {
   throw e;
 };
 
-/** GoogleCalendarHandler.ts:60-62 / OutlookCalendarHandler.ts:61-63 createRedisKey. */
-export function calendarCacheKey(serviceName, { skillId, accountId, calendar }) {
-  return `${serviceName}_calendar:${skillId}:${accountId}:${calendar}`;
+/** Encode each tuple component so delimiters in caller-controlled ids cannot collide. */
+function encodedKeyPart(value) {
+  return encodeURIComponent(JSON.stringify(value));
+}
+
+/** Prefix shared by every endDate variant for one calendar credential slot. */
+export function calendarCachePrefix(serviceName, { skillId, accountId, calendar }) {
+  return `${serviceName}_calendar:${encodedKeyPart([skillId, accountId, calendar])}:`;
+}
+
+/**
+ * Calendar cache key. The old key omitted endDate and joined caller values with
+ * colons, so different windows could return one another's data and ids such as
+ * `a:b` could collide. Keep the service prefix for operational readability, but
+ * encode the tuple and the endDate as separate JSON values.
+ */
+export function calendarCacheKey(serviceName, { skillId, accountId, calendar, endDate }) {
+  return `${calendarCachePrefix(serviceName, { skillId, accountId, calendar })}${encodedKeyPart(endDate)}`;
 }
 
 /** TTLCache has get/set/clear; delete via the public map when no del() is present. */
@@ -392,6 +419,30 @@ function cacheDel(cache, key) {
   if (typeof cache.del === 'function') return cache.del(key);
   if (cache && cache.m && typeof cache.m.delete === 'function') return cache.m.delete(key);
   return undefined;
+}
+
+function cacheKeys(cache, knownKeys) {
+  const keys = new Set(knownKeys || []);
+  if (typeof cache?.keys === 'function') {
+    for (const key of cache.keys()) keys.add(key);
+  } else if (cache?.m && typeof cache.m.keys === 'function') {
+    for (const key of cache.m.keys()) keys.add(key);
+  }
+  return keys;
+}
+
+function calendarErrorCode(error) {
+  return error?.code
+    || error?.response?.data?.error?.code
+    || error?.response?.data?.code
+    || error?.context?.code
+    || error?.context?.error?.code
+    || (typeof error?.statusCode === 'string' ? error.statusCode : undefined);
+}
+
+function isMicrosoftInvalidToken(error) {
+  return calendarErrorCode(error) === 'InvalidAuthenticationToken'
+    || /InvalidAuthenticationToken/.test(String(error?.message || error));
 }
 
 /**
@@ -439,13 +490,14 @@ function relayEnvelope(events, fromCache) {
  *   store?: import('./credentials.js').CredentialStore,
  *   serviceName?: 'google'|'outlook',
  *   oauth?: { refresh: Function } | null,
- *   cache?: TTLCache, label?: string,
+ *   cache?: TTLCache, label?: string, timeoutMs?: number,
  * }} opts
  */
-export function createCalendarHandler({ provider = defaultProvider, store, serviceName = 'google', oauth, cache = new TTLCache(), label } = {}) {
+export function createCalendarHandler({ provider = defaultProvider, store, serviceName = 'google', oauth, cache = new TTLCache(), label, timeoutMs = CALENDAR_TIMEOUT_MS } = {}) {
   const name = label || CALENDAR_NAME[serviceName] || 'Calendar';
   const scopes = CALENDAR_SCOPES[serviceName] || [];
   const isOutlook = serviceName === 'outlook';
+  const knownKeys = new Set();
 
   /** AbstractRelayRequestHandler.relayRequest (lines 48-135). */
   const handler = async ({ req, res, url }) => {
@@ -454,6 +506,7 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
     catch (e) { sendText(res, 400, e.message); return undefined; }
 
     const key = calendarCacheKey(serviceName, input);
+    knownKeys.add(key);
     const isHead = req.method === 'HEAD';
     // AbstractRelayRequestHandler.ts:69-73 — an empty 200, then carry on with the
     // async request below so the cache gets warmed (prefetch).
@@ -471,6 +524,7 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
     }
 
     let credential = null;
+    const requestLifecycle = requestAbortSignal(req, res);
     try {
       // 1. Credential lookup + token freshness (only when a provider is wired).
       if (oauth && store) {
@@ -487,6 +541,7 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
               redirectUri: credential.oauth2.redirectUri,
               refreshToken: credential.oauth2.refreshToken,
               scopes: credential.scopes,
+              signal: requestLifecycle.signal,
             });
             store.updateTokens(credential, tokens);
           } catch (err) {
@@ -503,12 +558,15 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
       const upstreamQuery = buildUpstreamQuery(serviceName, { endDate: input.endDate });
       let raw;
       try {
-        raw = await provider(input, { store, credential, upstreamQuery });
+        raw = await withUpstreamTimeout(
+          (signal) => provider(input, { store, credential, upstreamQuery, signal }),
+          { signal: requestLifecycle.signal, timeoutMs, label: name },
+        );
       } catch (err) {
-        if (credential && err && typeof err.message === 'string') {
-          if (isOutlook && /InvalidAuthenticationToken/.test(err.message)) {
+        if (credential) {
+          if (isOutlook && isMicrosoftInvalidToken(err)) {
             store.setInactive(credential, CredentialError.INVALID_TOKEN);
-          } else if (!isOutlook && /expired or revoked/.test(err.message)) {
+          } else if (!isOutlook && /expired or revoked/.test(String(err?.message || err))) {
             store.setInactive(credential, CredentialError.REVOKED_ACCESS);
           }
         }
@@ -541,15 +599,27 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
       const status = e && e.response ? e.response.status : 502;
       if (!isHead && !res.writableEnded) sendText(res, status, message);
       return undefined;
+    } finally {
+      requestLifecycle.cleanup();
     }
   };
 
-  /** GoogleCalendarHandler.ts:26-35 onNewCredentialArrived — drop the cached payload. */
+  /** Drop every cached endDate variant for the affected credential slot. */
   handler.invalidate = (credential) => {
     if (!credential || credential.serviceName !== serviceName) return;
-    cacheDel(cache, calendarCacheKey(serviceName, {
+    const prefix = calendarCachePrefix(serviceName, {
       skillId: credential.skillId, accountId: credential.accountId, calendar: credential.serviceAccountName,
-    }));
+    });
+    // Remove entries written by pre-date-key versions as well. New keys are
+    // structured and collision-safe; this legacy cleanup is intentionally
+    // limited to the exact affected slot prefix.
+    const legacyPrefix = `${serviceName}_calendar:${credential.skillId}:${credential.accountId}:${credential.serviceAccountName}`;
+    for (const key of cacheKeys(cache, knownKeys)) {
+      if (String(key).startsWith(prefix) || String(key) === legacyPrefix || String(key).startsWith(`${legacyPrefix}:`)) {
+        cacheDel(cache, key);
+        knownKeys.delete(key);
+      }
+    }
   };
   handler.cacheKey = (req) => calendarCacheKey(serviceName, req);
   handler.cache = cache;

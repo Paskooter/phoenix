@@ -348,6 +348,7 @@ export function createNewsPoller({
   const intervalMS = pollIntervalMS || NEWS_POLL_INTERVAL_MS;
   let timer = null;
   let starting = null;
+  let lifecycle = 0;
 
   /** fetchAllNews: APNewsHandler.ts:62-78 — every sourceID, failures become null. */
   async function fetchAllNews() {
@@ -387,30 +388,46 @@ export function createNewsPoller({
   /** init(): poll once, then every intervalMS. Returns whether polling was enabled. */
   async function start() {
     if (!pollingEnabled) return false;
-    if (timer) return true;
+    if (timer !== null) return true;
     // The `timer` guard above cannot cover a second call that arrives while the first is
     // still awaiting its initial poll, because `timer` is not assigned until that poll
     // resolves. Memoise the in-flight start so concurrent callers share one init poll
     // instead of each fetching every category (observed as a doubled 22-fetch count).
-    if (starting) return starting;
-    starting = (async () => {
-      await pollOnce();
-      // "No need to await hourly polling" (APNewsHandler.ts:36-37): the callback is
-      // fire-and-forget, and pollOnce() cannot reject because both phases catch per item.
-      timer = timers.setInterval(() => { pollOnce().catch((err) => log?.error?.('APNews poll failed:', err)); }, intervalMS);
-      return true;
-    })();
+    if (starting && !starting.cancelled) return starting.promise;
+    const generation = ++lifecycle;
+    const state = {
+      generation,
+      cancelled: false,
+      promise: Promise.resolve().then(async () => {
+        if (state.cancelled || generation !== lifecycle) return false;
+        await pollOnce();
+        // stop() may run while the initial poll is in flight. Never arm an
+        // interval after that stop, and let a subsequent start create its own
+        // generation instead of reusing this cancelled promise.
+        if (state.cancelled || generation !== lifecycle) return false;
+        // "No need to await hourly polling" (APNewsHandler.ts:36-37): the callback is
+        // fire-and-forget, and pollOnce() cannot reject because both phases catch per item.
+        timer = timers.setInterval(() => { pollOnce().catch((err) => log?.error?.('APNews poll failed:', err)); }, intervalMS);
+        return true;
+      }),
+    };
+    starting = state;
     try {
-      return await starting;
+      return await state.promise;
     } finally {
-      starting = null;
+      if (starting === state) starting = null;
     }
   }
 
   /** close(): clearInterval (APNewsHandler.ts:42-45). */
   function stop() {
-    if (timer) timers.clearInterval(timer);
+    lifecycle += 1;
+    if (timer !== null) timers.clearInterval(timer);
     timer = null;
+    if (starting) {
+      starting.cancelled = true;
+      starting = null;
+    }
   }
 
   return {

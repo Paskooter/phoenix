@@ -26,13 +26,13 @@ import { createOAuthProvider } from './oauth.js';
  * ETCO_lasso_{google,outlook}TokenUrl optionally redirects a provider's token
  * endpoint (ops/test override — e.g. a corporate token proxy or a recorded fixture).
  */
-function oauthFromEnv(oauthSecretsDir) {
+function oauthFromEnv(oauthSecretsDir, timeoutMs) {
   const dir = oauthSecretsDir || process.env.ETCO_lasso_oauthSecretsDir || process.env.ETCO_data_oauthSecretsDir;
   if (!dir) return null;
   const endpoints = {};
   if (process.env.ETCO_lasso_googleTokenUrl) endpoints.google = { tokenUrl: process.env.ETCO_lasso_googleTokenUrl };
   if (process.env.ETCO_lasso_outlookTokenUrl) endpoints.outlook = { tokenUrl: process.env.ETCO_lasso_outlookTokenUrl };
-  return createOAuthProvider({ secretsDir: dir, endpoints });
+  return createOAuthProvider({ secretsDir: dir, endpoints, timeoutMs });
 }
 
 /**
@@ -72,13 +72,14 @@ function calendarFixtureProvider(serviceName) {
  * is ETCO_lasso_calendarUpstreamToken or the looked-up credential's access
  * token. Takes precedence over the fixture directory.
  */
-function calendarUpstreamProvider(serviceName) {
+function calendarUpstreamProvider(serviceName, timeoutMs) {
   const baseUrl = process.env.ETCO_lasso_calendarUpstreamUrl || process.env.ETCO_data_calendarUpstreamUrl;
   if (!baseUrl) return undefined;
   const envToken = process.env.ETCO_lasso_calendarUpstreamToken || process.env.ETCO_data_calendarUpstreamToken;
   return createUpstreamCalendarProvider({
     serviceName,
     baseUrl,
+    timeoutMs,
     getToken: (_input, ctx) => envToken || (ctx && ctx.credential && ctx.credential.oauth2 && ctx.credential.oauth2.accessToken),
   });
 }
@@ -87,6 +88,8 @@ function calendarUpstreamProvider(serviceName) {
  * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function,
  *           credentialStore?: CredentialStore, googleCalendarProvider?: Function,
  *           outlookCalendarProvider?: Function, oauth?: object, oauthSecretsDir?: string,
+ *           weatherTimeoutMs?: number, mapsTimeoutMs?: number, calendarTimeoutMs?: number,
+ *           oauthTimeoutMs?: number,
  *           newsPolling?: { enabled?: boolean, intervalMS?: number } }} [opts]
  *   *Get/*Provider override the live upstream calls (used by tests).
  *   oauth is a configurable provider from oauth.js (createOAuthProvider); when it
@@ -97,8 +100,8 @@ function calendarUpstreamProvider(serviceName) {
  *   newsPolling mirrors the source APNewsConfig (LassoService.ts:28-32); when it is
  *   omitted the ETCO_lasso_apNews* environment wins, and polling stays off by default.
  */
-export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
-  const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir) || null;
+export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore, oauth, oauthSecretsDir, weatherTimeoutMs, mapsTimeoutMs, calendarTimeoutMs, oauthTimeoutMs, googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
+  const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir, oauthTimeoutMs) || null;
   const store = credentialStore || new CredentialStore({ oauth: oauthProvider });
   if (oauthProvider) store.oauth = oauthProvider;
   const weather = createRelay({
@@ -107,7 +110,8 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     cache,
     validate: validateWeather,
     key: weatherKey,
-    fetchExternal: (input) => fetchWeather(input, weatherGet ? { get: weatherGet } : {}),
+    timeoutMs: weatherTimeoutMs,
+    fetchExternal: (input, _log, context) => fetchWeather(input, { ...(weatherGet ? { get: weatherGet } : {}), ...(context || {}), timeoutMs: weatherTimeoutMs }),
   });
   const news = createRelay({
     name: 'APNews',
@@ -115,7 +119,7 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     cache,
     validate: validateNews,
     key: newsKey,
-    fetchExternal: (input) => fetchNews(input, newsGet ? { get: newsGet } : {}),
+    fetchExternal: (input, _log, context) => fetchNews(input, { ...(newsGet ? { get: newsGet } : {}), ...(context || {}) }),
   });
   const maps = createRelay({
     name: 'GoogleMaps',
@@ -123,16 +127,25 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     cache,
     validate: validateMaps,
     key: mapsKey,
-    fetchExternal: (input) => fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
+    timeoutMs: mapsTimeoutMs,
+    fetchExternal: (input, _log, context) => fetchMaps(input, { ...(mapsGet ? { get: mapsGet } : {}), ...(context || {}), timeoutMs: mapsTimeoutMs }),
   });
 
-  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarUpstreamProvider('google') ?? calendarFixtureProvider('google'), store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
-  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarUpstreamProvider('outlook') ?? calendarFixtureProvider('outlook'), store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
-  // LassoService.ts:86-95 — a new credential notifies the calendar handlers, which
-  // drop the cached payload for that (skillId, accountId, calendar) key.
-  const cred = credentialHandlers(store, {
-    onNewCredential: (credential) => { googleCal.invalidate(credential); outlookCal.invalidate(credential); },
-  });
+  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarUpstreamProvider('google', calendarTimeoutMs) ?? calendarFixtureProvider('google'), store, oauth: oauthProvider, cache, timeoutMs: calendarTimeoutMs, serviceName: 'google', label: 'GoogleCalendar' });
+  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarUpstreamProvider('outlook', calendarTimeoutMs) ?? calendarFixtureProvider('outlook'), store, oauth: oauthProvider, cache, timeoutMs: calendarTimeoutMs, serviceName: 'outlook', label: 'OutlookCalendar' });
+  // LassoService.ts:86-95 — every credential mutation (including replacement,
+  // deletion, refresh failure, and invalid-token handling) invalidates every
+  // cached date range belonging to the affected calendar slot.
+  const previousCredentialChange = store.onChange;
+  store.onChange = (change) => {
+    if (typeof previousCredentialChange === 'function') previousCredentialChange(change);
+    const changed = [change && change.credential, ...(change?.removed || []), ...(change?.credentials || [])].filter(Boolean);
+    for (const credential of changed) {
+      googleCal.invalidate(credential);
+      outlookCal.invalidate(credential);
+    }
+  };
+  const cred = credentialHandlers(store);
 
   const service = createService({
     name: 'data',

@@ -31,7 +31,10 @@
 //   * `legs[].steps`, `arrival_time`/`departure_time`, `warnings`, `fare`,
 //     `geocoded_waypoints` and the per-road `summary` are not produced.
 
+import { DEFAULT_UPSTREAM_TIMEOUT_MS, withUpstreamTimeout } from './upstream.js';
+
 export const COMMUTE_MODES = ['driving', 'transit', 'bicycling', 'walking'];
+export const MAPS_TIMEOUT_MS = DEFAULT_UPSTREAM_TIMEOUT_MS;
 
 const ORS_PROFILE = {
   driving: 'driving-car',
@@ -84,40 +87,50 @@ export function mapsKey({ origin, destination, mode }) {
   return `google_maps:${origin.lat};${origin.lon};${destination.lat};${destination.lon};${mode}`;
 }
 
-export async function defaultOrsGet({ origin, destination, mode }) {
+export async function defaultOrsGet({ origin, destination, mode }, {
+  fetchImpl = fetch, signal, timeoutMs = MAPS_TIMEOUT_MS,
+} = {}) {
   const profile = ORS_PROFILE[mode] || 'driving-car';
-  const res = await fetch(`https://api.openrouteservice.org/v2/directions/${profile}`, {
+  return withUpstreamTimeout(async (upstreamSignal) => {
+    const res = await fetchImpl(`https://api.openrouteservice.org/v2/directions/${profile}`, {
     method: 'POST',
     headers: {
       Authorization: process.env.ETCO_data_orsKey || '',
       'Content-Type': 'application/json',
       Accept: 'application/json, application/geo+json, application/gpx+xml',
     },
-    body: JSON.stringify({ coordinates: [[origin.lon, origin.lat], [destination.lon, destination.lat]] }),
-  });
-  if (!res.ok) {
+      body: JSON.stringify({ coordinates: [[origin.lon, origin.lat], [destination.lon, destination.lat]] }),
+      signal: upstreamSignal,
+    });
+    if (!res.ok) {
     // The reference axios call rejects with `err.response` set, so `fetchData`
     // reproduces the upstream status and JSON-stringifies the upstream body
     // (AbstractRelayRequestHandler.ts:159-163). Live ORS error bodies observed
     // (2026-09-11): 401 `{"error":"Authorization field missing"}`,
     // 403 `{"error":"Access to this API has been disallowed"}`.
-    let data = null;
-    try { data = await res.json(); } catch { data = null; }
-    const e = new Error(`OpenRouteService ${res.status}`);
-    e.response = { status: res.status, data };
-    throw e;
-  }
-  const text = await res.text();
+      let data = null;
+      try { data = await res.json(); } catch { data = null; }
+      const e = new Error(`OpenRouteService ${res.status}`);
+      e.response = { status: res.status, data };
+      throw e;
+    }
+    const text = await res.text();
   // Reference `fetchFromExternal` returns `result ? result.data : null`, so an
   // empty body is a falsy redirect-to-null, not a parse error
   // (GoogleMapsHandler.ts:90, GoogleMaps.test.ts:98-117).
-  if (!text) return null;
-  return JSON.parse(text);
+    if (!text) return null;
+    return JSON.parse(text);
+  }, { signal, timeoutMs, label: 'OpenRouteService' });
 }
 
 /** fetchExternal: returns the Google Maps `Maps` object. opts.get(input) overrides the ORS call. */
-export async function fetchMaps(input, { get = defaultOrsGet } = {}) {
-  const ors = await get(input);
+export async function fetchMaps(input, {
+  get = defaultOrsGet, fetchImpl, signal, timeoutMs = MAPS_TIMEOUT_MS,
+} = {}) {
+  const ors = await withUpstreamTimeout(
+    (upstreamSignal) => get(input, { signal: upstreamSignal, timeoutMs, fetchImpl }),
+    { signal, timeoutMs, label: 'OpenRouteService' },
+  );
   if (!ors) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
   return openRouteServiceToGoogleMaps(ors, input.origin, input.destination);
 }
