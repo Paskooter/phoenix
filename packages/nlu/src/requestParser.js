@@ -15,11 +15,13 @@ import { loadEqWords } from './grammar/eqWords.js';
 import { buildFactoryWords, undeclaredFactoryWordFile } from './grammar/factoryWords.js';
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
 import { selectBestNative } from './arbitration.js';
-import { LoopMemberDetector } from './loopMemberDetector.js';
+import { LoopMemberDetector, isValidLoop } from './loopMemberDetector.js';
 import { attachExternalResult, createDisabledExternalAgentProvider } from './externalAgents.js';
+import { getLLMClient, LLM_INTENT_TOOLS } from './llmFallback.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
+const grammarPriorities = new WeakMap();
 // ParseRequestHandler's no-result contract uses JSON null for entities. Keep
 // the legacy parse(text) wrapper's object-shaped no-match result separate.
 const EMPTY_NLU = Object.freeze({ rules: [], intent: null, entities: null });
@@ -181,6 +183,32 @@ function emptyResult() {
   return { intent: EMPTY_NLU.intent, entities: EMPTY_NLU.entities, rules: EMPTY_NLU.rules.slice() };
 }
 
+export const INVALID_NLU_REQUEST = 'Invalid NLU request';
+
+function invalidRequest() {
+  const error = new TypeError(INVALID_NLU_REQUEST);
+  error.code = 'INVALID_NLU_REQUEST';
+  error.statusCode = 400;
+  return error;
+}
+
+function isPlainObject(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+export function validateNLURequest(request) {
+  if (!isPlainObject(request) || typeof request.text !== 'string') throw invalidRequest();
+  if (request.rules !== undefined
+    && (!Array.isArray(request.rules) || request.rules.some(rule => typeof rule !== 'string'))) {
+    throw invalidRequest();
+  }
+  if (request.loop !== undefined && !isValidLoop(request.loop)) throw invalidRequest();
+  if (request.external && !isPlainObject(request.external)) throw invalidRequest();
+  return request;
+}
+
 function compiledHasRule(runtime, name) {
   if (!runtime) return false;
   if (typeof runtime.hasRule === 'function') return runtime.hasRule(name);
@@ -315,7 +343,7 @@ function chooseBest(requested, text, state, compiledRuntime) {
 export function parseRequest(request, options = {}) {
   const externalProvider = options.externalProvider || DEFAULT_EXTERNAL_PROVIDER;
   const externalRevision = options.externalAttachmentRevision;
-  if (!request || typeof request.text !== 'string') throw new TypeError(`Bad NLU request: ${JSON.stringify(request)}`);
+  validateNLURequest(request);
   const text = request.text.trim();
   if (!text) return emptyResult();
   if (!Array.isArray(request.rules)) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
@@ -349,6 +377,7 @@ export function parseRequest(request, options = {}) {
     entities = { ...entities, union_original_fst_name: launch.sourceHandles[winner.rule] };
   }
   const result = { entities, intent: winner.intent, rules: [winner.requestedName || winner.rule] };
+  grammarPriorities.set(result, winner.priority);
   // ParseRequestHandler.handleParseRequest runs LoopMemberDetector on the
   // selected result (after the external-agent boundary) and ignores its return
   // value; the detector mutates result.entities. Pass the trimmed text, which
@@ -357,6 +386,69 @@ export function parseRequest(request, options = {}) {
   // branches above return intent:null, so detection there is a provable no-op
   // (LoopMemberDetector.ts:48).
   return LoopMemberDetector.detectLoopMembers({ ...request, text }, attachExternalResult(request, result, externalProvider, externalRevision));
+}
+
+function normalizedFallbackResult(fallback, request) {
+  if (!isPlainObject(fallback) || typeof fallback.intent !== 'string' || !fallback.intent) return null;
+  const tool = LLM_INTENT_TOOLS.find(candidate => candidate.name === fallback.intent);
+  if (!tool || fallback.intent === 'unknown') return null;
+  const entities = fallback.entities === undefined ? {} : fallback.entities;
+  if (!isPlainObject(entities)) return null;
+  const declaredKeys = Object.keys(tool.entities || {});
+  const argumentKeys = Object.keys(entities);
+  if (argumentKeys.length !== declaredKeys.length
+    || argumentKeys.some(key => !Object.prototype.hasOwnProperty.call(tool.entities || {}, key))) return null;
+  if (declaredKeys.some(key => typeof entities[key] !== tool.entities[key])) return null;
+  return {
+    intent: fallback.intent,
+    entities: { ...entities },
+    rules: Array.isArray(request.rules) ? request.rules.slice() : [],
+  };
+}
+
+/**
+ * HTTP-facing request pipeline: deterministic named-rule grammar first, then
+ * the configured LLM fallback on a grammar miss or LOW-priority result. The
+ * parseRequest API remains available for deterministic callers and corpus tests.
+ */
+export async function parseRequestWithFallback(request, options = {}) {
+  validateNLURequest(request);
+  if (!request.text.trim()) return parseRequest(request, options);
+
+  // Grammar selection and fallback selection have one external-agent boundary;
+  // attach it only after the hybrid result is chosen.
+  const grammarRequest = request.external ? { ...request, external: undefined } : request;
+  const grammarResult = parseRequest(grammarRequest, options);
+  if (grammarResult.intent && String(grammarPriorities.get(grammarResult) || '').toUpperCase() === 'HIGH') {
+    return attachExternalResult(request, grammarResult, options.externalProvider || DEFAULT_EXTERNAL_PROVIDER, options.externalAttachmentRevision);
+  }
+
+  let fallback = null;
+  try {
+    const client = options.llmClient || getLLMClient();
+    if (client && typeof client.handleNLU === 'function') {
+      fallback = await client.handleNLU({
+        ...request,
+        text: request.text.trim(),
+        rules: Array.isArray(request.rules) ? request.rules.slice() : [],
+      });
+    }
+  } catch {
+    // Provider failures are intentionally reduced to the grammar no-match.
+    fallback = null;
+  }
+
+  const selected = normalizedFallbackResult(fallback, request) || grammarResult;
+  const enriched = LoopMemberDetector.detectLoopMembers(
+    { ...request, text: request.text.trim() },
+    selected,
+  );
+  return attachExternalResult(
+    request,
+    enriched,
+    options.externalProvider || DEFAULT_EXTERNAL_PROVIDER,
+    options.externalAttachmentRevision,
+  );
 }
 
 export function ruleInventory() {

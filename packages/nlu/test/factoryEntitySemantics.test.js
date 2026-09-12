@@ -89,11 +89,7 @@ test('the canada_province factory publishes the spoken province', () => {
   assert.equal(parse('what time is it in ontario').entities.state, 'ontario');
   const quebec = parse('what time is it in quebec');
   assert.equal(quebec.entities.state, 'quebec');
-  // Known divergence (reported, not fixed here): the bundled word-list
-  // projection stores the accented arm as mojibake (`quÃ©bec`, UTF-8 read as
-  // Latin-1), so the accented spelling `québec` does not reach the factory,
-  // even though the recovered source declares it. The word list is a
-  // Pegasus-provenance-fenced asset, so changing it needs a fixture re-review.
+  assert.equal(parse('what time is it in Québec').entities.state, 'québec');
 });
 
 test('a country slot still resolves through the word-list projection unchanged', () => {

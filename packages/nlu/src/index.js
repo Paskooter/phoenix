@@ -15,7 +15,7 @@ import { launchParse } from './launchRules.js';
 import { fullParse } from './fullGrammar.js';
 import { llmFallback, getLLMClient } from './llmFallback.js';
 import { selectValidResult, isFallbackResultValid, isParserResultValid, resolveHybridNLU } from './fallbackArbitration.js';
-import { parseRequest } from './requestParser.js';
+import { parseRequestWithFallback, validateNLURequest } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 
 /**
@@ -120,22 +120,24 @@ function applyGqaContinuity(parser) {
   return parser;
 }
 
-export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
+export function start(port = Number(process.env.PORT) || DefaultPort.nlu, options = {}) {
   // An explicitly selected compiled profile must be verified before this
   // listener advertises readiness. The default AST profile loads no artifacts.
   getCompiledFstRuntime();
+  const llmClient = options.llmClient || getLLMClient();
   const svc = createService({
     name: 'nlu',
     routes: {
-      'POST /v1/parse': async ({ body, res }) => {
-        // Reference ParseRequestHandler.ts:28-30 — 400 on a malformed request
-        // (data.text must be a string), not a silent coercion to ''.
-        if (!body || !body.data || typeof body.data.text !== 'string') {
-          const error = new Error(`Bad request: ${JSON.stringify(body)}`);
-          error.statusCode = 400;
-          throw error;
-        }
-        const nlu = parseRequest(body.data);
+      'POST /v1/parse': async ({ body }) => {
+        // Validate at the boundary with a constant message. Never serialize the
+        // request into an exception: parser requests can carry credentials and
+        // loop-member identifiers.
+        validateNLURequest(body && body.data);
+        const nlu = await parseRequestWithFallback(body.data, {
+          llmClient,
+          externalProvider: options.externalProvider,
+          externalAttachmentRevision: options.externalAttachmentRevision,
+        });
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
       },
       // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's
@@ -146,7 +148,7 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         robustParserProcess: 'RUNNING',
         robustParserClient: 'CONNECTED',
         dialogflowClient: 'CLOSED',
-        llmClient: getLLMClient().state,
+        llmClient: llmClient?.state || getLLMClient().state,
       }),
     },
   });

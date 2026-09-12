@@ -57,6 +57,12 @@ export const LLM_INTENT_TOOLS = Object.freeze([
   { name: 'unknown', description: 'Could not confidently classify with any of the available intents.' },
 ]);
 
+function isPlainObject(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
 const SYSTEM_PROMPT = [
   'You are an NLU intent classifier for the Jibo social robot.',
   'You will be given a single user utterance.',
@@ -79,6 +85,7 @@ function buildTools() {
           ? Object.keys(t.entities).reduce((acc, k) => { acc[k] = { type: t.entities[k] }; return acc; }, {})
           : {},
         required: t.entities ? Object.keys(t.entities) : [],
+        additionalProperties: false,
       },
     },
   }));
@@ -125,8 +132,8 @@ export function createLLMClient(config = {}) {
         signal: ctrl.signal,
       });
       const text = await res.text();
-      if (res.status !== 200) throw new Error(`LLM ${res.status}: ${text.slice(0, 300)}`);
-      try { return JSON.parse(text); } catch (error) { throw new Error(`Could not parse LLM JSON: ${error}`); }
+      if (res.status !== 200) throw new Error('LLM provider request failed');
+      try { return JSON.parse(text); } catch { throw new Error('LLM provider returned invalid JSON'); }
     } finally {
       clearTimeout(timer);
     }
@@ -134,16 +141,37 @@ export function createLLMClient(config = {}) {
 
   // LLMClient.ts:170-203
   function parseToolCallResponse(response, request) {
-    const call = response?.choices?.[0]?.message?.tool_calls?.[0];
-    if (!call || !call.function || !call.function.name) return null;
-    const intent = call.function.name;
-    if (intent === 'unknown') return null;
+    const calls = response?.choices?.[0]?.message?.tool_calls;
+    if (!Array.isArray(calls) || calls.length !== 1) return null;
+    const call = calls[0];
+    if (!isPlainObject(call) || !isPlainObject(call.function)
+      || (call.type !== undefined && call.type !== 'function')) return null;
+    const name = call.function.name;
+    const tool = LLM_INTENT_TOOLS.find(candidate => candidate.name === name);
+    if (!tool || name === 'unknown') return null;
+
     let entities = {};
-    try {
-      const args = call.function.arguments;
-      if (args) entities = typeof args === 'string' ? JSON.parse(args) : args;
-    } catch { /* logged in source; keep parsing failure as empty entities */ }
-    return { intent, entities, rules: request.rules || [] };
+    const args = call.function.arguments;
+    if (args !== undefined && args !== '') {
+      if (typeof args === 'string') {
+        try { entities = JSON.parse(args); } catch { return null; }
+      } else {
+        entities = args;
+      }
+    }
+    if (!isPlainObject(entities)) return null;
+    const declaredKeys = Object.keys(tool.entities || {});
+    const argumentKeys = Object.keys(entities);
+    if (argumentKeys.length !== declaredKeys.length
+      || argumentKeys.some(key => !Object.prototype.hasOwnProperty.call(tool.entities || {}, key))) {
+      return null;
+    }
+    if (declaredKeys.some(key => typeof entities[key] !== tool.entities[key])) return null;
+    return {
+      intent: name,
+      entities: { ...entities },
+      rules: Array.isArray(request.rules) ? request.rules.slice() : [],
+    };
   }
 
   // LLMClient.ts:76-129
@@ -176,11 +204,12 @@ export function createLLMClient(config = {}) {
   };
 }
 
-function envConfig() {
+export function llmConfigFromEnv() {
+  const enabledFlag = process.env.ETCO_parser_llmEnabled;
   return {
-    // The source has an explicit `enabled` flag; phoenix keeps the historical
-    // ETCO_parser_llmUrl switch and honours an explicit enable as well.
-    enabled: process.env.ETCO_parser_llmEnabled === 'true' || Boolean(process.env.ETCO_parser_llmUrl),
+    // An explicit flag is authoritative; URL presence is a legacy opt-in only
+    // when the flag is absent.
+    enabled: enabledFlag === undefined ? Boolean(process.env.ETCO_parser_llmUrl) : enabledFlag === 'true',
     url: process.env.ETCO_parser_llmUrl || '',
     model: process.env.ETCO_parser_llmModel || 'gemma-3',
     timeoutMs: process.env.ETCO_parser_llmTimeoutMs ? Number(process.env.ETCO_parser_llmTimeoutMs) : undefined,
@@ -191,7 +220,7 @@ function envConfig() {
 let defaultClient;
 export function getLLMClient() {
   if (!defaultClient) {
-    defaultClient = createLLMClient(envConfig());
+    defaultClient = createLLMClient(llmConfigFromEnv());
     defaultClient.init();
   }
   return defaultClient;

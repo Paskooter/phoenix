@@ -7,10 +7,9 @@
 // that file's `testLoopMemberDetector` at lines 10-32).
 //
 // Part 2 covers the resolution matrix the source *code* defines but its test
-// file does not pin: the GivenName/LastName aliases (LoopMemberDetector.ts:54-55),
-// the unescaped text patterns (lines 73,84), duplicate members (Array.find),
-// missing/undefined member names, ambiguous text matches, guard clauses
-// (line 48) and the two source error boundaries (lines 5-7, 32-35).
+// file does not pin: the GivenName/LastName aliases, escaped text patterns,
+// duplicate members, validated member fields, ambiguous text matches and guard
+// clauses.
 //
 // Part 3 exercises real HTTP requests through the live NLU service, proving the
 // detector runs inside the request pipeline (as ParseRequestHandler.ts:33 does).
@@ -202,22 +201,23 @@ test('ambiguity: text with two first names resolves to the first member in array
   );
 });
 
-test('missing members: an undefined name produces the literal "undefined" pattern (LoopMemberDetector.ts:73)', () => {
+test('invalid member fields are ignored by the direct detector and rejected at the request boundary', () => {
   const request = { text: 'who is undefined undefined', rules: ['launch'], loop: { users: [{ id: 'u-malformed' }] } };
   const result = { intent: 'whoIsPerson', entities: {} };
-  LoopMemberDetector.detectLoopMembers(request, result);
-  assert.equal(result.entities.loopMemberReferent, 'u-malformed');
-  assert.ok(Object.prototype.hasOwnProperty.call(result.entities, 'given-name'));
-  assert.equal(result.entities['given-name'], undefined);
-  assert.equal(result.entities['last-name'], undefined);
+  assert.deepEqual(LoopMemberDetector.detectLoopMembers(request, result), result);
 });
 
-test('punctuation: member names are interpolated as a regex, not escaped (LoopMemberDetector.ts:73)', () => {
-  // "A.J." -> \bA.J. Smith\b, so the dot matches any character: "AXJY Smith".
+test('punctuation in member names is matched literally after regex escaping', () => {
+  // A punctuation-bearing name must match literally, not as a wildcard.
+  detect(
+    { text: 'who is A.J. Smith', loopUsers: [{ id: 'u-dot', firstName: 'A.J.', lastName: 'Smith' }] },
+    { intent: 'whoIsPerson', entities: {} },
+    { 'given-name': 'A.J.', 'last-name': 'Smith', loopMemberReferent: 'u-dot' },
+  );
   detect(
     { text: 'who is AXJY Smith', loopUsers: [{ id: 'u-dot', firstName: 'A.J.', lastName: 'Smith' }] },
     { intent: 'whoIsPerson', entities: {} },
-    { 'given-name': 'A.J.', 'last-name': 'Smith', loopMemberReferent: 'u-dot' },
+    {},
   );
   // Hyphen/apostrophe names also resolve literally.
   detect(
@@ -240,16 +240,16 @@ test('guards: no loop, no users, no intent or no result produce no enrichment (L
   assert.equal(LoopMemberDetector.detectLoopMembers({ text: 'who is jane jetson', loop: { users } }, null), null);
 });
 
-test('error boundary: a member with a missing firstName alongside a given-name entity throws (LoopMemberDetector.ts:5-7)', () => {
+test('malformed member fields are ignored by direct detection', () => {
   const request = { text: 'who is mary', rules: ['launch'], loop: { users: [{ id: 'u-malformed' }] } };
   const result = { intent: 'whoIsPerson', entities: { 'given-name': 'Mary' } };
-  assert.throws(() => LoopMemberDetector.detectLoopMembers(request, result), TypeError);
+  assert.deepEqual(LoopMemberDetector.detectLoopMembers(request, result), result);
 });
 
-test('error boundary: a null entities map with a text match throws on write (LoopMemberDetector.ts:32-35)', () => {
+test('a null entities map is not mutated by detection', () => {
   const request = { text: 'who is mary jackson', rules: ['launch'], loop: { users: [{ id: 'u-mary', firstName: 'Mary', lastName: 'Jackson' }] } };
   const result = { intent: 'generalWhoQuestions', entities: null };
-  assert.throws(() => LoopMemberDetector.detectLoopMembers(request, result), TypeError);
+  assert.deepEqual(LoopMemberDetector.detectLoopMembers(request, result), result);
 });
 
 // ---------------------------------------------------------------------------

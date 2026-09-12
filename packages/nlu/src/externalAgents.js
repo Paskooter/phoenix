@@ -76,17 +76,24 @@ export const EXTERNAL_STATE = Object.freeze({
 // reached the disabled Dialogflow result (ParseRequestHandler.ts:70-71 on the
 // Node 8.9.4 reference runtime pinned by V-01).
 export const DISABLED_EXTERNAL_ERROR = "Cannot read property 'external' of null";
+export const EXTERNAL_AGENT_ERROR = 'External agent unavailable';
+export const ASYNC_EXTERNAL_PROVIDER_ERROR = 'Async external providers are not supported';
 
 function resolveAgent(text, name, agent, agents) {
   const resolver = agents[name];
-  if (!resolver) {
-    // DialogflowClient.ts:106-108 — a failed agent access rejects, which the
-    // handler's .catch turns into a null dialogflowResult.
-    throw new Error(`Error accessing Dialogflow agent '${name}': no archived agent available`);
-  }
+  if (!resolver) throw new Error(EXTERNAL_AGENT_ERROR);
   const out = typeof resolver === 'function' ? resolver(text, agent) : resolver;
-  if (!out || typeof out !== 'object' || !out.intent) {
-    throw new Error(`Error accessing Dialogflow agent '${name}': no intent`);
+  if (out && typeof out.then === 'function') {
+    // This synchronous seam cannot safely consume a pending provider result.
+    // Attach a rejection handler before rejecting so an async resolver cannot
+    // create an unhandled rejection after the explicit boundary error.
+    Promise.resolve(out).catch(() => {});
+    const error = new Error(ASYNC_EXTERNAL_PROVIDER_ERROR);
+    error.code = 'ASYNC_EXTERNAL_PROVIDER';
+    throw error;
+  }
+  if (!out || typeof out !== 'object' || Array.isArray(out) || !out.intent) {
+    throw new Error(EXTERNAL_AGENT_ERROR);
   }
   // DialogflowClient.ts:100-104
   return { rules: agent.rules, intent: out.intent, entities: out.entities };
@@ -100,9 +107,10 @@ function otherResults(request, agents) {
     const agent = request.external[name];
     try {
       agentResults[name] = resolveAgent(request.text, name, agent, agents);
-    } catch (error) {
-      // DialogflowClient.ts:68-75 — the archived error record.
-      agentResults[name] = { rules: agent.rules, intent: '', entities: {}, error: error.message };
+    } catch {
+      // Provider messages and agent identifiers are untrusted; never copy them
+      // into the response envelope.
+      agentResults[name] = { rules: agent?.rules, intent: '', entities: {}, error: EXTERNAL_AGENT_ERROR };
     }
   }
   return agentResults;
@@ -172,7 +180,18 @@ export function attachExternalResult(request, result, provider, revision = DEFAU
   if (mode === EXTERNAL_ATTACHMENT_REVISION.OMIT) return result;
   if (!request.external) return result;
   let dialogflowResult = null;
-  try { dialogflowResult = provider.handleNLU(request); } catch { dialogflowResult = null; }
+  try {
+    dialogflowResult = provider.handleNLU(request);
+    if (dialogflowResult && typeof dialogflowResult.then === 'function') {
+      Promise.resolve(dialogflowResult).catch(() => {});
+      const error = new Error(ASYNC_EXTERNAL_PROVIDER_ERROR);
+      error.code = 'ASYNC_EXTERNAL_PROVIDER';
+      throw error;
+    }
+  } catch (error) {
+    if (error?.code === 'ASYNC_EXTERNAL_PROVIDER') throw error;
+    dialogflowResult = null;
+  }
   if (!dialogflowResult) throw new Error(DISABLED_EXTERNAL_ERROR);
   result.external = dialogflowResult.external;
   return result;

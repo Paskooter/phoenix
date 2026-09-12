@@ -95,7 +95,7 @@ test('fallback sends the source catalog/tool_choice/temperature and decodes reco
     assert.deepEqual(noEntities, { intent: 'tellAJoke', entities: {}, rules: ['launch'] });
 
     const malformed = await client.handleNLU({ text: 'mumble jumble', rules: [] });
-    assert.deepEqual(malformed, { intent: 'tellMeATip', entities: {}, rules: [] });
+    assert.equal(malformed, null);
 
     // The wire request itself carries the source contract.
     const sent = provider.seen[0];
@@ -104,6 +104,7 @@ test('fallback sends the source catalog/tool_choice/temperature and decodes reco
     assert.equal(sent.tool_choice, 'auto');               // LLMClient.ts:118
     assert.equal(sent.temperature, 0);                     // LLMClient.ts:119
     assert.deepEqual(sent.tools.find(t => t.function.name === 'doYouLike').function.parameters.required, ['thing']);
+    assert.equal(sent.tools.find(t => t.function.name === 'doYouLike').function.parameters.additionalProperties, false);
     assert.equal(sent.messages[0].role, 'system');
   } finally {
     await new Promise(r => provider.server.close(r));

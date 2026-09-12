@@ -21,6 +21,8 @@ test.after(() => { if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RU
 
 const recordings = JSON.parse(readFileSync(new URL('./fixtures/fallback-provider-recordings.json', import.meta.url)));
 const ext = recordings.external;
+const expectedExternal = JSON.parse(JSON.stringify(ext.expectedExternal));
+expectedExternal.agent_missing.error = 'External agent unavailable';
 
 function recordedProvider() {
   return createExternalAgentProvider({
@@ -59,14 +61,14 @@ test('a replaceable provider preserves the archived external result structure', 
   assert.equal(result.intent, 'timerValue');
   assert.deepEqual(result.entities, { hours: 'null', minutes: '5', seconds: 'null', domain: 'timer' });
   // DialogflowClient.ts:50-55 — the default agent result plus the external map.
-  assert.deepEqual(result.external, ext.expectedExternal);
+  assert.deepEqual(result.external, expectedExternal);
   // The successful agents carry { rules, intent, entities } (DialogflowClient.ts:100-104).
   assert.deepEqual(result.external.agent_one, { rules: ['launch'], intent: 'doesJiboLikeThing', entities: { GeneralLikes: 'Penguin' } });
   assert.deepEqual(result.external.agent_two, { rules: ['globals/mim_repeat'], intent: 'repeat', entities: { domain: 'mim_global' } });
-  // A failed agent access records the error and empty intent/entities (DialogflowClient.ts:68-75).
+  // Failed provider access records a generic error and empty intent/entities.
   assert.deepEqual(result.external.agent_missing, {
     rules: ['clock/timer_set_value'], intent: '', entities: {},
-    error: "Error accessing Dialogflow agent 'agent_missing': no archived agent available",
+    error: 'External agent unavailable',
   });
 });
 
@@ -78,7 +80,7 @@ test('an enabled provider emits the default-agent + external envelope itself', (
     rules: ['launch'],
     intent: 'doesJiboLikeThing',
     entities: { GeneralLikes: 'Penguin' },
-    external: ext.expectedExternal,
+    external: expectedExternal,
   });
   // Without external agents the envelope is the default agent only (DialogflowClient.ts:52-54).
   const bare = provider.handleNLU({ text: 'do you like penguins', rules: ['launch'] });
