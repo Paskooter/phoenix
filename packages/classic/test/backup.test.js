@@ -191,8 +191,8 @@ test('durable: Backup.New -> PUT -> List -> GET survive a real service restart',
   const blob = Buffer.from('survives-a-real-restart-\x00\x01\xff', 'binary');
   let first; let second;
   try {
-    const p1 = await freePort();
-    first = await startChild({ port: p1, backupDir: dir });
+    first = await startChild({ backupDir: dir });
+    const p1 = first.port;
     const created = await childAmz(first.base, 'Backup_20170222.New', { loopId: 'loop-restart' });
     assert.equal(created.status, 200);
     const put = await fetch(created.body.uploadUrl, { method: 'PUT', body: blob });
@@ -202,8 +202,8 @@ test('durable: Backup.New -> PUT -> List -> GET survive a real service restart',
     // SIGKILL: no graceful shutdown, nothing flushed on the way out.
     await first.stop();
 
-    const p2 = await freePort();
-    second = await startChild({ port: p2, backupDir: dir });
+    second = await startChild({ backupDir: dir, avoidPorts: [p1] });
+    const p2 = second.port;
     assert.notEqual(p1, p2, 'a genuinely new process on a new port');
 
     const listed = await childAmz(second.base, 'Backup_20170222.List', { loopId: 'loop-restart' });
@@ -371,44 +371,74 @@ async function freePort() {
   return p;
 }
 
-/** Start the real classic entrypoint as a child PROCESS bound to `port` with a fixed backup dir. */
-async function startChild({ port, backupDir }) {
-  const child = spawn(process.execPath, [ENTRY], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), ETCO_classic_backupDir: backupDir },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  let stderr = '';
-  child.stdout.resume();
-  child.stderr.on('data', (c) => { stderr += c; });
-  const baseUrl = `http://localhost:${port}`;
-  const ready = async () => {
-    try {
-      const res = await fetch(`${baseUrl}/`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Backup_20170222.List' },
-        body: JSON.stringify({ loopId: 'readiness-probe' }),
-      });
-      return res.status === 200;
-    } catch { return false; }
-  };
-  for (let i = 0; i < 150; i++) {
-    if (await ready()) {
-      return {
-        base: baseUrl,
-        child,
-        stop: () => new Promise((resolve) => {
-          if (child.exitCode !== null || child.signalCode !== null) return resolve();
-          child.once('close', resolve);
-          child.kill('SIGKILL');
-        }),
-      };
+/** Start the real classic entrypoint as a child PROCESS with a fixed backup dir. */
+async function startChild({ backupDir, avoidPorts = [] }) {
+  // A port returned by `freePort()` is only a hint once its probe server closes. Other test
+  // workers can claim it before this child calls listen(), so require the child itself to announce
+  // that it bound the port and retry an EADDRINUSE collision instead of probing an unrelated service.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const port = await freePort();
+    if (avoidPorts.includes(port)) continue;
+    const child = spawn(process.execPath, [ENTRY], {
+      cwd: ROOT,
+      env: { ...process.env, PORT: String(port), ETCO_classic_backupDir: backupDir },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    let partialLine = '';
+    let announcedListening = false;
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+      partialLine += chunk.toString();
+      const lines = partialLine.split('\n');
+      partialLine = lines.pop();
+      for (const line of lines) {
+        try {
+          const record = JSON.parse(line);
+          if (record.msg === 'listening' && Number(record.port) === port) announcedListening = true;
+        } catch {
+          // Logger output is line-delimited JSON; ignore an incomplete/non-JSON line.
+        }
+      }
+    });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    const closed = new Promise((resolve) => child.once('close', resolve));
+    const baseUrl = `http://localhost:${port}`;
+    const ready = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Backup_20170222.List' },
+          body: JSON.stringify({ loopId: 'readiness-probe' }),
+        });
+        return res.status === 200;
+      } catch { return false; }
+    };
+    for (let i = 0; i < 150; i++) {
+      if (child.exitCode !== null) break;
+      if (announcedListening && await ready()) {
+        return {
+          base: baseUrl,
+          port,
+          child,
+          stop: () => new Promise((resolve) => {
+            if (child.exitCode !== null || child.signalCode !== null) return resolve();
+            child.once('close', resolve);
+            child.kill('SIGKILL');
+          }),
+        };
+      }
+      await sleep(100);
     }
-    if (child.exitCode !== null) break;
-    await sleep(100);
+
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+    await closed;
+    if (!/EADDRINUSE/.test(stderr)) {
+      throw new Error(`classic entrypoint child did not start: ${stderr || stdout}`);
+    }
   }
-  child.kill('SIGKILL');
-  throw new Error(`classic entrypoint child did not start: ${stderr}`);
+  throw new Error('classic entrypoint could not acquire a free port after 8 attempts');
 }
 
 async function childAmz(baseUrl, target, body) {
