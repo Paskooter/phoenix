@@ -48,6 +48,13 @@ const MAX_BUFFER_MS = 30000;
 const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 
 const POST_TIMEOUT_MS = 30000;
+const MAX_RESPONSE_BYTES = 64 * 1024;
+const MAX_RESPONSE_DIAGNOSTIC_BYTES = 1024;
+
+export const PARAKEET_RESPONSE_LIMITS = Object.freeze({
+  maxBytes: MAX_RESPONSE_BYTES,
+  maxDiagnosticBytes: MAX_RESPONSE_DIAGNOSTIC_BYTES,
+});
 
 // A silence endpoint that recognizes no words is treated as a false endpoint
 // (see the header note): keep listening instead of ending the turn. Bounded so a
@@ -688,8 +695,26 @@ export class ParakeetASRSession {
           res = response;
           this.activeResponses.add(res);
           const bufs = [];
+          let responseBytes = 0;
           let responseEnded = false;
-          res.on('data', (chunk) => bufs.push(chunk));
+          const rejectOversized = (declaredBytes) => {
+            const detail = Number.isSafeInteger(declaredBytes) ? ` (declared ${declaredBytes} bytes)` : '';
+            const error = new Error(`Parakeet response exceeded ${MAX_RESPONSE_BYTES} bytes${detail}`);
+            error.code = 'ERR_PARAKEET_RESPONSE_TOO_LARGE';
+            // Stop both directions. In particular, destroying only the response
+            // leaves the request/socket alive until the peer times out.
+            fail(error);
+            try { req?.destroy(error); } catch { /* already closed */ }
+            try { res?.destroy(error); } catch { /* already closed */ }
+          };
+          res.on('data', (chunk) => {
+            responseBytes += chunk.length;
+            if (responseBytes > MAX_RESPONSE_BYTES) {
+              rejectOversized(responseBytes);
+              return;
+            }
+            bufs.push(chunk);
+          });
           res.on('error', fail);
           res.on('aborted', () => fail(new Error('Parakeet response was aborted')));
           res.on('close', () => {
@@ -699,7 +724,9 @@ export class ParakeetASRSession {
             responseEnded = true;
             const text = Buffer.concat(bufs).toString('utf8');
             if (res.statusCode !== 200) {
-              fail(new Error(`Parakeet returned ${res.statusCode}: ${text}`));
+              const diagnostic = text.slice(0, MAX_RESPONSE_DIAGNOSTIC_BYTES);
+              const suffix = text.length > MAX_RESPONSE_DIAGNOSTIC_BYTES ? '…' : '';
+              fail(new Error(`Parakeet returned ${res.statusCode}: ${diagnostic}${suffix}`));
               return;
             }
             try {
@@ -712,6 +739,10 @@ export class ParakeetASRSession {
               fail(new Error('Could not parse Parakeet response: ' + error));
             }
           });
+          const declaredLength = Number(response.headers['content-length']);
+          if (Number.isSafeInteger(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
+            rejectOversized(declaredLength);
+          }
         });
         this.activeRequests.add(req);
         req.setTimeout(POST_TIMEOUT_MS, () => { req.destroy(new Error('Parakeet request timed out')); });

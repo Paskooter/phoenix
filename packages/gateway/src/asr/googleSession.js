@@ -33,6 +33,20 @@ import { FastEOS } from './fastEOS.js';
 
 const FINAL_RESULT_WAIT_MS = 3000;
 
+// The mock recognizer is a line-delimited protocol, while the robot sends
+// arbitrary WebSocket-sized audio frames. Keep both sides bounded: the limits
+// leave ample room for ordinary Jibo speech (4 MiB is over two minutes of
+// 16-bit mono PCM) without allowing a paused peer to turn a transaction into a
+// socket-sized memory sink.
+export const GOOGLE_STREAM_LIMITS = Object.freeze({
+  maxAudioFrameBytes: 64 * 1024,
+  maxTotalAudioBytes: 4 * 1024 * 1024,
+  maxPendingAudioBytes: 512 * 1024,
+  maxOutboundBufferBytes: 512 * 1024,
+  maxInboundLineBytes: 256 * 1024,
+  maxInboundBufferBytes: 512 * 1024,
+});
+
 export class GoogleASRSession {
   /**
    * @param {{write:(b:Buffer)=>void, end:()=>void, on:(e:string,h:Function)=>void}} recStream
@@ -57,6 +71,15 @@ export class GoogleASRSession {
     this.resolveStart = null;
     this.rejectStart = null;
     this.startSettled = false;
+    this.failureError = null;
+    this.audioBytes = 0;
+    this.pendingAudio = [];
+    this.pendingAudioBytes = 0;
+    this.audioWriteBlocked = false;
+    this.drainHandler = null;
+    this.streamListeners = null;
+    this.streamEnded = false;
+    this.streamDestroyed = false;
 
     if (this.config.earlyEOS && this.config.earlyEOS.length > 0) {
       this.fastEOSRegex = FastEOS.buildRegex(this.config.earlyEOS);
@@ -65,48 +88,196 @@ export class GoogleASRSession {
 
   /** Provide audio to the recognizer for transcription. */
   provideAudio(audioBuffer) {
-    if (!this.stopped) this.recStream.write(audioBuffer);
+    if (this.stopped) return false;
+    if (!Buffer.isBuffer(audioBuffer)) {
+      const error = new TypeError('Google ASR audio frames must be Buffers');
+      this._fail(error);
+      throw error;
+    }
+    if (audioBuffer.length === 0) return true;
+    if (audioBuffer.length > GOOGLE_STREAM_LIMITS.maxAudioFrameBytes) {
+      const error = this._limitError(
+        `Google ASR audio frame exceeds ${GOOGLE_STREAM_LIMITS.maxAudioFrameBytes} bytes`,
+      );
+      this._fail(error);
+      throw error;
+    }
+    if (this.audioBytes + audioBuffer.length > GOOGLE_STREAM_LIMITS.maxTotalAudioBytes) {
+      const error = this._limitError(
+        `Google ASR total audio exceeds ${GOOGLE_STREAM_LIMITS.maxTotalAudioBytes} bytes`,
+      );
+      this._fail(error);
+      throw error;
+    }
+    this.audioBytes += audioBuffer.length;
+
+    if (this.audioWriteBlocked || this.pendingAudio.length > 0) {
+      if (this.pendingAudioBytes + audioBuffer.length > GOOGLE_STREAM_LIMITS.maxPendingAudioBytes) {
+        const error = this._limitError(
+          `Google ASR pending audio exceeds ${GOOGLE_STREAM_LIMITS.maxPendingAudioBytes} bytes`,
+        );
+        this._fail(error);
+        throw error;
+      }
+      this.pendingAudio.push(Buffer.from(audioBuffer));
+      this.pendingAudioBytes += audioBuffer.length;
+      this._flushAudio();
+      return !this.audioWriteBlocked;
+    }
+
+    try {
+      const accepted = this.recStream.write(audioBuffer);
+      if (accepted === false) {
+        this.audioWriteBlocked = true;
+        this._attachDrainHandler();
+      }
+      return accepted !== false;
+    } catch (error) {
+      this._fail(error);
+      throw error;
+    }
   }
 
-  /** Stop the current session: close the recognizer stream, clear the timer. */
+  _limitError(message) {
+    const error = new Error(message);
+    error.code = 'ERR_GOOGLE_AUDIO_LIMIT';
+    return error;
+  }
+
+  _attachDrainHandler() {
+    if (this.drainHandler || typeof this.recStream.once !== 'function') return;
+    this.drainHandler = () => {
+      this.drainHandler = null;
+      this.audioWriteBlocked = false;
+      this._flushAudio();
+    };
+    this.recStream.once('drain', this.drainHandler);
+  }
+
+  _flushAudio() {
+    if (this.stopped || this.streamDestroyed || this.audioWriteBlocked) return;
+    while (this.pendingAudio.length > 0) {
+      const chunk = this.pendingAudio.shift();
+      this.pendingAudioBytes -= chunk.length;
+      try {
+        const accepted = this.recStream.write(chunk);
+        if (accepted === false) {
+          this.audioWriteBlocked = true;
+          this._attachDrainHandler();
+          return;
+        }
+      } catch (error) {
+        this._fail(error);
+        return;
+      }
+    }
+  }
+
+  /** Stop the current session gracefully: end, rather than destroy, the stream. */
   stop() {
     this._resolveStart(undefined);
     this._closeStream();
   }
 
-  _closeStream() {
+  /** Abort a canceled session: destroy the stream and release its listeners. */
+  abort() {
+    this._resolveStart(undefined, { destroy: true });
+    this._closeStream({ destroy: true });
+  }
+
+  _detachStreamListeners() {
+    const handlers = this.streamListeners;
+    this.streamListeners = null;
+    if (this.drainHandler) {
+      const removeDrain = this.recStream.removeListener || this.recStream.off;
+      removeDrain?.call(this.recStream, 'drain', this.drainHandler);
+      this.drainHandler = null;
+    }
+    if (!handlers) return;
+    const remove = this.recStream.removeListener || this.recStream.off;
+    if (typeof remove !== 'function') return;
+    for (const [event, handler] of Object.entries(handlers)) remove.call(this.recStream, event, handler);
+  }
+
+  _destroyStream() {
+    if (this.streamDestroyed) return;
+    this.streamDestroyed = true;
+    this.pendingAudio = [];
+    this.pendingAudioBytes = 0;
+    try {
+      if (typeof this.recStream.destroy === 'function') this.recStream.destroy();
+      else if (!this.streamEnded && typeof this.recStream.end === 'function') {
+        this.streamEnded = true;
+        this.recStream.end();
+      }
+    } catch (error) {
+      this.log.warn?.(`Google recognizer stream destroy failed: ${error.message}`);
+    }
+  }
+
+  _closeStream({ destroy = false } = {}) {
     clearTimeout(this.finalResultTimeout);
     this.finalResultTimeout = null;
+    if (destroy) {
+      this._detachStreamListeners();
+      this._destroyStream();
+      this.stopped = true;
+      this.sosHandler = null;
+      this.eosHandler = null;
+      this.resultHandler = null;
+      return;
+    }
     if (this.stopped) return;
     this.stopped = true;
+    this._detachStreamListeners();
+    this.pendingAudio = [];
+    this.pendingAudioBytes = 0;
+    this.sosHandler = null;
+    this.eosHandler = null;
+    this.resultHandler = null;
+    if (this.streamEnded || this.streamDestroyed) return;
     try {
+      this.streamEnded = true;
       this.recStream.end();
     } catch (error) {
       this.log.warn?.(`Google recognizer stream close failed: ${error.message}`);
     }
   }
 
-  _resolveStart(value) {
-    if (this.startSettled) return;
+  _fail(error) {
+    if (this.failureError) return;
+    this.failureError = error instanceof Error ? error : new Error(String(error));
+    this._rejectStart(this.failureError);
+  }
+
+  _resolveStart(value, { destroy = false } = {}) {
+    if (this.startSettled) {
+      if (destroy) this._closeStream({ destroy: true });
+      return;
+    }
     this.startSettled = true;
     clearTimeout(this.finalResultTimeout);
     this.finalResultTimeout = null;
     const resolve = this.resolveStart;
     this.resolveStart = null;
     this.rejectStart = null;
-    this._closeStream();
+    this._closeStream({ destroy });
     resolve?.(value);
   }
 
   _rejectStart(error) {
-    if (this.startSettled) return;
+    this.failureError = error;
+    if (this.startSettled) {
+      this._closeStream({ destroy: true });
+      return;
+    }
     this.startSettled = true;
     clearTimeout(this.finalResultTimeout);
     this.finalResultTimeout = null;
     const reject = this.rejectStart;
     this.resolveStart = null;
     this.rejectStart = null;
-    this._closeStream();
+    this._closeStream({ destroy: true });
     reject?.(error);
   }
 
@@ -122,6 +293,11 @@ export class GoogleASRSession {
   /** Start the current session; resolves with the ASRResult. */
   start() {
     if (this.startPromise) return this.startPromise;
+    if (this.failureError) {
+      this.startSettled = true;
+      this.startPromise = Promise.reject(this.failureError);
+      return this.startPromise;
+    }
     if (this.stopped) {
       this.startSettled = true;
       this.startPromise = Promise.resolve(undefined);
@@ -222,6 +398,7 @@ export class GoogleASRSession {
       };
 
       try {
+        this.streamListeners = { error: fail, data: handleData, end: handleEnd };
         this.recStream.on('error', fail);
         this.recStream.on('data', handleData);
         this.recStream.on('end', handleEnd);

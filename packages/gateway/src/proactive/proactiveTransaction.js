@@ -16,7 +16,27 @@ const CONTEXT_TIMEOUT = 30_000;
 
 function defer() { let resolve, reject; const promise = new Promise((res, rej) => { resolve = res; reject = rej; }); return { promise, resolve, reject }; }
 const TIMEOUT = Symbol('timeout');
-function withTimeout(p, ms) { let t; const timer = new Promise((r) => { t = setTimeout(() => r(TIMEOUT), ms); t.unref?.(); }); return Promise.race([p.then((v) => { clearTimeout(t); return v; }), timer]); }
+function withTimeout(promise, ms) {
+  let timer;
+  const clear = () => {
+    if (timer !== undefined && timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+  const guarded = Promise.resolve(promise).then(
+    (value) => { clear(); return value; },
+    (error) => { clear(); throw error; },
+  );
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => {
+      clear();
+      resolve(TIMEOUT);
+    }, ms);
+    timer.unref?.();
+  });
+  return Promise.race([guarded, timeout]);
+}
 
 export class ProactiveTransaction {
   constructor(socket, components, response, log) {

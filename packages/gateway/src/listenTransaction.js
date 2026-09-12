@@ -43,8 +43,24 @@ function defer() {
 const TIMEOUT = Symbol('timeout');
 function withTimeout(promise, ms) {
   let t;
-  const timer = new Promise((resolve) => { t = setTimeout(() => resolve(TIMEOUT), ms); t.unref?.(); });
-  return Promise.race([promise.then((v) => { clearTimeout(t); return v; }), timer]);
+  const clear = () => {
+    if (t !== undefined && t !== null) {
+      clearTimeout(t);
+      t = null;
+    }
+  };
+  const guarded = Promise.resolve(promise).then(
+    (value) => { clear(); return value; },
+    (error) => { clear(); throw error; },
+  );
+  const timer = new Promise((resolve) => {
+    t = setTimeout(() => {
+      clear();
+      resolve(TIMEOUT);
+    }, ms);
+    t.unref?.();
+  });
+  return Promise.race([guarded, timer]);
 }
 
 export class ListenTransaction {
@@ -272,6 +288,7 @@ export class ListenTransaction {
     // Reference _exitCurrentState(): leaving ASR stops the ASR session
     // (ListenTransactionHandler.ts:207-226).
     if (this.state === State.ASR) this._cancelASR();
+    if (target === State.DONE || target === State.STOP) this._clearPreSessionAudio();
     this.stateTrace.push(target);
     this.state = target;
     const exec = {
@@ -471,10 +488,7 @@ export class ListenTransaction {
     this._clearASRTimers();
     // After stopASR the reference's audioStream is null, so further audio is
     // dropped instead of buffered for a session that will never consume it.
-    if (this.asrCancelled) {
-      this.audioChunks.length = 0;
-      this.audioBufferedBytes = 0;
-    }
+    this._clearPreSessionAudio();
   }
 
   _clearASRTimers() {
@@ -738,12 +752,16 @@ export class ListenTransaction {
 
   _isActive() { return !this.aborted && !this.settled && !this.abandoned; }
 
+  _clearPreSessionAudio() {
+    this.audioChunks.length = 0;
+    this.audioBufferedBytes = 0;
+  }
+
   _abortASR() {
     this.asrAbortRequested = true;
     const session = this.asrSession;
     this._clearASRTimers();
-    this.audioChunks.length = 0;
-    this.audioBufferedBytes = 0;
+    this._clearPreSessionAudio();
     if (!session) return;
     try {
       if (typeof session.abort === 'function') session.abort();
@@ -778,6 +796,7 @@ export class ListenTransaction {
     this.settled = true;
     clearTimeout(this._txTimer);
     this._txTimer = null;
+    this._clearPreSessionAudio();
     this._handle.resolve();
     this._saveSpeech({ signal: this.abortController.signal }); // TransactionHandler.onTransactionSuccess
   }
