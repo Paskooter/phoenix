@@ -112,7 +112,8 @@ test('Q-01 GQA source route returns controlled errors for invalid coordinate str
     body.data.runtime.location.lat = 'not-a-coordinate';
     const response = await request(server, JSON.stringify(body), 'application/json', { 'x-jibo-transid': 'coordinate-trans' });
     assert.equal(response.status, 500);
-    assert.match((await response.text()), /Invalid latitude coordinate/);
+    const payload = parseBody(await response.text());
+    assert.deepEqual(payload, { version: '5.2.15', message: 'Internal server error' });
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
@@ -201,8 +202,8 @@ test('Q-01 GQA source route leaves AWS JSON outside the Flask parser media set',
       assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8', label);
       const payload = parseBody(await response.text());
       assert.equal(payload.version, '5.2.15', label);
-      assert.equal(typeof payload.message, 'string', label);
-      assert.equal(typeof payload.stacktrace, 'string', label);
+      assert.equal(payload.message, 'Internal server error', label);
+      assert.equal(Object.prototype.hasOwnProperty.call(payload, 'stacktrace'), false, label);
     }
   } finally {
     await new Promise((resolve) => server.close(resolve));

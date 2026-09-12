@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { newJcpId } from './jcpId.js';
 import { gqaBannedWordPresent } from './gqaBannedWords.js';
 import { validateCoordinate } from './gqaCoordinates.js';
+import { GQA_INTERNAL_ERROR_MESSAGE, safeGqaErrorDetail } from './gqaAccountAttribution.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_VERSION = '5.2.15';
@@ -759,11 +760,12 @@ export function validateGqaRequestBody(body) {
   return body;
 }
 
-function sourceErrorPayload(error) {
+function sourceErrorPayload() {
   return {
     version: GQA_VERSION,
-    message: error?.message || String(error),
-    stacktrace: error?.stack,
+    // Keep the source version/message envelope while preventing provider,
+    // storage, and runtime details from crossing the HTTP boundary.
+    message: GQA_INTERNAL_ERROR_MESSAGE,
   };
 }
 
@@ -812,7 +814,7 @@ function respondGqaSourceError(context, status, error) {
   const response = context.res;
   if (response && typeof response.status === 'function'
     && typeof response.type === 'function' && typeof response.send === 'function') {
-    sendGqaSourceBody(context, status, sourceJsonDumps(sourceErrorPayload(error)));
+    sendGqaSourceBody(context, status, sourceJsonDumps(sourceErrorPayload()));
     return undefined;
   }
   const wrapped = error instanceof Error ? error : new Error(String(error));
@@ -899,7 +901,9 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
       }
       return result;
     } catch (error) {
-      context.log?.error?.('GQA handler failed', { error });
+      const fields = { error: safeGqaErrorDetail(error) };
+      if (error?.cause !== undefined) fields.cause = safeGqaErrorDetail(error.cause);
+      context.log?.error?.('GQA handler failed', fields);
       return respondGqaSourceError(context, 500, error);
     }
   };

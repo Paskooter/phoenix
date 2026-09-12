@@ -5,6 +5,7 @@
 // configured HTTP endpoint; attribution uses a Mongo collection.  Neither
 // boundary has a Phoenix default, so selecting one is always explicit.
 
+import { isIP } from 'node:net';
 import { redactProviderUrl, redactProviderUrls } from './gqaProviderUrl.js';
 
 export const GQA_ACCOUNT_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
@@ -12,6 +13,14 @@ export const GQA_ACCOUNT_SOURCE_MODULE = 'gqa/account.py';
 export const GQA_ATTRIBUTE_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_ATTRIBUTE_SOURCE_MODULE = 'gqa/attribute.py';
 export const GQA_ACCOUNT_SERVICE_ENV = 'ETCO_server_accountService';
+export const GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV = 'PHOENIX_GQA_ATTRIBUTION_TRUSTED_INTERNAL';
+export const GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES_ENV = 'PHOENIX_GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES';
+export const GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE = 'Attribution authorization required';
+export const GQA_ATTRIBUTION_AUTHORIZATION_NOT_CONFIGURED_MESSAGE = 'Attribution authorization is not configured';
+export const GQA_ATTRIBUTION_ACCESS_DENIED_MESSAGE = 'Attribution access denied';
+export const GQA_INTERNAL_ERROR_MESSAGE = 'Internal server error';
+
+const LOOPBACK_REMOTE_ADDRESSES = Object.freeze(['127.0.0.1', '::1']);
 
 // gqa/attribute.py creates this index after every insert.  The object form is
 // the native Node Mongo representation of the same ordered source keys.
@@ -77,6 +86,171 @@ function requiredField(value, name, label) {
     throw new TypeError(`${label} is missing '${name}'`);
   }
   return object[name];
+}
+
+/** An HTTP error whose public message is deliberately fixed and safe. */
+class GqaAttributionHttpError extends Error {
+  constructor(statusCode, publicMessage, cause) {
+    super(publicMessage);
+    this.name = 'GqaAttributionHttpError';
+    this.statusCode = statusCode;
+    this.publicMessage = publicMessage;
+    if (cause !== undefined) this.cause = cause;
+  }
+}
+
+function normalizedRemoteAddress(value) {
+  const address = String(value || '').trim().toLowerCase();
+  if (address.startsWith('::ffff:') && isIP(address.slice('::ffff:'.length)) === 4) {
+    return address.slice('::ffff:'.length);
+  }
+  return address;
+}
+
+function configuredRemoteAddresses(value) {
+  const addresses = value === undefined
+    ? [...LOOPBACK_REMOTE_ADDRESSES]
+    : Array.isArray(value) ? value : String(value).split(',');
+  const normalized = addresses.map((address) => normalizedRemoteAddress(address)).filter(Boolean);
+  if (normalized.length === 0 || normalized.some((address) => isIP(address) === 0)) {
+    throw new TypeError('GQA trusted internal addresses must contain valid IP addresses');
+  }
+  return Object.freeze([...new Set(normalized)]);
+}
+
+function configuredTrustedInternal(value) {
+  if (value === true) {
+    return Object.freeze({ mode: 'trusted-internal', remoteAddresses: configuredRemoteAddresses() });
+  }
+  if (value === false || value === undefined || value === null) return undefined;
+  if (typeof value !== 'object' || Array.isArray(value) || value.mode !== 'trusted-internal') {
+    throw new TypeError("GQA trusted internal authorization must use mode 'trusted-internal'");
+  }
+  return Object.freeze({
+    mode: 'trusted-internal',
+    remoteAddresses: configuredRemoteAddresses(value.remoteAddresses),
+  });
+}
+
+/**
+ * Read the only legacy authorization mode supported by the GQA attribution
+ * routes. It is intentionally disabled unless an operator explicitly opts in.
+ * The default allowlist is loopback; remote deployments must name the exact
+ * socket peer addresses and must keep the service behind their authenticated
+ * front door. X-Forwarded-For is never consulted.
+ */
+export function readGqaAttributionAuthConfig(env = process.env) {
+  const enabled = String(env?.[GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV] ?? '').trim().toLowerCase();
+  if (!enabled || ['0', 'false', 'no', 'off'].includes(enabled)) return undefined;
+  if (!['1', 'true', 'yes', 'on'].includes(enabled)) {
+    throw new TypeError(`${GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV} must be true or false`);
+  }
+  return Object.freeze({
+    trustedInternal: configuredTrustedInternal({
+      mode: 'trusted-internal',
+      remoteAddresses: env?.[GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES_ENV],
+    }),
+  });
+}
+
+function normalizedCaller(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const accountId = value.accountId ?? value.accountID ?? value.id;
+  if (typeof accountId !== 'string' || accountId.length === 0) return null;
+  return Object.freeze({ accountId, isAdmin: value.isAdmin === true });
+}
+
+function remoteAddress(request) {
+  return normalizedRemoteAddress(request?.socket?.remoteAddress ?? request?.connection?.remoteAddress);
+}
+
+function legacyCredentialsFromRequest(request) {
+  const headers = request?.headers || {};
+  const raw = headers['x-amz-credentials'] ?? headers['X-Amz-Credentials'];
+  if (raw === undefined) throw new Error("Missing 'x-amz-credentials' header");
+  const credentials = sourceObject(JSON.parse(raw), 'x-amz-credentials');
+  requiredField(credentials, 'id', 'x-amz-credentials');
+  return credentials;
+}
+
+/**
+ * Build the attribution identity boundary. `verifyCaller` is the production
+ * seam: it must cryptographically verify the request (or consume identity
+ * verified by a trusted front door) and return `{ accountId, isAdmin }`.
+ * It receives the transport request only; route bodies and identity headers
+ * are never used by the ownership checks. The legacy header is accepted only
+ * inside the explicit, socket-address-bound trusted-internal mode.
+ */
+export function createGqaAttributionAuthorizer({ verifyCaller, trustedInternal } = {}) {
+  if (verifyCaller !== undefined && typeof verifyCaller !== 'function') {
+    throw new TypeError('GQA attribution verifyCaller must be a function');
+  }
+  if (verifyCaller !== undefined && trustedInternal !== undefined && trustedInternal !== false) {
+    throw new TypeError('GQA attribution authorization must choose verifyCaller or trustedInternal');
+  }
+  const trusted = configuredTrustedInternal(trustedInternal);
+  if (verifyCaller) {
+    return async function verifyAttributionCaller(request) {
+      try {
+        return normalizedCaller(await verifyCaller(request));
+      } catch (error) {
+        throw new GqaAttributionHttpError(401, GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE, error);
+      }
+    };
+  }
+  if (trusted) {
+    return async function authorizeTrustedInternal(request) {
+      if (!trusted.remoteAddresses.includes(remoteAddress(request))) return null;
+      try {
+        return normalizedCaller(legacyCredentialsFromRequest(request));
+      } catch (error) {
+        throw new GqaAttributionHttpError(401, GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE, error);
+      }
+    };
+  }
+  return async function denyUnconfiguredAttributionCaller() {
+    throw new GqaAttributionHttpError(503, GQA_ATTRIBUTION_AUTHORIZATION_NOT_CONFIGURED_MESSAGE);
+  };
+}
+
+function sanitizeErrorText(value) {
+  let text;
+  try {
+    text = String(value || 'Unknown GQA attribution failure');
+  } catch {
+    text = 'Unknown GQA attribution failure';
+  }
+  return text
+    .replace(/((?:authorization|cookie|x-amz-credentials|api[_-]?key|secret|password|token)\s*[:=]\s*)[^\s,;]+/gi, '$1[REDACTED]')
+    .replace(/\b(Bearer|Basic)\s+[^\s,;]+/gi, '$1 [REDACTED]')
+    .slice(0, 512);
+}
+
+/** Return diagnostic detail safe for internal logs; never includes a stack. */
+export function safeGqaErrorDetail(error) {
+  return {
+    name: typeof error?.name === 'string' ? error.name : 'Error',
+    ...(typeof error?.code === 'string' ? { code: error.code } : {}),
+    message: sanitizeErrorText(error?.message || error),
+  };
+}
+
+function logGqaAttributionError(context, error) {
+  const fields = { error: safeGqaErrorDetail(error) };
+  if (error?.cause !== undefined) fields.cause = safeGqaErrorDetail(error.cause);
+  context?.log?.error?.('GQA attribution request failed', fields);
+}
+
+function sourceError(error) {
+  const publicMessage = error instanceof GqaAttributionHttpError
+    ? error.publicMessage
+    : GQA_INTERNAL_ERROR_MESSAGE;
+  return {
+    version: '5.2.15',
+    // The legacy source included a stack field here. Keep the version/message envelope
+    // but never place internal messages, credentials, or stack frames on wire.
+    message: publicMessage,
+  };
 }
 
 function accountKey(value) {
@@ -274,21 +448,6 @@ function sendSourceJson(context, value, status = 200) {
   return value;
 }
 
-function sourceError(error) {
-  return {
-    version: '5.2.15',
-    message: error?.message || String(error),
-    stacktrace: error?.stack,
-  };
-}
-
-function credentialsFromRequest(request) {
-  const headers = request?.headers || {};
-  const raw = headers['x-amz-credentials'] ?? headers['X-Amz-Credentials'];
-  if (raw === undefined) throw new Error("Missing 'x-amz-credentials' header");
-  return requiredField(JSON.parse(raw), 'id', 'x-amz-credentials');
-}
-
 function sourceRequestMapping(body) {
   return sourceObject(body, 'request JSON');
 }
@@ -350,26 +509,74 @@ function sourceParserError(context) {
   return sendSourceBadRequest(context);
 }
 
-/** Source `/retrieveAtt`, exposed only when account and storage are selected. */
-export function createGqaRetrieveAttributionRoute({ accountLookup, attribution } = {}) {
+function routeAuthorizer({ attributionAuth, verifyCaller, trustedInternal } = {}) {
+  if (attributionAuth !== undefined) {
+    if (typeof attributionAuth === 'function') return createGqaAttributionAuthorizer({ verifyCaller: attributionAuth });
+    if (attributionAuth?.mode === 'trusted-internal') {
+      return createGqaAttributionAuthorizer({ trustedInternal: attributionAuth });
+    }
+    return createGqaAttributionAuthorizer(attributionAuth);
+  }
+  return createGqaAttributionAuthorizer({ verifyCaller, trustedInternal });
+}
+
+async function requireAttributionCaller(authorize, context) {
+  try {
+    const caller = await authorize(context?.req);
+    if (!caller) throw new GqaAttributionHttpError(401, GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE);
+    return caller;
+  } catch (error) {
+    if (error instanceof GqaAttributionHttpError) throw error;
+    throw new GqaAttributionHttpError(401, GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE, error);
+  }
+}
+
+function callerLoopIds(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return [...new Set(values.filter((loopId) => typeof loopId === 'string' && loopId.length > 0))];
+}
+
+function attributionErrorStatus(error) {
+  return error instanceof GqaAttributionHttpError && Number.isInteger(error.statusCode)
+    ? error.statusCode
+    : 500;
+}
+
+/** Source `/retrieveAtt`, with caller-owned loop authorization. */
+export function createGqaRetrieveAttributionRoute({
+  accountLookup,
+  attribution,
+  attributionAuth,
+  verifyCaller,
+  trustedInternal,
+} = {}) {
   if (typeof accountLookup !== 'function') throw new TypeError('GQA retrieveAtt requires an account lookup');
   if (!attribution || typeof attribution.search !== 'function') throw new TypeError('GQA retrieveAtt requires attribution storage');
+  const authorize = routeAuthorizer({ attributionAuth, verifyCaller, trustedInternal });
   const route = async (context = {}) => {
-    // Flask rejects an empty application/json entity in request.json before
-    // the account lookup. Keep that route-local 400 without changing the
-    // common parser used by other services.
-    if (emptyJsonRequest(context.req)) return sendSourceBadRequest(context);
     try {
-      const userId = credentialsFromRequest(context.req);
-      const loopId = await accountLookup(userId);
-      if (!sourceTruthy(loopId)) throw new Error('No robot ID!');
+      // Authentication must precede both body-derived work and account lookup.
+      // The gateway's JWT is not forwarded to this HTTP service, so the default
+      // authorizer denies rather than treating x-amz-credentials as identity.
+      const caller = await requireAttributionCaller(authorize, context);
+      // Flask rejects an empty application/json entity in request.json before
+      // the account lookup. Keep that route-local 400 for authenticated calls.
+      if (emptyJsonRequest(context.req)) return sendSourceBadRequest(context);
+      const loopIds = callerLoopIds(await accountLookup(caller.accountId));
+      if (loopIds.length === 0) {
+        throw new GqaAttributionHttpError(403, GQA_ATTRIBUTION_ACCESS_DENIED_MESSAGE);
+      }
       // Source performs the account call before data.get(), so top-level
       // JSON values retain the account side effect before their 500.
       const body = sourceRequestMapping(sourceRequestBody(context));
-      const data = await attribution.search(loopId, body.Service, body.before, body.after);
+      const data = [];
+      for (const loopId of loopIds) {
+        data.push(...await attribution.search(loopId, body.Service, body.before, body.after));
+      }
       return sendSourceJson(context, { data });
     } catch (error) {
-      return sendSourceJson(context, sourceError(error), 500);
+      logGqaAttributionError(context, error);
+      return sendSourceJson(context, sourceError(error), attributionErrorStatus(error));
     }
   };
   // Flask accepts top-level JSON values and lets the route produce its own
@@ -381,18 +588,36 @@ export function createGqaRetrieveAttributionRoute({ accountLookup, attribution }
   return route;
 }
 
-/** Source `/wipeID`; storage is explicit but no account call is made. */
-export function createGqaWipeAttributionRoute({ attribution } = {}) {
+/** Source `/wipeID`, restricted to the target loop owner or an admin. */
+export function createGqaWipeAttributionRoute({
+  attribution,
+  accountLookup,
+  attributionAuth,
+  verifyCaller,
+  trustedInternal,
+} = {}) {
   if (!attribution || typeof attribution.wipe !== 'function') throw new TypeError('GQA wipeID requires attribution storage');
+  if (accountLookup !== undefined && typeof accountLookup !== 'function') {
+    throw new TypeError('GQA wipeID account lookup must be a function');
+  }
+  const authorize = routeAuthorizer({ attributionAuth, verifyCaller, trustedInternal });
   const route = async (context = {}) => {
-    if (emptyJsonRequest(context.req)) return sendSourceBadRequest(context);
     try {
+      const caller = await requireAttributionCaller(authorize, context);
+      if (emptyJsonRequest(context.req)) return sendSourceBadRequest(context);
       const body = sourceRequestMapping(sourceRequestBody(context));
       const targetId = requiredField(body, 'ID', 'wipeID request');
       if (!sourceTruthy(targetId)) return sendSourceJson(context, { message: 'No id provided.' });
+      if (!caller.isAdmin) {
+        const ownedLoopIds = accountLookup ? callerLoopIds(await accountLookup(caller.accountId)) : [];
+        if (!ownedLoopIds.includes(targetId)) {
+          throw new GqaAttributionHttpError(403, GQA_ATTRIBUTION_ACCESS_DENIED_MESSAGE);
+        }
+      }
       return sendSourceJson(context, { deleted_row: await attribution.wipe(targetId) });
     } catch (error) {
-      return sendSourceJson(context, sourceError(error), 500);
+      logGqaAttributionError(context, error);
+      return sendSourceJson(context, sourceError(error), attributionErrorStatus(error));
     }
   };
   route.jsonStrict = false;

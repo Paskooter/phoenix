@@ -15,6 +15,7 @@ import {
 import {
   createGqaAccountLookup,
   createGqaAttributionStore,
+  readGqaAttributionAuthConfig,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
 } from './gqaAccountAttribution.js';
@@ -106,6 +107,7 @@ export function createGqaWikipediaService({
   messageId,
   account,
   attribution,
+  attributionAuth,
   name = 'answer-wikipedia',
 } = {}) {
   const configuredRequestTimeout = configuredTimeout(timeoutMs);
@@ -151,11 +153,16 @@ export function createGqaWikipediaService({
     'POST /v1/main': route,
   };
   if (attributionStore) {
-    routes['POST /wipeID'] = createGqaWipeAttributionRoute({ attribution: attributionStore });
+    routes['POST /wipeID'] = createGqaWipeAttributionRoute({
+      attribution: attributionStore,
+      accountLookup,
+      attributionAuth,
+    });
     if (accountLookup) {
       routes['POST /retrieveAtt'] = createGqaRetrieveAttributionRoute({
         accountLookup,
         attribution: attributionStore,
+        attributionAuth,
       });
     }
   }
@@ -191,6 +198,9 @@ export function startGqaWikipediaService(port, options = {}) {
     messageId: options.messageId,
     account,
     attribution: options.attribution,
+    attributionAuth: Object.prototype.hasOwnProperty.call(options, 'attributionAuth')
+      ? options.attributionAuth
+      : readGqaAttributionAuthConfig(env),
   });
   return service.listen(port);
 }

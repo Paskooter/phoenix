@@ -5,9 +5,13 @@ import { createService } from '@phoenix/common';
 import {
   createGqaAccountLookup,
   createGqaAttributionStore,
+  createGqaAttributionAuthorizer,
   createGqaMemoryAttributionStore,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
+  readGqaAttributionAuthConfig,
+  GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV,
+  GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES_ENV,
   sourceJsonDumps,
 } from '../src/gqaAccountAttribution.js';
 import { createGqaAnswerSkill, createGqaHttpRoute } from '../src/gqaAnswerSkill.js';
@@ -15,9 +19,12 @@ import { redactProviderUrl } from '../src/gqaProviderUrl.js';
 import {
   createGqaMultiProviderProfile,
   createGqaMultiProviderService,
+  startGqaMultiProviderService,
 } from '../src/gqaMultiProviderService.js';
+import { createGqaWikipediaService } from '../src/gqaWikipediaService.js';
 
 const FIXED_NOW = 1700000000000;
+const TEST_ATTRIBUTION_AUTH = { verifyCaller: async () => ({ accountId: 'account-1' }) };
 
 function answerRequest(text = 'what is a fixture fact') {
   return {
@@ -267,6 +274,7 @@ test('Mongo attribution storage returns complete inserted records through retrie
       handler: createGqaAnswerSkill({ provider: async () => ({}) }),
       accountLookup: async (accountId) => (accountId === 'account-1' ? 'loop-1' : {}),
       attribution,
+      attributionAuth: TEST_ATTRIBUTION_AUTH,
     },
   });
   const server = await service.listen(0);
@@ -408,6 +416,7 @@ test('explicit profile exposes source attribution routes without changing the de
       handler,
       accountLookup,
       attribution,
+      attributionAuth: TEST_ATTRIBUTION_AUTH,
     },
   });
   const server = await service.listen(0);
@@ -445,27 +454,264 @@ test('explicit profile exposes source attribution routes without changing the de
   }
 });
 
-test('attribution route factories retain source error status for missing credentials and IDs', async () => {
+test('attribution route factories keep authenticated source status for missing IDs', async () => {
   const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
   const retrieve = createGqaRetrieveAttributionRoute({
     accountLookup: async () => 'loop-1',
     attribution,
+    attributionAuth: TEST_ATTRIBUTION_AUTH,
   });
-  const wipe = createGqaWipeAttributionRoute({ attribution });
+  const wipe = createGqaWipeAttributionRoute({
+    accountLookup: async () => 'loop-1',
+    attribution,
+    attributionAuth: TEST_ATTRIBUTION_AUTH,
+  });
   const sent = [];
   const response = {
     status(code) { sent.push(['status', code]); return this; },
     type(value) { sent.push(['type', value]); return this; },
     send(value) { sent.push(['send', value]); return this; },
   };
-  await retrieve({ body: {}, req: { headers: {} }, res: response });
+  await retrieve({ body: {}, req: { headers: { 'content-type': 'application/json', 'content-length': '2' } }, res: response });
   assert.equal(sent[0][0], 'status');
-  assert.equal(sent[0][1], 500);
+  assert.equal(sent[0][1], 200);
   sent.length = 0;
   await wipe({ body: {}, req: { headers: {} }, res: response });
   assert.equal(sent[0][0], 'status');
   assert.equal(sent[0][1], 500);
   assert.ok(createGqaHttpRoute({ handler: async () => ({}) }).jsonStrict === false);
+});
+
+test('attribution routes fail closed without a verified identity or trusted internal opt-in', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Bing', 'private answer', 'https://fixture.invalid/private', null, 'loop-1');
+  const routes = {
+    'POST /retrieveAtt': createGqaRetrieveAttributionRoute({
+      accountLookup: async () => 'loop-1',
+      attribution,
+    }),
+    'POST /wipeID': createGqaWipeAttributionRoute({ attribution }),
+  };
+  const server = await createService({ name: 'q01-attribution-auth-required', routes }).listen(0);
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const headers = {
+      'content-type': 'application/json',
+      'x-amz-credentials': JSON.stringify({ id: 'account-1', isAdmin: true }),
+    };
+    const retrieve = await fetch(`${base}/retrieveAtt`, {
+      method: 'POST', headers, body: JSON.stringify({ Service: 'Bing' }),
+    });
+    assert.equal(retrieve.status, 503);
+    assert.deepEqual(await retrieve.json(), {
+      version: '5.2.15',
+      message: 'Attribution authorization is not configured',
+    });
+
+    const wipe = await fetch(`${base}/wipeID`, {
+      method: 'POST', headers, body: JSON.stringify({ ID: 'loop-1' }),
+    });
+    assert.equal(wipe.status, 503);
+    assert.deepEqual(await wipe.json(), {
+      version: '5.2.15',
+      message: 'Attribution authorization is not configured',
+    });
+    assert.equal((await attribution.search('loop-1', 'Bing', FIXED_NOW + 1, FIXED_NOW - 1)).length, 1);
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test('trusted internal attribution opt-in is address-bound and ignores forwarded client addresses', async () => {
+  const configured = readGqaAttributionAuthConfig({
+    [GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV]: 'true',
+    [GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES_ENV]: '10.0.0.7, ::1',
+  });
+  assert.deepEqual(configured, {
+    trustedInternal: {
+      mode: 'trusted-internal',
+      remoteAddresses: ['10.0.0.7', '::1'],
+    },
+  });
+
+  const authorize = createGqaAttributionAuthorizer(configured);
+  const headers = {
+    'x-amz-credentials': JSON.stringify({ id: 'account-1', isAdmin: true }),
+    'x-forwarded-for': '10.0.0.7',
+  };
+  assert.deepEqual(await authorize({ headers, socket: { remoteAddress: '10.0.0.7' } }), {
+    accountId: 'account-1', isAdmin: true,
+  });
+  assert.equal(await authorize({ headers, socket: { remoteAddress: '203.0.113.10' } }), null);
+  assert.equal(await authorize({ headers, socket: { remoteAddress: '::ffff:203.0.113.10' } }), null);
+  assert.throws(
+    () => readGqaAttributionAuthConfig({ [GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV]: 'maybe' }),
+    /must be true or false/,
+  );
+});
+
+test('attribution authorization uses the verified caller, not forged credentials headers, and enforces owner/admin access', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Bing', 'account one', 'https://fixture.invalid/one', null, 'loop-1');
+  await attribution.insert('Bing', 'account two', 'https://fixture.invalid/two', null, 'loop-2');
+  const callers = {
+    'Bearer account-one': { accountId: 'account-1', isAdmin: false },
+    'Bearer account-two': { accountId: 'account-2', isAdmin: false },
+    'Bearer administrator': { accountId: 'account-admin', isAdmin: true },
+  };
+  const attributionAuth = {
+    verifyCaller: async (request) => callers[request.headers.authorization] || null,
+  };
+  const accountLookup = async (accountId) => ({
+    'account-1': 'loop-1',
+    'account-2': 'loop-2',
+  }[accountId] || {});
+  const routes = {
+    'POST /retrieveAtt': createGqaRetrieveAttributionRoute({ accountLookup, attribution, attributionAuth }),
+    'POST /wipeID': createGqaWipeAttributionRoute({ accountLookup, attribution, attributionAuth }),
+  };
+  const server = await createService({ name: 'q01-attribution-authz', routes }).listen(0);
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const post = (path, body, authorization, extraHeaders = {}) => fetch(`${base}${path}`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization,
+      // This must never become the identity source once verifyCaller is configured.
+      'x-amz-credentials': JSON.stringify({ id: 'account-1', isAdmin: true }),
+      ...extraHeaders,
+    },
+    body: JSON.stringify(body),
+  });
+  try {
+    const forgedRead = await post(
+      '/retrieveAtt',
+      { Service: 'Bing', ID: 'loop-1', loop_id: 'loop-1', accountID: 'account-1' },
+      'Bearer account-two',
+    );
+    assert.equal(forgedRead.status, 200);
+    assert.deepEqual((await forgedRead.json()).data.map((row) => row.loop_id), ['loop-2']);
+
+    const unauthenticated = await post('/retrieveAtt', { Service: 'Bing' }, undefined);
+    assert.equal(unauthenticated.status, 401);
+    assert.equal((await unauthenticated.json()).message, 'Attribution authorization required');
+
+    const crossAccountDelete = await post('/wipeID', { ID: 'loop-1' }, 'Bearer account-two');
+    assert.equal(crossAccountDelete.status, 403);
+    assert.equal((await crossAccountDelete.json()).message, 'Attribution access denied');
+    assert.equal((await attribution.search('loop-1', 'Bing', FIXED_NOW + 1, FIXED_NOW - 1)).length, 1);
+
+    const ownerDelete = await post('/wipeID', { ID: 'loop-1' }, 'Bearer account-one');
+    assert.equal(ownerDelete.status, 200);
+    assert.deepEqual(await ownerDelete.json(), { deleted_row: 1 });
+
+    const adminDelete = await post('/wipeID', { ID: 'loop-2' }, 'Bearer administrator');
+    assert.equal(adminDelete.status, 200);
+    assert.deepEqual(await adminDelete.json(), { deleted_row: 1 });
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test('GQA attribution and source HTTP errors disclose no stack and log only sanitized detail', async () => {
+  const sourceError = new Error('database password=fixture-secret');
+  sourceError.stack = 'Error: database password=fixture-secret\n    at PRIVATE_STACK_SENTINEL';
+  const logs = [];
+  const response = {
+    statusCode: null,
+    body: null,
+    status(code) { this.statusCode = code; return this; },
+    type() { return this; },
+    send(value) { this.body = value; return this; },
+  };
+  const attribution = {
+    async search() { throw sourceError; },
+    async wipe() { throw sourceError; },
+  };
+  const retrieve = createGqaRetrieveAttributionRoute({
+    accountLookup: async () => 'loop-1',
+    attribution,
+    attributionAuth: { verifyCaller: async () => ({ accountId: 'account-1' }) },
+  });
+  await retrieve({
+    req: { headers: { authorization: 'Bearer verified' } },
+    body: { Service: 'Bing' },
+    res: response,
+    log: { error: (message, fields) => logs.push([message, fields]) },
+  });
+  const retrieveBody = JSON.parse(response.body);
+  assert.equal(response.statusCode, 500);
+  assert.equal(retrieveBody.message, 'Internal server error');
+  assert.equal(Object.prototype.hasOwnProperty.call(retrieveBody, 'stacktrace'), false);
+  assert.doesNotMatch(response.body, /PRIVATE_STACK_SENTINEL|fixture-secret/);
+  assert.equal(logs[0][1].error.stack, undefined);
+  assert.doesNotMatch(JSON.stringify(logs), /PRIVATE_STACK_SENTINEL/);
+
+  const sourceResponse = { ...response, statusCode: null, body: null };
+  const sourceLogs = [];
+  const sourceRoute = createGqaHttpRoute({ handler: async () => { throw sourceError; } });
+  await sourceRoute({
+    req: { headers: { 'x-jibo-transid': 'gqa-stack-test' } },
+    body: answerRequest(),
+    res: sourceResponse,
+    log: { error: (message, fields) => sourceLogs.push([message, fields]) },
+  });
+  const sourceBody = JSON.parse(sourceResponse.body);
+  assert.equal(sourceResponse.statusCode, 500);
+  assert.equal(sourceBody.message, 'Internal server error');
+  assert.equal(Object.prototype.hasOwnProperty.call(sourceBody, 'stacktrace'), false);
+  assert.doesNotMatch(sourceResponse.body, /PRIVATE_STACK_SENTINEL|fixture-secret/);
+  assert.equal(sourceLogs[0][1].error.stack, undefined);
+});
+
+test('Wikipedia GQA profile applies the same attribution authorization boundary', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Wikipedia', 'profile answer', 'https://fixture.invalid/wiki', null, 'loop-1');
+  const service = createGqaWikipediaService({
+    endpoint: async () => ({ ok: true, async json() { return {}; } }),
+    account: async () => 'loop-1',
+    attribution,
+    attributionAuth: TEST_ATTRIBUTION_AUTH,
+  });
+  const server = await service.listen(0);
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/retrieveAtt`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ Service: 'Wikipedia' }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).data.length, 1);
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test('multi-provider launcher reads the explicit trusted-internal opt-in', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await attribution.insert('Bing', 'launcher answer', 'https://fixture.invalid/launcher', null, 'loop-1');
+  const server = await startGqaMultiProviderService(0, {
+    env: { [GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV]: 'true' },
+    bing: { endpoint: 'https://fixture.invalid/bing' },
+    wikipedia: { endpoint: 'https://fixture.invalid/wiki' },
+    wolfram: { endpoint: 'https://fixture.invalid/wolfram' },
+    account: async () => 'loop-1',
+    attribution,
+  });
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/retrieveAtt`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-amz-credentials': JSON.stringify({ id: 'account-1' }),
+      },
+      body: JSON.stringify({ Service: 'Bing' }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).data.length, 1);
+  } finally {
+    await closeServer(server);
+  }
 });
 
 test('attribution HTTP routes preserve source parser boundaries and retrieve ordering', async () => {
@@ -492,8 +738,13 @@ test('attribution HTTP routes preserve source parser boundaries and retrieve ord
         return 'loop-1';
       },
       attribution: trackedAttribution,
+      attributionAuth: TEST_ATTRIBUTION_AUTH,
     }),
-    'POST /wipeID': createGqaWipeAttributionRoute({ attribution: trackedAttribution }),
+    'POST /wipeID': createGqaWipeAttributionRoute({
+      accountLookup: async () => 'loop-1',
+      attribution: trackedAttribution,
+      attributionAuth: TEST_ATTRIBUTION_AUTH,
+    }),
   };
   const server = await createService({ name: 'q01-attribution-boundary-test', routes }).listen(0);
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -556,8 +807,13 @@ test('attribution media selection preserves accepted vendor JSON and ignored AWS
   const routes = {
     'POST /retrieveAtt': createGqaRetrieveAttributionRoute({
       accountLookup: async () => { calls += 1; return 'loop-1'; }, attribution,
+      attributionAuth: TEST_ATTRIBUTION_AUTH,
     }),
-    'POST /wipeID': createGqaWipeAttributionRoute({ attribution }),
+    'POST /wipeID': createGqaWipeAttributionRoute({
+      accountLookup: async () => 'loop-1',
+      attribution,
+      attributionAuth: TEST_ATTRIBUTION_AUTH,
+    }),
   };
   const server = await createService({ name: 'q01-media', routes }).listen(0);
   const base = `http://127.0.0.1:${server.address().port}`;

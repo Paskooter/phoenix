@@ -126,6 +126,9 @@ export {
   createGqaMemoryAttributionStore,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
+  createGqaAttributionAuthorizer,
+  readGqaAttributionAuthConfig,
+  safeGqaErrorDetail,
   sourceJsonDumps,
   sourceTruthy,
   GQA_ACCOUNT_SOURCE_REVISION,
@@ -134,6 +137,12 @@ export {
   GQA_ATTRIBUTE_SOURCE_MODULE,
   GQA_ACCOUNT_SERVICE_ENV,
   GQA_ATTRIBUTE_INDEX,
+  GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV,
+  GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES_ENV,
+  GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE,
+  GQA_ATTRIBUTION_AUTHORIZATION_NOT_CONFIGURED_MESSAGE,
+  GQA_ATTRIBUTION_ACCESS_DENIED_MESSAGE,
+  GQA_INTERNAL_ERROR_MESSAGE,
 } from './gqaAccountAttribution.js';
 
 // Compatibility descriptors retain the historical named handlers. A caller
