@@ -14,7 +14,8 @@
 //   packages/hub/src/utils/MessageValidator.ts:10-36
 //
 // Both accept and reject paths are covered: valid tokens/contexts must succeed and every
-// malformed/mismatched input must fail with the exact source error name and message.
+// malformed/mismatched input must fail with the exact source error name and message, except for
+// the explicitly recorded disableAuth identity divergence below.
 //
 // The replay logic mirrors the review probes (packages/gateway/tools/h10-*-probe.*) so the
 // comparison stays apples-to-apples; it is re-implemented here rather than imported because
@@ -39,6 +40,47 @@ const AUTH_FIXTURE = readJson(new URL('h10-root/generated-fixtures.json', REVIEW
 const AUTH_GOLDEN = JSON.parse(gunzipSync(fs.readFileSync(new URL('h10-root/source.json.gz', REVIEW))).toString('utf8'));
 const IDENTITY_FIXTURE = readJson(new URL('h10-identity-root/fixtures.json', REVIEW));
 const IDENTITY_GOLDEN = readJson(new URL('h10-identity-root/source.json', REVIEW));
+
+// One intentional divergence is accepted for the nullish-auth CONTEXT boundary. The
+// pinned source dereferences socket.auth.id and throws when disableAuth leaves auth unset;
+// Phoenix keeps that mode usable without credentials by assigning stable anonymous IDs.
+// Keep the source errors below explicit: the source golden remains the oracle, and this
+// overlay is the narrowly-scoped candidate expectation rather than a regenerated golden.
+const DISABLE_AUTH_IDENTITY_DIVERGENCE = 'disable-auth-anonymous-identity';
+const ANONYMOUS_CONTEXT_OUTCOME = {
+  ok: true,
+  message: {
+    type: 'CONTEXT',
+    data: {
+      general: {
+        accountID: 'anonymous-account',
+        robotID: 'anonymous-robot',
+        lang: 'en',
+        release: '1.8.0',
+        remoteAddress: IDENTITY_FIXTURE.remoteAddress,
+      },
+      runtime: { loop: {} },
+    },
+  },
+};
+const INTENTIONAL_IDENTITY_DIVERGENCES = Object.freeze({
+  'disabled-auth-null': {
+    divergence: DISABLE_AUTH_IDENTITY_DIVERGENCE,
+    sourceError: { name: 'TypeError', message: "Cannot read property 'id' of null", constructor: 'TypeError' },
+    candidate: ANONYMOUS_CONTEXT_OUTCOME,
+  },
+  'disabled-auth-undefined': {
+    divergence: DISABLE_AUTH_IDENTITY_DIVERGENCE,
+    sourceError: { name: 'TypeError', message: "Cannot read property 'id' of undefined", constructor: 'TypeError' },
+    candidate: ANONYMOUS_CONTEXT_OUTCOME,
+  },
+  // The generated root matrix reaches the same null-auth boundary under a second ID.
+  'root-auth-0': {
+    divergence: DISABLE_AUTH_IDENTITY_DIVERGENCE,
+    sourceError: { name: 'TypeError', message: "Cannot read property 'id' of null", constructor: 'TypeError' },
+    candidate: ANONYMOUS_CONTEXT_OUTCOME,
+  },
+});
 
 // --- token construction (identical to the probes) ---------------------------
 
@@ -223,12 +265,41 @@ test('auth differential: 1965 pinned-source outcomes replay exactly', async () =
   assert.equal(Object.keys(direct).length + Object.keys(auth).length + Object.keys(upgrades).length, 1965, 'total auth cases');
 });
 
-test('identity differential: 187 pinned-source CONTEXT outcomes replay exactly', () => {
+test('identity differential: 187 pinned-source CONTEXT outcomes replay with one recorded disableAuth divergence', () => {
   const actual = identityResults();
-  const expected = IDENTITY_GOLDEN.cases;
+  const sourceExpected = IDENTITY_GOLDEN.cases;
+  const expected = JSON.parse(JSON.stringify(sourceExpected));
+
+  // Do not edit source.json or drop these cases. Assert the source-side observation before
+  // applying the candidate-only overlay, so a source refresh cannot silently widen the gap.
+  for (const [id, divergence] of Object.entries(INTENTIONAL_IDENTITY_DIVERGENCES)) {
+    assert.ok(Object.hasOwn(sourceExpected, id), `${divergence.divergence}/${id}: source case exists`);
+    assert.deepEqual(
+      sourceExpected[id].error,
+      divergence.sourceError,
+      `${divergence.divergence}/${id}: pinned source outcome remains recorded`,
+    );
+    expected[id] = JSON.parse(JSON.stringify(divergence.candidate));
+  }
+
   assert.deepEqual(Object.keys(actual).sort(), Object.keys(expected).sort(), 'case id set');
   for (const id of Object.keys(expected)) {
-    assert.deepEqual(actual[id], expected[id], `case/${id}`);
+    const divergence = INTENTIONAL_IDENTITY_DIVERGENCES[id];
+    const label = divergence ? divergence.divergence : 'source';
+    assert.deepEqual(actual[id], expected[id], `${label}/case/${id}`);
   }
   assert.equal(Object.keys(actual).length, 187, 'total identity cases');
+});
+
+test('authenticated CONTEXT identity mapping remains load-bearing outside disableAuth', () => {
+  const actual = identityResults();
+  assert.deepEqual(actual.defaults.message.data.general, {
+    accountID: IDENTITY_FIXTURE.auth.id,
+    robotID: IDENTITY_FIXTURE.auth.friendlyId,
+    lang: 'en',
+    release: '1.8.0',
+    remoteAddress: IDENTITY_FIXTURE.remoteAddress,
+  });
+  assert.deepEqual(actual['conflicting-account'], IDENTITY_GOLDEN.cases['conflicting-account']);
+  assert.deepEqual(actual['conflicting-robot'], IDENTITY_GOLDEN.cases['conflicting-robot']);
 });
