@@ -120,7 +120,7 @@
   ],
   "result": "match",
   "originalCaptureTools": {
-    "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "scripts/parity-production/driver.cjs": "516cab8bdb73c86acb9becba0d2cc93c7fe4e2a6139e4906b1bfa01e5d902ac6",
     "scripts/parity-production/capture-writer.cjs": "84cfe7c54e76e3381c495d482e336f090af5db9a74ebc9be0887ddaebf830629",
     "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
     "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
@@ -153,7 +153,7 @@
     "image-original.log": "421b84ff9405ca365d3d53eeb360b1f7d18cad842a05378bbdc1af9b00be5d3f",
     "compare.log": "c106f569fea7fd2ba7cb167081b86f3fe64a92db0570e7d485ba6a79f14d8462",
     "phoenix-source.json": "c788f3cb5d69c7aa873c893cd5b36155cf233998c1b7c14d6aaec5c0ef47f8cc",
-    "reference.json.gz": "b34f79f37d1f1fb54c5883c207b8dba9ddd2dfa52f622d57fd753d8c7d4816ac",
-    "candidate.json.gz": "e9723fc02f8fc9da96a328e398dc322a8d8caef8a5c6e2878932a5dd95c55025"
+    "reference.json.gz": "a6dfe7fea63feaa8f7f87477a81553b12cf699b303a194b9c15c404bc78b32d4",
+    "candidate.json.gz": "89970e2c98bca8cf716c64935770e7ffee3270f04ac88e41329a994139c5f5aa"
   }
 }

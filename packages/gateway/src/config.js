@@ -59,7 +59,9 @@ export async function loadConfig(env = process.env, registryOptions = {}) {
   const indexFile = env.ETCO_hub_skillsConfig || (skillsBase ? 'skills-phoenix.json' : envVars.ETCO_hub_skillsConfig);
   const skills = await loadRegistry({ ...registryOptions, skillsBase, env, indexFile });
   return {
-    hubTokenSecret: env.ETCO_server_hubTokenSecret || '',
+    // HUB_TOKEN_SECRET is the documented deployment name; the explicit Phoenix
+    // ETCO name remains authoritative when both are supplied.
+    hubTokenSecret: env.ETCO_server_hubTokenSecret || env.HUB_TOKEN_SECRET || '',
     disableAuth: envVars.ETCO_hub_disableAuth === 'true',
     // Optional per-robot validation: after the JWT signature checks out, confirm the token's
     // accessKeyId claim still maps to a live account (account service GET /api/verify). Unset

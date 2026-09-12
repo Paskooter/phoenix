@@ -77,7 +77,7 @@
   ],
   "result": "mismatch",
   "originalCaptureTools": {
-    "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "scripts/parity-production/driver.cjs": "516cab8bdb73c86acb9becba0d2cc93c7fe4e2a6139e4906b1bfa01e5d902ac6",
     "scripts/parity-production/capture-writer.cjs": "9074c4a7302832b41892978d6c276a9bee6d7fa7a2f3e6f2db5944bb382e133d",
     "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
     "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
@@ -85,16 +85,16 @@
   "goldenSource": {
     "schemaVersion": 2,
     "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
-    "driverSha256": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "driverSha256": "516cab8bdb73c86acb9becba0d2cc93c7fe4e2a6139e4906b1bfa01e5d902ac6",
     "originalCaptureTools": {
-      "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+      "scripts/parity-production/driver.cjs": "516cab8bdb73c86acb9becba0d2cc93c7fe4e2a6139e4906b1bfa01e5d902ac6",
       "scripts/parity-production/capture-writer.cjs": "9074c4a7302832b41892978d6c276a9bee6d7fa7a2f3e6f2db5944bb382e133d",
       "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
       "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
     },
     "files": {
       "suite.json": "7adb8a8f48b0806cebc31ec420f289bca10703c15195aeaf5fd1ed60deddd327",
-      "reference.json.gz": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53"
+      "reference.json.gz": "da9a9d6360f3310a020df3a7374358127bcb527c6a60e702e2e282b15cb72cae"
     },
     "referenceIntegrity": {
       "originalGitFiles": 6144,
@@ -148,7 +148,7 @@
     "candidate.log": "68ebc3a4092e605ac33809ce7aecf0e23171d36bfc0eca10b4fea78e8eada68f",
     "compare.log": "90f69eed8bf15597f177e1ec0e437ab284c65516321f02132ae021a5cac50b1a",
     "phoenix-source.json": "2b5724c72991578fffdcb377f1585ead21e554512e616f44e26f899950f07584",
-    "reference.json.gz": "b1cd1f9895932d1424633fa8c9a2e1bf52eb1d340214b0a71e23104ed192bd53",
-    "candidate.json.gz": "f4abb5db644606ee8171dd8aada87e7428b9eb9f9f15e989afa657ada5cd8a48"
+    "reference.json.gz": "da9a9d6360f3310a020df3a7374358127bcb527c6a60e702e2e282b15cb72cae",
+    "candidate.json.gz": "98eaec85b1d41b3065de1dd31b91bb952683e53762b5c16986b0721a0b9110ba"
   }
 }

@@ -1,16 +1,16 @@
 {
   "schemaVersion": 2,
   "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
-  "driverSha256": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+  "driverSha256": "516cab8bdb73c86acb9becba0d2cc93c7fe4e2a6139e4906b1bfa01e5d902ac6",
   "originalCaptureTools": {
-    "scripts/parity-production/driver.cjs": "5371a42e9c0644cf75ad5e83225f62dcf18a97baf3ebd876352d6c7d5fb689f4",
+    "scripts/parity-production/driver.cjs": "516cab8bdb73c86acb9becba0d2cc93c7fe4e2a6139e4906b1bfa01e5d902ac6",
     "scripts/parity-production/capture-writer.cjs": "9074c4a7302832b41892978d6c276a9bee6d7fa7a2f3e6f2db5944bb382e133d",
     "scripts/parity-production/original.cjs": "df1b290d26d1b8a614d904acf84f2a895ea0ae310995328f59a18745f8500194",
     "scripts/parity-production/fixtures.mjs": "07d0cf34abc9d752d99d25dae7fabc185312317dd173c7174dbe89e71d8e80cf"
   },
   "files": {
     "suite.json": "b5e8a7bc01a15de10232b783f2b3e1742e51b409c0c0f879c7c67eda2c067f7a",
-    "reference.json.gz": "82bc52972905d252366b2acfcd264b35ada3d711fc746ee5f842f8c81ae17e61"
+    "reference.json.gz": "4a7aecee90e6a4211810eaf258440b3af46de86f02b56d65d1d572b89a0217ae"
   },
   "referenceIntegrity": {
     "originalGitFiles": 6144,

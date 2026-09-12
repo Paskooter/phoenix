@@ -1261,8 +1261,8 @@
     "candidate.log": "68ebc3a4092e605ac33809ce7aecf0e23171d36bfc0eca10b4fea78e8eada68f",
     "compare.log": "90f69eed8bf15597f177e1ec0e437ab284c65516321f02132ae021a5cac50b1a",
     "phoenix-source.json": "2b5724c72991578fffdcb377f1585ead21e554512e616f44e26f899950f07584",
-    "run.json": "dcd3b54a95d250281b5365ca295b716827fd3f5ba06226dbb838e0a4354cb739",
-    "candidate.json.gz": "f4abb5db644606ee8171dd8aada87e7428b9eb9f9f15e989afa657ada5cd8a48"
+    "run.json": "32b5b99349003c8febd5a3b32182cb0c8b20ade7dc2766cf63a52dfb72081ed0",
+    "candidate.json.gz": "98eaec85b1d41b3065de1dd31b91bb952683e53762b5c16986b0721a0b9110ba"
   },
   "limits": [
     "The complete product gate FAILS; matching selected dimensions and a valid capture are not complete parity.",

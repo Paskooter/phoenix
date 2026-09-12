@@ -97,13 +97,15 @@ async function run(adapter, suite, out) {
   let current, activePeers = 0, subject;
   const peer = http.createServer((req, res) => {
     const start = process.hrtime(); activePeers++;
-    const owner = owners.get(req.headers['x-jibo-transid']) || current;
+    const traceID = req.headers['x-jibo-transid'];
+    const hasTraceID = traceID !== undefined;
+    const owner = hasTraceID ? owners.get(traceID) : current;
     const chunks = [];
     req.on('data', b => chunks.push(b));
     req.on('end', () => {
       const raw = Buffer.concat(chunks).toString('utf8'), url = new URL(req.url, 'http://fixture.invalid');
       const effect = { method: req.method, path: req.url, headers: req.headers, rawBody: raw, body: decode(raw),
-        attribution: owners.has(req.headers['x-jibo-transid']) ? 'trace-header' : 'active-case' };
+        attribution: owner ? (hasTraceID ? 'trace-header' : 'active-case') : 'late-effect' };
       (owner ? owner.effects : report.lateEffects).push(effect);
       let body, status = 200;
       const providers = suite.providers;
@@ -168,6 +170,9 @@ async function run(adapter, suite, out) {
       } catch (error) { current.failure = serializeError(error); }
       current.durationMs = elapsed(start);
       if (report.cases.length % 100 === 0) console.log(JSON.stringify({ progress: report.cases.length, total: suite.cases.length }));
+      // Completed trace IDs must not remain eligible for attribution. An old header is
+      // evidence of a late effect, even while a later case is active.
+      owners.delete(definition.id);
       current = null;
     }
     report.captureComplete = true;

@@ -39,6 +39,14 @@ test('production goldens retain reviewed source hashes and agree across two orig
   assert.deepEqual(result.differences, []);
 });
 
+test('production validation rejects late effects even when they carry a completed case ID', () => {
+  const candidate = structuredClone(control);
+  candidate.lateEffects.push({ headers: { 'x-jibo-transid': candidate.cases[0].id } });
+  const result = run(candidate);
+  assert.equal(result.pass, false);
+  assert.ok(result.invariants.some((invariant) => invariant.side === 'candidate' && invariant.path === '/lateEffects'));
+});
+
 test('complete report corpus control retains its uncovered external action and cannot become a passing gate', () => {
   const path = join(root, 'docs/parity/evidence/2026-09-05/production/stream-writer-report-control');
   const fixture = JSON.parse(readFileSync(join(path, 'suite.json'), 'utf8'));
