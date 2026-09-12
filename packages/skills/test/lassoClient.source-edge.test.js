@@ -101,7 +101,6 @@ test('LassoClient keeps source method boundaries for missing request/location da
     [(data) => { delete data.log; }, "Cannot read property 'createChild' of undefined"],
     [(data) => { delete data.runtime.location; }, "Cannot read property 'lat' of undefined"],
     [(data) => { data.runtime.location = null; }, "Cannot read property 'lat' of null"],
-    [(data) => { data.runtime.location.lat = '42.313352'; }, 'data.runtime.location.lat.toFixed is not a function'],
   ];
   for (const [mutate, message] of cases) {
     const data = makeData();
@@ -111,6 +110,79 @@ test('LassoClient keeps source method boundaries for missing request/location da
       assert.equal(error.message, message);
       return true;
     });
+  }
+});
+
+test('LassoClient returns controlled errors for invalid weather coordinates', async () => {
+  for (const [field, value] of [['lat', '42.313352'], ['lat', Number.NaN], ['lng', Number.POSITIVE_INFINITY]]) {
+    const data = makeData();
+    data.runtime.location[field] = value;
+    await assert.rejects(LassoClient.fetchDarkSky(data), (error) => {
+      assert.equal(error.name, 'RangeError');
+      assert.match(error.message, new RegExp(`Invalid ${field === 'lat' ? 'latitude' : 'longitude'}`));
+      return true;
+    });
+  }
+});
+
+test('LassoClient returns controlled errors for invalid commute coordinates', async () => {
+  const prefs = {
+    origin: { lat: 42, lng: -71 },
+    destination: { lat: 43, lng: -72 },
+    mode: 'driving',
+  };
+  for (const [point, field, value] of [
+    ['origin', 'lat', '42'],
+    ['origin', 'lng', Number.NaN],
+    ['destination', 'lat', Number.POSITIVE_INFINITY],
+  ]) {
+    const invalid = structuredClone(prefs);
+    invalid[point][field] = value;
+    await assert.rejects(LassoClient.fetchGoogleMaps(makeData(), invalid), (error) => {
+      assert.equal(error.name, 'RangeError');
+      assert.match(error.message, /Invalid (latitude|longitude)/);
+      return true;
+    });
+  }
+});
+
+test('LassoClient strips identity headers on cross-origin redirects', async () => {
+  const received = [];
+  const destination = http.createServer((request, response) => {
+    received.push(request.headers);
+    response.end(JSON.stringify({ relayData: { ok: true } }));
+  });
+  await new Promise((resolve) => destination.listen(0, '127.0.0.1', resolve));
+  const destinationUrl = `http://127.0.0.1:${destination.address().port}/final`;
+  const source = http.createServer((request, response) => {
+    response.writeHead(302, { Location: destinationUrl });
+    response.end();
+  });
+  await new Promise((resolve) => source.listen(0, '127.0.0.1', resolve));
+  const previous = process.env.NET_lasso;
+  process.env.NET_lasso = `127.0.0.1:${source.address().port}`;
+  delete process.env.NET_data;
+  clearReportEnvCache();
+  const data = makeData();
+  data.req.jibo.toHeader = () => ({
+    'x-jibo-transid': 'identity-transid',
+    authorization: 'Bearer identity-token',
+    cookie: 'identity-cookie',
+    accept: 'application/json',
+  });
+  try {
+    assert.deepEqual(await LassoClient.fetchDarkSky(data), { ok: true });
+    assert.equal(received.length, 1);
+    assert.equal(received[0]['x-jibo-transid'], undefined);
+    assert.equal(received[0].authorization, undefined);
+    assert.equal(received[0].cookie, undefined);
+    assert.equal(received[0].accept, 'application/json');
+  } finally {
+    await new Promise((resolve) => source.close(resolve));
+    await new Promise((resolve) => destination.close(resolve));
+    if (previous === undefined) delete process.env.NET_lasso;
+    else process.env.NET_lasso = previous;
+    clearReportEnvCache();
   }
 });
 

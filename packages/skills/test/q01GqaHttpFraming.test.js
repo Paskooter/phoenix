@@ -96,6 +96,47 @@ test('Q-01 GQA source route accepts JSON and vendor +json and returns source HTM
   assert.equal(calls, 2);
 });
 
+test('Q-01 GQA source route returns controlled errors for invalid coordinate strings', async () => {
+  let calls = 0;
+  const service = createService({
+    name: 'q01-gqa-coordinate-boundary',
+    routes: {
+      'POST /v1/answer/main': createGqaHttpRoute({
+        handler: async () => { calls += 1; return { type: 'SKILL_ACTION' }; },
+      }),
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const body = sourceRequest();
+    body.data.runtime.location.lat = 'not-a-coordinate';
+    const response = await request(server, JSON.stringify(body), 'application/json', { 'x-jibo-transid': 'coordinate-trans' });
+    assert.equal(response.status, 500);
+    assert.match((await response.text()), /Invalid latitude coordinate/);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+  assert.equal(calls, 0);
+});
+
+test('Q-01 GQA source route rejects nonfinite coordinates as controlled 500 errors for direct callers', async () => {
+  let calls = 0;
+  const route = createGqaHttpRoute({ handler: async () => { calls += 1; return {}; } });
+  for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    const body = sourceRequest();
+    body.data.runtime.location.lat = value;
+    await assert.rejects(
+      route({ body, req: { headers: { 'x-jibo-transid': 'nonfinite-trans' } } }),
+      (error) => {
+        assert.equal(error.statusCode, 500);
+        assert.match(error.message, /Invalid latitude coordinate/);
+        return true;
+      },
+    );
+  }
+  assert.equal(calls, 0);
+});
+
 test('Q-01 GQA source parser returns Flask 400 HTML for malformed and empty JSON', async () => {
   let calls = 0;
   const route = createGqaHttpRoute({

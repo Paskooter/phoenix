@@ -55,12 +55,16 @@ const LATLON_STR = /^-?\d+\.?\d*$/;
  * @returns {{lat: number, lon: number}} the shape the original stores on LatLon
  */
 export function makeLatLon(lat, lon) {
-  if (!LATLON_STR.test(lat)) throw new RangeError(`Invalid latitude ${lat}`);
-  if (!LATLON_STR.test(lon)) throw new RangeError(`Invalid longitude ${lon}`);
+  if (!((typeof lat === 'number' && Number.isFinite(lat)) || (typeof lat === 'string' && LATLON_STR.test(lat)))) {
+    throw new RangeError(`Invalid latitude ${lat}`);
+  }
+  if (!((typeof lon === 'number' && Number.isFinite(lon)) || (typeof lon === 'string' && LATLON_STR.test(lon)))) {
+    throw new RangeError(`Invalid longitude ${lon}`);
+  }
   const parsedLat = parseFloat(lat);
   const parsedLon = parseFloat(lon);
-  if (parsedLat < -90 || parsedLat > 90) throw new RangeError(`Invalid latitude ${parsedLat}`);
-  if (parsedLon < -180 || parsedLon > 180) throw new RangeError(`Invalid longitude ${parsedLon}`);
+  if (!Number.isFinite(parsedLat) || parsedLat < -90 || parsedLat > 90) throw new RangeError(`Invalid latitude ${parsedLat}`);
+  if (!Number.isFinite(parsedLon) || parsedLon < -180 || parsedLon > 180) throw new RangeError(`Invalid longitude ${parsedLon}`);
   return { lat: parsedLat, lon: parsedLon };
 }
 

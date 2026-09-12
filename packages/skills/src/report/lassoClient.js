@@ -33,6 +33,21 @@ function requestHeaders(data) {
   return toHeader.call(jibo);
 }
 
+const CROSS_ORIGIN_IDENTITY_HEADER = /^(?:authorization|proxy-authorization|cookie(?:2)?|set-cookie|x-amz-.*|x-client-.*|x-forwarded-.*|x-jibo-.*|x-real-ip|traceparent|tracestate)$/i;
+
+function headersForRedirect(sourceHeaders, sourceURL, destinationURL) {
+  if (sourceHeaders === undefined || sourceURL.origin === destinationURL.origin) return sourceHeaders;
+  return Object.fromEntries(Object.entries(sourceHeaders)
+    .filter(([name]) => !CROSS_ORIGIN_IDENTITY_HEADER.test(name) && name.toLowerCase() !== 'host'));
+}
+
+function assertCoordinate(value, label, minimum, maximum) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new RangeError(`Invalid ${label} ${value}`);
+  }
+  return value;
+}
+
 // BaseService supplies a Phoenix logger object without the source logger's
 // createChild method. Keep that deployment adapter usable while retaining the
 // source TypeError when the log itself is absent or a primitive.
@@ -128,7 +143,8 @@ function requestLasso(pathname, params, data, method = 'GET', redirectCount = 0,
   const target = new URL(url);
   const transport = target.protocol === 'https:' ? https : http;
   // Axios evaluates the source Jibo headers once while creating the request.
-  // follow-redirects reuses that snapshot; only Host follows the destination.
+  // Same-origin redirects reuse that snapshot; a cross-origin redirect gets only
+  // non-identity headers and always receives the destination Host below.
   const sourceHeaders = headerSnapshot === NO_HEADER_SNAPSHOT
     ? (() => {
       const returnedHeaders = requestHeaders(data);
@@ -178,8 +194,10 @@ function requestLasso(pathname, params, data, method = 'GET', redirectCount = 0,
           // uppercase names, so source HEAD requests become GET on every
           // redirect except 307 (GET remains GET either way).
           const nextMethod = response.statusCode === 307 ? method : 'GET';
+          const nextURL = new URL(location, target);
+          const nextHeaders = headersForRedirect(sourceHeaders, target, nextURL);
           settled = true;
-          requestLasso('', null, data, nextMethod, redirectCount + 1, new URL(location, target).toString(), sourceHeaders).then(resolve, reject);
+          requestLasso('', null, data, nextMethod, redirectCount + 1, nextURL.toString(), nextHeaders).then(resolve, reject);
           return;
         }
 
@@ -223,10 +241,13 @@ export class LassoClient {
   /** GET /v1/dark_sky (HEAD when prefetch — fire-and-forget cache warm). */
   static async fetchDarkSky(data, utc = null, prefetch = false) {
     lassoLog(data);
-    requireLegacyPropertyReceiver(data.runtime.location, 'lat');
+    const location = data.runtime.location;
+    requireLegacyPropertyReceiver(location, 'lat');
+    const latitude = assertCoordinate(location.lat, 'latitude', -90, 90);
+    const longitude = assertCoordinate(location.lng, 'longitude', -180, 180);
     const params = {
-      lat: data.runtime.location.lat.toFixed(4),
-      lon: data.runtime.location.lng.toFixed(4),
+      lat: latitude.toFixed(4),
+      lon: longitude.toFixed(4),
       secondsSinceEpoch: utc ? Math.round(msToSeconds(utc)) : null,
     };
     if (prefetch) {
@@ -240,9 +261,13 @@ export class LassoClient {
   /** GET /v1/google_maps for the commute. */
   static async fetchGoogleMaps(data, commutePrefs) {
     lassoLog(data);
+    const originLatitude = assertCoordinate(commutePrefs.origin.lat, 'latitude', -90, 90);
+    const originLongitude = assertCoordinate(commutePrefs.origin.lng, 'longitude', -180, 180);
+    const destinationLatitude = assertCoordinate(commutePrefs.destination.lat, 'latitude', -90, 90);
+    const destinationLongitude = assertCoordinate(commutePrefs.destination.lng, 'longitude', -180, 180);
     const params = {
-      origin: { lat: commutePrefs.origin.lat, lon: commutePrefs.origin.lng },
-      destination: { lat: commutePrefs.destination.lat, lon: commutePrefs.destination.lng },
+      origin: { lat: originLatitude, lon: originLongitude },
+      destination: { lat: destinationLatitude, lon: destinationLongitude },
       mode: commutePrefs.mode,
     };
     const res = await requestLasso('/v1/google_maps', params, data);

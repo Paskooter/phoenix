@@ -38,6 +38,18 @@ test('S-13 source news parser filters incomplete images and removes the feed hea
   assert.deepEqual(parsed.science[0].image, image('valid'));
 });
 
+test('S-13 news parser keeps the first story when an incomplete header was filtered', () => {
+  const parsed = newsParse([{
+    category: { name: 'science' },
+    data: { feed: { entry: [
+      {},
+      rawEntry('First real story', image('first')),
+      rawEntry('Second real story', image('second')),
+    ] } },
+  }]);
+  assert.deepEqual(parsed.science.map((item) => item.headline), ['First real story', 'Second real story']);
+});
+
 test('S-13 source news view rejects the whole map when one headline is incomplete', async () => {
   await assert.rejects(() => newsViews([
     { category: 'science', image: image('first') },

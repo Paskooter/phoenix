@@ -94,6 +94,14 @@ test('assertValid throws with readable errors', () => {
   assert.throws(() => assertValid(schemas.context, { type: 'CONTEXT', data: {} }, 'CONTEXT'), /Invalid CONTEXT/);
 });
 
+test('number contracts reject nonfinite values at the boundary', () => {
+  for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    const result = validate({ type: 'number' }, value);
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.some((error) => error.includes('finite')));
+  }
+});
+
 test('timeouts match the reference state machine', () => {
   assert.equal(Timeouts.transaction, 60000);
   assert.equal(Timeouts.parser, 10000);

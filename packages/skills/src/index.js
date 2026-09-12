@@ -246,6 +246,7 @@ export function start(port = defaultPort(), {
       skillId: selected.id,
       handler: selected.handler,
       route: selected.route,
+      validateContract: true,
     }).listen(port);
   }
   const defaultGqa = selectedDefaultProfile
@@ -258,6 +259,7 @@ export function start(port = defaultPort(), {
       answerRoute: defaultGqa?.route,
     }),
     defaultId: 'answer-skill',
+    validateContract: true,
   }).listen(port);
 }
 

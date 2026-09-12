@@ -14,6 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { newJcpId } from './jcpId.js';
 import { gqaBannedWordPresent } from './gqaBannedWords.js';
+import { validateCoordinate } from './gqaCoordinates.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_VERSION = '5.2.15';
@@ -736,8 +737,10 @@ export function validateGqaRequestBody(body) {
   if (!isRecord(runtime)) throw new TypeError('GQA request runtime must be an object');
   const location = requireOwn(runtime, 'location', 'data.runtime.location');
   if (!isRecord(location)) throw new TypeError('GQA request location must be an object');
-  requireOwn(location, 'lat', 'data.runtime.location.lat');
-  requireOwn(location, 'lng', 'data.runtime.location.lng');
+  const latitude = requireOwn(location, 'lat', 'data.runtime.location.lat');
+  const longitude = requireOwn(location, 'lng', 'data.runtime.location.lng');
+  validateCoordinate(latitude, 'latitude');
+  validateCoordinate(longitude, 'longitude');
 
   const general = requireOwn(data, 'general', 'data.general');
   if (!isRecord(general)) throw new TypeError('GQA request general must be an object');

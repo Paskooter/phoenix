@@ -64,7 +64,13 @@ export function newsParse(newsData) {
     if (!(rawCat.data && rawCat.data.feed && rawCat.data.feed.entry)) throw Error('NewsData returned incomplete data.');
     if (!(rawCat.category && rawCat.category.name)) throw Error('NewsData returned incomplete category info.');
 
-    const items = rawCat.data.feed.entry
+    const entries = rawCat.data.feed.entry;
+    // The AP feed normally begins with a complete provider/header item. Some
+    // responses omit that item's summary or image metadata; in that case the
+    // map/filter below already removes it, so slicing one more item would lose
+    // the first real story.
+    const hasCompleteProviderHeader = entries.length > 0 && hasCompleteNewsMetadata(entries[0]);
+    const items = entries
       .map((entry) => {
         const summary = entry.summary && entry.summary[0];
         if (!summary) return undefined;
@@ -83,13 +89,23 @@ export function newsParse(newsData) {
         }
         return { category: rawCat.category.name, adult: areIntersecting(summaryWords, ADULT_KEYWORDS), headline, image };
       })
-      // Keep only complete AP items, then cut the provider header and return the first 10.
+      // Keep only complete AP items, then remove a complete provider header.
       .filter((item) => item && !!item.headline && !!item.image)
-      .slice(1, 11);
+      .slice(hasCompleteProviderHeader ? 1 : 0, hasCompleteProviderHeader ? 11 : 10);
 
     parsed[rawCat.category.name] = items;
   });
   return parsed;
+}
+
+function hasCompleteNewsMetadata(entry) {
+  if (!entry || !(entry.summary && entry.summary[0])) return false;
+  try {
+    const headline = entry['apcm:ContentMetadata'][0]['apcm:ExtendedHeadLine'][0];
+    return !!headline && !String(headline).includes('Correction:') && !!getImageUrl(entry);
+  } catch {
+    return false;
+  }
 }
 
 function getImageUrl(entry) {

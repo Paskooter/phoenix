@@ -124,6 +124,44 @@ test('source JSON dumping and attribution memory store preserve source fields an
   assert.equal(store.snapshot().length, 2);
 });
 
+test('attribution records redact API-key query parameters from provider URLs', async () => {
+  const store = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
+  await store.insert(
+    'Bing',
+    'A fixture answer.',
+    'https://fixture.invalid/search?q=fixture&appid=bing-secret&api_key=another-secret',
+    'https://fixture.invalid/image.jpg?subscription-key=image-secret',
+    'loop-1',
+  );
+  const [record] = await store.search('loop-1', 'Bing', FIXED_NOW + 1, FIXED_NOW - 1);
+  assert.equal(record.url, 'https://fixture.invalid/search?q=fixture');
+  assert.equal(record.image_url, 'https://fixture.invalid/image.jpg');
+  assert.equal(JSON.stringify(record).includes('secret'), false);
+});
+
+test('Mongo attribution reads sanitize legacy provider URLs before returning records', async () => {
+  const collection = {
+    async insertOne() {},
+    async createIndex() {},
+    find() {
+      return { limit: () => [{
+        service: 'Bing',
+        query: 'legacy',
+        url: 'https://fixture.invalid/search?appid=legacy-secret',
+        image_url: 'https://fixture.invalid/image?key=legacy-image-secret',
+        loop_id: 'loop-legacy',
+        timestamp: FIXED_NOW,
+      }] };
+    },
+    async deleteMany() { return { deletedCount: 0 }; },
+  };
+  const store = createGqaAttributionStore({ collection, clock: () => FIXED_NOW });
+  const [record] = await store.search('loop-legacy', 'Bing', FIXED_NOW + 1, FIXED_NOW - 1);
+  assert.equal(record.url, 'https://fixture.invalid/search');
+  assert.equal(record.image_url, 'https://fixture.invalid/image');
+  assert.equal(JSON.stringify(record).includes('secret'), false);
+});
+
 test('Mongo attribution adapter uses source query projection, 90-day floor, limit, and index', async () => {
   const calls = [];
   const rows = [];

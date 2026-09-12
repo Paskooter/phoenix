@@ -6,6 +6,9 @@
 // registry: its endpoint and app id are deployment configuration and must be
 // supplied by the caller.
 
+import { validateCoordinateString } from './gqaCoordinates.js';
+import { redactProviderText, redactProviderUrls } from './gqaProviderUrl.js';
+
 export const WOLFRAM_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const WOLFRAM_SOURCE_MODULE = 'gqa/wolfram.py';
 export const WOLFRAM_SOURCE_CONFIG_KEY = 'wolfram_api';
@@ -149,14 +152,21 @@ function requestUrl(endpoint, query, apiKey, ipAddress, latitude, longitude) {
     ['podindex', WOLFRAM_SOURCE_ANSWER_POD_INDEX],
     ['ip', ipAddress],
   ];
-  if (latitude && longitude) {
+  const hasLatitude = latitude !== undefined && latitude !== null;
+  const hasLongitude = longitude !== undefined && longitude !== null;
+  if (hasLatitude || hasLongitude) {
     // gqa.gqa casts these values to strings before calling wolfram.call. A
     // direct non-string call would fail in Python's `latitude + ","` before
     // the request/output try block; retain that source boundary.
-    if (typeof latitude !== 'string' || typeof longitude !== 'string') {
+    if (hasLatitude && typeof latitude !== 'string') {
       throw new TypeError('latitude and longitude must be strings when supplied');
     }
-    params.push(['latlong', `${latitude},${longitude}`]);
+    if (hasLongitude && typeof longitude !== 'string') {
+      throw new TypeError('latitude and longitude must be strings when supplied');
+    }
+    if (hasLatitude) validateCoordinateString(latitude, 'latitude');
+    if (hasLongitude) validateCoordinateString(longitude, 'longitude');
+    if (latitude && longitude) params.push(['latlong', `${latitude},${longitude}`]);
   }
   for (const [key, value] of params) {
     const encoded = sourceQueryValue(value);
@@ -244,8 +254,8 @@ export function createWolframProvider({
       // The recovered source only records wolfram_response after a response
       // object has been returned. A connection failure therefore has the
       // request timestamp alone; do not invent a completion timestamp.
-      output.message = `Unexpected exception: ${errorText(error)}`;
-      return output;
+      output.message = `Unexpected exception: ${redactProviderText(errorText(error), [apiKey])}`;
+      return redactProviderUrls(output);
     }
 
     if (pythonTruthy(parsed)) {
@@ -258,7 +268,7 @@ export function createWolframProvider({
       const answerText = cleanWolframAnswer(extractWolframSpokenAnswer(parsed));
       if (answerText) output.response = { type: 'string', payload: answerText };
     }
-    return output;
+    return redactProviderUrls(output);
   };
 }
 

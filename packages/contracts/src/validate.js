@@ -63,6 +63,7 @@ function check(schema, v, path, errors) {
     }
     if (schema.items) v.forEach((it, i) => check(schema.items, it, `${path}[${i}]`, errors));
   } else if (t === 'number') {
+    if (!Number.isFinite(v)) errors.push(`${path}: expected a finite number`);
     if (schema.minimum !== undefined && v < schema.minimum) errors.push(`${path}: < minimum ${schema.minimum}`);
     if (schema.maximum !== undefined && v > schema.maximum) errors.push(`${path}: > maximum ${schema.maximum}`);
   }

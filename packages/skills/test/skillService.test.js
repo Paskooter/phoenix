@@ -212,6 +212,38 @@ test('result assignment uses the frozen Node 8 wrapper error wording', async () 
   }
 });
 
+test('skillRoute optionally validates SkillRequest and SkillResponse contracts at the boundary', async () => {
+  const validRequest = {
+    ...REQUEST,
+    data: { general: { accountID: 'account-1', robotID: 'robot-1' }, skill: { id: 'fixture-skill' } },
+  };
+  let calls = 0;
+  const route = skillRoute('fixture-skill', async () => {
+    calls += 1;
+    return action();
+  }, { validateRequest: true, validateResponse: true });
+
+  const invalidRequest = await route({
+    body: { ...validRequest, data: { ...validRequest.data, general: {} } },
+    trace: {},
+    log,
+  });
+  assert.equal(invalidRequest.type, 'ERROR');
+  assert.match(invalidRequest.data.message, /^Invalid SkillRequest:/);
+  assert.equal(calls, 0);
+
+  const validResponse = await route({ body: validRequest, trace: {}, log });
+  assert.equal(validResponse.type, 'SKILL_ACTION');
+  assert.equal(calls, 1);
+
+  const invalidResponse = await skillRoute('fixture-skill', async () => ({ type: 'NOT_A_SKILL_RESPONSE', data: {} }), {
+    validateRequest: true,
+    validateResponse: true,
+  })({ body: validRequest, trace: {}, log });
+  assert.equal(invalidResponse.type, 'ERROR');
+  assert.match(invalidResponse.data.message, /^Invalid SkillResponse:/);
+});
+
 test('createSkillService matches the normalized source status/body matrix', async () => {
   const service = createSkillService({
     name: 'skill-response-test',

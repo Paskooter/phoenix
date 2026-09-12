@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateMaps, openRouteServiceToGoogleMaps, COMMUTE_MODES } from '../src/maps.js';
+import { validateMaps, makeLatLon, openRouteServiceToGoogleMaps, COMMUTE_MODES } from '../src/maps.js';
 import { createDataService } from '../src/index.js';
 
 const PORT = 7797;
@@ -15,6 +15,13 @@ test('validateMaps parses origin/destination JSON + validates mode', () => {
   assert.deepEqual(v.origin, { lat: 42.36, lon: -71.06 });
   assert.equal(v.mode, 'driving');
   assert.ok(COMMUTE_MODES.includes('walking'));
+});
+
+test('makeLatLon rejects nonfinite numeric coordinates with RangeError', () => {
+  for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    assert.throws(() => makeLatLon(bad, 0), RangeError);
+    assert.throws(() => makeLatLon(0, bad), RangeError);
+  }
 });
 
 test('openRouteServiceToGoogleMaps maps duration/distance into the Maps shape', () => {

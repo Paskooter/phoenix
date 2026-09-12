@@ -49,6 +49,10 @@ test('D05/01 makeLatLon replays the pinned LatLon float-pattern and range checks
   for (const bad of ['1e5', '0x10', '  ', 'Infinity', '', 'NaN']) {
     assert.throws(() => makeLatLon(bad, '0'), RangeError, `lat=${JSON.stringify(bad)} rejected`);
   }
+  for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    assert.throws(() => makeLatLon(bad, 0), RangeError, `lat=${bad} rejected`);
+    assert.throws(() => makeLatLon(0, bad), RangeError, `lon=${bad} rejected`);
+  }
 });
 
 test('D05/02 validateWeather keeps secondsSinceEpoch as the raw string (so "0" stays truthy)', () => {

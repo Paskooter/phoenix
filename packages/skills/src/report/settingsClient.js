@@ -145,12 +145,18 @@ export class SettingsClient {
   }
 
   static commutePrefsComplete(commutePrefs) {
+    if (!commutePrefs || typeof commutePrefs !== 'object') return false;
     const allExist = (arr) => arr.every((item) => item !== null && item !== undefined);
+    const validCoordinate = (value, minimum, maximum) => typeof value === 'number'
+      && Number.isFinite(value) && value >= minimum && value <= maximum;
     return allExist([
       commutePrefs, commutePrefs.mode, commutePrefs.origin, commutePrefs.workTime, commutePrefs.destination,
-      commutePrefs.origin.lat, commutePrefs.origin.lng, commutePrefs.destination.lat, commutePrefs.destination.lng,
-      commutePrefs.workTime.hour, commutePrefs.workTime.min,
-    ]);
+      commutePrefs.origin?.lat, commutePrefs.origin?.lng, commutePrefs.destination?.lat, commutePrefs.destination?.lng,
+      commutePrefs.workTime?.hour, commutePrefs.workTime?.min,
+    ]) && validCoordinate(commutePrefs.origin.lat, -90, 90)
+      && validCoordinate(commutePrefs.origin.lng, -180, 180)
+      && validCoordinate(commutePrefs.destination.lat, -90, 90)
+      && validCoordinate(commutePrefs.destination.lng, -180, 180);
   }
 }
 
@@ -174,14 +180,16 @@ function transformSettingsResponse(body) {
   return body;
 }
 
-function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POST') {
+function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POST', forwardIdentityHeaders = true) {
   const target = new URL(peer);
   const transport = target.protocol === 'https:' ? https : http;
   const hasBody = method !== 'GET' && method !== 'HEAD';
   const headers = {
     Accept: SETTINGS_ACCEPT,
     ...(hasBody ? { 'Content-Type': 'application/json;charset=utf-8' } : {}),
-    'x-amz-credentials': JSON.stringify({ id: accountId }),
+    // Once a redirect crosses origin, do not reintroduce the caller credential
+    // on a later same-origin hop.
+    ...(forwardIdentityHeaders ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
     'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
     'User-Agent': SETTINGS_USER_AGENT,
     ...(hasBody ? { 'Content-Length': Buffer.byteLength(body) } : {}),
@@ -212,8 +220,10 @@ function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POS
           }
           const nextMethod = response.statusCode === 307 ? method : 'GET';
           const nextBody = nextMethod === 'POST' ? body : '';
-          requestSettings(new URL(location, target).toString(), nextBody, accountId,
-            redirectCount + 1, nextMethod).then(resolve, reject);
+          const nextTarget = new URL(location, target);
+          const sameOrigin = target.origin === nextTarget.origin;
+          requestSettings(nextTarget.toString(), nextBody, accountId,
+            redirectCount + 1, nextMethod, forwardIdentityHeaders && sameOrigin).then(resolve, reject);
           return;
         }
 

@@ -5,6 +5,8 @@
 // configured HTTP endpoint; attribution uses a Mongo collection.  Neither
 // boundary has a Phoenix default, so selecting one is always explicit.
 
+import { redactProviderUrl, redactProviderUrls } from './gqaProviderUrl.js';
+
 export const GQA_ACCOUNT_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_ACCOUNT_SOURCE_MODULE = 'gqa/account.py';
 export const GQA_ATTRIBUTE_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
@@ -160,8 +162,8 @@ function attributionRecord(service, query, url, imageUrl, loopId, clock) {
   return {
     service,
     query,
-    url,
-    image_url: imageUrl,
+    url: redactProviderUrl(url),
+    image_url: redactProviderUrl(imageUrl),
     loop_id: loopId,
     timestamp: timestampMs(clock),
   };
@@ -205,7 +207,7 @@ export function createGqaAttributionStore({ collection, clock = Date.now } = {})
       // equivalent projection must be nested under `projection`.
       const cursor = collection.find(query, { projection: { _id: 0 } });
       const limited = cursor && typeof cursor.limit === 'function' ? cursor.limit(50) : cursor;
-      return collectCursor(limited);
+      return (await collectCursor(limited)).map((record) => redactProviderUrls(record));
     },
 
     async wipe(loopId) {

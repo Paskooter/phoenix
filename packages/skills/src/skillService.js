@@ -7,7 +7,7 @@
 // framing remain the common service boundary.
 
 import { createService } from '@phoenix/common';
-import { newMsgId, now, SkillResponseType } from '@phoenix/contracts';
+import { newMsgId, now, SkillResponseType, schemas, validate } from '@phoenix/contracts';
 
 // Pegasus BaseService decorates each incoming skill request with
 // `req.jibo = new JiboHeaders(req.headers)`. Keep the same three trace headers
@@ -32,8 +32,19 @@ export function sourceJiboHeaders(headers) {
 }
 
 /** Wrap a skill handler into the source error-enveloping route handler. */
-export function skillRoute(skillId, handler) {
+export function skillRoute(skillId, handler, {
+  validateRequest = false,
+  validateResponse = false,
+  requestSchema = schemas.skillRequest,
+  responseSchema = schemas.skillResponse,
+} = {}) {
   return async ({ body, trace, log, req }) => {
+    if (validateRequest) {
+      const requestValidation = validate(requestSchema, body);
+      if (!requestValidation.valid) {
+        return errorResponse(skillId, `Invalid SkillRequest: ${requestValidation.errors.join('; ')}`);
+      }
+    }
     // BaseSkill starts its timer immediately before invoking the skill and
     // overwrites any handler-supplied timings field after the awaited result.
     // Keep this assignment inside the try block: a handler that resolves
@@ -53,6 +64,12 @@ export function skillRoute(skillId, handler) {
         req: request,
       });
       setResponseTimings(response, Date.now() - startTime);
+      if (validateResponse) {
+        const responseValidation = validate(responseSchema, response);
+        if (!responseValidation.valid) {
+          throw new Error(`Invalid SkillResponse: ${responseValidation.errors.join('; ')}`);
+        }
+      }
       return response;
     } catch (err) {
       // BaseSkill logs the original thrown value, then uses the shared
@@ -66,9 +83,10 @@ export function skillRoute(skillId, handler) {
 /**
  * Host several skills. Each gets POST /v1/<id>/main; `defaultId` (or the first) is also served at
  * POST /v1/main for back-compat.
- * @param {{ name?:string, skills:Array<{id:string, handler:Function, route?:Function}>, defaultId?:string }} opts
+ * @param {{ name?:string, skills:Array<{id:string, handler:Function, route?:Function}>, defaultId?:string, validateContract?:boolean }} opts
  */
-export function createSkillsService({ name = 'skills', skills, defaultId }) {
+export function createSkillsService({ name = 'skills', skills, defaultId, validateContract = false }) {
+  const routeOptions = validateContract ? { validateRequest: true, validateResponse: true } : {};
   const routes = {};
   for (const { id, handler, route } of skills) {
     // Most skills use the BaseSkill wrapper.  Source services with a distinct
@@ -76,18 +94,18 @@ export function createSkillsService({ name = 'skills', skills, defaultId }) {
     // route while remaining part of the same host registry.  Keeping this
     // choice on the descriptor prevents a GQA route from inheriting the
     // generic strict JSON/error envelope.
-    routes[`POST /v1/${id}/main`] = typeof route === 'function' ? route : skillRoute(id, handler);
+    routes[`POST /v1/${id}/main`] = typeof route === 'function' ? route : skillRoute(id, handler, routeOptions);
   }
   const def = skills.find((s) => s.id === defaultId) || skills[0];
   if (def) routes['POST /v1/main'] = typeof def.route === 'function'
     ? def.route
-    : skillRoute(def.id, def.handler);
+    : skillRoute(def.id, def.handler, routeOptions);
   return createService({ name, routes });
 }
 
 /** Back-compat single-skill host. */
-export function createSkillService({ name, skillId, handler, route }) {
-  return createSkillsService({ name, skills: [{ id: skillId, handler, route }], defaultId: skillId });
+export function createSkillService({ name, skillId, handler, route, validateContract = false }) {
+  return createSkillsService({ name, skills: [{ id: skillId, handler, route }], defaultId: skillId, validateContract });
 }
 
 function errorResponse(skillId, message) {

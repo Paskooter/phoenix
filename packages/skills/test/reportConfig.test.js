@@ -233,6 +233,39 @@ test('SettingsClient follows source redirects and decodes compressed responses',
   });
 });
 
+test('SettingsClient strips identity credentials on cross-origin redirects', async () => {
+  await withEnv({ prefsFromConfig: 'false' }, async () => {
+    const received = [];
+    const destination = http.createServer(async (request, response) => {
+      for await (const chunk of request) void chunk;
+      received.push(request.headers);
+      response.end(JSON.stringify([]));
+    });
+    await new Promise((resolve) => destination.listen(0, '127.0.0.1', resolve));
+    const destinationUrl = `http://127.0.0.1:${destination.address().port}/final`;
+    const source = http.createServer((request, response) => {
+      response.writeHead(302, { Location: destinationUrl });
+      response.end();
+    });
+    await new Promise((resolve) => source.listen(0, '127.0.0.1', resolve));
+    const previous = process.env.NET_settings;
+    process.env.NET_settings = `127.0.0.1:${source.address().port}`;
+    clearReportEnvCache();
+    try {
+      assert.deepEqual(await SettingsClient.getSettings('account-secret', 'loop-1', 'trans-1'), []);
+      assert.equal(received.length, 1);
+      assert.equal(received[0]['x-amz-credentials'], undefined);
+      assert.equal(received[0]['x-amz-target'], 'Settings_20160801.GetSettings');
+    } finally {
+      await close(source);
+      await close(destination);
+      if (previous === undefined) delete process.env.NET_settings;
+      else process.env.NET_settings = previous;
+      clearReportEnvCache();
+    }
+  });
+});
+
 test('SettingsClient keeps Axios response transforms and rejection data', async () => {
   await withEnv({ prefsFromConfig: 'false' }, async () => {
     const server = http.createServer((request, response) => {
@@ -262,6 +295,25 @@ test('SettingsClient keeps Axios response transforms and rejection data', async 
       await close(server);
     }
   });
+});
+
+test('SettingsClient does not mark string or nonfinite commute coordinates complete', () => {
+  const prefs = {
+    mode: 'driving',
+    origin: { lat: 42, lng: -71 },
+    destination: { lat: 43, lng: -72 },
+    workTime: { hour: 8, min: 30 },
+  };
+  assert.equal(SettingsClient.commutePrefsComplete(prefs), true);
+  for (const [point, field, value] of [
+    ['origin', 'lat', '42'],
+    ['origin', 'lng', Number.NaN],
+    ['destination', 'lat', Number.POSITIVE_INFINITY],
+  ]) {
+    const invalid = structuredClone(prefs);
+    invalid[point][field] = value;
+    assert.equal(SettingsClient.commutePrefsComplete(invalid), false);
+  }
 });
 
 test('report service uses source variable names for a real local lasso exchange', async () => {

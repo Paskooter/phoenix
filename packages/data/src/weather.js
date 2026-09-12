@@ -25,23 +25,25 @@ import { DEFAULT_UPSTREAM_TIMEOUT_MS, withUpstreamTimeout } from './upstream.js'
 
 const FLOAT = /^-?\d+\.?\d*$/;
 export const WEATHER_TIMEOUT_MS = DEFAULT_UPSTREAM_TIMEOUT_MS;
+const isCoordinateInput = (value) => (typeof value === 'number' && Number.isFinite(value))
+  || (typeof value === 'string' && FLOAT.test(value));
 
 /**
  * Port of `LatLon.make_from_strings` plus the `LatLon` constructor range checks
  * (pegasus packages/lasso/src/utils/LatLon.ts). The float test runs on the raw string before
  * parsing, so `undefined`, `null`, "abc" and out-of-range numbers all throw RangeError carrying
  * the file's exact messages.
- * @param {string|undefined|null} lat
- * @param {string|undefined|null} lon
+ * @param {string|number|undefined|null} lat
+ * @param {string|number|undefined|null} lon
  * @returns {{lat: number, lon: number}}
  */
 export function makeLatLon(lat, lon) {
-  if (!FLOAT.test(lat)) throw new RangeError(`Invalid latitude ${lat}`);
-  if (!FLOAT.test(lon)) throw new RangeError(`Invalid longitude ${lon}`);
+  if (!isCoordinateInput(lat)) throw new RangeError(`Invalid latitude ${lat}`);
+  if (!isCoordinateInput(lon)) throw new RangeError(`Invalid longitude ${lon}`);
   const latNum = parseFloat(lat);
   const lonNum = parseFloat(lon);
-  if (latNum < -90 || latNum > 90) throw new RangeError(`Invalid latitude ${latNum}`);
-  if (lonNum < -180 || lonNum > 180) throw new RangeError(`Invalid longitude ${lonNum}`);
+  if (!Number.isFinite(latNum) || latNum < -90 || latNum > 90) throw new RangeError(`Invalid latitude ${latNum}`);
+  if (!Number.isFinite(lonNum) || lonNum < -180 || lonNum > 180) throw new RangeError(`Invalid longitude ${lonNum}`);
   return { lat: latNum, lon: lonNum };
 }
 
