@@ -26,18 +26,22 @@ export class ProactiveTransaction {
     this.log = log;
     this.trace = readTrace({ headers: socket._jiboHeaders || {} });
     this.auth = socket._auth || null;
+    this.abortController = new AbortController();
+    this.aborted = false;
+    this.settled = false;
+    this.abortReason = null;
     this.startTime = now();
     this.timings = {};
     this.contextPr = defer();
     this._handle = defer();
-    this._txTimer = setTimeout(() => this.reject(new HubError(HubErrorCode.INTERNAL, `Maximum transaction time of ${Timeouts.transaction} exceeded`)), Timeouts.transaction);
+    this._txTimer = setTimeout(() => this._onTransactionTimeout(), Timeouts.transaction);
     this._txTimer.unref?.();
   }
 
   get done() { return this._handle.promise; }
 
   handleMessage({ json }) {
-    if (!json) return;
+    if (!this._isActive() || !json) return;
     if (json.type === RequestType.CONTEXT) {
       try { preprocessContext(json, this.auth, this.socket._remoteAddress); this.contextPr.resolve(validateContextMessage(json)); }
       catch (e) { this.reject(e); }
@@ -47,7 +51,9 @@ export class ProactiveTransaction {
   }
 
   async _handleTrigger(req) {
+    if (!this._isActive()) return;
     const context = await withTimeout(this.contextPr.promise, CONTEXT_TIMEOUT);
+    if (!this._isActive()) return;
     if (context === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_CONTEXT, `Timeout of ${CONTEXT_TIMEOUT} while waiting for the context message`);
     // A trigger person becomes the speaker so skills recognize them.
     if (req.data && req.data.triggerData && req.data.triggerData.looperID) {
@@ -55,12 +61,15 @@ export class ProactiveTransaction {
       context.data.runtime.perception = context.data.runtime.perception || {};
       context.data.runtime.perception.speaker = req.data.triggerData.looperID;
     }
+    if (!this._isActive()) return;
     await this._chooseAction(req, context);
-    this.resolve();
+    if (this._isActive()) this.resolve();
   }
 
   async _chooseAction(req, context) {
+    if (!this._isActive()) return;
     const eligible = await this._getEligible(context, req.data);
+    if (!this._isActive()) return;
     // RandomUtils.sample (lodash.sample) — a uniform pick, same index math as
     // `array[Math.floor(Math.random() * array.length)]`.
     const chosen = eligible.length ? eligible[Math.floor(Math.random() * eligible.length)] : null;
@@ -76,18 +85,26 @@ export class ProactiveTransaction {
     this._emitMatch(chosen.skillID, false, skipSurprises);
     const skillStart = now();
     const out = await withTimeout(
-      this.components.skillClient.proactiveLaunch(chosen.skillID, { context: context.data, memo: chosen.memo }, this.trace),
+      this.components.skillClient.proactiveLaunch(
+        chosen.skillID,
+        { context: context.data, memo: chosen.memo },
+        this.trace,
+        { signal: this.abortController.signal },
+      ),
       Timeouts.skill,
     );
+    if (!this._isActive()) return;
     if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout while waiting for proactive skill ${chosen.skillID}`);
     // TransactionHandler.emitSkillResult reports the skill round-trip as `timings.skill`.
     this.timings.skill = now() - skillStart;
     // ProactiveTransactionHandler.getSkillResponse records BEFORE the result frame is written.
     if (out && !out.error) this._record(chosen.skillID, context, out.response);
+    if (!this._isActive()) return;
     this._emitSkillResult(out);
   }
 
   async _getEligible(context, reqData) {
+    if (!this._isActive()) return [];
     const configs = (this.components.skills || []).filter((c) => c.proactives && c.proactives.length);
     const robotID = context.data.general && context.data.general.robotID;
     const focusedPerson = extractContextData('FOCUSED_PERSON', context, reqData);
@@ -108,20 +125,24 @@ export class ProactiveTransaction {
       try {
         skillSettingsMap = await getSkillSettingsMap(
           configs, focusedPersonAccountID, data.loopID,
-          this.trace.transId, this.components.settingsClient, this.log,
+          this.trace.transId, this.components.settingsClient, this.log, this.abortController.signal,
         );
       } catch (e) {
+        if (!this._isActive()) return [];
         this.log?.error?.('Error fetching settings. Continuing with selection, but settingsRules will fail.', { error: e.message });
       }
     }
+    if (!this._isActive()) return [];
     const results = [];
     for (const c of configs) {
+      if (!this._isActive()) return [];
       let prs = c.proactives.map((pr) => ({ ...pr, skillID: c.id }));
       // ContextTools.checkContextRules throws for a malformed contain/containedIn rule and the
       // source does NOT catch it here (ProactiveTransactionHandler.ts:212-214), so the whole
       // transaction fails rather than silently dropping the registration.
       prs = prs.filter((pr) => checkContextRules(pr, context, reqData));
-      prs = await checkIHRules(prs, c.IHQueries || {}, data, this.components.historyClient, validateIHQuery);
+      prs = await checkIHRules(prs, c.IHQueries || {}, data, this.components.historyClient, validateIHQuery, this.abortController.signal);
+      if (!this._isActive()) return [];
       prs = checkSettingsRegistrations(prs, skillSettingsMap);
       results.push(...prs);
     }
@@ -140,15 +161,22 @@ export class ProactiveTransaction {
   }
 
   _emitSkillResult(out) {
+    if (!this._isActive()) return;
     if (out.error) {
-      this.response.write({ type: ResponseType.ERROR, final: true, ts: now(), msgID: newMsgId(), data: { message: (out.error && out.error.message) || 'skill error' } });
+      this.response.write({
+        type: ResponseType.ERROR,
+        final: true,
+        ts: now(),
+        msgID: newMsgId(),
+        data: { message: (out.error && out.error.message) || 'skill error', code: out.error.code },
+      });
       return;
     }
     this.response.write(Object.assign({}, out.response, { final: true, timings: { total: now() - this.startTime, skill: this.timings.skill } }));
   }
 
   _record(skillID, context, skillResponse) {
-    if (!this.components.config.recordLaunchHistory || !this.components.historyClient) return;
+    if (!this._isActive() || !this.components.config.recordLaunchHistory || !this.components.historyClient) return;
     const general = context.data.general || {};
     const runtime = context.data.runtime || {};
     const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
@@ -159,9 +187,51 @@ export class ProactiveTransaction {
     this.components.historyClient.writeSkillLaunch({
       robotID: general.robotID, sessionID, skillID, intent: 'proactive',
       personIDs: speaker ? [speaker] : ['UNKNOWN'],
-    }, this.trace);
+    }, this.trace, { signal: this.abortController.signal });
   }
 
-  resolve() { clearTimeout(this._txTimer); this._handle.resolve(); }
-  reject(err) { clearTimeout(this._txTimer); this._handle.reject(err); }
+  _isActive() { return !this.aborted && !this.settled; }
+
+  _abort(reason) {
+    if (this.aborted) return;
+    this.aborted = true;
+    this.abortReason = reason;
+    this.abortController.abort(reason);
+    // Release a trigger waiting for CONTEXT without allowing a late CONTEXT to
+    // restart the transaction. The active guard handles the sentinel value.
+    this.contextPr.resolve(null);
+  }
+
+  _onTransactionTimeout() {
+    this._txTimer = null;
+    if (!this._isActive()) return;
+    this.reject(new HubError(HubErrorCode.TIMEOUT_TRANSACTION, `Maximum transaction time of ${Timeouts.transaction} exceeded`));
+  }
+
+  resolve() {
+    if (this.settled) return;
+    this.settled = true;
+    clearTimeout(this._txTimer);
+    this._txTimer = null;
+    this._handle.resolve();
+  }
+
+  /** Close the transaction without an error, but cancel every late continuation. */
+  abandon() {
+    if (this.settled) return;
+    this.settled = true;
+    this._abort(new Error('Proactive socket closed'));
+    clearTimeout(this._txTimer);
+    this._txTimer = null;
+    this._handle.resolve();
+  }
+
+  reject(err) {
+    if (this.settled) return;
+    this.settled = true;
+    this._abort(err);
+    clearTimeout(this._txTimer);
+    this._txTimer = null;
+    this._handle.reject(err);
+  }
 }

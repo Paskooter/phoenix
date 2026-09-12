@@ -56,11 +56,11 @@ export class SkillClient {
   }
 
   /** Build + send a PROACTIVE_LAUNCH. */
-  async proactiveLaunch(skillID, input, trace) {
-    return this._send(skillID, buildProactiveLaunch(skillID, input), trace);
+  async proactiveLaunch(skillID, input, trace, options) {
+    return this._send(skillID, buildProactiveLaunch(skillID, input), trace, options);
   }
 
-  async _send(skillID, skillRequest, trace) {
+  async _send(skillID, skillRequest, trace, options = {}) {
     const cfg = this.mgr.get(skillID);
     if (!cfg) return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Skill "${skillID}" does not exist` } };
     if (cfg.onRobot) return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Skill "${skillID}" is a robot skill` } };
@@ -69,6 +69,7 @@ export class SkillClient {
         method: 'POST',
         headers: { 'content-type': 'application/json', ...writeTrace(trace) },
         body: JSON.stringify(skillRequest),
+        ...(options.signal ? { signal: options.signal } : {}),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');

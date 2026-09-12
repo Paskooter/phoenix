@@ -13,6 +13,20 @@ const timeUnits = stringEnum('msec', 'sec', 'min', 'minute', 'minutes', 'hour', 
 const settingTargets = { 0: 'loop', 1: 'person', 2: 'lasso', loop: 0, person: 1, lasso: 2 };
 const ruleFields = ['skillID', 'intent', 'personIDs', 'payload'];
 
+function isValidBaseURL(value) {
+  if (typeof value !== 'string' || value.length === 0 || !/^https?:\/\//i.test(value)) return false;
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function validateBaseURL(value) {
+  if (value !== undefined && value !== null && value !== '' && !isValidBaseURL(value)) throw new Error(`Invalid baseURL: ${value}`);
+}
+
 export function deepFreeze(value) {
   Object.freeze(value);
   if (value === undefined) return value;
@@ -34,8 +48,7 @@ export function validateSkillsIndex(config) {
   try {
     if (!Array.isArray(config.skills)) throw new Error("Hub service config missing required list parameter 'skills'");
     for (const entry of config.skills) {
-      // ConfigFileValidator discards the regex result, so non-http URLs pass.
-      if (entry.baseURL) /^http:\/\//.test(entry.baseURL);
+      validateBaseURL(entry.baseURL);
       if (typeof entry.configPath !== 'string') throw new Error("Skill service config missing required parameter 'configPath'");
     }
   } catch (error) { throw legacyConfigError(error); }
@@ -144,6 +157,7 @@ function validateSettingsRule(rule) {
   if (typeof rule.key !== 'string') throw new Error('SettingsRule.key must be a string.');
   if (!rule.matchRule) throw new Error('IHRule must have a match method specified');
   if (!settingsMatches[rule.matchRule]) throw new Error(`Unknown match method in settingsRule: ${rule.matchRule}`);
+  if (!Object.prototype.hasOwnProperty.call(rule, 'value')) throw new Error('Value in settingsRule is missing');
 }
 
 function isTimePeriod(value) {

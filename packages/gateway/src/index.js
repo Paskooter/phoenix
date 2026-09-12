@@ -21,6 +21,7 @@ import { ListenTransaction } from './listenTransaction.js';
 import { HistoryClient } from './historyClient.js';
 import { SettingsClient } from './settingsClient.js';
 import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
+import { ANONYMOUS_AUTH } from './preprocessor.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
 const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
@@ -108,6 +109,9 @@ export async function createGateway(config = loadConfig()) {
       const pathOk = LISTEN_PATHS.has(url) || PROACTIVE_PATHS.has(url);
       if (config.disableAuth) {
         if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
+        // The CONTEXT preprocessor always validates identity. Disabled auth has no JWT,
+        // so give the connection a stable non-credentialed identity instead of null.
+        info.req._auth = { ...ANONYMOUS_AUTH };
         return cb(true, 200, '');
       }
       const { error, auth } = checkAuthentication(info.req.headers, config.hubTokenSecret);
@@ -124,7 +128,7 @@ export async function createGateway(config = loadConfig()) {
   });
 
   wss.on('connection', (ws, req) => {
-    ws._auth = req._auth || null;
+    ws._auth = req._auth || (config.disableAuth ? { ...ANONYMOUS_AUTH } : null);
     ws._jiboHeaders = req.headers;
     ws._remoteAddress = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString();
     const path = (req.url || '').split('?')[0];
@@ -156,7 +160,7 @@ export async function createGateway(config = loadConfig()) {
     // this socket on every hotword re-trigger and on cancel_local_turn, and
     // without this the phase kept streaming into a dead response and recognized
     // audio whose EOS + LISTEN frames were silently dropped.
-    if (isProactive) ws.on('close', () => tx.resolve());
+    if (isProactive) ws.on('close', () => tx.abandon?.());
     else ws.on('close', () => tx.abandon?.());
 
     tx.done.catch((err) => {

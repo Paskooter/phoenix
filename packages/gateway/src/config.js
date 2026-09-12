@@ -1,8 +1,8 @@
 // Gateway configuration + skill registry.
 //
 // Mirrors HubConfig (HubConfigProvider.ts) and SkillConfigManager (config/SkillConfigManager.ts).
-// Source NET_<svc> values are authorities prefixed with http://. Phoenix URL
-// aliases and the shared skill host remain explicit deployment adapters.
+// Source NET_<svc> values are authorities normalized with http:// only when no
+// explicit http:// or https:// scheme is supplied.
 
 import { readEnvVars } from '@phoenix/common';
 import { loadRegistry } from './registry.js';
@@ -44,13 +44,12 @@ export async function loadConfig(env = process.env, registryOptions = {}) {
   // readEnvVars applies the reference `process.env[key] || default` precedence,
   // so an empty source value also falls back to the source default.
   const envVars = readEnvVars(HUB_ENV_DEFAULTS, env);
-  const peer = (value) => (/^https?:\/\//.test(value) ? value : `http://${value}`);
-  // NET_<svc> is authoritative and the source always prefixes it with http://
-  // (HubConfigProvider.ts:41-52). A Phoenix ETCO_*Url alias is consulted only when
-  // the source name is absent; that alias is a deployment extension, not a source name.
+  const peer = (value) => (/^https?:\/\//i.test(value) ? value : `http://${value}`);
+  // NET_<svc> is authoritative. Prefix host:port values with http:// while
+  // preserving an explicitly supplied http:// or https:// scheme.
   const sourcePeer = (key, alias) => env[key]
-    ? `http://${env[key]}`
-    : alias && env[alias] ? peer(env[alias]) : `http://${envVars[key]}`;
+    ? peer(env[key])
+    : alias && env[alias] ? peer(env[alias]) : peer(envVars[key]);
   // A shared Phoenix skill host is an explicit deployment adapter. Without
   // that override, use the original index and each entry's complete URL.
   const explicitSkillsConfig = Boolean(env.ETCO_hub_skillsConfig);

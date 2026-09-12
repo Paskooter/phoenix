@@ -9,13 +9,20 @@
 //   packages/history-client/src/speech/SpeechHistoryRecord.ts
 
 import { writeTrace } from '@phoenix/common';
+import { boundedSignal, DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS, signalFromOptions } from './requestSignal.js';
 
 export class HistoryClient {
-  constructor(historyURL) { this.base = (historyURL || '').replace(/\/$/, ''); }
+  constructor(historyURL, options = {}) {
+    this.base = (historyURL || '').replace(/\/$/, '');
+    this.timeoutMs = typeof options === 'number'
+      ? options
+      : (options.timeoutMs ?? DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS);
+  }
 
-  async _post(path, body, trace) {
+  async _post(path, body, trace, options) {
     const res = await fetch(`${this.base}${path}`, {
       method: 'POST',
+      signal: boundedSignal(this.timeoutMs, signalFromOptions(options)),
       headers: { 'content-type': 'application/json', ...writeTrace(trace) },
       body: JSON.stringify(body),
     });
@@ -23,9 +30,10 @@ export class HistoryClient {
     return res.json();
   }
 
-  async _put(path, body, trace) {
+  async _put(path, body, trace, options) {
     const res = await fetch(`${this.base}${path}`, {
       method: 'PUT',
+      signal: boundedSignal(this.timeoutMs, signalFromOptions(options)),
       headers: { 'content-type': 'application/json', ...writeTrace(trace) },
       body: JSON.stringify(body),
     });
@@ -34,27 +42,27 @@ export class HistoryClient {
   }
 
   /** Fire-and-forget; never throws into the caller. */
-  writeSkillLaunch(data, trace) {
-    return this._post('/v1/skill/launch', data, trace).catch(() => null);
+  writeSkillLaunch(data, trace, options) {
+    return this._post('/v1/skill/launch', data, trace, options).catch(() => null);
   }
 
-  async getSkillLaunchCount(query, trace) {
-    const r = await this._post('/v1/skill/launch/count', query, trace);
+  async getSkillLaunchCount(query, trace, options) {
+    const r = await this._post('/v1/skill/launch/count', query, trace, options);
     return r.count;
   }
 
-  getLatestSkillLaunch(query, trace) {
-    return this._post('/v1/skill/launch/latest', query, trace); // record or null
+  getLatestSkillLaunch(query, trace, options) {
+    return this._post('/v1/skill/launch/latest', query, trace, options); // record or null
   }
 
   /** POST /v1/speech — persist a new speech record, returns its id (SpeechHistoryClient.createRecord). */
-  createSpeechRecord(data, trace) {
-    return this._post('/v1/speech', data, trace).then((r) => r.id);
+  createSpeechRecord(data, trace, options) {
+    return this._post('/v1/speech', data, trace, options).then((r) => r.id);
   }
 
   /** PUT /v1/speech/:id — partial update, returns the id (SpeechHistoryClient.updateRecord). */
-  updateSpeechRecord(id, data, trace) {
-    return this._put(`/v1/speech/${id}`, data, trace).then((r) => r.id);
+  updateSpeechRecord(id, data, trace, options) {
+    return this._put(`/v1/speech/${id}`, data, trace, options).then((r) => r.id);
   }
 
   /**
@@ -63,15 +71,15 @@ export class HistoryClient {
    * (SpeechHistoryClient.ts:18-38): the message is prefixed and `stack` is cleared, then the
    * error is re-thrown for the caller's own (fire-and-forget) catch.
    */
-  saveSpeechRecord(record, trace) {
+  saveSpeechRecord(record, trace, options) {
     if (record.id) {
-      return this.updateSpeechRecord(record.id, record.data, trace).catch((err) => {
+      return this.updateSpeechRecord(record.id, record.data, trace, options).catch((err) => {
         err.message = `Failed to update speech history record: ${err.message}`;
         err.stack = null;
         throw err;
       }).then(() => record);
     }
-    return this.createSpeechRecord(record.data, trace).catch((err) => {
+    return this.createSpeechRecord(record.data, trace, options).catch((err) => {
       err.message = `Failed to save speech history record: ${err.message}`;
       err.stack = null;
       throw err;

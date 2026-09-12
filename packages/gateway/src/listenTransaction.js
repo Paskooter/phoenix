@@ -15,6 +15,10 @@ import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
 
+const MAX_PRESESSION_AUDIO_BYTES = 1024 * 1024;
+
+export { MAX_PRESESSION_AUDIO_BYTES };
+
 const State = {
   WAIT_LISTEN: 'WAIT_LISTEN',
   WAIT_CLIENT_ASR: 'WAIT_CLIENT_ASR',
@@ -91,6 +95,7 @@ export class ListenTransaction {
     this.asrData = null;
     this.nluData = null;
     this.audioChunks = [];
+    this.audioBufferedBytes = 0;
     this.redirectCount = 0;
     // ASR phase bookkeeping. asrCancelled mirrors the reference's stopASR()
     // effect: once a client-supplied turn (or any state exit) supersedes the
@@ -126,7 +131,19 @@ export class ListenTransaction {
       // ASR session (reference: audioStream.on('data') -> provideAudio); buffer
       // anything that arrives before the session exists so no audio is lost.
       if (this.asrSession) this.asrSession.provideAudio(audio);
-      else this.audioChunks.push(audio);
+      else {
+        const byteLength = typeof audio.byteLength === 'number' ? audio.byteLength : 0;
+        if (this.audioBufferedBytes + byteLength > MAX_PRESESSION_AUDIO_BYTES) {
+          this.log.warn('dropping pre-session audio beyond buffer limit', {
+            byteLength,
+            bufferedBytes: this.audioBufferedBytes,
+            limit: MAX_PRESESSION_AUDIO_BYTES,
+          });
+          return;
+        }
+        this.audioChunks.push(audio);
+        this.audioBufferedBytes += byteLength;
+      }
       return;
     }
     if (!json) return this.reject(new Error('Message has no audio and no data'));
@@ -370,7 +387,9 @@ export class ListenTransaction {
 
       // Flush audio that arrived before the session existed, then handleMessage
       // streams subsequent frames directly (push-style, like audioStream.on('data')).
-      for (const chunk of this.audioChunks.splice(0)) session.provideAudio(chunk);
+      const buffered = this.audioChunks.splice(0);
+      this.audioBufferedBytes = 0;
+      for (const chunk of buffered) session.provideAudio(chunk);
     });
   }
 
@@ -386,7 +405,10 @@ export class ListenTransaction {
     this._clearASRTimers();
     // After stopASR the reference's audioStream is null, so further audio is
     // dropped instead of buffered for a session that will never consume it.
-    if (this.asrCancelled) this.audioChunks.length = 0;
+    if (this.asrCancelled) {
+      this.audioChunks.length = 0;
+      this.audioBufferedBytes = 0;
+    }
   }
 
   _clearASRTimers() {
@@ -423,6 +445,7 @@ export class ListenTransaction {
     }
     this._clearASRTimers();
     this.audioChunks.length = 0;
+    this.audioBufferedBytes = 0;
   }
 
   async _performNLU() {
