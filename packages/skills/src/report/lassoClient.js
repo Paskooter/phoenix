@@ -33,12 +33,19 @@ function requestHeaders(data) {
   return toHeader.call(jibo);
 }
 
-const CROSS_ORIGIN_IDENTITY_HEADER = /^(?:authorization|proxy-authorization|cookie(?:2)?|set-cookie|x-amz-.*|x-client-.*|x-forwarded-.*|x-jibo-.*|x-real-ip|traceparent|tracestate)$/i;
+const CROSS_ORIGIN_SAFE_HEADERS = new Set([
+  'accept', 'accept-encoding', 'accept-language', 'cache-control', 'content-language',
+  'content-type', 'if-match', 'if-modified-since', 'if-none-match', 'if-range',
+  'pragma', 'range',
+]);
 
 function headersForRedirect(sourceHeaders, sourceURL, destinationURL) {
   if (sourceHeaders === undefined || sourceURL.origin === destinationURL.origin) return sourceHeaders;
+  // A denylist cannot distinguish a future credential header from an ordinary
+  // custom header. Forward only standard representation/cache headers; Jibo,
+  // authorization, and arbitrary application identity headers stay on the source.
   return Object.fromEntries(Object.entries(sourceHeaders)
-    .filter(([name]) => !CROSS_ORIGIN_IDENTITY_HEADER.test(name) && name.toLowerCase() !== 'host'));
+    .filter(([name]) => CROSS_ORIGIN_SAFE_HEADERS.has(name.toLowerCase())));
 }
 
 function assertCoordinate(value, label, minimum, maximum) {

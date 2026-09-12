@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { TTLCache } from '../src/cache.js';
@@ -329,6 +329,29 @@ test('news stop wins a start/stop race while the initial poll is still in flight
   assert.equal(await starting, false, 'a stopped start does not arm a timer');
   assert.equal(intervals.length, 0);
   assert.equal(poller.isPolling(), false);
+});
+
+test('history malformed payload validation leaves expired launches and snapshot untouched', () => {
+  const { dir, file } = tempFile('history.json');
+  try {
+    const store = new HistoryStore(file);
+    const timestamp = Date.now();
+    store.addSkillLaunch({ robotID: 'robot', sessionID: 'fresh', skillID: 'skill', timestamp });
+    store.addSkillLaunch({
+      robotID: 'robot', sessionID: 'expired', skillID: 'skill',
+      timestamp: timestamp - SKILL_LAUNCH_RETENTION_MS - 1,
+    });
+    const before = readFileSync(file, 'utf8');
+
+    assert.throws(
+      () => store.saveSkillPayload({ robotID: 'robot', sessionID: 'expired', skillID: 'skill', payload: null }),
+      /Cannot convert undefined or null to object/,
+    );
+    assert.deepEqual(store.skillLaunches.map((record) => record.sessionID), ['fresh', 'expired']);
+    assert.equal(readFileSync(file, 'utf8'), before, 'a rejected payload must not flush retention changes');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('history payload update prunes expired launches before matching', () => {

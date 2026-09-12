@@ -105,10 +105,10 @@ export function cacheNewsEntry(cache, key, relayData, { log = console, now } = {
  * fetchExternal: returns the AP-shaped XML string. opts.get(feedUrl) overrides the RSS fetch.
  * @param {{ sourceID: number }} input
  */
-export async function fetchNews(input, { get = defaultRssGet } = {}) {
+export async function fetchNews(input, { get = defaultRssGet, signal } = {}) {
   const category = CATEGORIES[input.sourceID];
   const feedUrl = newsFeedUrl(input.sourceID);
-  const xml = await get(feedUrl);
+  const xml = await get(feedUrl, { signal });
   if (!xml) throw new Error(`Empty RSS reply for ${category}`);
   const feed = parseRssFeed(String(xml), 10);
   return buildApFeedXml(feed.items, feed.title, { rights: feed.rights, author: feed.author });
@@ -119,10 +119,12 @@ export async function fetchNews(input, { get = defaultRssGet } = {}) {
  * non-2xx reply surfaces as an axios-shaped error so the relay's fetchError reproduces the
  * upstream status (AbstractRelayRequestHandler.ts:159-161) exactly as `axios.get` did.
  */
-export async function defaultRssGet(feedUrl) {
+export async function defaultRssGet(feedUrl, { signal } = {}) {
+  const timeoutSignal = AbortSignal.timeout(RSS_TIMEOUT_MS);
+  const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
   const res = await fetch(feedUrl, {
     headers: { 'User-Agent': 'jibo-pegasus-news/1.0', Accept: 'application/rss+xml,application/atom+xml,application/xml,text/xml' },
-    signal: AbortSignal.timeout(RSS_TIMEOUT_MS),
+    signal: requestSignal,
   });
   const body = await res.text();
   if (!res.ok) {

@@ -2,7 +2,23 @@
 // Keep credentials out of both surfaces even when an upstream response contains a
 // URL copied from an authenticated API request.
 
-const SENSITIVE_PARAMETER = /^(?:access[-_]?token|api[-_]?key|apikey|appid|authorization|client[-_]?secret|key|ocp-apim-subscription-key|password|secret|sig(?:nature)?|subscription[-_]?key|token)$/i;
+const CREDENTIAL_WORDS = new Set([
+  'appid', 'auth', 'authorization', 'bearer', 'credential', 'credentials', 'key',
+  'password', 'passwd', 'secret', 'sig', 'signature', 'token',
+]);
+const COMPACT_CREDENTIAL_NAMES = [
+  'accesskey', 'accesstoken', 'apikey', 'authkey', 'authtoken', 'clientkey',
+  'clientsecret', 'ocpapimsubscriptionkey', 'privatekey', 'refreshtoken',
+  'secretkey', 'subscriptionkey',
+];
+
+function isSensitiveParameter(name) {
+  const words = String(name).replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase()
+    .split(/[^a-z0-9]+/).filter(Boolean);
+  if (words.some((word) => CREDENTIAL_WORDS.has(word))) return true;
+  const compact = words.join('');
+  return COMPACT_CREDENTIAL_NAMES.some((term) => compact.includes(term));
+}
 
 export function redactProviderUrl(value) {
   if (value === null || value === undefined || typeof value !== 'string') return value;
@@ -16,7 +32,7 @@ export function redactProviderUrl(value) {
   }
 
   for (const key of [...url.searchParams.keys()]) {
-    if (SENSITIVE_PARAMETER.test(key)) url.searchParams.delete(key);
+    if (isSensitiveParameter(key)) url.searchParams.delete(key);
   }
   // Userinfo and fragments are not needed for attribution and can carry
   // credentials when an upstream URL is copied verbatim.

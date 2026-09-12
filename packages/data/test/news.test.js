@@ -106,6 +106,33 @@ test('fetchNews does not promote the first story to a synthetic header when feed
   assert.equal((xml.match(/<apcm:ExtendedHeadLine>/g) || []).length, 2);
 });
 
+test('fetchNews forwards caller cancellation to the RSS provider', async () => {
+  const controller = new AbortController();
+  let seenSignal;
+  const pending = fetchNews({ sourceID: 42209 }, {
+    signal: controller.signal,
+    get: (_url, options = {}) => {
+      seenSignal = options.signal;
+      return new Promise((resolve, reject) => {
+        if (!seenSignal) {
+          reject(Object.assign(new Error('missing caller signal'), { name: 'AbortError' }));
+          return;
+        }
+        if (seenSignal.aborted) {
+          reject(seenSignal.reason || Object.assign(new Error('aborted'), { name: 'AbortError' }));
+          return;
+        }
+        seenSignal.addEventListener('abort', () => {
+          reject(seenSignal.reason || Object.assign(new Error('aborted'), { name: 'AbortError' }));
+        }, { once: true });
+      });
+    },
+  });
+  controller.abort();
+  await assert.rejects(pending, (error) => error?.name === 'AbortError');
+  assert.equal(seenSignal, controller.signal);
+});
+
 let server;
 let fetchCount = 0;
 before(async () => {

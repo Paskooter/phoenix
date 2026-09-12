@@ -168,6 +168,9 @@ test('LassoClient strips identity headers on cross-origin redirects', async () =
     'x-jibo-transid': 'identity-transid',
     authorization: 'Bearer identity-token',
     cookie: 'identity-cookie',
+    'x-api-key': 'custom-api-key',
+    'x-auth-token': 'custom-auth-token',
+    'x-custom-identity': 'custom-identity',
     accept: 'application/json',
   });
   try {
@@ -176,6 +179,9 @@ test('LassoClient strips identity headers on cross-origin redirects', async () =
     assert.equal(received[0]['x-jibo-transid'], undefined);
     assert.equal(received[0].authorization, undefined);
     assert.equal(received[0].cookie, undefined);
+    assert.equal(received[0]['x-api-key'], undefined);
+    assert.equal(received[0]['x-auth-token'], undefined);
+    assert.equal(received[0]['x-custom-identity'], undefined);
     assert.equal(received[0].accept, 'application/json');
   } finally {
     await new Promise((resolve) => source.close(resolve));

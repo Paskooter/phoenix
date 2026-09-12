@@ -11,6 +11,7 @@ import {
   sourceJsonDumps,
 } from '../src/gqaAccountAttribution.js';
 import { createGqaAnswerSkill, createGqaHttpRoute } from '../src/gqaAnswerSkill.js';
+import { redactProviderUrl } from '../src/gqaProviderUrl.js';
 import {
   createGqaMultiProviderProfile,
   createGqaMultiProviderService,
@@ -137,6 +138,16 @@ test('attribution records redact API-key query parameters from provider URLs', a
   assert.equal(record.url, 'https://fixture.invalid/search?q=fixture');
   assert.equal(record.image_url, 'https://fixture.invalid/image.jpg');
   assert.equal(JSON.stringify(record).includes('secret'), false);
+});
+
+test('provider URL redaction removes semantic credential query names', () => {
+  const redacted = redactProviderUrl(
+    'https://fixture.invalid/search?q=fixture&x-api-key=api-secret&x-auth-token=auth-secret'
+      + '&accessToken=access-secret&refresh_token=refresh-secret&clientSecret=client-secret'
+      + '&private-key=private-secret&credential=credential-secret&safe=value',
+  );
+  assert.equal(redacted, 'https://fixture.invalid/search?q=fixture&safe=value');
+  assert.doesNotMatch(redacted, /secret/);
 });
 
 test('Mongo attribution reads sanitize legacy provider URLs before returning records', async () => {

@@ -94,8 +94,8 @@ export class HistoryStore {
     // therefore always yields the 500 error envelope, never the 200 `null` no-match result.
     // Verified against the pinned compiled collection with the model call counted
     // (docs/parity/evidence/2026-09-10/i01-history-routes/w7-ref-routes-oracle.json).
-    this._pruneExpired();
     const payloadSize = Object.keys(data.payload).length;
+    this._pruneExpired();
     const rec = [...this.skillLaunches]
       .reverse()
       .find((r) => r.sessionID === data.sessionID && r.robotID === data.robotID && r.skillID === data.skillID);
