@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, statSync, readFileSync, writeFileSync, chmodSync, mkdirSync, readdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, statSync, existsSync, readFileSync, writeFileSync, chmodSync, mkdirSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Store } from '../src/store.js';
@@ -31,6 +31,27 @@ test('Account saves retain private credentials across replacement and reload', (
     assert.deepEqual(readdirSync(parent).sort(), ['account.json', 'account.json.tmp']);
   } finally {
     process.umask(previousMask);
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('reopening Account stores removes abandoned UUID temp files without touching the committed snapshot', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-stale-temp-'));
+  try {
+    const file = join(dir, 'account.json');
+    const store = new Store(file);
+    store.accounts.set('robot', { _id: 'robot', accessKeyId: 'fixture-key' });
+    store.flush();
+    const committed = readFileSync(file);
+    const stale = `${file}.00000000-0000-4000-8000-000000000000.tmp`;
+    writeFileSync(stale, '{partial snapshot');
+    assert.equal(existsSync(stale), true);
+
+    const reopened = new Store(file);
+    assert.deepEqual(readFileSync(file), committed, 'startup keeps the committed snapshot');
+    assert.equal(existsSync(stale), false, 'startup removes an abandoned Store temporary file');
+    assert.equal(reopened.accounts.get('robot').accessKeyId, 'fixture-key');
+  } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });

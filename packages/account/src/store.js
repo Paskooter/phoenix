@@ -3,15 +3,16 @@
 // file with atomic writes (tmp + rename) is plenty at household scale and keeps Phoenix
 // zero-dependency. Collections are Maps keyed by _id; every mutation schedules a flush.
 
-import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync, readdirSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { dirname, join } from 'node:path';
+import { dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/store.json');
 // `settings` holds per-account report-skill PersonalReportSettingsData (keyed by _id = accountId).
 // `oauthClients` holds the admin OAuth-client registry (OauthClients_20171108), keyed by _id.
 const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'phoneVerifications', 'oauthClients'];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class Store {
   /** @param {string} [file] JSON file path (ETCO_account_dataFile overrides the default) */
@@ -19,6 +20,28 @@ export class Store {
     this.file = file;
     for (const c of COLLECTIONS) this[c] = new Map();
     this._load();
+  }
+
+  _cleanupStaleTemps() {
+    const directory = dirname(this.file);
+    const prefix = `${basename(this.file)}.`;
+    let entries;
+    try {
+      entries = readdirSync(directory, { withFileTypes: true });
+    } catch (error) {
+      if (error.code === 'ENOENT') return;
+      throw error;
+    }
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.startsWith(prefix) || !entry.name.endsWith('.tmp')) continue;
+      const uuid = entry.name.slice(prefix.length, -'.tmp'.length);
+      if (!UUID_RE.test(uuid)) continue;
+      try {
+        unlinkSync(join(directory, entry.name));
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+    }
   }
 
   _load() {
@@ -31,6 +54,11 @@ export class Store {
     } catch (err) {
       throw new Error(`account store unreadable (${this.file}): ${err.message}`);
     }
+    // SIGKILL can leave a UUID temp behind after its write but before rename.
+    // Keep the parsed committed snapshot authoritative, then remove only the
+    // temp names this store creates. A missing primary is left alone so a
+    // possible first-snapshot recovery artifact is not discarded blindly.
+    this._cleanupStaleTemps();
   }
 
   /** Replace the snapshot atomically, keeping credential bytes private. */
