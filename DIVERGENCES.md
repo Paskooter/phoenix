@@ -4,6 +4,29 @@ Phoenix aims for **behavioral** parity at the wire, not internal fidelity. Every
 deviation is recorded here with rationale, so the M9 parity report is just this file finalized.
 Each entry: what changed, why, and the parity impact.
 
+## Production smoke gate — approved fail-closed NLU boundary differences
+
+The production smoke comparator remains strict. The reviewed manifest at
+`scripts/parity-production/approved-divergences.json` is a narrow gate-boundary
+exception for exactly four malformed NLU boundary cases and exactly 22 recorded
+field differences. Its bytes are pinned by SHA-256
+`9fd4e94bd9192970056d02bec2ccdd8d9acc61463165f274b5da6d57cba97bbf`.
+
+| Stable case ID | Source/reference behavior | Phoenix behavior | Security reason |
+|---|---|---|---|
+| `boundary:rules-null` | `200 NLU`, `no-route`, `entities:null`, `intent:null`, `rules:[]`, `Content-Length: 130` | `400 ERROR`, `parser-error`, `data.message: "Invalid NLU request"`, `final:true`, `Content-Length: 136` | Reject malformed `rules` without exposing parser behavior |
+| `boundary:rules-string` | Same source shape as `boundary:rules-null` | Same generic fail-closed error shape | Reject malformed `rules` without exposing parser behavior |
+| `boundary:missing-data` | `400` with `data.message: "Bad request: {}"`, `Content-Length: 132` | `400` with `data.message: "Invalid NLU request"`, `Content-Length: 136` | Do not echo the malformed request body |
+| `boundary:text-number` | `400` with `data.message: "Bad request: {"data":{"text":12,"rules":["launch"]}}"`, `Content-Length: 177` | `400` with `data.message: "Invalid NLU request"`, `Content-Length: 136` | Do not echo malformed request data |
+
+The gate runs the unchanged strict comparator first. Only a mismatch with the
+exact case-ID/path/reference/candidate entries in that manifest may pass the
+boundary. Any added, removed, or mutated difference, unknown case/path,
+invariant failure, coverage gap, incomplete capture, or tool/runtime error
+stays nonzero. `run.json` remains honest (`result: "mismatch"`, `differences:
+22`); a passing gate reports **22 explicitly approved intentional security
+divergences**, never source parity.
+
 ## Architectural (decided at bootstrap)
 
 | # | Divergence | Rationale | Parity impact |

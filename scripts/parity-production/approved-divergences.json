@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "kind": "approved-security-divergence-manifest",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "suiteId": "production-v2",
+  "suiteSha256": "8e5d1b63851a5b1cc63d2f020a920b921667e24b2c1f7c3d086144c0621ed6c2",
+  "comparisonSchemaVersion": 1,
+  "expectedDivergenceCount": 22,
+  "expectedCaseIds": [
+    "boundary:rules-null",
+    "boundary:rules-string",
+    "boundary:missing-data",
+    "boundary:text-number"
+  ],
+  "review": {
+    "result": "approved",
+    "scope": "Only malformed production NLU boundary requests whose Phoenix response intentionally fails closed instead of reproducing source parser diagnostics or request-body echoes.",
+    "rationale": "Phoenix must not leak parser diagnostics or request bodies. The strict comparator remains unchanged; this manifest approves only the reviewed security posture differences below."
+  },
+  "divergences": [
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/body/value/data/entities",
+      "kind": "presence",
+      "reference": {
+        "present": true,
+        "value": null
+      },
+      "candidate": {
+        "present": false
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/body/value/data/intent",
+      "kind": "presence",
+      "reference": {
+        "present": true,
+        "value": null
+      },
+      "candidate": {
+        "present": false
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/body/value/data/message",
+      "kind": "presence",
+      "reference": {
+        "present": false
+      },
+      "candidate": {
+        "present": true,
+        "value": "Invalid NLU request"
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/body/value/data/rules",
+      "kind": "presence",
+      "reference": {
+        "present": true,
+        "value": []
+      },
+      "candidate": {
+        "present": false
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/body/value/final",
+      "kind": "presence",
+      "reference": {
+        "present": false
+      },
+      "candidate": {
+        "present": true,
+        "value": true
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/body/value/type",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "NLU"
+      },
+      "candidate": {
+        "present": true,
+        "value": "ERROR"
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/headers/content-length",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "130"
+      },
+      "candidate": {
+        "present": true,
+        "value": "136"
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/parser/response/status",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": 200
+      },
+      "candidate": {
+        "present": true,
+        "value": 400
+      }
+    },
+    {
+      "caseId": "boundary:rules-null",
+      "path": "/routing/kind",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "no-route"
+      },
+      "candidate": {
+        "present": true,
+        "value": "parser-error"
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/body/value/data/entities",
+      "kind": "presence",
+      "reference": {
+        "present": true,
+        "value": null
+      },
+      "candidate": {
+        "present": false
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/body/value/data/intent",
+      "kind": "presence",
+      "reference": {
+        "present": true,
+        "value": null
+      },
+      "candidate": {
+        "present": false
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/body/value/data/message",
+      "kind": "presence",
+      "reference": {
+        "present": false
+      },
+      "candidate": {
+        "present": true,
+        "value": "Invalid NLU request"
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/body/value/data/rules",
+      "kind": "presence",
+      "reference": {
+        "present": true,
+        "value": []
+      },
+      "candidate": {
+        "present": false
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/body/value/final",
+      "kind": "presence",
+      "reference": {
+        "present": false
+      },
+      "candidate": {
+        "present": true,
+        "value": true
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/body/value/type",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "NLU"
+      },
+      "candidate": {
+        "present": true,
+        "value": "ERROR"
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/headers/content-length",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "130"
+      },
+      "candidate": {
+        "present": true,
+        "value": "136"
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/parser/response/status",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": 200
+      },
+      "candidate": {
+        "present": true,
+        "value": 400
+      }
+    },
+    {
+      "caseId": "boundary:rules-string",
+      "path": "/routing/kind",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "no-route"
+      },
+      "candidate": {
+        "present": true,
+        "value": "parser-error"
+      }
+    },
+    {
+      "caseId": "boundary:missing-data",
+      "path": "/parser/response/body/value/data/message",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "Bad request: {}"
+      },
+      "candidate": {
+        "present": true,
+        "value": "Invalid NLU request"
+      }
+    },
+    {
+      "caseId": "boundary:missing-data",
+      "path": "/parser/response/headers/content-length",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "132"
+      },
+      "candidate": {
+        "present": true,
+        "value": "136"
+      }
+    },
+    {
+      "caseId": "boundary:text-number",
+      "path": "/parser/response/body/value/data/message",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "Bad request: {\"data\":{\"text\":12,\"rules\":[\"launch\"]}}"
+      },
+      "candidate": {
+        "present": true,
+        "value": "Invalid NLU request"
+      }
+    },
+    {
+      "caseId": "boundary:text-number",
+      "path": "/parser/response/headers/content-length",
+      "kind": "value",
+      "reference": {
+        "present": true,
+        "value": "177"
+      },
+      "candidate": {
+        "present": true,
+        "value": "136"
+      }
+    }
+  ]
+}
