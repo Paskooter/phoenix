@@ -29,12 +29,15 @@ The launcher verifies the snapshot before it opens services. Without that
 setting it uses AST, including the accepted N1 divergence. It does not enable
 a pending GQA profile or LLM fallback.
 
-The default Hub port is 19000; skills, parser, history and data use offsets
+The default Hub port is 9000, from `scripts/parity-robot/ports.json`; skills, parser, history and data use offsets
 3, 5, 6 and 7. Account binds to loopback at offset 11. The Classic TLS entrypoint listens on port 443 (all interfaces by default, so real robots on the LAN can reach it) and hosts both its
 HTTP routes and notification WebSocket upgrades on the same TLS server. Override the base port with
 `PHOENIX_ROBOT_PORT`, or the TLS port/bind host with
 `PHOENIX_ROBOT_ENTRYPOINT_PORT` and `PHOENIX_ROBOT_ENTRYPOINT_HOST`.
-A base/TLS port of zero allocates ephemeral ports for isolated tests.
+A base/TLS port of zero allocates ephemeral ports for isolated tests. When a
+non-default base is used for a robot, pass the same value to
+`repoint-robot.sh --hub-port`; the launcher receipt records the selected
+`hubPort` for operators.
 
 `PHOENIX_ROBOT_PUBLIC_URL` controls Classic-generated public URLs (default
 `https://localhost`). The ASR backend is configured through

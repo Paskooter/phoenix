@@ -93,6 +93,21 @@ test('production grade rejects incomplete parser requests and changed routing me
   assert.ok(memo.differences.some(d => d.path.endsWith('/routing/decision/memo')));
 });
 
+test('production comparator rejects tampered runtime, implementation and adapter provenance', () => {
+  for (const [name, mutate] of [
+    ['runtime', capture => { capture.runtime = 'v22.0.0'; }],
+    ['implementation', capture => { capture.implementation = 'phoenix'; }],
+    ['adapter', capture => { capture.adapterSha256 = '0'.repeat(64); }],
+  ]) {
+    const candidate = structuredClone(control);
+    mutate(candidate);
+    const result = run(candidate);
+    assert.equal(result.pass, false, `${name} provenance must not be trusted`);
+    assert.ok(result.invariants.some(invariant => invariant.path.includes(name === 'adapter' ? 'adapterSha256' : name)),
+      `${name} provenance failure was not reported`);
+  }
+});
+
 test('production requests use the real builder and retain dialog-reference injection as a compared output', () => {
   const c = reference.cases.find(c => c.id === 'boundary:loop-full-name');
   assert.equal(c.turns[0].preparation.input.context.runtime.dialog.referent, null);

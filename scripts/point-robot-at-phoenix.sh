@@ -14,7 +14,9 @@
 # still leaves each region_config `wsendpoint` alone (the robot-side one does not). Prefer that
 # script when you already have a shell on the robot, and keep the two from drifting.
 #
-# Auth: tries SSH key first, then root:jibo (needs `sshpass`), then prompts for username/password.
+# Authentication is delegated to OpenSSH. Use a configured key or answer the
+# normal SSH prompt; this launcher never stores or supplies a password.
+# Host keys must already be present in the known-hosts file.
 #
 # Usage:
 #   scripts/point-robot-at-phoenix.sh <robot-ip> <phoenix-ip> [classic-port] [hub-port]
@@ -25,75 +27,70 @@
 #   scripts/point-robot-at-phoenix.sh 192.168.1.42 192.168.1.50             # OTA only (port 9010)
 set -euo pipefail
 
-ROBOT="${1:-}"
-SECOND="${2:-}"
-OTA_PORT="${3:-9010}"
-HUB_PORT="${4:-9000}"
-
-if [ -z "$ROBOT" ] || [ -z "$SECOND" ]; then
-  sed -n '2,18p' "$0" >&2; exit 2
-fi
-
-MODE=apply
-PHOENIX=""
-if [ "$SECOND" = "--reset" ]; then
-  MODE=reset
-else
-  PHOENIX="$SECOND"
-fi
-OTA_ENDPOINT="http://$PHOENIX:$OTA_PORT"
-
-SSH_USER=root
-SSH_PASS=jibo
-SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8)
-AUTH=""              # key | sshpass | interactive
-HAVE_SSHPASS=0; command -v sshpass >/dev/null 2>&1 && HAVE_SSHPASS=1
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/load-dotenv.sh
+source "$SCRIPT_DIR/load-dotenv.sh"
 
 say() { printf '\033[36m[phoenix]\033[0m %s\n' "$*" >&2; }
 die() { printf '\033[31m[phoenix] ERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
-# Quietly test whether the current SSH_USER/SSH_PASS/AUTH can log in.
-test_login() {
-  case "$AUTH" in
-    key)         ssh "${SSH_OPTS[@]}" -o BatchMode=yes "$SSH_USER@$ROBOT" true 2>/dev/null ;;
-    sshpass)     sshpass -p "$SSH_PASS" ssh "${SSH_OPTS[@]}" "$SSH_USER@$ROBOT" true 2>/dev/null ;;
-    *)           return 1 ;;
+PORTS_FILE="$SCRIPT_DIR/parity-robot/ports.json"
+DEFAULT_HUB_PORT="$(phoenix_canonical_port "$PORTS_FILE")" || die "invalid canonical hub-port configuration"
+ROBOT="${1:-}"
+SECOND="${2:-}"
+
+if [ -z "$ROBOT" ] || [ -z "$SECOND" ]; then
+  sed -n '2,20p' "$0" >&2; exit 2
+fi
+
+MODE=apply
+PHOENIX=""
+OTA_PORT=9010
+HUB_PORT="$DEFAULT_HUB_PORT"
+if [ "$SECOND" = "--reset" ]; then
+  [ "$#" -eq 2 ] || { say "usage: $0 <robot-ip> --reset"; exit 2; }
+  MODE=reset
+else
+  case "$#" in
+    2|3|4) ;;
+    *) say "usage: $0 <robot-ip> <phoenix-ip> [classic-port] [hub-port]"; exit 2 ;;
   esac
+  PHOENIX="$SECOND"
+  OTA_PORT="${3:-9010}"
+  HUB_PORT="${4:-$DEFAULT_HUB_PORT}"
+fi
+
+validate_host() {
+  local value="${1:-}"
+  [[ "$value" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] || return 1
+  [[ "$value" != *..* ]]
+}
+validate_port() {
+  local value="${1:-}"
+  [[ "$value" =~ ^[0-9]{1,5}$ ]] || return 1
+  (( 10#$value >= 1 && 10#$value <= 65535 ))
 }
 
-# Resolve an auth method.
-resolve_auth() {
-  AUTH=key
-  if test_login; then say "auth: SSH key (root@$ROBOT)"; return; fi
-  if [ "$HAVE_SSHPASS" = 1 ]; then
-    AUTH=sshpass; SSH_USER=root; SSH_PASS=jibo
-    if test_login; then say "auth: default root:jibo"; return; fi
-    say "default root:jibo didn't work — enter the robot's login."
-    local tries=0
-    while [ "$tries" -lt 4 ]; do
-      tries=$((tries + 1))
-      printf 'username [root]: ' >&2; read -r u || true; SSH_USER="${u:-root}"
-      printf 'password: ' >&2; read -rs SSH_PASS || true; printf '\n' >&2
-      if test_login; then say "auth: $SSH_USER (password)"; return; fi
-      say "login failed, try again ($tries/4)"
-    done
-    die "could not authenticate to $ROBOT"
-  else
-    # No sshpass: can't auto-test a password. Fall back to one interactive ssh (it will prompt).
-    AUTH=interactive
-    say "no 'sshpass' found — ssh will prompt for the password (default is: jibo)."
-    say "(install sshpass to auto-try root:jibo: apt-get install sshpass / brew install hudochenkov/sshpass/sshpass)"
-  fi
-}
+validate_host "$ROBOT" || { say "invalid robot host"; exit 2; }
+validate_port "$HUB_PORT" || { say "invalid hub port"; exit 2; }
+if [ "$MODE" = apply ]; then
+  validate_host "$PHOENIX" || { say "invalid Phoenix host"; exit 2; }
+  validate_port "$OTA_PORT" || { say "invalid classic port"; exit 2; }
+fi
 
-# Run the piped remote script over the resolved auth. Remote args: $1=MODE $2=OTA_ENDPOINT $3=HUB_HOST $4=HUB_PORT
+OTA_ENDPOINT=""
+[ "$MODE" = apply ] && OTA_ENDPOINT="http://$PHOENIX:$OTA_PORT"
+
+SSH_USER="${PHOENIX_SSH_USER:-root}"
+[[ "$SSH_USER" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || { say "invalid SSH user"; exit 2; }
+SSH_KNOWN_HOSTS="${PHOENIX_SSH_KNOWN_HOSTS:-${HOME:-}/.ssh/known_hosts}"
+[ -n "$SSH_KNOWN_HOSTS" ] && [ -r "$SSH_KNOWN_HOSTS" ] || die "SSH known-hosts file is not readable: $SSH_KNOWN_HOSTS"
+SSH_OPTS=(-o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$SSH_KNOWN_HOSTS" -o ConnectTimeout=8)
+
+# Pass a fixed remote program and validated data arguments. Do not build a
+# shell command string from caller-provided values.
 run_remote() {
-  local remote_cmd="sh -s '$MODE' '$OTA_ENDPOINT' '$PHOENIX' '$HUB_PORT'"
-  if [ "$AUTH" = sshpass ]; then
-    sshpass -p "$SSH_PASS" ssh "${SSH_OPTS[@]}" "$SSH_USER@$ROBOT" "$remote_cmd"
-  else
-    ssh "${SSH_OPTS[@]}" "$SSH_USER@$ROBOT" "$remote_cmd"
-  fi
+  ssh "${SSH_OPTS[@]}" "$SSH_USER@$ROBOT" sh -s -- "$MODE" "$OTA_ENDPOINT" "$PHOENIX" "$HUB_PORT"
 }
 
 # ---- the script that runs ON THE ROBOT (POSIX sh / busybox; the robot has node) -------------
@@ -153,7 +150,6 @@ REMOTE
 # ---------------------------------------------------------------------------------------------
 
 say "robot=$ROBOT  phoenix=$PHOENIX  ota=$OTA_ENDPOINT  hub=$PHOENIX:$HUB_PORT  mode=$MODE"
-resolve_auth
 say "applying on robot…"
 printf '%s' "$REMOTE_SCRIPT" | run_remote
 

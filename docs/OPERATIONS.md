@@ -24,20 +24,25 @@ bash scripts/run-compose-stack.sh
 # robot-revival:  ota 9010 · account+portal 9011 · classic entrypoint 9012   (Ctrl-C stops all)
 ```
 
+The launcher requires `HUB_TOKEN_SECRET`. For a local-only run without a
+stored secret, set `PHOENIX_DEV_MODE=1`; it generates a new process-local
+secret and never uses a shared default. Keep `PHOENIX_DEV_MODE=0` (or unset)
+for any stack reachable by a robot or another host.
 Robots and clients connect to the hub at `ws://<host>:9000/listen` (HTTP API on the same
 port: `GET /healthcheck`, `GET /v1/skills`); a robot's Classic Services (OOBE, update, log, …)
 go to the classic entrypoint on `:9012`. Logs land in `/tmp/phx-compose-*.log`.
 
 The [portable parser deployment guide](parity/candidates/N-08-snapshot-deployment-root-20260907.md) explains installing the approved graph bundle and selecting it for native or Compose startup.
 
-Useful env, all optional:
+Useful environment settings:
 
 | Variable | Effect |
 |---|---|
 | `PARAKEET_URL` | Parakeet ASR host for server-side speech recognition (`POST /transcribe`) |
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (e.g. LM Studio) for the answer-skill + parser fallback |
-| `HUB_TOKEN_SECRET` | JWT secret robots must sign with (default `dev-hub-token-secret`) |
-| `DISABLE_AUTH` | defaults `true` for local use — set `false` to require robot JWTs |
+| `HUB_TOKEN_SECRET` | required for the authenticated stack; provide a unique random value (no default is supplied) |
+| `PHOENIX_DEV_MODE` | `1` permits an ephemeral process-local secret for local development; leave unset/`0` otherwise |
+| `DISABLE_AUTH` | defaults `false`; setting it true is accepted only with explicit `PHOENIX_DEV_MODE=1` |
 | `ADMIN_PASSWORD` | password for the portal's admin page (`/#/admin`); unset = admin disabled |
 | `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `resources/report-prefsConfig.json` |
 
@@ -56,6 +61,9 @@ bash scripts/run-sim-stack.sh
 # then open http://localhost:8080  (or https://<host>:8443 for microphone access)
 ```
 
+The simulator launcher uses the same `HUB_TOKEN_SECRET` as the gateway. Set
+`PHOENIX_DEV_MODE=1` only when an ephemeral local secret is acceptable; without
+that explicit mode the launcher exits if no secret is supplied.
 This launcher auto-detects the optional LAN services and degrades gracefully without them
 (the ASR falls back to a mock that saves received audio to `/tmp/parakeet-rx`).
 
@@ -66,7 +74,7 @@ substitution is still being verified: the audit found differences in default ski
 environment-variable handling. The following starts the current Phoenix stack:
 
 ```bash
-docker compose up
+HUB_TOKEN_SECRET="$(openssl rand -base64 32)" docker compose up
 # conversational: hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005
 #                 history 9006 · lasso 9007 · answer-skill 9009
 # robot-revival:  ota 9010 · account+portal 9011 · classic entrypoint 9012   (all 8080 inside)
@@ -268,7 +276,7 @@ Then:
 1. **`cp .env.example .env`** and set, at minimum:
    ```
    ADMIN_PASSWORD=<long random>            # gates the portal admin page
-   HUB_TOKEN_SECRET=<long random>          # NOT the dev default
+   HUB_TOKEN_SECRET=<long random>          # required for signed hub tokens
    DISABLE_AUTH=false                      # require per-robot hub auth
    ETCO_account_secureCookies=true         # session cookies only over HTTPS
    ETCO_account_region=your-region         # must match the robot's region

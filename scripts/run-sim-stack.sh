@@ -3,12 +3,35 @@
 # Gateway listens on 9000 (the sim's browser hard-codes the hub at <Server-field>:9000).
 set -euo pipefail
 
-PHX=/home/shell/work/phoenix
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/load-dotenv.sh
+source "$SCRIPT_DIR/load-dotenv.sh"
+PHX="$(cd "$SCRIPT_DIR/.." && pwd)"
 SIM=/home/shell/jibo-web-sim
-SECRET="${HUB_AUTH_SECRET:-uHGhXhdXzBybGX7YHuEwAFZC}"   # sim's default; must match the gateway
-SIM_PORT="${SIM_PORT:-8080}"
+
+say() { printf '[phoenix] %s\n' "$*" >&2; }
+die() { printf '[phoenix] ERROR: %s\n' "$*" >&2; exit 1; }
 
 cd "$PHX"
+load_phoenix_env "${PHOENIX_ENV_FILE:-.env}" || die "could not parse dotenv file"
+HUB_PORT="$(phoenix_canonical_port "$SCRIPT_DIR/parity-robot/ports.json")" || die "invalid canonical hub-port configuration"
+
+PHOENIX_DEV_MODE="${PHOENIX_DEV_MODE:-0}"
+case "$PHOENIX_DEV_MODE" in 0|1) ;; *) die "PHOENIX_DEV_MODE must be 0 or 1" ;; esac
+if [ -n "${HUB_TOKEN_SECRET:-}" ] && [ -n "${HUB_AUTH_SECRET:-}" ] && [ "$HUB_TOKEN_SECRET" != "$HUB_AUTH_SECRET" ]; then
+  die "HUB_TOKEN_SECRET and legacy HUB_AUTH_SECRET disagree"
+fi
+SECRET="${HUB_TOKEN_SECRET:-${HUB_AUTH_SECRET:-}}"
+if [ -z "$SECRET" ]; then
+  if [ "$PHOENIX_DEV_MODE" = 1 ]; then
+    SECRET="$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("base64url"))')" || die "could not generate an ephemeral development secret"
+    say "PHOENIX_DEV_MODE=1: using an ephemeral hub secret for this process"
+  else
+    die "HUB_TOKEN_SECRET must be set (or select PHOENIX_DEV_MODE=1 for local development)"
+  fi
+fi
+SIM_PORT="${SIM_PORT:-8080}"
+[[ "$SIM_PORT" =~ ^[0-9]{1,5}$ ]] && (( 10#$SIM_PORT >= 1 && 10#$SIM_PORT <= 65535 )) || die "invalid simulation port"
 
 # LLM (answer-skill freeform answers + the parser's LLM fallback): an
 # OpenAI-compatible /v1 endpoint. Default to the LAN LM Studio host serving
@@ -53,22 +76,22 @@ else
   PARAKEET_URL="http://localhost:6972"
 fi
 
-# Gateway on 9000, wired to the others, auth secret matching the sim.
+# Gateway on the canonical hub port, wired to the others, auth secret matching the sim.
 ETCO_server_hubTokenSecret="$SECRET" \
 ETCO_server_parakeetUrl="$PARAKEET_URL" \
 NET_parser=localhost:7011 \
 NET_skills=localhost:7014 \
 NET_history=localhost:7013 \
 NET_data=localhost:7012 \
-  PORT=9000 node packages/gateway/src/index.js   > /tmp/phx-gateway.log 2>&1 &
+  PORT="$HUB_PORT" node packages/gateway/src/index.js   > /tmp/phx-gateway.log 2>&1 &
 
-# The sim web server. HTTPS=1 adds a self-signed listener on :8443 — the 🎤
+# The sim receives the same explicit secret under its legacy variable name.
 # mic button needs a secure context, so use https://<this-host>:8443/ (accept
 # the one-time cert warning) unless you're browsing via http://localhost.
 cd "$SIM"
 HUB_AUTH_SECRET="$SECRET" PORT="$SIM_PORT" HTTPS="${HTTPS:-1}" node server.js > /tmp/phx-sim.log 2>&1 &
 
-echo "started: nlu:7011 data:7012 history:7013 skills:7014 gateway:9000 sim:$SIM_PORT (+https:8443)"
+say "started: nlu:7011 data:7012 history:7013 skills:7014 gateway:${HUB_PORT} sim:$SIM_PORT (+https:8443)"
 echo "ASR -> ${PARAKEET_URL}/transcribe"
 echo "mic testing: open https://<this-host>:8443/ (self-signed; accept the warning) or http://localhost:$SIM_PORT/ — plain http://<ip>:$SIM_PORT has no mic API"
 echo "logs in /tmp/phx-*.log ; stop all with: pkill -f 'packages/(gateway|nlu|skills|history|data)/src/index.js'; pkill -f 'jibo-web-sim.*server.js'; pkill -f mock-parakeet"

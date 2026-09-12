@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { diffValues } from './parityCompare.js';
 import driver from '../../../scripts/parity-production/driver.cjs';
+import { PRODUCTION_PROVENANCE } from '../../../scripts/parity-production/provenance.mjs';
 
 const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -31,11 +32,21 @@ export function validateProductionTrace(trace, suite) {
   if (!Array.isArray(trace.cases)) return [...failures, { path: '/cases', kind: 'invariant', message: 'Missing cases' }];
   if (!isDeepStrictEqual(trace.cases.map(c => c.id), suite.cases.map(c => c.id))) fail('/cases', 'Cases are missing, duplicated or reordered');
   if (!Array.isArray(trace.lateEffects) || trace.lateEffects.length) fail('/lateEffects', 'Unexpected effects outside active fixture cases');
+  const pinned = PRODUCTION_PROVENANCE.implementations[trace.implementation];
+  if (!pinned) fail('/implementation', 'Implementation is not a pinned production adapter');
+  if (trace.driverSha256 !== PRODUCTION_PROVENANCE.driverSha256) fail('/driverSha256', 'Shared production driver provenance is not pinned');
+  if (pinned && trace.runtime !== pinned.runtime) fail('/runtime', `Unexpected runtime for ${trace.implementation} production adapter`);
+  if (pinned && trace.adapterSha256 !== pinned.adapterSha256) fail('/adapterSha256', `Unexpected adapter provenance for ${trace.implementation} production adapter`);
+  const matchingProvenance = Object.entries(PRODUCTION_PROVENANCE.implementations)
+    .filter(([, candidate]) => trace.runtime === candidate.runtime && trace.adapterSha256 === candidate.adapterSha256);
+  if (matchingProvenance.length === 1 && matchingProvenance[0][0] !== trace.implementation) {
+    fail('/implementation', `Implementation label does not match pinned ${matchingProvenance[0][0]} adapter provenance`);
+  }
   if (trace.implementation === 'original') {
     const native = trace.setup?.nativeDiagnostics;
     if (native?.loads?.length !== 98 || native.loads.some(r => r.status !== 200 || r.body?.Status !== 'OK') || native.errors?.length) fail('/setup/nativeDiagnostics', 'Original native parser did not successfully load all 98 grammars or had transport errors');
     if (native?.performance?.unexpected?.length !== 0 || native.performance.counts.COMPILE_RECEIVED !== 98 || native.performance.counts.COMPILE_COMPLETE !== 98) fail('/setup/nativeDiagnostics/performance', 'Original native performance dependency is absent, incomplete or has unexpected requests');
-    if (trace.runtime !== 'v8.9.4' || trace.setup?.referenceRevision !== suite.referenceRevision) fail('/setup', 'Unexpected original runtime/revision');
+    if (trace.setup?.referenceRevision !== suite.referenceRevision) fail('/setup/referenceRevision', 'Unexpected original reference revision');
   }
   function validateWire(wire, path, at, response = false, generatedEnvelope = response) {
     if (!wire || typeof wire.rawBody !== 'string' || !isDeepStrictEqual(driver.decode(wire.rawBody), wire.body)) { fail(path, 'Captured bytes and decoded body disagree or are missing'); return; }

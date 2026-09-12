@@ -11,6 +11,9 @@ function port(value, name) {
   if (!Number.isInteger(number) || number < 0 || number > 65535) throw new Error(`Invalid ${name}`);
   return number;
 }
+const canonicalPorts = JSON.parse(readFileSync(resolve(root, 'scripts/parity-robot/ports.json'), 'utf8'));
+export const DEFAULT_HUB_PORT = port(canonicalPorts.hubPort, 'canonical hubPort');
+if (DEFAULT_HUB_PORT === 0) throw new Error('canonical hubPort must be non-zero');
 function privateFile(path, name) {
   if (!path) throw new Error(`${name} is required`);
   const absolute = resolve(path);
@@ -52,7 +55,7 @@ import { ensureTlsCertificates } from '../ensure-tls-certs.mjs';
 /** Run in a dedicated process: service modules read process.env at import time. */
 export async function startAuthenticatedRobotStack({
   runDir, secretFile, storeFile, keyFile, certFile, snapshotManifest,
-  basePort = 19000, entrypointPort = 443, entrypointHost = '0.0.0.0',
+  basePort = DEFAULT_HUB_PORT, entrypointPort = 443, entrypointHost = '0.0.0.0',
   publicUrl = 'https://localhost', parakeetUrl = 'http://192.168.1.252:6972',
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
@@ -227,6 +230,8 @@ export async function startAuthenticatedRobotStack({
       started: new Date().toISOString(), pid: process.pid,
       revision: execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
       worktree: root, node: process.version, endpoints,
+      hubPort: endpoints.hub,
+      hubPortSource: base === DEFAULT_HUB_PORT ? 'scripts/parity-robot/ports.json' : 'PHOENIX_ROBOT_PORT',
       authentication: 'real signed Account CreateHubToken and Hub JWT verification',
       notification: {
         accountStore: accountPath,
@@ -260,7 +265,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       keyFile: process.env.PHOENIX_ROBOT_TLS_KEY,
       certFile: process.env.PHOENIX_ROBOT_TLS_CERT,
       snapshotManifest: process.env.PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST,
-      basePort: process.env.PHOENIX_ROBOT_PORT ?? 19000,
+      basePort: process.env.PHOENIX_ROBOT_PORT ?? DEFAULT_HUB_PORT,
       entrypointPort: process.env.PHOENIX_ROBOT_ENTRYPOINT_PORT ?? 443,
       entrypointHost: process.env.PHOENIX_ROBOT_ENTRYPOINT_HOST || '0.0.0.0',
       publicUrl: process.env.PHOENIX_ROBOT_PUBLIC_URL || 'https://localhost',

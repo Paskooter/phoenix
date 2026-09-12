@@ -1,17 +1,20 @@
 // Dedicated real-robot diagnostic stack. Run with PHOENIX_ENV_FILE=/dev/null.
 // This launcher hosts the production services and observes their wire traffic;
 // it does not replace parser/skill responses with a robot simulator.
-import { mkdirSync, appendFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, appendFileSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 if (process.env.PHOENIX_ENV_FILE !== '/dev/null') {
   throw new Error('Set PHOENIX_ENV_FILE=/dev/null to isolate this run from checkout .env files');
 }
 const runDir = resolve(process.env.PHOENIX_ROBOT_RUN || '.parity/robots/moth/20260905');
 mkdirSync(runDir, { recursive: true, mode: 0o700 });
-const base = Number(process.env.PHOENIX_ROBOT_PORT || 19000);
+const ports = JSON.parse(readFileSync(resolve(fileURLToPath(new URL('.', import.meta.url)), 'ports.json'), 'utf8'));
+const base = Number(process.env.PHOENIX_ROBOT_PORT ?? ports.hubPort);
+if (!Number.isInteger(base) || base < 0 || base > 65524) throw new Error('Invalid PHOENIX_ROBOT_PORT');
 Object.assign(process.env, {
   NET_parser: `127.0.0.1:${base + 5}`,
   NET_history: `127.0.0.1:${base + 6}`,
@@ -74,6 +77,13 @@ try {
       return close.apply(this, args);
     };
   }
+  const robotAuth = process.env.PHOENIX_ROBOT_AUTH === 'true';
+  const developmentMode = process.env.PHOENIX_DEV_MODE === '1';
+  if (!robotAuth && !developmentMode) throw new Error('Set PHOENIX_DEV_MODE=1 for the unauthenticated diagnostic profile');
+  if (robotAuth && !process.env.HUB_TOKEN_SECRET && !process.env.ETCO_server_hubTokenSecret) {
+    throw new Error('HUB_TOKEN_SECRET is required when PHOENIX_ROBOT_AUTH=true');
+  }
+
   const nlu = await import('../../packages/nlu/src/index.js');
   const history = await import('../../packages/history/src/index.js');
   const data = await import('../../packages/data/src/index.js');
@@ -85,8 +95,9 @@ try {
   services.push(await data.start(base + 7));
   services.push(await skills.start(base + 3));
   const config = await loadConfig();
-  // Initial transport-only profile, explicitly not authentication acceptance.
-  config.disableAuth = process.env.PHOENIX_ROBOT_AUTH !== 'true';
+  // Initial transport-only profile is development-only; authenticated runs
+  // stay authenticated instead of silently degrading to LAN trust.
+  config.disableAuth = developmentMode && !robotAuth;
   const gw = await gateway.start(base, config);
   services.push(gw.service);
   let connection = 0;

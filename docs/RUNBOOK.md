@@ -10,8 +10,8 @@ than a procedure, see [Operations](OPERATIONS.md).
   assume it shares a network with the robot; step 10 covers hosting it on the
   internet instead.
 - Node.js ≥ 20 on the server.
-- `root` SSH access to the robot, key-based. (Stock robots ship with `root:jibo`;
-  copy your key over with `ssh-copy-id` so the scripts can run unattended.)
+- SSH access: use a provisioned key and a populated `~/.ssh/known_hosts`; the repoint launchers refuse password automation and unknown host keys. If needed,
+  copy your key over with `ssh-copy-id` so the scripts can run unattended.
 - The robot powered on and on your WiFi.
 
 Throughout, `192.168.1.182` is the server and `root@moth-....jibo` is the robot.

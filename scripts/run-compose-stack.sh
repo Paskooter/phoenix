@@ -5,13 +5,37 @@
 # The hub resolves cloud skills via skills-native.json (localhost:<port> per skill).
 # Verify the contract with: node scripts/verify-compose-contract.mjs
 set -euo pipefail
-cd "$(dirname "$0")/.."
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/load-dotenv.sh
+source "$SCRIPT_DIR/load-dotenv.sh"
+cd "$SCRIPT_DIR/.."
 
-# Source .env so friendly names (PARAKEET_URL, LLM_URL, LLM_MODEL, …) are populated for the
-# ETCO_*/NET_* mappings below. The node services already read .env via @phoenix/common's dotenv
-# loader, but this bash launcher does NOT — without this, `${PARAKEET_URL:-}` etc. resolve empty
-# and the hub silently falls back to mock ASR even though .env has a real PARAKEET_URL.
-if [ -f .env ]; then set -a; . ./.env; set +a; fi
+say() { printf '[phoenix] %s\n' "$*" >&2; }
+die() { printf '[phoenix] ERROR: %s\n' "$*" >&2; exit 1; }
+
+# Load KEY=VALUE data without executing the file as shell code. An explicit
+# file can be selected with PHOENIX_ENV_FILE; the normal developer workflow is
+# still `cp .env.example .env` followed by this launcher.
+load_phoenix_env "${PHOENIX_ENV_FILE:-.env}" || die "could not parse dotenv file"
+PORTS_FILE="$SCRIPT_DIR/parity-robot/ports.json"
+HUB_PORT="$(phoenix_canonical_port "$PORTS_FILE")" || die "invalid canonical hub-port configuration"
+
+PHOENIX_DEV_MODE="${PHOENIX_DEV_MODE:-0}"
+case "$PHOENIX_DEV_MODE" in 0|1) ;; *) die "PHOENIX_DEV_MODE must be 0 or 1" ;; esac
+DISABLE_AUTH="${DISABLE_AUTH:-false}"
+case "${DISABLE_AUTH,,}" in
+  true|1|yes)
+    [ "$PHOENIX_DEV_MODE" = 1 ] || die "auth may be disabled only with explicit PHOENIX_DEV_MODE=1"
+    ;;
+esac
+if [ -z "${HUB_TOKEN_SECRET:-}" ]; then
+  if [ "$PHOENIX_DEV_MODE" = 1 ]; then
+    HUB_TOKEN_SECRET="$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("base64url"))')" || die "could not generate an ephemeral development secret"
+    say "PHOENIX_DEV_MODE=1: using an ephemeral hub secret for this process"
+  else
+    die "HUB_TOKEN_SECRET must be set (or select PHOENIX_DEV_MODE=1 for local development)"
+  fi
+fi
 
 LLM_URL="${LLM_URL:-}"
 LLM_MODEL="${LLM_MODEL:-google/gemma-4-e4b}"
@@ -58,11 +82,10 @@ fi
 # issuance (CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md). Disable with ACCOUNT=0.
 ACCOUNT_URL=""
 if [ "${ACCOUNT:-1}" != "0" ]; then
-  # Empty pass-throughs fall back to .env (the account service loads it via @phoenix/common; the
-  # dotenv loader fills unset OR empty-string keys). HUB_TOKEN_SECRET keeps its dev default so the
-  # hub + account agree out of the box. A non-empty value exported in the shell still wins.
+  # The same explicit secret is supplied to account and hub. There is no
+  # built-in authentication secret.
   PORT=9011 \
-  HUB_TOKEN_SECRET="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
+  HUB_TOKEN_SECRET="$HUB_TOKEN_SECRET" \
   ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
   ETCO_account_region="${ETCO_account_region:-}" \
   ETCO_account_secureCookies="${ETCO_account_secureCookies:-}" \
@@ -73,11 +96,11 @@ if [ "${ACCOUNT:-1}" != "0" ]; then
   ACCOUNT_URL="http://localhost:9011"
 fi
 
-PORT=9000 \
+PORT="$HUB_PORT" \
 ETCO_hub_skillsConfig=skills-native.json \
-ETCO_hub_disableAuth="${DISABLE_AUTH:-true}" \
+ETCO_hub_disableAuth="$DISABLE_AUTH" \
 ETCO_hub_accountUrl="${ETCO_hub_accountUrl:-$ACCOUNT_URL}" \
-ETCO_server_hubTokenSecret="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
+ETCO_server_hubTokenSecret="$HUB_TOKEN_SECRET" \
 ETCO_server_parakeetUrl="$PARAKEET_URL" \
 NET_parser=localhost:9005 \
 NET_history=localhost:9006 \
@@ -98,7 +121,7 @@ if [ "${CLASSIC:-1}" != "0" ]; then
   CLASSIC_NOTE=" · classic-entrypoint:9012"
 fi
 
-echo "compose-contract stack: hub:9000 report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 color:9008 answer:9009 example:9013 template:9014"
+echo "compose-contract stack: hub:${HUB_PORT} report:9003 chitchat:9004 parser:9005 history:9006 lasso:9007 color:9008 answer:9009 example:9013 template:9014"
 echo "ext: ota:9010 (OTA update server)${ACCOUNT_URL:+ · account+portal:9011}${CLASSIC_NOTE}"
 [ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:9011  (admin at /#/admin — needs ADMIN_PASSWORD)"
 [ -n "$CLASSIC_NOTE" ] && echo "robot front door: http://localhost:9012  (point the robot region here)"

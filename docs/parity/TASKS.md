@@ -40,7 +40,7 @@ Source: [Restored Pegasus docs/atlas/branch-archaeology.md](https://pvindex.org/
 
 Phoenix: [docs/parity/AUDIT.md](../../docs/parity/AUDIT.md); [docs/parity/evidence/2026-09-05](../../docs/parity/evidence/2026-09-05).
 
-Evidence: [docs/parity/evidence/2026-09-05/baseline.json](../../docs/parity/evidence/2026-09-05/baseline.json) (2026-09-05; management deliverable).
+Evidence: [docs/parity/evidence/2026-09-05/baseline.json](../../docs/parity/evidence/2026-09-05/baseline.json) (2026-09-05; unbounded evidence; management deliverable).
 
 ### PM-02 — Publish the dependency-ordered parity tracker
 
@@ -59,7 +59,7 @@ Source: [Restored Pegasus docs/atlas/verification-strategy.md](https://pvindex.o
 
 Phoenix: [docs/parity/tasks.json](../../docs/parity/tasks.json); [docs/parity/PLAN.md](../../docs/parity/PLAN.md); [scripts/parity-status.mjs](../../scripts/parity-status.mjs).
 
-Evidence: [docs/parity/evidence/2026-09-05/tracker-check.log](../../docs/parity/evidence/2026-09-05/tracker-check.log) (2026-09-05; management deliverable).
+Evidence: [docs/parity/evidence/2026-09-05/tracker-check.log](../../docs/parity/evidence/2026-09-05/tracker-check.log) (2026-09-05; unbounded evidence; management deliverable).
 
 ### PM-03 — Freeze the original compatibility target and divergence policy
 
@@ -79,7 +79,7 @@ Source: [Restored Pegasus docs/atlas/branch-archaeology.md](https://pvindex.org/
 
 Phoenix: [DIVERGENCES.md](../../DIVERGENCES.md); [docs/parity/PLAN.md](../../docs/parity/PLAN.md); [docs/parity/COMPATIBILITY.md](../../docs/parity/COMPATIBILITY.md); [docs/parity/evidence/2026-09-05/compatibility-pins.json](../../docs/parity/evidence/2026-09-05/compatibility-pins.json).
 
-Evidence: [docs/parity/evidence/2026-09-05/compatibility-review.json](../../docs/parity/evidence/2026-09-05/compatibility-review.json) (2026-09-05; management deliverable).
+Evidence: [docs/parity/evidence/2026-09-05/compatibility-review.json](../../docs/parity/evidence/2026-09-05/compatibility-review.json) (2026-09-05; unbounded evidence; management deliverable).
 
 ### V-01 — Make the reference executable with deterministic dependency fixtures
 
@@ -99,7 +99,7 @@ Source: [Original Pegasus Dockerfile](https://pvindex.org/gitea/jiboV2/pegasus/s
 
 Phoenix: [packages/harness](../../packages/harness); [docs/parity/evidence](../../docs/parity/evidence); [scripts/parity-reference](../../scripts/parity-reference); [docs/parity/REFERENCE.md](../../docs/parity/REFERENCE.md).
 
-Evidence: [docs/parity/evidence/2026-09-05/reference/review.json](../../docs/parity/evidence/2026-09-05/reference/review.json) (2026-09-05; original source module execution with recorded emission/provider adapters).
+Evidence: [docs/parity/evidence/2026-09-05/reference/review.json](../../docs/parity/evidence/2026-09-05/reference/review.json) (2026-09-05; historical bounded evidence; original source module execution with recorded emission/provider adapters).
 
 ### V-02 — Finish the two-server comparison runner and strict comparison rules
 
@@ -119,7 +119,7 @@ Source: [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/
 
 Phoenix: [packages/harness](../../packages/harness); [scripts/parity-compare](../../scripts/parity-compare); [docs/parity/COMPARISON.md](../../docs/parity/COMPARISON.md); [docs/parity/evidence/2026-09-05/comparison](../../docs/parity/evidence/2026-09-05/comparison).
 
-Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/parity/evidence/2026-09-05/comparison/review.json) (2026-09-05; Executable original/Phoenix HTTP and hub differential; independent invariant/mutation tests).
+Evidence: [docs/parity/evidence/2026-09-05/comparison/review.json](../../docs/parity/evidence/2026-09-05/comparison/review.json) (2026-09-05; historical bounded evidence; Executable original/Phoenix HTTP and hub differential; independent invariant/mutation tests).
 
 ### V-03 — Map all original tests and resources into a coverage denominator
 
@@ -139,7 +139,7 @@ Source: [Original Pegasus packages/integration-tests-int](https://pvindex.org/gi
 
 Phoenix: [docs/parity/COVERAGE.md](../../docs/parity/COVERAGE.md); [docs/parity/evidence/2026-09-06/coverage/source-inventory.json](../../docs/parity/evidence/2026-09-06/coverage/source-inventory.json); [scripts/parity-coverage](../../scripts/parity-coverage); [scripts/parity-production](../../scripts/parity-production); [packages/harness/resources/corpora/sources.json](../../packages/harness/resources/corpora/sources.json); [packages/harness/src/corpusManifest.js](../../packages/harness/src/corpusManifest.js); [packages/harness/src/productionCompare.js](../../packages/harness/src/productionCompare.js); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [packages/harness/resources/goldens/production-smoke/source.json](../../packages/harness/resources/goldens/production-smoke/source.json); [scripts/parity-production/gate.mjs](../../scripts/parity-production/gate.mjs); [docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json](../../docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json); [scripts/parity-coverage/corpus-gates.json](../../scripts/parity-coverage/corpus-gates.json); [.github/workflows/parity.yml](../../.github/workflows/parity.yml); [docs/parity/evidence/2026-09-06/coverage-review/review.json](../../docs/parity/evidence/2026-09-06/coverage-review/review.json); [docs/parity/evidence/2026-09-06/ci/accepted-run/review.json](../../docs/parity/evidence/2026-09-06/ci/accepted-run/review.json).
 
-Evidence: [docs/parity/evidence/2026-09-06/ci/accepted-run/review.json](../../docs/parity/evidence/2026-09-06/ci/accepted-run/review.json) (2026-09-06; Root source/resource denominator review, complete original controls and full failing baseline, inventory mutation tests, and actual hosted mismatch rejection with independent offline replay).
+Evidence: [docs/parity/evidence/2026-09-06/ci/accepted-run/review.json](../../docs/parity/evidence/2026-09-06/ci/accepted-run/review.json) (2026-09-06; historical bounded evidence; Root source/resource denominator review, complete original controls and full failing baseline, inventory mutation tests, and actual hosted mismatch rejection with independent offline replay).
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
 
@@ -168,7 +168,7 @@ Source: [Jibo documentation](https://pvindex.org/confluence/display/SER/Jetstrea
 
 Phoenix: [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md); [packages/gateway/src](../../packages/gateway/src).
 
-Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/parity/evidence/2026-09-05/hardware/review.json) (2026-09-05; Lead review of all four infrastructure acceptance criteria and real Moth evidence).
+Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/parity/evidence/2026-09-05/hardware/review.json) (2026-09-05; historical bounded evidence; Lead review of all four infrastructure acceptance criteria and real Moth evidence).
 
 ### A-01 — Map every Classic operation to controllers, consumers and tests
 
@@ -189,7 +189,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 
 Phoenix: [docs/parity/evidence/2026-09-05/classic-api-inventory.json](../../docs/parity/evidence/2026-09-05/classic-api-inventory.json); [CLASSIC-SERVICES.md](../../CLASSIC-SERVICES.md); [packages/classic](../../packages/classic); [docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json](../../docs/parity/evidence/2026-09-06/classic-contract-discovery/review.json); [docs/parity/candidates/A-01-operation-map.json](../../docs/parity/candidates/A-01-operation-map.json); [scripts/parity-coverage/a01_operation_map.py](../../scripts/parity-coverage/a01_operation_map.py).
 
-Evidence: [docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md](../../docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md) (2026-09-10; Per-operation attributes (auth incl. both auth layers, ownership, schema, errors, persistence, side effects) recorded for every wire operation and independently re-derived by root from the merged map).
+Evidence: [docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md](../../docs/parity/evidence/2026-09-10/a01-operation-attributes/review.md) (2026-09-10; historical bounded evidence; Per-operation attributes (auth incl. both auth layers, ownership, schema, errors, persistence, side effects) recorded for every wire operation and independently re-derived by root from the merged map).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -218,7 +218,7 @@ Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvi
 
 Phoenix: [packages/common/src/service.js](../../packages/common/src/service.js).
 
-Evidence: [docs/parity/evidence/2026-09-09/c01-http-boundary/review.json](../../docs/parity/evidence/2026-09-09/c01-http-boundary/review.json) (2026-09-09; Executable original/Phoenix shared HTTP boundary differential on the dimensions the bounded 317-case review did not cover).
+Evidence: [docs/parity/evidence/2026-09-09/c01-http-boundary/review.json](../../docs/parity/evidence/2026-09-09/c01-http-boundary/review.json) (2026-09-09; historical bounded evidence; Executable original/Phoenix shared HTTP boundary differential on the dimensions the bounded 317-case review did not cover).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair.
 
@@ -246,7 +246,7 @@ Source: [Original Pegasus packages/interfaces/src](https://pvindex.org/gitea/jib
 
 Phoenix: [packages/contracts/src/messages.js](../../packages/contracts/src/messages.js); [packages/contracts/src/constants.js](../../packages/contracts/src/constants.js); [packages/contracts/src/validate.js](../../packages/contracts/src/validate.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md](../../docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md) (2026-09-10; ListenResult precedence compared line-for-line with hub/response.ts:89-100 and falsified 3/3; 58 acceptance and 17 rejection assertions over fixtures carrying 13 pinned-source citations; every criterion-3 surface covered, with MIM resolved as skill-internal memo state rather than a wire schema and pinned by a new falsified test).
+Evidence: [docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md](../../docs/parity/evidence/2026-09-10/c02-wire-schemas/review.md) (2026-09-10; historical bounded evidence; ListenResult precedence compared line-for-line with hub/response.ts:89-100 and falsified 3/3; 58 acceptance and 17 rejection assertions over fixtures carrying 13 pinned-source citations; every criterion-3 surface covered, with MIM resolved as skill-internal memo state rather than a wire schema and pinned by a new falsified test).
 
 - [x] Candidate implementation — **accepted**; DeepSeek workers (two passes) via Hermes delegate_task.
 
@@ -274,7 +274,7 @@ Source: [Original Pegasus packages/hub/src/config](https://pvindex.org/gitea/jib
 
 Phoenix: [packages/gateway/src/config.js](../../packages/gateway/src/config.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js); [packages/common/src/env.js](../../packages/common/src/env.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/c03-config-rejection/run.json](../../docs/parity/evidence/2026-09-10/c03-config-rejection/run.json) (2026-09-10; Reference registries load unmodified and invalid configurations are rejected exactly as the reference does. The three bundled indexes and all 21 manifests are byte-identical to the pinned originals (sha256 compared, the 1.6MB chitchat manifest fetched over the Gitea raw URL since MCP truncates above ~69kB). 102/102 validation rows and 28/28 registry rows match the retained Node 8.9.4 capture with 0 mismatches. Rejection is total and reaches the executable boundary: a bad ETCO_hub_skillsConfig makes the real gateway exit 1 after ~5.1s with no startup record. Root reproduced the falsification independently - deleting validateSkillsIndex at registry.js:34 failed exactly two named tests, restoring returned 9/0.).
+Evidence: [docs/parity/evidence/2026-09-10/c03-config-rejection/run.json](../../docs/parity/evidence/2026-09-10/c03-config-rejection/run.json) (2026-09-10; historical bounded evidence; Reference registries load unmodified and invalid configurations are rejected exactly as the reference does. The three bundled indexes and all 21 manifests are byte-identical to the pinned originals (sha256 compared, the 1.6MB chitchat manifest fetched over the Gitea raw URL since MCP truncates above ~69kB). 102/102 validation rows and 28/28 registry rows match the retained Node 8.9.4 capture with 0 mismatches. Rejection is total and reaches the executable boundary: a bad ETCO_hub_skillsConfig makes the real gateway exit 1 after ~5.1s with no startup record. Root reproduced the falsification independently - deleting validateSkillsIndex at registry.js:34 failed exactly two named tests, restoring returned 9/0.).
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
 
@@ -301,7 +301,7 @@ Source: [Original Pegasus packages/hub/src/HubService.ts](https://pvindex.org/gi
 
 Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/registry.js](../../packages/gateway/src/registry.js).
 
-Evidence: [scripts/parity-h01/differential.mjs](../../scripts/parity-h01/differential.mjs) (2026-09-10; Robot-specific skill-list endpoints verified against the pinned hub with a differential harness, not by reading code. Root independently reproduced the falsification: replacing the settings filter at packages/gateway/src/index.js:83 with an unfiltered assignment failed exactly two named tests, and restoring returned the suite to green (6/0).).
+Evidence: [scripts/parity-h01/differential.mjs](../../scripts/parity-h01/differential.mjs) (2026-09-10; historical bounded evidence; Robot-specific skill-list endpoints verified against the pinned hub with a differential harness, not by reading code. Root independently reproduced the falsification: replacing the settings filter at packages/gateway/src/index.js:83 with an unfiltered assignment failed exactly two named tests, and restoring returned the suite to green (6/0).).
 
 ### H-02 — Verify listen transaction ordering, cancellation and failure behavior
 
@@ -321,7 +321,7 @@ Source: [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](h
 
 Phoenix: [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/src/responseWrapper.js](../../packages/gateway/src/responseWrapper.js); [packages/gateway/test/listen.e2e.test.js](../../packages/gateway/test/listen.e2e.test.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md](../../docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md) (2026-09-10; Ordering, cancellation and failure proven over a real WebSocket with before/after captures. Cancellation was genuinely broken: CLIENT_ASR left the ASR session running and the terminal frame carried a STALE server transcript instead of the client's; parser failures had lost the PARSER error code that the captured original carries. Three falsifications, each on a complete code line, with sha256 restoration checks. Also verified: no frames written after the terminal frame, and the hub no longer closes the socket ~2s after the final frame (matching pinned BaseWebsocketHandler).).
+Evidence: [docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md](../../docs/parity/evidence/2026-09-10/h02-listen-transactions/review.md) (2026-09-10; historical bounded evidence; Ordering, cancellation and failure proven over a real WebSocket with before/after captures. Cancellation was genuinely broken: CLIENT_ASR left the ASR session running and the terminal frame carried a STALE server transcript instead of the client's; parser failures had lost the PARSER error code that the captured original carries. Three falsifications, each on a complete code line, with sha256 restoration checks. Also verified: no frames written after the terminal frame, and the hub no longer closes the socket ~2s after the final frame (matching pinned BaseWebsocketHandler).).
 
 ### H-03 — Match the original intent decision tree
 
@@ -340,7 +340,7 @@ Source: [Original Pegasus packages/hub/src/intent](https://pvindex.org/gitea/jib
 
 Phoenix: [packages/gateway/src/intentRouter.js](../../packages/gateway/src/intentRouter.js).
 
-Evidence: [docs/parity/evidence/2026-09-07/intent-router/review.json](../../docs/parity/evidence/2026-09-07/intent-router/review.json) (2026-09-07; Pinned original Node8 differential, unchanged source test vectors, root full production regression and integrated main tests).
+Evidence: [docs/parity/evidence/2026-09-07/intent-router/review.json](../../docs/parity/evidence/2026-09-07/intent-router/review.json) (2026-09-07; historical bounded evidence; Pinned original Node8 differential, unchanged source test vectors, root full production regression and integrated main tests).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root review and acceptance.
 
@@ -368,7 +368,7 @@ Source: [Original Pegasus packages/hub/src/skill](https://pvindex.org/gitea/jibo
 
 Phoenix: [packages/gateway/src/skillClient.js](../../packages/gateway/src/skillClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md](../../docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md) (2026-09-10; Verified by executing the PINNED original under Node 8.9.4 against the reference checkout, then driving the real Phoenix gateway with identical inputs, and diffing: 0 differences across ten cases (launch, continued session, redirect, too-many-redirects, redirect timeout, launch timeout, skill 500, on-robot match, redirect-to-on-robot, redirect-destination-failure). Three genuine divergences found and fixed: timings.skill after a redirect must be the redirect leg only, the skill HTTP failure envelope text, and the redirect timeout message naming the original skill. Each falsified separately with the exact failing test quoted.).
+Evidence: [docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md](../../docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md) (2026-09-10; historical bounded evidence; Verified by executing the PINNED original under Node 8.9.4 against the reference checkout, then driving the real Phoenix gateway with identical inputs, and diffing: 0 differences across ten cases (launch, continued session, redirect, too-many-redirects, redirect timeout, launch timeout, skill 500, on-robot match, redirect-to-on-robot, redirect-destination-failure). Three genuine divergences found and fixed: timings.skill after a redirect must be the redirect leg only, the skill HTTP failure envelope text, and the redirect timeout message naming the original skill. Each falsified separately with the exact failing test quoted.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
@@ -395,7 +395,7 @@ Source: [Original Pegasus packages/hub/src/proactive/tools/SettingsRulesChecker.
 
 Phoenix: [packages/gateway/src/proactive/proactiveTransaction.js](../../packages/gateway/src/proactive/proactiveTransaction.js); [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md](../../docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md) (2026-09-10; Proactive settings are now enforced rather than permissive. Verified end-to-end over a real /v1/proactive WebSocket against a live gateway and live Settings service: opting out produces no match frame and no skill launch, opting back in restores it. Fails CLOSED (suppressed, not accepted) when the settings service is unreachable or the person is unknown to the loop. Durability proven by killing and relaunching both real entrypoint processes over the same store file. Root reproduced the falsification: replacing the settings gate with a permissive filter failed exactly four named runtime tests, restoring returned 17/0.).
+Evidence: [docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md](../../docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md) (2026-09-10; historical bounded evidence; Proactive settings are now enforced rather than permissive. Verified end-to-end over a real /v1/proactive WebSocket against a live gateway and live Settings service: opting out produces no match frame and no skill launch, opting back in restores it. Fails CLOSED (suppressed, not accepted) when the settings service is unreachable or the person is unknown to the loop. Durability proven by killing and relaunching both real entrypoint processes over the same store file. Root reproduced the falsification: replacing the settings gate with a permissive filter failed exactly four named runtime tests, restoring returned 17/0.).
 
 ### H-09 — Match each skill process at the reference /v1/main URL
 
@@ -414,7 +414,7 @@ Source: [Original Pegasus packages/baseskill/src/SkillService.ts](https://pvinde
 
 Phoenix: [packages/skills/src/index.js](../../packages/skills/src/index.js); [packages/skills/src/skillService.js](../../packages/skills/src/skillService.js); [docker-compose.yml](../../docker-compose.yml).
 
-Evidence: [docs/parity/evidence/2026-09-10/h09-skill-main-url/](../../docs/parity/evidence/2026-09-10/h09-skill-main-url/) (2026-09-10; Every skill process serves its own skill at the reference /v1/main URL. Verified by driving the real Phoenix skills service and comparing against the pinned original. Root merged and ran the suite: 27/0 across the gateway and jot suites. Falsified at packages/skills/src/index.js:190 (createSelectedSkill fallback).).
+Evidence: [docs/parity/evidence/2026-09-10/h09-skill-main-url/](../../docs/parity/evidence/2026-09-10/h09-skill-main-url/) (2026-09-10; historical bounded evidence; Every skill process serves its own skill at the reference /v1/main URL. Verified by driving the real Phoenix skills service and comparing against the pinned original. Root merged and ran the suite: 27/0 across the gateway and jot suites. Falsified at packages/skills/src/index.js:190 (createSelectedSkill fallback).).
 
 ### H-10 — Match hub authentication and context identity checks
 
@@ -435,7 +435,7 @@ Source: [Original Pegasus packages/utils/src/service/BaseService.ts](https://pvi
 
 Phoenix: [packages/gateway/src/index.js](../../packages/gateway/src/index.js); [packages/gateway/src/preprocessor.js](../../packages/gateway/src/preprocessor.js); [packages/common/src/jwt.js](../../packages/common/src/jwt.js); [packages/gateway/test/hubAuth.test.js](../../packages/gateway/test/hubAuth.test.js); [docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json](../../docs/parity/evidence/2026-09-06/hardware/h10-cache-rotation/review.json).
 
-Evidence: [docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md](../../docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md) (2026-09-11; The CreateHubToken -> Bearer upgrade that previously left H-10 unverified is now EXERCISED ON THE REAL ROBOT against the live server, twice, in both rotation directions. Moth sent GET /v1/listen with Authorization: Bearer <CreateHubToken JWT> to 192.168.1.182:29000 and got 101 Switching Protocols, then completed a native turn. The accepted token is provably Account CreateHubToken output (claim order [accessKeyId, friendlyId, id, payload, secretAccessKey, iat, exp], payload null, exp-iat 10800s) verified against ETCO_server_hubTokenSecret. After a real hub-secret rotation the cached token was refused 401 'JsonWebTokenError: invalid signature', the robot's own log recorded the re-fetch, and EXACTLY ONE refetch plus one retry with a different token upgraded to 101. Root reproduced the falsification: changing the ws auth rejection at packages/gateway/src/index.js:114 from 401 to 200 failed exactly three named tests while the CONTEXT-identity test correctly stayed green; restoring returned 4/0.).
+Evidence: [docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md](../../docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md) (2026-09-11; historical bounded evidence; The CreateHubToken -> Bearer upgrade that previously left H-10 unverified is now EXERCISED ON THE REAL ROBOT against the live server, twice, in both rotation directions. Moth sent GET /v1/listen with Authorization: Bearer <CreateHubToken JWT> to 192.168.1.182:29000 and got 101 Switching Protocols, then completed a native turn. The accepted token is provably Account CreateHubToken output (claim order [accessKeyId, friendlyId, id, payload, secretAccessKey, iat, exp], payload null, exp-iat 10800s) verified against ETCO_server_hubTokenSecret. After a real hub-secret rotation the cached token was refused 401 'JsonWebTokenError: invalid signature', the robot's own log recorded the re-fetch, and EXACTLY ONE refetch plus one retry with a different token upgraded to 101. Root reproduced the falsification: changing the ws auth rejection at packages/gateway/src/index.js:114 from 401 to 200 failed exactly three named tests while the CONTEXT-identity test correctly stayed green; restoring returned 4/0.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -463,7 +463,7 @@ Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/nlu/resources](../../packages/nlu/resources).
 
-Evidence: [docs/parity/evidence/2026-09-10/n01-parser-rules/review.md](../../docs/parity/evidence/2026-09-10/n01-parser-rules/review.md) (2026-09-10; The two discrepancies that previously blocked certification are closed. Multi-rule selection now ranks by the native heuristic score only, not grammar priority; root ran the replay tool itself and got 42/42 cases matching with 'differences: none' (previously 8 of 42 picked a different winner). Root also reproduced the falsification: changing includePriority at requestParser.js:252 failed exactly three named tests including the 42-case selector, restoring returned 163/0.).
+Evidence: [docs/parity/evidence/2026-09-10/n01-parser-rules/review.md](../../docs/parity/evidence/2026-09-10/n01-parser-rules/review.md) (2026-09-10; historical bounded evidence; The two discrepancies that previously blocked certification are closed. Multi-rule selection now ranks by the native heuristic score only, not grammar priority; root ran the replay tool itself and got 42/42 cases matching with 'differences: none' (previously 8 of 42 picked a different winner). Root also reproduced the falsification: changing includePriority at requestParser.js:252 failed exactly three named tests including the 42-case selector, restoring returned 163/0.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -490,7 +490,7 @@ Source: [Original Pegasus packages/history/src/HistoryService.ts](https://pvinde
 
 Phoenix: [packages/history/src/index.js](../../packages/history/src/index.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md](../../docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md) (2026-09-11; Every history HTTP route re-derived from pinned source and probed at runtime. Found and fixed a real ordering divergence: the reference builds the $set document EAGERLY as findOneAndUpdate's second argument (SkillLaunchCollection.ts:48-53), so Object.keys(data.payload) throws BEFORE the query is issued - a missing or null payload is always a 500, never a 200 no-match. Root reproduced the falsification: making payloadSize null-safe failed exactly three named tests (500-without-payload, 500-even-when-nothing-matches, 500-on-null-payload), restoring returned 13/0.).
+Evidence: [docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md](../../docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md) (2026-09-11; historical bounded evidence; Every history HTTP route re-derived from pinned source and probed at runtime. Found and fixed a real ordering divergence: the reference builds the $set document EAGERLY as findOneAndUpdate's second argument (SkillLaunchCollection.ts:48-53), so Object.keys(data.payload) throws BEFORE the query is issued - a missing or null payload is always a 500, never a 200 no-match. Root reproduced the falsification: making payloadSize null-safe failed exactly three named tests (500-without-payload, 500-even-when-nothing-matches, 500-on-null-payload), restoring returned 13/0.).
 
 ### D-01 — Match the common relay and cache contract
 
@@ -509,7 +509,7 @@ Source: [Original Pegasus packages/lasso/src/relay/AbstractRelayRequestHandler.t
 
 Phoenix: [packages/data/src/relay.js](../../packages/data/src/relay.js); [packages/data/src/cache.js](../../packages/data/src/cache.js); [packages/data/src/index.js](../../packages/data/src/index.js).
 
-Evidence: [packages/data/test/relay-runtime.test.js](../../packages/data/test/relay-runtime.test.js) (2026-09-11; Relay and cache contract certified against replayed original transactions (status, content-type, length, ETag and body). Found and fixed a real truthiness bug: skipCache did not match Express qs semantics across encodings. Root reproduced the falsification: replacing the qs-compatible truthiness at relay.js:77 with a bare false failed exactly four named tests including the replayed-transaction comparison, restoring returned 7/0. Cache GET provably precedes the provider call, and a failure or empty reply is never cached.).
+Evidence: [packages/data/test/relay-runtime.test.js](../../packages/data/test/relay-runtime.test.js) (2026-09-11; historical bounded evidence; Relay and cache contract certified against replayed original transactions (status, content-type, length, ETag and body). Found and fixed a real truthiness bug: skipCache did not match Express qs semantics across encodings. Root reproduced the falsification: replacing the qs-compatible truthiness at relay.js:77 with a bare false failed exactly four named tests including the replayed-transaction comparison, restoring returned 7/0. Cache GET provably precedes the provider call, and a failure or empty reply is never cached.).
 
 ## 2. Complete parsing, data and state behavior
 
@@ -530,7 +530,7 @@ Source: [Original Pegasus packages/hub/src/proactive](https://pvindex.org/gitea/
 
 Phoenix: [packages/gateway/src/proactive](../../packages/gateway/src/proactive).
 
-Evidence: [docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md](../../docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md) (2026-09-11; Closed 14 substantive divergences across contextRules/ihRules/proactiveTransaction: CONTAINS_* collection rejection, string character-walk, element-equality includes, the real 13-boundary PartOfDayTimes table (replacing a hand-rolled bucket table that mis-bucketed 17:30/19:00/20:00), IH personID rules, SinceWaking throw, source unit names, type-mismatch short-circuit, missing-query abort, no per-PR swallow, speaker-only launch personIDs, record-before-result ordering, timings.skill. Live /v1/proactive socket runs incl. report_skill manifest end-to-end. Root falsified twice on the committed tree: the boundary minute edge (3 named tests failed, restore 24/0) and the malformed-rule propagation (1 named test failed, restore 24/0).).
+Evidence: [docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md](../../docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md) (2026-09-11; historical bounded evidence; Closed 14 substantive divergences across contextRules/ihRules/proactiveTransaction: CONTAINS_* collection rejection, string character-walk, element-equality includes, the real 13-boundary PartOfDayTimes table (replacing a hand-rolled bucket table that mis-bucketed 17:30/19:00/20:00), IH personID rules, SinceWaking throw, source unit names, type-mismatch short-circuit, missing-query abort, no per-PR swallow, speaker-only launch personIDs, record-before-result ordering, timings.skill. Live /v1/proactive socket runs incl. report_skill manifest end-to-end. Root falsified twice on the committed tree: the boundary minute edge (3 named tests failed, restore 24/0) and the malformed-rule propagation (1 named test failed, restore 24/0).).
 
 ### H-07 — Complete original ASR behavior through a replaceable provider
 
@@ -550,7 +550,7 @@ Source: [Original Pegasus packages/hub/src/asr/google](https://pvindex.org/gitea
 
 Phoenix: [packages/gateway/src/asr](../../packages/gateway/src/asr); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/test/asr.test.js](../../packages/gateway/test/asr.test.js).
 
-Evidence: [packages/gateway/test/asr.google.test.js](../../packages/gateway/test/asr.google.test.js) (2026-09-11; Original streaming ASR behaviour ported behind the replaceable provider seam. Root reproduced the falsification: disabling the FAST_EOS branch at packages/gateway/src/asr/googleSession.js:136 failed exactly five named tests (earlyEOS FAST_EOS annotation, the over-13-word GARBAGE rule, the isQuestionRegex exemption, END_OF_SINGLE_UTTERANCE SOS+EOS ordering, and the upstream error envelope); restoring returned 50/0 across both ASR suites.).
+Evidence: [packages/gateway/test/asr.google.test.js](../../packages/gateway/test/asr.google.test.js) (2026-09-11; historical bounded evidence; Original streaming ASR behaviour ported behind the replaceable provider seam. Root reproduced the falsification: disabling the FAST_EOS branch at packages/gateway/src/asr/googleSession.js:136 failed exactly five named tests (earlyEOS FAST_EOS annotation, the over-13-word GARBAGE rule, the isQuestionRegex exemption, END_OF_SINGLE_UTTERANCE SOS+EOS ordering, and the upstream error envelope); restoring returned 50/0 across both ASR suites.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
 
@@ -577,7 +577,7 @@ Source: [Original Pegasus packages/hub/src/listen/ListenTransactionHandler.ts](h
 
 Phoenix: [packages/gateway/src/historyClient.js](../../packages/gateway/src/historyClient.js); [packages/gateway/src/listenTransaction.js](../../packages/gateway/src/listenTransaction.js); [packages/gateway/src/config.js](../../packages/gateway/src/config.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/h08-speech-history/README.md](../../docs/parity/evidence/2026-09-11/h08-speech-history/README.md) (2026-09-11; Speech-history recording was entirely absent from the hub; the agent implemented createSpeechRecord/updateSpeechRecord/saveSpeechRecord plus all eight update sites and save-on-resolve/reject, and reproduced the reference's failure-path double-save at runtime (reject->save, then done->resolve->save: a failed turn writes two speech rows, CONFIRMED on the pinned original under node 8.9.4, not invented). Differential source-vs-Phoenix harness: DIFFS(0) across 13 cases. Root falsified by deleting line 600 (the second _saveSpeech): the named test 'a rejected turn records the HubError and saves the speech record twice' failed expected-2-actual-1; restore 11/0.).
+Evidence: [docs/parity/evidence/2026-09-11/h08-speech-history/README.md](../../docs/parity/evidence/2026-09-11/h08-speech-history/README.md) (2026-09-11; historical bounded evidence; Speech-history recording was entirely absent from the hub; the agent implemented createSpeechRecord/updateSpeechRecord/saveSpeechRecord plus all eight update sites and save-on-resolve/reject, and reproduced the reference's failure-path double-save at runtime (reject->save, then done->resolve->save: a failed turn writes two speech rows, CONFIRMED on the pinned original under node 8.9.4, not invented). Differential source-vs-Phoenix harness: DIFFS(0) across 13 cases. Root falsified by deleting line 600 (the second _saveSpeech): the named test 'a rejected turn records the HubError and saves the speech record twice' failed expected-2-actual-1; restore 11/0.).
 
 ### N-02 — Match grammar execution, factory entities and scoring
 
@@ -597,7 +597,7 @@ Source: [Original Pegasus packages/parser/src/robustparser/RobustParserClient.ts
 
 Phoenix: [packages/nlu/src/grammar](../../packages/nlu/src/grammar); [packages/nlu/resources/factory-words](../../packages/nlu/resources/factory-words); [packages/nlu/tools/legacyOracleDiagnostic.mjs](../../packages/nlu/tools/legacyOracleDiagnostic.mjs); [scripts/parity-production](../../scripts/parity-production); [docs/parity/NLU-SOURCE.md](../../docs/parity/NLU-SOURCE.md); [docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json](../../docs/parity/evidence/2026-09-06/nlu-source/native-build-provenance-review.json).
 
-Evidence: [docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md](../../docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md) (2026-09-10; Grammar execution and factory entity semantics recovered from version-matched sources. Root reproduced the falsification: kind:'parsed' -> kind:'literal' at parser.js:299 failed exactly one named test, restoring returned green. Production oracle replays 89/89 intents with 0 entity value/type mismatches. 13 of 15 factory grammars vendored with hash-verified byte lengths.).
+Evidence: [docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md](../../docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md) (2026-09-10; historical bounded evidence; Grammar execution and factory entity semantics recovered from version-matched sources. Root reproduced the falsification: kind:'parsed' -> kind:'literal' at parser.js:299 failed exactly one named test, restoring returned green. Production oracle replays 89/89 intents with 0 entity value/type mismatches. 13 of 15 factory grammars vendored with hash-verified byte lengths.).
 
 ### N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
 
@@ -635,7 +635,7 @@ Source: [Original Pegasus packages/parser/robust-parser/rules_src/introductions]
 
 Phoenix: [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar); [packages/harness](../../packages/harness).
 
-Evidence: [docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md](../../docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md) (2026-09-11; 21 named rules (introductions 7, who-am-i 5, greetings 12) line-for-line vs pinned archive; 159/159 fixture cases through parseRequest AND live /v1/parse; 10/10 native-anchored launch rows match the oracle; 7 multi-turn transcripts (known/unknown members). Root falsified the referent write (3 named fails, restore 8/0).).
+Evidence: [docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md](../../docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.md) (2026-09-11; historical bounded evidence; 21 named rules (introductions 7, who-am-i 5, greetings 12) line-for-line vs pinned archive; 159/159 fixture cases through parseRequest AND live /v1/parse; 10/10 native-anchored launch rows match the oracle; 7 multi-turn transcripts (known/unknown members). Root falsified the referent write (3 named fails, restore 8/0).).
 
 ### N-05 — Verify remaining device/content rules and global commands
 
@@ -654,7 +654,7 @@ Source: [Original Pegasus packages/parser/robust-parser/rules_src](https://pvind
 
 Phoenix: [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar).
 
-Evidence: [docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md](../../docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md) (2026-09-11; Fixture suite covers all 98 named rules plus globals/interruption/guards: 219/219 through parseRequest AND live /v1/parse. Closed two real bugs the fixtures exposed: factory namespace isolation (a public rule's own YES/NO shadowed the factory's, so literal yes/no no-matched; now each factory top binds its own rule map) and conditional {% if %} actions (alarm_timer_change yes->delete/no->keep, right_word yes->agreement, greetings yes->good). Root falsified both lines independently (2 named tests each, restore 8/0).).
+Evidence: [docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md](../../docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md) (2026-09-11; historical bounded evidence; Fixture suite covers all 98 named rules plus globals/interruption/guards: 219/219 through parseRequest AND live /v1/parse. Closed two real bugs the fixtures exposed: factory namespace isolation (a public rule's own YES/NO shadowed the factory's, so literal yes/no no-matched; now each factory top binds its own rule map) and conditional {% if %} actions (alarm_timer_change yes->delete/no->keep, right_word yes->agreement, greetings yes->good). Root falsified both lines independently (2 named tests each, restore 8/0).).
 
 ### N-06 — Implement LoopMemberDetector and contextual entity resolution
 
@@ -673,7 +673,7 @@ Source: [Original Pegasus packages/parser/src/utils/LoopMemberDetector.ts](https
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/n06-loop-member/review.md](../../docs/parity/evidence/2026-09-11/n06-loop-member/review.md) (2026-09-11; Speaker/referent settled from pinned source: RuntimeContext carries both identities (perception.speaker + dialog.referent); the hub copies the detector's loopMemberReferent entity into dialog.referent while the speaker feeds only history personIDs. Proven at runtime over a real gateway CLIENT_ASR turn (skill receives referent u-jane with speaker u-george; no-referent leaves dialog untouched). Root falsified the referent write (named test failed, restore 2/0).).
+Evidence: [docs/parity/evidence/2026-09-11/n06-loop-member/review.md](../../docs/parity/evidence/2026-09-11/n06-loop-member/review.md) (2026-09-11; historical bounded evidence; Speaker/referent settled from pinned source: RuntimeContext carries both identities (perception.speaker + dialog.referent); the hub copies the detector's loopMemberReferent entity into dialog.referent while the speaker feeds only history personIDs. Proven at runtime over a real gateway CLIENT_ASR turn (skill receives referent u-jane with speaker u-george; no-referent leaves dialog untouched). Root falsified the referent write (named test failed, restore 2/0).).
 
 ### N-07 — Match fallback arbitration and external-agent behavior
 
@@ -693,7 +693,7 @@ Source: [Original Pegasus packages/parser/src/handlers/ParseRequestHandler.ts](h
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/llmFallback.js](../../packages/nlu/src/llmFallback.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md](../../docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md) (2026-09-11; All three open sub-items closed: per-profile matrix provisioned and replayed 18/18 under BOTH ast and compiled-fst-approved with zero row differences; archived catalog re-derived (99 intents/89 entities) and driven through the envelope; D2 ratified as selectable EXTERNAL_ATTACHMENT_REVISION defaulting to attach (5c0a739) with justification (715e0dd0 omission is incomplete - its own ParserService still wires DialogflowClient). Root falsified the attach pin (6 named fails, restore 9/0). Attach-vs-omit remains a root-ratified judgement.).
+Evidence: [docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md](../../docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md) (2026-09-11; historical bounded evidence; All three open sub-items closed: per-profile matrix provisioned and replayed 18/18 under BOTH ast and compiled-fst-approved with zero row differences; archived catalog re-derived (99 intents/89 entities) and driven through the envelope; D2 ratified as selectable EXTERNAL_ATTACHMENT_REVISION defaulting to attach (5c0a739) with justification (715e0dd0 omission is incomplete - its own ParserService still wires DialogflowClient). Root falsified the attach pin (6 named fails, restore 9/0). Attach-vs-omit remains a root-ratified judgement.).
 
 ### N-08 — Restore exact NLU outputs and close corpus mismatches
 
@@ -740,7 +740,7 @@ Source: [Original Pegasus packages/history/src/skilllaunch/validators](https://p
 
 Phoenix: [packages/history/src/query.js](../../packages/history/src/query.js); [packages/history/src/store.js](../../packages/history/src/store.js); [packages/history/test/history.test.js](../../packages/history/test/history.test.js).
 
-Evidence: [packages/history/test/history.validation.test.js](../../packages/history/test/history.validation.test.js) (2026-09-11; History validation and query semantics matched against the reference oracle. Root reproduced the falsification: removing the length check from the EXACT personIDs comparison at packages/history/src/query.js:87 failed exactly two named tests (order-independent EXACT comparison, and the NOT/CONTAINS/CONTAINS_ANY/CONTAINS_ALL/NOT_CONTAIN matrix); restoring returned green.).
+Evidence: [packages/history/test/history.validation.test.js](../../packages/history/test/history.validation.test.js) (2026-09-11; historical bounded evidence; History validation and query semantics matched against the reference oracle. Root reproduced the falsification: removing the length check from the EXACT personIDs comparison at packages/history/src/query.js:87 failed exactly two named tests (order-independent EXACT comparison, and the NOT/CONTAINS/CONTAINS_ANY/CONTAINS_ALL/NOT_CONTAIN matrix); restoring returned green.).
 
 ### I-03 — Preserve history across restart and verify retention
 
@@ -759,7 +759,7 @@ Source: [Original Pegasus packages/history/src/skilllaunch/schema/SkillLaunchSch
 
 Phoenix: [packages/history/src/store.js](../../packages/history/src/store.js).
 
-Evidence: [packages/history/test/history.durability.test.js](../../packages/history/test/history.durability.test.js) (2026-09-11; Retention and restart durability certified, and a REAL defect closed: _pruneExpired previously inspected only skillLaunches[0], so a back-dated launch that was not the head of the insertion-ordered array survived forever (a 40-day-old record still answered count 1). It now filters every record. Root proved the fix directly with the exact trap case - a recent record first, a 40-day-old record second: count drops from 3 to 2 and the evicted row does NOT resurrect after re-opening the store. Root also reproduced the falsification by restoring head-only pruning, which failed the named test 'a back-dated launch is evicted and does NOT reappear after a SIGKILL restart'.).
+Evidence: [packages/history/test/history.durability.test.js](../../packages/history/test/history.durability.test.js) (2026-09-11; historical bounded evidence; Retention and restart durability certified, and a REAL defect closed: _pruneExpired previously inspected only skillLaunches[0], so a back-dated launch that was not the head of the insertion-ordered array survived forever (a 40-day-old record still answered count 1). It now filters every record. Root proved the fix directly with the exact trap case - a recent record first, a 40-day-old record second: count drops from 3 to 2 and the evicted row does NOT resurrect after re-opening the store. Root also reproduced the falsification by restoring head-only pruning, which failed the named test 'a back-dated launch is evicted and does NOT reappear after a SIGKILL restart'.).
 
 ### D-02 — Complete credential CRUD, uniqueness and durable state
 
@@ -779,7 +779,7 @@ Source: [Original Pegasus packages/lasso/src/credential](https://pvindex.org/git
 
 Phoenix: [packages/data/src/credentials.js](../../packages/data/src/credentials.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md](../../docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md) (2026-09-11; Credential CRUD, uniqueness and durable storage certified. D-02b (scope-overlap uniqueness) and D-02c (single scopes query param) are CLOSED - an overlapping-scope save now answers 200 {credentialExists:true}, and the indexed/bracketed client forms are accepted while a bare scopes param is correctly 400. Durability proven across a real restart. Root reproduced the falsification at packages/data/src/credentials.js:271: narrowing the indexed-scope guard failed exactly five named tests including the restart and the end-to-end Settings/Lasso resolution; restoring returned 49/0.).
+Evidence: [docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md](../../docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md) (2026-09-11; historical bounded evidence; Credential CRUD, uniqueness and durable storage certified. D-02b (scope-overlap uniqueness) and D-02c (single scopes query param) are CLOSED - an overlapping-scope save now answers 200 {credentialExists:true}, and the indexed/bracketed client forms are accepted while a bare scopes param is correctly 400. Durability proven across a real restart. Root reproduced the falsification at packages/data/src/credentials.js:271: narrowing the indexed-scope guard failed exactly five named tests including the restart and the end-to-end Settings/Lasso resolution; restoring returned 49/0.).
 
 ### D-03 — Implement OAuth exchange, refresh and invalidation
 
@@ -799,7 +799,7 @@ Source: [Original Pegasus packages/lasso/src/oauth2](https://pvindex.org/gitea/j
 
 Phoenix: [packages/data/src/credentials.js](../../packages/data/src/credentials.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/d03-oauth/evidence.md](../../docs/parity/evidence/2026-09-10/d03-oauth/evidence.md) (2026-09-11; New oauth.js ports the pinned OAuth2 contract (client_*.json registry, Google + Outlook grants, setTokens semantics, both provider error envelopes). HTTP saveCredential performs the real exchange (replayed authCode rejected before any provider call), refresh-when-expired, REFRESH_FAILED/REVOKED_ACCESS/INVALID_TOKEN invalidation. Runtime proof over the real data-service binary. Root falsified the replayed-authCode guard (=== -> !==): 6 named tests failed; restore 15/15.).
+Evidence: [docs/parity/evidence/2026-09-10/d03-oauth/evidence.md](../../docs/parity/evidence/2026-09-10/d03-oauth/evidence.md) (2026-09-11; historical bounded evidence; New oauth.js ports the pinned OAuth2 contract (client_*.json registry, Google + Outlook grants, setTokens semantics, both provider error envelopes). HTTP saveCredential performs the real exchange (replayed authCode rejected before any provider call), refresh-when-expired, REFRESH_FAILED/REVOKED_ACCESS/INVALID_TOKEN invalidation. Runtime proof over the real data-service binary. Root falsified the replayed-authCode guard (=== -> !==): 6 named tests failed; restore 15/15.).
 
 ### D-04 — Implement Google/Outlook calendar relay compatibility
 
@@ -819,7 +819,7 @@ Source: [Original Pegasus packages/lasso/src/relay/GoogleCalendarHandler.ts](htt
 
 Phoenix: [packages/data/src/calendar.js](../../packages/data/src/calendar.js); [packages/data/src/index.js](../../packages/data/src/index.js); [packages/skills/src/report/lassoClient.js](../../packages/skills/src/report/lassoClient.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md](../../docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md) (2026-09-11; Both hold items closed: top-level events mirror REMOVED (envelope now exactly {relayData, lassoDataFromRedis}, two certified files updated to read body.relayData.events with findings preserved) and upstream pagination/ordering ported (Google singleEvents/orderBy/timeMin/timeMax, Graph startDateTime/endDateTime/select/orderby) with the pinned wire query recorded against a mock upstream. Root falsified twice (orderBy break: 3 named fails; mirror re-add: 4 fails incl. certified D-02; both restored green).).
+Evidence: [docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md](../../docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md) (2026-09-11; historical bounded evidence; Both hold items closed: top-level events mirror REMOVED (envelope now exactly {relayData, lassoDataFromRedis}, two certified files updated to read body.relayData.events with findings preserved) and upstream pagination/ordering ported (Google singleEvents/orderBy/timeMin/timeMax, Graph startDateTime/endDateTime/select/orderby) with the pinned wire query recorded against a mock upstream. Root falsified twice (orderBy break: 3 named fails; mirror re-add: 4 fails incl. certified D-02; both restored green).).
 
 ### D-05 — Match weather data and forecast/date semantics
 
@@ -838,7 +838,7 @@ Source: [Original Pegasus packages/lasso/src/relay/DarkSkyHandler.ts](https://pv
 
 Phoenix: [packages/data/src/weather.js](../../packages/data/src/weather.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/d05-weather/evidence.md](../../docs/parity/evidence/2026-09-10/d05-weather/evidence.md) (2026-09-11; Closed D05a, the coordinate-validation bug: missing/invalid/out-of-range lat or lon were silently coerced to 0 and cached under 'dark_sky:0;0'. Now rejected 400 with the pinned LatLon messages ('Invalid latitude undefined', 'Invalid latitude -555') before any upstream call or cache write. The agent also CONFIRMED the secondsSinceEpoch=0 finding at runtime: the raw query string must stay a string, because the pinned createRedisKey tests truthiness, so '0' is truthy and the key gains ';1970-01-01' where Number(0) collapsed onto the timestamp-less entry. Root falsified the guard (restoring the ?? '0' coercion): 2 named tests failed, restore green.).
+Evidence: [docs/parity/evidence/2026-09-10/d05-weather/evidence.md](../../docs/parity/evidence/2026-09-10/d05-weather/evidence.md) (2026-09-11; historical bounded evidence; Closed D05a, the coordinate-validation bug: missing/invalid/out-of-range lat or lon were silently coerced to 0 and cached under 'dark_sky:0;0'. Now rejected 400 with the pinned LatLon messages ('Invalid latitude undefined', 'Invalid latitude -555') before any upstream call or cache write. The agent also CONFIRMED the secondsSinceEpoch=0 finding at runtime: the raw query string must stay a string, because the pinned createRedisKey tests truthiness, so '0' is truthy and the key gains ';1970-01-01' where Number(0) collapsed onto the timestamp-less entry. Root falsified the guard (restoring the ?? '0' coercion): 2 named tests failed, restore green.).
 
 ### D-06 — Match news payloads, categories and prefetch scheduling
 
@@ -858,7 +858,7 @@ Source: [Original Pegasus packages/lasso/src/relay/APNewsHandler.ts](https://pvi
 
 Phoenix: [packages/data/src/news.js](../../packages/data/src/news.js); [packages/data/src/index.js](../../packages/data/src/index.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json](../../docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json) (2026-09-11; Implemented the prefetch/poll warming D-01 flagged as unimplemented, reproducing APNewsHandler.init/close: one awaited poll of all 11 categories at listen(), then setInterval, cleared on server close. Verified at runtime through the real data service: a warmed key serves a GET with zero provider requests. All 11 sourceIDs match the pinned enum. Root falsified the rights/author line: 1 named test failed, restore green.).
+Evidence: [docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json](../../docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json) (2026-09-11; historical bounded evidence; Implemented the prefetch/poll warming D-01 flagged as unimplemented, reproducing APNewsHandler.init/close: one awaited poll of all 11 categories at listen(), then setInterval, cleared on server close. Verified at runtime through the real data service: a warmed key serves a GET with zero provider requests. All 11 sourceIDs match the pinned enum. Root falsified the rights/author line: 1 named test failed, restore green.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -885,7 +885,7 @@ Source: [Original Pegasus packages/lasso/src/relay/GoogleMapsHandler.ts](https:/
 
 Phoenix: [packages/data/src/maps.js](../../packages/data/src/maps.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/d07-maps/evidence.md](../../docs/parity/evidence/2026-09-10/d07-maps/evidence.md) (2026-09-11; Closed D07a: out-of-range coordinates reached the provider. Now rejected with the pinned messages; root verified over real HTTP that lat=800 returns 400 'Invalid latitude 800' with the provider never called and nothing cached. All four CommuteMode values exercised end-to-end against the real ORS provider path with the correct profile and [lon,lat] body. Root falsified the latitude upper bound: 3 named tests failed, restore green.).
+Evidence: [docs/parity/evidence/2026-09-10/d07-maps/evidence.md](../../docs/parity/evidence/2026-09-10/d07-maps/evidence.md) (2026-09-11; historical bounded evidence; Closed D07a: out-of-range coordinates reached the provider. Now rejected with the pinned messages; root verified over real HTTP that lat=800 returns 400 'Invalid latitude 800' with the provider never called and nothing cached. All four CommuteMode values exercised end-to-end against the real ORS provider path with the correct profile and [lon,lat] body. Root falsified the latitude upper bound: 3 named tests failed, restore green.).
 
 ### A-02 — Match Classic dispatch, authentication and error handling
 
@@ -906,7 +906,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic/src/awsJson.js](../../packages/classic/src/awsJson.js); [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md](../../docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md) (2026-09-10; Gateway allow-lists, target parsing, expiry/replay, ownership with issued test keys, header forwarding, LAN-bypass absence and error-envelope equivalence, each checked against the pinned gateway/framework/client).
+Evidence: [docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md](../../docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md) (2026-09-10; historical bounded evidence; Gateway allow-lists, target parsing, expiry/replay, ownership with issued test keys, header forwarding, LAN-bypass absence and error-envelope equivalence, each checked against the pinned gateway/framework/client).
 
 - [x] Candidate implementation — **accepted**; Root review of Luna Max candidate.
 
@@ -934,7 +934,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/settings-2017-12-19.normal.json](
 
 Phoenix: [packages/account/src/settingsFace.js](../../packages/account/src/settingsFace.js); [packages/account/src/settingsData.js](../../packages/account/src/settingsData.js); [packages/account/src/settingsProviders.js](../../packages/account/src/settingsProviders.js); [docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json](../../docs/parity/evidence/2026-09-06/service-integration/settings-mutation-review.json).
 
-Evidence: [docs/parity/evidence/2026-09-10/a06-compat/certification.md](../../docs/parity/evidence/2026-09-10/a06-compat/certification.md) (2026-09-10; Settings data/view/ownership re-derived from pinned srv-settings-ws and driven against running services; all four operations served and observed over 21 live probes. The agent found NO code defect - the gap was certification coverage, which it added. Ownership observed: a non-member gets 403 LOOP_MEMBER_ONLY on both the robot face and the internal listener. Durability proven by real restart. Root merged and confirmed 60/0 across the wave-6 suites.).
+Evidence: [docs/parity/evidence/2026-09-10/a06-compat/certification.md](../../docs/parity/evidence/2026-09-10/a06-compat/certification.md) (2026-09-10; historical bounded evidence; Settings data/view/ownership re-derived from pinned srv-settings-ws and driven against running services; all four operations served and observed over 21 live probes. The agent found NO code defect - the gap was certification coverage, which it added. Ownership observed: a non-member gets 403 LOOP_MEMBER_ONLY on both the robot face and the internal listener. Durability proven by real restart. Root merged and confirmed 60/0 across the wave-6 suites.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
@@ -964,7 +964,7 @@ Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.
 
 Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/graph.js](../../packages/skills/src/graph/graph.js); [packages/skills/src/graph/graphManager.js](../../packages/skills/src/graph/graphManager.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md](../../docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md) (2026-09-11; Acceptance 3 closed via narrowing (b): pinned-source proof that the cloud cannot enforce cutover (no session registry, never validates host shape, session arrives from the robot in CONTEXT) + skill-side contract + runtime-tested deploy-time cutover gate CLI (exit 0 resume / exit 2 drop-or-relaunch, persisted state). Standalone report-skill nodeID 31 vs cohosted 35 observed. Root falsified the gate (named test failed, restore 3/3). Hardware cutover action stays UNKNOWN (root-owned).).
+Evidence: [docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md](../../docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md) (2026-09-11; historical bounded evidence; Acceptance 3 closed via narrowing (b): pinned-source proof that the cloud cannot enforce cutover (no session registry, never validates host shape, session arrives from the robot in CONTEXT) + skill-side contract + runtime-tested deploy-time cutover gate CLI (exit 0 resume / exit 2 drop-or-relaunch, persisted state). Standalone report-skill nodeID 31 vs cohosted 35 observed. Root falsified the gate (named test failed, restore 3/3). Hardware cutover action stays UNKNOWN (root-owned).).
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
@@ -991,7 +991,7 @@ Source: [Original Pegasus packages/baseskill/src/GraphSkill.ts](https://pvindex.
 
 Phoenix: [packages/skills/src/graph/graphSkill.js](../../packages/skills/src/graph/graphSkill.js); [packages/skills/src/graph/nodes.js](../../packages/skills/src/graph/nodes.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md](../../docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md) (2026-09-11; 39-probe differential vs pinned original under Node 8.9.4: DIFFS(0), error strings byte-for-byte, 0 carve-outs. Global cancel/repeat/thanks reach nodes unchanged; SetLooperIDNode 5 branches cell-for-cell (found + fixed a real referent-access bug). Root falsified the fix line (2 named fails, restore 11/0).).
+Evidence: [docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md](../../docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md) (2026-09-11; historical bounded evidence; 39-probe differential vs pinned original under Node 8.9.4: DIFFS(0), error strings byte-for-byte, 0 carve-outs. Global cancel/repeat/thanks reach nodes unchanged; SetLooperIDNode 5 branches cell-for-cell (found + fixed a real referent-access bug). Root falsified the fix line (2 named fails, restore 11/0).).
 
 ### S-03 — Verify MIM factories, no-input/no-match escalation and opt-in
 
@@ -1010,7 +1010,7 @@ Source: [Original Pegasus packages/baseskill/src/graph/mims/factories](https://p
 
 Phoenix: [packages/skills/src/graph/mims/factories.js](../../packages/skills/src/graph/mims/factories.js); [packages/skills/src/graph/mims/optIn.js](../../packages/skills/src/graph/mims/optIn.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/s03-mim-factories/review.md](../../docs/parity/evidence/2026-09-11/s03-mim-factories/review.md) (2026-09-11; All 5 factories + 8 MIM nodes + opt-in nodes vs pinned source; vendored base MIMs content-identical; found + fixed a real wire divergence (optIn Skill Offer event name). 34/34 tests, 39/39 replay. Root falsified the NM ladder (5 named fails, restore 34/0).).
+Evidence: [docs/parity/evidence/2026-09-11/s03-mim-factories/review.md](../../docs/parity/evidence/2026-09-11/s03-mim-factories/review.md) (2026-09-11; historical bounded evidence; All 5 factories + 8 MIM nodes + opt-in nodes vs pinned source; vendored base MIMs content-identical; found + fixed a real wire divergence (optIn Skill Offer event name). 34/34 tests, 39/39 replay. Root falsified the NM ladder (5 named fails, restore 34/0).).
 
 - [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
 
@@ -1038,7 +1038,7 @@ Source: [Original Pegasus packages/baseskill/src/graph/mims/utils](https://pvind
 
 Phoenix: [packages/skills/src/graph/mims/slimmer.js](../../packages/skills/src/graph/mims/slimmer.js); [packages/skills/src/graph/mims/unify.js](../../packages/skills/src/graph/mims/unify.js); [packages/skills/src/jcp.js](../../packages/skills/src/jcp.js).
 
-Evidence: [docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md](../../docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md) (2026-09-11; MIM selection, JCP output, display/listen trees vs pinned requester; weightedSample exact at 1313 pinned points + boundaries; protocol.js line-for-line port. Root falsified the boundary (1 named fail, restore 15/0).).
+Evidence: [docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md](../../docs/parity/evidence/2026-09-11/s04-mim-jcp/notes.md) (2026-09-11; historical bounded evidence; MIM selection, JCP output, display/listen trees vs pinned requester; weightedSample exact at 1313 pinned points + boundaries; protocol.js line-for-line port. Root falsified the boundary (1 named fail, restore 15/0).).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -1093,7 +1093,7 @@ Source: [Original Pegasus packages/chitchat-skill/mims](https://pvindex.org/gite
 
 Phoenix: [packages/skills/resources](../../packages/skills/resources); [packages/gateway/resources](../../packages/gateway/resources); [packages/nlu/resources](../../packages/nlu/resources).
 
-Evidence: [docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md](../../docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md) (2026-09-10; 4,800 asset files hashed against the pinned source (chitchat mims+CSVs 4490, report mims 82, views 6, gateway resources 33, nlu rules-src 117, grammar 29) and proven at RUNTIME rather than by file existence: the skills HTTP host serves chitchat and report MIMs plus the weatherHiLo view config with content matching the on-disk asset; the gateway serves 21 loaded manifests; the NLU service loads all 20 vendored launch grammars and resolves test utterances to the intents defined in those files. All 4,524 .mim files parse with 12,798 prompts carrying string ids. Two falsifications: breaking the MIM load path failed the runtime test; changing one id in weatherHiLo.json failed the digest test.).
+Evidence: [docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md](../../docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md) (2026-09-10; historical bounded evidence; 4,800 asset files hashed against the pinned source (chitchat mims+CSVs 4490, report mims 82, views 6, gateway resources 33, nlu rules-src 117, grammar 29) and proven at RUNTIME rather than by file existence: the skills HTTP host serves chitchat and report MIMs plus the weatherHiLo view config with content matching the on-disk asset; the gateway serves 21 loaded manifests; the NLU service loads all 20 vendored launch grammars and resolves test utterances to the intents defined in those files. All 4,524 .mim files parse with 12,798 prompts carrying string ids. Two falsifications: breaking the MIM load path failed the runtime test; changing one id in weatherHiLo.json failed the digest test.).
 
 ### S-07 — Verify the complete chitchat behavior
 
@@ -1334,7 +1334,7 @@ Source: [server/voice-ws@a0ec047a86d6811176d0f05a6cce5a660a2cadd8:lib/handlers/i
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
 
-Evidence: [packages/classic/test/voiceTraining.test.js](../../packages/classic/test/voiceTraining.test.js) (2026-09-10; VoiceTraining implemented with correct version resolution: both pinned voice-ws revisions export only UploadVoiceTraining and ListVoiceTrainings, so the 8 declared file-operation pairs answer the source's literal 404 'Method not found in VoiceTraining'. Root reproduced the falsification: disabling the 404 fallback made the file operations wrongly answer 200, failing the named test; restoring returned 15/0. Durability proven twice, including a real SIGKILL process restart.).
+Evidence: [packages/classic/test/voiceTraining.test.js](../../packages/classic/test/voiceTraining.test.js) (2026-09-10; historical bounded evidence; VoiceTraining implemented with correct version resolution: both pinned voice-ws revisions export only UploadVoiceTraining and ListVoiceTrainings, so the 8 declared file-operation pairs answer the source's literal 404 'Method not found in VoiceTraining'. Root reproduced the falsification: disabling the 404 fallback made the file operations wrongly answer 200, failing the named test; restoring returned 15/0. Durability proven twice, including a real SIGKILL process restart.).
 
 ### X-01 — Verify restored-branch answer and NLU extensions separately
 
@@ -1373,7 +1373,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/account-2015-11-11.normal.json](h
 
 Phoenix: [packages/account/src](../../packages/account/src); [packages/account/portal](../../packages/account/portal).
 
-Evidence: [docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md](../../docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md) (2026-09-10; Both Account and AccountAdmin API files checked for operation coverage, a 15-step lifecycle driven end-to-end against a running service, and criterion 3's portal/migration coverage).
+Evidence: [docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md](../../docs/parity/evidence/2026-09-10/a03-account-lifecycle/review.md) (2026-09-10; historical bounded evidence; Both Account and AccountAdmin API files checked for operation coverage, a 15-step lifecycle driven end-to-end against a running service, and criterion 3's portal/migration coverage).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -1401,7 +1401,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/loop-2016-03-24.normal.json](http
 
 Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/model.js](../../packages/account/src/model.js); [packages/account/src/store.js](../../packages/account/src/store.js); [packages/account/src/loopMembership.js](../../packages/account/src/loopMembership.js); [packages/account/src/loopUpdatedOutbox.js](../../packages/account/src/loopUpdatedOutbox.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a04-loop-operations/review.md](../../docs/parity/evidence/2026-09-10/a04-loop-operations/review.md) (2026-09-10; All 23 Loop wire operations proven served by a runtime probe (static scanning found 1 of 23 because dispatch uses lowercased comparisons across four modules); gate 1 client-sequence replay against source in the pinned Node 8 runtime at 12/12 with byte-exact Classic forwarding across 34 pairs; adoption confirmed to live on a separate admin endpoint rather than redefining Loop errors).
+Evidence: [docs/parity/evidence/2026-09-10/a04-loop-operations/review.md](../../docs/parity/evidence/2026-09-10/a04-loop-operations/review.md) (2026-09-10; historical bounded evidence; All 23 Loop wire operations proven served by a runtime probe (static scanning found 1 of 23 because dispatch uses lowercased comparisons across four modules); gate 1 client-sequence replay against source in the pinned Node 8 runtime at 12/12 with byte-exact Classic forwarding across 34 pairs; adoption confirmed to live on a separate admin endpoint rather than redefining Loop errors).
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
 
@@ -1456,7 +1456,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/robot-2016-02-25.normal.json](htt
 
 Phoenix: [packages/classic/src/robot.js](../../packages/classic/src/robot.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a07-robot-records/review.md](../../docs/parity/evidence/2026-09-10/a07-robot-records/review.md) (2026-09-10; All 9 Robot_20160225 operations served at runtime with a manufacturing identity. Durability proven by a real restart: create+update+calibrate, close, assert on-disk robots.json, start a NEW entrypoint and re-read the record, calibration and 3-event history. The manufacturing/owner permission matrix was proven with fixture identities across every operation. Two falsifications: making the event log never persist failed the restart test; forcing isManufacturing=true failed five permission tests. 4-part id conversion verified in both directions; GetFriendlyIds verified against the vendored pools (218/238/169/71).).
+Evidence: [docs/parity/evidence/2026-09-10/a07-robot-records/review.md](../../docs/parity/evidence/2026-09-10/a07-robot-records/review.md) (2026-09-10; historical bounded evidence; All 9 Robot_20160225 operations served at runtime with a manufacturing identity. Durability proven by a real restart: create+update+calibrate, close, assert on-disk robots.json, start a NEW entrypoint and re-read the record, calibration and 3-event history. The manufacturing/owner permission matrix was proven with fixture identities across every operation. Two falsifications: making the event log never persist failed the restart test; forcing isManufacturing=true failed five permission tests. 4-part id conversion verified in both directions; GetFriendlyIds verified against the vendored pools (218/238/169/71).).
 
 ### A-08 — Complete Update selection, reporting and package delivery
 
@@ -1476,7 +1476,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/update-2016-03-01.normal.json](ht
 
 Phoenix: [packages/ota/src](../../packages/ota/src); [packages/ota/test/ota.test.js](../../packages/ota/test/ota.test.js); [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh).
 
-Evidence: [docs/parity/evidence/2026-09-10/a08-update-delivery/review.md](../../docs/parity/evidence/2026-09-10/a08-update-delivery/review.md) (2026-09-10; All 8 Update_20160301 operations served at runtime on a real child-process entrypoint, including package delivery whose bytes hash-match the published shaHash. Two genuine defects fixed: listUpdatesFrom now sorts toVersion DESCENDING per the pinned controller (previously returned insertion order), and the wire Update always emits the filter member (DEFAULT_FILTER '' when unfiltered) - both are on-the-wire observable since UpdateList is a JSON array and filter is a declared output member. Root independently falsified the ordering fix by flipping cmpVersion(b,a) to cmpVersion(a,b), which failed exactly the two ordering tests, then restored to green. Error catalogue verbatim from srv-update-ws errors/update.ts; gateway allow-list checked as the second auth layer.).
+Evidence: [docs/parity/evidence/2026-09-10/a08-update-delivery/review.md](../../docs/parity/evidence/2026-09-10/a08-update-delivery/review.md) (2026-09-10; historical bounded evidence; All 8 Update_20160301 operations served at runtime on a real child-process entrypoint, including package delivery whose bytes hash-match the published shaHash. Two genuine defects fixed: listUpdatesFrom now sorts toVersion DESCENDING per the pinned controller (previously returned insertion order), and the wire Update always emits the filter member (DEFAULT_FILTER '' when unfiltered) - both are on-the-wire observable since UpdateList is a JSON array and filter is a declared output member. Root independently falsified the ordering fix by flipping cmpVersion(b,a) to cmpVersion(a,b), which failed exactly the two ordering tests, then restored to green. Error catalogue verbatim from srv-update-ws errors/update.ts; gateway allow-list checked as the second auth layer.).
 
 ### A-09 — Make backups durable and match ownership/restore semantics
 
@@ -1496,7 +1496,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/backup-2017-02-22.normal.json](ht
 
 Phoenix: [packages/classic/src/backup.js](../../packages/classic/src/backup.js); [packages/classic/test/backup.test.js](../../packages/classic/test/backup.test.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a09-backups/review.md](../../docs/parity/evidence/2026-09-10/a09-backups/review.md) (2026-09-10; Durability proven by an actual SIGKILL + respawn: a backup written by one process is re-listed by a NEW process on the same directory with an identical etag and byte-identical content. Root independently re-ran the two durability tests in isolation (2/2 pass) after the agent had falsified them by replacing the recover() call with an in-memory-only branch, which made both fail. Ownership (loop.robot === credentials.id) enforced on both ops with 403 ROBOT_SHOULD_BELONG_TO_LOOP, confirmed end-to-end against a real Account service. Both declared operations served at runtime.).
+Evidence: [docs/parity/evidence/2026-09-10/a09-backups/review.md](../../docs/parity/evidence/2026-09-10/a09-backups/review.md) (2026-09-10; historical bounded evidence; Durability proven by an actual SIGKILL + respawn: a backup written by one process is re-listed by a NEW process on the same directory with an identical etag and byte-identical content. Root independently re-ran the two durability tests in isolation (2/2 pass) after the agent had falsified them by replacing the recover() call with an in-memory-only branch, which made both fail. Ownership (loop.robot === credentials.id) enforced on both ops with 403 ROBOT_SHOULD_BELONG_TO_LOOP, confirmed end-to-end against a real Account service. Both declared operations served at runtime.).
 
 ### A-10 — Verify notification token and socket delivery lifecycle
 
@@ -1516,7 +1516,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/notification-2015-05-05.normal.js
 
 Phoenix: [packages/classic/src/notification.js](../../packages/classic/src/notification.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md](../../docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md) (2026-09-10; Socket delivery proven end to end, not asserted: POST /notify is queued while the socket is offline (row count 1, connected:false), then consumed and acked when the socket connects (row count 0, connected:true). A socket for a DIFFERENT account receives nothing. Both operations the pinned model declares are served; undeclared ops and prefixes are refused. Two falsifications with byte-identical restore: breaking the ack line and breaking the cert region default. Also fixed a real defect in the prior evidence - the TLS control had been using region 'phx', which the robot never dials; it now asserts api.jibo.com and api-socket.jibo.com on the SAN, matching the live certificate.).
+Evidence: [docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md](../../docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production-verification.md) (2026-09-10; historical bounded evidence; Socket delivery proven end to end, not asserted: POST /notify is queued while the socket is offline (row count 1, connected:false), then consumed and acked when the socket connects (row count 0, connected:true). A socket for a DIFFERENT account receives nothing. Both operations the pinned model declares are served; undeclared ops and prefixes are refused. Two falsifications with byte-identical restore: breaking the ack line and breaking the cert region default. Also fixed a real defect in the prior evidence - the TLS control had been using region 'phx', which the robot never dials; it now asserts api.jibo.com and api-socket.jibo.com on the SAN, matching the live certificate.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
@@ -1543,7 +1543,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/key-2016-02-01.normal.json](https
 
 Phoenix: [packages/classic/src/key.js](../../packages/classic/src/key.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a11-key-exchange/review.md](../../docs/parity/evidence/2026-09-10/a11-key-exchange/review.md) (2026-09-10; All nine Key_20160201 operations served at runtime, plus the two pinned plain routes and the self-hosted binary fetch. Durability proven by a real SIGKILL restart: requests, backups and binary bytes written before the kill are served byte-identically afterwards. Root independently re-ran the durability test in isolation (pass) after the agent falsified it by replacing the atomic publish line (this.persistence.rename(temporary, this.file)) with an unlink, so nothing ever landed on disk - exactly the D-02 in-memory trap, correctly caught. Real crypto round trip: a 2048-bit RSA public key sent via CreateRequest, a 32-byte AES key RSA-OAEP encrypted and Shared, then fetched and decrypted byte-equal. Error catalogue exact: KEY_NOT_FOUND 404, KEY_NOT_PART_OF_LOOP 403, ONLY_OWNER_CAN_BACKUP_RESTORE 403, BACKUP_PASSWORD_WRONG 409, BINARY_NOT_FOUND 404, KEY_HASH_DOESNT_MATCH 409.).
+Evidence: [docs/parity/evidence/2026-09-10/a11-key-exchange/review.md](../../docs/parity/evidence/2026-09-10/a11-key-exchange/review.md) (2026-09-10; historical bounded evidence; All nine Key_20160201 operations served at runtime, plus the two pinned plain routes and the self-hosted binary fetch. Durability proven by a real SIGKILL restart: requests, backups and binary bytes written before the kill are served byte-identically afterwards. Root independently re-ran the durability test in isolation (pass) after the agent falsified it by replacing the atomic publish line (this.persistence.rename(temporary, this.file)) with an unlink, so nothing ever landed on disk - exactly the D-02 in-memory trap, correctly caught. Real crypto round trip: a 2048-bit RSA public key sent via CreateRequest, a 32-byte AES key RSA-OAEP encrypted and Shared, then fetched and decrypted byte-equal. Error catalogue exact: KEY_NOT_FOUND 404, KEY_NOT_PART_OF_LOOP 403, ONLY_OWNER_CAN_BACKUP_RESTORE 403, BACKUP_PASSWORD_WRONG 409, BINARY_NOT_FOUND 404, KEY_HASH_DOESNT_MATCH 409.).
 
 ### A-12 — Implement log ingestion and binary-upload behavior
 
@@ -1563,7 +1563,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/log-2015-03-09.normal.json](https
 
 Phoenix: [packages/classic/src/log.js](../../packages/classic/src/log.js).
 
-Evidence: [packages/classic/test/logClassic.test.js](../../packages/classic/test/logClassic.test.js) (2026-09-11; Log ingestion and binary upload re-certified with A12f CLOSED. The SetLevel Joi asymmetry is now matched in BOTH directions: joi@10 rejects the empty string for Joi.string() unless the schema calls .allow(''), and SetLevel's `namespace` is the only Log member that does - so '' is a VALID namespace while '' remains invalid for `level` (not in the enum). Root reproduced the falsification: making namespace reject '' failed the named test 'A12f: SetLevel namespace accepts "" (Joi.string().allow("")) and rejects non-strings'; restoring returned 24/0.).
+Evidence: [packages/classic/test/logClassic.test.js](../../packages/classic/test/logClassic.test.js) (2026-09-11; historical bounded evidence; Log ingestion and binary upload re-certified with A12f CLOSED. The SetLevel Joi asymmetry is now matched in BOTH directions: joi@10 rejects the empty string for Joi.string() unless the schema calls .allow(''), and SetLevel's `namespace` is the only Log member that does - so '' is a VALID namespace while '' remains invalid for `level` (not in the enum). Root reproduced the falsification: making namespace reject '' failed the named test 'A12f: SetLevel namespace accepts "" (Joi.string().allow("")) and rejects non-strings'; restoring returned 24/0.).
 
 ### A-13 — Implement push delivery behind a replaceable provider
 
@@ -1582,7 +1582,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/push-2016-07-29.normal.json](http
 
 Phoenix: [packages/classic/src/push.js](../../packages/classic/src/push.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a13-push-real-client/review.md](../../docs/parity/evidence/2026-09-10/a13-push-real-client/review.md) (2026-09-10; 13 focused tests cover device CRUD, ownership, durability and the fixture-provider delivery/failure/token-invalidation paths. The "available real client" leg was then verified directly: an aws-sdk Service built from the pinned apis/push-2016-07-29.min.json drove CreateDevice/RemoveDevice against the live Phoenix face over SigV4, and the SDK parsed both the S4 Devices list and the typed 404 DEVICE_NOT_FOUND error envelope.).
+Evidence: [docs/parity/evidence/2026-09-10/a13-push-real-client/review.md](../../docs/parity/evidence/2026-09-10/a13-push-real-client/review.md) (2026-09-10; historical bounded evidence; 13 focused tests cover device CRUD, ownership, durability and the fixture-provider delivery/failure/token-invalidation paths. The "available real client" leg was then verified directly: an aws-sdk Service built from the pinned apis/push-2016-07-29.min.json drove CreateDevice/RemoveDevice against the live Phoenix face over SigV4, and the SDK parsed both the S4 Devices list and the typed 404 DEVICE_NOT_FOUND error envelope.).
 
 - [x] Candidate implementation — **accepted**; DeepSeek worker via Hermes delegate_task (second attempt).
 
@@ -1609,7 +1609,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/media-2016-07-25.normal.json](htt
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: [packages/classic/test/media.test.js](../../packages/classic/test/media.test.js) (2026-09-10; A-14 and Media_20160725 are the same service - both pinned client models declare targetPrefix Media_20160725 and the gateway routes on that prefix, so MediaAdmin's RemoveAllMediaFromLoop dispatches to the same registration. The real gap was a SECURITY defect: RemoveAllMediaFromLoop had no admin gate, so any caller - including an uncredentialled LAN-trust call - could hard-delete an entire loop. Now gated AUTHORIZED_UNDER_ADMIN 401 before the payload check. Get throws MEDIA_MUST_BE_MEMBER 403 instead of silently filtering out-of-loop rows. Durability proven by tearing down the entrypoint and re-reading over HTTP from a fresh one. Falsified by disabling the admin gate: 5 tests failed.).
+Evidence: [packages/classic/test/media.test.js](../../packages/classic/test/media.test.js) (2026-09-10; historical bounded evidence; A-14 and Media_20160725 are the same service - both pinned client models declare targetPrefix Media_20160725 and the gateway routes on that prefix, so MediaAdmin's RemoveAllMediaFromLoop dispatches to the same registration. The real gap was a SECURITY defect: RemoveAllMediaFromLoop had no admin gate, so any caller - including an uncredentialled LAN-trust call - could hard-delete an entire loop. Now gated AUTHORIZED_UNDER_ADMIN 401 before the payload check. Get throws MEDIA_MUST_BE_MEMBER 403 instead of silently filtering out-of-loop rows. Durability proven by tearing down the entrypoint and re-reading over HTTP from a fresh one. Falsified by disabling the admin gate: 5 tests failed.).
 
 ### A-15 — Complete Person data and Collision behavior
 
@@ -1628,7 +1628,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/person-2016-08-01.normal.json](ht
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a15-person-collision/review.md](../../docs/parity/evidence/2026-09-10/a15-person-collision/review.md) (2026-09-10; All 10 Person_20160801 operations plus Collision_20161126.Match are served at 2xx at runtime; unsigned calls answer 401 MISSING_AUTH_HEADER. The tier-3 person stub is removed and both handlers are registered ahead of stubRegistrations(). Error codes match srv-person-ws src/errors/person.js verbatim. Durability proven twice: in-process AND at process level (SIGKILL the child, start a FRESH process over the same store file, 5/5 values survived). Collision reproduces the pinned phonetic worked example and the source threshold rule. Root independently reproduced the falsification by inverting the ALREADY_ANSWERED guard at person.js:281, which failed exactly three named tests, then restored to green.).
+Evidence: [docs/parity/evidence/2026-09-10/a15-person-collision/review.md](../../docs/parity/evidence/2026-09-10/a15-person-collision/review.md) (2026-09-10; historical bounded evidence; All 10 Person_20160801 operations plus Collision_20161126.Match are served at 2xx at runtime; unsigned calls answer 401 MISSING_AUTH_HEADER. The tier-3 person stub is removed and both handlers are registered ahead of stubRegistrations(). Error codes match srv-person-ws src/errors/person.js verbatim. Durability proven twice: in-process AND at process level (SIGKILL the child, start a FRESH process over the same store file, 5/5 values survived). Collision reproduces the pinned phonetic worked example and the source threshold rule. Root independently reproduced the falsification by inverting the ALREADY_ANSWERED guard at person.js:281, which failed exactly three named tests, then restored to green.).
 
 ### A-16 — Implement ROM certificate exchange and remote operation
 
@@ -1647,7 +1647,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/rom-2017-10-11.normal.json](https
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md](../../docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md) (2026-09-10; ROM_20171011 Create/SetupServer/SetupClient all served at runtime and driven end-to-end through the original aws-sdk client. Certificate material is genuine, generated with the same libraries the original used (selfsigned + node-forge) rather than faked, and decoded back in tests (CN/issuer jibo.com, 1-day validity, SHA-1 fingerprints recomputed from DER, client cert verifying against the server key, PKCS#12 with empty passphrase). Error catalogue reproduces source: ROBOT_NOT_OWNED 403, ROBOT_NOT_FOUND 404, REMOTE_MODE_DISABLED 403, ROBOT_MUST_CALL 403, CERTIFICATE_NOT_FOUND/DEPLOYED 404, ValidationException 400.).
+Evidence: [docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md](../../docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md) (2026-09-10; historical bounded evidence; ROM_20171011 Create/SetupServer/SetupClient all served at runtime and driven end-to-end through the original aws-sdk client. Certificate material is genuine, generated with the same libraries the original used (selfsigned + node-forge) rather than faked, and decoded back in tests (CN/issuer jibo.com, 1-day validity, SHA-1 fingerprints recomputed from DER, client cert verifying against the server key, PKCS#12 with empty passphrase). Error catalogue reproduces source: ROBOT_NOT_OWNED 403, ROBOT_NOT_FOUND 404, REMOTE_MODE_DISABLED 403, ROBOT_MUST_CALL 403, CERTIFICATE_NOT_FOUND/DEPLOYED 404, ValidationException 400.).
 
 ### A-17 — Implement IFTTT and Classic NLP behavior
 
@@ -1666,7 +1666,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/ifttt-2017-02-07.normal.json](htt
 
 Phoenix: [packages/classic/src/stubs.js](../../packages/classic/src/stubs.js).
 
-Evidence: [docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md](../../docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md) (2026-09-10; IFTTT and Classic NLP graduated from stub to real handlers: all 7 IFTTT_20170207 operations and both NLP_20161031 operations served at runtime, stubRegistrations() now empty for both prefixes. Durability proven at process level (SIGKILL, fresh process, re-read). Root merged and ran the suites: 60/0 across all four wave-6 task suites.).
+Evidence: [docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md](../../docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md) (2026-09-10; historical bounded evidence; IFTTT and Classic NLP graduated from stub to real handlers: all 7 IFTTT_20170207 operations and both NLP_20161031 operations served at runtime, stubRegistrations() now empty for both prefixes. Durability proven at process level (SIGKILL, fresh process, re-read). Root merged and ran the suites: 60/0 across all four wave-6 task suites.).
 
 ### A-18 — Close remaining admin, OAuth-client and LPS contracts
 
@@ -1686,7 +1686,7 @@ Source: [jiborobot/srv-jibo-server-client/apis/oauthclientsadmin-2017-11-08.norm
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/account/src](../../packages/account/src).
 
-Evidence: [docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md](../../docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md) (2026-09-10; Independent verification by a second agent, re-derived from pinned source rather than from the candidate report. All five operations (OauthClients_20171108 Create/ListClients/Update/Remove, Lps_20171201.NewCredentials) confirmed SERVED at runtime, not merely present in source. The two-layer auth model was checked in both repos: all five are absent from the gateway's unauthorizedMethods (20 entries) and unsignedMethods is empty, so every one requires verified AWS4 SigV4; x-amz-credentials is gateway-injected from the verified account in gw.route.ts buildCredentials(), not caller-controlled. Source-derived claims confirmed: CLIENT_ALREADY_EXISTS 409, CLIENT_NOT_FOUND 404, aco scheme defaults (keepAliveTimeout 500 / recoveryTimeout 300 / version 1.0, refresh true), ROBOT_ONLY 403 on LPS, and the LPS bucketPath template including the 0-based getMonth() quirk root had already confirmed at sts.ctrl.ts:26.).
+Evidence: [docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md](../../docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md) (2026-09-10; historical bounded evidence; Independent verification by a second agent, re-derived from pinned source rather than from the candidate report. All five operations (OauthClients_20171108 Create/ListClients/Update/Remove, Lps_20171201.NewCredentials) confirmed SERVED at runtime, not merely present in source. The two-layer auth model was checked in both repos: all five are absent from the gateway's unauthorizedMethods (20 entries) and unsignedMethods is empty, so every one requires verified AWS4 SigV4; x-amz-credentials is gateway-injected from the verified account in gw.route.ts buildCredentials(), not caller-controlled. Source-derived claims confirmed: CLIENT_ALREADY_EXISTS 409, CLIENT_NOT_FOUND 404, aco scheme defaults (keepAliveTimeout 500 / recoveryTimeout 300 / version 1.0, refresh true), ROBOT_ONLY 403 on LPS, and the LPS bucketPath template including the 0-based getMonth() quirk root had already confirmed at sts.ctrl.ts:26.).
 
 ## 5. Verify integration, deployment and hardware
 

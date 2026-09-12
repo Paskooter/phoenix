@@ -3,9 +3,18 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { completion, updateProgress } from './parity-progress.mjs';
+import { ignoredCommandErrorsFor, verificationScope, verificationSummary } from './parity-status-lib.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const currentHead = (() => {
+  try {
+    return execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch {
+    return null;
+  }
+})();
 const ledger = JSON.parse(readFileSync(resolve(root, 'docs/parity/tasks.json'), 'utf8'));
 const tasks = ledger.tasks;
 const byId = new Map();
@@ -33,10 +42,16 @@ for (const task of tasks) {
     if (task.status === 'verified' && review.state !== 'accepted') errors.push(`${task.id}: candidate cannot be verified before lead acceptance`);
   }
   for (const path of task.phoenix || []) if (!existsSync(resolve(root, path))) errors.push(`${task.id}: missing Phoenix path ${path}`);
+  errors.push(...ignoredCommandErrorsFor(task, task.id, root));
+  if (Array.isArray(task.verification)) {
+    for (const [index, evidence] of task.verification.entries()) {
+      errors.push(...ignoredCommandErrorsFor(evidence, `${task.id}.verification[${index}]`, root));
+    }
+  }
   if (task.status === 'blocked' && !task.blocker?.trim()) errors.push(`${task.id}: blocked task needs a concrete blocker`);
   if (task.status === 'verified') {
     if (!task.verification?.length) errors.push(`${task.id}: verified without evidence`);
-    for (const evidence of task.verification || []) {
+    for (const [index, evidence] of (task.verification || []).entries()) {
       if (!evidence.date || !evidence.basis || evidence.result !== 'pass' || !evidence.artifact || !existsSync(resolve(root, evidence.artifact))) {
         errors.push(`${task.id}: incomplete or missing passing evidence`);
       }
@@ -88,6 +103,12 @@ function source(ref) {
   }
   return ref;
 }
+const evidenceLabel = evidence => {
+  const scope = verificationScope(evidence, currentHead);
+  if (scope === 'current-head') return 'current-HEAD verification';
+  if (scope === 'historical-bounded') return 'historical bounded evidence';
+  return 'unbounded evidence';
+};
 const lines = [
   '# Phoenix parity task checklist', '',
   'Generated from [tasks.json](tasks.json). Edit the ledger, then run `npm run parity:status -- --write`; `npm run parity:check` checks evidence/dependencies and detects stale output.', '',
@@ -108,7 +129,7 @@ for (const [phase, label] of Object.entries(ledger.phases)) {
       task.finding, '', 'Done when:', '', ...task.acceptance.map(a => `- ${a}`), '',
       `Source: ${task.reference.map(source).join('; ')}.`, '',
       `Phoenix: ${task.phoenix.map(local).join('; ')}.`, '',
-      task.verification.length ? `Evidence: ${task.verification.map(e => `${local(e.artifact)} (${e.date}; ${e.basis})`).join('; ')}.` : 'Evidence: pending.', '',
+      task.verification.length ? `Evidence: ${task.verification.map(e => `${local(e.artifact)} (${e.date}; ${evidenceLabel(e)}; ${e.basis})`).join('; ')}.` : 'Evidence: pending.', '',
     );
     if (task.implementationReview) {
       const review = task.implementationReview;
@@ -136,9 +157,17 @@ if (args.has('--check') && (!existsSync(target) || readFileSync(target, 'utf8') 
 }
 if (args.has('--check')) updateProgress(root, { check: true, ledger });
 const progress = completion(ledger);
-if (args.has('--json')) console.log(JSON.stringify({ completion: progress, summary, current: current ? { id: current.id, title: current.title } : null, ready: ready.map(t => ({ id: t.id, title: t.title })) }, null, 2));
+const verification = verificationSummary(tasks, currentHead);
+if (args.has('--json')) console.log(JSON.stringify({
+  completion: progress,
+  summary,
+  current: current ? { id: current.id, title: current.title } : null,
+  ready: ready.map(t => ({ id: t.id, title: t.title })),
+  verification,
+}, null, 2));
 else {
   console.log(`Checklist: ${progress.verified}/${progress.total} verified (${progress.percent}%)`);
+  console.log(`Evidence: ${verification.counts.currentHead} current-HEAD verification; ${verification.counts.historicalBounded} historical bounded; ${verification.counts.unbounded} unbounded`);
   for (const s of summary) console.log(`${s.track}: ${s.verified}/${s.total} verified; ${s.inProgress} in progress; ${s.blocked} blocked`);
   if (current) console.log(`Current: ${current.id} — ${current.title}`);
   console.log(`Next: ${ready[0] ? `${ready[0].id} — ${ready[0].title}` : 'no ready task'}`);

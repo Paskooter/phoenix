@@ -83,13 +83,65 @@ if [ "$MODE" = repoint ] && [ -z "$REST_URL" ]; then
   exit 2
 fi
 
+validate_host() {
+  value=${1:-}
+  [ -n "$value" ] || return 1
+  case "$value" in *[!A-Za-z0-9.-]*|.*|*-|*..*) return 1 ;; esac
+}
+is_ip() {
+  case "${1:-}" in
+    [0-9]*.[0-9]*.[0-9]*.[0-9]*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+validate_port() {
+  value=${1:-}
+  case "$value" in ''|*[!0-9]*|??????*) return 1 ;; esac
+  [ "$value" -ge 1 ] 2>/dev/null && [ "$value" -le 65535 ] 2>/dev/null
+}
+validate_region() {
+  value=${1:-}
+  [ -n "$value" ] || return 1
+  case "$value" in *[!A-Za-z0-9-]*|.*|*-|*..*) return 1 ;; esac
+}
+validate_url() {
+  url=${1:-}
+  case "$url" in http://*|https://*|ws://*|wss://*) ;; *) return 1 ;; esac
+  rest=${url#*://}
+  authority=${rest%%/*}
+  path=${rest#"$authority"}
+  [ -z "$path" ] || [ "$path" = / ] || return 1
+  case "$authority" in ''|*@*) return 1 ;; esac
+  case "$authority" in
+    *:*) host=${authority%:*}; port=${authority##*:}; validate_port "$port" || return 1 ;;
+    *) host=$authority ;;
+  esac
+  validate_host "$host"
+}
+parse_host_port() {
+  value=${1:-}
+  case "$value" in
+    *:*) PARSED_HOST=${value%:*}; PARSED_PORT=${value##*:}; validate_port "$PARSED_PORT" || return 1 ;;
+    *) PARSED_HOST=$value; PARSED_PORT= ;;
+  esac
+  validate_host "$PARSED_HOST"
+}
+host_of() {
+  value=${1#*://}
+  authority=${value%%/*}
+  case "$authority" in *:*) printf '%s' "${authority%:*}" ;; *) printf '%s' "$authority" ;; esac
+}
+
 if [ "$MODE" = repoint ]; then
+  validate_url "$REST_URL" || { echo "invalid REST endpoint host or port" >&2; exit 2; }
   case "$REST_URL" in
     http://*)  echo "note: plain-HTTP REST endpoint — the robot's native client upgrades some calls to TLS on :443; for a TLS deployment pass https://<name> instead." >&2 ;;
     https://*) : ;;
-    *) echo "endpoint must start with http:// or https:// (got: $REST_URL)" >&2; exit 2 ;;
   esac
 fi
+[ -z "$SOCKET_URL" ] || validate_url "$SOCKET_URL" || { echo "invalid socket endpoint host or port" >&2; exit 2; }
+[ -z "$HUB_ARG" ] || parse_host_port "$HUB_ARG" || { echo "invalid hub host or port" >&2; exit 2; }
+[ -z "$REGION_ARG" ] || validate_region "$REGION_ARG" || { echo "invalid region" >&2; exit 2; }
 
 NODE="$(command -v node 2>/dev/null || echo /usr/local/bin/node)"
 if [ ! -x "$NODE" ] && ! command -v "$NODE" >/dev/null 2>&1; then
@@ -112,36 +164,32 @@ if [ -z "$REGION" ]; then
     exit 1
   fi
 fi
+validate_region "$REGION" || { echo "robot returned an invalid region" >&2; exit 2; }
 
 # ---- derive the Phoenix host and the default socket URL -----------------------------
-host_of() { # strip scheme, path and port
-  printf '%s' "$1" | sed -e 's|^[a-zA-Z][a-zA-Z0-9+.-]*://||' -e 's|/.*$||' -e 's|:.*$||'
-}
-is_ip() { # crude IPv4 test
-  case "$1" in
-    [0-9]*.[0-9]*.[0-9]*.[0-9]*) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-[ -n "$REST_URL" ] && PHX_HOST="$(host_of "$REST_URL")" || PHX_HOST=""
+[ -z "$REST_URL" ] && PHX_HOST="" || PHX_HOST="$(host_of "$REST_URL")"
+[ -n "$PHX_HOST" ] && validate_host "$PHX_HOST" || [ -z "$PHX_HOST" ] || { echo "invalid Phoenix host" >&2; exit 2; }
 # Default socket target: the region-derived TLS name the robot's pinned cert carries.
 [ -n "$SOCKET_URL" ] || SOCKET_URL="wss://${REGION}-socket.jibo.com"
+validate_url "$SOCKET_URL" || { echo "invalid socket endpoint host or port" >&2; exit 2; }
 
 # ---- conversation hub target ---------------------------------------------------------
 JET=/usr/local/etc/jibo-jetstream-service.json
 HUB_HOST=""; HUB_PORT=""
 if [ -n "$HUB_ARG" ]; then
-  HUB_HOST="$(host_of "$HUB_ARG")"
-  case "$HUB_ARG" in *:*) HUB_PORT="$(printf '%s' "$HUB_ARG" | sed -n 's/.*:\([0-9][0-9]*\)$/\1/p')" ;; esac
+  HUB_HOST="$PARSED_HOST"
+  HUB_PORT="$PARSED_PORT"
 fi
 [ -n "$HUB_HOST" ] || HUB_HOST="$PHX_HOST"
-# Preserve an already-working hub port if one is configured; else 9000.
+# Preserve an already-working hub port if one is configured; else use the
+# canonical Phoenix hub port shared by the stack and PC-side repoint launchers.
 if [ -z "$HUB_PORT" ] && [ -r "$JET" ]; then
   HUB_PORT="$("$NODE" -e 'try{var c=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));var o=(c.HubClient&&c.HubClient.override)||{};if(o.hub_port)process.stdout.write(String(o.hub_port));}catch(e){}' "$JET" 2>/dev/null)"
 fi
 [ -n "$HUB_PORT" ] || HUB_PORT=9000
+validate_port "$HUB_PORT" || { echo "invalid hub port" >&2; exit 2; }
+[ -z "$HUB_HOST" ] || validate_host "$HUB_HOST" || { echo "invalid hub host" >&2; exit 2; }
 
-# ---- writable mounts (best-effort) ---------------------------------------------------
 if [ "$MODE" != dryrun ]; then
   if command -v jibo-mount >/dev/null 2>&1; then jibo-mount --rw 2>/dev/null || true
   else mount -o remount,rw /usr/local 2>/dev/null || true; mount -o remount,rw / 2>/dev/null || true

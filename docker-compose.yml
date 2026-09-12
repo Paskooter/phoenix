@@ -41,12 +41,13 @@ services:
     <<: *phoenix-defaults
     container_name: hub
     working_dir: /phoenix
-    command: node packages/gateway/src/index.js
+    command: node scripts/require-auth.mjs packages/gateway/src/index.js
     environment:
       - PORT=8080
       - ETCO_hub_skillsConfig=skills-phoenix.json
-      - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
-      - ETCO_hub_disableAuth=${DISABLE_AUTH:-true}
+      - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:?HUB_TOKEN_SECRET must be explicitly set}
+      - ETCO_hub_disableAuth=${DISABLE_AUTH:-false}
+      - PHOENIX_DEV_MODE=${PHOENIX_DEV_MODE:-0}
       # Per-robot auth (G.5): when DISABLE_AUTH=false, validate each token's accessKeyId
       # against the account service. Harmless when auth is disabled.
       - ETCO_hub_accountUrl=http://account:8080
@@ -204,7 +205,7 @@ services:
         required: false   # copy .env.example -> .env to set ADMIN_PASSWORD etc.
     environment:
       - PORT=8080
-      - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
+      - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:?HUB_TOKEN_SECRET must be explicitly set}
       - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
       # PHOTO_PUBLIC_URL must be the externally reachable Classic/TLS origin
       # (for example https://region.example), never account:8080 or localhost.
