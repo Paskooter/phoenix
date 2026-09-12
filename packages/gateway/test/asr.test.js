@@ -198,6 +198,63 @@ test('VAD: a short request after the hotphrase tail is not ignored', async () =>
   }
 });
 
+test('hotphrase continuous wake-tail plus a short first command is not discarded', async () => {
+  const srv = await mockParakeet('no');
+  const source = fixturePcm(); // 300 ms continuous speech, then 1 s silence
+  const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, {
+    lang: 'en-US', hotphrase: true, encoding: AUDIO_ENCODINGS.LINEAR16,
+  }, console);
+  const startPr = session.start();
+  try {
+    session.provideAudio(source);
+    assert.deepEqual(await withTimeout(startPr), { text: 'no', confidence: 1.0 });
+    assert.equal(srv._requests, 1, 'the combined wake-tail and command are recognized once');
+    assert.deepEqual(wavPayload(srv._lastBody), source.subarray(0, 32000));
+  } finally {
+    await cleanupSession(session, startPr, srv);
+  }
+});
+
+test('hotphrase does not discard a 250 ms continuous first utterance', async () => {
+  const srv = await mockParakeet('no');
+  const source = Buffer.concat([fixturePcm().subarray(0, 8000), Buffer.alloc(32000)]);
+  const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, {
+    lang: 'en-US', hotphrase: true, encoding: AUDIO_ENCODINGS.LINEAR16,
+  }, console);
+  const startPr = session.start();
+  try {
+    session.provideAudio(source);
+    assert.deepEqual(await withTimeout(startPr), { text: 'no', confidence: 1.0 });
+    assert.equal(srv._requests, 1, 'a continuous command shorter than 400 ms is still recognized');
+  } finally {
+    await cleanupSession(session, startPr, srv);
+  }
+});
+
+test('hotphrase continuous short first command survives OGG and FLAC decoding', { skip: !FFMPEG_AVAILABLE && 'ffmpeg is required by the encoded hotphrase fixtures' }, async () => {
+  const raw = fixturePcm(); // 300 ms continuous speech, then 1 s silence
+  for (const [encoding, format] of [[AUDIO_ENCODINGS.OGG_OPUS, 'ogg'], [AUDIO_ENCODINGS.FLAC, 'flac']]) {
+    const srv = await mockParakeet(`no-${encoding}`);
+    const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, {
+      lang: 'en-US', hotphrase: true, encoding,
+    }, console);
+    const startPr = session.start();
+    try {
+      const encoded = encodeRawPcm(raw, format);
+      for (let offset = 0; offset < encoded.length;) {
+        const size = Math.min(1 + ((offset * 19) % 127), encoded.length - offset);
+        session.provideAudio(encoded.subarray(offset, offset + size));
+        offset += size;
+      }
+      assert.deepEqual(await withTimeout(startPr), { text: `no-${encoding}`, confidence: 1.0 });
+      assert.equal(srv._requests, 1, `${encoding}: the combined wake-tail and command are recognized once`);
+      assert.ok(wavPayload(srv._lastBody).length >= 32000, `${encoding}: decoded speech is retained through the endpoint`);
+    } finally {
+      await cleanupSession(session, startPr, srv);
+    }
+  }
+});
+
 test('VAD: stop() before SOS resolves start() with undefined', async () => {
   const session = new ParakeetASRSession('http://localhost:9', { lang: 'en-US' }, console);
   const startPr = session.start();

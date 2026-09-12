@@ -50,24 +50,46 @@ const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 const POST_TIMEOUT_MS = 30000;
 const MAX_RESPONSE_BYTES = 64 * 1024;
 const MAX_RESPONSE_DIAGNOSTIC_BYTES = 1024;
+const UTF8_ELLIPSIS = '…';
+const UTF8_ELLIPSIS_BYTES = Buffer.byteLength(UTF8_ELLIPSIS, 'utf8');
 
 export const PARAKEET_RESPONSE_LIMITS = Object.freeze({
   maxBytes: MAX_RESPONSE_BYTES,
   maxDiagnosticBytes: MAX_RESPONSE_DIAGNOSTIC_BYTES,
 });
 
+/**
+ * Return a diagnostic prefix whose UTF-8 encoding is no larger than maxBytes.
+ * Decode Buffer input before measuring so malformed response bytes become the
+ * same bounded replacement characters Node would expose in an Error message.
+ * The cut is made on the encoded representation, never in the middle of a
+ * multibyte code point.
+ */
+export function truncateUtf8ByBytes(value, maxBytes) {
+  const limit = Math.max(0, Math.floor(Number(maxBytes)) || 0);
+  if (limit === 0) return '';
+  const text = Buffer.isBuffer(value) ? value.toString('utf8') : String(value ?? '');
+  const encoded = Buffer.from(text, 'utf8');
+  if (encoded.length <= limit) return text;
+
+  let end = limit;
+  while (end > 0 && (encoded[end] & 0xc0) === 0x80) end -= 1;
+  return encoded.subarray(0, end).toString('utf8');
+}
+
 // A silence endpoint that recognizes no words is treated as a false endpoint
 // (see the header note): keep listening instead of ending the turn. Bounded so a
 // quiet stream cannot hold a turn open with recognition after recognition.
 const EMPTY_ENDPOINT_RELISTEN_LIMIT = 3;
 
-// A wake-phrase tail is a short energy burst (observed 150-300 ms of the "-bo" in
-// "Hey Jibo"). On a hotphrase turn the turn's audio always opens with it, so the
-// first endpoint after a short burst is suppressed instead of posting the wake
-// tail. Resetting the VAD counters at that boundary makes the next burst — even
-// a short legitimate request — eligible for recognition. Local (non-hotphrase)
-// turns have no wake tail, so short answers such as "no" are unaffected.
-const MIN_ENDPOINT_SPEECH_MS = 400;
+// A wake-phrase tail is a short energy burst (the deterministic fixture is 200 ms
+// of the "-bo" in "Hey Jibo"). On a hotphrase turn the turn's audio always opens
+// with it, so only that conservative, verified tail window is suppressed at its
+// first endpoint. Longer bursts are submitted intact: VAD cannot otherwise
+// distinguish a wake tail followed continuously by a short command from the
+// command itself. A longer tail-only candidate follows the normal empty-result
+// relisten path. Local (non-hotphrase) turns have no wake tail.
+const WAKE_TAIL_MAX_SPEECH_MS = 200;
 const WAKE_TAIL_IGNORE_LIMIT = 1;
 
 const bytesToMs = (bytes) => (bytes / BYTES_PER_SEC) * 1000;
@@ -255,6 +277,7 @@ export class ParakeetASRSession {
       this.silenceBytes += window.length;
       if (this.state === 'SPEAKING') this.state = 'TRAILING_SILENCE';
       if (this.state === 'TRAILING_SILENCE' && bytesToMs(this.silenceBytes) >= SILENCE_TO_EOS_MS) {
+        const speechMs = bytesToMs(this.speechBytes);
         if (this._isWakeTailBurst()) {
           // Discard only the initial wake tail and start a fresh VAD window.
           // Resetting speechBytes is important: otherwise a short real request
@@ -268,7 +291,7 @@ export class ParakeetASRSession {
           this.eosFired = false;
           this.state = 'WAITING';
           this.log.debug?.('[asr] short burst after the wake phrase: not an endpoint, continuing to listen', {
-            speechMs: Math.round(bytesToMs(window.length)),
+            speechMs: Math.round(speechMs),
             ignored: this.wakeTailIgnored,
           });
           return;
@@ -540,7 +563,7 @@ export class ParakeetASRSession {
     return this.config.hotphrase === true
       && !this.eosFired
       && this.wakeTailIgnored < WAKE_TAIL_IGNORE_LIMIT
-      && bytesToMs(this.speechBytes) < MIN_ENDPOINT_SPEECH_MS;
+      && bytesToMs(this.speechBytes) <= WAKE_TAIL_MAX_SPEECH_MS;
   }
 
   /** Restart the recognition window after an empty endpoint, keeping SOS state. */
@@ -724,8 +747,13 @@ export class ParakeetASRSession {
             responseEnded = true;
             const text = Buffer.concat(bufs).toString('utf8');
             if (res.statusCode !== 200) {
-              const diagnostic = text.slice(0, MAX_RESPONSE_DIAGNOSTIC_BYTES);
-              const suffix = text.length > MAX_RESPONSE_DIAGNOSTIC_BYTES ? '…' : '';
+              const textBytes = Buffer.byteLength(text, 'utf8');
+              const truncated = textBytes > MAX_RESPONSE_DIAGNOSTIC_BYTES;
+              const diagnostic = truncateUtf8ByBytes(
+                text,
+                truncated ? MAX_RESPONSE_DIAGNOSTIC_BYTES - UTF8_ELLIPSIS_BYTES : MAX_RESPONSE_DIAGNOSTIC_BYTES,
+              );
+              const suffix = truncated ? UTF8_ELLIPSIS : '';
               fail(new Error(`Parakeet returned ${res.statusCode}: ${diagnostic}${suffix}`));
               return;
             }
