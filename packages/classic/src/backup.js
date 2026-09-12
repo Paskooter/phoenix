@@ -31,20 +31,26 @@
 //
 // The original handed back S3 presigned URLs. Phoenix has no S3, so — exactly like the OTA
 // "self-hosted packages" divergence — the URLs point back at THIS entrypoint (derived from the
-// request Host, or ETCO_classic_publicUrl), and the blob is stored locally.
-//
+// request Host, or ETCO_classic_publicUrl), and the blob is stored locally. Each URL is signed
+// with a server-held HMAC and carries an epoch-ms expiry. The query names loopId/key remain the
+// robot's URL contract; the additional bearer fields replace S3's signature/expiry enforcement.
+// The secret is never placed in a URL or a request log. Configure ETCO_classic_backupBearerSecret
+// (or the launcher's stable ETCO_server_hubTokenSecret) when URLs must survive a process restart;
+// an unconfigured process uses a random secret, which intentionally invalidates old URLs on exit.
+
 // DURABILITY: the index is a cache. The object files under
 // ETCO_classic_backupDir / $TMPDIR/phx-backups ARE the source of truth and are re-indexed on a
 // cache miss, so blob retrieval and `Backup.List` survive a process restart/crash. (The original
 // survived the same way: S3 persisted, the service held no state.)
-//
+
 // RESTORE AUTHORIZATION is the signed URL itself in the source (an S3 presigned GET). Phoenix's
-// self-hosted URL carries no signature, so possession of the URL is the only gate — recorded as
-// part of the H-backup self-hosting divergence.
+// self-hosted URL preserves that possession model with a method- and loop-bound HMAC that is
+// checked on both GET and PUT before touching the object store.
 
 import { createReadStream, openSync, readSync, closeSync, readdirSync, statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { isIP } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
@@ -62,9 +68,71 @@ import {
 const MAGICK = 9999999999999;
 const URL_EXPIRATION_MS = 24 * 60 * 60 * 1000; // ctrl.js URL_EXPIRATION_SEC (24h)
 const SAFE = /^[A-Za-z0-9_-]+$/;               // loopId/key live in URLs + file paths — no traversal
+const BEARER_SIGNATURE_BYTES = 32;
 const ACCOUNT_TIMEOUT_MS = Number(process.env.ETCO_classic_backupAccountTimeoutMS) || 3000;
 
 export const BACKUP_MAX_BYTES = 1_000_000_000;
+export const BACKUP_URL_EXPIRATION_MS = URL_EXPIRATION_MS;
+
+function bearerSecretFrom(options) {
+  // A configured value keeps URLs valid across a restart. The parity launcher already exposes the
+  // process hub secret; the random fallback avoids a predictable bearer key in standalone runs.
+  const configured = options.bearerSecret
+    ?? process.env.ETCO_classic_backupBearerSecret
+    ?? process.env.ETCO_server_hubTokenSecret
+    ?? process.env.HUB_TOKEN_SECRET;
+  if (Buffer.isBuffer(configured) && configured.length > 0) return configured;
+  if (typeof configured === 'string' && configured.length > 0) return configured;
+  // A per-process secret is safer than an unsigned URL when no deployment secret was configured.
+  // Operators that need URLs to survive a restart must provide one of the variables above.
+  return randomBytes(BEARER_SIGNATURE_BYTES);
+}
+
+function clockNow(clock) {
+  try {
+    const value = Number(clock());
+    return Number.isFinite(value) ? Math.floor(value) : Date.now();
+  } catch {
+    return Date.now();
+  }
+}
+
+function bearerPayload(method, loopId, key, expires) {
+  return ['phoenix-backup-v1', String(method).toUpperCase(), loopId, key, String(expires)].join('\n');
+}
+
+function signBearer(secret, method, loopId, key, expires) {
+  return createHmac('sha256', secret).update(bearerPayload(method, loopId, key, expires)).digest('hex');
+}
+
+function singleQueryParam(url, name) {
+  const values = url.searchParams.getAll(name);
+  return values.length === 1 ? values[0] : null;
+}
+
+function bearerIds(url, method, secret, now) {
+  const loopId = singleQueryParam(url, 'loopId');
+  const key = singleQueryParam(url, 'key');
+  const expiresText = singleQueryParam(url, 'expires');
+  const signature = singleQueryParam(url, 'signature');
+  if (!loopId || !key || !expiresText || !signature || !SAFE.test(loopId) || !SAFE.test(key)) return null;
+  if (!/^[0-9]+$/.test(expiresText)) return null;
+  const expires = Number(expiresText);
+  if (!Number.isSafeInteger(expires) || String(expires) !== expiresText || expires <= now) return null;
+  if (!/^[a-f0-9]{64}$/.test(signature)) return null;
+  const expected = Buffer.from(signBearer(secret, method, loopId, key, expires), 'hex');
+  const supplied = Buffer.from(signature, 'hex');
+  if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return null;
+  return { loopId, key };
+}
+
+function isLoopbackRequest(req) {
+  const address = req?.socket?.remoteAddress || req?.connection?.remoteAddress;
+  if (!address) return false;
+  if (address === '::1' || address === '127.0.0.1') return true;
+  if (isIP(address) === 6 && address.toLowerCase() === '::ffff:127.0.0.1') return true;
+  return false;
+}
 
 export class BackupStore {
   constructor(dir = process.env.ETCO_classic_backupDir || join(tmpdir(), 'phx-backups'), options = {}) {
@@ -77,7 +145,26 @@ export class BackupStore {
       options.maxBytes,
       configuredMaxBytes('ETCO_classic_backupMaxBytes', BACKUP_MAX_BYTES),
     );
+    this.clock = typeof options.clock === 'function' ? options.clock : Date.now;
+    const configuredExpiry = Number(options.urlExpirationMs);
+    this.urlExpirationMs = Number.isSafeInteger(configuredExpiry) && configuredExpiry > 0
+      ? configuredExpiry
+      : URL_EXPIRATION_MS;
+    this.bearerSecret = bearerSecretFrom(options);
     this.index = new Map(); // loopId -> [{ key, etag, modified, size, file }]
+  }
+
+  now() {
+    return clockNow(this.clock);
+  }
+
+  signedBlobUrl(base, method, loopId, key) {
+    const expires = this.now() + this.urlExpirationMs;
+    const signature = signBearer(this.bearerSecret, method, loopId, key, expires);
+    return {
+      expires,
+      url: `${base}/backup/blob?loopId=${encodeURIComponent(loopId)}&key=${encodeURIComponent(key)}&expires=${expires}&signature=${signature}`,
+    };
   }
 
   /**
@@ -113,7 +200,7 @@ export class BackupStore {
 
   /** A fresh, unique, newest-sorts-first object key for a Backup.new call. */
   newKey() {
-    return `${MAGICK - Date.now()}-${randomBytes(4).toString('hex')}`;
+    return `${MAGICK - this.now()}-${randomBytes(4).toString('hex')}`;
   }
 
   /** Stream an upload to a same-directory temporary file, hashing as it goes; publish only at EOF. */
@@ -125,7 +212,7 @@ export class BackupStore {
       maxBytes: this.maxBytes,
       onChunk: (chunk) => hash.update(chunk),
     });
-    const entry = { key, etag: `"${hash.digest('hex')}"`, modified: Date.now(), size: result.size, file };
+    const entry = { key, etag: `"${hash.digest('hex')}"`, modified: this.now(), size: result.size, file };
     const arr = this._entries(loopId).filter((e) => e.key !== key);
     arr.push(entry);
     this.index.set(loopId, arr);
@@ -160,11 +247,17 @@ function md5FileSync(file) {
 // ---- source error envelopes (srv-server Boom) ------------------------------
 
 const REASON = {
+  401: 'Unauthorized',
   403: 'Forbidden',
   404: 'Not Found',
   413: 'Payload Too Large',
   422: 'Unprocessable Entity',
   503: 'Service Unavailable',
+};
+const BACKUP_AUTH_REQUIRED = {
+  statusCode: 401,
+  message: 'Backup credentials required',
+  code: 'BACKUP_AUTH_REQUIRED',
 };
 const ACCOUNT_SERVICE_UNAVAILABLE = {
   statusCode: 503,
@@ -216,8 +309,13 @@ function loopIdValidationMessage(loopId) {
  * The source's identity source for Backup is the security gateway's `x-amz-credentials`
  * forwarding header (srv-server parseCredentials.ts parses it into request.auth.credentials and
  * handler.js:19,31 reads `credentials.id`). Same seam log.js already uses for its robot/admin
- * checks. Phoenix runs no security gateway, so an absent header means "no identity to check" and
- * the LAN-trust path applies — see DIVERGENCES (the gateway allow-lists are A-02's boundary).
+ * checks. That header is only an identity assertion after a trusted gateway has verified the
+ * request; a missing header is never treated as LAN trust. The current parity authenticated-stack
+ * binds Classic directly to the robot-facing listener and does not inject a Backup resolver, so
+ * this code deliberately rejects that unconfigured external path instead of treating a raw
+ * Authorization Credential value as verified. For a deliberately private, same-host deployment,
+ * `allowLoopbackWithoutIdentity` is an explicit opt-in and is accepted only when the socket peer
+ * is loopback (not from a forwarded client address).
  */
 export function credentialsAccountId(req) {
   try {
@@ -259,13 +357,11 @@ export async function accountLoopRobot(loopId) {
 }
 
 /**
- * @param {{accountId?: (req) => string|null, loopRobotId?: (loopId) => Promise<string|null|undefined>}} [ownership]
+ * @param {{accountId?: (req) => string|null, loopRobotId?: (loopId) => Promise<string|null|undefined>, allowLoopbackWithoutIdentity?: boolean}} [ownership]
  */
 export function makeBackupHandler(store, baseFor, { ownership } = {}) {
   const accountIdOf = ownership?.accountId || credentialsAccountId;
   const loopRobotIdOf = ownership?.loopRobotId || accountLoopRobot;
-  const blobUrl = (req, loopId, key) =>
-    `${baseFor(req)}/backup/blob?loopId=${encodeURIComponent(loopId)}&key=${encodeURIComponent(key)}`;
 
   async function ownershipRefusal(req, loopId, log) {
     let caller;
@@ -274,7 +370,14 @@ export function makeBackupHandler(store, baseFor, { ownership } = {}) {
     } catch {
       return ACCOUNT_SERVICE_UNAVAILABLE;
     }
-    if (!caller) return null; // no identity to check against (no security gateway) -> LAN trust
+    if (!caller) {
+      // The source received this only after its security gateway populated credentials. Never turn
+      // an absent forwarding header into authorization. A local-only test/sidecar may opt in, but
+      // the peer check is on the socket address so X-Forwarded-For cannot manufacture loopback.
+      return ownership?.allowLoopbackWithoutIdentity && isLoopbackRequest(req)
+        ? null
+        : BACKUP_AUTH_REQUIRED;
+    }
     let robot;
     try { robot = await loopRobotIdOf(loopId); } catch { robot = undefined; }
     if (robot === undefined) {
@@ -294,19 +397,23 @@ export function makeBackupHandler(store, baseFor, { ownership } = {}) {
         if (invalid) return void sendBoom(res, 422, invalid);
         const refusal = await ownershipRefusal(req, loopId, log);
         if (refusal) return void sendBoom(res, refusal.statusCode, refusal.message, refusal.code);
-        return void sendAmz(res, 200, { uploadUrl: blobUrl(req, loopId, store.newKey()) });
+        const upload = store.signedBlobUrl(baseFor(req), 'PUT', loopId, store.newKey());
+        return void sendAmz(res, 200, { uploadUrl: upload.url });
       }
       case 'list': {
         const invalid = loopIdValidationMessage(loopId);
         if (invalid) return void sendBoom(res, 422, invalid);
         const refusal = await ownershipRefusal(req, loopId, log);
         if (refusal) return void sendBoom(res, refusal.statusCode, refusal.message, refusal.code);
-        const entries = store.list(loopId, b.max).map((e) => ({
-          modified: new Date(e.modified).toISOString(),
-          etag: e.etag,
-          size: e.size,
-          location: { expires: Date.now() + URL_EXPIRATION_MS, url: blobUrl(req, loopId, e.key) },
-        }));
+        const entries = store.list(loopId, b.max).map((e) => {
+          const location = store.signedBlobUrl(baseFor(req), 'GET', loopId, e.key);
+          return {
+            modified: new Date(e.modified).toISOString(),
+            etag: e.etag,
+            size: e.size,
+            location,
+          };
+        });
         return void sendAmz(res, 200, entries);
       }
       default:
@@ -322,14 +429,26 @@ export function makeBackupHandler(store, baseFor, { ownership } = {}) {
  */
 export function backupBlobRoutes(store) {
   const ids = (url) => {
-    const loopId = url.searchParams.get('loopId');
-    const key = url.searchParams.get('key');
+    const loopId = singleQueryParam(url, 'loopId');
+    const key = singleQueryParam(url, 'key');
     return (loopId && key && SAFE.test(loopId) && SAFE.test(key)) ? { loopId, key } : null;
+  };
+  const denyBearer = (res) => {
+    res.writeHead(403, {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    res.end('forbidden');
   };
 
   const putBlob = async ({ req, res, url, log }) => {
     const id = ids(url);
     if (!id) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('bad loopId/key'); }
+    const authorized = bearerIds(url, 'PUT', store.bearerSecret, store.now());
+    if (!authorized || authorized.loopId !== id.loopId || authorized.key !== id.key) {
+      req.resume?.();
+      return void denyBearer(res);
+    }
     const contentLength = declaredContentLength(req);
     if (contentLength !== null && contentLength > store.maxBytes) {
       req.resume?.();
@@ -357,7 +476,10 @@ export function backupBlobRoutes(store) {
 
   const getBlob = async ({ res, url, log }) => {
     const id = ids(url);
-    const entry = id && store.find(id.loopId, id.key);
+    if (!id) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('bad loopId/key'); }
+    const authorized = bearerIds(url, 'GET', store.bearerSecret, store.now());
+    if (!authorized || authorized.loopId !== id.loopId || authorized.key !== id.key) return void denyBearer(res);
+    const entry = store.find(id.loopId, id.key);
     if (!entry) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('no such backup'); }
     res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-length': entry.size });
     try {

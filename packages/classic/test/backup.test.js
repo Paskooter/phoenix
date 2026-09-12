@@ -54,7 +54,10 @@ before(async () => {
   backupDir = mkdtempSync(join(tmpdir(), 'phx-backup-shared-'));
   prevBackupDir = process.env.ETCO_classic_backupDir;
   process.env.ETCO_classic_backupDir = backupDir;
-  server = await createClassicEntrypoint().listen(0);
+  server = await createClassicEntrypoint({
+    backup: { dir: backupDir, bearerSecret: 'classic-backup-test-secret' },
+    backupOwnership: { allowLoopbackWithoutIdentity: true },
+  }).listen(0);
   port = server.address().port;
 });
 after(() => {
@@ -73,6 +76,10 @@ test('backup new -> PUT blob -> list (etag matches) -> GET restores the bytes', 
   const created = await amz('Backup_20170222.New', { loopId: 'loop-1' });
   assert.equal(created.status, 200);
   assert.ok(created.body.uploadUrl && created.body.uploadUrl.startsWith(base()), 'uploadUrl points here');
+  const uploadUrl = new URL(created.body.uploadUrl);
+  assert.equal(uploadUrl.searchParams.get('loopId'), 'loop-1');
+  assert.ok(Number.isSafeInteger(Number(uploadUrl.searchParams.get('expires'))), 'upload URL advertises an epoch-ms expiry');
+  assert.match(uploadUrl.searchParams.get('signature') || '', /^[a-f0-9]{64}$/, 'upload URL carries an HMAC bearer signature');
 
   // 2) the robot PUTs the (encrypted) blob; jibo-system-backup.js reads response.headers.etag.
   const put = await fetch(created.body.uploadUrl, {
@@ -255,12 +262,28 @@ test('ownership: a different account is refused ROBOT_SHOULD_BELONG_TO_LOOP (403
   }
 });
 
-test('ownership: no resolved identity keeps the documented LAN-trust path (200)', async () => {
-  const res = await withOwnership(
-    { accountId: () => null, loopRobotId: async () => 'someone-else' },
-    async (b) => b.amz('Backup_20170222.New', { loopId: 'loop-lan' }),
+test('ownership: missing identity fails closed unless the explicit loopback boundary is enabled', async () => {
+  const denied = await withOwnership(
+    undefined,
+    async (b) => ({
+      n: await b.amz('Backup_20170222.New', { loopId: 'loop-no-identity' }),
+      l: await b.amz('Backup_20170222.List', { loopId: 'loop-no-identity' }),
+    }),
   );
-  assert.equal(res.status, 200, 'with no gateway-supplied identity there is nothing to check against');
+  for (const [name, res] of Object.entries(denied)) {
+    assert.equal(res.status, 401, `${name}: a missing forwarding identity is not an authorization signal`);
+    assert.equal(res.body.code, 'BACKUP_AUTH_REQUIRED');
+  }
+
+  const trusted = await withOwnership(
+    { accountId: () => null, loopRobotId: async () => 'someone-else', allowLoopbackWithoutIdentity: true },
+    async (b) => ({
+      n: await b.amz('Backup_20170222.New', { loopId: 'loop-loopback' }),
+      l: await b.amz('Backup_20170222.List', { loopId: 'loop-loopback' }),
+    }),
+  );
+  assert.equal(trusted.n.status, 200, 'only the explicitly configured loopback seam may omit identity');
+  assert.equal(trusted.l.status, 200, 'the same explicit loopback seam applies to List');
 });
 
 test('ownership: an Account lookup outage fails closed with ACCOUNT_SERVICE_UNAVAILABLE', async () => {
@@ -324,16 +347,94 @@ test('ownership: end-to-end through a real Account service (getLoop 200 and 404)
   }
 });
 
-test('restore authorization is possession of the returned URL (unsigned, self-hosted)', async () => {
+test('restore authorization is possession of the returned URL (expiring, loop-bound bearer)', async () => {
   const created = await amz('Backup_20170222.New', { loopId: 'loop-share' });
   await fetch(created.body.uploadUrl, { method: 'PUT', body: Buffer.from('shareable') });
   const listed = await amz('Backup_20170222.List', { loopId: 'loop-share' });
   const url = listed.body[0].location.url;
-  // The source served an S3 presigned GET (the signature WAS the authorization). Phoenix's
-  // self-hosted URL is unsigned, so any holder of it can restore — the H-backup divergence.
+  // The source served an S3 presigned GET. The self-hosted URL keeps that possession model, but
+  // now carries a server-held HMAC and an enforced expiry; no robot credentials are needed.
   const res = await fetch(url); // no credentials of any kind
   assert.equal(res.status, 200);
   assert.equal(await res.text(), 'shareable');
+});
+
+test('backup blob bearer rejects forgery, wrong loop, expiry changes, and method replay on GET and PUT', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-backup-bearer-'));
+  const secret = 'only-used-to-prove-it-is-not-in-the-url';
+  let now = Date.now();
+  let svc;
+  try {
+    svc = await createClassicEntrypoint({
+      backup: { dir, bearerSecret: secret, clock: () => now, urlExpirationMs: 1000 },
+      backupOwnership: { allowLoopbackWithoutIdentity: true },
+    }).listen(0);
+    const p = svc.address().port;
+    const post = async (target, body) => {
+      const response = await fetch(`http://localhost:${p}/`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target },
+        body: JSON.stringify(body),
+      });
+      return { status: response.status, body: await response.json().catch(() => null) };
+    };
+    const created = await post('Backup_20170222.New', { loopId: 'loop-bearer' });
+    assert.equal(created.status, 200);
+    const putUrl = new URL(created.body.uploadUrl);
+    assert.equal(putUrl.searchParams.get('loopId'), 'loop-bearer');
+    assert.equal(putUrl.searchParams.get('key')?.length > 0, true);
+    assert.match(putUrl.searchParams.get('signature') || '', /^[a-f0-9]{64}$/);
+    assert.equal(putUrl.href.includes(secret), false, 'the bearer secret is never serialized into the URL');
+
+    const unsigned = new URL(putUrl);
+    unsigned.searchParams.delete('expires');
+    unsigned.searchParams.delete('signature');
+    assert.equal((await fetch(unsigned, { method: 'PUT', body: 'unsigned' })).status, 403);
+
+    const forged = new URL(putUrl);
+    forged.searchParams.set('signature', `${'0'.repeat(63)}0`);
+    assert.equal((await fetch(forged, { method: 'PUT', body: 'forged' })).status, 403);
+
+    const futureOnly = new URL(putUrl);
+    futureOnly.searchParams.set('expires', String(now + 60_000));
+    assert.equal((await fetch(futureOnly, { method: 'PUT', body: 'expiry-tampered' })).status, 403);
+
+    const wrongLoop = new URL(putUrl);
+    wrongLoop.searchParams.set('loopId', 'another-loop');
+    assert.equal((await fetch(wrongLoop, { method: 'PUT', body: 'wrong-loop' })).status, 403);
+
+    const put = await fetch(putUrl, { method: 'PUT', body: Buffer.from('bearer-bytes') });
+    assert.equal(put.status, 200);
+    assert.equal((await fetch(putUrl)).status, 403, 'a PUT bearer cannot be replayed as a GET bearer');
+
+    const listed = await post('Backup_20170222.List', { loopId: 'loop-bearer' });
+    assert.equal(listed.status, 200);
+    const getUrl = new URL(listed.body[0].location.url);
+    assert.equal(listed.body[0].location.expires, Number(getUrl.searchParams.get('expires')));
+    assert.match(getUrl.searchParams.get('signature') || '', /^[a-f0-9]{64}$/);
+    assert.equal((await fetch(getUrl, { method: 'PUT', body: 'method-replay' })).status, 403);
+
+    const unsignedGet = new URL(getUrl);
+    unsignedGet.searchParams.delete('expires');
+    unsignedGet.searchParams.delete('signature');
+    assert.equal((await fetch(unsignedGet)).status, 403, 'GET requires its bearer, not just loopId/key');
+
+    const futureGet = new URL(getUrl);
+    futureGet.searchParams.set('expires', String(now + 60_000));
+    assert.equal((await fetch(futureGet)).status, 403, 'GET rejects an advertised expiry that is not signed');
+
+    now += 1001;
+    assert.equal((await fetch(getUrl)).status, 403, 'GET enforces expiry instead of trusting location.expires');
+
+    const later = await post('Backup_20170222.New', { loopId: 'loop-bearer-put-expiry' });
+    assert.equal(later.status, 200);
+    const laterUrl = later.body.uploadUrl;
+    now += 1001;
+    assert.equal((await fetch(laterUrl, { method: 'PUT', body: 'expired-put' })).status, 403, 'PUT enforces expiry too');
+  } finally {
+    svc?.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('backup blob endpoints reject path-traversal in loopId/key', async () => {
@@ -381,7 +482,13 @@ async function startChild({ backupDir, avoidPorts = [] }) {
     if (avoidPorts.includes(port)) continue;
     const child = spawn(process.execPath, [ENTRY], {
       cwd: ROOT,
-      env: { ...process.env, PORT: String(port), ETCO_classic_backupDir: backupDir },
+      env: {
+        ...process.env,
+        PORT: String(port),
+        ETCO_classic_backupDir: backupDir,
+        ETCO_classic_backupTrustedLoopback: 'true',
+        ETCO_classic_backupBearerSecret: 'classic-backup-child-secret',
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';

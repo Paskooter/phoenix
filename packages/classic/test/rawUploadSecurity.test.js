@@ -61,7 +61,7 @@ function requestChunks(port, method, path, headers, chunks) {
 test('HTTP chunked oversize Backup, Log, and Media uploads return 413 without publishing', async () => {
   const root = await mkdtemp(join(tmpdir(), 'phoenix-http-raw-limit-'));
   const entrypoint = createClassicEntrypoint({
-    backup: { dir: join(root, 'backup'), maxBytes: 5 },
+    backup: { dir: join(root, 'backup'), maxBytes: 5, bearerSecret: 'raw-upload-test-secret' },
     log: { dir: join(root, 'log'), maxBytes: 5 },
     media: { directory: join(root, 'media-objects'), file: join(root, 'media.json'), maxBytes: 5 },
   });
@@ -69,7 +69,8 @@ test('HTTP chunked oversize Backup, Log, and Media uploads return 413 without pu
   const port = server.address().port;
   try {
     const chunks = [Buffer.from('123'), Buffer.from('456')];
-    const backup = await requestChunks(port, 'PUT', '/backup/blob?loopId=loop-a&key=backup-key', {}, chunks);
+    const backupUrl = new URL(entrypoint.backups.signedBlobUrl(`http://127.0.0.1:${port}`, 'PUT', 'loop-a', 'backup-key').url);
+    const backup = await requestChunks(port, 'PUT', `${backupUrl.pathname}${backupUrl.search}`, {}, chunks);
     assert.equal(backup.status, 413);
     const log = await requestChunks(port, 'PUT', '/log/upload?key=log-key', {}, chunks);
     assert.equal(log.status, 413);

@@ -38,7 +38,7 @@ export { NotificationHub, createVerifiedNotificationAccountResolver } from './no
 export { NotificationStore } from './notification.js';
 export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
-export { BackupStore, credentialsAccountId, accountLoopRobot, BACKUP_MAX_BYTES } from './backup.js';
+export { BackupStore, credentialsAccountId, accountLoopRobot, BACKUP_MAX_BYTES, BACKUP_URL_EXPIRATION_MS } from './backup.js';
 export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, MEDIA_MAX_BYTES, AUTHORIZED_UNDER_ADMIN } from './media.js';
 export {
   RomController, RomError, CertificateStore, ROM_ERRORS,
@@ -218,7 +218,19 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     notificationTtlMs,
     pollIntervalMs: notificationPollIntervalMs,
   });
-  const backups = backup?.store || new BackupStore(backup?.dir, { maxBytes: backup?.maxBytes });
+  const backups = backup?.store || new BackupStore(backup?.dir, {
+    maxBytes: backup?.maxBytes,
+    bearerSecret: backup?.bearerSecret,
+    clock: backup?.clock,
+    urlExpirationMs: backup?.urlExpirationMs,
+  });
+  // This opt-in is intentionally narrow: it is for a private same-host sidecar/test only. The
+  // production launcher must provide a verified forwarding identity instead.
+  const loopbackBackupOptIn = backup?.allowLoopbackWithoutIdentity === true
+    || process.env.ETCO_classic_backupTrustedLoopback === 'true';
+  const effectiveBackupOwnership = (backupOwnership || loopbackBackupOptIn)
+    ? { ...(backupOwnership || {}), ...(loopbackBackupOptIn ? { allowLoopbackWithoutIdentity: true } : {}) }
+    : undefined;
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
@@ -246,7 +258,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     // intact to reject them before token mutation. Other routes stay strict.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
-      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: backupOwnership }) }], {
+      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: effectiveBackupOwnership }) }], {
         notificationAccountResolver,
         logStore,
         baseFor,

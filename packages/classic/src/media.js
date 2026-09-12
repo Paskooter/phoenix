@@ -30,9 +30,9 @@
 // Phoenix has no S3 (the same divergence that made Backup and the OTA packages self-host), so the
 // answered `url` points back at this entrypoint and the bytes live on local disk.
 
-import { createReadStream, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { createReadStream, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync, lstatSync } from 'node:fs';
+import { lstat, mkdir, realpath } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
@@ -50,6 +50,55 @@ export const MEDIA_PAGE_DEFAULT = 50;
 export const MEDIA_PAGE_MAX = 200;
 export const MEDIA_MAX_BYTES = 1_000_000_000;
 const SAFE_PATH = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeMediaComponent(value, name) {
+  if (typeof value !== 'string' || !SAFE_PATH.test(value)) throw new TypeError(`invalid media ${name}`);
+  return value;
+}
+
+function assertContainedPath(root, target) {
+  const rootPath = resolve(root);
+  const targetPath = resolve(target);
+  const rel = relative(rootPath, targetPath);
+  if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || rel.startsWith(sep)) {
+    throw new Error('media path escapes configured directory');
+  }
+}
+
+/** Reject symlink components before a file operation can follow them outside the media root. */
+function assertNoSymlinkComponents(root, target) {
+  const rootPath = resolve(root);
+  const rel = relative(rootPath, resolve(target));
+  let current = rootPath;
+  for (const component of rel.split(sep)) {
+    current = join(current, component);
+    try {
+      if (lstatSync(current).isSymbolicLink()) throw new Error('media path contains symlink');
+    } catch (error) {
+      if (error?.code === 'ENOENT') return;
+      throw error;
+    }
+  }
+}
+
+/** Re-check the canonical parent after mkdir; lexical containment alone cannot see symlinks. */
+async function assertResolvedMediaPath(directory, file) {
+  let root;
+  let parent;
+  try {
+    root = await realpath(resolve(directory));
+    parent = await realpath(dirname(file));
+  } catch (error) {
+    throw new Error(`media path cannot be resolved: ${error.message}`);
+  }
+  assertContainedPath(root, parent);
+  try {
+    if ((await lstat(file)).isSymbolicLink()) throw new Error('media path contains symlink');
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+}
+
 
 // jiborobot/srv-media-ws src/errors/media.js
 export const MEDIA_ERRORS = {
@@ -160,7 +209,17 @@ export class MediaStore {
   }
 
   fileFor(record) {
-    return join(this.directory, record.accountId || 'anonymous', mediaStorageName(record));
+    const accountId = record?.accountId || 'anonymous';
+    const path = assertSafeMediaComponent(record?.path, 'path');
+    assertSafeMediaComponent(accountId, 'accountId');
+    if (!MEDIA_TYPES.includes(record?.type)) throw new TypeError('invalid media type');
+    const root = resolve(this.directory);
+    const file = resolve(root, accountId, mediaStorageName({ path, type: record.type }));
+    // Keep this check even though SAFE_PATH currently makes it redundant: fileFor is the final
+    // storage boundary and must stay safe if the identity/path grammar changes later.
+    assertContainedPath(root, file);
+    assertNoSymlinkComponents(root, file);
+    return file;
   }
 
   objectFile(path) {
@@ -205,6 +264,7 @@ export class MediaStore {
   async writeBlob(record, dataStream) {
     const file = this.fileFor(record);
     await mkdir(dirname(file), { recursive: true, mode: 0o700 });
+    await assertResolvedMediaPath(this.directory, file);
     await writeAtomicUpload(dataStream, file, { maxBytes: this.maxBytes });
     return file;
   }
@@ -339,6 +399,9 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
 
   async function create({ req, res }) {
     const accountId = accountIdOf(req, null);
+    if (typeof accountId !== 'string' || !SAFE_PATH.test(accountId)) {
+      return void sendAmzError(res, ValidationException, 'Invalid caller identity');
+    }
     const loopId = header(req, 'x-loop-id');
     if (!loopId) return void sendAmzError(res, ValidationException, 'Invalid or missing x-loop-id');
     const type = header(req, 'x-type') ?? 'image';
