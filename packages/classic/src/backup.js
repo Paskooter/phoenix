@@ -42,15 +42,21 @@
 // self-hosted URL carries no signature, so possession of the URL is the only gate — recorded as
 // part of the H-backup self-hosting divergence.
 
-import { createWriteStream, createReadStream, openSync, readSync, closeSync, readdirSync, statSync } from 'node:fs';
+import { createReadStream, openSync, readSync, closeSync, readdirSync, statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz } from './awsJson.js';
+import {
+  UploadTooLargeError,
+  configuredMaxBytes,
+  declaredContentLength,
+  normalizeMaxBytes,
+  writeAtomicUpload,
+} from './rawUpload.js';
 
 // Mirrors srv-backup-ws: keys are `MAGICK - now` so a lexical/numeric sort puts newest first.
 const MAGICK = 9999999999999;
@@ -58,9 +64,19 @@ const URL_EXPIRATION_MS = 24 * 60 * 60 * 1000; // ctrl.js URL_EXPIRATION_SEC (24
 const SAFE = /^[A-Za-z0-9_-]+$/;               // loopId/key live in URLs + file paths — no traversal
 const ACCOUNT_TIMEOUT_MS = Number(process.env.ETCO_classic_backupAccountTimeoutMS) || 3000;
 
+export const BACKUP_MAX_BYTES = 1_000_000_000;
+
 export class BackupStore {
-  constructor(dir = process.env.ETCO_classic_backupDir || join(tmpdir(), 'phx-backups')) {
-    this.dir = dir;
+  constructor(dir = process.env.ETCO_classic_backupDir || join(tmpdir(), 'phx-backups'), options = {}) {
+    if (dir && typeof dir === 'object') {
+      options = dir;
+      dir = options.dir;
+    }
+    this.dir = dir || process.env.ETCO_classic_backupDir || join(tmpdir(), 'phx-backups');
+    this.maxBytes = normalizeMaxBytes(
+      options.maxBytes,
+      configuredMaxBytes('ETCO_classic_backupMaxBytes', BACKUP_MAX_BYTES),
+    );
     this.index = new Map(); // loopId -> [{ key, etag, modified, size, file }]
   }
 
@@ -100,17 +116,16 @@ export class BackupStore {
     return `${MAGICK - Date.now()}-${randomBytes(4).toString('hex')}`;
   }
 
-  /** Stream an upload to disk, hashing as it goes; record + return the entry (with S3-style ETag). */
+  /** Stream an upload to a same-directory temporary file, hashing as it goes; publish only at EOF. */
   async put(loopId, key, reqStream) {
     await mkdir(join(this.dir, loopId), { recursive: true });
     const file = join(this.dir, loopId, key);
     const hash = createHash('md5');
-    let size = 0;
-    const tap = new Transform({
-      transform(chunk, _enc, cb) { hash.update(chunk); size += chunk.length; cb(null, chunk); },
+    const result = await writeAtomicUpload(reqStream, file, {
+      maxBytes: this.maxBytes,
+      onChunk: (chunk) => hash.update(chunk),
     });
-    await pipeline(reqStream, tap, createWriteStream(file));
-    const entry = { key, etag: `"${hash.digest('hex')}"`, modified: Date.now(), size, file };
+    const entry = { key, etag: `"${hash.digest('hex')}"`, modified: Date.now(), size: result.size, file };
     const arr = this._entries(loopId).filter((e) => e.key !== key);
     arr.push(entry);
     this.index.set(loopId, arr);
@@ -144,7 +159,18 @@ function md5FileSync(file) {
 
 // ---- source error envelopes (srv-server Boom) ------------------------------
 
-const REASON = { 403: 'Forbidden', 404: 'Not Found', 422: 'Unprocessable Entity' };
+const REASON = {
+  403: 'Forbidden',
+  404: 'Not Found',
+  413: 'Payload Too Large',
+  422: 'Unprocessable Entity',
+  503: 'Service Unavailable',
+};
+const ACCOUNT_SERVICE_UNAVAILABLE = {
+  statusCode: 503,
+  message: 'Account service unavailable',
+  code: 'ACCOUNT_SERVICE_UNAVAILABLE',
+};
 
 /**
  * The source replied with a raw Hapi/Boom payload and no `x-amzn-errortype` header. The pinned
@@ -213,9 +239,9 @@ function accountBase() {
 /**
  * Resolve a loop's robot account id the way srv-backup-ws did: AccountClient.getLoop issues
  * `GET <account>/loop?loopId=<id>` (src/clients/account.client.js:10-18). Distinct return values
- * matter: a robot id (or `null` for "loop exists but has no robot") is compared against the
- * caller; `undefined` means "could not resolve" (service down / other error) and ownership is
- * not enforced rather than failing a legitimate backup on an unrelated outage.
+ * robot id (or `null` for "loop exists but has no robot") is compared against the caller;
+ * `undefined` means Account could not resolve the loop, so sensitive ownership checks deny with a
+ * service-unavailable response rather than authorizing through an outage.
  */
 export async function accountLoopRobot(loopId) {
   try {
@@ -242,13 +268,18 @@ export function makeBackupHandler(store, baseFor, { ownership } = {}) {
     `${baseFor(req)}/backup/blob?loopId=${encodeURIComponent(loopId)}&key=${encodeURIComponent(key)}`;
 
   async function ownershipRefusal(req, loopId, log) {
-    const caller = accountIdOf(req);
+    let caller;
+    try {
+      caller = accountIdOf(req);
+    } catch {
+      return ACCOUNT_SERVICE_UNAVAILABLE;
+    }
     if (!caller) return null; // no identity to check against (no security gateway) -> LAN trust
     let robot;
     try { robot = await loopRobotIdOf(loopId); } catch { robot = undefined; }
     if (robot === undefined) {
-      log?.warn?.('backup ownership unresolved; allowing (account loop lookup failed)', { loopId });
-      return null;
+      log?.warn?.('backup ownership denied; Account loop lookup unavailable', { loopId });
+      return ACCOUNT_SERVICE_UNAVAILABLE;
     }
     if (String(robot) === caller) return null;
     return { statusCode: 403, message: 'Robot should belong to the loop', code: 'ROBOT_SHOULD_BELONG_TO_LOOP' };
@@ -299,6 +330,11 @@ export function backupBlobRoutes(store) {
   const putBlob = async ({ req, res, url, log }) => {
     const id = ids(url);
     if (!id) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('bad loopId/key'); }
+    const contentLength = declaredContentLength(req);
+    if (contentLength !== null && contentLength > store.maxBytes) {
+      req.resume?.();
+      return void sendBoom(res, 413, `Payload content length greater than maximum allowed: ${store.maxBytes}`, 'PAYLOAD_TOO_LARGE');
+    }
     try {
       const entry = await store.put(id.loopId, id.key, req);
       // The robot's uploader reads response.headers.etag and later asserts it == Backup.list's etag.
@@ -307,7 +343,14 @@ export function backupBlobRoutes(store) {
       res.end();
     } catch (err) {
       log.error?.('backup blob store failed', { error: err.message });
-      if (!res.writableEnded) { res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' }); res.end('store failed'); }
+      if (!res.writableEnded) {
+        if (err instanceof UploadTooLargeError || err?.statusCode === 413) {
+          sendBoom(res, 413, err.message, 'PAYLOAD_TOO_LARGE');
+        } else {
+          res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
+          res.end('store failed');
+        }
+      }
     }
   };
   putBlob.rawBody = true; // do not JSON-parse the binary upload

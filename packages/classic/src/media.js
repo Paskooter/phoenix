@@ -30,18 +30,25 @@
 // Phoenix has no S3 (the same divergence that made Backup and the OTA packages self-host), so the
 // answered `url` points back at this entrypoint and the bytes live on local disk.
 
-import { createWriteStream, createReadStream, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
-import { mkdir, rename, rm } from 'node:fs/promises';
+import { createReadStream, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { randomUUID, randomBytes } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
+import {
+  configuredMaxBytes,
+  declaredContentLength,
+  normalizeMaxBytes,
+  writeAtomicUpload,
+} from './rawUpload.js';
 
 export const MEDIA_TYPES = ['image', 'photo_booth', 'recording', 'thumb', 'thumb_robot', 'audio'];
 export const THUMB_TYPES = ['thumb', 'thumb_robot'];
 export const MEDIA_PAGE_DEFAULT = 50;
 export const MEDIA_PAGE_MAX = 200;
+export const MEDIA_MAX_BYTES = 1_000_000_000;
 const SAFE_PATH = /^[A-Za-z0-9_-]+$/;
 
 // jiborobot/srv-media-ws src/errors/media.js
@@ -50,6 +57,7 @@ export const MEDIA_ERRORS = {
   MEDIA_ALREADY_EXISTS: { code: 'MEDIA_ALREADY_EXISTS', statusCode: 409, message: 'Media already exists' },
   MEDIA_ONLY_OWNER_CAN_REMOVE: { code: 'MEDIA_ONLY_OWNER_CAN_REMOVE', statusCode: 403, message: 'Only owner can remove media' },
   MEDIA_MUST_BE_MEMBER: { code: 'MEDIA_MUST_BE_MEMBER', statusCode: 403, message: 'You must be a member of the loop to list or create media' },
+  PAYLOAD_TOO_LARGE: { code: 'PAYLOAD_TOO_LARGE', statusCode: 413, message: 'Payload content length greater than maximum allowed' },
   REFERENCE_FOR_THUMB: { code: 'REFERENCE_FOR_THUMB', statusCode: 422, message: 'Reference should be present only for thumbnails' },
   REFERENCE_NOT_FOUND: { code: 'REFERENCE_NOT_FOUND', statusCode: 404, message: 'Referenced media not found' },
 };
@@ -113,10 +121,15 @@ export class MediaStore {
     directory = process.env.ETCO_classic_mediaDir || join(tmpdir(), 'phoenix-media'),
     file = process.env.ETCO_classic_mediaFile || join(tmpdir(), 'phoenix-media.json'),
     clock = Date.now,
+    maxBytes,
   } = {}) {
     this.directory = directory;
     this.file = file;
     this.clock = clock;
+    this.maxBytes = normalizeMaxBytes(
+      maxBytes,
+      configuredMaxBytes('ETCO_classic_mediaMaxBytes', MEDIA_MAX_BYTES),
+    );
     this.records = new Map(); // path -> record
     this._load();
   }
@@ -188,18 +201,11 @@ export class MediaStore {
     return [...this.records.values()].filter((record) => wanted.has(record.path));
   }
 
-  /** Stream one object's bytes to private disk. Does NOT register a media document. */
+  /** Stream one object's bytes to a same-directory temporary file. Does NOT register a media document. */
   async writeBlob(record, dataStream) {
     const file = this.fileFor(record);
     await mkdir(dirname(file), { recursive: true, mode: 0o700 });
-    const temporary = `${file}.${randomBytes(8).toString('hex')}.tmp`;
-    try {
-      await pipeline(dataStream, createWriteStream(temporary, { flags: 'wx', mode: 0o600 }));
-      await rename(temporary, file);
-    } catch (error) {
-      await rm(temporary, { force: true });
-      throw error;
-    }
+    await writeAtomicUpload(dataStream, file, { maxBytes: this.maxBytes });
     return file;
   }
 
@@ -345,6 +351,14 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
     const reference = header(req, 'x-reference') || null;
     const path = header(req, 'x-path') || randomUUID().replace(/-/g, '');
     if (!SAFE_PATH.test(path)) return void sendAmzError(res, ValidationException, 'Invalid or missing x-path');
+    const contentLength = declaredContentLength(req);
+    if (contentLength !== null && contentLength > store.maxBytes) {
+      req.resume?.();
+      return void sendAmzError(res, {
+        ...MEDIA_ERRORS.PAYLOAD_TOO_LARGE,
+        message: `Payload content length greater than maximum allowed: ${store.maxBytes}`,
+      });
+    }
     try {
       await requireMembership(loopId, accountId);
       if (store.find(path) || store.findByThumbPath(path)) fail('MEDIA_ALREADY_EXISTS');

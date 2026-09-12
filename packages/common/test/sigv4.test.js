@@ -196,12 +196,18 @@ test('the source uses a strict greater-than 15-minute clock-skew boundary', () =
   assert.equal(errorCode(() => verify(result.headers, { now: new Date(DATE.getTime() - SIGV4_CLOCK_SKEW_MS - 1) })), SIGV4_ERRORS.CLOCK_SKEW_TOO_LONG.code);
 });
 
-test('an explicit x-amz-content-sha256 follows the native source signer path only when supplied', () => {
+test('explicit x-amz-content-sha256 must match received bytes, with only the native opt-in exception', () => {
+  const body = '{"signed":true}';
+  const digest = createHash('sha256').update(body).digest('hex');
+  const signedBody = signed({ body, headers: { 'x-amz-content-sha256': digest } });
+  assert.equal(errorCode(() => verify(signedBody.headers, { body: '{"tampered":true}' })), 'SIGNATURE_MISMATCH');
+  assert.equal(verify(signedBody.headers, { body }).accessKeyId, ACCESS_KEY);
+
   const emptyHash = createHash('sha256').update('').digest('hex');
   // Authentication.cpp signs StandardHttpRequest before it attaches the
-  // JSON body and X-Amz-Target. Model that exact source ordering: the target
-  // is therefore not in SignedHeaders and the explicit empty hash is present.
-  const result = signSigV4({
+  // JSON body and X-Amz-Target. The target is therefore not in SignedHeaders
+  // and the explicit empty hash is present.
+  const native = signSigV4({
     ...BASE,
     body: '',
     headers: {
@@ -209,11 +215,18 @@ test('an explicit x-amz-content-sha256 follows the native source signer path onl
       'x-amz-content-sha256': emptyHash,
     },
   });
-  const nativeHeaders = { ...result.headers, 'X-Amz-Target': 'Account_20151111.CreateHubToken' };
-  // The archived gateway takes this explicit value as the canonical payload
-  // hash. This is the bounded native-client compatibility path; requests
-  // without the header hash the exact received body (tested above).
-  assert.equal(verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' }).accessKeyId, ACCESS_KEY);
+  const nativeHeaders = { ...native.headers, 'X-Amz-Target': 'Account_20151111.CreateHubToken' };
+  assert.equal(errorCode(() => verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' })), 'SIGNATURE_MISMATCH');
+  assert.equal(verify(nativeHeaders, {
+    body: '{"attachedAfterSigning":true}',
+    allowNativeClientPayloadHash: true,
+  }).accessKeyId, ACCESS_KEY);
+
+  const wrongTarget = { ...nativeHeaders, 'X-Amz-Target': 'Account_20151111.Remove' };
+  assert.equal(errorCode(() => verify(wrongTarget, {
+    body: '{"attachedAfterSigning":true}',
+    allowNativeClientPayloadHash: true,
+  })), 'SIGNATURE_MISMATCH');
 });
 
 test('accepts the shipped Android client\'s empty service segment', () => {

@@ -263,12 +263,20 @@ test('ownership: no resolved identity keeps the documented LAN-trust path (200)'
   assert.equal(res.status, 200, 'with no gateway-supplied identity there is nothing to check against');
 });
 
-test('ownership: an unresolved loop lookup does not fail a legitimate backup', async () => {
-  const res = await withOwnership(
+test('ownership: an Account lookup outage fails closed with ACCOUNT_SERVICE_UNAVAILABLE', async () => {
+  const denied = await withOwnership(
     { accountId: () => 'robot-1', loopRobotId: async () => undefined },
-    async (b) => b.amz('Backup_20170222.New', { loopId: 'loop-unresolved' }),
+    async (b) => ({
+      n: await b.amz('Backup_20170222.New', { loopId: 'loop-unresolved' }),
+      l: await b.amz('Backup_20170222.List', { loopId: 'loop-unresolved' }),
+    }),
   );
-  assert.equal(res.status, 200, 'account service unreachable is not the robot\'s fault');
+  for (const [name, res] of Object.entries(denied)) {
+    assert.equal(res.status, 503, `${name}: an unavailable Account lookup cannot authorize ownership`);
+    assert.equal(res.body.statusCode, 503);
+    assert.equal(res.body.error, 'Service Unavailable');
+    assert.equal(res.body.code, 'ACCOUNT_SERVICE_UNAVAILABLE');
+  }
 });
 
 test('ownership: end-to-end through a real Account service (getLoop 200 and 404)', async () => {

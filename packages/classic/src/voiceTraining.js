@@ -69,6 +69,7 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './awsJson.js';
+import { normalizeMaxBytes } from './rawUpload.js';
 import { MISSING_AUTH_HEADER } from './person.js';
 
 /** The ONLY operations the pinned dispatcher resolves (lib/handlers/index.js exports). */
@@ -383,10 +384,11 @@ export function makeVoiceTrainingHandler({
   maxBytes = VOICE_TRAINING_MAX_BYTES,
   logger,
 } = {}) {
+  const limit = normalizeMaxBytes(maxBytes, VOICE_TRAINING_MAX_BYTES);
   const client = backup || voiceTrainingBackup(store);
   const log = logger || { warn: () => {}, info: () => {}, error: () => {} };
 
-  return async function voiceTrainingHandler({ req, res, body, op }) {
+  const voiceTrainingHandler = async function voiceTrainingHandler({ req, res, body, op }) {
     const name = String(op || '');
     const lower = name.toLowerCase();
     // The gateway (srv-security-gw auth.ctrl.ts) is OUTERMOST: the VoiceTraining target is absent
@@ -401,8 +403,8 @@ export function makeVoiceTrainingHandler({
 
     const payload = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};
     const bytes = toBytes(payload.body).length;
-    if (Number.isFinite(maxBytes) && bytes > maxBytes) {
-      return void sendBoom(res, 413, `Payload content length greater than maximum allowed: ${maxBytes}`);
+    if (bytes > limit) {
+      return void sendBoom(res, 413, `Payload content length greater than maximum allowed: ${limit}`);
     }
     const invalid = VOICE_TRAINING_VALIDATORS[lower] ? VOICE_TRAINING_VALIDATORS[lower](payload) : null;
     if (invalid) return void sendBoom(res, 400, invalid);
@@ -424,6 +426,15 @@ export function makeVoiceTrainingHandler({
       return void sendBoom(res, 400, error?.message || 'Backup error');
     }
   };
+  // createService reads this before parsing so a valid voice sample is not rejected by its
+  // unrelated 100 KB default JSON parser. The handler check above remains for direct callers.
+  voiceTrainingHandler.bodyLimit = limit;
+  voiceTrainingHandler.parserError = ({ res, error }) => {
+    if (error?.type !== 'entity.too.large') return false;
+    sendBoom(res, 413, `Payload content length greater than maximum allowed: ${limit}`);
+    return true;
+  };
+  return voiceTrainingHandler;
 }
 
 /**

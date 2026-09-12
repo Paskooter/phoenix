@@ -62,6 +62,18 @@ export function createClassicRouter(registrations) {
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
   dispatch.rawBody = isClassicRawBodyTarget;
+  dispatch.bodyLimit = (req) => {
+    const { prefix } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    const limit = reg?.handler?.bodyLimit;
+    return typeof limit === 'function' ? limit(req) : limit;
+  };
+  dispatch.parserError = ({ req, res, error }) => {
+    const { prefix } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    if (typeof reg?.handler?.parserError !== 'function') return false;
+    return reg.handler.parserError({ req, res, error });
+  };
   dispatch.bodyDefault = (req) => {
     const { prefix, op } = parseTarget(req);
     const reg = regs.find((entry) => entry.re.test(prefix));
@@ -203,7 +215,10 @@ function isClassicBinaryPhotoUpload(req) {
     // Media_20160725.Create is the robot's photo/recording upload: the aws-sdk sends the media
     // bytes as the raw request entity (see packages/classic/src/media.js). It must bypass the
     // JSON parser for the same reason the two photo uploads above do.
-    || /^Media[^.]*\.Create$/i.test(target);
+    || /^Media[^.]*\.Create$/i.test(target)
+    // Log_20150309.PutBinary is the synchronous raw log sink; the async variants return a
+    // self-hosted PUT URL instead of carrying bytes in the AWS-JSON request.
+    || /^Log[^.]*\.PutBinary$/i.test(target);
 }
 
 /**

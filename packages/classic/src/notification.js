@@ -372,6 +372,7 @@ export function createVerifiedNotificationAccountResolver({ resolveCredentials, 
         // verifier checks active status and the secret.
         return credentials && credentials.isDeleted !== true ? credentials : null;
       },
+      allowNativeClientPayloadHash: String(req?.headers?.['x-amz-target'] || '') === 'Notification_20150505.NewRobotToken',
     };
     if (now !== undefined) verificationOptions.now = typeof now === 'function' ? now() : now;
     const verification = verifySigV4(verificationOptions);

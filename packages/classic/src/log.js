@@ -31,15 +31,21 @@
 // had no server-side retention (S3 lifecycle owned it); Phoenix likewise never deletes.
 // (DIVERGENCES: self-hosted upload sink, no SNS fan-out on SetLevel, dead Kinesis.)
 
-import { createReadStream, createWriteStream, appendFileSync, mkdirSync, closeSync, openSync, readSync, statSync } from 'node:fs';
+import { createReadStream, appendFileSync, mkdirSync, closeSync, openSync, readSync, statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { STATUS_CODES } from 'node:http';
-import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { sendAmz, sendAmzError, AMZ_JSON } from './awsJson.js';
+import {
+  UploadTooLargeError,
+  configuredMaxBytes,
+  declaredContentLength,
+  normalizeMaxBytes,
+  writeAtomicUpload,
+} from './rawUpload.js';
 
 const NPM_LEVELS = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
 const KINDS = ['HEALTH', 'LOG'];
@@ -48,12 +54,18 @@ const ASR_BUCKET_PATH = 'asr-binary';
 const ASYNC_EVENTS_BUCKET_PATH = 'log-async';
 const VIRTUAL_BUCKET = 'log'; // replacement for the dead S3 bucket name in path/bucketName
 const HUNDRED_PERCENT = 10000;
+export const LOG_MAX_BYTES = 1_000_000_000;
 
 // The source hands these out from src/errors/log.ts + server errors.ts (via createWithCode).
 const REQUEST_THROTTLED = { code: 'REQUEST_THROTTLED', message: 'Request throttled due to server rules.', statusCode: 429 };
 const ROBOT_ONLY = { code: 'ROBOT_ONLY', message: 'Request forbidden. Only robotd are allowed.', statusCode: 403 };
 const AUTHORIZED_UNDER_ADMIN = { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 };
 const INTERNAL = { code: 'INTERNAL', message: 'Internal server error', statusCode: 500 };
+const payloadTooLarge = (limit) => ({
+  code: 'PAYLOAD_TOO_LARGE',
+  message: `Payload content length greater than maximum allowed: ${limit}`,
+  statusCode: 413,
+});
 
 const boomBadData = (message) => ({ boom: true, statusCode: 422, message });
 const boomNotFound = (op) => ({ boom: true, statusCode: 404, message: `Method ${op} not found.` });
@@ -117,23 +129,30 @@ function credentialsFrom(req) {
  * on disk, so objects survive a process restart (the source's S3 objects did too).
  */
 export class LogStore {
-  constructor(dir = process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs')) {
-    this.dir = dir;
+  constructor(dir = process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs'), options = {}) {
+    if (dir && typeof dir === 'object') {
+      options = dir;
+      dir = options.dir;
+    }
+    this.dir = dir || process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs');
+    this.maxBytes = normalizeMaxBytes(
+      options.maxBytes,
+      configuredMaxBytes('ETCO_classic_logMaxBytes', LOG_MAX_BYTES),
+    );
     this.index = new Map(); // key -> { key, size, etag, file, modified }
   }
 
-  /** Stream an upload to disk under a source-shaped key; record and return the entry. */
+  /** Stream an upload to a same-directory temporary file; record only after EOF. */
   async put(key, reqStream) {
     const safe = safeKey(key);
     const file = join(this.dir, safe);
     await mkdir(dirname(file), { recursive: true });
     const hash = createHash('md5');
-    let size = 0;
-    const tap = new Transform({
-      transform(chunk, _enc, cb) { hash.update(chunk); size += chunk.length; cb(null, chunk); },
+    const result = await writeAtomicUpload(reqStream, file, {
+      maxBytes: this.maxBytes,
+      onChunk: (chunk) => hash.update(chunk),
     });
-    await pipeline(reqStream, tap, createWriteStream(file));
-    const entry = { key: safe, size, etag: `"${hash.digest('hex')}"`, file, modified: Date.now() };
+    const entry = { key: safe, size: result.size, etag: `"${hash.digest('hex')}"`, file, modified: Date.now() };
     this.index.set(safe, entry);
     return entry;
   }
@@ -286,11 +305,22 @@ export function makeLogHandler(store, baseFn) {
         if (!selected()) return sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId } = credentialsFrom(req);
         const binaryPath = `${accountId || ''}/${trackingId}/${randomUUID()}`;
+        const contentLength = declaredContentLength(req);
+        if (contentLength !== null && contentLength > store.maxBytes) {
+          req.resume?.();
+          return void sendAmzError(res, payloadTooLarge(store.maxBytes));
+        }
         return store.put(`${BUCKET_PATH}/${binaryPath}`, req)
           .then((entry) => sendAmz(res, 200, { path: `/${VIRTUAL_BUCKET}/${entry.key}`, url: blobUrl(req, entry.key) }))
           .catch((err) => {
             log?.warn?.('log binary store failed', { error: err.message });
-            if (!res.writableEnded) sendAmzError(res, INTERNAL);
+            if (!res.writableEnded) {
+              if (err instanceof UploadTooLargeError || err?.statusCode === 413) {
+                sendAmzError(res, payloadTooLarge(store.maxBytes));
+              } else {
+                sendAmzError(res, INTERNAL);
+              }
+            }
           });
       }
 
@@ -368,6 +398,11 @@ export function logHttpRoutes(store) {
   const putBlob = async ({ req, res, url, log }) => {
     const key = keyFromUrl(url, 'key');
     if (!key) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('bad key'); }
+    const contentLength = declaredContentLength(req);
+    if (contentLength !== null && contentLength > store.maxBytes) {
+      req.resume?.();
+      return void sendAmzError(res, payloadTooLarge(store.maxBytes));
+    }
     try {
       const entry = await store.put(key, req);
       log?.info?.('log object stored', { key: entry.key, size: entry.size, etag: entry.etag });
@@ -375,7 +410,14 @@ export function logHttpRoutes(store) {
       res.end();
     } catch (err) {
       log?.warn?.('log object store failed', { error: err.message });
-      if (!res.writableEnded) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); res.end('bad key'); }
+      if (!res.writableEnded) {
+        if (err instanceof UploadTooLargeError || err?.statusCode === 413) {
+          sendAmzError(res, payloadTooLarge(store.maxBytes));
+        } else {
+          res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' });
+          res.end('bad key');
+        }
+      }
     }
   };
   putBlob.rawBody = true; // do not JSON-parse the binary upload

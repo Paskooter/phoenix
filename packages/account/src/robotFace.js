@@ -173,7 +173,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ].includes(String(req.headers['x-amz-target'] || ''));
       if (!anonymousTarget || req.headers.authorization) {
         try {
-          if (isMemberPhotoUpload(req) && req.headers.authorization && !req.headers['x-amz-content-sha256']) await stagePhotoDigest(req);
+          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req);
           const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
@@ -556,6 +556,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           ? (body === null || body === undefined ? '' : JSON.stringify(body))
           : req.rawBody,
         resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+        allowNativeClientPayloadHash: String(req.headers['x-amz-target'] || '') === 'Account_20151111.CreateHubToken',
       });
     } catch (error) {
       if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {

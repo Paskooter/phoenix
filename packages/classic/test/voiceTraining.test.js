@@ -264,13 +264,23 @@ test('the stored artifact bytes are retrievable from the record url (self-hosted
   } finally { await j.server.close(); }
 });
 
-test('a body over maxBytes is the Hapi payload 413', async () => {
-  const j = await fresh({ maxBytes: 4 });
+test('the advertised 100 MB request limit does not inherit common parser\'s 100 KB default', async () => {
+  const j = await fresh();
   try {
-    const over = await j.amz('VoiceTraining_20151020.UploadVoiceTraining', { key: 'k', body: '12345' });
+    const body = 'v'.repeat(128 * 1024);
+    const accepted = await j.amz('VoiceTraining_20151020.UploadVoiceTraining', { key: 'large', body });
+    assert.equal(accepted.status, 200);
+    assert.equal(j.store.records[0].size, Buffer.byteLength(body));
+  } finally { await j.server.close(); }
+});
+
+test('a VoiceTraining request over maxBytes is the Hapi payload 413', async () => {
+  const j = await fresh({ maxBytes: 128 });
+  try {
+    const over = await j.amz('VoiceTraining_20151020.UploadVoiceTraining', { key: 'k', body: 'x'.repeat(128) });
     assert.equal(over.status, 413);
     assert.equal(over.body.error, 'Request Entity Too Large');
-    assert.match(over.body.message, /Payload content length greater than maximum allowed: 4/);
+    assert.match(over.body.message, /Payload content length greater than maximum allowed: 128/);
     assert.equal(j.store.records.length, 0, 'nothing persisted');
 
     const ok = await j.amz('VoiceTraining_20151020.UploadVoiceTraining', { key: 'k', body: '1234' });

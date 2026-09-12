@@ -12,16 +12,14 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-// Per-process default so two Node processes (or two concurrently scheduled test
-// files) never race on the same atomic tmp+rename. A single shared path in tmpdir
-// caused intermittent "ENOENT: rename .../phoenix-notifications.json.tmp" failures
-// that cancelled unrelated suites. A real deployment always passes an explicit file
-// (ETCO_classic_notificationFile), so only the unconfigured/default path changes.
-const DEFAULT_FILE = join(tmpdir(), `phoenix-notifications.${process.pid}.json`);
+// A stable default lets a new process reuse notifications after a restart. Each flush uses its
+// own random temporary pathname, so separate processes can still perform atomic replacements
+// without racing on a shared `.tmp` file. Deployments may override it with ETCO_classic_notificationFile.
+const DEFAULT_FILE = join(tmpdir(), 'phoenix-notifications.json');
 
 export const NOTIFICATIONS_LIMIT = 100;
 export const NOTIFICATION_TTL_MS = 300 * 1000;
@@ -187,7 +185,7 @@ export class NotificationStore {
       notifications: [...this.notifications.values()].map((notification) => clone(notification)),
     };
     const parent = dirname(this.file);
-    const temporary = `${this.file}.tmp`;
+    const temporary = `${this.file}.${randomUUID()}.tmp`;
     let renamed = false;
     try {
       // The mode applies to newly created path components. Existing parents

@@ -75,16 +75,10 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     const strict = routeStrict === undefined
       ? (typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict)
       : routeStrict;
-    if (route?.jsonTypes !== undefined) {
-      let parsers = scopedJsonParsers.get(route);
-      if (!parsers) {
-        parsers = {
-          strict: bodyParser.json({ type: route.jsonTypes, verify: captureRawBody, strict: true }),
-          loose: bodyParser.json({ type: route.jsonTypes, verify: captureRawBody, strict: false }),
-        };
-        scopedJsonParsers.set(route, parsers);
-      }
-      return (strict ? parsers.strict : parsers.loose)(req, res, next);
+    const limit = routeBodyLimit(route, req);
+    if (route?.jsonTypes !== undefined || limit !== undefined) {
+      const parser = jsonParserFor(route, strict, limit, route?.jsonTypes ?? JSON_CONTENT_TYPES, scopedJsonParsers);
+      return parser(req, res, next);
     }
     return (strict ? strictJson : looseJson)(req, res, next);
   });
@@ -119,9 +113,10 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     // envelope for one endpoint. Keep this opt-in and route-scoped so the
     // default Phoenix error action remains unchanged for every other route.
     const parserRoute = findRoute(routes, req);
-    if (error?.type === 'entity.parse.failed'
+    if ((error?.type === 'entity.parse.failed' || error?.type === 'entity.too.large')
       && typeof parserRoute?.parserError === 'function') {
-      return parserRoute.parserError({ req, res, error });
+      const handled = parserRoute.parserError({ req, res, error });
+      if (handled !== false) return handled;
     }
     const status = Number.isInteger(error?.statusCode)
       ? error.statusCode
@@ -169,6 +164,28 @@ function routeMiddleware(name, handler) {
       })
       .catch(next);
   };
+}
+
+function routeBodyLimit(route, req) {
+  if (route?.bodyLimit === undefined) return undefined;
+  return typeof route.bodyLimit === 'function' ? route.bodyLimit(req) : route.bodyLimit;
+}
+
+function jsonParserFor(route, strict, limit, types, cache) {
+  let parsers = cache.get(route);
+  if (!parsers) {
+    parsers = new Map();
+    cache.set(route, parsers);
+  }
+  const key = `${strict ? 'strict' : 'loose'}:${limit === undefined ? 'default' : String(limit)}`;
+  let parser = parsers.get(key);
+  if (!parser) {
+    const options = { type: types, verify: captureRawBody, strict };
+    if (limit !== undefined) options.limit = limit;
+    parser = bodyParser.json(options);
+    parsers.set(key, parser);
+  }
+  return parser;
 }
 
 function usesRawBody(handler, req) {

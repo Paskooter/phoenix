@@ -20,8 +20,8 @@ import {
 } from '../src/robot.js';
 import { generateFriendlyId, randomlyGenerateCombos, WORD_COUNTS } from '../src/serialNames.js';
 
-// An unroutable account base so the default ownership resolver returns "unresolved" fast
-// (connection refused, not a 2s timeout) — the LAN-trust path.
+// An unroutable account base so the default ownership resolver returns "unavailable" fast
+// (connection refused, not a 2s timeout); authenticated ownership checks fail closed.
 process.env.NET_account = '127.0.0.1:1';
 
 let dir;
@@ -145,6 +145,26 @@ test('unknown Robot operations stay a bounded ValidationException', async () => 
   assert.equal(r.status, 400);
   assert.equal(r.body.__type, 'ValidationException');
   assert.match(r.body.message, /unknown Robot operation/);
+});
+
+test('authenticated robot ownership checks fail closed when Account lookup is unavailable', async () => {
+  const store = storeFor('account-outage');
+  store.append({ name: 'RobotCreated', objectId: CID, created: 1, payload: { serialNumber: 'S1' } });
+  const h = makeRobotHandler({
+    store,
+    ownedRobots: async () => { throw new Error('account unavailable'); },
+    clock: () => 2,
+  });
+
+  const before = store.eventsFor(CID).length;
+  const update = await call(h, 'UpdateRobot', { id: ID, payload: { label: 'must-not-write' } }, OWNER());
+  assert.equal(update.status, 503);
+  assert.equal(update.body.__type, 'ACCOUNT_SERVICE_UNAVAILABLE');
+  assert.equal(store.eventsFor(CID).length, before, 'ownership outage must not authorize a write');
+
+  const read = await call(h, 'GetRobot', { id: ID }, OWNER());
+  assert.equal(read.status, 503);
+  assert.equal(read.body.__type, 'ACCOUNT_SERVICE_UNAVAILABLE');
 });
 
 // ---------------------------------------------------------------------------

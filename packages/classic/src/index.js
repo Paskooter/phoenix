@@ -32,14 +32,14 @@ import { proxyMemberPhoto } from './photoProxy.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
-export { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
+export { LogStore, makeLogHandler, logHttpRoutes, LOG_MAX_BYTES } from './log.js';
 export { makeRobotHandler, RobotStore } from './robot.js';
 export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
 export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
-export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
-export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, AUTHORIZED_UNDER_ADMIN } from './media.js';
+export { BackupStore, credentialsAccountId, accountLoopRobot, BACKUP_MAX_BYTES } from './backup.js';
+export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, MEDIA_MAX_BYTES, AUTHORIZED_UNDER_ADMIN } from './media.js';
 export {
   RomController, RomError, CertificateStore, ROM_ERRORS,
   makeRomHandler, makeAccountClient, makeRobotClient, generateCertificatePair,
@@ -210,7 +210,7 @@ export function makeKeyNeededNotifier(hub, membership) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, backup, log, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -218,14 +218,14 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     notificationTtlMs,
     pollIntervalMs: notificationPollIntervalMs,
   });
-  const backups = new BackupStore();
+  const backups = backup?.store || new BackupStore(backup?.dir, { maxBytes: backup?.maxBytes });
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
   // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
   // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
   const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
-  const logStore = new LogStore();
-  const mediaStore = media?.store || new MediaStore();
+  const logStore = log?.store || new LogStore(log?.dir, { maxBytes: log?.maxBytes });
+  const mediaStore = media?.store || new MediaStore(media || {});
   const iftttStore = ifttt?.store || new IftttStore({
     // The original stored Identity/Trigger/Action/TriggerMedia in Mongo; the durable file keeps
     // that state across a restart (ETCO_classic_iftttFile, default $TMPDIR/phoenix-ifttt.json).
