@@ -234,6 +234,15 @@ function auditEligibility(eligibility) {
   const topLevelErrors = eligibility.rows.filter((row) => row.error || (row.errors && row.errors.length));
   const conditionErrorGroups = {};
   const runtimeErrorGroups = {};
+  const resolutionErrorGroups = {};
+  const allowedResolutionErrors = {
+    'OI_USR_DislikesLoopMemberAskedAboutBirthday|OI_USR_DislikesLoopMemberAskedAboutBirthday_AN_03|loopMember is not defined': 2,
+    'OI_USR_DislikesSpeakerBirthday|OI_USR_DislikesSpeakerBirthday_AN_03|loopMember is not defined': 2,
+    'OI_USR_DislikesSummerSolstice|OI_USR_DislikesSummerSolstice_AN_03_FnL|loopMember is not defined': 18,
+    'OI_USR_DislikesWinterSolstice|OI_USR_DislikesWinterSolstice_AN_03_FnL|loopMember is not defined': 18,
+    'RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_01|jiboNLBirthdate is not defined': 3,
+    'RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_02|jiboNLBirthdate is not defined': 3,
+  };
   const unclassified = [];
   for (const row of eligibility.rows) {
     for (const error of row.conditionErrors || []) {
@@ -246,12 +255,22 @@ function auditEligibility(eligibility) {
       runtimeErrorGroups[key] = (runtimeErrorGroups[key] || 0) + 1;
       if (!malformedDateCondition(error.condition)) unclassified.push({ id: row.id, type: 'runtime', ...error });
     }
+    for (const error of row.resolutionErrors || []) {
+      const message = error.message || (error.messages && error.messages.join('\n')) || 'unknown';
+      const key = `${row.mim}|${error.prompt || ''}|${message}`;
+      resolutionErrorGroups[key] = (resolutionErrorGroups[key] || 0) + 1;
+      if (!Object.prototype.hasOwnProperty.call(allowedResolutionErrors, key) || resolutionErrorGroups[key] > allowedResolutionErrors[key]) unclassified.push({ id: row.id, type: 'prompt-resolution', ...error });
+    }
+  }
+  for (const key of Object.keys(allowedResolutionErrors)) {
+    if (resolutionErrorGroups[key] !== allowedResolutionErrors[key]) unclassified.push({ type: 'prompt-resolution-count', key, expected: allowedResolutionErrors[key], actual: resolutionErrorGroups[key] || 0 });
   }
   return {
     rows: eligibility.rows.length,
     topLevelErrors: topLevelErrors.length,
     conditionErrorGroups,
     runtimeErrorGroups,
+    resolutionErrorGroups,
     unclassified,
     result: topLevelErrors.length === 0 && unclassified.length === 0 ? 'pass' : 'fail',
   };
@@ -285,6 +304,7 @@ function sampledPrompt(eligible, unit) {
 function branchCases(plan, eligibility, start = 0, count = null) {
   const byId = new Map(eligibility.rows.map((row) => [row.id, row]));
   const cases = [];
+  const promptExpectations = {};
   const seen = new Set();
   const conditionCoverage = {};
 
@@ -307,7 +327,9 @@ function branchCases(plan, eligibility, start = 0, count = null) {
   for (const context of selected) {
     const oracle = byId.get(context.id);
     if (!oracle || oracle.error || oracle.errors?.length) continue;
-    const eligible = oracle.eligible || [];
+    promptExpectations[context.id] = (oracle.eligible || []).map((item) => ({ ...item }));
+    const eligible = (oracle.eligible || []).map((item) => ({ prompt_id: item.prompt_id, weight: item.weight }));
+    const expectedOutputs = (oracle.eligible || []).map((item) => ({ ...item }));
     const total = eligible.reduce((sum, item) => sum + item.weight, 0);
     const cumulative = [];
     let sum = 0;
@@ -322,10 +344,12 @@ function branchCases(plan, eligibility, start = 0, count = null) {
         id: `weighted:${key}`,
         contextId: context.id,
         family: 'weighted-branch',
+        expectedOutputMim: oracle.expectedOutputMim || context.expectedOutputMim || context.mim,
         expectedPrompt,
         expectedEligible: eligible,
+        expectedPromptOutput: expectedPrompt ? expectedOutputs.find((item) => item.prompt_id === expectedPrompt) || null : null,
         expectedWeightTotal: total,
-        expectedVmCalls: oracle.vmCalls || 0,
+        expectedVmCalls: (oracle.conditionVmCalls || oracle.vmCalls || 0) + (expectedPrompt ? (oracle.resolutionVmCalls && oracle.resolutionVmCalls[expectedPrompt] || 0) : 0),
         expectedRngCalls: context.mim === 'CC_Fallback' ? 1 : eligible.length ? 4 : 3,
         boundary,
         rngValues: rngFor(context.mim, context.diceA, context.diceB, context.coin, unit),
@@ -359,7 +383,7 @@ function branchCases(plan, eligibility, start = 0, count = null) {
     });
     addUnit('exact-total', 1, null, { kind: 'exact-total', lower: total, upper: total });
   }
-  return { cases, conditionCoverage };
+  return { cases, conditionCoverage, promptExpectations };
 }
 
 if (stage === 'contexts') {
@@ -444,6 +468,7 @@ if (stage === 'contexts') {
       missingAreOnlyNeverTrue: unclassifiedMissing.length === 0,
     },
     eligibilityAudit,
+    promptExpectations: branched.promptExpectations,
     cases: branched.cases,
   };
   fs.writeFileSync(outPath, `${JSON.stringify(output)}\n`);

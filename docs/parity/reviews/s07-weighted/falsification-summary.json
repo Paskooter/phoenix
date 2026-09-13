@@ -12,9 +12,9 @@
       "failureCodes": [
         "plan-sampled-prompt",
         "expected-prompt-outside-eligible",
+        "expected-prompt-output-oracle",
         "source-expected-prompt",
-        "source-selected-prompt-meta",
-        "candidate-expected-prompt"
+        "source-expected-prompt-output"
       ]
     },
     {
@@ -267,7 +267,40 @@
         "source-mim-inventory",
         "candidate-mim-inventory"
       ]
+    },
+    {
+      "name": "paired-selected-esml-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-normalized-esml",
+        "source-selected-esml",
+        "candidate-normalized-esml",
+        "candidate-selected-esml"
+      ]
+    },
+    {
+      "name": "paired-auto-rule-config-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-normalized-auto-rule-config",
+        "source-selected-auto-rule-config",
+        "candidate-normalized-auto-rule-config",
+        "candidate-selected-auto-rule-config"
+      ]
+    },
+    {
+      "name": "paired-output-mim-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "expected-output-mim-oracle"
+      ]
     }
   ],
-  "tempDirectory": "/tmp/s07-weighted-falsify-ImraXU"
+  "tempDirectory": "/tmp/s07-weighted-falsify-o5hx7L"
 }

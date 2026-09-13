@@ -84,6 +84,33 @@ unclassified errors. The prompt inventory contains 11,883 source prompt IDs,
 11,874 selected IDs, and exactly those nine classified never-true IDs are
 unselected.
 
+Prompt interpolation is part of the source oracle. For every eligible prompt,
+the Node 8 eligibility runner resets the VM cursor to the post-condition
+position, records the interpolation VM calls, resolves the exact ESML (with
+the source catch behavior producing `esml: ""` on an interpolation error),
+and records exact `autoRuleConfig` presence and value. Plans copy those
+expectations and the comparator requires both sides to match the oracle in the
+action play, top-level `esml`, normalized SLIM play, metadata, and config
+shape. Thirty source contexts preserve authored `mim_id` aliases; the branch
+matrix contains 378 alias rows, and the comparator uses the authored output MIM
+rather than flattening it to the filename.
+
+The 46 source interpolation errors are classified by the full
+`MIM|prompt_id|message` tuple, with no message-only allow-list:
+
+| Source tuple | Count |
+| --- | ---: |
+| `OI_USR_DislikesLoopMemberAskedAboutBirthday|OI_USR_DislikesLoopMemberAskedAboutBirthday_AN_03|loopMember is not defined` | 2 |
+| `OI_USR_DislikesSpeakerBirthday|OI_USR_DislikesSpeakerBirthday_AN_03|loopMember is not defined` | 2 |
+| `OI_USR_DislikesSummerSolstice|OI_USR_DislikesSummerSolstice_AN_03_FnL|loopMember is not defined` | 18 |
+| `OI_USR_DislikesWinterSolstice|OI_USR_DislikesWinterSolstice_AN_03_FnL|loopMember is not defined` | 18 |
+| `RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_01|jiboNLBirthdate is not defined` | 3 |
+| `RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_02|jiboNLBirthdate is not defined` | 3 |
+
+Any new tuple or count mismatch is unclassified and fails plan generation and
+comparison. These are legitimate pinned-source interpolation failures, not
+harness omissions; their expected empty ESML is compared as a wire value.
+
 The profile self-test has eight passing checks. It proves that generated
 `referent=male-age10`, `loop=one-referent`, `loop=one-referent-speaker`, and
 `loop=present` values change or preserve the intended runtime state; checks
@@ -111,15 +138,20 @@ resolver behaviors.
 
 ## Falsification
 
-[falsification-summary.json](./falsification-summary.json) records 25 named
-mutations. All 25 passed: forged expected prompt, weight, outer RNG input, VM
+[falsification-summary.json](./falsification-summary.json) records 28 named
+mutations. All 28 passed: forged expected prompt, weight, outer RNG input, VM
 call count, VM control flag, source/candidate runtimes and revision,
 no-eligible oracle, eligibility revision, oracle context metadata, profile
 value, paired row/context omissions, paired response-envelope omission,
 paired final and fire-and-forget corruption, paired analytics omission and
 value corruption, paired action/JCP type corruption, paired normalized-envelope
-omission, paired RNG-vector corruption, forged MIM tree digest, and forged wire
-action. All 25 mutated receipts caused the
+omission, paired RNG-vector corruption, forged MIM tree digest, forged wire
+action, paired selected-ESML corruption, paired autoRuleConfig corruption, and
+paired authored-output-MIM corruption. The selected-ESML mutation changes the
+action, top-level, and normalized SLIM copies together; the autoRuleConfig
+mutation changes both action and SLIM copies. The output-MIM mutation targets
+an actual authored-alias row and forges the plan plus both wire metadata copies.
+All 28 mutated receipts caused the
 fail-closed comparator to exit nonzero with a relevant failure code. The
 paired context mutation is checked against the exact eligibility slice, so
 range continuity alone cannot hide an omitted context.
@@ -145,7 +177,7 @@ inventory and tree digest.
 The final aggregation command was:
 
 ```text
-node scripts/parity-s07/aggregate-weighted.mjs --contexts /tmp/s07-weighted-contexts-v10.json --eligibility /tmp/s07-weighted-eligibility-v9.json --plan-template /tmp/s07-weighted-plan-v10-{offset}.json --source-template /tmp/s07-weighted-source-v12-{sourceOffset}.json --candidate-template /tmp/s07-weighted-candidate-v12-{offset}.json --diff-template /tmp/s07-weighted-diff-v12-{offset}.json --batch-count 24 --batch-size 1000 --source-root /home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c --out-summary /tmp/s07-weighted-differential-v13.json --out-manifest /tmp/s07-weighted-manifest-v13.json --falsification /tmp/s07-weighted-falsify-v14.json --aggregate-falsification /tmp/s07-weighted-aggregate-falsify-v13.json
+node scripts/parity-s07/aggregate-weighted.mjs --contexts /tmp/s07-weighted-contexts-v11.json --eligibility /tmp/s07-weighted-eligibility-v10.json --plan-template /tmp/s07-weighted-plan-v12-{offset}.json --source-template /tmp/s07-weighted-source-v14-{sourceOffset}.json --candidate-template /tmp/s07-weighted-candidate-v15-{offset}.json --diff-template /tmp/s07-weighted-diff-v16-{offset}.json --batch-count 24 --batch-size 1000 --source-root /home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c --out-summary /tmp/s07-weighted-differential-v17.json --out-manifest /tmp/s07-weighted-manifest-v17.json --falsification /tmp/s07-weighted-falsify-v15.json --aggregate-falsification /tmp/s07-weighted-aggregate-falsify-v16.json
 ```
 
 It returned `pass`, 24 batches, 23,387 contexts, and 132,967 rows on each
@@ -167,9 +199,9 @@ management, 4/4 verification, 39/46 Pegasus, 18/20 Classic). `npm run
 parity:gate` passed the strict 43-case production smoke with zero differences,
 invariant failures, or coverage gaps.
 
-The final full `npm test` run passed 1,981 tests with zero failures and 9
+The final clean `npm test` run passed 1,981 tests with zero failures and 9
 skips out of 1,990, including the focused and parity checks invoked by the
-package script. Full-suite log: `/tmp/s07-weighted-npm-test-v13.log`.
+package script. Full-suite log: `/tmp/s07-weighted-npm-test-v15.log`.
 
 ## Criterion recommendation and open scope
 

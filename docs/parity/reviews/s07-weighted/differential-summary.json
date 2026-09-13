@@ -180,6 +180,14 @@
       "dt.now.isInRange('start_coming_soon', '1/28')": 24,
       "dt.now.isInRange('1/29', 'finish_long_way_off')": 24
     },
+    "resolutionErrorGroups": {
+      "OI_USR_DislikesLoopMemberAskedAboutBirthday|OI_USR_DislikesLoopMemberAskedAboutBirthday_AN_03|loopMember is not defined": 2,
+      "OI_USR_DislikesSpeakerBirthday|OI_USR_DislikesSpeakerBirthday_AN_03|loopMember is not defined": 2,
+      "OI_USR_DislikesSummerSolstice|OI_USR_DislikesSummerSolstice_AN_03_FnL|loopMember is not defined": 18,
+      "OI_USR_DislikesWinterSolstice|OI_USR_DislikesWinterSolstice_AN_03_FnL|loopMember is not defined": 18,
+      "RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_01|jiboNLBirthdate is not defined": 3,
+      "RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_02|jiboNLBirthdate is not defined": 3
+    },
     "unclassified": [],
     "result": "pass"
   },

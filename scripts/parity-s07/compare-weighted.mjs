@@ -29,6 +29,17 @@ function sha256(file) { return crypto.createHash('sha256').update(fs.readFileSyn
 function increment(map, key) { map[key] = (map[key] || 0) + 1; }
 function contextIdFor(row) { return row.contextId || (row.id.match(/^weighted:(context:[^:]+:\d+)/) || [])[1]; }
 function keys(value) { return value && typeof value === 'object' ? Object.keys(value).sort() : []; }
+function basicPrompt(item) { return { prompt_id: item.prompt_id, weight: item.weight }; }
+function promptExpectation(item) {
+  const output = {
+    prompt_id: item.prompt_id,
+    weight: item.weight,
+    esml: item.esml,
+    autoRuleConfigPresent: item.autoRuleConfigPresent === true,
+  };
+  if (output.autoRuleConfigPresent) output.autoRuleConfig = item.autoRuleConfig;
+  return output;
+}
 function profileValue(profile, key) {
   const part = String(profile || '').split('|').find((item) => item.startsWith(`${key}=`));
   return part ? part.slice(key.length + 1) : undefined;
@@ -133,6 +144,14 @@ requireValue(equal(actualNeverTrue, expectedNeverTrue), 'condition-never-true-cl
 requireValue(plan.conditionAudit && plan.conditionAudit.entries === 4558 && plan.conditionAudit.everyEntryObserved === true && plan.conditionAudit.bothOutcomesObserved === 4549, 'condition-coverage', plan.conditionAudit);
 requireValue(plan.promptAudit && plan.promptAudit.sourcePromptIds === 11883 && plan.promptAudit.selectedPromptIds === 11874 && plan.promptAudit.missingAreOnlyNeverTrue === true, 'prompt-coverage', plan.promptAudit);
 requireValue(plan.eligibilityAudit && plan.eligibilityAudit.result === 'pass' && plan.eligibilityAudit.topLevelErrors === 0 && plan.eligibilityAudit.unclassified.length === 0, 'eligibility-audit', plan.eligibilityAudit);
+requireValue(equal(plan.eligibilityAudit && plan.eligibilityAudit.resolutionErrorGroups, {
+  'OI_USR_DislikesLoopMemberAskedAboutBirthday|OI_USR_DislikesLoopMemberAskedAboutBirthday_AN_03|loopMember is not defined': 2,
+  'OI_USR_DislikesSpeakerBirthday|OI_USR_DislikesSpeakerBirthday_AN_03|loopMember is not defined': 2,
+  'OI_USR_DislikesSummerSolstice|OI_USR_DislikesSummerSolstice_AN_03_FnL|loopMember is not defined': 18,
+  'OI_USR_DislikesWinterSolstice|OI_USR_DislikesWinterSolstice_AN_03_FnL|loopMember is not defined': 18,
+  'RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_01|jiboNLBirthdate is not defined': 3,
+  'RI_JBO_Is_SS_Zodiac|RI_JBO_Is_SS_Zodiac_AN_02|jiboNLBirthdate is not defined': 3,
+}), 'eligibility-resolution-errors', plan.eligibilityAudit && plan.eligibilityAudit.resolutionErrorGroups);
 requireValue(plan.inventory && plan.inventory.profileSelfTest && plan.inventory.profileSelfTest.result === 'pass', 'profile-self-test', plan.inventory && plan.inventory.profileSelfTest);
 
 const sourceIds = new Map();
@@ -179,6 +198,13 @@ if (eligibility) {
   const expectedContextIds = (eligibility.rows.slice(range.start, range.start + range.count)).map((row) => row.id);
   const plannedContextIds = [...new Set(plan.cases.map((row) => contextIdFor(row)))];
   requireValue(equal([...plannedContextIds].sort(), [...expectedContextIds].sort()), 'context-inventory', { expectedCount: expectedContextIds.length, plannedCount: plannedContextIds.length, missing: expectedContextIds.filter((id) => !plannedContextIds.includes(id)).slice(0, 10), extra: plannedContextIds.filter((id) => !expectedContextIds.includes(id)).slice(0, 10) });
+  const plannedPromptContextIds = Object.keys(plan.promptExpectations || {});
+  requireValue(equal(plannedPromptContextIds.sort(), expectedContextIds.slice().sort()), 'prompt-expectation-context-inventory', { expectedCount: expectedContextIds.length, plannedCount: plannedPromptContextIds.length, missing: expectedContextIds.filter((id) => !plannedPromptContextIds.includes(id)).slice(0, 10), extra: plannedPromptContextIds.filter((id) => !expectedContextIds.includes(id)).slice(0, 10) });
+  for (const contextId of expectedContextIds) {
+    const oracle = oracleByContext.get(contextId);
+    requireValue(!!oracle, 'missing-prompt-expectation-oracle', contextId);
+    if (oracle) requireValue(equal(plan.promptExpectations[contextId] || [], (oracle.eligible || []).map(promptExpectation)), 'prompt-expectation-oracle', { contextId, expected: (oracle.eligible || []).map(promptExpectation), actual: plan.promptExpectations[contextId] });
+  }
   for (const row of eligibility.rows) {
     if (row.error || (row.errors && row.errors.length)) fail('eligibility-row-error', { id: row.id, error: row.error, errors: row.errors });
   }
@@ -279,25 +305,39 @@ function checkResult(row, result, side) {
   const play = wire.action.config.jcp.config && wire.action.config.jcp.config.play;
   const meta = play && play.meta;
   const exactTotalEligible = !row.expectedPrompt;
-  const expectedPlayKeys = exactTotalEligible ? [['esml', 'meta', 'type']] : [['esml', 'meta', 'type'], ['autoRuleConfig', 'esml', 'meta', 'type']];
   const expectedMetaKeys = exactTotalEligible ? ['mim_id', 'mim_type'] : ['mim_id', 'mim_type', 'prompt_id', 'prompt_sub_category'];
   requireValue(wire.action.config.jcp.config && keys(wire.action.config.jcp.config).join('|') === 'play', `${side}-action-jcp-config`, { id: row.id });
   if (!play) return;
-  requireValue(play && expectedPlayKeys.some((expected) => equal(keys(play), expected)) && play.type === 'PLAY', `${side}-action-play-type`, { id: row.id, play });
+  const expectedPromptOutput = row.expectedPromptOutput;
+  const expectedAutoPresent = !exactTotalEligible && expectedPromptOutput && expectedPromptOutput.autoRuleConfigPresent === true;
+  const expectedPlayKeys = exactTotalEligible || !expectedPromptOutput
+    ? ['esml', 'meta', 'type']
+    : expectedAutoPresent ? ['autoRuleConfig', 'esml', 'meta', 'type'] : ['esml', 'meta', 'type'];
+  requireValue(play && equal(keys(play), expectedPlayKeys) && play.type === 'PLAY', `${side}-action-play-type`, { id: row.id, play, expectedPlayKeys });
   if (!meta) return;
   requireValue(meta && equal(keys(meta), expectedMetaKeys) && meta.mim_id === row.expectedOutputMim && meta.mim_type === 'announcement', `${side}-action-meta`, { id: row.id, meta, expectedOutputMim: row.expectedOutputMim });
   const normalizedJcpOk = wire.jcpType === 'SLIM' && Array.isArray(wire.slims) && wire.slims.length === 1 && wire.slims[0] && wire.slims[0].play && wire.slims[0].play.type === 'PLAY';
   requireValue(normalizedJcpOk, `${side}-normalized-jcp`, { id: row.id, jcpType: wire.jcpType, slims: wire.slims });
   if (!normalizedJcpOk) return;
+  const normalizedSlim = wire.slims[0];
+  const normalizedPlay = normalizedSlim.play;
+  const expectedEsml = exactTotalEligible ? 'undefined' : expectedPromptOutput && expectedPromptOutput.esml;
+  requireValue(equal(keys(normalizedSlim), ['display', 'listen', 'play']) && normalizedSlim.listen === null && normalizedSlim.display === null, `${side}-normalized-slim-shape`, { id: row.id, slim: normalizedSlim });
+  requireValue(equal(keys(normalizedPlay), expectedPlayKeys) && normalizedPlay.type === 'PLAY', `${side}-normalized-play-shape`, { id: row.id, expectedPlayKeys, play: normalizedPlay });
+  requireValue(equal(normalizedPlay.meta, meta), `${side}-normalized-play-meta`, { id: row.id, expected: meta, actual: normalizedPlay.meta });
+  requireValue(normalizedPlay.esml === expectedEsml && wire.action.config.jcp.config.play.esml === expectedEsml && Array.isArray(wire.esml) && wire.esml.length === 1 && wire.esml[0] === expectedEsml, `${side}-normalized-esml`, { id: row.id, expected: expectedEsml, actionEsml: wire.action.config.jcp.config.play.esml, topLevelEsml: wire.esml, slimEsml: normalizedPlay.esml });
+  if (expectedAutoPresent) requireValue(equal(normalizedPlay.autoRuleConfig, expectedPromptOutput.autoRuleConfig) && equal(play.autoRuleConfig, expectedPromptOutput.autoRuleConfig), `${side}-normalized-auto-rule-config`, { id: row.id, expected: expectedPromptOutput.autoRuleConfig, action: play.autoRuleConfig, slim: normalizedPlay.autoRuleConfig });
   requireValue(Array.isArray(wire.mims) && wire.mims.length === 1 && wire.mims[0] === row.expectedOutputMim && wire.mims[0] === meta.mim_id, `${side}-normalized-mims`, { id: row.id, mims: wire.mims, meta, expectedOutputMim: row.expectedOutputMim });
   const prompts = actualPrompts(result);
   if (row.expectedPrompt) {
     requireValue(prompts.length === 1 && prompts[0] === row.expectedPrompt, `${side}-expected-prompt`, { id: row.id, expected: row.expectedPrompt, actual: prompts });
+    requireValue(expectedPromptOutput && expectedPromptOutput.prompt_id === row.expectedPrompt, `${side}-expected-prompt-output`, { id: row.id, expected: row.expectedPrompt, actual: expectedPromptOutput });
     requireValue(meta.prompt_id === row.expectedPrompt && meta.prompt_sub_category === 'AN', `${side}-selected-prompt-meta`, { id: row.id, meta, expected: row.expectedPrompt });
-    requireValue(Array.isArray(wire.esml) && wire.esml.length === 1 && wire.esml[0] !== 'undefined' && wire.slims[0].play.esml === wire.esml[0], `${side}-selected-esml`, { id: row.id, esml: wire.esml });
+    requireValue(Array.isArray(wire.esml) && wire.esml.length === 1 && wire.esml[0] !== 'undefined' && wire.esml[0] === expectedPromptOutput.esml && wire.action.config.jcp.config.play.esml === expectedPromptOutput.esml && normalizedPlay.esml === expectedPromptOutput.esml, `${side}-selected-esml`, { id: row.id, expected: expectedPromptOutput.esml, esml: wire.esml, actionEsml: wire.action.config.jcp.config.play.esml, slimEsml: normalizedPlay.esml });
+    if (expectedAutoPresent) requireValue(equal(play.autoRuleConfig, expectedPromptOutput.autoRuleConfig), `${side}-selected-auto-rule-config`, { id: row.id, expected: expectedPromptOutput.autoRuleConfig, actual: play.autoRuleConfig });
   } else {
     requireValue(prompts.length === 0, `${side}-exact-total-prompt`, { id: row.id, actual: prompts });
-    requireValue(equal(wire.esml, ['undefined']) && wire.slims[0].play.esml === 'undefined', `${side}-exact-total-esml`, { id: row.id, actual: wire.esml });
+    requireValue(equal(wire.esml, ['undefined']) && wire.action.config.jcp.config.play.esml === 'undefined' && normalizedPlay.esml === 'undefined', `${side}-exact-total-esml`, { id: row.id, actual: wire.esml });
   }
   requireValue(equal(wire.actionIdPaths || [], expectedActionIdPaths), `${side}-action-id-paths`, { id: row.id, actual: wire.actionIdPaths });
 }
@@ -355,10 +395,16 @@ for (let index = 0; index < plan.cases.length; index += 1) {
     requireValue(!!oracle, 'missing-context-oracle', { id: planRow.id, contextId: contextIdFor(planRow) });
     if (oracle) {
       requireValue(oracle.mim === planRow.mim && oracle.profile === planRow.profile && oracle.diceA === planRow.diceA && oracle.diceB === planRow.diceB && oracle.coin === planRow.coin && equal(oracle.vmRngValues || [], planRow.vmRngValues || []), 'oracle-context-metadata', { id: planRow.id, contextId: contextIdFor(planRow), plan: { mim: planRow.mim, profile: planRow.profile, diceA: planRow.diceA, diceB: planRow.diceB, coin: planRow.coin, vmRngValues: planRow.vmRngValues }, oracle: { mim: oracle.mim, profile: oracle.profile, diceA: oracle.diceA, diceB: oracle.diceB, coin: oracle.coin, vmRngValues: oracle.vmRngValues } });
-      requireValue(equal(planRow.expectedEligible || [], oracle.eligible || []), 'expected-eligible-oracle', { id: planRow.id });
+      const oracleEligible = oracle.eligible || [];
+      const expectedEligible = oracleEligible.map(basicPrompt);
+      const oracleExpectedOutput = planRow.expectedPrompt ? oracleEligible.find((item) => item.prompt_id === planRow.expectedPrompt) : null;
+      requireValue(planRow.expectedOutputMim === (oracle.expectedOutputMim || planRow.mim), 'expected-output-mim-oracle', { id: planRow.id, expected: oracle.expectedOutputMim || planRow.mim, actual: planRow.expectedOutputMim });
+      requireValue(equal(planRow.expectedEligible || [], expectedEligible), 'expected-eligible-oracle', { id: planRow.id, expected: expectedEligible, actual: planRow.expectedEligible });
+      requireValue(equal(planRow.expectedPromptOutput || null, oracleExpectedOutput ? promptExpectation(oracleExpectedOutput) : null), 'expected-prompt-output-oracle', { id: planRow.id, expected: oracleExpectedOutput ? promptExpectation(oracleExpectedOutput) : null, actual: planRow.expectedPromptOutput });
       const oracleTotal = (oracle.eligible || []).reduce((sum, item) => sum + item.weight, 0);
       requireValue(Math.abs(oracleTotal - planRow.expectedWeightTotal) < 1e-9, 'expected-total-oracle', { id: planRow.id, expected: planRow.expectedWeightTotal, actual: oracleTotal });
-      requireValue(planRow.expectedVmCalls === (oracle.vmCalls || 0), 'expected-vm-calls-oracle', { id: planRow.id, expected: planRow.expectedVmCalls, actual: oracle.vmCalls || 0 });
+      const expectedVmCalls = (oracle.conditionVmCalls || oracle.vmCalls || 0) + (planRow.expectedPrompt ? (oracle.resolutionVmCalls && oracle.resolutionVmCalls[planRow.expectedPrompt] || 0) : 0);
+      requireValue(planRow.expectedVmCalls === expectedVmCalls, 'expected-vm-calls-oracle', { id: planRow.id, expected: expectedVmCalls, actual: planRow.expectedVmCalls });
     }
   }
   checkResult(planRow, sourceRow, 'source');

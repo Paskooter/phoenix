@@ -56,8 +56,11 @@ function evaluate(row, mim) {
   const errors = [];
   const conditionErrors = [];
   const conditionRuntimeErrors = [];
+  const resolutionErrors = [];
+  const resolutionVmCalls = {};
   const prompts = (mim.prompts || []).filter((prompt) => prompt.prompt_category === 'Entry-Core' && prompt.prompt_sub_category === 'AN');
   const seen = {};
+  const validPrompts = [];
   prompts.forEach((prompt) => {
     if (seen[prompt.prompt_id]) errors.push({ prompt: prompt.prompt_id, message: 'duplicate prompt_id' });
     seen[prompt.prompt_id] = true;
@@ -69,9 +72,34 @@ function evaluate(row, mim) {
       if (runtimeErrors.length > beforeRuntimeErrors) conditionRuntimeErrors.push({ prompt: prompt.prompt_id, condition: prompt.condition, messages: runtimeErrors.slice(beforeRuntimeErrors) });
     }
     if (prompt.condition) conditions.push({ prompt_id: prompt.prompt_id, condition: prompt.condition, valid, error: conditionErrors.length && conditionErrors[conditionErrors.length - 1].prompt === prompt.prompt_id ? conditionErrors[conditionErrors.length - 1].message : undefined });
-    if (valid) eligible.push({ prompt_id: prompt.prompt_id, weight: effectiveWeight(prompt) });
+    if (valid) validPrompts.push(prompt);
   });
-  return { eligible, conditions, vmCalls: vmIndex, errors, conditionErrors, conditionRuntimeErrors };
+  // Slimmer evaluates every condition before resolving the selected prompt.
+  // Resolve each eligible prompt independently from this exact post-condition
+  // cursor so interpolation never changes the condition oracle or the next
+  // prompt's expected random state.
+  const conditionVmCalls = vmIndex;
+  validPrompts.forEach((prompt) => {
+    vmIndex = conditionVmCalls;
+    const beforeResolutionErrors = runtimeErrors.length;
+    let esml = '';
+    try { esml = vm.runInContext('`' + prompt.prompt + '`', context); }
+    catch (err) { resolutionErrors.push({ prompt: prompt.prompt_id, message: err.message }); }
+    resolutionVmCalls[prompt.prompt_id] = vmIndex - conditionVmCalls;
+    if (runtimeErrors.length > beforeResolutionErrors) {
+      resolutionErrors.push({ prompt: prompt.prompt_id, messages: runtimeErrors.slice(beforeResolutionErrors) });
+    }
+    const autoRuleConfig = (prompt.auto_rule_override !== null) ? prompt.auto_rule_override : mim.es_auto_tagging;
+    const expected = {
+      prompt_id: prompt.prompt_id,
+      weight: effectiveWeight(prompt),
+      esml,
+      autoRuleConfigPresent: autoRuleConfig !== undefined,
+    };
+    if (autoRuleConfig !== undefined) expected.autoRuleConfig = autoRuleConfig;
+    eligible.push(expected);
+  });
+  return { eligible, conditions, vmCalls: conditionVmCalls, conditionVmCalls, resolutionVmCalls, resolutionErrors, errors, conditionErrors, conditionRuntimeErrors };
 }
 
 const rows = [];
@@ -83,10 +111,9 @@ for (let i = 0; i < plan.cases.length; i += 1) {
     continue;
   }
   const mim = JSON.parse(fs.readFileSync(file, 'utf8'));
-  mim.mim_id = row.mim;
   try {
     const result = evaluate(row, mim);
-    rows.push(Object.assign({ id: row.id, mim: row.mim, profile: row.profile, diceA: row.diceA, diceB: row.diceB, coin: row.coin, vmRngValues: row.vmRngValues }, result));
+    rows.push(Object.assign({ id: row.id, mim: row.mim, expectedOutputMim: mim.mim_id || row.mim, profile: row.profile, diceA: row.diceA, diceB: row.diceB, coin: row.coin, vmRngValues: row.vmRngValues }, result));
   } catch (err) {
     rows.push({ id: row.id, mim: row.mim, profile: row.profile, error: { name: err.name, message: err.message } });
   }

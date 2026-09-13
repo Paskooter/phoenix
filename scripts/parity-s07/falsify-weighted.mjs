@@ -167,6 +167,38 @@ run('forged-mim-tree-digest', (plan, source, candidate) => {
   candidate.mimInventory.treeSha256 = '0'.repeat(64);
 }, ['plan-mim-tree-digest', 'source-mim-inventory', 'candidate-mim-inventory']);
 
+run('paired-selected-esml-corruption', (plan, source, candidate) => {
+  const forged = 'FORGED_SOURCE_ESML';
+  for (const receipt of [source, candidate]) {
+    const result = receipt.rows[0].result;
+    result.action.config.jcp.config.play.esml = forged;
+    result.esml[0] = forged;
+    result.slims[0].play.esml = forged;
+  }
+}, ['source-normalized-esml', 'candidate-normalized-esml', 'source-selected-esml', 'candidate-selected-esml']);
+
+run('paired-auto-rule-config-corruption', (plan, source, candidate) => {
+  const forged = { forged: true };
+  for (const receipt of [source, candidate]) {
+    const result = receipt.rows[0].result;
+    result.action.config.jcp.config.play.autoRuleConfig = forged;
+    result.slims[0].play.autoRuleConfig = forged;
+  }
+}, ['source-normalized-auto-rule-config', 'candidate-normalized-auto-rule-config', 'source-selected-auto-rule-config', 'candidate-selected-auto-rule-config']);
+
+const aliasIndex = base.plan.cases.findIndex((row) => row.expectedOutputMim && row.expectedOutputMim !== row.mim);
+if (aliasIndex === -1) throw new Error('paired-output-mim-corruption requires a batch containing an authored MIM alias');
+run('paired-output-mim-corruption', (plan, source, candidate) => {
+  const forged = 'FORGED_OUTPUT_MIM';
+  plan.cases[aliasIndex].expectedOutputMim = forged;
+  for (const receipt of [source, candidate]) {
+    const result = receipt.rows[aliasIndex].result;
+    result.action.config.jcp.config.play.meta.mim_id = forged;
+    result.slims[0].play.meta.mim_id = forged;
+    result.mims[0] = forged;
+  }
+}, ['expected-output-mim-oracle', 'source-action-meta', 'candidate-action-meta', 'source-normalized-mims', 'candidate-normalized-mims']);
+
 const failed = checks.filter((check) => !check.passed);
 const report = {
   schemaVersion: 1,
